@@ -1,6 +1,7 @@
 import config from '../utils/config';
+import { Request, Response } from 'express';
 
-const get = async (request, response): Promise<void> => {
+const get = async (request: Request, response: Response): Promise<void> => {
 
     console.log('Get housing')
 
@@ -11,8 +12,8 @@ const get = async (request, response): Promise<void> => {
         // Selecting the first 3 records in Vue générale:
         maxRecords: 10,
         view: "Vue générale"
-    }).all().then(r => {
-        return response.status(200).json(r);
+    }).all().then((_: any) => {
+        return response.status(200).json(_);
     });
 };
 

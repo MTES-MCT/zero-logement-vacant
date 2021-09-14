@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+      "lib": ["esnext"],
+      "outDir": "./dist",
+      "target": "esnext",
+      "allowJs": true,
+    "strict": true,
+      "module": "commonjs",
+      "resolveJsonModule": true,
+      "noUnusedLocals": true,
+      "sourceMap": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true
+  },
+  "include": [
+      "**/*.ts",
+      "**/*.js"
+  ],
+  "exclude": [
+      "node_modules",
+      "**/*.d.ts",
+      "dist",
+      "frontend"
+  ]
+}

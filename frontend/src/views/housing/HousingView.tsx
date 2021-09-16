@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { Col, Container, Row } from '@dataesr/react-dsfr';
-import housingService from '../services/housing.service';
+import housingService from '../../services/housing.service';
 
 
 const HousingView = () => {
@@ -20,7 +20,7 @@ const HousingView = () => {
                 <Row>
                     <Col n="2">Filtres</Col>
                     <Col>
-                        { housingList.map(housing => (
+                        { housingList.map((housing: any) => (
                             <Row>
                                 <Col>
                                     { housing.fields.ADRESSE1 }

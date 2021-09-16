@@ -1,11 +1,9 @@
-
+import express from 'express';
+import path from 'path';
 import router from './routers';
 import config from './utils/config';
 
 import cors from 'cors';
-
-const express = require("express");
-const path = require('path');
 
 const PORT = config.serverPort || 3001;
 
@@ -14,6 +12,8 @@ const app = express();
 if (config.environment === 'development') {
     app.use(cors({ origin: 'http://localhost:3000' }));
 }
+
+app.use(express.json());
 
 app.use(router);
 

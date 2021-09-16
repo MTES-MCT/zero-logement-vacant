@@ -22,6 +22,8 @@ const signin = async (email: string, password: string) => {
         })
 };
 
-export default {
+const authService = {
     login: signin
-}
+};
+
+export default authService;

@@ -10,6 +10,8 @@ const listHousing = async () => {
         .catch((error) => console.error(error));
 };
 
-export default {
+const housingService = {
     listHousing
-}
+};
+
+export default housingService;

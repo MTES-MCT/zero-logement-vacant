@@ -12,7 +12,7 @@ const HousingView = () => {
         housingService.listHousing().then(records => {
             setHousingList(records ?? []);
         });
-    }, housingList);
+    }, []);
 
     return (
         <>

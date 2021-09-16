@@ -10,7 +10,7 @@
     "server-local": "ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
     "build": "tsc && npm run frontend:build",
-    "start": "node ./dist/server/index.js"
+    "start": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",

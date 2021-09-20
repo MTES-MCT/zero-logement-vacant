@@ -1,10 +1,12 @@
 import { AuthenticationActionTypes, LOGIN, LOGIN_FAIL } from '../actions/authenticationAction';
+import { User } from '../../models/User';
 
 const user = JSON.parse(localStorage.getItem('user') ?? '{}');
 
 export interface AuthenticationState {
     isLoggedIn: boolean;
-    user: any;
+    user: User;
+    error: string;
 }
 
 const initialState =
@@ -18,13 +20,15 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
             return {
                 ...state,
                 isLoggedIn: true,
-                user: action.user
+                user: action.user,
+                error: null
             };
         case LOGIN_FAIL:
             return {
                 ...state,
                 isLoggedIn: false,
-                user: null
+                user: null,
+                error: 'failed'
             };
         default:
             return state;

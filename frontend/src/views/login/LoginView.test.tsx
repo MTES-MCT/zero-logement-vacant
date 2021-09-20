@@ -4,13 +4,25 @@ import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
 import { BrowserRouter } from 'react-router-dom';
 
+import { Provider } from 'react-redux';
+import thunk from 'redux-thunk';
+import { applyMiddleware, createStore } from 'redux';
+import applicationReducer from '../../store/reducers/applicationReducers';
+
 describe('login view', () => {
+
+    let store: any;
+
     beforeEach(() => {
         fetchMock.resetMocks();
+        store = createStore(
+            applicationReducer,
+            applyMiddleware(thunk)
+        );
     });
 
     test('should render login form', () => {
-        render(<LoginView/>);
+        render(<Provider store={store}><LoginView/></Provider>);
         const loginInputElement = screen.getByTestId('email-input').querySelector('input');
         const passwordInputElement = screen.getByTestId('password-input').querySelector('input');
         const submitInputElement = screen.getByTestId('login-button');
@@ -23,7 +35,7 @@ describe('login view', () => {
 
         fetchMock.mockResponseOnce('[]', { status: 401 });
 
-        render(<LoginView/>);
+        render(<Provider store={store}><LoginView/></Provider>);
         // @ts-ignore
         fireEvent.change(screen.getByTestId('password-input').querySelector('input'), {target: {value: 'password'}});
         // @ts-ignore
@@ -45,7 +57,7 @@ describe('login view', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify([{ email: 'email', accessToken: 'accessToken' }]), { status: 200 });
 
-        const { container } = render(<BrowserRouter><LoginView/></BrowserRouter>);
+        const { container } = render(<Provider store={store}><BrowserRouter><LoginView/></BrowserRouter></Provider>);
 
         // @ts-ignore
         fireEvent.change(screen.getByTestId('password-input').querySelector('input'), { target: { value: 'password' } });

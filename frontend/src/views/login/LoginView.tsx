@@ -2,7 +2,6 @@ import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { Alert, Button, Container, TextInput } from '@dataesr/react-dsfr';
-import authService from '../../services/auth.service';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../store/actions/authenticationAction';
@@ -13,9 +12,8 @@ const LoginView = () => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
 
-    const { user } = useSelector((state: ApplicationState) => state.authentication);
+    const { user, error } = useSelector((state: ApplicationState) => state.authentication);
 
     const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();

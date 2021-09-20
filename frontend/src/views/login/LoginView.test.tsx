@@ -34,7 +34,7 @@ describe('login view', () => {
         await waitFor(() => screen.getByTestId('alert-error'))
 
         expect(fetchMock).toHaveBeenCalled();
-        const errorElement = screen.getByTestId('alert-error');
+        const errorElement = screen.getByTestId('alert-errora');
         expect(errorElement).toBeInTheDocument();
 
     });

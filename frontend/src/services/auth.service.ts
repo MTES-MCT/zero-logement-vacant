@@ -18,7 +18,7 @@ const signin = async (email: string, password: string) => {
             if (user.accessToken) {
                 localStorage.setItem('user', JSON.stringify(user));
             }
-            return user1;
+            return user;
         })
 };
 

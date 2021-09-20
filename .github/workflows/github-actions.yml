@@ -14,8 +14,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Server install
+        run: npm install
       - name : build
-        run: npm build
+        run: npm run build
       - name: Unit tests
         run: npm test
       - name: NPM front install and build

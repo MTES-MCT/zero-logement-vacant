@@ -29,12 +29,14 @@ describe('login view', () => {
         // @ts-ignore
         fireEvent.change(screen.getByTestId('email-input').querySelector('input'), {target: {value: 'email'}});
 
-        fireEvent.click(screen.getByTestId('login-button'));
+        act(() => {
+            fireEvent.click(screen.getByTestId('login-button'));
+        });
 
         await waitFor(() => screen.getByTestId('alert-error'))
 
         expect(fetchMock).toHaveBeenCalled();
-        const errorElement = screen.getByTestId('alert-errora');
+        const errorElement = screen.getByTestId('alert-error');
         expect(errorElement).toBeInTheDocument();
 
     });

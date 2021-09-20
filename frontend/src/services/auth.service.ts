@@ -1,6 +1,6 @@
 import config from '../utils/config';
 
-const signin = async (email: string, password: string) => {
+const login = async (email: string, password: string) => {
 
     return fetch(`${config.apiEndpoint}/api/authenticate`, {
         method: 'POST',
@@ -31,7 +31,7 @@ const authHeader = () => {
 }
 
 const authService = {
-    signin: signin,
+    login: login,
     authHeader: authHeader
 };
 

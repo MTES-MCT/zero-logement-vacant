@@ -3,22 +3,23 @@ import { Redirect } from 'react-router-dom';
 
 import { Alert, Button, Container, TextInput } from '@dataesr/react-dsfr';
 import authService from '../../services/auth.service';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../store/actions/authenticationAction';
 
 const LoginView = () => {
+
+    const dispatch = useDispatch();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const [user, setUser] = useState(undefined);
+    const { user } = useSelector((state: ApplicationState) => state.authentication);
 
-    const login = (e: FormEvent<HTMLFormElement>) => {
+    const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        authService.signin(email, password)
-            .then(_ => setUser(_))
-            .catch(_ => {
-                setError('Identifiants invalides');
-            });
+        dispatch(login(email, password));
     };
 
     if (user) {
@@ -28,7 +29,7 @@ const LoginView = () => {
     return (
         <>
             <Container spacing="py-4w">
-                <form onSubmit={login} id="login_form">
+                <form onSubmit={submitLoginForm} id="login_form">
                     <TextInput
                         value={email}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}

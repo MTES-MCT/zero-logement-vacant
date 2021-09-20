@@ -11,8 +11,9 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     return base('🏡 Adresses').select({
         // Selecting the first 3 records in Vue générale:
         maxRecords: 10,
-        view: "Vue générale"
-    }).all().then((_: any) => {
+        view: "Vue générale",
+        filterByFormula: "{Taxation du logement sur la vacance (THLV ou TLV)} = 'oui'"
+    }).firstPage().then((_: any) => {
         return response.status(200).json(_);
     });
 };

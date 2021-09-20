@@ -14,7 +14,7 @@ const LoginView = () => {
 
     const login = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        authService.login(email, password)
+        authService.signin(email, password)
             .then(_ => setUser(_))
             .catch(_ => {
                 setError('Identifiants invalides');

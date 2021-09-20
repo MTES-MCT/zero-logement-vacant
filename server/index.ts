@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
-import router from './routers';
+import protectedRouter from './routers/protected';
+import unprotectedRouter from './routers/unprotected';
 import config from './utils/config';
 
 import cors from 'cors';
@@ -15,7 +16,8 @@ if (config.environment === 'development') {
 
 app.use(express.json());
 
-app.use(router);
+app.use(unprotectedRouter);
+app.use(protectedRouter);
 
 if (config.environment === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/build')));

@@ -22,8 +22,17 @@ const signin = async (email: string, password: string) => {
         })
 };
 
+
+const authHeader = () => {
+    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
+    return user && user.accessToken
+        ? { 'x-access-token': user.accessToken }
+        : undefined;
+}
+
 const authService = {
-    login: signin
+    signin: signin,
+    authHeader: authHeader
 };
 
 export default authService;

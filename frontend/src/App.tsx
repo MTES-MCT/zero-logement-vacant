@@ -1,17 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import LoginView from './views/login/LoginView';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import HousingView from './views/housing/HousingView';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
-import applicationReducer from './store/reducers/applicationReducers';
+import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 
-function App() {
 
-    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
+function AppWrapper () {
 
     const store = createStore(
         applicationReducer,
@@ -20,6 +19,17 @@ function App() {
 
     return (
         <Provider store={store}>
+            <App />
+        </Provider>
+    );
+}
+
+function App() {
+
+    const { user } = useSelector((state: ApplicationState) => state.authentication);
+
+    return (
+        <>
             <AppHeader />
             <React.Suspense fallback={<></>}>
                 <BrowserRouter>
@@ -29,8 +39,8 @@ function App() {
                     </Switch>
                 </BrowserRouter>
             </React.Suspense>
-        </Provider>
+        </>
     );
 }
 
-export default App;
+export default AppWrapper;

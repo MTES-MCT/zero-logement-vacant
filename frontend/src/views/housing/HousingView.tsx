@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
-import { Col, Container, Row, SideMenu, SideMenuItem, Checkbox, Text } from '@dataesr/react-dsfr';
-import housingService from '../../services/housing.service';
-import { Housing } from '../../models/Housing';
+import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Text } from '@dataesr/react-dsfr';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { listHousing } from '../../store/actions/housingAction';
 
 
 const HousingView = () => {
 
-    const [housingList, setHousingList] = useState<Housing[]>([])
+    const dispatch = useDispatch();
 
-    useEffect(() => {
-        housingService.listHousing().then(housingList => {
-            setHousingList(housingList ?? []);
-        });
-    }, []);
+    const { housingList } = useSelector((state: ApplicationState) => state.housing);
+
+    useEffect(() => {Use
+        dispatch(listHousing());
+    }, [dispatch]);
 
     return (
         <>

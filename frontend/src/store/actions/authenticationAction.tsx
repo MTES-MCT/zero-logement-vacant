@@ -22,7 +22,7 @@ export const login = (email: string, password: string) => {
                 if (user.accessToken) {
                     dispatch({
                         type: LOGIN,
-                        user: { email },
+                        user,
                     });
                 } else {
                     dispatch({

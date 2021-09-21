@@ -12,7 +12,7 @@ const HousingView = () => {
 
     const { housingList } = useSelector((state: ApplicationState) => state.housing);
 
-    useEffect(() => {Use
+    useEffect(() => {
         dispatch(listHousing());
     }, [dispatch]);
 

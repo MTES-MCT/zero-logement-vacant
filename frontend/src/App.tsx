@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';

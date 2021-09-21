@@ -2,7 +2,9 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
+
 
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -55,9 +57,10 @@ describe('login view', () => {
 
     test('should route to housing view when login succeeded', async () => {
 
-        fetchMock.mockResponseOnce(JSON.stringify([{ email: 'email', accessToken: 'accessToken' }]), { status: 200 });
+        fetchMock.mockResponseOnce(JSON.stringify({ email: 'email', accessToken: 'accessToken' }), { status: 200 });
 
-        const { container } = render(<Provider store={store}><BrowserRouter><LoginView/></BrowserRouter></Provider>);
+        const history = createMemoryHistory();
+        const { container } = render(<Provider store={store}><Router history={history}><LoginView/></Router></Provider>);
 
         // @ts-ignore
         fireEvent.change(screen.getByTestId('password-input').querySelector('input'), { target: { value: 'password' } });
@@ -70,8 +73,7 @@ describe('login view', () => {
 
         expect(fetchMock).toHaveBeenCalled();
 
-        // TODO
-        // await waitFor(() => expect(container).toHaveTextContent(/filtres/));
+        await waitFor(() => expect(history.location.pathname).toBe("/logements"));
 
     });
 

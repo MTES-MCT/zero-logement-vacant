@@ -11,10 +11,10 @@ const listHousing = async () => {
         .then(response => {
             return response.json();
         })
-        .then(_ => _.map((d: any) => <Housing>{
+        .then(_ => _.map((d: any) => ({
             address: d.fields['Adresse'],
             owner: d.fields['Propriétaire']
-        }))
+        } as Housing)))
 };
 
 const housingService = {

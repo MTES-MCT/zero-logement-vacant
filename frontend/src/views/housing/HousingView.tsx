@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Text } from '@dataesr/react-dsfr';
+import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listHousing } from '../../store/actions/housingAction';
@@ -30,8 +30,9 @@ const HousingView = () => {
     return (
         <>
             <Container spacing="py-4w">
+                <Title as="h1">Tous les logements</Title>
                 <Row>
-                    <Col n="3">
+                    <Col n="2">
                         <SideMenu title="Filtres" buttonLabel="filters">
                             <SideMenuItem title="Propriétaires" data-testid="owners-filter">
                                 <Checkbox
@@ -62,7 +63,6 @@ const HousingView = () => {
 
                     </Col>
                     <Col>
-                        <Text size="lead">Logements vacants</Text>
                         { housingList.map(housing => (
                             <Row>
                                 <Col>

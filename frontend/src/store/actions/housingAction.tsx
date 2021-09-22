@@ -11,9 +11,9 @@ export interface FetchHousingAction {
 
 export type HousingActionTypes = FetchHousingAction;
 
-export const listHousing = () => {
+export const listHousing = (ownerKinds?: string[]) => {
     return function (dispatch: Dispatch) {
-        housingService.listHousing()
+        housingService.listHousing(ownerKinds)
             .then(housingList => {
                 dispatch({
                     type: FETCH_HOUSING,

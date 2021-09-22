@@ -17,7 +17,7 @@ function AppHeader() {
     return (
         <Header closeButtonLabel='Close it!' data-testid="header">
             <HeaderBody>
-                <Logo splitCharacter={10}>République Française</Logo>
+                <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                 <Service
                     title="Zéro Logement Vacant"
                     description="Mobiliser les propriétaires de logements vacants"/>

@@ -16,7 +16,7 @@ const HousingView = () => {
 
     useEffect(() => {
         dispatch(listHousing(filters.ownerKinds));
-    }, [filters])
+    }, [filters, dispatch])
 
     const changeOwnerKindsFilter = (value: string, checked: boolean) => {
         const valueIndex = (filters.ownerKinds ?? []).indexOf(value);

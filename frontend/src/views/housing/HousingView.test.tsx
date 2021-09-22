@@ -26,9 +26,9 @@ describe('housing view', () => {
     test('should display filter types with collapsed options', () => {
         render(<Provider store={store}><HousingView/></Provider>);
         const ownersFilterElement = screen.getByTestId('owners-filter');
-        const ownersOptionFilterElement = screen.getByTestId('owners-filter-particulier');
+        const ownersOption1Element = screen.getByTestId('owners-filter1');
         expect(ownersFilterElement).toBeInTheDocument();
-        expect(ownersOptionFilterElement).not.toBeVisible();
+        expect(ownersOption1Element).not.toBeVisible();
     });
 
     test('should filtering', async () => {
@@ -36,14 +36,13 @@ describe('housing view', () => {
         fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
 
         render(<Provider store={store}><HousingView/></Provider>);
-        const ownersFilterElement = screen.getByTestId('owners-filter');
         const ownersOption1Element = screen.getByTestId('owners-filter1');
         const ownersOption2Element = screen.getByTestId('owners-filter2');
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
-                headers: { ...authService.authHeader() },
+                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({}),
             });
 
@@ -51,14 +50,31 @@ describe('housing view', () => {
         const ownersCheckbox2Element = ownersOption2Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
         act(() => { fireEvent.click(ownersCheckbox1Element) });
-        act(() => { fireEvent.click(ownersCheckbox2Element) });
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
-            headers: { ...authService.authHeader() },
-            body: JSON.stringify({ ownerKinds: [ownersCheckbox1Element.value, ownersCheckbox2Element.value]}),
+            headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ownerKinds: [ownersCheckbox1Element.value]}),
         });
+
+        act(() => { fireEvent.click(ownersCheckbox2Element) });
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `${config.apiEndpoint}/api/housing`, {
+                method: 'POST',
+                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ownerKinds: [ownersCheckbox1Element.value, ownersCheckbox2Element.value]}),
+            });
+
+        act(() => { fireEvent.click(ownersCheckbox1Element) });
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `${config.apiEndpoint}/api/housing`, {
+                method: 'POST',
+                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ownerKinds: [ownersCheckbox2Element.value]}),
+            });
     });
 
 });

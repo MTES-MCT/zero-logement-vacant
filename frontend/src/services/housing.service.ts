@@ -7,7 +7,7 @@ const listHousing = async (ownerKinds?: string[]) => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
         method: 'POST',
-        headers: { ...authService.authHeader(),  'Content-Type': 'application/json' },
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ ownerKinds }),
     })
         .then(response => {

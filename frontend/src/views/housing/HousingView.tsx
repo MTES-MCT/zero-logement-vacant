@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Text, Title } from '@dataesr/react-dsfr';
+import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listHousing } from '../../store/actions/housingAction';

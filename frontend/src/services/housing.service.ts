@@ -14,8 +14,17 @@ const listHousing = async (ownerKinds?: string[]) => {
             return response.json();
         })
         .then(_ => _.map((d: any) => ({
-            address: d.fields['Adresse'],
-            owner: d.fields['Propriétaire']
+            id: d.id,
+            address: [
+                d.fields['ADRESSE1'],
+                d.fields['ADRESSE2'],
+                d.fields['ADRESSE3'],
+                d.fields['ADRESSE4'],
+                d.fields['ADRESSE5'],
+                d.fields['ADRESSE6']
+            ].filter(a => a !== undefined),
+            owner: d.fields['Propriétaire'],
+            tags: []
         } as Housing)))
 };
 

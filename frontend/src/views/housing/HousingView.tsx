@@ -1,9 +1,11 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Title } from '@dataesr/react-dsfr';
+import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Title, Table, Link } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listHousing } from '../../store/actions/housingAction';
+import { Housing } from '../../models/Housing';
+import { capitalize } from '../../utils/stringUtils';
 
 
 const HousingView = () => {
@@ -11,6 +13,13 @@ const HousingView = () => {
     const dispatch = useDispatch();
 
     const [filters, setFilters] = useState<{ ownerKinds?: string[] }>({});
+
+    const columns: any[] = [
+        { name: 'address', label: 'Adresse', render: ({ address }: Housing) => address.map(_ => <div>{capitalize(_)}</div>) },
+        { name: 'owner', label: 'Propriétaire', render: ({ owner }: Housing) => capitalize(owner) },
+        { name: 'tags', label: 'Caractéristiques', render: ({ tags }: Housing) => '' },
+        { name: 'id', headerRender: () => '', render: ({ id }: Housing) => <Link title="Voir" href="/" isSimple icon="ri-arrow-right-line">Voir</Link> }
+    ];
 
     const { housingList } = useSelector((state: ApplicationState) => state.housing);
 
@@ -63,16 +72,21 @@ const HousingView = () => {
 
                     </Col>
                     <Col>
-                        { housingList.map(housing => (
-                            <Row>
-                                <Col>
-                                    { housing.address }
-                                </Col>
-                                <Col>
-                                    { housing.owner }
-                                </Col>
-                            </Row>
-                        ))}
+                        {housingList.length}
+                        { housingList && housingList.length &&
+                            <Table
+                                caption="Logements"
+                                captionPosition="none"
+                                rowKey="id"
+                                data={housingList}
+                                columns={columns}
+                                pagination
+                                paginationPosition="center"
+                                perPage={10}
+                                fixedLayout={true}
+                                className="zlv-table-with-view"
+                            />
+                        }
                     </Col>
                 </Row>
             </Container>

@@ -1,4 +1,6 @@
 export interface Housing {
-    address: string;
+    id: string;
+    address: string[];
     owner: string;
+    tags: string[];
 }

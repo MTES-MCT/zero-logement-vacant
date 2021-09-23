@@ -20,6 +20,7 @@ import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './HousingView.module.scss';
+import { Type } from 'typescript';
 
 
 const HousingView = () => {
@@ -30,19 +31,17 @@ const HousingView = () => {
 
     const [filters, setFilters] = useState<{ ownerKinds?: string[] }>({});
     const [perPage, setPerPage] = useState<number>(50);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const { housingList } = useSelector((state: ApplicationState) => state.housing);
-
-    const columns: any[] = [
-        { name: 'address', label: 'Adresse', render: ({ address, id }: Housing) => address.map((_, i) => <div key={id + '_address_' + i}>{capitalize(_)}</div>) },
-        { name: 'owner', label: 'Propriétaire', render: ({ owner }: Housing) => capitalize(owner) },
-        { name: 'tags', label: 'Caractéristiques', render: ({ tags }: Housing) => '' },
-        { name: 'id', headerRender: () => '', render: ({ id }: Housing) => <Link title="Voir" href="/" isSimple icon="ri-arrow-right-line">Voir</Link> }
-    ];
 
     useEffect(() => {
         dispatch(listHousing(filters.ownerKinds));
     }, [filters, dispatch])
+
+    useEffect(() => {
+        console.log('selected', selectedIds);
+    }, [selectedIds])
 
     const changeOwnerKindsFilter = (value: string, checked: boolean) => {
         const valueIndex = (filters.ownerKinds ?? []).indexOf(value);
@@ -52,6 +51,47 @@ const HousingView = () => {
             setFilters( { ownerKinds: (filters.ownerKinds ?? []).filter(f => f !== value)})
         }
     }
+
+    function changeList<Type> (list: Type[], value: Type, checked: boolean): Type[] {
+        const valueIndex = (list ?? []).indexOf(value);
+        if (checked && valueIndex === -1) {
+            return [...list ?? [], value];
+        } else if (!checked && valueIndex !== -1) {
+            return (list ?? []).filter(f => f !== value);
+        }
+        return list;
+    }
+
+    const columns: any[] = [
+        {
+            name: 'select',
+            headerRender: () => '',
+            render: ({ id }: Housing) =>
+                <Checkbox value={id} onChange={(e: ChangeEvent<any>) => setSelectedIds(changeList(selectedIds, e.target.value, e.target.checked))} label=""></Checkbox>
+        },
+        {
+            name: 'address',
+            label: 'Adresse',
+            render: ({ address, id }: Housing) =>
+                address.map((_, i) => <div key={id + '_address_' + i}>{capitalize(_)}</div>)
+        },
+        {
+            name: 'owner',
+            label: 'Propriétaire',
+            render: ({ owner }: Housing) => capitalize(owner)
+        },
+        {
+            name: 'tags',
+            label: 'Caractéristiques',
+            render: ({ tags }: Housing) => ''
+        },
+        {
+            name: 'view',
+            headerRender: () => '',
+            render: ({ id }: Housing) =>
+                <Link title="Voir" href="/" isSimple icon="ri-arrow-right-line">Voir</Link>
+        }
+    ];
 
     return (
         <>
@@ -104,7 +144,7 @@ const HousingView = () => {
                                 paginationPosition="center"
                                 perPage={perPage}
                                 fixedLayout={true}
-                                className="zlv-table-with-view"
+                                className="zlv-table-with-view zlv-table-with-select"
                             />
                         }
                         <div style={{textAlign: 'center'}}>

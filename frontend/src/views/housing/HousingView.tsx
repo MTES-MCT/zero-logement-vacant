@@ -36,6 +36,7 @@ const HousingView = () => {
     const { housingList } = useSelector((state: ApplicationState) => state.housing);
 
     useEffect(() => {
+        setSelectedIds([]);
         dispatch(listHousing(filters.ownerKinds));
     }, [filters, dispatch])
 
@@ -44,20 +45,15 @@ const HousingView = () => {
     }, [selectedIds])
 
     const changeOwnerKindsFilter = (value: string, checked: boolean) => {
-        const valueIndex = (filters.ownerKinds ?? []).indexOf(value);
-        if (checked && valueIndex === -1) {
-            setFilters({ ownerKinds: [...filters.ownerKinds ?? [], value] })
-        } else if (!checked && valueIndex !== -1) {
-            setFilters( { ownerKinds: (filters.ownerKinds ?? []).filter(f => f !== value)})
-        }
+        setFilters({ ownerKinds: changeList(filters.ownerKinds, value, checked) });
     }
 
-    function changeList<Type> (list: Type[], value: Type, checked: boolean): Type[] {
-        const valueIndex = (list ?? []).indexOf(value);
+    function changeList<Type> (list: Type[] = [], value: Type, checked: boolean): Type[] {
+        const valueIndex = list.indexOf(value);
         if (checked && valueIndex === -1) {
-            return [...list ?? [], value];
+            return [...list, value];
         } else if (!checked && valueIndex !== -1) {
-            return (list ?? []).filter(f => f !== value);
+            return list.filter(f => f !== value);
         }
         return list;
     }

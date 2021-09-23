@@ -20,7 +20,6 @@ import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './HousingView.module.scss';
-import { Type } from 'typescript';
 
 
 const HousingView = () => {

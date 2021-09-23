@@ -18,6 +18,8 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listHousing } from '../../store/actions/housingAction';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
+import LoadingBar from 'react-redux-loading-bar';
+import styles from './HousingView.module.scss';
 
 
 const HousingView = () => {
@@ -87,6 +89,7 @@ const HousingView = () => {
 
                     </Col>
                     <Col>
+                        <LoadingBar className={styles.loading} updateTime={100} maxProgress={100} progressIncrease={10}/>
                         <Text className="fr-mb-2w">
                             <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
                         </Text>

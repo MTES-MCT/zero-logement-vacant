@@ -10,9 +10,11 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 
     const ownerKinds = request.body.ownerKinds;
 
-    const ownerKindsFormula = ownerKinds ? `OR(${ownerKinds
+    const ownerKindsFormula = ownerKinds && ownerKinds.length ? `OR(${ownerKinds
         .map((ownerKind: string) => `{Type de propriétaire} = '${ownerKind}'`)
         .reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
+
+    console.log('ownerKindsFormula', ownerKindsFormula)
 
     return base('🏡 Adresses').select({
         maxRecords: 500,

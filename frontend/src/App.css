@@ -1,3 +1,7 @@
 .zlv-table-with-view th:last-child {
   width: 100px;
 }
+
+.zlv-table-with-view table:before {
+  display: none !important;
+}

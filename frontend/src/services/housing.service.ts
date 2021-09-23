@@ -19,9 +19,7 @@ const listHousing = async (ownerKinds?: string[]) => {
                 d.fields['ADRESSE1'],
                 d.fields['ADRESSE2'],
                 d.fields['ADRESSE3'],
-                d.fields['ADRESSE4'],
-                d.fields['ADRESSE5'],
-                d.fields['ADRESSE6']
+                d.fields['ADRESSE4']
             ].filter(a => a !== undefined),
             owner: d.fields['Propriétaire'],
             tags: []

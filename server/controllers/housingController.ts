@@ -14,17 +14,18 @@ const get = async (request: Request, response: Response): Promise<Response> => {
         .map((ownerKind: string) => `{Type de propriétaire} = '${ownerKind}'`)
         .reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
 
-    const ownerKindsFormula1 = "{Type de propriétaire} = 'SCI'"
-
-    console.log('ownerKindsFormula', ownerKindsFormula)
-    console.log('ownerKindsFormula', ownerKindsFormula1)
-
     return base('🏡 Adresses').select({
-        // Selecting the first 3 records in Vue générale:
-        maxRecords: 10,
+        maxRecords: 500,
+        fields: [
+            'ADRESSE1',
+            'ADRESSE2',
+            'ADRESSE3',
+            'ADRESSE4',
+            'Propriétaire'
+        ],
         view: "Vue générale",
         filterByFormula : ownerKindsFormula
-    }).firstPage().then((_: any) => {
+    }).all().then((_: any) => {
         return response.status(200).json(_);
     });
 };

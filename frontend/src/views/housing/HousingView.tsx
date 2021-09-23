@@ -1,6 +1,18 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Checkbox, Col, Container, Row, SideMenu, SideMenuItem, Title, Table, Link } from '@dataesr/react-dsfr';
+import {
+    Button,
+    Checkbox,
+    Col,
+    Container,
+    Link,
+    Row,
+    SideMenu,
+    SideMenuItem,
+    Table,
+    Text,
+    Title,
+} from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listHousing } from '../../store/actions/housingAction';
@@ -12,16 +24,19 @@ const HousingView = () => {
 
     const dispatch = useDispatch();
 
+    const maxRecords = 500;
+
     const [filters, setFilters] = useState<{ ownerKinds?: string[] }>({});
+    const [perPage, setPerPage] = useState<number>(50);
+
+    const { housingList } = useSelector((state: ApplicationState) => state.housing);
 
     const columns: any[] = [
-        { name: 'address', label: 'Adresse', render: ({ address }: Housing) => address.map(_ => <div>{capitalize(_)}</div>) },
+        { name: 'address', label: 'Adresse', render: ({ address, id }: Housing) => address.map((_, i) => <div key={id + '_address_' + i}>{capitalize(_)}</div>) },
         { name: 'owner', label: 'Propriétaire', render: ({ owner }: Housing) => capitalize(owner) },
         { name: 'tags', label: 'Caractéristiques', render: ({ tags }: Housing) => '' },
         { name: 'id', headerRender: () => '', render: ({ id }: Housing) => <Link title="Voir" href="/" isSimple icon="ri-arrow-right-line">Voir</Link> }
     ];
-
-    const { housingList } = useSelector((state: ApplicationState) => state.housing);
 
     useEffect(() => {
         dispatch(listHousing(filters.ownerKinds));
@@ -40,7 +55,7 @@ const HousingView = () => {
         <>
             <Container spacing="py-4w">
                 <Title as="h1">Tous les logements</Title>
-                <Row>
+                <Row className="fr-grid-row--center">
                     <Col n="2">
                         <SideMenu title="Filtres" buttonLabel="filters">
                             <SideMenuItem title="Propriétaires" data-testid="owners-filter">
@@ -72,8 +87,10 @@ const HousingView = () => {
 
                     </Col>
                     <Col>
-                        {housingList.length}
-                        { housingList && housingList.length &&
+                        <Text className="fr-mb-2w">
+                            <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
+                        </Text>
+                        { housingList && housingList.length > 0 &&
                             <Table
                                 caption="Logements"
                                 captionPosition="none"
@@ -82,11 +99,32 @@ const HousingView = () => {
                                 columns={columns}
                                 pagination
                                 paginationPosition="center"
-                                perPage={10}
+                                perPage={perPage}
                                 fixedLayout={true}
                                 className="zlv-table-with-view"
                             />
                         }
+                        <div style={{textAlign: 'center'}}>
+                            <Button
+                                onClick={() => setPerPage(50)}
+                                secondary
+                                disabled={perPage === 50}
+                                title="title">50 résultats par pages
+                            </Button>
+                            <Button
+                                onClick={() => setPerPage(100)}
+                                className="fr-mx-3w"
+                                secondary
+                                disabled={perPage === 100}
+                                title="title">100 résultats par pages
+                            </Button>
+                            <Button
+                                onClick={() => setPerPage(200)}
+                                secondary
+                                disable={perPage === 200}
+                                title="title">200 résultats par pages
+                            </Button>
+                        </div>
                     </Col>
                 </Row>
             </Container>

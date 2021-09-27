@@ -8,6 +8,7 @@ import HousingView from './views/housing/HousingView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
 import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
+import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 
 
 function AppWrapper () {
@@ -27,6 +28,8 @@ function AppWrapper () {
 function App() {
 
     const { user } = useSelector((state: ApplicationState) => state.authentication);
+
+    FetchInterceptor();
 
     return (
         <>

@@ -23,6 +23,12 @@ const login = async (email: string, password: string) => {
 };
 
 
+
+const logout = () => {
+    localStorage.removeItem('user');
+};
+
+
 const authHeader = () => {
     const user = JSON.parse(localStorage.getItem('user') ?? '{}');
     return user && user.accessToken
@@ -31,8 +37,9 @@ const authHeader = () => {
 }
 
 const authService = {
-    login: login,
-    authHeader: authHeader
+    login,
+    logout,
+    authHeader
 };
 
 export default authService;

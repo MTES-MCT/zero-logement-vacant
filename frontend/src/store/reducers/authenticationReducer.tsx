@@ -1,4 +1,4 @@
-import { AuthenticationActionTypes, LOGIN, LOGIN_FAIL } from '../actions/authenticationAction';
+import { AuthenticationActionTypes, LOGIN, LOGIN_FAIL, LOGOUT } from '../actions/authenticationAction';
 import { User } from '../../models/User';
 
 const user = JSON.parse(localStorage.getItem('user') ?? '{}');
@@ -30,6 +30,12 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
                 user: null,
                 error: 'failed'
             };
+        case LOGOUT:
+            return {
+                ...state,
+                isLoggedIn: false,
+                user: null,
+            }
         default:
             return state;
     }

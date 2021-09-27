@@ -4,6 +4,7 @@ import authService from '../../services/auth.service';
 
 export const LOGIN = 'LOGIN';
 export const LOGIN_FAIL = 'LOGIN_FAIL';
+export const LOGOUT = 'LOGOUT';
 
 export interface LoginAction {
     type: typeof LOGIN,
@@ -12,8 +13,11 @@ export interface LoginAction {
 export interface LoginFail {
     type: typeof LOGIN_FAIL;
 }
+export interface Logout {
+    type: typeof LOGOUT;
+}
 
-export type AuthenticationActionTypes = LoginAction | LoginFail;
+export type AuthenticationActionTypes = LoginAction | LoginFail | Logout;
 
 export const login = (email: string, password: string) => {
     return function (dispatch: Dispatch) {
@@ -36,4 +40,11 @@ export const login = (email: string, password: string) => {
                 });
             });
     };
+};
+
+export const logout = () => (dispatch: Dispatch) => {
+    authService.logout();
+    dispatch({
+        type: LOGOUT,
+    });
 };

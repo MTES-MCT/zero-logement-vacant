@@ -8,13 +8,23 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     let Airtable = require('airtable');
     let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
-    const ownerKinds = request.body.ownerKinds;
+    const ownerKinds = request.body.ownerKinds ?? [];
+    const multiOwner = request.body.multiOwner;
+    const age75 = request.body.age75;
 
-    const ownerKindsFormula = ownerKinds && ownerKinds.length ? `OR(${ownerKinds
-        .map((ownerKind: string) => `{Type de propriétaire} = '${ownerKind}'`)
+    const multiOwnerFormula = multiOwner ? "{Multipropriétaire de logements vacants} = 'Multipropriétaire'" : '';
+    const ageFormula = age75 ? "{Age (pour filtre)} > 75" : '';
+    const formulas = [
+        ...ownerKinds.map((ownerKind: string) => `{Type de propriétaire} = '${ownerKind}'`),
+        multiOwnerFormula,
+        ageFormula
+    ].filter((_: string) => _.length);
+
+    const filterByFormula = formulas.length ? `OR(${formulas
         .reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
 
-    console.log('ownerKindsFormula', ownerKindsFormula)
+
+    console.log('filterByFormula', filterByFormula)
 
     return base('🏡 Adresses').select({
         maxRecords: 500,
@@ -26,7 +36,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
             'Propriétaire'
         ],
         view: "Vue générale",
-        filterByFormula : ownerKindsFormula
+        filterByFormula
     }).all().then((_: any) => {
         return response.status(200).json(_);
     });

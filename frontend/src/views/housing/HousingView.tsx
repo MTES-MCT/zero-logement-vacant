@@ -28,7 +28,7 @@ const HousingView = () => {
 
     const maxRecords = 500;
 
-    const [filters, setFilters] = useState<{ ownerKinds?: string[] }>({});
+    const [filters, setFilters] = useState<{ ownerKinds?: string[], multiOwner?: boolean, age75?: boolean }>({});
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -37,7 +37,7 @@ const HousingView = () => {
 
     useEffect(() => {
         setSelectedIds([]);
-        dispatch(listHousing(filters.ownerKinds));
+        dispatch(listHousing(filters.ownerKinds, filters.multiOwner, filters.age75));
     }, [filters, dispatch])
 
     useEffect(() => {
@@ -45,7 +45,13 @@ const HousingView = () => {
     }, [selectedIds])
 
     const changeOwnerKindsFilter = (value: string, checked: boolean) => {
-        setFilters({ ownerKinds: changeList(filters.ownerKinds, value, checked) });
+        setFilters({...filters, ownerKinds: changeList(filters.ownerKinds, value, checked) });
+    }
+    const changeMultiOwnerFilter = (value: string, checked: boolean) => {
+        setFilters({...filters, multiOwner: checked ?? undefined});
+    }
+    const changeAgeFilter = (value: string, checked: boolean) => {
+        setFilters({...filters, age75: checked ?? undefined});
     }
 
     function changeList<Type> (list: Type[] = [], value: Type, checked: boolean): Type[] {
@@ -110,8 +116,25 @@ const HousingView = () => {
             <Container spacing="py-4w">
                 <Title as="h1">Tous les logements</Title>
                 <Row className="fr-grid-row--center">
-                    <Col n="2">
+                    <Col n="3">
                         <SideMenu title="Filtres" buttonLabel="filters">
+                            <SideMenuItem title="Filtres rapides" expandedDefault={true}>
+                                <Checkbox
+                                    value="Particulier"
+                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
+                                    label="Particulier"
+                                />
+                                <Checkbox
+                                    value="Multipropriétaire"
+                                    onChange={(e: ChangeEvent<any>) => changeMultiOwnerFilter(e.target.value, e.target.checked)}
+                                    label="Multipropriétaire"
+                                />
+                                <Checkbox
+                                    value="Plus de 75 ans"
+                                    onChange={(e: ChangeEvent<any>) => changeAgeFilter(e.target.value, e.target.checked)}
+                                    label="Plus de 75 ans"
+                                />
+                            </SideMenuItem>
                             <SideMenuItem title="Propriétaires" data-testid="owners-filter">
                                 <Checkbox
                                     value="Particulier"

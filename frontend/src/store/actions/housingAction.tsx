@@ -12,7 +12,7 @@ export interface FetchHousingAction {
 
 export type HousingActionTypes = FetchHousingAction;
 
-export const listHousing = (ownerKinds?: string[]) => {
+export const listHousing = (ownerKinds?: string[], multiOwner?: boolean, age75?: boolean) => {
 
     return function (dispatch: Dispatch) {
 
@@ -23,7 +23,7 @@ export const listHousing = (ownerKinds?: string[]) => {
             housingList: []
         });
 
-        housingService.listHousing(ownerKinds)
+        housingService.listHousing(ownerKinds, multiOwner, age75)
             .then(housingList => {
                 dispatch(hideLoading());
                 dispatch({

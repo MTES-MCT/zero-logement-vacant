@@ -29,6 +29,7 @@ const HousingView = () => {
     const maxRecords = 500;
 
     const [filters, setFilters] = useState<{ ownerKinds?: string[] }>({});
+    const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -40,7 +41,7 @@ const HousingView = () => {
     }, [filters, dispatch])
 
     useEffect(() => {
-        console.log('selected', selectedIds);
+        console.log('selectedIds.length', selectedIds.length)
     }, [selectedIds])
 
     const changeOwnerKindsFilter = (value: string, checked: boolean) => {
@@ -57,12 +58,28 @@ const HousingView = () => {
         return list;
     }
 
+    const currentPageIds = (checked: boolean) => {
+        if (checked) {
+            return housingList.map(_ => _.id).slice((page - 1) * perPage, page * perPage);
+        } else {
+            return[];
+        }
+    }
+
     const columns: any[] = [
         {
             name: 'select',
-            headerRender: () => '',
+            headerRender: () =>
+                <Checkbox onChange={(e: ChangeEvent<any>) => setSelectedIds(currentPageIds(e.target.checked))}
+                          className={selectedIds.length > 0 && selectedIds.length < perPage ? styles.indeterminate : ''}
+                          label="">
+                </Checkbox>,
             render: ({ id }: Housing) =>
-                <Checkbox value={id} onChange={(e: ChangeEvent<any>) => setSelectedIds(changeList(selectedIds, e.target.value, e.target.checked))} label=""></Checkbox>
+                <Checkbox value={id}
+                          onChange={(e: ChangeEvent<any>) => setSelectedIds(changeList(selectedIds, e.target.value, e.target.checked))}
+                          checked={selectedIds.indexOf(id) !== -1}
+                          label="">
+                </Checkbox>
         },
         {
             name: 'address',
@@ -137,6 +154,7 @@ const HousingView = () => {
                                 columns={columns}
                                 pagination
                                 paginationPosition="center"
+                                setPage={setPage} page={page}
                                 perPage={perPage}
                                 fixedLayout={true}
                                 className="zlv-table-with-view zlv-table-with-select"

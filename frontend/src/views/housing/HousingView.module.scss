@@ -2,3 +2,14 @@
   background-color: #000091;
   height: 5px;
 }
+
+.indeterminate {
+  input[type=checkbox]+label:before {
+    content: "-";
+    font-weight: bold;
+    font-size: 20px;
+    padding-bottom: 4px;
+    background-color: #000091;
+    color: white;
+  }
+}

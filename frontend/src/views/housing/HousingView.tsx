@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title, SearchBar } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Housing } from '../../models/Housing';

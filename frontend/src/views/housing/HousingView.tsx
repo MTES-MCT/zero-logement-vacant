@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title, SearchBar } from '@dataesr/react-dsfr';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Housing } from '../../models/Housing';
@@ -9,6 +9,7 @@ import LoadingBar from 'react-redux-loading-bar';
 import styles from './HousingView.module.scss';
 import HousingFilterMenu from './HousingFilterMenu';
 import { updateWithValue } from '../../utils/arrayUtils';
+import HousingSearchBar from './HousingSearchBar';
 
 
 const HousingView = () => {
@@ -62,7 +63,7 @@ const HousingView = () => {
         {
             name: 'tags',
             label: 'Caractéristiques',
-            render: ({ tags }: Housing) => tags.map(tag =>  <Tag key={tag}>{tag}</Tag>)
+            render: ({ tags }: Housing) => tags.map(tag => <Tag key={tag}>{tag}</Tag>)
         },
         {
             name: 'view',
@@ -75,14 +76,20 @@ const HousingView = () => {
     return (
         <>
             <Container spacing="py-4w">
-                <Title as="h1">Tous les logements</Title>
                 <Row className="fr-grid-row--center">
                     <Col n="3">
                         <HousingFilterMenu></HousingFilterMenu>
                     </Col>
                     <Col>
+                        <Title as="h1">Logements</Title>
+                        <Row>
+                            <Col n="6">
+                                <HousingSearchBar></HousingSearchBar>
+                            </Col>
+
+                        </Row>
                         <LoadingBar className={styles.loading} updateTime={100} maxProgress={100} progressIncrease={10}/>
-                        <Text className="fr-mb-2w">
+                        <Text className="fr-my-2w">
                             <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
                         </Text>
                         { housingList && housingList.length > 0 &&

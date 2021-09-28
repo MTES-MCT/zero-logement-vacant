@@ -3,12 +3,12 @@ import authService from './auth.service';
 import { Housing, HousingFilters } from '../models/Housing';
 
 
-const listHousing = async (filters?: HousingFilters[]) => {
+const listHousing = async (filters?: HousingFilters[], search?: string) => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters }),
+        body: JSON.stringify({ filters, search }),
     })
         .then(response => {
             return response.json();
@@ -22,7 +22,7 @@ const listHousing = async (filters?: HousingFilters[]) => {
                 d.fields['ADRESSE4']
             ].filter(a => a !== undefined),
             owner: d.fields['Propriétaire'],
-            tags: [d.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : '']
+            tags: [d.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
         } as Housing)))
 };
 

@@ -2,7 +2,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Checkbox, SideMenu, SideMenuItem } from '@dataesr/react-dsfr';
 import { useDispatch } from 'react-redux';
-import { listHousing } from '../../store/actions/housingAction';
+import { filterHousing } from '../../store/actions/housingAction';
 import { HousingFilters } from '../../models/Housing';
 import { updateWithValue } from '../../utils/arrayUtils';
 
@@ -14,7 +14,7 @@ const HousingFilterMenu = () => {
     const [filters, setFilters] = useState<HousingFilters[]>([]);
 
     useEffect(() => {
-        dispatch(listHousing(filters));
+        dispatch(filterHousing(filters));
     }, [filters, dispatch])
 
     return (

@@ -1,6 +1,29 @@
 import config from '../utils/config';
 import { Request, Response } from 'express';
 
+export enum HousingFilters {
+    IndividualOwner = 'IndividualOwner', Age75= 'Age75', MultiOwner = 'MultiOwner', Beneficiary2= 'Beneficiary2'
+}
+
+const buildFilterByFormula = (filters: HousingFilters[]) => {
+
+    return filters.length ? `AND(${filters.map(filter => {
+        switch (filter) {
+            case HousingFilters.IndividualOwner:
+                return "{Type de propriétaire} = 'Particulier'"
+            case HousingFilters.Age75:
+                return '{Age (pour filtre)} > 75'
+            case HousingFilters.MultiOwner:
+                return "{Multipropriétaire de logements vacants} = 'Multipropriétaire'"
+            case HousingFilters.Beneficiary2:
+                return "{Nombre d'ayants-droit} > 2"
+            default:
+                return '' as string;
+        }
+    }).reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
+
+}
+
 const get = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Get housing')
@@ -8,23 +31,9 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     let Airtable = require('airtable');
     let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
-    const ownerKinds = request.body.ownerKinds ?? [];
-    const multiOwner = request.body.multiOwner;
-    const age75 = request.body.age75;
+    const filters = request.body.filters;
 
-    const multiOwnerFormula = multiOwner ? "{Multipropriétaire de logements vacants} = 'Multipropriétaire'" : '';
-    const ageFormula = age75 ? "{Age (pour filtre)} > 75" : '';
-    const formulas = [
-        ...ownerKinds.map((ownerKind: string) => `{Type de propriétaire} = '${ownerKind}'`),
-        multiOwnerFormula,
-        ageFormula
-    ].filter((_: string) => _.length);
-
-    const filterByFormula = formulas.length ? `OR(${formulas
-        .reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
-
-
-    console.log('filterByFormula', filterByFormula)
+    console.log('filterByFormula', buildFilterByFormula(filters))
 
     return base('🏡 Adresses').select({
         maxRecords: 500,
@@ -33,15 +42,19 @@ const get = async (request: Request, response: Response): Promise<Response> => {
             'ADRESSE2',
             'ADRESSE3',
             'ADRESSE4',
-            'Propriétaire'
+            'Propriétaire',
+            'Age (pour filtre)'
         ],
         view: "Vue générale",
-        filterByFormula
+        filterByFormula: buildFilterByFormula(filters)
     }).all().then((_: any) => {
         return response.status(200).json(_);
     });
 };
 
-export default {
+const housingController =  {
     get,
+    buildFilterByFormula
 };
+
+export default housingController;

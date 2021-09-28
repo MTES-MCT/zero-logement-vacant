@@ -1,18 +1,25 @@
 import { Dispatch } from 'redux';
-import { Housing } from '../../models/Housing';
+import { Housing, HousingFilters } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 
 export const FETCH_HOUSING = 'FETCH_HOUSING';
+export const HOUSING_FETCHED = 'HOUSING_FETCHED';
 
 export interface FetchHousingAction {
     type: typeof FETCH_HOUSING,
-    housingList: Housing[]
+    filters: HousingFilters[]
 }
 
-export type HousingActionTypes = FetchHousingAction;
+export interface HousingFetchedAction {
+    type: typeof HOUSING_FETCHED,
+    housingList: Housing[],
+    filters: HousingFilters[]
+}
 
-export const listHousing = (ownerKinds?: string[], multiOwner?: boolean, age75?: boolean) => {
+export type HousingActionTypes = FetchHousingAction | HousingFetchedAction;
+
+export const listHousing = (filters?: HousingFilters[]) => {
 
     return function (dispatch: Dispatch) {
 
@@ -20,15 +27,16 @@ export const listHousing = (ownerKinds?: string[], multiOwner?: boolean, age75?:
 
         dispatch({
             type: FETCH_HOUSING,
-            housingList: []
+            filters
         });
 
-        housingService.listHousing(ownerKinds, multiOwner, age75)
+        housingService.listHousing(filters)
             .then(housingList => {
                 dispatch(hideLoading());
                 dispatch({
-                    type: FETCH_HOUSING,
-                    housingList
+                    type: HOUSING_FETCHED,
+                    housingList,
+                    filters
                 });
             });
     };

@@ -1,34 +1,20 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import {
-    Button,
-    Checkbox,
-    Col,
-    Container,
-    Link,
-    Row,
-    SideMenu,
-    SideMenuItem,
-    Table,
-    Text,
-    Title,
-} from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
+import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
+import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { listHousing } from '../../store/actions/housingAction';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './HousingView.module.scss';
+import HousingFilterMenu from './HousingFilterMenu';
+import { updateWithValue } from '../../utils/arrayUtils';
 
 
 const HousingView = () => {
 
-    const dispatch = useDispatch();
-
     const maxRecords = 500;
 
-    const [filters, setFilters] = useState<{ ownerKinds?: string[], multiOwner?: boolean, age75?: boolean }>({});
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -37,32 +23,7 @@ const HousingView = () => {
 
     useEffect(() => {
         setSelectedIds([]);
-        dispatch(listHousing(filters.ownerKinds, filters.multiOwner, filters.age75));
-    }, [filters, dispatch])
-
-    useEffect(() => {
-        console.log('selectedIds.length', selectedIds.length)
-    }, [selectedIds])
-
-    const changeOwnerKindsFilter = (value: string, checked: boolean) => {
-        setFilters({...filters, ownerKinds: changeList(filters.ownerKinds, value, checked) });
-    }
-    const changeMultiOwnerFilter = (value: string, checked: boolean) => {
-        setFilters({...filters, multiOwner: checked ?? undefined});
-    }
-    const changeAgeFilter = (value: string, checked: boolean) => {
-        setFilters({...filters, age75: checked ?? undefined});
-    }
-
-    function changeList<Type> (list: Type[] = [], value: Type, checked: boolean): Type[] {
-        const valueIndex = list.indexOf(value);
-        if (checked && valueIndex === -1) {
-            return [...list, value];
-        } else if (!checked && valueIndex !== -1) {
-            return list.filter(f => f !== value);
-        }
-        return list;
-    }
+    }, [housingList])
 
     const currentPageIds = (checked: boolean) => {
         if (checked) {
@@ -82,7 +43,7 @@ const HousingView = () => {
                 </Checkbox>,
             render: ({ id }: Housing) =>
                 <Checkbox value={id}
-                          onChange={(e: ChangeEvent<any>) => setSelectedIds(changeList(selectedIds, e.target.value, e.target.checked))}
+                          onChange={(e: ChangeEvent<any>) => setSelectedIds(updateWithValue(selectedIds, e.target.value, e.target.checked))}
                           checked={selectedIds.indexOf(id) !== -1}
                           label="">
                 </Checkbox>
@@ -101,7 +62,7 @@ const HousingView = () => {
         {
             name: 'tags',
             label: 'Caractéristiques',
-            render: ({ tags }: Housing) => ''
+            render: ({ tags }: Housing) => tags.map(tag =>  <Tag key={tag}>{tag}</Tag>)
         },
         {
             name: 'view',
@@ -117,51 +78,7 @@ const HousingView = () => {
                 <Title as="h1">Tous les logements</Title>
                 <Row className="fr-grid-row--center">
                     <Col n="3">
-                        <SideMenu title="Filtres" buttonLabel="filters">
-                            <SideMenuItem title="Filtres rapides" expandedDefault={true}>
-                                <Checkbox
-                                    value="Particulier"
-                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
-                                    label="Particulier"
-                                />
-                                <Checkbox
-                                    value="Multipropriétaire"
-                                    onChange={(e: ChangeEvent<any>) => changeMultiOwnerFilter(e.target.value, e.target.checked)}
-                                    label="Multipropriétaire"
-                                />
-                                <Checkbox
-                                    value="Plus de 75 ans"
-                                    onChange={(e: ChangeEvent<any>) => changeAgeFilter(e.target.value, e.target.checked)}
-                                    label="Plus de 75 ans"
-                                />
-                            </SideMenuItem>
-                            <SideMenuItem title="Propriétaires" data-testid="owners-filter">
-                                <Checkbox
-                                    value="Particulier"
-                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
-                                    label="Particulier"
-                                    data-testid="owners-filter1"
-                                />
-                                <Checkbox
-                                    value="Investisseur"
-                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
-                                    label="Investisseur"
-                                    data-testid="owners-filter2"
-                                />
-                                <Checkbox
-                                    value="SCI"
-                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
-                                    label="SCI"
-                                />
-                                <Checkbox
-                                    value="Autres"
-                                    onChange={(e: ChangeEvent<any>) => changeOwnerKindsFilter(e.target.value, e.target.checked)}
-                                    label="Autres"
-                                />
-                            </SideMenuItem>
-                        </SideMenu>
-
-
+                        <HousingFilterMenu></HousingFilterMenu>
                     </Col>
                     <Col>
                         <LoadingBar className={styles.loading} updateTime={100} maxProgress={100} progressIncrease={10}/>
@@ -185,23 +102,23 @@ const HousingView = () => {
                         }
                         <div style={{textAlign: 'center'}}>
                             <Button
+                                onClick={() => setPerPage(20)}
+                                secondary
+                                disabled={perPage === 20}
+                                title="title">20 résultats par pages
+                            </Button>
+                            <Button
                                 onClick={() => setPerPage(50)}
+                                className="fr-mx-3w"
                                 secondary
                                 disabled={perPage === 50}
                                 title="title">50 résultats par pages
                             </Button>
                             <Button
                                 onClick={() => setPerPage(100)}
-                                className="fr-mx-3w"
                                 secondary
-                                disabled={perPage === 100}
+                                disable={perPage === 100}
                                 title="title">100 résultats par pages
-                            </Button>
-                            <Button
-                                onClick={() => setPerPage(200)}
-                                secondary
-                                disable={perPage === 200}
-                                title="title">200 résultats par pages
                             </Button>
                         </div>
                     </Col>

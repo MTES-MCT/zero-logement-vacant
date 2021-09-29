@@ -6,6 +6,8 @@ export interface HousingFilters {
     age75?: boolean;
     multiOwner?: boolean;
     beneficiary2?: boolean;
+    ownerKind?: string;
+    beneficiaryCount?: number;
     housingKind?: string;
 }
 
@@ -16,6 +18,8 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
         housingFilters.age75 ? '{Age (pour filtre)} > 75' : '',
         housingFilters.multiOwner ? "{Multipropriétaire de logements vacants} = 'Multipropriétaire'" : '',
         housingFilters.beneficiary2 ? "{Nombre d'ayants-droit} > 2" : '',
+        housingFilters.ownerKind ? `TRIM({Type de propriétaire}) = '${housingFilters.ownerKind}'` : '',
+        housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
         search ? `FIND(LOWER("${search}"), LOWER({ADRESSE1}&{ADRESSE2}&{ADRESSE3}&{ADRESSE4}&{Propriétaire}))` : ''
     ].filter(_ => _.length);

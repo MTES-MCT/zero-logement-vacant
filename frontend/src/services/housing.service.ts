@@ -3,7 +3,7 @@ import authService from './auth.service';
 import { Housing, HousingFilters } from '../models/Housing';
 
 
-const listHousing = async (filters?: HousingFilters[], search?: string) => {
+const listHousing = async (filters?: HousingFilters, search?: string) => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
         method: 'POST',

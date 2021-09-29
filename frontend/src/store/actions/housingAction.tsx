@@ -9,20 +9,20 @@ export const HOUSING_FETCHED = 'HOUSING_FETCHED';
 
 export interface FetchHousingAction {
     type: typeof FETCH_HOUSING,
-    filters: HousingFilters[],
+    filters: HousingFilters,
     search: string
 }
 
 export interface HousingFetchedAction {
     type: typeof HOUSING_FETCHED,
     housingList: Housing[],
-    filters: HousingFilters[],
+    filters: HousingFilters,
     search: string
 }
 
 export type HousingActionTypes = FetchHousingAction | HousingFetchedAction;
 
-export const filterHousing = (filters: HousingFilters[]) => {
+export const filterHousing = (filters: HousingFilters) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -55,17 +55,17 @@ export const searchHousing = (search: string) => {
 
         dispatch({
             type: FETCH_HOUSING,
-            filters: getState().housing.housingFilters,
+            filters: getState().housing.filters,
             search
         });
 
-        housingService.listHousing(getState().housing.housingFilters, search)
+        housingService.listHousing(getState().housing.filters, search)
             .then(housingList => {
                 dispatch(hideLoading());
                 dispatch({
                     type: HOUSING_FETCHED,
                     housingList,
-                    filters: getState().housing.housingFilters,
+                    filters: getState().housing.filters,
                     search
                 });
             });

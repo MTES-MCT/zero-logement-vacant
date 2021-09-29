@@ -39,7 +39,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [], search: '' }),
+                body: JSON.stringify({ filters: {}, search: '' }),
             });
 
         const filter1Element = screen.getByTestId('filter1');
@@ -53,7 +53,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: [filter1CheckboxElement.value], search: ''}),
+            body: JSON.stringify({ filters: {individualOwner: true}, search: ''}),
         });
 
         act(() => { fireEvent.click(filter2CheckboxElement) });
@@ -62,7 +62,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [filter1CheckboxElement.value, filter2CheckboxElement.value], search: ''}),
+                body: JSON.stringify({ filters: {individualOwner: true, multiOwner: true}, search: ''}),
             });
 
         act(() => { fireEvent.click(filter1CheckboxElement) });
@@ -71,7 +71,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [filter2CheckboxElement.value], search: ''}),
+                body: JSON.stringify({ filters: {individualOwner: false, multiOwner: true}, search: ''}),
             });
     });
 
@@ -85,7 +85,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [], search: '' }),
+                body: JSON.stringify({ filters: {}, search: '' }),
             });
 
         const searchInputElement = screen.getByTestId('search-input');
@@ -98,7 +98,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ search: 'my search'}),
+            body: JSON.stringify({ filters: {}, search: 'my search'}),
         });
     });
 

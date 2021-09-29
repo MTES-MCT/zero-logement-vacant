@@ -5,6 +5,10 @@ export interface Housing {
     tags: string[];
 }
 
-export enum HousingFilters {
-    IndividualOwner = 'IndividualOwner', Age75= 'Age75', MultiOwner = 'MultiOwner', Beneficiary2= 'Beneficiary2'
+export interface HousingFilters {
+    individualOwner?: boolean;
+    age75?: boolean;
+    multiOwner?: boolean;
+    beneficiary2?: boolean;
+    housingKind?: string;
 }

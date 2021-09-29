@@ -4,11 +4,11 @@ import { FETCH_HOUSING, HOUSING_FETCHED, HousingActionTypes } from '../actions/h
 
 export interface HousingState {
     housingList: Housing[];
-    housingFilters: HousingFilters[];
+    filters: HousingFilters;
     search: string;
 }
 
-const initialState = { housingList: [], filters: [], search: ''};
+const initialState = { housingList: [], filters: {}, search: ''};
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
     switch (action.type) {

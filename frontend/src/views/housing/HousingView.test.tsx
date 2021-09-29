@@ -29,7 +29,7 @@ describe('housing view', () => {
         expect(ownersFilterElement).toBeInTheDocument();
     });
 
-    test('should filtering', async () => {
+    test('should filter', async () => {
 
         fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
 
@@ -39,7 +39,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [] }),
+                body: JSON.stringify({ filters: [], search: '' }),
             });
 
         const filter1Element = screen.getByTestId('filter1');
@@ -53,7 +53,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: [filter1CheckboxElement.value]}),
+            body: JSON.stringify({ filters: [filter1CheckboxElement.value], search: ''}),
         });
 
         act(() => { fireEvent.click(filter2CheckboxElement) });
@@ -62,7 +62,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [filter1CheckboxElement.value, filter2CheckboxElement.value]}),
+                body: JSON.stringify({ filters: [filter1CheckboxElement.value, filter2CheckboxElement.value], search: ''}),
             });
 
         act(() => { fireEvent.click(filter1CheckboxElement) });
@@ -71,8 +71,35 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: [filter2CheckboxElement.value]}),
+                body: JSON.stringify({ filters: [filter2CheckboxElement.value], search: ''}),
             });
+    });
+
+    test('should search', async () => {
+
+        fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
+
+        render(<Provider store={store}><HousingView/></Provider>);
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `${config.apiEndpoint}/api/housing`, {
+                method: 'POST',
+                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filters: [], search: '' }),
+            });
+
+        const searchInputElement = screen.getByTestId('search-input');
+        const searchFormElement = screen.getByTestId('search-form');
+        fireEvent.change(searchInputElement, {target: {value: 'my search'}});
+
+        act(() => { fireEvent.submit(searchFormElement) });
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `${config.apiEndpoint}/api/housing`, {
+            method: 'POST',
+            headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ search: 'my search'}),
+        });
     });
 
 });

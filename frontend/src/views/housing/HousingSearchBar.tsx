@@ -22,7 +22,7 @@ const HousingSearchBar = () => {
     }, [search, dispatch])
 
     return (
-        <form role="search" className="fr-search-bar fr-my-2w" onSubmit={(e: any) => submitSearch(e)}>
+        <form role="search" data-testid="search-form" className="fr-search-bar fr-my-2w" onSubmit={(e: any) => submitSearch(e)}>
             <label className="fr-label">Rechercher</label>
             <input className="fr-input"
                    placeholder="Rechercher"

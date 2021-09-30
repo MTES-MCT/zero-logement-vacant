@@ -3,10 +3,11 @@ import { Request, Response } from 'express';
 
 export interface HousingFilters {
     individualOwner?: boolean;
-    age75?: boolean;
+    ageGt75?: boolean;
     multiOwner?: boolean;
-    beneficiary2?: boolean;
+    beneficiaryGt2?: boolean;
     ownerKind?: string;
+    ownerAge?: string;
     beneficiaryCount?: number;
     housingKind?: string;
 }
@@ -15,10 +16,16 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
 
     const allFilters = [
         housingFilters.individualOwner ? "{Type de propriétaire} = 'Particulier'" : '',
-        housingFilters.age75 ? '{Age (pour filtre)} > 75' : '',
+        housingFilters.ageGt75 ? '{Age (pour filtre)} >= 75' : '',
         housingFilters.multiOwner ? "{Multipropriétaire de logements vacants} = 'Multipropriétaire'" : '',
-        housingFilters.beneficiary2 ? "{Nombre d'ayants-droit} > 2" : '',
+        housingFilters.beneficiaryGt2 ? "{Nombre d'ayants-droit} > 2" : '',
         housingFilters.ownerKind ? `TRIM({Type de propriétaire}) = '${housingFilters.ownerKind}'` : '',
+        housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} > 0' : '',
+        housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} <= 35' : '',
+        housingFilters.ownerAge === '35to65' ? '{Age (pour filtre)} >= 35' : '',
+        housingFilters.ownerAge === '35to65' ? '{Age (pour filtre)} <= 65' : '',
+        housingFilters.ownerAge === 'gt65' ? '{Age (pour filtre)} >= 65' : '',
+        housingFilters.ownerAge === 'gt75' ? '{Age (pour filtre)} >= 75' : '',
         housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
         search ? `FIND(LOWER("${search}"), LOWER({ADRESSE1}&{ADRESSE2}&{ADRESSE3}&{ADRESSE4}&{Propriétaire}))` : ''
@@ -50,7 +57,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
             'Propriétaire',
             'Age (pour filtre)'
         ],
-        view: "Vue générale",
+        // view: "Vue générale",
         filterByFormula: buildFilterByFormula(filters, search)
     }).all().then((_: any) => {
         return response.status(200).json(_);

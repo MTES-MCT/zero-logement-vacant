@@ -20,13 +20,13 @@ const HousingFilterMenu = () => {
         {value: "Autres", label: "Autres"}
     ];
 
-    // const ownerAgeOptions = [
-    //     {value: "", label: "Sélectionner", disabled: true, hidden: true},
-    //     {value: "Particulier", label: "Moins de 35 ans"},
-    //     {value: "Investisseur", label: "33 - 65 ans"},
-    //     {value: "SCI", label: "plus de 65 ans"},
-    //     {value: "Autres", label: "plus de 75 ans"}
-    // ];
+    const ownerAgeOptions = [
+        {value: "", label: "Sélectionner", disabled: true, hidden: true},
+        {value: "lt35", label: "Moins de 35 ans"},
+        {value: "35to65", label: "35 - 65 ans"},
+        {value: "gt65", label: "plus de 65 ans"},
+        {value: "gt75", label: "plus de 75 ans"}
+    ];
 
     const housingKindOptions = [
         {value: "", label: "Sélectionner", disabled: true, hidden: true},
@@ -52,11 +52,11 @@ const HousingFilterMenu = () => {
                     data-testid="filter2"
                 />
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, age75: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, ageGt75: e.target.checked})}
                     label="Plus de 75 ans"
                 />
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, beneficiary2: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, beneficiaryGt2: e.target.checked})}
                     label="Plus de 2 ayants droit"
                 />
             </SideMenuItem>
@@ -67,6 +67,12 @@ const HousingFilterMenu = () => {
                     options={ownerKindOptions}
                     selected={filters.ownerKind}
                     onChange={(e: ChangeEvent<any>) => setFilters({...filters, ownerKind: e.target.value})}
+                />
+                <Select
+                    label="Âge"
+                    options={ownerAgeOptions}
+                    selected={filters.ownerAge}
+                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, ownerAge: e.target.value})}
                 />
                 <TextInput
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setFilters({...filters, beneficiaryCount: Number(e.target.value)})}

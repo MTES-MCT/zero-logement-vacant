@@ -7,10 +7,11 @@ export interface Housing {
 
 export interface HousingFilters {
     individualOwner?: boolean;
-    age75?: boolean;
+    ageGt75?: boolean;
     multiOwner?: boolean;
-    beneficiary2?: boolean;
+    beneficiaryGt2?: boolean;
     ownerKind?: string;
+    ownerAge?: string;
     beneficiaryCount?: number;
     housingKind?: string;
 }

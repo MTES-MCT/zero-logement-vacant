@@ -14,4 +14,5 @@ export interface HousingFilters {
     ownerAge?: string;
     beneficiaryCount?: number;
     housingKind?: string;
+    housingState?: string;
 }

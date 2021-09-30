@@ -10,6 +10,7 @@ export interface HousingFilters {
     ownerAge?: string;
     beneficiaryCount?: number;
     housingKind?: string;
+    housingState?: string;
 }
 
 const buildFilterByFormula = (housingFilters: HousingFilters, search: string) => {
@@ -28,6 +29,7 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
         housingFilters.ownerAge === 'gt75' ? '{Age (pour filtre)} >= 75' : '',
         housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
+        housingFilters.housingState ? `TRIM({Logement inconfortable (champ choix simple)}) = '${housingFilters.housingState}'` : '',
         search ? `FIND(LOWER("${search}"), LOWER({ADRESSE1}&{ADRESSE2}&{ADRESSE3}&{ADRESSE4}&{Propriétaire}))` : ''
     ].filter(_ => _.length);
 

@@ -34,6 +34,11 @@ const HousingListFilterMenu = () => {
         {value: "MAISON", label: "Maison"}
     ];
 
+    const housingStateOptions = [
+        {value: "", label: "Sélectionner", disabled: true, hidden: true},
+        {value: "Inconfortable", label: "Inconfortable"}
+    ];
+
     useEffect(() => {
         dispatch(filterHousing(filters));
     }, [filters, dispatch])
@@ -87,6 +92,12 @@ const HousingListFilterMenu = () => {
                     options={housingKindOptions}
                     selected={filters.housingKind}
                     onChange={(e: ChangeEvent<any>) => setFilters({...filters, housingKind: e.target.value})}
+                />
+                <Select
+                    label="État"
+                    options={housingStateOptions}
+                    selected={filters.housingState}
+                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, housingState: e.target.value})}
                 />
             </SideMenuItem>
         </SideMenu>

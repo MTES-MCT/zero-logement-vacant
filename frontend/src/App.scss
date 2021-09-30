@@ -22,3 +22,14 @@
      margin-top: 0px !important;
   }
 }
+
+.bg-100 {
+  background-color: var(--g100)
+}
+.bg-300 {
+  background-color: var(--g300)
+}
+
+.capitalize {
+  text-transform: capitalize;
+}

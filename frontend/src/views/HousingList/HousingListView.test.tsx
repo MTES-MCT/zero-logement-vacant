@@ -7,7 +7,7 @@ import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { applyMiddleware, createStore } from 'redux';
 import applicationReducer from '../../store/reducers/applicationReducers';
-import HousingView from './HousingView';
+import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 
@@ -24,7 +24,7 @@ describe('housing view', () => {
     });
 
     test('should display filter menu', () => {
-        render(<Provider store={store}><HousingView/></Provider>);
+        render(<Provider store={store}><HousingListView/></Provider>);
         const ownersFilterElement = screen.getByTestId('filterMenu');
         expect(ownersFilterElement).toBeInTheDocument();
     });
@@ -33,7 +33,7 @@ describe('housing view', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
 
-        render(<Provider store={store}><HousingView/></Provider>);
+        render(<Provider store={store}><HousingListView/></Provider>);
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
@@ -79,7 +79,7 @@ describe('housing view', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
 
-        render(<Provider store={store}><HousingView/></Provider>);
+        render(<Provider store={store}><HousingListView/></Provider>);
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {

@@ -35,9 +35,9 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
 
 }
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const list = async (request: Request, response: Response): Promise<Response> => {
 
-    console.log('Get housing')
+    console.log('List housing')
 
     let Airtable = require('airtable');
     let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
@@ -64,8 +64,24 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     });
 };
 
+const get = async (request: Request, response: Response): Promise<Response> => {
+
+    const id = request.params.id;
+
+    console.log('Get housing', id)
+
+    let Airtable = require('airtable');
+    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+
+
+    return base('🏡 Adresses').find(id).then((_: any) => {
+        return response.status(200).json(_);
+    });
+};
+
 const housingController =  {
     get,
+    list,
     buildFilterByFormula
 };
 

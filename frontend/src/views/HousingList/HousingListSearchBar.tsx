@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { searchHousing } from '../../store/actions/housingAction';
 
 
-const HousingSearchBar = () => {
+const HousingListSearchBar = () => {
 
     const dispatch = useDispatch();
 
@@ -35,5 +35,5 @@ const HousingSearchBar = () => {
     );
 };
 
-export default HousingSearchBar;
+export default HousingListSearchBar;
 

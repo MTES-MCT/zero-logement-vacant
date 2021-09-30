@@ -6,7 +6,7 @@ import { filterHousing } from '../../store/actions/housingAction';
 import { HousingFilters } from '../../models/Housing';
 
 
-const HousingFilterMenu = () => {
+const HousingListFilterMenu = () => {
 
     const dispatch = useDispatch();
 
@@ -93,5 +93,5 @@ const HousingFilterMenu = () => {
     );
 };
 
-export default HousingFilterMenu;
+export default HousingListFilterMenu;
 

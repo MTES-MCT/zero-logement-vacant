@@ -13,6 +13,7 @@ const jwtCheck = expressJWT({
 });
 
 
-router.post('/api/housing', jwtCheck, housingController.get);
+router.post('/api/housing', jwtCheck, housingController.list);
+router.get('/api/housing/:id', jwtCheck, housingController.get);
 
 export default router;

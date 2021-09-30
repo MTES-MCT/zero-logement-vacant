@@ -2,13 +2,14 @@ import React from 'react';
 import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
-import LoginView from './views/login/LoginView';
+import LoginView from './views/Login/LoginView';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import HousingView from './views/housing/HousingView';
+import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
 import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
+import HousingDetailView from './views/HousingDetail/HousingDetailView';
 
 
 function AppWrapper () {
@@ -37,7 +38,8 @@ function App() {
             <React.Suspense fallback={<></>}>
                 <BrowserRouter>
                     <Switch>
-                        {user && user.accessToken && <Route exact path="/logements" component={HousingView} />}
+                        {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
+                        {user && user.accessToken && <Route exact path="/logements/:id" component={HousingDetailView} />}
                         <Route path="/" component={LoginView} />
                     </Switch>
                 </BrowserRouter>

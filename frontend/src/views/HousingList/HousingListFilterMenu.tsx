@@ -1,16 +1,18 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Checkbox, Select, SideMenu, SideMenuItem, TextInput } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { filterHousing } from '../../store/actions/housingAction';
 import { HousingFilters } from '../../models/Housing';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
 const HousingListFilterMenu = () => {
 
     const dispatch = useDispatch();
 
-    const [filters, setFilters] = useState<HousingFilters>({});
+    const { filters } = useSelector((state: ApplicationState) => state.housing);
+    const [housingFilters, setHousingFilters] = useState<HousingFilters>(filters ?? {});
 
     const ownerKindOptions = [
         {value: "", label: "Sélectionner", disabled: true, hidden: true},
@@ -40,29 +42,33 @@ const HousingListFilterMenu = () => {
     ];
 
     useEffect(() => {
-        dispatch(filterHousing(filters));
-    }, [filters, dispatch])
+        dispatch(filterHousing(housingFilters));
+    }, [housingFilters, dispatch])
 
     return (
         <SideMenu title="Filtres" buttonLabel="filters" data-testid="filterMenu">
             <SideMenuItem title="Filtres rapides" expandedDefault={true}>
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, individualOwner: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, individualOwner: e.target.checked})}
                     label="Particulier"
                     data-testid="filter1"
+                    checked={housingFilters.individualOwner}
                 />
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, multiOwner: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, multiOwner: e.target.checked})}
                     label="Multipropriétaire"
                     data-testid="filter2"
+                    checked={housingFilters.multiOwner}
                 />
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, ageGt75: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, ageGt75: e.target.checked})}
                     label="Plus de 75 ans"
+                    checked={housingFilters.ageGt75}
                 />
                 <Checkbox
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, beneficiaryGt2: e.target.checked})}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, beneficiaryGt2: e.target.checked})}
                     label="Plus de 2 ayants droit"
+                    checked={housingFilters.beneficiaryGt2}
                 />
             </SideMenuItem>
             <hr />
@@ -70,19 +76,22 @@ const HousingListFilterMenu = () => {
                 <Select
                     label="Type"
                     options={ownerKindOptions}
-                    selected={filters.ownerKind}
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, ownerKind: e.target.value})}
+                    selected={housingFilters.ownerKind}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, ownerKind: e.target.value})}
+                    value={housingFilters.ownerKind}
                 />
                 <Select
                     label="Âge"
                     options={ownerAgeOptions}
-                    selected={filters.ownerAge}
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, ownerAge: e.target.value})}
+                    selected={housingFilters.ownerAge}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, ownerAge: e.target.value})}
+                    value={housingFilters.ownerAge}
                 />
                 <TextInput
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFilters({...filters, beneficiaryCount: Number(e.target.value)})}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setHousingFilters({...housingFilters, beneficiaryCount: Number(e.target.value)})}
                     label="Nombre d'ayants droit"
                     placeholder="Saisir le nombre"
+                    value={housingFilters.beneficiaryCount}
                 />
             </SideMenuItem>
             <hr />
@@ -90,14 +99,16 @@ const HousingListFilterMenu = () => {
                 <Select
                     label="Type"
                     options={housingKindOptions}
-                    selected={filters.housingKind}
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, housingKind: e.target.value})}
+                    selected={housingFilters.housingKind}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, housingKind: e.target.value})}
+                    value={housingFilters.housingKind}
                 />
                 <Select
                     label="État"
                     options={housingStateOptions}
-                    selected={filters.housingState}
-                    onChange={(e: ChangeEvent<any>) => setFilters({...filters, housingState: e.target.value})}
+                    selected={housingFilters.housingState}
+                    onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, housingState: e.target.value})}
+                    value={housingFilters.housingState}
                 />
             </SideMenuItem>
         </SideMenu>

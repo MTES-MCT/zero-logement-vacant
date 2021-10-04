@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Col, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Link, useParams } from 'react-router-dom';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
@@ -25,15 +25,11 @@ const OwnerView = () => {
         <>
             <div className={styles.titleContainer}>
                 <Container spacing="py-4w">
-                    <Link
-                        href="/logements"
-                        isSimple
-                        icon="ri-arrow-left-line"
-                        iconPosition="left"
-                        className="fr-pl-0">
+                    <Link to="/logements" className="fr-pl-0 ds-fr--inline fr-link">
+                        <span className="ri-1x icon-left ri-arrow-left-line ds-fr--v-middle"></span>
                         Retour aux logements
                     </Link>
-                    <Title as="h1" className="fr-py-2w">{owner && capitalize(owner.fullName)}</Title>
+                    {owner && <Title as="h1" className="fr-py-2w">{capitalize(owner.fullName)}</Title> }
                 </Container>
             </div>
             <Container spacing="py-4w">

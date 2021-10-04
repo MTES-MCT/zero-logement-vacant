@@ -1,25 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { searchHousing } from '../../store/actions/housingAction';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
 const HousingListSearchBar = () => {
 
     const dispatch = useDispatch();
 
-    const [text, setText] = useState<string>('');
-    const [search, setSearch] = useState<string>('');
+    const { search } = useSelector((state: ApplicationState) => state.housing);
 
-    const onKeyDown = (e: any) => (e.keyCode === 13) && setSearch(text);
+    const [searchInput, setSearchInput] = useState<string>(search);
+
+    const onKeyDown = (e: any) => (e.keyCode === 13) && submitSearch(e);
 
     const submitSearch = (e: SubmitEvent) => {
         e.preventDefault();
-        setSearch(text);
+        dispatch(searchHousing(searchInput));
     }
-
-    useEffect(() => {
-        dispatch(searchHousing(search));
-    }, [search, dispatch])
 
     return (
         <form role="search" data-testid="search-form" className="fr-search-bar fr-my-2w" onSubmit={(e: any) => submitSearch(e)}>
@@ -28,7 +26,8 @@ const HousingListSearchBar = () => {
                    placeholder="Rechercher"
                    type="search"
                    data-testid="search-input"
-                   onChange={(e) => setText(e.target.value)}
+                   value={searchInput}
+                   onChange={(e) => setSearchInput(e.target.value)}
                    onKeyDown={onKeyDown}/>
             <button type="submit" className="fr-btn" title="Boutton de recherche">Boutton de recherche</button>
         </form>

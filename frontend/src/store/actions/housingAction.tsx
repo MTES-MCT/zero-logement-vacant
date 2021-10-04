@@ -51,23 +51,26 @@ export const searchHousing = (search: string) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
-        dispatch(showLoading());
+        if (search !== getState().housing.search) {
 
-        dispatch({
-            type: FETCH_HOUSING_LIST,
-            filters: getState().housing.filters,
-            search
-        });
+            dispatch(showLoading());
 
-        housingService.listHousing(getState().housing.filters, search)
-            .then(housingList => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: HOUSING_LIST_FETCHED,
-                    housingList,
-                    filters: getState().housing.filters,
-                    search
-                });
+            dispatch({
+                type: FETCH_HOUSING_LIST,
+                filters: getState().housing.filters,
+                search
             });
+
+            housingService.listHousing(getState().housing.filters, search)
+                .then(housingList => {
+                    dispatch(hideLoading());
+                    dispatch({
+                        type: HOUSING_LIST_FETCHED,
+                        housingList,
+                        filters: getState().housing.filters,
+                        search
+                    });
+                });
+        }
     };
 };

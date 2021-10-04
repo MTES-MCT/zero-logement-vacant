@@ -8,7 +8,21 @@ export interface HousingState {
     search: string;
 }
 
-const initialState = { housingList: [], filters: {}, search: ''};
+const initialState = {
+    housingList: [],
+    filters: {
+        individualOwner: false,
+        ageGt75: false,
+        multiOwner: false,
+        beneficiaryGt2: false,
+        ownerKind: '',
+        ownerAge: '',
+        beneficiaryCount: undefined,
+        housingKind: '',
+        housingState: ''
+    },
+    search: ''
+};
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
     switch (action.type) {

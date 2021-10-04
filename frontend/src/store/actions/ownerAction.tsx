@@ -2,15 +2,25 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { Housing, HousingDetails } from '../../models/Housing';
+import { HousingDetails } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 
+export const FETCHING_OWNER = 'FETCHING_OWNER';
 export const OWNER_FETCHED = 'OWNER_FETCHED';
+export const FETCHING_OWNER_HOUSING = 'FETCHING_OWNER_HOUSING';
 export const OWNER_HOUSING_FETCHED = 'OWNER_HOUSING_FETCHED';
+
+export interface FetchingOwnerAction {
+    type: typeof FETCHING_OWNER
+}
 
 export interface OwnerFetchedAction {
     type: typeof OWNER_FETCHED,
     owner: Owner
+}
+
+export interface FetchingOwnerHousingAction {
+    type: typeof FETCHING_OWNER_HOUSING
 }
 
 export interface OwnerHousingFetchedAction {
@@ -18,13 +28,17 @@ export interface OwnerHousingFetchedAction {
     housingList: HousingDetails[]
 }
 
-export type OwnerActionTypes = OwnerFetchedAction | OwnerHousingFetchedAction;
+export type OwnerActionTypes = FetchingOwnerAction | OwnerFetchedAction | FetchingOwnerHousingAction| OwnerHousingFetchedAction;
 
 export const getOwner = (id: string) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
+
+        dispatch({
+            type: FETCHING_OWNER
+        });
 
         ownerService.getOwner(id)
             .then(owner => {
@@ -42,6 +56,10 @@ export const getOwnerHousing = (ownerId: string) => {
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
+
+        dispatch({
+            type: FETCHING_OWNER_HOUSING
+        });
 
         housingService.listByOwner(ownerId)
             .then(housingList => {

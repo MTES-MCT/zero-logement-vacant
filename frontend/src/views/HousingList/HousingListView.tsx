@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Col, Container, Link, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Col, Container, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Housing } from '../../models/Housing';
@@ -10,6 +10,7 @@ import styles from './housing-list.module.scss';
 import HousingListFilterMenu from './HousingListFilterMenu';
 import { updateWithValue } from '../../utils/arrayUtils';
 import HousingListSearchBar from './HousingListSearchBar';
+import { Link } from 'react-router-dom';
 
 
 const HousingListView = () => {
@@ -72,7 +73,9 @@ const HousingListView = () => {
             name: 'view',
             headerRender: () => '',
             render: ({ ownerId }: Housing) =>
-                <Link title="Voir" href={'/proprietaires/' + ownerId} isSimple icon="ri-arrow-right-line">Voir</Link>
+                <Link title="Voir" to={'/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
+                    Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle"></span>
+                </Link>
         }
     ];
 

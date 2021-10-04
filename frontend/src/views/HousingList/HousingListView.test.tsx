@@ -10,6 +10,7 @@ import applicationReducer from '../../store/reducers/applicationReducers';
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
+import { initialFilters } from '../../store/reducers/housingReducer';
 
 describe('housing view', () => {
 
@@ -39,7 +40,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: {}, search: '' }),
+                body: JSON.stringify({ filters: initialFilters, search: '' }),
             });
 
         const filter1Element = screen.getByTestId('filter1');
@@ -53,7 +54,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: {individualOwner: true}, search: ''}),
+            body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true}, search: ''}),
         });
 
         act(() => { fireEvent.click(filter2CheckboxElement) });
@@ -62,7 +63,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: {individualOwner: true, multiOwner: true}, search: ''}),
+                body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true, multiOwner: true}, search: ''}),
             });
 
         act(() => { fireEvent.click(filter1CheckboxElement) });
@@ -71,7 +72,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: {individualOwner: false, multiOwner: true}, search: ''}),
+                body: JSON.stringify({ filters: { ...initialFilters, individualOwner: false, multiOwner: true}, search: ''}),
             });
     });
 
@@ -85,7 +86,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: {}, search: '' }),
+                body: JSON.stringify({ filters: initialFilters, search: '' }),
             });
 
         const searchInputElement = screen.getByTestId('search-input');
@@ -98,7 +99,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: {}, search: 'my search'}),
+            body: JSON.stringify({ filters: initialFilters, search: 'my search'}),
         });
     });
 

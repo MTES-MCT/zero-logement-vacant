@@ -8,19 +8,21 @@ export interface HousingState {
     search: string;
 }
 
+export const initialFilters = {
+    individualOwner: false,
+    ageGt75: false,
+    multiOwner: false,
+    beneficiaryGt2: false,
+    ownerKind: '',
+    ownerAge: '',
+    beneficiaryCount: undefined,
+    housingKind: '',
+    housingState: ''
+} as HousingFilters;
+
 const initialState = {
     housingList: [],
-    filters: {
-        individualOwner: false,
-        ageGt75: false,
-        multiOwner: false,
-        beneficiaryGt2: false,
-        ownerKind: '',
-        ownerAge: '',
-        beneficiaryCount: undefined,
-        housingKind: '',
-        housingState: ''
-    },
+    filters: initialFilters,
     search: ''
 };
 

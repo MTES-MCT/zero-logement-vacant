@@ -9,7 +9,7 @@ import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
 import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
-import HousingDetailView from './views/HousingDetail/HousingDetailView';
+import OwnerView from './views/Owner/OwnerView';
 
 
 function AppWrapper () {
@@ -39,7 +39,7 @@ function App() {
                 <BrowserRouter>
                     <Switch>
                         {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                        {user && user.accessToken && <Route exact path="/logements/:id" component={HousingDetailView} />}
+                        {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
                         <Route path="/" component={LoginView} />
                     </Switch>
                 </BrowserRouter>

@@ -3,6 +3,7 @@ import expressJWT from 'express-jwt';
 
 import housingController from '../controllers/housingController';
 import config from '../utils/config';
+import ownerController from '../controllers/ownerController';
 
 const  router = express.Router();
 
@@ -14,6 +15,8 @@ const jwtCheck = expressJWT({
 
 
 router.post('/api/housing', jwtCheck, housingController.list);
-router.get('/api/housing/:id', jwtCheck, housingController.get);
+router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwner);
+
+router.get('/api/owners/:id', jwtCheck, ownerController.get);
 
 export default router;

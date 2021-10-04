@@ -52,13 +52,16 @@ const HousingListView = () => {
         {
             name: 'address',
             label: 'Adresse',
-            render: ({ address, id }: Housing) =>
-                address.map((_, i) => <div key={id + '_address_' + i}>{capitalize(_)}</div>)
+            render: ({ address, municipality }: Housing) =>
+                <>
+                    <div className="capitalize">{capitalize(address)}</div>
+                    <div>{capitalize(municipality)}</div>
+                </>
         },
         {
             name: 'owner',
             label: 'Propriétaire',
-            render: ({ owner }: Housing) => capitalize(owner)
+            render: ({ ownerFullName }: Housing) => capitalize(ownerFullName)
         },
         {
             name: 'tags',
@@ -68,8 +71,8 @@ const HousingListView = () => {
         {
             name: 'view',
             headerRender: () => '',
-            render: ({ id }: Housing) =>
-                <Link title="Voir" href={'/logements/' + id} isSimple icon="ri-arrow-right-line">Voir</Link>
+            render: ({ ownerId }: Housing) =>
+                <Link title="Voir" href={'/proprietaires/' + ownerId} isSimple icon="ri-arrow-right-line">Voir</Link>
         }
     ];
 

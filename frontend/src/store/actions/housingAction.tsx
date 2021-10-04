@@ -3,16 +3,9 @@ import { Housing, HousingFilters } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
-import { HousingDetail } from '../../models/HousingDetail';
 
-export const HOUSING_DETAIL_FETCHED = 'HOUSING_DETAIL_FETCHED';
 export const FETCH_HOUSING_LIST = 'FETCH_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
-
-export interface HousingDetailFetchedAction {
-    type: typeof HOUSING_DETAIL_FETCHED,
-    housing: HousingDetail
-}
 
 export interface FetchHousingListAction {
     type: typeof FETCH_HOUSING_LIST,
@@ -27,24 +20,7 @@ export interface HousingListFetchedAction {
     search: string
 }
 
-export type HousingActionTypes = HousingDetailFetchedAction | FetchHousingListAction | HousingListFetchedAction;
-
-export const getHousing = (id: string) => {
-
-    return function (dispatch: Dispatch) {
-
-        dispatch(showLoading());
-
-        housingService.getHousing(id)
-            .then(housing => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: HOUSING_DETAIL_FETCHED,
-                    housing
-                });
-            });
-    };
-};
+export type HousingActionTypes = FetchHousingListAction | HousingListFetchedAction;
 
 export const filterHousing = (filters: HousingFilters) => {
 

@@ -30,7 +30,7 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
         housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
         housingFilters.housingState ? `TRIM({Logement inconfortable (champ choix simple)}) = '${housingFilters.housingState}'` : '',
-        search ? `FIND(LOWER("${search}"), LOWER({ADRESSE1}&{ADRESSE2}&{ADRESSE3}&{ADRESSE4}&{Propriétaire}))` : ''
+        search ? `FIND(LOWER("${search}"), LOWER({Adresse}&{Propriétaire}))` : ''
     ].filter(_ => _.length);
 
     return allFilters.length ? `AND(${allFilters.reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
@@ -52,39 +52,47 @@ const list = async (request: Request, response: Response): Promise<Response> => 
     return base('🏡 Adresses').select({
         maxRecords: 500,
         fields: [
-            'ADRESSE1',
-            'ADRESSE2',
-            'ADRESSE3',
-            'ADRESSE4',
+            'Adresse',
+            'Nom de la commune du logement',
             'Propriétaire',
-            'Age (pour filtre)'
+            'Age (pour filtre)',
+            'ID propriétaire'
         ],
-        // view: "Vue générale",
         filterByFormula: buildFilterByFormula(filters, search)
     }).all().then((_: any) => {
         return response.status(200).json(_);
     });
 };
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const listByOwner = async (request: Request, response: Response): Promise<Response> => {
 
-    const id = request.params.id;
+    const ownerId = request.params.ownerId;
 
-    console.log('Get housing', id)
+    console.log('List housing by owner', ownerId)
 
     let Airtable = require('airtable');
     let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
-
-    return base('🏡 Adresses').find(id).then((_: any) => {
+    return base('🏡 Adresses').select({
+        maxRecords: 500,
+        fields: [
+            'Adresse',
+            'Nom de la commune du logement',
+            'Surface habitable',
+            'Type de logement',
+            'Nombre de pièces',
+            'Année de construction',
+            'Début de la vacance'
+        ],
+        filterByFormula: `{Record-ID=proprietaire} = '${ownerId}'`
+    }).all().then((_: any) => {
         return response.status(200).json(_);
     });
 };
 
 const housingController =  {
-    get,
     list,
-    buildFilterByFormula
+    listByOwner
 };
 
 export default housingController;

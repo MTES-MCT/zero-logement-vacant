@@ -57,12 +57,13 @@ const OwnerView = () => {
                                 <b>Coordonnées</b>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
-                                <div style={{display: 'inline-block', verticalAlign: 'top'}}>
+                                <span style={{verticalAlign: 'top'}}>
                                     Adresse postale&nbsp;
-                                </div>
-                                <div style={{display: 'inline-block'}}>
-                                    <b className="capitalize"> {owner.address.map((_, i) => <div key={id + '_address_' + i}>{capitalize(_)}</div>) }</b>
-                                </div>
+                                </span>
+                                <span style={{display: 'inline-block'}}>
+                                    <b className="capitalize"> {owner.address.map((_, i) =>
+                                        <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>) }</b>
+                                </span>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
                                 Adresse mail&nbsp;
@@ -86,13 +87,17 @@ const OwnerView = () => {
                                 <Text size="lg" className="fr-mb-1w">
                                     <b>Emplacement</b>
                                 </Text>
-                                <div style={{display: 'inline-block', verticalAlign: 'top'}}>
+                                <span style={{verticalAlign: 'top'}}>
                                     Adresse &nbsp;
-                                </div>
-                                <div style={{display: 'inline-block'}}>
-                                    <div className="capitalize"><b>{capitalize(housing.address)}</b></div>
-                                    <div><b>{capitalize(housing.municipality)}</b></div>
-                                </div>
+                                </span>
+                                <span style={{display: 'inline-block'}} className="capitalize">
+                                    <span  style={{display: 'block'}}>
+                                        <b>{capitalize(housing.address)}</b>
+                                    </span>
+                                    <span>
+                                        <b> {capitalize(housing.municipality)}</b>
+                                    </span>
+                                </span>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">

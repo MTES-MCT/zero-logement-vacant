@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { Owner } from '../models/Owner';
-import { parse } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 
 const getOwner = async (id: string) => {
@@ -17,7 +17,7 @@ const getOwner = async (id: string) => {
             id: d.id,
             address: d.address,
             fullName: d.fullName,
-            birthDate: d.birthDate ? parse(d.birthDate, 'yyyy-MM-dd', new Date()) : undefined,
+            birthDate: d.birthDate ? parseISO(d.birthDate) : undefined,
             email: d.email,
             phone: d.phone
         } as Owner))

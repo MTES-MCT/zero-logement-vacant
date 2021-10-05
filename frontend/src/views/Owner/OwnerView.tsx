@@ -43,12 +43,12 @@ const OwnerView = () => {
                             </Text>
                             <Text size="md" className="fr-mb-1w">
                                 Nom&nbsp;
-                                <b className="capitalize">{capitalize(owner.fullName)}</b>
+                                <b className="capitalize" data-testid="fullName-text">{capitalize(owner.fullName)}</b>
                             </Text>
                             { owner.birthDate &&
                                 <Text size="md" className="fr-mb-1w">
                                     Date de naissance&nbsp;
-                                    <b className="capitalize"> {format(owner.birthDate, 'dd/MM/yyyy')}</b>
+                                    <b className="capitalize" data-testid="birthDate-text">{format(owner.birthDate, 'dd/MM/yyyy')}</b>
                                     <b> ({differenceInYears(new Date(), owner.birthDate)} ans)</b>
                                 </Text>
                             }
@@ -67,11 +67,11 @@ const OwnerView = () => {
                             </Text>
                             <Text size="md" className="fr-mb-1w">
                                 Adresse mail&nbsp;
-                                <b>{owner.email}</b>
+                                <b data-testid="email-text">{owner.email}</b>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
                                 Numéro de téléphone&nbsp;
-                                <b>{owner.phone}</b>
+                                <b data-testid="phone-text">{owner.phone}</b>
                             </Text>
                         </Col>
                         <Col n="6" className="fr-py-2w fr-px-3w">

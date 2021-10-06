@@ -10,6 +10,7 @@ import thunk from 'redux-thunk';
 import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
+import CampaignsView from './views/Campaigns/CampainsView';
 
 
 function AppWrapper () {
@@ -36,13 +37,12 @@ function App() {
         <>
             <AppHeader />
             <React.Suspense fallback={<></>}>
-                <BrowserRouter>
-                    <Switch>
-                        {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                        {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
-                        <Route path="/" component={LoginView} />
-                    </Switch>
-                </BrowserRouter>
+                <Switch>
+                    {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
+                    {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsView} />}
+                    {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
+                    <Route path="/" component={LoginView} />
+                </Switch>
             </React.Suspense>
         </>
     );

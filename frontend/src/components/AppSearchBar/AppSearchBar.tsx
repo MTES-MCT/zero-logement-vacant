@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { searchHousing } from '../../store/actions/housingAction';
+import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
-const HousingListSearchBar = () => {
-
-    const dispatch = useDispatch();
+const AppSearchBar = (props: { onSearch: (text: string) => void }) => {
 
     const { search } = useSelector((state: ApplicationState) => state.housing);
 
@@ -16,7 +13,7 @@ const HousingListSearchBar = () => {
 
     const submitSearch = (e: SubmitEvent) => {
         e.preventDefault();
-        dispatch(searchHousing(searchInput));
+        props.onSearch(searchInput);
     }
 
     return (
@@ -34,5 +31,5 @@ const HousingListSearchBar = () => {
     );
 };
 
-export default HousingListSearchBar;
+export default AppSearchBar;
 

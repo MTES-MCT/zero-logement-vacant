@@ -33,11 +33,6 @@ function AppHeader() {
                     title="Campagnes"
                     asLink={<Link to="/campagnes" />}
                 />
-                <NavItem
-                    current={path === '/stats'}
-                    title="Statistiques"
-                    asLink={<Link to="/stats" />}
-                />
             </HeaderNav>
         </Header>
     );

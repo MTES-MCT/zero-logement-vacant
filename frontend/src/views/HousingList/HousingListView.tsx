@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Button, Checkbox, Col, Container, Row, Table, Tag, Text, Title } from '@dataesr/react-dsfr';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
@@ -9,11 +9,14 @@ import LoadingBar from 'react-redux-loading-bar';
 import styles from './housing-list.module.scss';
 import HousingListFilterMenu from './HousingListFilterMenu';
 import { updateWithValue } from '../../utils/arrayUtils';
-import HousingListSearchBar from './HousingListSearchBar';
+import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { Link } from 'react-router-dom';
+import { searchHousing } from '../../store/actions/housingAction';
 
 
 const HousingListView = () => {
+
+    const dispatch = useDispatch();
 
     const maxRecords = 500;
 
@@ -89,7 +92,7 @@ const HousingListView = () => {
                     <Title as="h1">Logements</Title>
                     <Row>
                         <Col n="6">
-                            <HousingListSearchBar></HousingListSearchBar>
+                            <AppSearchBar onSearch={(input: string) => {dispatch(searchHousing(input))}} />
                         </Col>
 
                     </Row>

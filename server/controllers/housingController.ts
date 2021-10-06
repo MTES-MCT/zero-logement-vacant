@@ -59,16 +59,19 @@ const list = async (request: Request, response: Response): Promise<Response> => 
             'ID propriétaire'
         ],
         filterByFormula: buildFilterByFormula(filters, search)
-    }).all().then((results: any) => {
-        return response.status(200).json(results.map((result: any) => ({
-            id: result.id,
-            address: result.fields['Adresse'],
-            municipality: result.fields['Nom de la commune du logement'],
-            ownerFullName: result.fields['Propriétaire'],
-            ownerId: result.fields['ID propriétaire'],
-            tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
-        })));
-    });
+    })
+        .all()
+        .then((results: any) => {
+            return response.status(200).json(results.map((result: any) => ({
+                id: result.id,
+                address: result.fields['Adresse'],
+                municipality: result.fields['Nom de la commune du logement'],
+                ownerFullName: result.fields['Propriétaire'],
+                ownerId: result.fields['ID propriétaire'],
+                tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
+            })));
+        })
+        .catch((_: any) => console.error(_));
 };
 
 const listByOwner = async (request: Request, response: Response): Promise<Response> => {
@@ -92,18 +95,21 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
             'Début de la vacance'
         ],
         filterByFormula: `{Record-ID=proprietaire} = '${ownerId}'`
-    }).all().then((results: any) => {
-        return response.status(200).json(results.map((result: any) => ({
-            id: result.id,
-            address: result.fields['Adresse'],
-            municipality: result.fields['Nom de la commune du logement'],
-            kind: result.fields['Type de logement'].trimRight() === 'MAISON' ? 'Maison' : result.fields['Type de logement'].trimRight() === 'APPART' ? 'Appartement' : undefined,
-            surface: result.fields['Surface habitable'],
-            rooms: result.fields['Nombre de pièces'],
-            buildingYear: result.fields['Année de construction'],
-            vacancyStart: result.fields['Début de la vacance'],
-        })));
-    });
+    })
+        .all()
+        .then((results: any) => {
+            return response.status(200).json(results.map((result: any) => ({
+                id: result.id,
+                address: result.fields['Adresse'],
+                municipality: result.fields['Nom de la commune du logement'],
+                kind: result.fields['Type de logement'].trimRight() === 'MAISON' ? 'Maison' : result.fields['Type de logement'].trimRight() === 'APPART' ? 'Appartement' : undefined,
+                surface: result.fields['Surface habitable'],
+                rooms: result.fields['Nombre de pièces'],
+                buildingYear: result.fields['Année de construction'],
+                vacancyStart: result.fields['Début de la vacance'],
+            })));
+        })
+        .catch((_: any) => console.error(_));
 };
 
 const housingController =  {

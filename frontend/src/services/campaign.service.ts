@@ -1,7 +1,5 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { Owner } from '../models/Owner';
-import { parseISO } from 'date-fns';
 import { HousingFilters } from '../models/Housing';
 
 

@@ -3,7 +3,7 @@ import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';

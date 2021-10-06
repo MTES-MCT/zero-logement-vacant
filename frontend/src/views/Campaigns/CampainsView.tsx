@@ -11,7 +11,7 @@ const CampaignsView = () => {
 
     const dispatch = useDispatch();
 
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    // const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(searchCampaign(''));

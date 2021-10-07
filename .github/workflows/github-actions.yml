@@ -25,5 +25,7 @@ jobs:
         run: npm run build
       - name: DB migrations
         run: npm run migrate-latest
+        env:
+          DATABASE_URL: postgres://postgres@localhost/zlv
       - name: Unit tests
         run: npm test

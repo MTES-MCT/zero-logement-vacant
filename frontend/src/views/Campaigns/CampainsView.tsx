@@ -1,33 +1,39 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Col, Container, Row, Select, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { searchCampaign } from '../../store/actions/campaignAction';
+import { listCampaignHousing, searchCampaign } from '../../store/actions/campaignAction';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import styles from '../Owner/owner.module.scss';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { CampaignFilters } from '../../models/Campaign';
+import HousingList from '../../components/HousingList/HousingList';
 
 
 const CampaignsView = () => {
 
     const dispatch = useDispatch();
 
-    const { filters } = useSelector((state: ApplicationState) => state.campaign);
-    const [campaignFilters, setCampaignFilters] = useState<CampaignFilters>(filters ?? {});
+    const [campaignId, setCampaignId] = useState<string>();
     const [campaignIdOptions, setCampaignIdOptions] = useState<any[]>([ {value: "", label: "Sélectionner", disabled: true, hidden: true}])
 
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignHousingList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         setCampaignIdOptions([
             ...campaignIdOptions,
             ...campaignList.map(c => ({ value: c.id, label: c.name }))
         ])
-    }, [campaignList, campaignIdOptions])
+    }, [campaignList])
 
     useEffect(() => {
         dispatch(searchCampaign(''));
     }, [dispatch])
+
+    useEffect(() => {
+        if (campaignId) {
+            dispatch(listCampaignHousing(campaignId));
+        }
+    }, [campaignId, dispatch])
 
     return (
         <>
@@ -47,9 +53,9 @@ const CampaignsView = () => {
                             <Select
                                 label="Nom de la campagne"
                                 options={campaignIdOptions}
-                                selected={campaignFilters.campaignId}
-                                onChange={(e: ChangeEvent<any>) => setCampaignFilters({...campaignFilters, campaignId: e.target.value})}
-                                value={campaignFilters.campaignId}
+                                selected={campaignId}
+                                onChange={(e: ChangeEvent<any>) => setCampaignId(e.target.value)}
+                                value={campaignId}
                             />
                         </Col>
                         <Col>
@@ -71,6 +77,7 @@ const CampaignsView = () => {
                     <Tab label="Remis sur le marché">
                     </Tab>
                 </Tabs>
+                <HousingList housingList={campaignHousingList} />
             </Container>
         </>
     );

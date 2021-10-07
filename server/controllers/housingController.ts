@@ -1,5 +1,6 @@
 import config from '../utils/config';
 import { Request, Response } from 'express';
+import campaignRepository from '../repositories/campaignRepository';
 
 export interface HousingFilters {
     individualOwner?: boolean;
@@ -112,9 +113,49 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
         .catch((_: any) => console.error(_));
 };
 
+const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    console.log('List housing by campaign', campaignId)
+
+    return campaignRepository.getHousingList(campaignId)
+        .then((housingRefs: string[]) => {
+
+            let Airtable = require('airtable');
+            let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+
+            return base('🏡 Adresses').select({
+                maxRecords: 500,
+                fields: [
+                    'Adresse',
+                    'Nom de la commune du logement',
+                    'Propriétaire',
+                    'Age (pour filtre)',
+                    'ID propriétaire'
+                ],
+                filterByFormula: `FIND({Record-ID=adresse}, ARRAYJOIN('${housingRefs}', ';')) > 0`
+            })
+                .all()
+                .then((results: any) => {
+                    return response.status(200).json(results.map((result: any) => ({
+                        id: result.id,
+                        address: result.fields['Adresse'],
+                        municipality: result.fields['Nom de la commune du logement'],
+                        ownerFullName: result.fields['Propriétaire'],
+                        ownerId: result.fields['ID propriétaire'],
+                        tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
+                    })));
+                })
+                .catch((_: any) => console.error(_));
+        })
+
+};
+
 const housingController =  {
     list,
-    listByOwner
+    listByOwner,
+    listByCampaign
 };
 
 export default housingController;

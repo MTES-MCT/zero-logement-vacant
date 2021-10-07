@@ -2,10 +2,11 @@ import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
 
 const campaignsTable = 'campaigns';
+const campaignsHousingTable = 'campaigns_housing';
 
 const list = async (): Promise<CampaignApi[]> => {
     try {
-        return db.select().from(campaignsTable)
+        return db(campaignsTable);
     } catch (err) {
         console.error('Listing campaigns failed', err);
         throw new Error('Listing campaigns failed');
@@ -24,7 +25,20 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     }
 }
 
+const getHousingList = async (campaignId: string): Promise<string[]> => {
+    try {
+        return db(campaignsHousingTable)
+            .where('campaignId', campaignId)
+            .returning('housingRef')
+            .then(_ => _.map(_ => _.housingRef));
+    } catch (err) {
+        console.error('Listing housing for campaignId failed', err, campaignId);
+        throw new Error('Listing housing for campaignId failed');
+    }
+}
+
 export default {
     list,
-    insert
+    insert,
+    getHousingList
 }

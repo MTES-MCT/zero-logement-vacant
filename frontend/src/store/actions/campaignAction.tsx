@@ -1,51 +1,38 @@
 import { Dispatch } from 'redux';
-import { Campaign, CampaignFilters } from '../../models/Campaign';
+import { Campaign } from '../../models/Campaign';
 import campaignService from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
+import housingService from '../../services/housing.service';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
+export const FETCH_CAMPAIGN_HOUSING_LIST = 'FETCH_CAMPAIGN_HOUSING_LIST';
+export const CAMPAIGN_HOUSING_LIST_FETCHED = 'CAMPAIGN_HOUSING_LIST_FETCHED';
 
 export interface FetchCampaignListAction {
     type: typeof FETCH_CAMPAIGN_LIST,
-    filters: CampaignFilters,
     search: string
 }
 
 export interface CampaignListFetchedAction {
     type: typeof CAMPAIGN_LIST_FETCHED,
     campaignList: Campaign[],
-    filters: CampaignFilters,
     search: string
 }
 
-export type CampaignActionTypes = FetchCampaignListAction | CampaignListFetchedAction;
+export interface FetchCampaignHousingListAction {
+    type: typeof FETCH_CAMPAIGN_HOUSING_LIST,
+    campaignId: string
+}
 
-export const filterCampaign = (filters: CampaignFilters) => {
+export interface CampaignHousingListFetchedAction {
+    type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
+    campaignId: string,
+    campaignHousingList: Campaign[]
+}
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
-        dispatch(showLoading());
-
-        dispatch({
-            type: FETCH_CAMPAIGN_LIST,
-            filters,
-            search: getState().campaign.search
-        });
-
-        campaignService.listCampaigns(filters, getState().campaign.search)
-            .then(campaignList => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: CAMPAIGN_LIST_FETCHED,
-                    campaignList,
-                    filters,
-                    search: getState().campaign.search
-                });
-            });
-    };
-};
+export type CampaignActionTypes = FetchCampaignListAction | CampaignListFetchedAction | FetchCampaignHousingListAction | CampaignHousingListFetchedAction;
 
 export const searchCampaign = (search: string) => {
 
@@ -57,18 +44,42 @@ export const searchCampaign = (search: string) => {
 
             dispatch({
                 type: FETCH_CAMPAIGN_LIST,
-                filters: getState().campaign.filters,
                 search
             });
 
-            campaignService.listCampaigns(getState().campaign.filters, search)
+            campaignService.listCampaigns(search)
                 .then(campaignList => {
                     dispatch(hideLoading());
                     dispatch({
                         type: CAMPAIGN_LIST_FETCHED,
                         campaignList,
-                        filters: getState().campaign.filters,
                         search
+                    });
+                });
+        }
+    };
+};
+
+export const listCampaignHousing = (campaignId: string) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        if (campaignId !== getState().campaign.campaignId) {
+
+            dispatch(showLoading());
+
+            dispatch({
+                type: FETCH_CAMPAIGN_HOUSING_LIST,
+                campaignId
+            });
+
+            housingService.listByCampaign(campaignId)
+                .then(campaignHousingList => {
+                    dispatch(hideLoading());
+                    dispatch({
+                        type: CAMPAIGN_HOUSING_LIST_FETCHED,
+                        campaignId,
+                        campaignHousingList
                     });
                 });
         }

@@ -17,6 +17,7 @@ const jwtCheck = expressJWT({
 
 router.post('/api/housing', jwtCheck, housingController.list);
 router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwner);
+router.get('/api/housing/campaign/:campaignId', jwtCheck, housingController.listByCampaign);
 
 router.post('/api/campaigns', jwtCheck, campaignController.list);
 

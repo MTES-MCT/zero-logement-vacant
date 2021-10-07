@@ -20,9 +20,18 @@ const listByOwner = async (ownerId: string) => {
     }).then(_ => _.json());
 };
 
+const listByCampaign = async (campaignId: string) => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/campaign/${campaignId}`, {
+        method: 'GET',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
+    }).then(_ => _.json());
+};
+
 const housingService = {
     listHousing,
-    listByOwner
+    listByOwner,
+    listByCampaign
 };
 
 export default housingService;

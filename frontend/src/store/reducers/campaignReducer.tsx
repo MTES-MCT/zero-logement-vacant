@@ -1,20 +1,23 @@
-import { Campaign, CampaignFilters } from '../../models/Campaign';
-import { CAMPAIGN_LIST_FETCHED, CampaignActionTypes, FETCH_CAMPAIGN_LIST } from '../actions/campaignAction';
+import { Campaign } from '../../models/Campaign';
+import {
+    CAMPAIGN_HOUSING_LIST_FETCHED,
+    CAMPAIGN_LIST_FETCHED,
+    CampaignActionTypes,
+    FETCH_CAMPAIGN_HOUSING_LIST,
+    FETCH_CAMPAIGN_LIST,
+} from '../actions/campaignAction';
+import { Housing } from '../../models/Housing';
 
 
 export interface CampaignState {
     campaignList: Campaign[];
-    filters: CampaignFilters;
     search: string;
+    campaignId: string;
+    campaignHousingList: Housing[]
 }
-
-export const initialFilters = {
-    campaignId: ''
-} as CampaignFilters;
 
 const initialState = {
     campaignList: [],
-    filters: initialFilters,
     search: undefined
 };
 
@@ -24,13 +27,22 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignList: [],
-                filters: action.filters,
                 search: action.search
             };
         case CAMPAIGN_LIST_FETCHED:
             return {
                 ...state,
-                campaignList: (action.filters === state.filters && action.search === state.search) ? action.campaignList : state.campaignList
+                campaignList: (action.search === state.search) ? action.campaignList : state.campaignList
+            };
+        case FETCH_CAMPAIGN_HOUSING_LIST:
+            return {
+                ...state,
+                campaignId: action.campaignId
+            };
+        case CAMPAIGN_HOUSING_LIST_FETCHED:
+            return {
+                ...state,
+                campaignHousingList: action.campaignHousingList
             };
         default:
             return state;

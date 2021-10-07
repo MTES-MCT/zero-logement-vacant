@@ -9,5 +9,6 @@ export default {
         email: process.env.AUTH_EMAIL || 'zlv@beta.gouv.fr',
         password: process.env.AUTH_PASSWORD || '$2y$10$6SpVXhNlNzXyuZai2AGvFOyjiTIAh59YYzxtGPfAUC6nCLABeOGLm',
         secret: process.env.AUTH_SECRET || 'secret'
-    }
+    },
+    databaseUrl: process.env.DATABASE_URL
 };

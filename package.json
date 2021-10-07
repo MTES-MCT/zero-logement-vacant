@@ -7,11 +7,14 @@
     "frontend:build": "cd frontend && npm install && npm run build",
     "frontend:start": "cd frontend && npm start",
     "frontend:test": "cd frontend && npm test",
-    "server-local": "ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
+    "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
-    "build": "tsc && npm run frontend:build",
+    "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/index.js",
-    "test": "npm run frontend:test"
+    "test": "npm run frontend:test",
+    "listMigrations": "knex migrate:list",
+    "migrate-latest": "knex migrate:latest",
+    "rollback-one": "knex migrate:down"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +28,8 @@
     "express": "^4.17.1",
     "express-jwt": "^6.1.0",
     "jsonwebtoken": "^8.5.1",
+    "knex": "^0.95.11",
+    "pg": "^8.7.1",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },

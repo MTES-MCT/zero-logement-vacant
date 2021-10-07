@@ -1,3 +1,10 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+if (process.env.ENVIRONMENT ?? 'development' === 'development') {
+    dotenv.config({path: path.join(__dirname, '../../.env')});
+}
+
 export default {
     environment: process.env.ENVIRONMENT || 'development',
     serverPort: process.env.API_PORT,

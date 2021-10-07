@@ -1,16 +1,29 @@
-import React, { useEffect } from 'react';
-import { Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { Col, Container, Row, Select, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { useDispatch, useSelector } from 'react-redux';
 import { searchCampaign } from '../../store/actions/campaignAction';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import styles from '../Owner/owner.module.scss';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { CampaignFilters } from '../../models/Campaign';
 
 
 const CampaignsView = () => {
 
     const dispatch = useDispatch();
 
-    // const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    const { filters } = useSelector((state: ApplicationState) => state.campaign);
+    const [campaignFilters, setCampaignFilters] = useState<CampaignFilters>(filters ?? {});
+    const [campaignIdOptions, setCampaignIdOptions] = useState<any[]>([ {value: "", label: "Sélectionner", disabled: true, hidden: true}])
+
+    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+
+    useEffect(() => {
+        setCampaignIdOptions([
+            ...campaignIdOptions,
+            ...campaignList.map(c => ({ value: c.id, label: c.name }))
+        ])
+    }, [campaignList])
 
     useEffect(() => {
         dispatch(searchCampaign(''));
@@ -29,9 +42,15 @@ const CampaignsView = () => {
                         </Col>
                     </Row>
                     <Row>
-                        <Col>
+                        <Col n="3">
                             <Text size="md" className="fr-mb-1w"><b>Sélection</b></Text>
-                            <Text size="md">Nom de la campagne</Text>
+                            <Select
+                                label="Nom de la campagne"
+                                options={campaignIdOptions}
+                                selected={campaignFilters.campaignId}
+                                onChange={(e: ChangeEvent<any>) => setCampaignFilters({...campaignFilters, campaignId: e.target.value})}
+                                value={campaignFilters.campaignId}
+                            />
                         </Col>
                         <Col>
                             <Text size="md" className="fr-mb-1w"><b>Caractéristiques de la campagne</b></Text>

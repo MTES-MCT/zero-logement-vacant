@@ -1,9 +1,9 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { HousingFilters } from '../models/Housing';
+import { CampaignFilters } from '../models/Campaign';
 
 
-const listCampaigns = async (filters?: HousingFilters, search?: string) => {
+const listCampaigns = async (filters?: CampaignFilters, search?: string) => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns`, {
         method: 'POST',

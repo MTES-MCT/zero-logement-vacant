@@ -9,6 +9,7 @@ export interface CampaignState {
 }
 
 export const initialFilters = {
+    campaignId: ''
 } as CampaignFilters;
 
 const initialState = {

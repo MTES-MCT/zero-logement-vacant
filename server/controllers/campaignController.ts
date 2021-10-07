@@ -1,29 +1,30 @@
-import config from '../utils/config';
 import { Request, Response } from 'express';
+import campaignRepository from '../repositories/campaignRepository';
+import { CampaignApi } from '../models/CampaignApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('List campaigns')
 
-    let Airtable = require('airtable');
-    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+    return campaignRepository.list()
+        .then(_ => response.status(200).json(_));
 
-    return base('📊 Récap Campagnes').select({
-        fields: [
-            'Nom Campagne'
-        ]
-    })
-        .all()
-        .then((results: any) => {
-            return response.status(200).json(results.map((result: any) => ({
-                name: result.fields['Nom Campagne']
-            })));
-        })
-        .catch((_: any) => console.error(_));
-};
+}
+
+const create = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Create campaign')
+
+    const campaign = <CampaignApi>{name: 'test3'}
+
+    return campaignRepository.insert(campaign)
+        .then(_ => response.status(200).json(_));
+
+}
 
 const campaignController =  {
-    list
+    list,
+    create
 };
 
 export default campaignController;

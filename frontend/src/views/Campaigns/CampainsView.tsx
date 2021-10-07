@@ -23,7 +23,7 @@ const CampaignsView = () => {
             ...campaignIdOptions,
             ...campaignList.map(c => ({ value: c.id, label: c.name }))
         ])
-    }, [campaignList])
+    }, [campaignList, campaignIdOptions])
 
     useEffect(() => {
         dispatch(searchCampaign(''));

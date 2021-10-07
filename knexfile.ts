@@ -1,10 +1,14 @@
 import dotenv from 'dotenv';
+import config from './server/utils/config';
 
-const result = dotenv.config()
+if (config.environment === 'development') {
+  const result = dotenv.config()
 
-if (result.error) {
-  throw result.error
+  if (result.error) {
+    throw result.error
+  }
 }
+
 export default {
   client: 'pg',
   connection: process.env.DATABASE_URL,

@@ -14,7 +14,7 @@ exports.up = function (knex: Knex) {
                 table.uuid('campaignId').references('id').inTable('campaigns');
                 table.string('housingRef');
             })
-            .alterTable('campaign_housing', table => {
+            .alterTable('campaigns_housing', table => {
                 table.primary(['campaignId', 'housingRef'])
             }),
     ]);

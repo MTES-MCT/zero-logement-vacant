@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { useDispatch } from 'react-redux';
 import { searchCampaign } from '../../store/actions/campaignAction';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import styles from '../Owner/owner.module.scss';

@@ -19,8 +19,8 @@ const CampaignsView = () => {
     const { campaignHousingList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        setCampaignIdOptions([
-            ...campaignIdOptions,
+        setCampaignIdOptions(options => [
+            ...options,
             ...campaignList.map(c => ({ value: c.id, label: c.name }))
         ])
     }, [campaignList])

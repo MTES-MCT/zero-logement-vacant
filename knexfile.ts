@@ -2,11 +2,8 @@ import dotenv from 'dotenv';
 import config from './server/utils/config';
 
 if (config.environment === 'development') {
-  const result = dotenv.config()
-
-  if (result.error) {
-    throw result.error
-  }
+  dotenv.config();
+  console.log('process.env.DATABASE_URL', process.env.DATABASE_URL)
 }
 
 export default {

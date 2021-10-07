@@ -9,12 +9,12 @@
     "frontend:test": "cd frontend && npm test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
-    "build": "tsc && npm run frontend:build && npm run migrate-latest",
-    "start": "node ./dist/index.js",
+    "build": "tsc && npm run frontend:build",
+    "start": "node ./dist/server/index.js",
     "test": "npm run frontend:test",
-    "listMigrations": "knex migrate:list",
-    "migrate-latest": "knex migrate:latest",
-    "rollback-one": "knex migrate:down"
+    "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",
+    "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
+    "rollback-one": "knex migrate:down --knexfile=./server/knex.ts"
   },
   "keywords": [],
   "author": "",

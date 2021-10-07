@@ -9,7 +9,7 @@
     "frontend:test": "cd frontend && npm test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
-    "build": "tsc && npm run frontend:build",
+    "build": "tsc && npm run frontend:build && npm run migrate-latest",
     "start": "node ./dist/server/index.js",
     "test": "npm run frontend:test",
     "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",

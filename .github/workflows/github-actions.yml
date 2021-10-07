@@ -12,8 +12,6 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: zlv
         options: >-
           --health-cmd pg_isready
@@ -35,6 +33,6 @@ jobs:
       - name: DB migrations
         run: npm run migrate-latest
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
+          DATABASE_URL: postgres://postgres@localhost:5432/zlv
       - name: Unit tests
         run: npm test

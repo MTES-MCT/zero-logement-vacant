@@ -2,7 +2,7 @@ import config from './utils/config';
 
 export default {
   client: 'pg',
-  connection: `${config.databaseUrl}/zlv`,
+  connection: config.databaseUrl,
   acquireConnectionTimeout: 10000,
   migrations: {
     tableName: 'knex_migrations',

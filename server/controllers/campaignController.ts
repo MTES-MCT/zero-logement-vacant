@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
+import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi } from '../models/CampaignApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
@@ -15,9 +16,11 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     console.log('Create campaign')
 
-    const campaign = <CampaignApi>{name: 'test3'}
+    const name = request.body.name;
+    const housingRefs = request.body.housingIds;
 
-    return campaignRepository.insert(campaign)
+    return campaignRepository.insert(<CampaignApi>{name})
+        .then(campaign => campaignHousingRepository.insertHousingList(campaign.id!, housingRefs))
         .then(_ => response.status(200).json(_));
 
 }

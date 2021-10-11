@@ -32,7 +32,11 @@ export interface CampaignHousingListFetchedAction {
     campaignHousingList: Campaign[]
 }
 
-export type CampaignActionTypes = FetchCampaignListAction | CampaignListFetchedAction | FetchCampaignHousingListAction | CampaignHousingListFetchedAction;
+export type CampaignActionTypes =
+    FetchCampaignListAction
+    | CampaignListFetchedAction
+    | FetchCampaignHousingListAction
+    | CampaignHousingListFetchedAction;
 
 export const searchCampaign = (search: string) => {
 
@@ -83,5 +87,18 @@ export const listCampaignHousing = (campaignId: string) => {
                     });
                 });
         }
+    };
+};
+
+export const createCampaign = (campaignName: string, housingIds: string[]) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        campaignService.createCampaign(campaignName, housingIds)
+            .then(_ => {
+                dispatch(hideLoading());
+            });
     };
 };

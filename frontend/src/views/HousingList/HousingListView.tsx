@@ -7,6 +7,7 @@ import HousingListFilterMenu from './HousingListFilterMenu';
 import HousingList from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { searchHousing } from '../../store/actions/housingAction';
+import { createCampaign } from '../../store/actions/campaignAction';
 
 
 const HousingListView = () => {
@@ -17,6 +18,11 @@ const HousingListView = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
+
+    const create = () => {
+        dispatch(createCampaign('tutu', selectedHousingIds))
+        setIsModalOpen(false)
+    }
 
     return (
         <Container spacing="py-4w">
@@ -40,7 +46,7 @@ const HousingListView = () => {
                                     <ModalTitle>Créer la campagne</ModalTitle>
                                     <ModalContent>{selectedHousingIds.length} logements sélectionnés</ModalContent>
                                     <ModalFooter>
-                                        <Button title="title">Créer la campagne</Button>
+                                        <Button title="title" onClick={() => create()}>Créer la campagne</Button>
                                     </ModalFooter>
                                 </Modal>
                             </div>

@@ -20,6 +20,7 @@ router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwne
 router.get('/api/housing/campaign/:campaignId', jwtCheck, housingController.listByCampaign);
 
 router.post('/api/campaigns', jwtCheck, campaignController.list);
+router.post('/api/campaigns/new', jwtCheck, campaignController.create);
 
 router.get('/api/owners/:id', jwtCheck, ownerController.get);
 

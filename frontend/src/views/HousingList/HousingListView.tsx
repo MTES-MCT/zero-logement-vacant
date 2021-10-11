@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
-import { Button, Col, Container, Row, Title, Modal, ModalClose, ModalTitle, ModalContent, ModalFooter } from '@dataesr/react-dsfr';
+import {
+    Button,
+    Col,
+    Container,
+    Row,
+    Title,
+    Modal,
+    ModalClose,
+    ModalTitle,
+    ModalContent,
+    ModalFooter,
+    TextInput, Text,
+} from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilterMenu from './HousingListFilterMenu';
@@ -16,11 +28,12 @@ const HousingListView = () => {
 
     const { housingList } = useSelector((state: ApplicationState) => state.housing);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [campaignName, setCampaignName] = useState('');
 
     const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
 
     const create = () => {
-        dispatch(createCampaign('tutu', selectedHousingIds))
+        dispatch(createCampaign(campaignName, selectedHousingIds))
         setIsModalOpen(false)
     }
 
@@ -44,7 +57,18 @@ const HousingListView = () => {
                                 <Modal isOpen={isModalOpen} hide={() => setIsModalOpen(false)}>
                                     <ModalClose hide={() => setIsModalOpen(false)} title="Fermer la fenêtre">Fermer</ModalClose>
                                     <ModalTitle>Créer la campagne</ModalTitle>
-                                    <ModalContent>{selectedHousingIds.length} logements sélectionnés</ModalContent>
+                                    <ModalContent>
+                                        <Text size="md" className="fr-mb-1w">
+                                            {selectedHousingIds.length} logements sélectionnés
+                                        </Text>
+                                        <TextInput
+                                            value={campaignName}
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
+                                            required
+                                            label="Nom de la campagne"
+                                            hint="20 caractères maximum"
+                                        />
+                                    </ModalContent>
                                     <ModalFooter>
                                         <Button title="title" onClick={() => create()}>Créer la campagne</Button>
                                     </ModalFooter>

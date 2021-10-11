@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
-const AppSearchBar = (props: { onSearch: (text: string) => void }) => {
+const AppSearchBar = ({ onSearch }: { onSearch: (text: string) => void }) => {
 
     const { search } = useSelector((state: ApplicationState) => state.housing);
 
@@ -13,7 +13,7 @@ const AppSearchBar = (props: { onSearch: (text: string) => void }) => {
 
     const submitSearch = (e: SubmitEvent) => {
         e.preventDefault();
-        props.onSearch(searchInput);
+        onSearch(searchInput);
     }
 
     return (

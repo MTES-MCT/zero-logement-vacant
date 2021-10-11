@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import { Request, Response } from 'express';
-import campaignRepository from '../repositories/campaignRepository';
+import campaignHousingRepository from '../repositories/campaignHousingRepository';
 
 export interface HousingFilters {
     individualOwner?: boolean;
@@ -119,7 +119,7 @@ const listByCampaign = async (request: Request, response: Response): Promise<Res
 
     console.log('List housing by campaign', campaignId)
 
-    return campaignRepository.getHousingList(campaignId)
+    return campaignHousingRepository.getHousingList(campaignId)
         .then((housingRefs: string[]) => {
 
             let Airtable = require('airtable');

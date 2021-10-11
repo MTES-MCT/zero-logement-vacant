@@ -67,6 +67,7 @@ const CampaignsView = () => {
             <Container spacing="py-4w">
                 <Tabs>
                     <Tab label="À contacter">
+                        <HousingList housingList={campaignHousingList} />
                     </Tab>
                     <Tab label="En attente de retour">
                     </Tab>
@@ -77,7 +78,6 @@ const CampaignsView = () => {
                     <Tab label="Remis sur le marché">
                     </Tab>
                 </Tabs>
-                <HousingList housingList={campaignHousingList} />
             </Container>
         </>
     );

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Button, Checkbox, Table, Tag, Text } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
@@ -9,7 +9,7 @@ import { updateWithValue } from '../../utils/arrayUtils';
 import { Link } from 'react-router-dom';
 
 
-const HousingList = (props: { housingList: Housing[] }) => {
+const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSelect?: (selectedIds: string[]) => void }) => {
 
     const maxRecords = 500;
 
@@ -19,11 +19,17 @@ const HousingList = (props: { housingList: Housing[] }) => {
 
     const currentPageIds = (checked: boolean) => {
         if (checked) {
-            return props.housingList.map(_ => _.id).slice((page - 1) * perPage, page * perPage);
+            return housingList.map(_ => _.id).slice((page - 1) * perPage, page * perPage);
         } else {
             return[];
         }
     }
+
+    useEffect(() => {
+        if (onSelect) {
+            onSelect(selectedIds);
+        }
+    }, [selectedIds, onSelect]);
 
     const columns: any[] = [
         {
@@ -72,16 +78,16 @@ const HousingList = (props: { housingList: Housing[] }) => {
     return (
         <>
             <LoadingBar className={styles.loading} updateTime={100} maxProgress={100} progressIncrease={10}/>
-            { props.housingList && props.housingList.length > 0 &&
+            { housingList && housingList.length > 0 &&
                 <>
                     <Text className="fr-my-2w">
-                        <b>{props.housingList.length >= maxRecords ? 'Plus de ' + maxRecords : props.housingList.length }</b> logements
+                        <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
                     </Text>
                     <Table
                         caption="Logements"
                         captionPosition="none"
                         rowKey="id"
-                        data={props.housingList}
+                        data={housingList}
                         columns={columns}
                         pagination
                         paginationPosition="center"

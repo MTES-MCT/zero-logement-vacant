@@ -6,7 +6,7 @@ export default {
   acquireConnectionTimeout: 10000,
   migrations: {
     tableName: 'knex_migrations',
-    directory: './database/migrations'
+    directory: '../database/migrations'
   },
   seeds: {
     directory: './test/seed',

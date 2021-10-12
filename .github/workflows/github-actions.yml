@@ -25,13 +25,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Server install
         run: npm install
-      - name: Server tests
-        run: npm run test
-        env:
-          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
       - name : build
         run: npm run build
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
       - name: Frontend tests
         run: npm run frontend:test
+      - name: Server tests
+        run: npm run test
+        env:
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv

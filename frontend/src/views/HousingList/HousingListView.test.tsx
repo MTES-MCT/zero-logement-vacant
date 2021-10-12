@@ -54,7 +54,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true}, search: ''}),
+            body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true}, search: 'test'}),
         });
 
         act(() => { fireEvent.click(filter2CheckboxElement) });

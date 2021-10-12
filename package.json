@@ -11,7 +11,7 @@
     "start-local": "run-p frontend:start server-local",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
-    "test": "jest --config=./server/jest.config.js",
+    "test": "jest",
     "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "rollback-one": "knex migrate:down --knexfile=./server/knex.ts"
@@ -49,5 +49,8 @@
   "engines": {
     "node": "^14.16.0",
     "npm": "^6.14.0"
+  },
+  "jest": {
+    "projects": ["<rootDir>/server/jest.config.js"]
   }
 }

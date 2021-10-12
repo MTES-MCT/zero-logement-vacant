@@ -34,5 +34,7 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
-      - name: Unit tests
+      - name: Frontend tests
+        run: frontend:test
+      - name: Server tests
         run: npm test

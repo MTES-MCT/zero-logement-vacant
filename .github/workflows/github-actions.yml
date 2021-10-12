@@ -17,14 +17,6 @@ jobs:
           POSTGRES_DB: zlv
         ports:
           - 5432:5432
-      postgres_test:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_zlv
-        ports:
-          - 5433:5433
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -36,7 +28,7 @@ jobs:
       - name: Server tests
         run: npm run test
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5433/test_zlv
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
       - name : build
         run: npm run build
         env:

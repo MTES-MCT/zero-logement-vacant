@@ -4,9 +4,9 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "scripts": {
-    "frontend:build": "cd frontend && npm install && npm run build && cd ..",
-    "frontend:start": "cd frontend && npm start && cd ..",
-    "frontend:test": "cd frontend && npm test && cd ..",
+    "frontend:build": "cd frontend && npm install && npm run build",
+    "frontend:start": "cd frontend && npm start",
+    "frontend:test": "cd frontend && npm test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
@@ -51,6 +51,6 @@
     "npm": "^6.14.0"
   },
   "jest": {
-    "projects": ["<rootDir>/server/jest.config.js"]
+    "projects": ["./jest.config.js"]
   }
 }

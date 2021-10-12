@@ -21,12 +21,8 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     return campaignRepository.insert(<CampaignApi>{name})
         .then(campaign => campaignHousingRepository.insertHousingList(campaign.id!, housingRefs))
-        .then(_ => response.status(200).json(_));
+        .then((housingRefs: string[]) => response.status(200).json({count: housingRefs.length}));
 
-}
-
-const test = (request: Request, response: Response) => {
-    return response.status(200).json({a:2});
 }
 
 const campaignController =  {

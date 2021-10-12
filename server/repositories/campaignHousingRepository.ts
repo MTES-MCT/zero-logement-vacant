@@ -1,6 +1,6 @@
 import db from './db';
 
-const campaignsHousingTable = 'campaigns_housing';
+export const campaignsHousingTable = 'campaigns_housing';
 
 const getHousingList = async (campaignId: string): Promise<string[]> => {
     try {
@@ -14,10 +14,11 @@ const getHousingList = async (campaignId: string): Promise<string[]> => {
     }
 }
 
-const insertHousingList = async (campaignId: string, housingRefs: string[]): Promise<number> => {
+const insertHousingList = async (campaignId: string, housingRefs: string[]): Promise<string[]> => {
     try {
         return db(campaignsHousingTable)
-            .insert(housingRefs.map(housingRef => ({campaignId, housingRef})));
+            .insert(housingRefs.map(housingRef => ({campaignId, housingRef})))
+            .returning('housingRef')
     } catch (err) {
         console.error('Inserting housing list failed', err, campaignId);
         throw new Error('Inserting housing list failed');

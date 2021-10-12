@@ -53,7 +53,12 @@ const HousingListView = () => {
                         </Col>
                         <Col n="4">
                             <div style={{textAlign: 'right'}}>
-                                <Button title="open modal" onClick={() => setIsModalOpen(true)}>Créer la campagne</Button>
+                                <Button title="open modal"
+                                        onClick={() => setIsModalOpen(true)}
+                                        data-testid="create-campaign-button"
+                                        disabled={selectedHousingIds.length === 0}>
+                                    Créer la campagne
+                                </Button>
                                 <Modal isOpen={isModalOpen} hide={() => setIsModalOpen(false)}>
                                     <ModalClose hide={() => setIsModalOpen(false)} title="Fermer la fenêtre">Fermer</ModalClose>
                                     <ModalTitle>Créer la campagne</ModalTitle>

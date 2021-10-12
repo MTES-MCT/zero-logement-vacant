@@ -17,11 +17,11 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const currentPageIds = (checked: boolean) => {
+    const checkAll = (checked: boolean) => {
         if (checked) {
-            return housingList.map(_ => _.id).slice((page - 1) * perPage, page * perPage);
+            setSelectedIds(housingList.map(_ => _.id));
         } else {
-            return[];
+            setSelectedIds([]);
         }
     }
 
@@ -35,14 +35,15 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
         {
             name: 'select',
             headerRender: () =>
-                <Checkbox onChange={(e: ChangeEvent<any>) => setSelectedIds(currentPageIds(e.target.checked))}
-                          className={selectedIds.length > 0 && selectedIds.length < perPage ? styles.indeterminate : ''}
+                <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
+                          className={selectedIds.length > 0 && selectedIds.length < housingList.length ? styles.indeterminate : ''}
                           label="">
                 </Checkbox>,
             render: ({ id }: Housing) =>
                 <Checkbox value={id}
                           onChange={(e: ChangeEvent<any>) => setSelectedIds(updateWithValue(selectedIds, e.target.value, e.target.checked))}
                           checked={selectedIds.indexOf(id) !== -1}
+                          data-testid={'housing-check-' + id}
                           label="">
                 </Checkbox>
         },
@@ -95,6 +96,7 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
                         perPage={perPage}
                         fixedLayout={true}
                         className="zlv-table-with-view zlv-table-with-select"
+                        data-testid="housing-table"
                     />
                 </>
             }

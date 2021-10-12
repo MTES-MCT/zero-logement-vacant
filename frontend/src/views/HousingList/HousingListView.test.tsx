@@ -11,6 +11,9 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { initialFilters } from '../../store/reducers/housingReducer';
+import { genHousing } from '../../../test/fixtures.test';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
 
 describe('housing view', () => {
 
@@ -101,6 +104,33 @@ describe('housing view', () => {
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ filters: initialFilters, search: 'my search'}),
         });
+    });
+
+    test('should disable the creation of campaign when no housing are selected', () => {
+
+        fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
+
+        render(<Provider store={store}><HousingListView/></Provider>);
+
+        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        expect(createCampaignButton).toBeDisabled();
+    });
+
+    test('should create a campaign when at least a housing is selected', async () => {
+
+        const housing = genHousing();
+        fetchMock.mockResponseOnce(JSON.stringify([housing]), { status: 200 });
+
+        const history = createMemoryHistory();
+        render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
+
+        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
+        const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
+
+        fireEvent.click(housing1CheckboxElement)
+
+        expect(createCampaignButton).toBeEnabled();
     });
 
 });

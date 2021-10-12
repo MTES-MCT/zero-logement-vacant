@@ -1,5 +1,5 @@
 import { Owner } from '../src/models/Owner';
-import { HousingDetails } from '../src/models/Housing';
+import { Housing, HousingDetails } from '../src/models/Housing';
 
 const randomstring = require('randomstring');
 
@@ -34,7 +34,6 @@ export function genOwner() {
     } as Owner;
 }
 
-
 export function genHousingDetails() {
     return {
         id: randomstring.generate(),
@@ -46,4 +45,15 @@ export function genHousingDetails() {
         buildingYear: genNumber(4),
         vacancyStart: genNumber(4),
     } as HousingDetails;
+}
+
+export function genHousing() {
+    return {
+        id: randomstring.generate(),
+        address: randomstring.generate(),
+        municipality: randomstring.generate(),
+        ownerFullName: randomstring.generate(),
+        ownerId: randomstring.generate(),
+        tags: []
+    } as Housing;
 }

@@ -11,8 +11,7 @@
     "start-local": "run-p frontend:start server-local",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
-    "test": "jest",
-    "jest": "jest",
+    "test": "jest --config=./server/jest.config.js",
     "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "rollback-one": "knex migrate:down --knexfile=./server/knex.ts"

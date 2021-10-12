@@ -6,10 +6,10 @@ const defaultConfig = {
   acquireConnectionTimeout: 10000,
   migrations: {
     tableName: 'knex_migrations',
-    directory: './database/migrations'
+    directory: '../database/migrations'
   },
   seeds: {
-    directory: './database/seed',
+    directory: '../database/seed',
     extension: 'ts',
   },
 };
@@ -20,10 +20,10 @@ const testConfig = {
   acquireConnectionTimeout: 10000,
   migrations: {
     tableName: 'knex_migrations',
-    directory: './server/database/migrations'
+    directory: './database/migrations'
   },
   seeds: {
-    directory: './server/database/seed',
+    directory: './database/seed',
     extension: 'ts',
   }
 }

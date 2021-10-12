@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-console.log('process.env.NODE_ENV', process.env.NODE_ENV)
-
 if (!process.env.API_PORT) {
     dotenv.config({path: path.join(__dirname, '../../.env')});
 }

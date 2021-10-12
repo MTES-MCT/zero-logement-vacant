@@ -1,8 +1,12 @@
 import campaignController from './campaignController';
-import { getMockReq, getMockRes } from '@jest-mock/express'
-
+import { getMockReq, getMockRes } from '@jest-mock/express';
+import db from '../repositories/db';
 
 describe('Campaign controller', () => {
+
+    afterAll(async () => {
+        await db.destroy()
+    });
 
     it('should list campaigns', async () => {
 
@@ -16,7 +20,7 @@ describe('Campaign controller', () => {
             expect.arrayContaining(
                 [
                     expect.objectContaining({
-                        name: 'Campagne 1s'
+                        name: 'Campagne 1'
                     })
                 ]
             )

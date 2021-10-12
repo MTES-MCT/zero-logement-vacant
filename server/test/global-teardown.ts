@@ -10,5 +10,7 @@ export default async () => {
     } catch (error) {
         console.log(error)
         process.exit(1)
+    } finally {
+        await db.destroy()
     }
 }

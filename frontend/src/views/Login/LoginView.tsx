@@ -20,7 +20,6 @@ const LoginView = () => {
         dispatch(login(email, password));
     };
 
-    console.log('USER ? ', user)
     if (user) {
         return <Redirect to="/logements" />;
     }

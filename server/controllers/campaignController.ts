@@ -25,8 +25,8 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
 }
 
-const test = () => {
-    return 2;
+const test = (request: Request, response: Response) => {
+    return response.status(200).json({a:2});
 }
 
 const campaignController =  {

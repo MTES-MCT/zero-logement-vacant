@@ -27,8 +27,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
 const campaignController =  {
     list,
-    create,
-    test
+    create
 };
 
 export default campaignController;

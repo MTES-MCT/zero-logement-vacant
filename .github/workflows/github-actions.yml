@@ -37,4 +37,4 @@ jobs:
       - name: Frontend tests
         run: npm run frontend:test
       - name: Server tests
-        run: npm test
+        run: npm run test

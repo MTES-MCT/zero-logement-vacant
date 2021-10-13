@@ -98,29 +98,29 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
                         className="zlv-table-with-view zlv-table-with-select"
                         data-testid="housing-table"
                     />
+                    <div style={{textAlign: 'center'}}>
+                        <Button
+                            onClick={() => setPerPage(20)}
+                            secondary
+                            disabled={perPage === 20}
+                            title="title">20 résultats par pages
+                        </Button>
+                        <Button
+                            onClick={() => setPerPage(50)}
+                            className="fr-mx-3w"
+                            secondary
+                            disabled={perPage === 50}
+                            title="title">50 résultats par pages
+                        </Button>
+                        <Button
+                            onClick={() => setPerPage(100)}
+                            secondary
+                            disable={perPage === 100}
+                            title="title">100 résultats par pages
+                        </Button>
+                    </div>
                 </>
             }
-            <div style={{textAlign: 'center'}}>
-                <Button
-                    onClick={() => setPerPage(20)}
-                    secondary
-                    disabled={perPage === 20}
-                    title="title">20 résultats par pages
-                </Button>
-                <Button
-                    onClick={() => setPerPage(50)}
-                    className="fr-mx-3w"
-                    secondary
-                    disabled={perPage === 50}
-                    title="title">50 résultats par pages
-                </Button>
-                <Button
-                    onClick={() => setPerPage(100)}
-                    secondary
-                    disable={perPage === 100}
-                    title="title">100 résultats par pages
-                </Button>
-            </div>
         </>
     );
 };

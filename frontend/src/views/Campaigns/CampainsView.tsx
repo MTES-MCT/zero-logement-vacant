@@ -60,9 +60,18 @@ const CampaignsView = () => {
                                 value={campaignId}
                             />
                         </Col>
+                        <Col n="3">
+
+                        </Col>
+                        {campaignId &&
                         <Col>
                             <Text size="md" className="fr-mb-1w"><b>Caractéristiques de la campagne</b></Text>
+                            <Text size="md" className="fr-mb-1w">
+                                Logements&nbsp;
+                                <b>{campaignHousingList?.length}</b>
+                            </Text>
                         </Col>
+                        }
                     </Row>
                 </Container>
             </div>

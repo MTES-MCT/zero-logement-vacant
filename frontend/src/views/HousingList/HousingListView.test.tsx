@@ -28,6 +28,7 @@ describe('housing view', () => {
     });
 
     test('should display filter menu', () => {
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
         render(<Provider store={store}><HousingListView/></Provider>);
         const ownersFilterElement = screen.getByTestId('filterMenu');
         expect(ownersFilterElement).toBeInTheDocument();
@@ -35,7 +36,7 @@ describe('housing view', () => {
 
     test('should filter', async () => {
 
-        fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
         render(<Provider store={store}><HousingListView/></Provider>);
 
@@ -81,7 +82,7 @@ describe('housing view', () => {
 
     test('should search', async () => {
 
-        fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
         render(<Provider store={store}><HousingListView/></Provider>);
 
@@ -108,7 +109,7 @@ describe('housing view', () => {
 
     test('should disable the creation of campaign when no housing are selected', () => {
 
-        fetchMock.mockResponseOnce(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
         render(<Provider store={store}><HousingListView/></Provider>);
 
@@ -119,7 +120,10 @@ describe('housing view', () => {
     test('should create a campaign when at least a housing is selected', async () => {
 
         const housing = genHousing();
-        fetchMock.mockResponseOnce(JSON.stringify([housing]), { status: 200 });
+
+        fetchMock.doMockIf(
+            `${config.apiEndpoint}/api/housing`,
+            JSON.stringify([housing]), { status: 200 });
 
         const history = createMemoryHistory();
         render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);

@@ -11,7 +11,7 @@ import { genUser } from '../../../test/fixtures.test';
 
 describe('AppHeader', () => {
 
-    test('should not display navbar when user no user is logged', () => {
+    test('should not display navbar when no user is logged', () => {
         const store = createStore(applicationReducer, applyMiddleware(thunk));
 
         render(<Provider store={store}><Router history={createMemoryHistory()}><AppHeader/></Router></Provider>);

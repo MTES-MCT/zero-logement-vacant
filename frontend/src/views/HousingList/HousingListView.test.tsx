@@ -107,7 +107,7 @@ describe('housing view', () => {
         });
     });
 
-    test('should disable the creation of campaign when no housing are selected', () => {
+    test('should disable the creation of the campaign when no housing are selected', () => {
 
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
@@ -117,7 +117,7 @@ describe('housing view', () => {
         expect(createCampaignButton).toBeDisabled();
     });
 
-    test('should create a campaign when at least a housing is selected', async () => {
+    test('should enable the creation of the campaign when at least a housing is selected', async () => {
 
         const housing = genHousing();
 
@@ -132,9 +132,16 @@ describe('housing view', () => {
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
         const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
-        fireEvent.click(housing1CheckboxElement)
+        fireEvent.click(housing1CheckboxElement);
 
         expect(createCampaignButton).toBeEnabled();
+
+        fireEvent.click(createCampaignButton);
+
+        const campaignCreationModal = screen.getByTestId('campaign-creation-modal');
+
+        expect(campaignCreationModal).toBeInTheDocument();
+
     });
 
 });

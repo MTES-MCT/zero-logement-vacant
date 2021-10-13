@@ -21,7 +21,9 @@ const CampaignsView = () => {
     useEffect(() => {
         setCampaignIdOptions(options => [
             ...options,
-            ...campaignList.map(c => ({ value: c.id, label: c.name }))
+            ...campaignList
+                .map(c => ({ value: c.id, label: c.name }))
+                .sort((c1, c2) => c1.label.localeCompare(c2.label))
         ])
     }, [campaignList])
 

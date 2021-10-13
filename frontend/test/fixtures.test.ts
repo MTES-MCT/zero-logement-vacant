@@ -1,5 +1,6 @@
 import { Owner } from '../src/models/Owner';
 import { Housing, HousingDetails } from '../src/models/Housing';
+import { User } from '../src/models/User';
 
 const randomstring = require('randomstring');
 
@@ -18,6 +19,13 @@ export function genNumber(length: number = 10) {
         length,
         charset: 'numeric'
     });
+}
+
+export function genUser() {
+    return {
+        email: genEmail(),
+        accessToken: randomstring.generate()
+    } as User;
 }
 
 export function genOwner() {

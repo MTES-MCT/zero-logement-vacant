@@ -13,7 +13,7 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
 
     const maxRecords = 500;
 
-    const [page, setPage] = useState(1);
+    const [, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 

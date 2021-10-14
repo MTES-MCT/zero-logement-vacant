@@ -42,8 +42,8 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     console.log('List housing')
 
-    let Airtable = require('airtable');
-    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
     const filters = request.body.filters ?? {};
     const search = request.body.search;
@@ -81,8 +81,8 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
 
     console.log('List housing by owner', ownerId)
 
-    let Airtable = require('airtable');
-    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
     return base('🏡 Adresses').select({
         maxRecords: 500,
@@ -122,8 +122,8 @@ const listByCampaign = async (request: Request, response: Response): Promise<Res
     return campaignHousingRepository.getHousingList(campaignId)
         .then((housingRefs: string[]) => {
 
-            let Airtable = require('airtable');
-            let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+            const Airtable = require('airtable');
+            const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
             return base('🏡 Adresses').select({
                 maxRecords: 500,

@@ -7,8 +7,8 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Get owner', id)
 
-    let Airtable = require('airtable');
-    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
     return base('🏡 Adresses').select({
         fields: [

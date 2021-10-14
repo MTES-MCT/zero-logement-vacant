@@ -14,7 +14,7 @@ export function genEmail() {
     }) ;
 }
 
-export function genNumber(length: number = 10) {
+export function genNumber(length = 10) {
     return randomstring.generate({
         length,
         charset: 'numeric'

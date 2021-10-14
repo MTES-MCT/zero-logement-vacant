@@ -38,10 +38,15 @@ describe('login view', () => {
         fetchMock.mockResponseOnce('[]', { status: 401 });
 
         render(<Provider store={store}><LoginView/></Provider>);
-        // @ts-ignore
-        fireEvent.change(screen.getByTestId('password-input').querySelector('input'), {target: {value: 'password'}});
-        // @ts-ignore
-        fireEvent.change(screen.getByTestId('email-input').querySelector('input'), {target: {value: 'email'}});
+
+        const passwordInput = screen.getByTestId('password-input').querySelector('input');
+        if (passwordInput) {
+            fireEvent.change(passwordInput, { target: { value: 'password' } });
+        }
+        const emailInput = screen.getByTestId('email-input').querySelector('input');
+        if (emailInput) {
+            fireEvent.change(emailInput, { target: { value: 'email' } });
+        }
 
         act(() => {
             fireEvent.click(screen.getByTestId('login-button'));
@@ -60,12 +65,16 @@ describe('login view', () => {
         fetchMock.mockResponseOnce(JSON.stringify({ email: 'email', accessToken: 'accessToken' }), { status: 200 });
 
         const history = createMemoryHistory();
-        const { container } = render(<Provider store={store}><Router history={history}><LoginView/></Router></Provider>);
+        render(<Provider store={store}><Router history={history}><LoginView/></Router></Provider>);
 
-        // @ts-ignore
-        fireEvent.change(screen.getByTestId('password-input').querySelector('input'), { target: { value: 'password' } });
-        // @ts-ignore
-        fireEvent.change(screen.getByTestId('email-input').querySelector('input'), { target: { value: 'email' } });
+        const passwordInput = screen.getByTestId('password-input').querySelector('input');
+        if (passwordInput) {
+            fireEvent.change(passwordInput, { target: { value: 'password' } });
+        }
+        const emailInput = screen.getByTestId('email-input').querySelector('input');
+        if (emailInput) {
+            fireEvent.change(emailInput, { target: { value: 'email' } });
+        }
 
         act(() => {
             fireEvent.click(screen.getByTestId('login-button'));

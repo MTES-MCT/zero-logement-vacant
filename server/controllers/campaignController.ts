@@ -21,7 +21,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const housingRefs = request.body.housingIds;
 
     return campaignRepository.insert(<CampaignApi>{name})
-        .then(campaign => campaignHousingRepository.insertHousingList(campaign.id!, housingRefs))
+        .then(campaign => campaign.id ? campaignHousingRepository.insertHousingList(campaign.id, housingRefs) : Promise.resolve([]))
         .then((housingRefs: string[]) => response.status(200).json({count: housingRefs.length}));
 
 }
@@ -30,8 +30,8 @@ const importFromAirtable = async (request: Request, response: Response): Promise
 
     console.log('Import campaign from Airtable')
 
-    let Airtable = require('airtable');
-    let base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
 
     return base('🏡 Adresses').select({
         fields: [
@@ -55,7 +55,7 @@ const importFromAirtable = async (request: Request, response: Response): Promise
         .then((campaignMap: Map<string, string[]>) => {
             campaignMap.forEach((housingRefs: string[], name: string) => {
                 campaignRepository.insert(<CampaignApi>{name})
-                    .then(campaign => campaignHousingRepository.insertHousingList(campaign.id!, housingRefs));
+                    .then(campaign => campaign.id ? campaignHousingRepository.insertHousingList(campaign.id, housingRefs) : Promise.resolve([]))
             })
         })
         .then((_: any) => {

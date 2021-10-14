@@ -6,6 +6,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "lint": "node_modules/.bin/eslint --quiet . --ext .ts,.tsx",
     "eject": "react-scripts eject"
   },
   "dependencies": {
@@ -50,6 +51,10 @@
     ]
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.11.0",
+    "eslint-plugin-react": "^7.26.1",
     "jest-fetch-mock": "^3.0.3",
     "randomstring": "^1.2.1"
   }

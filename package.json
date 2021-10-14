@@ -12,6 +12,7 @@
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
     "test": "jest",
+    "lint": "eslint . --ext .js,.ts",
     "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "rollback-one": "knex migrate:down --knexfile=./server/knex.ts"
@@ -42,6 +43,9 @@
     "@types/express-jwt": "^6.0.2",
     "@types/jest": "^26.0.24",
     "@types/jsonwebtoken": "^8.5.5",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.11.0",
     "npm-run-all": "^4.1.5",
     "ts-jest": "^26.5.6",
     "ts-node-dev": "^1.1.8"

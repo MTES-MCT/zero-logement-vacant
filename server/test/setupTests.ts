@@ -7,7 +7,7 @@ global.beforeEach(async() => {
     try {
         await db.migrate.latest()
         await db.seed.run()
-    } catch (error: any) {
+    } catch (error) {
         console.log(error)
         process.exit(1)
     } finally {

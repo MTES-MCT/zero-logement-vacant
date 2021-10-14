@@ -25,6 +25,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Server install
         run: npm install
+      - name: Frontend linter
+        run: npm --prefix frontend run lint -- --quiet
+      - name: Server linter
+        run: npm run lint -- --quiet
       - name : build
         run: npm run build
         env:

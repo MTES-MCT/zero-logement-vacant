@@ -25,16 +25,16 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Server install
         run: npm install
-      - name: Frontend linter
-        run: npm --prefix frontend run lint -- --quiet
-      - name: Server linter
-        run: npm run lint -- --quiet
       - name : build
         run: npm run build
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
+      - name: Frontend linter
+        run: npm --prefix frontend run lint -- --quiet
+      - name: Server linter
+        run: npm run lint -- --quiet
       - name: Frontend tests
-        run: npm run frontend:test
+        run: npm --prefix frontend test
       - name: Server tests
         run: npm run test
         env:

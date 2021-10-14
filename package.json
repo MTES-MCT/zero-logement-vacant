@@ -4,9 +4,10 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "scripts": {
-    "frontend:build": "cd frontend && npm install && npm run build",
-    "frontend:start": "cd frontend && npm start",
-    "frontend:test": "cd frontend && npm test",
+    "frontend:build": "npm --prefix frontend install && npm --prefix frontend build",
+    "frontend:start": "npm --prefix frontend start",
+    "frontend:lint": "npm --prefix frontend run lint",
+    "frontend:test": "npm --prefix frontend test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",

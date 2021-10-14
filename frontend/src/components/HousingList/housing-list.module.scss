@@ -5,12 +5,10 @@
 
 .indeterminate {
   input[type=checkbox]+label:before {
-    content: "-";
-    font-weight: bold;
-    font-size: 20px;
-    padding-bottom: 4px;
-    background-color: #000091;
-    color: white;
+    content: "-" !important;
+    font-weight: bold !important;
+    font-size: 20px !important;
+    padding-bottom: 4px !important;
   }
 }
 

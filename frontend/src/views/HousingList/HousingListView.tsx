@@ -25,6 +25,12 @@ const HousingListView = () => {
         setIsModalOpen(false)
     }
 
+    const getDistinctOwners = () => {return housingList
+        .filter(housing => selectedHousingIds.indexOf(housing.id) !== -1)
+        .map(housing => housing.ownerId)
+        .filter((id, index, array) => array.indexOf(id) === index)
+    }
+
     return (
         <Container spacing="py-4w">
             <Row className="fr-grid-row--center">
@@ -49,6 +55,7 @@ const HousingListView = () => {
                                 </Button>
                                 {isModalOpen &&
                                 <CampaignCreationModal housingCount={selectedHousingIds.length}
+                                                       ownerCount={getDistinctOwners().length}
                                                        onSubmit={(campaignName: string) => create(campaignName)}
                                                        onClose={() => setIsModalOpen(false)} />}
                             </div>

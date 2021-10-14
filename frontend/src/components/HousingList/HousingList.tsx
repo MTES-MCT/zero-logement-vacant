@@ -31,6 +31,11 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
         }
     }, [selectedIds, onSelect]);
 
+
+    useEffect(() => {
+        setSelectedIds([]);
+    }, [housingList])
+
     const columns: any[] = [
         {
             name: 'select',
@@ -92,7 +97,7 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
                         columns={columns}
                         pagination
                         paginationPosition="center"
-                        setPage={setPage} page={page}
+                        setPage={setPage}
                         perPage={perPage}
                         fixedLayout={true}
                         className="zlv-table-with-view zlv-table-with-select"

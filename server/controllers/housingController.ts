@@ -68,7 +68,7 @@ const list = async (request: Request, response: Response): Promise<Response> => 
                 address: result.fields['Adresse'],
                 municipality: result.fields['Nom de la commune du logement'],
                 ownerFullName: result.fields['Propriétaire'],
-                ownerId: result.fields['ID propriétaire'],
+                ownerId: result.fields['ID propriétaire'][0],
                 tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
             })));
         })
@@ -143,7 +143,7 @@ const listByCampaign = async (request: Request, response: Response): Promise<Res
                         address: result.fields['Adresse'],
                         municipality: result.fields['Nom de la commune du logement'],
                         ownerFullName: result.fields['Propriétaire'],
-                        ownerId: result.fields['ID propriétaire'],
+                        ownerId: result.fields['ID propriétaire'][0],
                         tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
                     })));
                 })

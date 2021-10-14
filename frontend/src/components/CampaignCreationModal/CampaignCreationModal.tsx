@@ -2,7 +2,7 @@ import React, { ChangeEvent, useState } from 'react';
 import { Button, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Text, TextInput } from '@dataesr/react-dsfr';
 
 
-const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (name: string) => void, onClose: () => void}) => {
+const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {housingCount: number, ownerCount: number, onSubmit: (name: string) => void, onClose: () => void}) => {
 
     const [campaignName, setCampaignName] = useState('');
     const [campaignNameError, setCampaignNameError] = useState<string>();
@@ -23,8 +23,9 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>Créer la campagne</ModalTitle>
             <ModalContent>
-                <Text size="md" className="fr-mb-1w">
-                    {housingCount} logements sélectionnés
+                <Text size="md">
+                    <div>{housingCount} logements</div>
+                    <div>{ownerCount} propriétaires</div>
                 </Text>
                 <TextInput
                     value={campaignName}
@@ -40,9 +41,15 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
             </ModalContent>
             <ModalFooter>
                 <Button title="title"
+                        secondary
+                        className="fr-mr-2w"
+                        onClick={() => onClose()}>
+                    Annuler
+                </Button>
+                <Button title="title"
                         onClick={() => create()}
                         data-testid="create-button">
-                    Créer la campagne
+                    Enregistrer
                 </Button>
             </ModalFooter>
         </Modal>

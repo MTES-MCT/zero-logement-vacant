@@ -17,7 +17,6 @@ import { capitalize } from '../../utils/stringUtils';
 describe('housing view', () => {
 
     let store: any;
-    const randomstring = require("randomstring");
 
     beforeEach(() => {
         fetchMock.resetMocks();
@@ -44,7 +43,7 @@ describe('housing view', () => {
 
         const history = createMemoryHistory({ initialEntries: [`/proprietaires/${owner.id}`]});
 
-        const { container } = render(
+        render(
             <Provider store={store}>
                 <Router history={history}>
                     <Route exact path="/proprietaires/:id" component={OwnerView} />

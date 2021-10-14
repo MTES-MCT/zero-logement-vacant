@@ -6,7 +6,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "lint": "node_modules/.bin/eslint --quiet . --ext .ts,.tsx",
+    "lint": "node_modules/.bin/eslint . --ext .ts,.tsx",
     "eject": "react-scripts eject"
   },
   "dependencies": {

@@ -97,7 +97,7 @@ export const createCampaign = (campaignName: string, housingIds: string[]) => {
         dispatch(showLoading());
 
         campaignService.createCampaign(campaignName, housingIds)
-            .then(_ => {
+            .then(() => {
                 dispatch(hideLoading());
             });
     };

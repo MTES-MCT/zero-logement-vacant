@@ -8,14 +8,17 @@ describe('Campagne creation modal', () => {
 
         render(
             <CampaignCreationModal housingCount={2}
-                                   onSubmit={(name: string) => {}}
+                                   ownerCount={1}
+                                   onSubmit={() => {}}
                                    onClose={() => {}} />
         );
 
-        const housingCountTextElement = screen.getByText('2 logements sélectionnés');
+        const housingCountTextElement = screen.getByText('2 logements');
+        const ownerCountTextElement = screen.getByText('1 propriétaires');
         const campaignNameInputElement = screen.getByTestId('campaign-name-input');
         const createButton = screen.getByTestId('create-button');
         expect(housingCountTextElement).toBeInTheDocument();
+        expect(ownerCountTextElement).toBeInTheDocument();
         expect(campaignNameInputElement).toBeInTheDocument();
         expect(createButton).toBeInTheDocument();
     });
@@ -24,7 +27,7 @@ describe('Campagne creation modal', () => {
 
         render(
             <CampaignCreationModal housingCount={2}
-                                   onSubmit={(name: string) => {}}
+                                   onSubmit={() => {}}
                                    onClose={() => {}} />
         );
 

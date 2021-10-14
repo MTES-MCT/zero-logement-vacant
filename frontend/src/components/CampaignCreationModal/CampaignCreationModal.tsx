@@ -24,8 +24,8 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
             <ModalTitle>Créer la campagne</ModalTitle>
             <ModalContent>
                 <Text size="md">
-                    <div>{housingCount} logements</div>
-                    <div>{ownerCount} propriétaires</div>
+                    <span style={{display: 'block'}}>{housingCount} logements</span>
+                    <span>{ownerCount} propriétaires</span>
                 </Text>
                 <TextInput
                     value={campaignName}

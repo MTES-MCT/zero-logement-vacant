@@ -4,7 +4,7 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "scripts": {
-    "frontend:build": "npm --prefix frontend install && npm --prefix frontend build",
+    "frontend:build": "npm --prefix frontend install && npm run --prefix frontend build",
     "frontend:start": "npm --prefix frontend start",
     "frontend:lint": "npm --prefix frontend run lint",
     "frontend:test": "npm --prefix frontend test",

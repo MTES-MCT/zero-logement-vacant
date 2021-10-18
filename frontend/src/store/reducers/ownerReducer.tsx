@@ -4,6 +4,7 @@ import {
     FETCHING_OWNER_HOUSING,
     OWNER_FETCHED,
     OWNER_HOUSING_FETCHED,
+    OWNER_HOUSING_UPDATED,
     OwnerActionTypes,
 } from '../actions/ownerAction';
 import { HousingDetails } from '../../models/Housing';
@@ -37,6 +38,11 @@ const ownerReducer = (state = initialState, action: OwnerActionTypes) => {
             return {
                 ...state,
                 housingList: action.housingList
+            };
+        case OWNER_HOUSING_UPDATED:
+            return {
+                ...state,
+                owner: action.owner
             };
         default:
             return state;

@@ -8,7 +8,7 @@ import HousingList from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { searchHousing } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
-import CampaignCreationModal from '../../components/CampaignCreationModal/CampaignCreationModal';
+import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 
 
 const HousingListView = () => {
@@ -47,7 +47,7 @@ const HousingListView = () => {
                         </Col>
                         <Col n="4">
                             <div style={{textAlign: 'right'}}>
-                                <Button title="open modal"
+                                <Button title="Créer la campagne"
                                         onClick={() => setIsModalOpen(true)}
                                         data-testid="create-campaign-button"
                                         disabled={selectedHousingIds.length === 0}>

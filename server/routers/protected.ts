@@ -24,5 +24,6 @@ router.post('/api/campaigns/new', jwtCheck, campaignController.create);
 router.get('/api/campaigns/import', jwtCheck, campaignController.importFromAirtable);
 
 router.get('/api/owners/:id', jwtCheck, ownerController.get);
+router.put('/api/owners/:ownerId', jwtCheck, ownerController.ownerValidators, ownerController.update);
 
 export default router;

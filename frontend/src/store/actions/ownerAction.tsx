@@ -9,6 +9,7 @@ export const FETCHING_OWNER = 'FETCHING_OWNER';
 export const OWNER_FETCHED = 'OWNER_FETCHED';
 export const FETCHING_OWNER_HOUSING = 'FETCHING_OWNER_HOUSING';
 export const OWNER_HOUSING_FETCHED = 'OWNER_HOUSING_FETCHED';
+export const OWNER_HOUSING_UPDATED = 'OWNER_HOUSING_UPDATED';
 
 export interface FetchingOwnerAction {
     type: typeof FETCHING_OWNER
@@ -28,7 +29,17 @@ export interface OwnerHousingFetchedAction {
     housingList: HousingDetails[]
 }
 
-export type OwnerActionTypes = FetchingOwnerAction | OwnerFetchedAction | FetchingOwnerHousingAction| OwnerHousingFetchedAction;
+export interface OwnerHousingUpdatedAction {
+    type: typeof OWNER_HOUSING_UPDATED,
+    owner: Owner
+}
+
+export type OwnerActionTypes =
+    FetchingOwnerAction |
+    OwnerFetchedAction |
+    FetchingOwnerHousingAction |
+    OwnerHousingFetchedAction |
+    OwnerHousingUpdatedAction;
 
 export const getOwner = (id: string) => {
 
@@ -68,6 +79,27 @@ export const getOwnerHousing = (ownerId: string) => {
                     type: OWNER_HOUSING_FETCHED,
                     housingList
                 });
+            });
+    };
+};
+
+
+export const update = (owner: Owner) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        ownerService.updateOwner(owner)
+            .then(() => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: OWNER_HOUSING_UPDATED,
+                    owner
+                });
+            })
+            .catch(error => {
+                console.error(error);
             });
     };
 };

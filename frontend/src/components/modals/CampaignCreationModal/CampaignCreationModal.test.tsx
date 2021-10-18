@@ -27,6 +27,7 @@ describe('Campagne creation modal', () => {
 
         render(
             <CampaignCreationModal housingCount={2}
+                                   ownerCount={1}
                                    onSubmit={() => {}}
                                    onClose={() => {}} />
         );

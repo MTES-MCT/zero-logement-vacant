@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { differenceInYears, format } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
-import { getOwner, getOwnerHousing } from '../../store/actions/ownerAction';
+import { getOwner, getOwnerHousing, update } from '../../store/actions/ownerAction';
+import { Owner } from '../../models/Owner';
+import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 
 
 const OwnerView = () => {
@@ -14,12 +16,20 @@ const OwnerView = () => {
     const dispatch = useDispatch();
     const { id } = useParams<{id: string}>();
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
     }, [id, dispatch])
+
+
+    const updateOwner = (owner: Owner) => {
+        dispatch(update(owner));
+        setIsModalOpen(false);
+    }
 
     return (
         <>
@@ -36,8 +46,24 @@ const OwnerView = () => {
                 {owner &&
                     <Row className="fr-grid-row--center">
                         <Col n="6" className="bg-100 fr-py-2w fr-px-3w">
-                            <Title as="h2" look="h3">Propriétaire</Title>
-
+                            <Row>
+                                <Col>
+                                    <Title as="h2" look="h3">Propriétaire</Title>
+                                </Col>
+                                <Col className="d-flex fr-grid-row--right">
+                                    <Button title="Modifier le propriétaire"
+                                            secondary
+                                            icon="fr-fi-edit-line"
+                                            onClick={() => {setIsModalOpen(true)}}>
+                                        Modifier
+                                    </Button>
+                                    {isModalOpen &&
+                                    <OwnerEditionModal owner={owner}
+                                                       onSubmit={(owner: Owner) => updateOwner(owner)}
+                                                       onClose={() => setIsModalOpen(false)} />
+                                    }
+                                </Col>
+                            </Row>
                             <Text size="lg" className="fr-mb-1w">
                                 <b>Identité</b>
                             </Text>

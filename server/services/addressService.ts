@@ -9,8 +9,6 @@ const normalizeAdresses = async (addresses: string[][]): Promise<AddressApi[]> =
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet();
 
-    console.log('addresses[0]', addresses[0])
-
     worksheet.columns = addresses[0].map((column, index) => ({
         header: `Column ${index}`, key: index.toString()
     }));
@@ -19,7 +17,7 @@ const normalizeAdresses = async (addresses: string[][]): Promise<AddressApi[]> =
 
     const tmpCsvFileName = `${new Date().getTime()}.csv`;
 
-    return workbook.csv.writeFile(tmpCsvFileName)
+    const csvText = await workbook.csv.writeFile(tmpCsvFileName)
         .then(() => {
             const form = new FormData();
             form.append('data', fs.createReadStream(tmpCsvFileName));
@@ -35,20 +33,20 @@ const normalizeAdresses = async (addresses: string[][]): Promise<AddressApi[]> =
             });
         })
         .then((fetchResponse: FetchResponse) => fetchResponse.text())
-        .then((text: string) => {
-            const headers = text.split('\n')[0].split(',')
-            console.log('headers', headers)
-            console.log('headers.indexOf(\'result_housenumber\')', headers.indexOf('result_housenumber'))
-            return text.split('\n').slice(1).map(line => {
-                const columns = line.split(',')
-                return <AddressApi>{
-                    houseNumber: columns[headers.indexOf('result_housenumber')],
-                    street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
-                    postCode: columns[headers.indexOf('result_postcode')],
-                    city: columns[headers.indexOf('result_city')],
-                }
-            })
-        })
+
+    fs.unlinkSync(tmpCsvFileName)
+
+    const headers = csvText.split('\n')[0].split(',')
+
+    return csvText.split('\n').slice(1).map(line => {
+        const columns = line.split(',')
+        return <AddressApi>{
+            houseNumber: columns[headers.indexOf('result_housenumber')],
+            street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
+            postCode: columns[headers.indexOf('result_postcode')],
+            city: columns[headers.indexOf('result_city')],
+        }
+    })
 }
 
 export default {

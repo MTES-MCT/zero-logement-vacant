@@ -13,7 +13,8 @@ export interface CampaignState {
     campaignList: Campaign[];
     search: string;
     campaignId: string;
-    campaignHousingList: Housing[]
+    campaignHousingList: Housing[];
+    exportURL: string;
 }
 
 const initialState = {
@@ -42,7 +43,8 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case CAMPAIGN_HOUSING_LIST_FETCHED:
             return {
                 ...state,
-                campaignHousingList: action.campaignHousingList
+                campaignHousingList: action.campaignHousingList,
+                exportURL: action.exportURL
             };
         default:
             return state;

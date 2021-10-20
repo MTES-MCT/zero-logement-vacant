@@ -20,9 +20,14 @@ const createCampaign = async (name: string, housingIds: string[]) => {
     }).then(_ => _.json());
 };
 
+const getExportURL = (campaignId: string) => {
+    return `${config.apiEndpoint}/api/housing/campaign/${campaignId}/export?x-access-token=${authService.authHeader()?.['x-access-token']}`;
+};
+
 const campaignService = {
     listCampaigns,
-    createCampaign
+    createCampaign,
+    getExportURL
 };
 
 export default campaignService;

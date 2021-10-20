@@ -3,6 +3,18 @@ import db from './db';
 
 export const campaignsTable = 'campaigns';
 
+
+const get = async (campainId: string): Promise<CampaignApi> => {
+    try {
+        return db(campaignsTable)
+            .where('id', campainId)
+            .first();
+    } catch (err) {
+        console.error('Listing campaigns failed', err);
+        throw new Error('Listing campaigns failed');
+    }
+}
+
 const list = async (): Promise<CampaignApi[]> => {
     try {
         return db(campaignsTable);
@@ -25,6 +37,7 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 }
 
 export default {
+    get,
     list,
     insert
 }

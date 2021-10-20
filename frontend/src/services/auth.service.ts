@@ -1,6 +1,7 @@
 import config from '../utils/config';
+import { User } from '../models/User';
 
-const login = async (email: string, password: string) => {
+const login = async (email: string, password: string): Promise<User> => {
 
     return fetch(`${config.apiEndpoint}/api/authenticate`, {
         method: 'POST',
@@ -23,8 +24,7 @@ const login = async (email: string, password: string) => {
 };
 
 
-
-const logout = () => {
+const logout = (): void => {
     localStorage.removeItem('user');
 };
 

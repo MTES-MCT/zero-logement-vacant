@@ -1,6 +1,10 @@
 import config from '../utils/config';
 import { Request, Response } from 'express';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
+import campaignRepository from '../repositories/campaignRepository';
+import ExcelJS from 'exceljs';
+import addressService from '../services/addressService';
+
 
 export interface HousingFilters {
     individualOwner?: boolean;
@@ -152,10 +156,92 @@ const listByCampaign = async (request: Request, response: Response): Promise<Res
 
 };
 
+
+const exportByCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    console.log('Export housing by campaign', campaignId)
+
+    const campaignApi = await campaignRepository.get(campaignId)
+    const housingRefs = await campaignHousingRepository.getHousingList(campaignId)
+
+    const fileName = `${campaignApi.name}.xlsx`;
+
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
+
+    const airtableResults = await base('🏡 Adresses').select({
+        maxRecords: 500,
+        fields: [
+            'Adresse',
+            'Nom de la commune du logement',
+            'Civilité',
+            'Propriétaire',
+            'ADRESSE1',
+            'ADRESSE2',
+            'ADRESSE3',
+            'ADRESSE4'
+        ],
+        filterByFormula: `FIND({Record-ID=adresse}, ARRAYJOIN('${housingRefs}', ';')) > 0`
+    }).all()
+
+    const ownerAdresses = await addressService.normalizeAdresses(
+        airtableResults.map((result: any) => [result.fields['ADRESSE1'], result.fields['ADRESSE2'], result.fields['ADRESSE3'], result.fields['ADRESSE4']])
+    )
+
+    const housingAdresses = await addressService.normalizeAdresses(
+        airtableResults.map((result: any) => [result.fields['Adresse'], result.fields['Nom de la commune du logement']])
+    )
+
+    const workbook = new ExcelJS.Workbook();
+    var worksheet = workbook.addWorksheet('Logements');
+
+    worksheet.columns = [
+        { header: 'Civilité', key: 'civility' },
+        { header: 'Propriétaire', key: 'owner' },
+        { header: 'Numéro du propriétaire', key: 'ownerNumber' },
+        { header: 'Rue du propriétaire', key: 'ownerStreet' },
+        { header: 'Code postal du propriétaire', key: 'ownerPostCode' },
+        { header: 'Commune du propriétaire', key: 'ownerCity' },
+        { header: 'Numéro du logement', key: 'housingNumber' },
+        { header: 'Rue du logement', key: 'housingStreet' },
+        { header: 'Code postal du logement', key: 'housingPostCode' },
+        { header: 'Commune du logement', key: 'housingCity' },
+    ];
+
+    airtableResults.map((result: any, index: number) => {
+        worksheet.addRow({
+            civility: result.fields['Civilité'],
+            owner: result.fields['Propriétaire'],
+            ownerNumber: ownerAdresses[index].houseNumber,
+            ownerStreet: ownerAdresses[index].street,
+            ownerPostCode: ownerAdresses[index].postCode,
+            ownerCity: ownerAdresses[index].city,
+            housingNumber: housingAdresses[index].houseNumber,
+            housingStreet: housingAdresses[index].street,
+            housingPostCode: housingAdresses[index].postCode,
+            housingCity: housingAdresses[index].city,
+        });
+    })
+
+    response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+
+    return workbook.xlsx.write(response)
+        .then(() => {
+            response.end();
+            return response;
+        })
+
+}
+
+
 const housingController =  {
     list,
     listByOwner,
-    listByCampaign
+    listByCampaign,
+    exportByCampaign
 };
 
 export default housingController;

@@ -29,7 +29,8 @@ export interface FetchCampaignHousingListAction {
 export interface CampaignHousingListFetchedAction {
     type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
     campaignId: string,
-    campaignHousingList: Campaign[]
+    campaignHousingList: Campaign[],
+    exportURL: string
 }
 
 export type CampaignActionTypes =
@@ -83,7 +84,8 @@ export const listCampaignHousing = (campaignId: string) => {
                     dispatch({
                         type: CAMPAIGN_HOUSING_LIST_FETCHED,
                         campaignId,
-                        campaignHousingList
+                        campaignHousingList,
+                        exportURL: campaignService.getExportURL(campaignId)
                     });
                 });
         }

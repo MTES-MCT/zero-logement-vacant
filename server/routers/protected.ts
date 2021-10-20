@@ -11,13 +11,14 @@ const  router = express.Router();
 const jwtCheck = expressJWT({
     secret: config.auth.secret,
     algorithms: ['HS256'],
-    getToken: (request: Request) => request.headers['x-access-token']
+    getToken: (request: Request) => request.headers['x-access-token'] ?? request.query['x-access-token']
 });
 
 
 router.post('/api/housing', jwtCheck, housingController.list);
 router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwner);
 router.get('/api/housing/campaign/:campaignId', jwtCheck, housingController.listByCampaign);
+router.get('/api/housing/campaign/:campaignId/export', jwtCheck, housingController.exportByCampaign);
 
 router.post('/api/campaigns', jwtCheck, campaignController.list);
 router.post('/api/campaigns/new', jwtCheck, campaignController.create);

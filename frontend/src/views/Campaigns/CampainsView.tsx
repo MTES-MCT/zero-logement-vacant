@@ -15,8 +15,7 @@ const CampaignsView = () => {
     const [campaignId, setCampaignId] = useState<string>();
     const [campaignIdOptions, setCampaignIdOptions] = useState<any[]>([ {value: "", label: "Sélectionner", disabled: true, hidden: true}])
 
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
-    const { campaignHousingList } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignList, campaignHousingList, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         setCampaignIdOptions(options => [
@@ -33,7 +32,7 @@ const CampaignsView = () => {
 
     useEffect(() => {
         if (campaignId) {
-            dispatch(listCampaignHousing(campaignId));
+            dispatch(listCampaignHousing(campaignId))
         }
     }, [campaignId, dispatch])
 
@@ -64,13 +63,20 @@ const CampaignsView = () => {
 
                         </Col>
                         {campaignId &&
-                        <Col>
-                            <Text size="md" className="fr-mb-1w"><b>Caractéristiques de la campagne</b></Text>
-                            <Text size="md" className="fr-mb-1w">
-                                Logements&nbsp;
-                                <b>{campaignHousingList?.length}</b>
-                            </Text>
-                        </Col>
+                        <>
+                            <Col>
+                                <Text size="md" className="fr-mb-1w"><b>Caractéristiques de la campagne</b></Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    Logements&nbsp;
+                                    <b>{campaignHousingList?.length}</b>
+                                </Text>
+                                <div className="d-flex fr-grid-row--right">
+                                    <a href={exportURL} className="fr-btn--md fr-btn" download>
+                                        Exporter
+                                    </a>
+                                </div>
+                            </Col>
+                        </>
                         }
                     </Row>
                 </Container>

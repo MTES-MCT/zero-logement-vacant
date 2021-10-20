@@ -7,7 +7,7 @@ import ExcelJS from 'exceljs';
 const normalizeAdresses = async (addresses: string[][]): Promise<AddressApi[]> => {
 
     const workbook = new ExcelJS.Workbook();
-    var worksheet = workbook.addWorksheet();
+    const worksheet = workbook.addWorksheet();
 
     console.log('addresses[0]', addresses[0])
 

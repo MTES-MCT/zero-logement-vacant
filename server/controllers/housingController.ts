@@ -195,7 +195,7 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
     )
 
     const workbook = new ExcelJS.Workbook();
-    var worksheet = workbook.addWorksheet('Logements');
+    const worksheet = workbook.addWorksheet('Logements');
 
     worksheet.columns = [
         { header: 'Civilité', key: 'civility' },

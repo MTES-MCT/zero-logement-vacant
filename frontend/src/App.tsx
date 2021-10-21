@@ -3,7 +3,7 @@ import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import LoginView from './views/Login/LoginView';
-import { Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -35,14 +35,16 @@ function App() {
 
     return (
         <>
-            <AppHeader />
             <React.Suspense fallback={<></>}>
-                <Switch>
-                    {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                    {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsView} />}
-                    {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
-                    <Route path="/" component={LoginView} />
-                </Switch>
+                <BrowserRouter>
+                    <AppHeader />
+                    <Switch>
+                        {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
+                        {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsView} />}
+                        {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
+                        <Route path="/" component={LoginView} />
+                    </Switch>
+                </BrowserRouter>
             </React.Suspense>
         </>
     );

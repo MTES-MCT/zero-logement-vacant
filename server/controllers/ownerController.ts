@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import { Request, Response } from 'express';
 import { OwnerApi } from '../models/OwnerApi';
-import { body, validationResult } from 'express-validator';
+import { body, oneOf, validationResult } from 'express-validator';
 import { format, parseISO } from 'date-fns';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
@@ -94,7 +94,13 @@ const update = async (request: Request, response: Response): Promise<Response> =
 
 
 const ownerValidators = [
-    body('owner.email').isEmail()
+
+    oneOf(
+    [
+        body('owner.email').isEmpty(),
+        body('owner.email').isEmail()
+        ]
+    )
 ];
 
 

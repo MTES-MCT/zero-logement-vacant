@@ -2,7 +2,7 @@ export interface OwnerApi {
     id: string;
     address: string[];
     fullName: string;
-    birthDate?: Date;
+    birthDate?: string;
     email?: string;
     phone?: string;
 }

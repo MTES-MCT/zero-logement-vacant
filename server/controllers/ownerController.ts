@@ -2,6 +2,7 @@ import config from '../utils/config';
 import { Request, Response } from 'express';
 import { OwnerApi } from '../models/OwnerApi';
 import { body, validationResult } from 'express-validator';
+import { format, parseISO } from 'date-fns';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -74,8 +75,12 @@ const update = async (request: Request, response: Response): Promise<Response> =
                     return base('🏡 Adresses').update([{
                         id: result.fields['Record-ID=adresse'],
                         fields: {
+                            'ADRESSE1': ownerApi.address[0] ?? '',
+                            'ADRESSE2': ownerApi.address[1] ?? '',
+                            'ADRESSE3': ownerApi.address[2] ?? '',
                             'Adresse mail': ownerApi.email,
-                            'Numéro de téléphone': ownerApi.phone ?? ''
+                            'Numéro de téléphone': ownerApi.phone ?? '',
+                            'Année naissance': ownerApi.birthDate ? format(parseISO(ownerApi.birthDate), 'yyyy') : undefined
                         }
                     }])
                 })
@@ -83,7 +88,8 @@ const update = async (request: Request, response: Response): Promise<Response> =
         })
         .then(() => {
             return response.status(200).json('ok')
-        });
+        })
+        .catch((err: any) => console.error("Error", err));
 };
 
 

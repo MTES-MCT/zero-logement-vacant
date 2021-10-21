@@ -1,26 +1,44 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Button, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, TextInput } from '@dataesr/react-dsfr';
+import {
+    Accordion,
+    AccordionItem,
+    Button,
+    Modal,
+    ModalClose,
+    ModalContent,
+    ModalFooter,
+    ModalTitle,
+    TextInput,
+} from '@dataesr/react-dsfr';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import { format, isDate, parse } from 'date-fns';
 
 const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: (owner: Owner) => void, onClose: () => void}) => {
 
-    const [email, setEmail] = useState(owner.email ?? '');
-    const [errors, setErrors] = useState<any>({});
+    const [fullName, setFullName] = useState(owner.fullName ?? '');
+    const [birthDate, setBirthDate] = useState(owner.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : '');
+    const [address, setAddress] = useState(owner.address);
+    const [email, setEmail] = useState(owner.email);
     const [phone, setPhone] = useState(owner.phone);
+    const [errors, setErrors] = useState<any>({});
 
     const ownerForm = yup.object().shape({
-        email: yup.string().email('Veuillez renseigner un email valide.')
+        email: yup.string().email('Veuillez renseigner un email valide.'),
+        birthDate: yup.date().transform((_, originalValue) => isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
     });
 
     const submit = () => {
         ownerForm
-            .validate({ email, phone }, {abortEarly: false})
+            .validate({ fullName, birthDate, email, phone }, {abortEarly: false})
             .then(() => {
                 onSubmit({
                     ...owner,
+                    fullName,
+                    birthDate: parse(birthDate, 'dd/MM/yyyy', new Date()),
+                    address,
                     email,
                     phone
                 });
@@ -32,6 +50,8 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                         object[x.path] = x.errors[0];
                     }
                 });
+                if (object['birthDate'])
+                    object['birthDate'] = 'Veuillez renseigner une date valide.'
                 setErrors(object);
             })
     }
@@ -41,23 +61,53 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                hide={() => onClose()}
                data-testid="campaign-creation-modal">
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
-            <ModalTitle>Modifier le propriétaire</ModalTitle>
+            <ModalTitle>Modifier la rubrique &rdquo;propriétaire&rdquo;</ModalTitle>
             <ModalContent>
-                <TextInput
-                    value={email}
-                    type="email"
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                    label="Email"
-                    messageType={errors['email'] ? 'error' : ''}
-                    message={errors['email']}
-                />
-                <TextInput
-                    value={phone}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
-                    label="Numéro de téléphone"
-                    messageType={errors['phone'] ? 'error' : ''}
-                    message={errors['phone']}
-                />
+                <Accordion className="custom-class">
+                    <AccordionItem title="Identité" initExpand={true}>
+                        <TextInput
+                            value={fullName}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
+                            label="Nom"
+                            messageType={errors['fullName'] ? 'error' : ''}
+                            message={errors['fullName']}
+                            disabled
+                        />
+                        <TextInput
+                            value={birthDate}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setBirthDate(e.target.value)}
+                            label="Date de naissance"
+                            messageType={errors['birthDate'] ? 'error' : ''}
+                            message={errors['birthDate']}
+                        />
+                    </AccordionItem>
+                    <AccordionItem title="Coordonnées">
+                        <TextInput
+                            textarea
+                            value={address.reduce((a1, a2) => `${a1}\n${a2}`)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value.split('\n'))}
+                            label="Adresse postale"
+                            messageType={errors['address'] ? 'error' : ''}
+                            message={errors['address']}
+                            rows="3"
+                        />
+                        <TextInput
+                            value={email}
+                            type="email"
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                            label="Adresse mail"
+                            messageType={errors['email'] ? 'error' : ''}
+                            message={errors['email']}
+                        />
+                        <TextInput
+                            value={phone}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                            label="Numéro de téléphone"
+                            messageType={errors['phone'] ? 'error' : ''}
+                            message={errors['phone']}
+                        />
+                    </AccordionItem>
+                </Accordion>
             </ModalContent>
             <ModalFooter>
                 <Button title="title"

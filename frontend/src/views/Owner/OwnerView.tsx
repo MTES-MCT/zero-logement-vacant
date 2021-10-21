@@ -4,7 +4,7 @@ import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
-import { differenceInYears, format } from 'date-fns';
+import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 import { getOwner, getOwnerHousing, update } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
@@ -71,7 +71,7 @@ const OwnerView = () => {
                                 Nom&nbsp;
                                 <b className="capitalize" data-testid="fullName-text">{capitalize(owner.fullName)}</b>
                             </Text>
-                            { owner.birthDate &&
+                            { owner.birthDate && isValid(owner.birthDate) &&
                                 <Text size="md" className="fr-mb-1w">
                                     Date de naissance&nbsp;
                                     <b className="capitalize" data-testid="birthDate-text">{format(owner.birthDate, 'dd/MM/yyyy')}</b>

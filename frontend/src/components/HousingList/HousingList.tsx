@@ -3,7 +3,6 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Button, Checkbox, Table, Tag, Text } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
-import LoadingBar from 'react-redux-loading-bar';
 import styles from './housing-list.module.scss';
 import { updateWithValue } from '../../utils/arrayUtils';
 import { Link } from 'react-router-dom';
@@ -83,49 +82,46 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
 
     return (
         <>
-            <LoadingBar className={styles.loading} updateTime={100} maxProgress={100} progressIncrease={10}/>
-            { housingList && housingList.length > 0 &&
-                <>
-                    <Text className="fr-my-2w">
-                        <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
-                    </Text>
-                    <Table
-                        caption="Logements"
-                        captionPosition="none"
-                        rowKey="id"
-                        data={housingList}
-                        columns={columns}
-                        pagination
-                        paginationPosition="center"
-                        setPage={setPage}
-                        perPage={perPage}
-                        fixedLayout={true}
-                        className="zlv-table-with-view zlv-table-with-select"
-                        data-testid="housing-table"
-                    />
-                    <div style={{textAlign: 'center'}}>
-                        <Button
-                            onClick={() => setPerPage(20)}
-                            secondary
-                            disabled={perPage === 20}
-                            title="title">20 résultats par pages
-                        </Button>
-                        <Button
-                            onClick={() => setPerPage(50)}
-                            className="fr-mx-3w"
-                            secondary
-                            disabled={perPage === 50}
-                            title="title">50 résultats par pages
-                        </Button>
-                        <Button
-                            onClick={() => setPerPage(100)}
-                            secondary
-                            disable={perPage === 100}
-                            title="title">100 résultats par pages
-                        </Button>
-                    </div>
-                </>
-            }
+            { housingList && housingList.length > 0 && <>
+                <Text className="fr-my-2w">
+                    <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
+                </Text>
+                <Table
+                    caption="Logements"
+                    captionPosition="none"
+                    rowKey="id"
+                    data={housingList}
+                    columns={columns}
+                    pagination
+                    paginationPosition="center"
+                    setPage={setPage}
+                    perPage={perPage}
+                    fixedLayout={true}
+                    className="zlv-table-with-view zlv-table-with-select"
+                    data-testid="housing-table"
+                />
+                <div style={{textAlign: 'center'}}>
+                    <Button
+                        onClick={() => setPerPage(20)}
+                        secondary
+                        disabled={perPage === 20}
+                        title="title">20 résultats par pages
+                    </Button>
+                    <Button
+                        onClick={() => setPerPage(50)}
+                        className="fr-mx-3w"
+                        secondary
+                        disabled={perPage === 50}
+                        title="title">50 résultats par pages
+                    </Button>
+                    <Button
+                        onClick={() => setPerPage(100)}
+                        secondary
+                        disable={perPage === 100}
+                        title="title">100 résultats par pages
+                    </Button>
+                </div>
+            </>}
         </>
     );
 };

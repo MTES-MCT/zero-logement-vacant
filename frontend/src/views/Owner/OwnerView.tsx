@@ -33,17 +33,17 @@ const OwnerView = () => {
 
     return (
         <>
-            <div className={styles.titleContainer}>
+            {owner && housingList && <>
+                <div className={styles.titleContainer}>
+                    <Container spacing="py-4w">
+                        <Link to="/logements" className="fr-pl-0 ds-fr--inline fr-link">
+                            <span className="ri-1x icon-left ri-arrow-left-line ds-fr--v-middle"></span>
+                            Retour aux logements
+                        </Link>
+                        {owner && <Title as="h1" className="fr-py-2w">{capitalize(owner.fullName)}</Title> }
+                    </Container>
+                </div>
                 <Container spacing="py-4w">
-                    <Link to="/logements" className="fr-pl-0 ds-fr--inline fr-link">
-                        <span className="ri-1x icon-left ri-arrow-left-line ds-fr--v-middle"></span>
-                        Retour aux logements
-                    </Link>
-                    {owner && <Title as="h1" className="fr-py-2w">{capitalize(owner.fullName)}</Title> }
-                </Container>
-            </div>
-            <Container spacing="py-4w">
-                {owner &&
                     <Row className="fr-grid-row--center">
                         <Col n="6" className="bg-100 fr-py-2w fr-px-3w">
                             <Row>
@@ -104,61 +104,61 @@ const OwnerView = () => {
                             <Title as="h2" look="h3">Historique du dossier</Title>
                         </Col>
                     </Row>
-                }
-                {housingList && housingList.map((housing, index) =>
-                    <div key={housing.id} className="fr-pt-6w">
-                        <Title as="h2" look="h3">Logement {index + 1}</Title>
-                        <Row>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Emplacement</b>
-                                </Text>
-                                <span style={{verticalAlign: 'top'}}>
-                                    Adresse &nbsp;
-                                </span>
-                                <span style={{display: 'inline-block'}} className="capitalize">
-                                    <span  style={{display: 'block'}}>
-                                        <b>{capitalize(housing.address)}</b>
+                    {housingList.map((housing, index) =>
+                        <div key={housing.id} className="fr-pt-6w">
+                            <Title as="h2" look="h3">Logement {index + 1}</Title>
+                            <Row>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Emplacement</b>
+                                    </Text>
+                                    <span style={{verticalAlign: 'top'}}>
+                                        Adresse &nbsp;
                                     </span>
-                                    <span>
-                                        <b> {capitalize(housing.municipality)}</b>
+                                    <span style={{display: 'inline-block'}} className="capitalize">
+                                        <span  style={{display: 'block'}}>
+                                            <b>{capitalize(housing.address)}</b>
+                                        </span>
+                                        <span>
+                                            <b> {capitalize(housing.municipality)}</b>
+                                        </span>
                                     </span>
-                                </span>
-                            </Col>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Caractéristiques</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    Type&nbsp;
-                                    <b>{housing.kind}</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    Surface&nbsp;
-                                    <b>{housing.surface} m2</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    Pièces&nbsp;
-                                    <b>{housing.rooms}</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    Construction&nbsp;
-                                    <b>{housing.buildingYear}</b>
-                                </Text>
-                            </Col>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Situation</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    Durée de la vacance&nbsp;
-                                    <b>{(new Date()).getFullYear() - housing.vacancyStart} ans ({housing.vacancyStart})</b>
-                                </Text>
-                            </Col>
-                        </Row>
-                    </div>
-                )}
-            </Container>
+                                </Col>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Caractéristiques</b>
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        Type&nbsp;
+                                        <b>{housing.kind}</b>
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        Surface&nbsp;
+                                        <b>{housing.surface} m2</b>
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        Pièces&nbsp;
+                                        <b>{housing.rooms}</b>
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        Construction&nbsp;
+                                        <b>{housing.buildingYear}</b>
+                                    </Text>
+                                </Col>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Situation</b>
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        Durée de la vacance&nbsp;
+                                        <b>{(new Date()).getFullYear() - housing.vacancyStart} ans ({housing.vacancyStart})</b>
+                                    </Text>
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </Container>
+            </>}
         </>
     );
 };

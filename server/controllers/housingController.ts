@@ -225,6 +225,12 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
         });
     })
 
+    worksheet.columns.forEach((column, index) => {
+        const lengths = column.values?.filter(v => v !== undefined).map(v => v?.toString().length) ?? [10];
+        column.width = Math.max(...lengths);
+    });
+
+
     response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
 
@@ -235,7 +241,6 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
         })
 
 }
-
 
 const housingController =  {
     list,

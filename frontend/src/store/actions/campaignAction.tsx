@@ -9,6 +9,7 @@ export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
 export const FETCH_CAMPAIGN_HOUSING_LIST = 'FETCH_CAMPAIGN_HOUSING_LIST';
 export const CAMPAIGN_HOUSING_LIST_FETCHED = 'CAMPAIGN_HOUSING_LIST_FETCHED';
+export const CAMPAIGN_UPDATED = 'CAMPAIGN_UPDATED';
 
 export interface FetchCampaignListAction {
     type: typeof FETCH_CAMPAIGN_LIST,
@@ -33,11 +34,17 @@ export interface CampaignHousingListFetchedAction {
     exportURL: string
 }
 
+export interface CampaignUpdatedAction {
+    type: typeof CAMPAIGN_UPDATED,
+    campaign: Campaign
+}
+
 export type CampaignActionTypes =
     FetchCampaignListAction
     | CampaignListFetchedAction
     | FetchCampaignHousingListAction
-    | CampaignHousingListFetchedAction;
+    | CampaignHousingListFetchedAction
+    | CampaignUpdatedAction;
 
 export const searchCampaign = (search: string) => {
 
@@ -101,6 +108,23 @@ export const createCampaign = (campaignName: string, housingIds: string[]) => {
         campaignService.createCampaign(campaignName, housingIds)
             .then(() => {
                 dispatch(hideLoading());
+            });
+    };
+};
+
+export const validCampaign = (campaignId: string) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        campaignService.validCampaign(campaignId)
+            .then(campaign => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: CAMPAIGN_UPDATED,
+                    campaign
+                });
             });
     };
 };

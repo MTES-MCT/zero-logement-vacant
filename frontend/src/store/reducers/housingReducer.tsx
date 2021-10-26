@@ -30,7 +30,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         case FETCH_HOUSING_LIST:
             return {
                 ...state,
-                housingList: [],
+                housingList: undefined,
                 filters: action.filters,
                 search: action.search
             };

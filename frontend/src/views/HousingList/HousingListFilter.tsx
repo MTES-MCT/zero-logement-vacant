@@ -214,9 +214,9 @@ const HousingListFilter = () => {
             </div>
             }
             <Row gutters>
-                <Col className="d-flex fr-grid-row--right">
+                <Col>
                     <button
-                        className="ds-fr--inline fr-link"
+                        className="ds-fr--inline fr-link float-right fr-mt-4w"
                         type="button"
                         aria-controls="additional-filters"
                         aria-expanded={expandFilters}
@@ -225,7 +225,7 @@ const HousingListFilter = () => {
                     >
                         {expandFilters
                             ? <><span className="ri-1x icon-left ri-subtract-line ds-fr--v-middle" />Afficher moins de filtres</>
-                            : <><span className="ri-1x icon-left ri-add-line ds-fr--v-middle" />Afficher plus de filtres</>
+                            : <><span className="ri-1x icon-left ri-add-line ds-fr--v-middle" />Afficher tous les filtres</>
                         }
                     </button>
                 </Col>

@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 
-import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
-import HousingList from '../../components/HousingList/HousingList';
+import HousingList, { HousingDisplayKey, maxRecords } from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { searchHousing } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
-import styles from '../Owner/owner.module.scss';
 
 
 const HousingListView = () => {
@@ -34,7 +33,7 @@ const HousingListView = () => {
 
     return (
         <>
-            <div className={styles.titleContainer}>
+            <div className="titleContainer">
                 <Container spacing="py-4w mb-4w">
                     <Row>
                         <Col n="6">
@@ -51,24 +50,37 @@ const HousingListView = () => {
                     </Row>
                 </Container>
             </div>
+            { housingList &&
             <Container>
                 <Row>
-                    <Col className="d-flex fr-grid-row--right">
+                    <Col>
+                        { housingList.length > 0
+                            ? <Text className="fr-my-2w"><b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements</Text>
+                            : <Text className="fr-my-2w"><b>Aucun logement</b></Text>
+                        }
+                    </Col>
+                    {housingList.length > 0 &&
+                    <Col>
                         <Button title="Créer la campagne"
                                 onClick={() => setIsModalOpen(true)}
                                 data-testid="create-campaign-button"
-                                disabled={selectedHousingIds.length === 0}>
+                                disabled={selectedHousingIds.length === 0}
+                                className="float-right">
                             Créer la campagne
                         </Button>
                         {isModalOpen &&
                         <CampaignCreationModal housingCount={selectedHousingIds.length}
                                                ownerCount={getDistinctOwners().length}
                                                onSubmit={(campaignName: string) => create(campaignName)}
-                                               onClose={() => setIsModalOpen(false)} />}
+                                               onClose={() => setIsModalOpen(false)}/>}
                     </Col>
+                    }
                 </Row>
-                <HousingList housingList={housingList} onSelect={(ids: string[]) => setSelectedHousingIds(ids)}/>
+                <HousingList housingList={housingList}
+                             displayKind={HousingDisplayKey.Housing}
+                             onSelect={(ids: string[]) => setSelectedHousingIds(ids)}/>
             </Container>
+            }
         </>
     );
 };

@@ -7,6 +7,8 @@ exports.up = function(knex) {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
                 table.string('name').notNullable();
                 table.timestamp('createdAt').defaultTo(knex.fn.now());
+                table.timestamp('validatedAt');
+                table.timestamp('sentAt');
             }),
         knex.schema// @ts-ignore
             .createTable('campaigns_housing', (table) => {

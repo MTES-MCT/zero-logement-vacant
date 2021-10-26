@@ -1,16 +1,19 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Table, Tag, Text } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Table, Tag } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './housing-list.module.scss';
 import { updateWithValue } from '../../utils/arrayUtils';
 import { Link } from 'react-router-dom';
 
+export const maxRecords = 500;
 
-const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSelect?: (selectedIds: string[]) => void }) => {
+export enum HousingDisplayKey {
+    Housing, Owner
+}
 
-    const maxRecords = 500;
+const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Housing[], displayKind: HousingDisplayKey, onSelect?: (selectedIds: string[]) => void }) => {
 
     const [, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
@@ -35,68 +38,77 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
         setSelectedIds([]);
     }, [housingList])
 
-    const columns: any[] = [
-        {
-            name: 'select',
-            headerRender: () =>
-                <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
-                          className={selectedIds.length > 0 && selectedIds.length < housingList.length ? styles.indeterminate : ''}
-                          label="">
-                </Checkbox>,
-            render: ({ id }: Housing) =>
-                <Checkbox value={id}
-                          onChange={(e: ChangeEvent<any>) => setSelectedIds(updateWithValue(selectedIds, e.target.value, e.target.checked))}
-                          checked={selectedIds.indexOf(id) !== -1}
-                          data-testid={'housing-check-' + id}
-                          label="">
-                </Checkbox>
-        },
-        {
-            name: 'address',
-            label: 'Adresse',
-            render: ({ address, municipality }: Housing) =>
-                <>
-                    <div className="capitalize">{capitalize(address)}</div>
-                    <div>{capitalize(municipality)}</div>
-                </>
-        },
-        {
-            name: 'owner',
-            label: 'Propriétaire',
-            render: ({ ownerFullName }: Housing) => capitalize(ownerFullName)
-        },
-        {
-            name: 'tags',
-            label: 'Caractéristiques',
-            render: ({ tags }: Housing) => tags.map(tag => <Tag key={tag}>{tag}</Tag>)
-        },
-        {
-            name: 'view',
-            headerRender: () => '',
-            render: ({ ownerId }: Housing) =>
-                <Link title="Voir" to={'/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
-                    Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
-                </Link>
+    const selectColumn = {
+        name: 'select',
+        headerRender: () =>
+            <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
+                      className={selectedIds.length > 0 && selectedIds.length < housingList.length ? styles.indeterminate : ''}
+                      label="">
+            </Checkbox>,
+        render: ({ id }: Housing) =>
+            <Checkbox value={id}
+                      onChange={(e: ChangeEvent<any>) => setSelectedIds(updateWithValue(selectedIds, e.target.value, e.target.checked))}
+                      checked={selectedIds.indexOf(id) !== -1}
+                      data-testid={'housing-check-' + id}
+                      label="">
+            </Checkbox>
+    };
+
+    const addressColumn = {
+        name: 'address',
+        label: 'Adresse',
+        render: ({ address, municipality }: Housing) =>
+            <>
+                <div className="capitalize">{capitalize(address)}</div>
+                <div>{capitalize(municipality)}</div>
+            </>
+    };
+
+    const ownerColumn = {
+        name: 'owner',
+        label: 'Propriétaire',
+        render: ({ ownerFullName }: Housing) => <div className="capitalize">{capitalize(ownerFullName)}</div>
+    };
+
+    const tagsColumn = {
+        name: 'tags',
+        label: 'Caractéristiques',
+        render: ({ tags }: Housing) => tags.map(tag => <Tag key={tag}>{tag}</Tag>)
+    };
+
+    const statusColumn = {
+        name: 'status',
+        label: 'Statut',
+        render: () => {}
+    };
+
+    const viewColumn = {
+        name: 'view',
+        headerRender: () => '',
+        render: ({ ownerId }: Housing) =>
+            <Link title="Voir" to={'/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
+                Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+            </Link>
+    }
+
+    const columns = () => {
+        switch (displayKind) {
+            case HousingDisplayKey.Housing :
+                return [selectColumn, addressColumn, ownerColumn, tagsColumn, viewColumn];
+            case HousingDisplayKey.Owner :
+                return [selectColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
         }
-    ];
+    }
 
     return (
         <>
-            {housingList && !housingList.length &&
-            <Text className="fr-my-2w">
-                <b>Aucun logement</b>
-            </Text>
-            }
             { housingList && housingList.length > 0 && <>
-                <Text className="fr-my-2w">
-                    <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements
-                </Text>
                 <Table
                     caption="Logements"
                     captionPosition="none"
                     rowKey="id"
                     data={housingList}
-                    columns={columns}
+                    columns={columns()}
                     pagination
                     paginationPosition="center"
                     setPage={setPage}

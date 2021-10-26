@@ -21,8 +21,25 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const housingRefs = request.body.housingIds;
 
     return campaignRepository.insert(<CampaignApi>{name})
-        .then(campaign => campaign.id ? campaignHousingRepository.insertHousingList(campaign.id, housingRefs) : Promise.resolve([]))
+        .then(campaignApi => campaignApi.id ? campaignHousingRepository.insertHousingList(campaignApi.id, housingRefs) : Promise.resolve([]))
         .then((housingRefs: string[]) => response.status(200).json({count: housingRefs.length}));
+
+}
+
+const validate = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    console.log('Validate campaign', campaignId)
+
+    return campaignRepository.get(campaignId)
+        .then((campaignApi: CampaignApi) => campaignRepository.update(
+            {
+                ...campaignApi,
+                validatedAt: new Date()
+            }
+        ))
+        .then(campaignApi => response.status(200).json(campaignApi));
 
 }
 
@@ -68,6 +85,7 @@ const importFromAirtable = async (request: Request, response: Response): Promise
 const campaignController =  {
     list,
     create,
+    validate,
     importFromAirtable
 };
 

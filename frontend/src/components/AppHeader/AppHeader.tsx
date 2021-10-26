@@ -32,7 +32,7 @@ function AppHeader() {
                     <HeaderNav data-testid="header-nav">
                         <NavItem
                             current={path === '/logements'}
-                            title="Logements"
+                            title="Accueil"
                             asLink={<Link to="/logements"/>}
                         />
                         <NavItem

@@ -2,6 +2,7 @@ import { Campaign } from '../../models/Campaign';
 import {
     CAMPAIGN_HOUSING_LIST_FETCHED,
     CAMPAIGN_LIST_FETCHED,
+    CAMPAIGN_UPDATED,
     CampaignActionTypes,
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
@@ -18,7 +19,7 @@ export interface CampaignState {
 }
 
 const initialState = {
-    campaignList: [],
+    campaignList: [] as Campaign[],
     search: undefined
 };
 
@@ -45,6 +46,14 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 ...state,
                 campaignHousingList: action.campaignHousingList,
                 exportURL: action.exportURL
+            };
+        case CAMPAIGN_UPDATED:
+            return {
+                ...state,
+                campaignList: [
+                    ...state.campaignList.filter(_ => _.id !== action.campaign.id),
+                    action.campaign
+                ]
             };
         default:
             return state;

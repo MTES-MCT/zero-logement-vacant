@@ -36,8 +36,22 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     }
 }
 
+const update = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
+    try {
+        return db(campaignsTable)
+            .where('id', campaignApi.id)
+            .update(campaignApi)
+            .returning('*')
+            .then(_ => _[0]);
+    } catch (err) {
+        console.error('Inserting campaign failed', err, campaignApi);
+        throw new Error('Inserting campaign failed');
+    }
+}
+
 export default {
     get,
     list,
-    insert
+    insert,
+    update
 }

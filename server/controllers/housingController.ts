@@ -7,24 +7,20 @@ import addressService from '../services/addressService';
 
 
 export interface HousingFilters {
-    individualOwner?: boolean;
-    ageGt75?: boolean;
-    multiOwner?: boolean;
-    beneficiaryGt2?: boolean;
     ownerKind?: string;
     ownerAge?: string;
+    multiOwner?: boolean;
     beneficiaryCount?: number;
     housingKind?: string;
     housingState?: string;
+    housingArea?: string;
+    vacancyDuration?: string;
 }
 
 const buildFilterByFormula = (housingFilters: HousingFilters, search: string) => {
 
     const allFilters = [
-        housingFilters.individualOwner ? "{Type de propriétaire} = 'Particulier'" : '',
-        housingFilters.ageGt75 ? '{Age (pour filtre)} >= 75' : '',
-        housingFilters.multiOwner ? "{Multipropriétaire de logements vacants} = 'Multipropriétaire'" : '',
-        housingFilters.beneficiaryGt2 ? "{Nombre d'ayants-droit} > 2" : '',
+        housingFilters.multiOwner === undefined ? '' : `{Multipropriétaire de logements vacants} ${housingFilters.multiOwner ? "=" : "!="} 'Multipropriétaire'`,
         housingFilters.ownerKind ? `TRIM({Type de propriétaire}) = '${housingFilters.ownerKind}'` : '',
         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} > 0' : '',
         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} <= 35' : '',
@@ -35,6 +31,16 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
         housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
         housingFilters.housingState ? `TRIM({Logement inconfortable (champ choix simple)}) = '${housingFilters.housingState}'` : '',
+        housingFilters.housingArea === 'lt75' ? '{Surface habitable} > 0' : '',
+        housingFilters.housingArea === 'lt75' ? '{Surface habitable} <= 75' : '',
+        housingFilters.housingArea === '75to150' ? '{Surface habitable} >= 75' : '',
+        housingFilters.housingArea === '75to150' ? '{Surface habitable} <= 150' : '',
+        housingFilters.housingArea === 'gt150' ? '{Surface habitable} >= 150' : '',
+        housingFilters.vacancyDuration === 'lt2' ? `{Début de la vacance} >= ${new Date().getFullYear() - 2}` : '',
+        housingFilters.vacancyDuration === '2to5' ? `{Début de la vacance} < ${new Date().getFullYear() - 2}` : '',
+        housingFilters.vacancyDuration === '2to5' ? `{Début de la vacance} >= ${new Date().getFullYear() - 5}` : '',
+        housingFilters.vacancyDuration === 'gt5' ? `{Début de la vacance} < ${new Date().getFullYear() - 5}` : '',
+        housingFilters.vacancyDuration === 'gt10' ? `{Début de la vacance} < ${new Date().getFullYear() - 10}` : '',
         search ? `FIND(LOWER("${search}"), LOWER({Adresse}&{Propriétaire}))` : ''
     ].filter(_ => _.length);
 

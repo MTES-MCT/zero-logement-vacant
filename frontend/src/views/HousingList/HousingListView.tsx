@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import HousingListFilterMenu from './HousingListFilterMenu';
+import HousingListFilter from './HousingListFilter';
 import HousingList from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { searchHousing } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
+import styles from '../Owner/owner.module.scss';
 
 
 const HousingListView = () => {
@@ -32,40 +33,43 @@ const HousingListView = () => {
     }
 
     return (
-        <Container spacing="py-4w">
-            <Row className="fr-grid-row--center">
-                <Col n="3">
-                    <HousingListFilterMenu />
-                </Col>
-                <Col>
-                    <Row className="fr-grid-row--middle">
-                        <Col n="4">
-                            <Title as="h1">Logements</Title>
+        <>
+            <div className={styles.titleContainer}>
+                <Container spacing="py-4w mb-4w">
+                    <Row>
+                        <Col n="6">
+                            <Title as="h1">Base de données</Title>
                         </Col>
-                        <Col n="4">
+                        <Col n="3">
                             <AppSearchBar onSearch={(input: string) => {dispatch(searchHousing(input))}} />
                         </Col>
-                        <Col n="4">
-                            <div style={{textAlign: 'right'}}>
-                                <Button title="Créer la campagne"
-                                        onClick={() => setIsModalOpen(true)}
-                                        data-testid="create-campaign-button"
-                                        disabled={selectedHousingIds.length === 0}>
-                                    Créer la campagne
-                                </Button>
-                                {isModalOpen &&
-                                <CampaignCreationModal housingCount={selectedHousingIds.length}
-                                                       ownerCount={getDistinctOwners().length}
-                                                       onSubmit={(campaignName: string) => create(campaignName)}
-                                                       onClose={() => setIsModalOpen(false)} />}
-                            </div>
-                        </Col>
-
                     </Row>
-                    <HousingList housingList={housingList} onSelect={(ids: string[]) => setSelectedHousingIds(ids)}/>
-                </Col>
-            </Row>
-        </Container>
+                    <Row>
+                        <Col>
+                            <HousingListFilter />
+                        </Col>
+                    </Row>
+                </Container>
+            </div>
+            <Container>
+                <Row>
+                    <Col className="d-flex fr-grid-row--right">
+                        <Button title="Créer la campagne"
+                                onClick={() => setIsModalOpen(true)}
+                                data-testid="create-campaign-button"
+                                disabled={selectedHousingIds.length === 0}>
+                            Créer la campagne
+                        </Button>
+                        {isModalOpen &&
+                        <CampaignCreationModal housingCount={selectedHousingIds.length}
+                                               ownerCount={getDistinctOwners().length}
+                                               onSubmit={(campaignName: string) => create(campaignName)}
+                                               onClose={() => setIsModalOpen(false)} />}
+                    </Col>
+                </Row>
+                <HousingList housingList={housingList} onSelect={(ids: string[]) => setSelectedHousingIds(ids)}/>
+            </Container>
+        </>
     );
 };
 

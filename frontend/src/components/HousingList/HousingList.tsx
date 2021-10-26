@@ -82,6 +82,11 @@ const HousingList = ({ housingList, onSelect }: { housingList: Housing[], onSele
 
     return (
         <>
+            {housingList && !housingList.length &&
+            <Text className="fr-my-2w">
+                <b>Aucun logement</b>
+            </Text>
+            }
             { housingList && housingList.length > 0 && <>
                 <Text className="fr-my-2w">
                     <b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length }</b> logements

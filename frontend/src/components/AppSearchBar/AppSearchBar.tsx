@@ -17,7 +17,7 @@ const AppSearchBar = ({ onSearch }: { onSearch: (text: string) => void }) => {
     }
 
     return (
-        <form role="search" data-testid="search-form" className="fr-search-bar fr-my-2w" onSubmit={(e: any) => submitSearch(e)}>
+        <form role="search" data-testid="search-form" className="fr-search-bar" onSubmit={(e: any) => submitSearch(e)}>
             <label className="fr-label">Rechercher</label>
             <input className="fr-input"
                    placeholder="Rechercher"

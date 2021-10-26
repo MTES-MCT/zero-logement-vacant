@@ -19,13 +19,12 @@ export interface HousingDetails {
 }
 
 export interface HousingFilters {
-    individualOwner?: boolean;
-    ageGt75?: boolean;
-    multiOwner?: boolean;
-    beneficiaryGt2?: boolean;
     ownerKind?: string;
     ownerAge?: string;
+    multiOwner?: boolean;
     beneficiaryCount?: number;
     housingKind?: string;
     housingState?: string;
+    housingArea?: string;
+    vacancyDuration?: string;
 }

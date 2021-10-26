@@ -9,15 +9,14 @@ export interface HousingState {
 }
 
 export const initialFilters = {
-    individualOwner: false,
-    ageGt75: false,
-    multiOwner: false,
-    beneficiaryGt2: false,
     ownerKind: '',
     ownerAge: '',
+    multiOwner: undefined,
     beneficiaryCount: undefined,
     housingKind: '',
-    housingState: ''
+    housingState: '',
+    housingArea: '',
+    vacancyDuration: ''
 } as HousingFilters;
 
 const initialState = {

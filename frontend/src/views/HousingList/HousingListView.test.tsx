@@ -27,11 +27,11 @@ describe('housing view', () => {
         );
     });
 
-    test('should display filter menu', () => {
+    test('should display owner filters by default', () => {
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
         render(<Provider store={store}><HousingListView/></Provider>);
-        const ownersFilterElement = screen.getByTestId('filterMenu');
-        expect(ownersFilterElement).toBeInTheDocument();
+        const ownerFiltersElement = screen.getByTestId('owner-filters');
+        expect(ownerFiltersElement).toBeInTheDocument();
     });
 
     test('should filter', async () => {
@@ -47,36 +47,27 @@ describe('housing view', () => {
                 body: JSON.stringify({ filters: initialFilters, search: '' }),
             });
 
-        const filter1Element = screen.getByTestId('filter1');
-        const filter2Element = screen.getByTestId('filter2');
-        const filter1CheckboxElement = filter1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
-        const filter2CheckboxElement = filter2Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        const ownerKindFilterElement = screen.getByTestId('owner-kind-filter').querySelector('select');
+        const ownerAgeFilterElement = screen.getByTestId('owner-age-filter').querySelector('select');
+        const ownerKindSelectedOption = 'SCI';
+        const ownerAgeSelectedOption = 'gt65';
 
-        act(() => { fireEvent.click(filter1CheckboxElement) });
+        act(() => { fireEvent.change(ownerKindFilterElement!, { target: { value: ownerKindSelectedOption } }) })
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true}, search: ''}),
+            body: JSON.stringify({ filters: { ...initialFilters, ownerKind: ownerKindSelectedOption}, search: ''}),
         });
 
-        act(() => { fireEvent.click(filter2CheckboxElement) });
+        act(() => { fireEvent.change(ownerAgeFilterElement!, { target: { value: ownerAgeSelectedOption } }) })
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: { ...initialFilters, individualOwner: true, multiOwner: true}, search: ''}),
-            });
-
-        act(() => { fireEvent.click(filter1CheckboxElement) });
-
-        expect(fetchMock).toHaveBeenCalledWith(
-            `${config.apiEndpoint}/api/housing`, {
-                method: 'POST',
-                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: { ...initialFilters, individualOwner: false, multiOwner: true}, search: ''}),
+                body: JSON.stringify({ filters: { ...initialFilters, ownerKind: ownerKindSelectedOption, ownerAge: ownerAgeSelectedOption}, search: ''}),
             });
     });
 

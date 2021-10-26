@@ -27,11 +27,26 @@ describe('housing view', () => {
         );
     });
 
-    test('should display owner filters by default', () => {
+    test('should only show owner filters initially', () => {
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
         render(<Provider store={store}><HousingListView/></Provider>);
         const ownerFiltersElement = screen.getByTestId('owner-filters');
+        const additionalFiltersElement = screen.getByTestId('additional-filters');
         expect(ownerFiltersElement).toBeInTheDocument();
+        expect(additionalFiltersElement).not.toBeVisible();
+    });
+
+    test('should enable to show and hide additional filters ', () => {
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+        render(<Provider store={store}><HousingListView/></Provider>);
+        const additionalFiltersElement = screen.getByTestId('additional-filters');
+        const additionalFiltersButton = screen.getByTestId('additional-filters-button');
+
+        fireEvent.click(additionalFiltersButton)
+        expect(additionalFiltersElement).toBeVisible();
+
+        fireEvent.click(additionalFiltersButton)
+        expect(additionalFiltersElement).not.toBeVisible();
     });
 
     test('should filter', async () => {

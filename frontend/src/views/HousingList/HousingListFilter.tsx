@@ -123,7 +123,7 @@ const HousingListFilter = () => {
                 </Row>
             </div>
             {
-            <div id="more-filters" className={expandFilters ? 'fr-collapse--expanded' : 'fr-collapse'}>
+            <div id="additional-filters" data-testid="additional-filters" className={expandFilters ? 'fr-collapse--expanded' : 'fr-collapse'}>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Logement</b>
                 </Text>
@@ -218,9 +218,10 @@ const HousingListFilter = () => {
                     <button
                         className="ds-fr--inline fr-link"
                         type="button"
-                        aria-controls="more-filters"
+                        aria-controls="additional-filters"
                         aria-expanded={expandFilters}
                         onClick={() => setExpandFilters(!expandFilters)}
+                        data-testid="additional-filters-button"
                     >
                         {expandFilters
                             ? <><span className="ri-1x icon-left ri-subtract-line ds-fr--v-middle" />Afficher moins de filtres</>

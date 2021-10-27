@@ -137,7 +137,7 @@ const CampaignsView = () => {
                         </Tab>
                     </Tabs>
                     }
-                    {!campaign.sentAt &&
+                    {campaign.validatedAt && !campaign.sentAt &&
                     <Tabs>
                         <Tab label={`À confirmer (${campaignHousingList.length})`}>
                             <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>

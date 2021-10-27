@@ -3,6 +3,7 @@ import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import config from '../utils/config';
+import { parse } from 'date-fns';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -55,7 +56,8 @@ const importFromAirtable = async (request: Request, response: Response): Promise
     return base('🏡 Adresses').select({
         fields: [
             '✉️ Campagnes (ID - Mois/Année - Moyen)',
-            'Record-ID=adresse'
+            'Record-ID=adresse',
+            'Date prise de contact'
         ],
         filterByFormula: '{✉️ Campagnes (ID - Mois/Année - Moyen)} != ""'
     })
@@ -64,16 +66,25 @@ const importFromAirtable = async (request: Request, response: Response): Promise
             return _
                 .map((result: any) => ({
                     name: result.fields['✉️ Campagnes (ID - Mois/Année - Moyen)'],
-                    housingRef: result.fields['Record-ID=adresse']
+                    housingRef: result.fields['Record-ID=adresse'],
+                    contactAt: result.fields['Date prise de contact']
                 }))
-                .reduce((map: Map<string, string[]>, obj: { name: string, housingRef: string }) => {
-                    map.set(obj.name, [...map.get(obj.name) ?? [], obj.housingRef]);
+                .reduce((map: Map<string, {contactAt: string, housingRefs: string[]}>, obj: { name: string, housingRef: string, contactAt: string }) => {
+                    map.set(obj.name, {
+                        contactAt: map.get(obj.name)?.contactAt ?? obj.contactAt,
+                        housingRefs: [...map.get(obj.name)?.housingRefs ?? [], obj.housingRef]
+                    })
                     return map;
                 }, new Map())
         })
-        .then((campaignMap: Map<string, string[]>) => {
-            campaignMap.forEach((housingRefs: string[], name: string) => {
-                campaignRepository.insert(<CampaignApi>{name})
+        .then((campaignMap: Map<string, {contactAt: string, housingRefs: string[]}>) => {
+            campaignMap.forEach(({contactAt, housingRefs}, name) => {
+                campaignRepository.insert(<CampaignApi>{
+                    name,
+                    createdAt: contactAt ? parse(contactAt, 'yyyy-MM-dd', new Date()) : new Date(),
+                    validatedAt: contactAt ? parse(contactAt, 'yyyy-MM-dd', new Date()) : new Date(),
+                    sentAt: contactAt ? parse(contactAt, 'yyyy-MM-dd', new Date()) : new Date(),
+                })
                     .then(campaign => campaign.id ? campaignHousingRepository.insertHousingList(campaign.id, housingRefs) : Promise.resolve([]))
             })
         })

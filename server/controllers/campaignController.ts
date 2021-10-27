@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi } from '../models/CampaignApi';
+import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import config from '../utils/config';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
@@ -26,17 +26,19 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
 }
 
-const validate = async (request: Request, response: Response): Promise<Response> => {
+const validateStep = async (request: Request, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
+    const step = request.body.step;
 
-    console.log('Validate campaign', campaignId)
+    console.log('Validate campaign step', campaignId, step)
 
     return campaignRepository.get(campaignId)
         .then((campaignApi: CampaignApi) => campaignRepository.update(
             {
                 ...campaignApi,
-                validatedAt: new Date()
+                validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
+                sentAt: step === CampaignSteps.SendingConfirmation ? new Date() : campaignApi.sentAt
             }
         ))
         .then(campaignApi => response.status(200).json(campaignApi));
@@ -85,7 +87,7 @@ const importFromAirtable = async (request: Request, response: Response): Promise
 const campaignController =  {
     list,
     create,
-    validate,
+    validateStep,
     importFromAirtable
 };
 

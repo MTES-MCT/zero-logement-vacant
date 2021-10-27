@@ -4,3 +4,7 @@ export interface Campaign {
     validatedAt?: Date;
     sentAt?: Date;
 }
+
+export enum CampaignSteps {
+    OwnersValidation, SendingConfirmation
+}

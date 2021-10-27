@@ -1,12 +1,13 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Col, Container, Row, Select, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { listCampaignHousing, searchCampaign, validCampaign } from '../../store/actions/campaignAction';
+import { listCampaignHousing, searchCampaign, validCampaignStep } from '../../store/actions/campaignAction';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import styles from '../Owner/owner.module.scss';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { Campaign } from '../../models/Campaign';
+import { Campaign, CampaignSteps } from '../../models/Campaign';
+import AppAlert from '../../components/AppAlert/AppAlert';
 
 
 const CampaignsView = () => {
@@ -21,7 +22,7 @@ const CampaignsView = () => {
     const { campaignList, campaignHousingList, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        setCampaignIdOptions(options => [
+        setCampaignIdOptions(() => [
             defaultOption,
             ...campaignList
                 .map(c => ({ value: c.id, label: c.name }))
@@ -40,15 +41,40 @@ const CampaignsView = () => {
         }
     }, [campaign, dispatch])
 
-    const valid = () => {
+    const validStep = (step: CampaignSteps) => {
         if (campaign) {
-            dispatch(validCampaign(campaign.id))
+            dispatch(validCampaignStep(campaign.id, step))
         }
     }
 
     const getDistinctOwners = () => {
         return campaignHousingList?.map(housing => housing.ownerId)
             .filter((id, index, array) => array.indexOf(id) === index)
+    }
+
+    let campaignAlert;
+    if (campaign && !campaign.validatedAt) {
+        campaignAlert = <AppAlert
+            submitTitle="Valider"
+            onSubmit={() => validStep(CampaignSteps.OwnersValidation)}
+            content={
+                <>
+                    <div><b>La campagne a bien été créée</b></div>
+                    <b>Étape 1 :</b> afin de passer en mode publipostage, merci de valider la liste de propriétaires.
+                </>
+            }
+        />
+    } else if (campaign && !campaign.sentAt) {
+        campaignAlert = <AppAlert
+            submitTitle="Confirmer"
+            onSubmit={() => validStep(CampaignSteps.SendingConfirmation)}
+            content={
+                <>
+                    <div><b>La liste des propriétaires a bien été validée.</b></div>
+                    <b>Étape 2 :</b> afin de passer en mode suivi, merci de confirmer que les courriers ont été envoyés.
+                </>
+            }
+        />
     }
 
     return (
@@ -100,56 +126,44 @@ const CampaignsView = () => {
                 </Container>
             </div>
 
-            { campaign && !campaign.validatedAt &&
-            <Container>
-                <div role="alert" className="fr-alert fr-alert--info fr-my-3w">
-                    <div className="fr-grid-row fr-grid-row--middle">
-                        <div className="fr-col">
-                            <div><b>La campagne a bien été créée</b></div>
-                            <b>Étape 1 :</b> afin de passer en mode publipostage, merci de valider la liste de  propriétaires.
-                        </div>
-                        <div className="fr-col-2">
-                            <button type="button"
-                                    className="fr-btn--sm float-right fr-btn fr-btn--secondary"
-                                    onClick={() => valid()}
-                                    title="Valider">
-                                Valider
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Container>
-            }
+            { campaignAlert }
 
-            {/*{ campaign && !campaign.sentAt &&*/}
-            {/*<Container>*/}
-            {/*    <div role="alert" className="fr-alert fr-alert--info fr-my-3w">*/}
-            {/*        <div className="fr-grid-row fr-grid-row--middle">*/}
-            {/*            <div className="fr-col">*/}
-            {/*                <div><b>La campagne a bien été créée</b></div>*/}
-            {/*                <b>Étape 1 :</b> afin de passer en mode publipostage, merci de valider la liste de  propriétaires.*/}
-            {/*            </div>*/}
-            {/*            <div className="fr-col-2">*/}
-            {/*                <button type="button"*/}
-            {/*                        className="fr-btn--sm float-right fr-btn fr-btn--secondary"*/}
-            {/*                        onClick={() => valid()}*/}
-            {/*                        title="Valider">*/}
-            {/*                    Valider*/}
-            {/*                </button>*/}
-            {/*            </div>*/}
-            {/*        </div>*/}
-            {/*    </div>*/}
-            {/*</Container>*/}
-            {/*}*/}
-
-            {campaign && !campaign.validatedAt && campaignHousingList &&
-            <Container spacing="py-4w">
-                <Tabs>
-                    <Tab label={`À valider (${campaignHousingList.length})`}>
-                        <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
-                    </Tab>
-                </Tabs>
-            </Container>
+            {campaign && campaignHousingList &&
+                <Container spacing="py-4w">
+                    {!campaign.validatedAt &&
+                    <Tabs>
+                        <Tab label={`À valider (${campaignHousingList.length})`}>
+                            <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
+                        </Tab>
+                    </Tabs>
+                    }
+                    {!campaign.sentAt &&
+                    <Tabs>
+                        <Tab label={`À confirmer (${campaignHousingList.length})`}>
+                            <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
+                        </Tab>
+                    </Tabs>
+                    }
+                    {campaign.validatedAt && campaign.sentAt &&
+                    <Tabs>
+                        <Tab label={`En attente de retour (${campaignHousingList.length})`}>
+                            <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
+                        </Tab>
+                        <Tab label={`Suivi en cours (0)`}>
+                            <></>
+                        </Tab>
+                        <Tab label={`Sans suite (0)`}>
+                            <></>
+                        </Tab>
+                        <Tab label={`Non vacant (0)`}>
+                            <></>
+                        </Tab>
+                        <Tab label={`Sortie de procédure (0)`}>
+                            <></>
+                        </Tab>
+                    </Tabs>
+                    }
+                </Container>
             }
         </>
     );

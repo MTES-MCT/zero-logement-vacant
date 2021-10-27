@@ -39,6 +39,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
                 ...state,
+                campaignHousingList: [],
                 campaignId: action.campaignId
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED:

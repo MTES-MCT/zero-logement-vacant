@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { Campaign } from '../../models/Campaign';
+import { Campaign, CampaignSteps } from '../../models/Campaign';
 import campaignService from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
@@ -112,13 +112,13 @@ export const createCampaign = (campaignName: string, housingIds: string[]) => {
     };
 };
 
-export const validCampaign = (campaignId: string) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        campaignService.validCampaign(campaignId)
+        campaignService.validCampaignStep(campaignId, step)
             .then(campaign => {
                 dispatch(hideLoading());
                 dispatch({

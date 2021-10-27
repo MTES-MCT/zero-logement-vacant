@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { parseISO } from 'date-fns';
-import { Campaign } from '../models/Campaign';
+import { Campaign, CampaignSteps } from '../models/Campaign';
 
 
 const listCampaigns = async (search?: string) => {
@@ -26,12 +26,12 @@ const createCampaign = async (name: string, housingIds: string[]): Promise<numbe
         .then(_ => _.id);
 };
 
-const validCampaign = async (campaignId: string): Promise<Campaign> => {
+const validCampaignStep = async (campaignId: string, step: CampaignSteps): Promise<Campaign> => {
 
-    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}/validation`, {
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ campaignId }),
+        body: JSON.stringify({ step }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -51,7 +51,7 @@ const parseCampaign = (c: any): Campaign => ({
 const campaignService = {
     listCampaigns,
     createCampaign,
-    validCampaign,
+    validCampaignStep,
     getExportURL
 };
 

@@ -113,13 +113,14 @@ describe('housing view', () => {
         });
     });
 
-    test('should disable the creation of the campaign when no housing are selected', () => {
+    test('should disable the creation of the campaign when no housing are selected', async () => {
 
-        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(JSON.stringify([genHousing()]), { status: 200 });
 
-        render(<Provider store={store}><HousingListView/></Provider>);
+        const history = createMemoryHistory();
+        render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
         expect(createCampaignButton).toBeDisabled();
     });
 
@@ -134,7 +135,7 @@ describe('housing view', () => {
         const history = createMemoryHistory();
         render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
         const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 

@@ -76,11 +76,12 @@ const update = async (request: Request, response: Response): Promise<Response> =
                         id: result.fields['Record-ID=adresse'],
                         fields: {
                             'ADRESSE1': ownerApi.address[0] ?? '',
-                            'ADRESSE2': ownerApi.address[1] ?? '',
-                            'ADRESSE3': ownerApi.address[2] ?? '',
+                            'ADRESSE2': (ownerApi.address[3] || ownerApi.address[2]) ? ownerApi.address[1] ?? '' : '',
+                            'ADRESSE3': ownerApi.address[3] ? ownerApi.address[2] ?? '' : '',
+                            'ADRESSE4': ownerApi.address[3] ?? ownerApi.address[2] ?? ownerApi.address[1] ?? '',
                             'Adresse mail': ownerApi.email,
                             'Numéro de téléphone': ownerApi.phone ?? '',
-                            'Année naissance': ownerApi.birthDate ? format(parseISO(ownerApi.birthDate), 'yyyy') : undefined
+                            'Année naissance': ownerApi.birthDate ? format(parseISO(ownerApi.birthDate), 'yyyy') : null
                         }
                     }])
                 })

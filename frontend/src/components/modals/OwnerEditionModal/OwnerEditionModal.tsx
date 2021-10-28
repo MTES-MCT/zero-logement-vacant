@@ -26,8 +26,15 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
     const [errors, setErrors] = useState<any>({});
 
     const ownerForm = yup.object().shape({
+        fullName: yup.string().required('Veuillez renseigner un nom.'),
         email: yup.string().email('Veuillez renseigner un email valide.'),
-        birthDate: yup.date().transform((_, originalValue) => isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+        birthDate: yup
+            .date()
+            .nullable()
+            .transform((curr, originalValue) => {
+                return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+            })
+            .typeError('Veuillez renseigner une date valide.')
     });
 
     const submit = () => {
@@ -37,7 +44,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                 onSubmit({
                     ...owner,
                     fullName,
-                    birthDate: parse(birthDate, 'dd/MM/yyyy', new Date()),
+                    birthDate: birthDate.length ? parse(birthDate, 'dd/MM/yyyy', new Date()) : undefined,
                     address,
                     email,
                     phone
@@ -50,8 +57,6 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                         object[x.path] = x.errors[0];
                     }
                 });
-                if (object['birthDate'])
-                    object['birthDate'] = 'Veuillez renseigner une date valide.'
                 setErrors(object);
             })
     }
@@ -71,7 +76,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                             label="Nom"
                             messageType={errors['fullName'] ? 'error' : ''}
                             message={errors['fullName']}
-                            disabled
+                            required
                         />
                         <TextInput
                             value={birthDate}

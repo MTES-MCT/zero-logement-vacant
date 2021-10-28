@@ -51,10 +51,12 @@ const OwnerView = () => {
                                 <Col>
                                     <Title as="h2" look="h3">Propriétaire</Title>
                                 </Col>
-                                <Col className="d-flex fr-grid-row--right">
+                                <Col>
                                     <Button title="Modifier le propriétaire"
                                             secondary
+                                            size="sm"
                                             icon="fr-fi-edit-line"
+                                            className="float-right"
                                             onClick={() => {setIsModalOpen(true)}}>
                                         Modifier
                                     </Button>

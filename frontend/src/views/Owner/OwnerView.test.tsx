@@ -40,6 +40,10 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing/owner/${owner.id}`,
             JSON.stringify([housing1, housing2]),
             { status: 200 });
+        fetchMock.doMockOnceIf(
+            `${config.apiEndpoint}/api/events/owner/${owner.id}`,
+            JSON.stringify([]),
+            { status: 200 });
 
         const history = createMemoryHistory({ initialEntries: [`/proprietaires/${owner.id}`]});
 
@@ -59,7 +63,7 @@ describe('housing view', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('fullName-text').textContent).toBe(capitalize(owner.fullName));
-            expect(screen.getByTestId('birthDate-text').textContent).toBe(format(owner.birthDate, 'dd/MM/yyyy'));
+            expect(screen.getByTestId('birthDate-text').textContent).toBe(format(owner.birthDate!, 'dd/MM/yyyy'));
             expect(screen.getByTestId('email-text').textContent).toBe(owner.email);
             expect(screen.getByTestId('phone-text').textContent).toBe(owner.phone);
 

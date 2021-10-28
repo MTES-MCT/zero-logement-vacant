@@ -5,6 +5,7 @@ import housingController from '../controllers/housingController';
 import config from '../utils/config';
 import ownerController from '../controllers/ownerController';
 import campaignController from '../controllers/campaignController';
+import eventController from '../controllers/eventController';
 
 const  router = express.Router();
 
@@ -27,5 +28,8 @@ router.get('/api/campaigns/import', jwtCheck, campaignController.importFromAirta
 
 router.get('/api/owners/:id', jwtCheck, ownerController.get);
 router.put('/api/owners/:ownerId', jwtCheck, ownerController.ownerValidators, ownerController.update);
+
+router.get('/api/events/owner/:ownerId', jwtCheck, eventController.listByOwnerId);
+router.post('/api/events/creation', jwtCheck, eventController.create);
 
 export default router;

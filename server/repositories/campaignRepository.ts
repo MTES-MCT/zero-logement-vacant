@@ -4,14 +4,14 @@ import db from './db';
 export const campaignsTable = 'campaigns';
 
 
-const get = async (campainId: string): Promise<CampaignApi> => {
+const get = async (campaignId: string): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
-            .where('id', campainId)
+            .where('id', campaignId)
             .first();
     } catch (err) {
-        console.error('Listing campaigns failed', err);
-        throw new Error('Listing campaigns failed');
+        console.error('Getting campaign failed', err, campaignId);
+        throw new Error('Getting campaigns failed');
     }
 }
 

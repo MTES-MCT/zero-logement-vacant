@@ -44,6 +44,7 @@ const getExportURL = (campaignId: string) => {
 const parseCampaign = (c: any): Campaign => ({
     id: c.id,
     name: c.name,
+    createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined
 } as Campaign)

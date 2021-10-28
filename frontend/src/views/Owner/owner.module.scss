@@ -6,3 +6,24 @@
   }
 }
 
+
+ul.ownerEvents {
+  list-style-image: url("../../assets/images/list-item-circle.svg");
+
+  li {
+    padding-bottom: 0;
+
+    .ownerEvent {
+      border-left: 1px solid var(--g400);
+      padding: 0 0 24px 24px;
+      margin: 0 0 0 -15px;
+
+
+      .eventDate {
+        color: var(--g600);
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+

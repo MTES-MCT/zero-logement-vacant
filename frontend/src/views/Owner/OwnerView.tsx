@@ -9,6 +9,7 @@ import { capitalize } from '../../utils/stringUtils';
 import { getOwner, getOwnerHousing, update } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
+import OwnerEvents from './OwnerEvents';
 
 
 const OwnerView = () => {
@@ -101,7 +102,7 @@ const OwnerView = () => {
                             </Text>
                         </Col>
                         <Col n="6" className="fr-py-2w fr-px-3w">
-                            <Title as="h2" look="h3">Historique du dossier</Title>
+                            <OwnerEvents ownerId={owner.id} />
                         </Col>
                     </Row>
                     {housingList.map((housing, index) =>

@@ -5,7 +5,7 @@ import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './housing-list.module.scss';
 import { updateWithValue } from '../../utils/arrayUtils';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export const maxRecords = 500;
 
@@ -15,6 +15,7 @@ export enum HousingDisplayKey {
 
 const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Housing[], displayKind: HousingDisplayKey, onSelect?: (selectedIds: string[]) => void }) => {
 
+    const location = useLocation();
     const [, setPage] = useState(1);
     const [perPage, setPerPage] = useState<number>(50);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -86,7 +87,7 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
         name: 'view',
         headerRender: () => '',
         render: ({ ownerId }: Housing) =>
-            <Link title="Voir" to={'/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
+            <Link title="Voir" to={location.pathname + '/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
                 Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
     }

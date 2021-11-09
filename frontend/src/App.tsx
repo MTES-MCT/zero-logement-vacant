@@ -11,6 +11,7 @@ import applicationReducer, { ApplicationState } from './store/reducers/applicati
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsView from './views/Campaigns/CampainsView';
+import DashboardView from './views/Owner/DashboardView';
 
 
 function AppWrapper () {
@@ -39,9 +40,11 @@ function App() {
                 <BrowserRouter>
                     <AppHeader />
                     <Switch>
+                        {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
                         {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsView} />}
-                        {user && user.accessToken && <Route exact path="/proprietaires/:id" component={OwnerView} />}
+                        {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
+                        {user && user.accessToken && <Route exact path="/campagnes/proprietaires/:id" component={OwnerView} />}
                         <Route path="/" component={LoginView} />
                     </Switch>
                 </BrowserRouter>

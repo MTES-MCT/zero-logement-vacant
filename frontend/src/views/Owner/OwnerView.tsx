@@ -10,6 +10,7 @@ import { getOwner, getOwnerHousing, update } from '../../store/actions/ownerActi
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import OwnerEvents from './OwnerEvents';
+import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 
 
 const OwnerView = () => {
@@ -36,11 +37,8 @@ const OwnerView = () => {
         <>
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
-                    <Container spacing="py-4w">
-                        <Link to="/logements" className="fr-pl-0 ds-fr--inline fr-link">
-                            <span className="ri-1x icon-left ri-arrow-left-line ds-fr--v-middle"></span>
-                            Retour aux logements
-                        </Link>
+                    <Container>
+                        <AppBreadcrumb additionalItems={[{url: '', label: capitalize(owner.fullName)}]}/>
                         {owner && <Title as="h1" className="fr-py-2w">{capitalize(owner.fullName)}</Title> }
                     </Container>
                 </div>

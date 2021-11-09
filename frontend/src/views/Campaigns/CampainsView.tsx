@@ -8,6 +8,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { Campaign, CampaignSteps } from '../../models/Campaign';
 import AppAlert from '../../components/AppAlert/AppAlert';
+import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 
 
 const CampaignsView = () => {
@@ -80,7 +81,8 @@ const CampaignsView = () => {
     return (
         <>
             <div className={styles.titleContainer}>
-                <Container spacing="py-4w">
+                <Container>
+                    <AppBreadcrumb additionalItems={campaign ? [{ url: '', label: campaign.name }] : []}/>
                     <Row>
                         <Col>
                             <Title as="h1">Campagnes</Title>

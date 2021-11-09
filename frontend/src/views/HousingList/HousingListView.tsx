@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title, Breadcrumb, BreadcrumbItem } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
@@ -9,6 +9,7 @@ import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { searchHousing } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
+import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 
 
 const HousingListView = () => {
@@ -34,7 +35,8 @@ const HousingListView = () => {
     return (
         <>
             <div className="titleContainer">
-                <Container spacing="py-4w mb-4w">
+                <Container>
+                    <AppBreadcrumb />
                     <Row>
                         <Col n="6">
                             <Title as="h1">Base de données</Title>

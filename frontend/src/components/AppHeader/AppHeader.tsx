@@ -5,19 +5,31 @@ import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
+import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
 
-
-function AppHeader() {
+function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
     const location = useLocation();
     const [path, setPath] = useState(() => location.pathname || '');
-    const { user } = useSelector((state: ApplicationState) => state.authentication);
 
     useEffect(() => {
         if (path !== location.pathname) {
             setPath(location.pathname);
         }
     }, [path, setPath, location]);
+
+    return (
+        <NavItem
+            current={path.indexOf(userNavItem.url) !== -1}
+            title={userNavItem.label}
+            asLink={<Link to={userNavItem.url}/>}
+        />
+    )
+}
+
+function AppHeader() {
+
+    const { user } = useSelector((state: ApplicationState) => state.authentication);
 
     return (
         <>
@@ -30,16 +42,9 @@ function AppHeader() {
                 </HeaderBody>
                 {user &&
                     <HeaderNav data-testid="header-nav">
-                        <NavItem
-                            current={path === '/logements'}
-                            title="Accueil"
-                            asLink={<Link to="/logements"/>}
-                        />
-                        <NavItem
-                            current={path === '/campagnes'}
-                            title="Campagnes"
-                            asLink={<Link to="/campagnes"/>}
-                        />
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
                     </HeaderNav>
                 }
             </Header>

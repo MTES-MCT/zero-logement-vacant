@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
+import classNames from 'classnames';
 
 
-const AppSearchBar = ({ onSearch }: { onSearch: (text: string) => void }) => {
+const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: (text: string) => void, placeholder?: string, buttonLabel?: string, size?: string }) => {
 
     const { search } = useSelector((state: ApplicationState) => state.housing);
 
@@ -17,16 +18,20 @@ const AppSearchBar = ({ onSearch }: { onSearch: (text: string) => void }) => {
     }
 
     return (
-        <form role="search" data-testid="search-form" className="fr-search-bar" onSubmit={(e: any) => submitSearch(e)}>
-            <label className="fr-label">Rechercher</label>
+        <form role="search" data-testid="search-form" className={classNames('fr-search-bar', { 'fr-search-bar--lg': (size === 'lg'), }) } onSubmit={(e: any) => submitSearch(e)}>
+            <label className="fr-label">{buttonLabel ?? 'Rechercher'}</label>
             <input className="fr-input"
-                   placeholder="Rechercher"
+                   placeholder={placeholder ?? "Rechercher"}
                    type="search"
                    data-testid="search-input"
                    value={searchInput}
                    onChange={(e) => setSearchInput(e.target.value)}
                    onKeyDown={onKeyDown}/>
-            <button type="submit" className="fr-btn" title="Boutton de recherche">Boutton de recherche</button>
+            <button type="submit"
+                    className={classNames('fr-btn', { 'fr-btn--lg': (size === 'lg') })}
+                    title="Bouton de recherche">
+                {buttonLabel ?? 'Rechercher'}
+            </button>
         </form>
     );
 };

@@ -11,7 +11,7 @@ import applicationReducer, { ApplicationState } from './store/reducers/applicati
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsView from './views/Campaigns/CampainsView';
-import DashboardView from './views/Owner/DashboardView';
+import DashboardView from './views/Dashboard/DashboardView';
 
 
 function AppWrapper () {

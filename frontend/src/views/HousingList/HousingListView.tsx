@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Col, Container, Row, Text, Title, Breadcrumb, BreadcrumbItem } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';

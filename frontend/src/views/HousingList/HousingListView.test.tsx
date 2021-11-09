@@ -29,7 +29,13 @@ describe('housing view', () => {
 
     test('should only show owner filters initially', () => {
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
-        render(<Provider store={store}><HousingListView/></Provider>);
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
         const ownerFiltersElement = screen.getByTestId('owner-filters');
         const additionalFiltersElement = screen.getByTestId('additional-filters');
         expect(ownerFiltersElement).toBeInTheDocument();
@@ -38,7 +44,13 @@ describe('housing view', () => {
 
     test('should enable to show and hide additional filters ', () => {
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
-        render(<Provider store={store}><HousingListView/></Provider>);
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
         const additionalFiltersElement = screen.getByTestId('additional-filters');
         const additionalFiltersButton = screen.getByTestId('additional-filters-button');
 
@@ -53,7 +65,13 @@ describe('housing view', () => {
 
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
-        render(<Provider store={store}><HousingListView/></Provider>);
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
@@ -90,7 +108,13 @@ describe('housing view', () => {
 
         fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
 
-        render(<Provider store={store}><HousingListView/></Provider>);
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {

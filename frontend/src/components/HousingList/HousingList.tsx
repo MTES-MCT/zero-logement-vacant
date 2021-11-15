@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Table, Tag } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Table } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './housing-list.module.scss';
@@ -71,10 +71,16 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
         render: ({ ownerFullName }: Housing) => <div className="capitalize">{capitalize(ownerFullName)}</div>
     };
 
-    const tagsColumn = {
-        name: 'tags',
-        label: 'Caractéristiques',
-        render: ({ tags }: Housing) => tags.map(tag => <Tag key={tag}>{tag}</Tag>)
+    const ownerAddressColumn = {
+        name: 'ownerAddress',
+        label: 'Adresse du propriétaire',
+        render: ({ ownerAddress }: Housing) => <div className="capitalize">{capitalize(ownerAddress)}</div>
+    };
+
+    const campaignColumn = {
+        name: 'campaign',
+        label: 'Campagne',
+        render: ({ ownerAddress }: Housing) => <div className="capitalize">{capitalize(ownerAddress)}</div>
     };
 
     const statusColumn = {
@@ -95,7 +101,7 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
     const columns = () => {
         switch (displayKind) {
             case HousingDisplayKey.Housing :
-                return [selectColumn, addressColumn, ownerColumn, tagsColumn, viewColumn];
+                return [selectColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
                 return [selectColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
         }

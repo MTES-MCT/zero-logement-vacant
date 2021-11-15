@@ -12,7 +12,7 @@ export interface HousingState {
 export const initialFilters = {
     ownerKinds: [],
     ownerAges: [],
-    multiOwner: undefined,
+    multiOwners: [],
     beneficiaryCounts: [],
     contactsCounts: [],
     housingKinds: [],

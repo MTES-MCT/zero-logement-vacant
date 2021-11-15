@@ -3,8 +3,8 @@ export interface Housing {
     address: string;
     municipality: string;
     ownerFullName: string;
+    ownerAddress: string;
     ownerId: string;
-    tags: string[];
 }
 
 export interface HousingDetails {

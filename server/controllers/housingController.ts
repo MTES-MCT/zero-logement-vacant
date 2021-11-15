@@ -237,7 +237,6 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
         column.width = Math.max(...lengths);
     });
 
-
     response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
 

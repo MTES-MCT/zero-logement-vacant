@@ -14,7 +14,7 @@ const AppMultiSelect = ( { label, options, initialValues, onChange }: { label: s
     }
 
     const selectedOptions = () => {
-        const maxLength = 13;
+        const maxLength = 28;
         const joinedOptions = options.filter(o => initialValues.indexOf(o.value) !== -1).map(_ => _.label).join(', ')
         return joinedOptions.length ? `${joinedOptions.slice(0, maxLength)}${joinedOptions.length > maxLength ? '...' : ''}` : 'Tous'
     }

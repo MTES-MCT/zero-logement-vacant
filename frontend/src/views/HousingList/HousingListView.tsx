@@ -17,7 +17,7 @@ import {
     housingAreaOptions,
     HousingFilterOption,
     housingKindOptions,
-    housingStateOptions,
+    housingStateOptions, multiOwnerOptions,
     ownerAgeOptions,
     ownerKindOptions,
     vacancyDurationOptions,
@@ -99,6 +99,9 @@ const HousingListView = () => {
                             <FilterBadges options={ownerAgeOptions}
                                           filters={filters.ownerAges}
                                           onChange={(values) => removeFilter({ownerAges: values})}/>
+                            <FilterBadges options={multiOwnerOptions}
+                                          filters={filters.multiOwners}
+                                          onChange={(values) => removeFilter({multiOwners: values})}/>
                             <FilterBadges options={beneficiaryCountOptions}
                                           filters={filters.beneficiaryCounts}
                                           onChange={(values) => removeFilter({beneficiaryCounts: values})}/>

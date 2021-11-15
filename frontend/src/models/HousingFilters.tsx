@@ -1,7 +1,7 @@
 export interface HousingFilters {
     ownerKinds: string[];
     ownerAges: string[];
-    multiOwner?: boolean;
+    multiOwners: string[];
     beneficiaryCounts: string[];
     contactsCounts: string[];
     housingKinds: string[];
@@ -71,9 +71,9 @@ export const constructionPeriodOptions: HousingFilterOption[] = [
     {value: "gt1991", label: "1991 ou après"},
 ];
 
-export const booleanOptions =  [
-    {value: "true", label: "Oui"},
-    {value: "false", label: "Non"}
+export const multiOwnerOptions: HousingFilterOption[] = [
+    {value: "true", label: "Oui", badgeLabel: "Multi-propriétaire"},
+    {value: "false", label: "Non", badgeLabel: "Mono-propriétaire"}
 ];
 
 export const vacancyDurationOptions = [

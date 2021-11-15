@@ -22,11 +22,12 @@ const AppMultiSelect = ( { label, options, initialValues, onChange }: { label: s
     return (
         <div className="select-multi-input">
             <span className="fr-label">{label}</span>
-            <button className="fr-select" onClick={() => setShowOptions(!showOptions)}>
+            <button className="fr-select"
+                    onClick={() => setShowOptions(!showOptions)}>
                 {selectedOptions()}
             </button>
             <div className={classNames('select-multi-options', { 'select-multi-options__visible': showOptions })}>
-                <CheckboxGroup>
+                <CheckboxGroup legend="">
                     {options.map((option, index) =>
                         <Checkbox
                             label={option.label}

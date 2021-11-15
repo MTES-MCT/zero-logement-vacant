@@ -1,11 +1,17 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Col, Container, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Select, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterHousing } from '../../store/actions/housingAction';
-import { HousingFilters } from '../../models/Housing';
+import {
+    beneficiaryCountOptions,
+    booleanOptions, constructionPeriodOptions, contactsCountOptions, housingAreaOptions,
+    HousingFilters, housingKindOptions, housingStateOptions,
+    ownerAgeOptions,
+    ownerKindOptions, vacancyDurationOptions,
+} from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-
+import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 
 const HousingListFilter = () => {
 
@@ -15,61 +21,27 @@ const HousingListFilter = () => {
     const [housingFilters, setHousingFilters] = useState<HousingFilters>(filters ?? {});
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
-    const booleanOptions =  [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "true", label: "Oui"},
-        {value: "false", label: "Non"}
-    ]
 
     const emptyOptions = [
         {value: "", label: "Sélectionner", disabled: true, hidden: true}
     ]
 
-    const ownerKindOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "Particulier", label: "Particulier"},
-        {value: "Investisseur", label: "Investisseur"},
-        {value: "SCI", label: "SCI"},
-        {value: "Autres", label: "Autres"}
-    ];
-
-    const ownerAgeOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "lt35", label: "Moins de 35 ans"},
-        {value: "35to65", label: "35 - 65 ans"},
-        {value: "gt65", label: "Plus de 65 ans"},
-        {value: "gt75", label: "Plus de 75 ans"}
-    ];
-
-    const housingKindOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "APPART", label: "Appartement"},
-        {value: "MAISON", label: "Maison"}
-    ];
-
-    const housingStateOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "Inconfortable", label: "Inconfortable"}
-    ];
-
-    const housingAreaOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "lt75", label: "Moins de 75 m2"},
-        {value: "75to150", label: "75 - 150 m2"},
-        {value: "gt150", label: "Plus de 150 m2"},
-    ];
-
-    const vacancyDurationOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true},
-        {value: "lt2", label: "Moins de 2 ans"},
-        {value: "2to5", label: "2 - 5 ans"},
-        {value: "gt5", label: "Plus de 5 ans"},
-        {value: "gt10", label: "Plus de 10 ans"}
-    ];
-
     useEffect(() => {
         dispatch(filterHousing(housingFilters));
     }, [housingFilters, dispatch])
+
+    useEffect(() => {
+        setHousingFilters(filters)
+    }, [filters])
+
+
+    const onChangeFilters = (changedFilters: any) => {
+        setHousingFilters({
+            ...filters,
+            ...changedFilters
+        })
+    }
+
 
     return (
         <Container fluid>
@@ -79,46 +51,36 @@ const HousingListFilter = () => {
                 </Text>
                 <Row gutters>
                     <Col n="2">
-                        <Select
-                            label="Contacté"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
+                        <AppMultiSelect label="Type"
+                                        options={ownerKindOptions}
+                                        initialValues={filters.ownerKinds}
+                                        onChange={(values) => onChangeFilters({ownerKinds: values})}/>
+                    </Col>
+                    <Col n="2">
+                        <AppMultiSelect label="Âge"
+                                        options={ownerAgeOptions}
+                                        initialValues={filters.ownerAges}
+                                        onChange={(values) => onChangeFilters({ownerAges: values})}/>
                     </Col>
                     <Col n="2">
                         <Select
-                            label="Type"
-                            options={ownerKindOptions}
-                            selected={housingFilters.ownerKind}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, ownerKind: e.target.value})}
-                            data-testid="owner-kind-filter"
-                        />
-                    </Col>
-                    <Col n="2">
-                        <Select
-                            label="Âge"
-                            options={ownerAgeOptions}
-                            selected={housingFilters.ownerAge}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, ownerAge: e.target.value})}
-                            data-testid="owner-age-filter"
-                        />
-                    </Col>
-                    <Col n="2">
-                        <Select
-                            label="Multi-propriétaire"
+                            label="Multi-propriété"
                             options={booleanOptions}
                             selected={housingFilters.multiOwner}
                             onChange={(e: ChangeEvent<any>) => setHousingFilters({...housingFilters, multiOwner: e.target.value === "true" })}
                         />
                     </Col>
                     <Col n="2">
-                        <TextInput
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setHousingFilters({...housingFilters, beneficiaryCount: Number(e.target.value)})}
-                            label="Nombre d'ayants droit"
-                            placeholder="Saisir le nombre"
-                            value={housingFilters.beneficiaryCount}
-                        />
+                        <AppMultiSelect label="Ayants droit"
+                                        options={beneficiaryCountOptions}
+                                        initialValues={filters.beneficiaryCounts}
+                                        onChange={(values) => onChangeFilters({beneficiaryCounts: values})}/>
+                    </Col>
+                    <Col n="2">
+                        <AppMultiSelect label="Contacté"
+                                        options={contactsCountOptions}
+                                        initialValues={filters.contactsCounts}
+                                        onChange={(values) => onChangeFilters({contactsCounts: values})}/>
                     </Col>
                 </Row>
             </div>
@@ -129,57 +91,34 @@ const HousingListFilter = () => {
                 </Text>
                 <Row gutters>
                     <Col n="2">
-                        <Select
-                            label="Type"
-                            options={housingKindOptions}
-                            selected={housingFilters.housingKind}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({
-                                ...housingFilters,
-                                housingKind: e.target.value
-                            })}
-                            value={housingFilters.housingKind}
-                        />
+                        <AppMultiSelect label="Type"
+                                        options={housingKindOptions}
+                                        initialValues={filters.housingKinds}
+                                        onChange={(values) => onChangeFilters({housingKinds: values})}/>
                     </Col>
                     <Col n="2">
-                        <Select
-                            label="Surface"
-                            options={housingAreaOptions}
-                            selected={housingFilters.housingArea}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({
-                                ...housingFilters,
-                                housingArea: e.target.value
-                            })}
-                        />
+                        <AppMultiSelect label="Surface"
+                                        options={housingAreaOptions}
+                                        initialValues={filters.housingAreas}
+                                        onChange={(values) => onChangeFilters({housingAreas: values})}/>
                     </Col>
                     <Col n="2">
-                        <Select
-                            label="État"
-                            options={housingStateOptions}
-                            selected={housingFilters.housingState}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({
-                                ...housingFilters,
-                                housingState: e.target.value
-                            })}
-                        />
+                        <AppMultiSelect label="État"
+                                        options={housingStateOptions}
+                                        initialValues={filters.housingStates}
+                                        onChange={(values) => onChangeFilters({housingStates: values})}/>
                     </Col>
                     <Col n="2">
-                        <Select
-                            label="Date de construction"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
+                        <AppMultiSelect label="Date de construction"
+                                        options={constructionPeriodOptions}
+                                        initialValues={filters.constructionPeriods}
+                                        onChange={(values) => onChangeFilters({constructionPeriods: values})}/>
                     </Col>
                     <Col n="2">
-                        <Select
-                            label="Durée de vacances"
-                            options={vacancyDurationOptions}
-                            selected={housingFilters.vacancyDuration}
-                            onChange={(e: ChangeEvent<any>) => setHousingFilters({
-                                ...housingFilters,
-                                vacancyDuration: e.target.value
-                            })}
-                        />
+                        <AppMultiSelect label="Durée de vacance"
+                                        options={vacancyDurationOptions}
+                                        initialValues={filters.vacancyDurations}
+                                        onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
                     </Col>
                     <Col n="2">
                         <Select

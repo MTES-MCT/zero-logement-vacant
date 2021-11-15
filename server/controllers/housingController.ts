@@ -8,6 +8,7 @@ import addressService from '../services/addressService';
 
 export interface HousingFilters {
     ownerKind?: string;
+    ownerKinds: string[];
     ownerAge?: string;
     multiOwner?: boolean;
     beneficiaryCount?: number;
@@ -21,7 +22,7 @@ const buildFilterByFormula = (housingFilters: HousingFilters, search: string) =>
 
     const allFilters = [
         housingFilters.multiOwner === undefined ? '' : `{Multipropriétaire de logements vacants} ${housingFilters.multiOwner ? "=" : "!="} 'Multipropriétaire'`,
-        housingFilters.ownerKind ? `TRIM({Type de propriétaire}) = '${housingFilters.ownerKind}'` : '',
+        housingFilters.ownerKinds.length ? `OR(${housingFilters.ownerKinds.map((ownerKind: string) => `TRIM({Type de propriétaire}) = '${ownerKind}'`).reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '',
         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} > 0' : '',
         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} <= 35' : '',
         housingFilters.ownerAge === '35to65' ? '{Age (pour filtre)} >= 35' : '',
@@ -231,7 +232,7 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
         });
     })
 
-    worksheet.columns.forEach((column, index) => {
+    worksheet.columns.forEach(column => {
         const lengths = column.values?.filter(v => v !== undefined).map(v => (v ?? "").toString().length) ?? [10];
         column.width = Math.max(...lengths);
     });

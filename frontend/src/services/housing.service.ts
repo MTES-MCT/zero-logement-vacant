@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { HousingFilters } from '../models/Housing';
+import { HousingFilters } from '../models/HousingFilters';
 
 
 const listHousing = async (filters?: HousingFilters, search?: string) => {

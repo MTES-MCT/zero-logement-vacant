@@ -1,8 +1,9 @@
 import { Dispatch } from 'redux';
-import { Housing, HousingFilters } from '../../models/Housing';
+import { Housing } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
+import { HousingFilters } from '../../models/HousingFilters';
 
 export const FETCH_HOUSING_LIST = 'FETCH_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';

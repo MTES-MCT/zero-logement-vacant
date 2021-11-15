@@ -3,7 +3,6 @@ import { Col, Container, Row, Select, Tab, Tabs, Text, Title } from '@dataesr/re
 import { useDispatch, useSelector } from 'react-redux';
 import { listCampaignHousing, searchCampaign, validCampaignStep } from '../../store/actions/campaignAction';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
-import styles from '../Owner/owner.module.scss';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { Campaign, CampaignSteps } from '../../models/Campaign';
@@ -80,8 +79,8 @@ const CampaignsView = () => {
 
     return (
         <>
-            <div className={styles.titleContainer}>
-                <Container>
+            <div className="bg-100">
+                <Container className="bg-100">
                     <AppBreadcrumb additionalItems={campaign ? [{ url: '', label: campaign.name }] : []}/>
                     <Row>
                         <Col>

@@ -17,14 +17,3 @@ export interface HousingDetails {
     buildingYear: number;
     vacancyStart: number;
 }
-
-export interface HousingFilters {
-    ownerKind?: string;
-    ownerAge?: string;
-    multiOwner?: boolean;
-    beneficiaryCount?: number;
-    housingKind?: string;
-    housingState?: string;
-    housingArea?: string;
-    vacancyDuration?: string;
-}

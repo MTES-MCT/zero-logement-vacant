@@ -19,6 +19,18 @@ const DashboardView = () => {
                     Accéder à la base de données<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                 </Link>
             </Container>
+            <div className="bg-100">
+                <Container spacing="py-4w mb-4w">
+                    <Title as="h2">
+                        Campagnes
+                    </Title>
+                    <div className="align-center">
+                        <Link title="Accéder à la base de données" to="/logements" className="fr-btn--md fr-btn">
+                            Créer une campagne
+                        </Link>
+                    </div>
+                </Container>
+            </div>
         </>
     );
 };

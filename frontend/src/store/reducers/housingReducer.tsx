@@ -1,5 +1,6 @@
-import { Housing, HousingFilters } from '../../models/Housing';
+import { Housing } from '../../models/Housing';
 import { FETCH_HOUSING_LIST, HOUSING_LIST_FETCHED, HousingActionTypes } from '../actions/housingAction';
+import { HousingFilters } from '../../models/HousingFilters';
 
 
 export interface HousingState {
@@ -9,14 +10,16 @@ export interface HousingState {
 }
 
 export const initialFilters = {
-    ownerKind: '',
-    ownerAge: '',
+    ownerKinds: [],
+    ownerAges: [],
     multiOwner: undefined,
-    beneficiaryCount: undefined,
-    housingKind: '',
-    housingState: '',
-    housingArea: '',
-    vacancyDuration: ''
+    beneficiaryCounts: [],
+    contactsCounts: [],
+    housingKinds: [],
+    housingStates: [],
+    housingAreas: [],
+    constructionPeriods: [],
+    vacancyDurations: []
 } as HousingFilters;
 
 const initialState = {

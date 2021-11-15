@@ -26,8 +26,6 @@ const AppBreadcrumb = ( { additionalItems }: { additionalItems? : UserNavItem[] 
         }
     }, [location, additionalItems])
 
-    console.log('items', items)
-
     return (
         <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-3w">
             {items.map((item, index) =>

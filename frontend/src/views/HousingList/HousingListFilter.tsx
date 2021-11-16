@@ -1,13 +1,20 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Col, Container, Row, Select, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterHousing } from '../../store/actions/housingAction';
 import {
-    beneficiaryCountOptions, constructionPeriodOptions, contactsCountOptions, housingAreaOptions,
-    HousingFilters, housingKindOptions, housingStateOptions, multiOwnerOptions,
+    beneficiaryCountOptions,
+    constructionPeriodOptions,
+    contactsCountOptions,
+    housingAreaOptions,
+    HousingFilters,
+    housingKindOptions,
+    housingStateOptions,
+    multiOwnerOptions,
     ownerAgeOptions,
-    ownerKindOptions, vacancyDurationOptions,
+    ownerKindOptions,
+    vacancyDurationOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';

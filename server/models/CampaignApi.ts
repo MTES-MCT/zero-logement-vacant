@@ -1,6 +1,9 @@
 export interface CampaignApi {
-    id?: string;
-    name: string;
+    id: string;
+    campaignNumber: number;
+    startMonth: string;
+    kind: string;
+    filters: string[];
     createdAt?: Date;
     validatedAt?: Date;
     sentAt?: Date;

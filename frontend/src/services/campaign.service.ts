@@ -1,7 +1,8 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { parseISO } from 'date-fns';
-import { Campaign, CampaignSteps } from '../models/Campaign';
+import { format, parse, parseISO } from 'date-fns';
+import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
+import { fr } from "date-fns/locale";
 
 
 const listCampaigns = async (search?: string) => {
@@ -15,15 +16,15 @@ const listCampaigns = async (search?: string) => {
         .then(_ => _.map((_: any) => parseCampaign(_)))
 };
 
-const createCampaign = async (name: string, housingIds: string[]): Promise<number> => {
+const createCampaign = async (draftCampaign: DraftCampaign, housingIds: string[]): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/creation`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, housingIds }),
+        body: JSON.stringify({ draftCampaign, housingIds }),
     })
         .then(_ => _.json())
-        .then(_ => _.id);
+        .then(_ => parseCampaign(_));
 };
 
 const validCampaignStep = async (campaignId: string, step: CampaignSteps): Promise<Campaign> => {
@@ -42,8 +43,8 @@ const getExportURL = (campaignId: string) => {
 };
 
 const parseCampaign = (c: any): Campaign => ({
-    id: c.id,
-    name: c.name,
+    ...c,
+    name: `C${c.campaignNumber} - ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })} - envoi initial`,
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined

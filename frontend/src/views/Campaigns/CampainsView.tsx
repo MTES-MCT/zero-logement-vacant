@@ -19,16 +19,16 @@ const CampaignsView = () => {
     const [campaign, setCampaign] = useState<Campaign>();
     const [campaignIdOptions, setCampaignIdOptions] = useState<any[]>([defaultOption])
 
-    const { campaignList, campaignHousingList, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignList, campaignHousingList, exportURL, campaignId } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         setCampaignIdOptions(() => [
             defaultOption,
             ...campaignList
+                .sort((c1, c2) => c1.campaignNumber < c2.campaignNumber ? -1 : c1.campaignNumber === c2.campaignNumber ? 0 : 1)
                 .map(c => ({ value: c.id, label: c.name }))
-                .sort((c1, c2) => c1.label.localeCompare(c2.label))
         ])
-        setCampaign(campaignList.find(_ => _.id === campaign?.id))
+        setCampaign(campaignList.find(_ => _.id === campaignId ?? campaign?.id))
     }, [campaignList])
 
     useEffect(() => {
@@ -39,7 +39,7 @@ const CampaignsView = () => {
         if (campaign) {
             dispatch(listCampaignHousing(campaign.id))
         }
-    }, [campaign, dispatch])
+    }, [campaign?.id, dispatch])
 
     const validStep = (step: CampaignSteps) => {
         if (campaign) {

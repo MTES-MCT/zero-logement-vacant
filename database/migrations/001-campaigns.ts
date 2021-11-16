@@ -5,7 +5,10 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .createTable('campaigns', (table) => {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-                table.string('name').notNullable();
+                table.integer('campaignNumber').notNullable();
+                table.string('startMonth').notNullable();
+                table.string('kind').notNullable();
+                table.jsonb('filters');
                 table.timestamp('createdAt').defaultTo(knex.fn.now());
                 table.timestamp('validatedAt');
                 table.timestamp('sentAt');

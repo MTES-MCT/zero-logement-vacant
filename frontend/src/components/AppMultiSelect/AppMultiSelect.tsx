@@ -10,7 +10,8 @@ const AppMultiSelect = ( { label, options, initialValues, onChange }: { label: s
         onChange([
             ...initialValues.filter(v => v !== value),
             ...(isChecked ? [value] : [])
-        ])
+        ]);
+        setShowOptions(false)
     }
 
     const selectedOptions = () => {

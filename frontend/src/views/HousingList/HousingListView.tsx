@@ -10,32 +10,25 @@ import { filterHousing, searchHousing } from '../../store/actions/housingAction'
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import {
-    beneficiaryCountOptions,
-    constructionPeriodOptions,
-    contactsCountOptions,
-    housingAreaOptions,
-    HousingFilterOption,
-    housingKindOptions,
-    housingStateOptions, multiOwnerOptions,
-    ownerAgeOptions,
-    ownerKindOptions,
-    vacancyDurationOptions,
-} from '../../models/HousingFilters';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import { DraftCampaign } from '../../models/Campaign';
+import { useHistory } from "react-router-dom";
 
 
 const HousingListView = () => {
 
     const dispatch = useDispatch();
+    const history = useHistory();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
 
     const { housingList, filters } = useSelector((state: ApplicationState) => state.housing);
 
-    const create = (campaignName: string) => {
-        dispatch(createCampaign(campaignName, selectedHousingIds))
+    const create = (draftCampaign: DraftCampaign) => {
+        dispatch(createCampaign(draftCampaign, selectedHousingIds))
         setIsModalOpen(false)
+        history.push("/campagnes");
     }
 
     const getDistinctOwners = () => {return housingList
@@ -45,29 +38,13 @@ const HousingListView = () => {
     }
 
     const removeFilter = (removedFilter: any) => {
-        console.log('removedFilter', removedFilter)
         dispatch(filterHousing({
             ...filters,
             ...removedFilter
         }));
     }
 
-    const FilterBadges = ({options, filters, onChange}: {options: HousingFilterOption[], filters: string[], onChange: (_: string[]) => void}) => {
-        return (
-            <>
-                {options.filter(o => filters.indexOf(o.value) !== -1).map((option, index) =>
-                    <span className="fr-tag fr-tag--sm fr-fi-icon" key={option + '-' + index}>
-                        {option.badgeLabel ?? option.label}
-                        <button className="ri-md ri-close-line fr-pr-0"
-                                onClick={() => {
-                                    onChange(filters.filter(v => v !== option.value))
-                                }}>
-                        </button>
-                    </span>
-                )}
-            </>
-        )
-    }
+
 
     return (
         <>
@@ -91,40 +68,7 @@ const HousingListView = () => {
             </div>
             <Container spacing="pt-2w">
                 <Row>
-                    { filters &&
-                        <>
-                            <FilterBadges options={ownerKindOptions}
-                                          filters={filters.ownerKinds}
-                                          onChange={(values) => removeFilter({ownerKinds: values})}/>
-                            <FilterBadges options={ownerAgeOptions}
-                                          filters={filters.ownerAges}
-                                          onChange={(values) => removeFilter({ownerAges: values})}/>
-                            <FilterBadges options={multiOwnerOptions}
-                                          filters={filters.multiOwners}
-                                          onChange={(values) => removeFilter({multiOwners: values})}/>
-                            <FilterBadges options={beneficiaryCountOptions}
-                                          filters={filters.beneficiaryCounts}
-                                          onChange={(values) => removeFilter({beneficiaryCounts: values})}/>
-                            <FilterBadges options={housingKindOptions}
-                                          filters={filters.housingKinds}
-                                          onChange={(values) => removeFilter({housingKinds: values})}/>
-                            <FilterBadges options={contactsCountOptions}
-                                          filters={filters.contactsCounts}
-                                          onChange={(values) => removeFilter({contactsCounts: values})}/>
-                            <FilterBadges options={housingAreaOptions}
-                                          filters={filters.housingAreas}
-                                          onChange={(values) => removeFilter({housingAreas: values})}/>
-                            <FilterBadges options={housingStateOptions}
-                                          filters={filters.housingStates}
-                                          onChange={(values) => removeFilter({housingStates: values})}/>
-                            <FilterBadges options={constructionPeriodOptions}
-                                          filters={filters.constructionPeriods}
-                                          onChange={(values) => removeFilter({constructionPeriods: values})}/>
-                            <FilterBadges options={vacancyDurationOptions}
-                                          filters={filters.vacancyDurations}
-                                          onChange={(values) => removeFilter({vacancyDurations: values})}/>
-                        </>
-                    }
+                    <HousingFiltersBadges onChange={(values) => removeFilter(values)} />
                 </Row>
                 {housingList &&
                     <>
@@ -148,7 +92,7 @@ const HousingListView = () => {
                                 {isModalOpen &&
                                 <CampaignCreationModal housingCount={selectedHousingIds.length}
                                                        ownerCount={getDistinctOwners().length}
-                                                       onSubmit={(campaignName: string) => create(campaignName)}
+                                                       onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
                                                        onClose={() => setIsModalOpen(false)}/>}
                             </Col>
                             }

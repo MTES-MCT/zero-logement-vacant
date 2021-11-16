@@ -24,6 +24,18 @@ const list = async (): Promise<CampaignApi[]> => {
     }
 }
 
+const lastCampaignNumber = async (): Promise<any> => {
+    try {
+        return db(campaignsTable)
+            .max('campaignNumber')
+            .first()
+            .then(_ => _.max);
+    } catch (err) {
+        console.error('Listing campaigns failed', err);
+        throw new Error('Listing campaigns failed');
+    }
+}
+
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
@@ -52,6 +64,7 @@ const update = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 export default {
     get,
     list,
+    lastCampaignNumber,
     insert,
     update
 }

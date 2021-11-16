@@ -1,43 +1,128 @@
-import React, { ChangeEvent, useState } from 'react';
-import { Button, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Text, TextInput } from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import {
+    Button,
+    Col,
+    Container,
+    Modal,
+    ModalClose,
+    ModalContent,
+    ModalFooter,
+    ModalTitle,
+    Row,
+    Select,
+    Text,
+} from '@dataesr/react-dsfr';
+import { addMonths, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useSelector } from 'react-redux';
+import { ApplicationState } from '../../../store/reducers/applicationReducers';
+import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
+import { CampaignKinds, DraftCampaign } from '../../../models/Campaign';
 
+import * as yup from 'yup';
+import { ValidationError } from 'yup/es';
 
-const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {housingCount: number, ownerCount: number, onSubmit: (name: string) => void, onClose: () => void}) => {
+const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {housingCount: number, ownerCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
 
-    const [campaignName, setCampaignName] = useState('');
-    const [campaignNameError, setCampaignNameError] = useState<string>();
+    const [campaignStartMonth, setCampaignStartMonth] = useState('');
+    const [campaignKind, setCampaignKind] = useState('');
+    const [errors, setErrors] = useState<any>({});
+
+    const campaignForm = yup.object().shape({
+        campaignStartMonth: yup.string().required('Veuillez sélectionner le mois de lancement de la campagne.'),
+        campaignKind: yup.string().required('Veuillez sélectionner le type de campagne.')
+    });
+
+    const { housingList, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = () => {
-        setCampaignNameError(undefined);
-        if (!campaignName.length) {
-            setCampaignNameError('Le nom de la campagne est obligatoire');
-        } else {
-            onSubmit(campaignName);
-        }
+        campaignForm
+            .validate({ campaignStartMonth, campaignKind }, {abortEarly: false})
+            .then(() => {
+                onSubmit({
+                    startMonth: campaignStartMonth,
+                    kind: CampaignKinds.Initial,
+                    filters
+                } as DraftCampaign);
+            })
+            .catch(err => {
+                const object: any = {};
+                err.inner.forEach((x: ValidationError) => {
+                    if (x.path !== undefined && x.errors.length) {
+                        object[x.path] = x.errors[0];
+                    }
+                });
+                setErrors(object);
+            })
     }
+
+    const campaignStartOptions = [
+        {value: '', label: 'Sélectionner', disabled: true, hidden: true},
+        ...[0, 1, 2, 3, 4, 5, 6].map(n => {
+            return {
+                value: format(addMonths(new Date(), n), 'yyMM'),
+                label: format(addMonths(new Date(), n), 'MMMM yyyy', { locale: fr })
+            }
+        })
+    ];
+
+    const campaignKindOptions = [
+        {value: '', label: 'Sélectionner', disabled: true, hidden: true},
+        {value: 'init', label: 'Envoi initial'}
+    ]
 
     return (
         <Modal isOpen={true}
                hide={() => onClose()}
                data-testid="campaign-creation-modal">
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
-            <ModalTitle>Créer la campagne</ModalTitle>
+            <ModalTitle>
+                <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
+                Créer la campagne
+            </ModalTitle>
             <ModalContent>
-                <Text size="md">
-                    <span style={{display: 'block'}}>{housingCount} logements</span>
-                    <span>{ownerCount} propriétaires</span>
-                </Text>
-                <TextInput
-                    value={campaignName}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setCampaignName(e.target.value)}
-                    required
-                    label="Nom de la campagne"
-                    hint="20 caractères maximum"
-                    maxLength="20"
-                    messageType={campaignNameError ? 'error' : ''}
-                    message={campaignNameError}
-                    data-testid="campaign-name-input"
-                />
+                <Container fluid>
+                    <Text size="md">
+                        <span>
+                            <b>{housingCount}</b> logements / <b>{ownerCount}</b> propriétaires</span>
+                    </Text>
+                    <Row gutters>
+                        <Col n="5">
+                            <Select
+                                label="Lancement"
+                                options={campaignStartOptions}
+                                selected={campaignStartMonth}
+                                onChange={(e: any) => setCampaignStartMonth(e.target.value)}
+                                messageType={errors['campaignStartMonth'] ? 'error' : undefined}
+                                message={errors['campaignStartMonth']}
+                            />
+                        </Col>
+                        <Col n="5">
+                            <Select
+                                label="Envoi"
+                                options={campaignKindOptions}
+                                selected={campaignKind}
+                                onChange={(e: any) => setCampaignKind(e.target.value)}
+                                messageType={errors['campaignKind'] ? 'error' : undefined}
+                                message={errors['campaignKind']}
+                            />
+                        </Col>
+                    </Row>
+                    <Row className="fr-mt-4w">
+                        <Col>
+                            La liste a été établie à partir des filtres suivants :
+                            <div className="fr-my-1w">
+                                <HousingFiltersBadges />
+                            </div>
+                            {housingList.length === housingCount ?
+                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche avec ces filtres.</i> :
+                                housingList.length - housingCount === 1 ?
+                                    <i>Un logement a été retiré des résultats de la recherche avec ces filtres.</i> :
+                                    <i>{housingList.length - housingCount} logements ont été retirés des résultats de la recherche avec ces filtres.</i>
+                            }
+                        </Col>
+                    </Row>
+                </Container>
             </ModalContent>
             <ModalFooter>
                 <Button title="title"

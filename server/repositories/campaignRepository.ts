@@ -1,5 +1,6 @@
 import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
+import { campaignsHousingTable } from './campaignHousingRepository';
 
 export const campaignsTable = 'campaigns';
 
@@ -17,7 +18,12 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
 
 const list = async (): Promise<CampaignApi[]> => {
     try {
-        return db(campaignsTable);
+        return db
+            .select(`${campaignsTable}.*`)
+            .count('id', {as: 'housingCount'})
+            .from(campaignsTable)
+            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaignId`)
+            .groupBy('id')
     } catch (err) {
         console.error('Listing campaigns failed', err);
         throw new Error('Listing campaigns failed');

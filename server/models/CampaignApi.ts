@@ -6,9 +6,11 @@ export interface CampaignApi {
     filters: string[];
     createdAt?: Date;
     validatedAt?: Date;
+    exportedAt?: Date;
     sentAt?: Date;
+    housingCount?: number;
 }
 
 export enum CampaignSteps {
-    OwnersValidation, SendingConfirmation
+    OwnersValidation, Export, Sending, InProgess
 }

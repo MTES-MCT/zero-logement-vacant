@@ -13,7 +13,6 @@ import { Housing } from '../../models/Housing';
 
 export interface CampaignState {
     campaignList: Campaign[];
-    search?: string;
     campaignId: string;
     campaignHousingList: Housing[];
     exportURL: string;
@@ -21,7 +20,6 @@ export interface CampaignState {
 
 const initialState: CampaignState = {
     campaignList: [] as Campaign[],
-    search: undefined,
     campaignId: '',
     campaignHousingList: [],
     exportURL: ''
@@ -33,12 +31,11 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignList: [],
-                search: action.search
             };
         case CAMPAIGN_LIST_FETCHED:
             return {
                 ...state,
-                campaignList: (action.search === state.search) ? action.campaignList : state.campaignList
+                campaignList: action.campaignList
             };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {

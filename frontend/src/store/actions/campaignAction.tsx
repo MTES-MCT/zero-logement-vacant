@@ -2,7 +2,6 @@ import { Dispatch } from 'redux';
 import { Campaign, CampaignSteps, DraftCampaign } from '../../models/Campaign';
 import campaignService from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { ApplicationState } from '../reducers/applicationReducers';
 import housingService from '../../services/housing.service';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
@@ -53,29 +52,24 @@ export type CampaignActionTypes =
     | CampaignCreatedAction
     | CampaignUpdatedAction;
 
-export const searchCampaign = (search: string) => {
+export const listCampaigns = () => {
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    return function (dispatch: Dispatch) {
 
-        if (search !== getState().campaign.search) {
+        dispatch(showLoading());
 
-            dispatch(showLoading());
+        dispatch({
+            type: FETCH_CAMPAIGN_LIST
+        });
 
-            dispatch({
-                type: FETCH_CAMPAIGN_LIST,
-                search
-            });
-
-            campaignService.listCampaigns(search)
-                .then(campaignList => {
-                    dispatch(hideLoading());
-                    dispatch({
-                        type: CAMPAIGN_LIST_FETCHED,
-                        campaignList,
-                        search
-                    });
+        campaignService.listCampaigns()
+            .then(campaignList => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: CAMPAIGN_LIST_FETCHED,
+                    campaignList
                 });
-        }
+            });
     };
 };
 

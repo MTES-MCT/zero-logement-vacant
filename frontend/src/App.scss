@@ -30,7 +30,7 @@
   background-color: var(--g300)
 }
 .bg-bf200 {
-  background-color: var(--bf200)
+  background-color: var(--bf200-bf300)
 }
 
 .capitalize {
@@ -47,15 +47,6 @@
 
 .align-center {
   text-align: center;
-}
-
-.fr-alert {
-  background: var(--info);
-  color: var(--w);
-}
-
-.fr-alert .fr-btn--secondary {
-  background-color: var(--w);
 }
 
 .fr-tag {

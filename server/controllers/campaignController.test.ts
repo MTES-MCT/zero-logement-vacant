@@ -17,7 +17,9 @@ describe('Campaign controller', () => {
             expect.arrayContaining(
                 [
                     expect.objectContaining({
-                        name: 'Campagne 1'
+                        campaignNumber: 1,
+                        startMonth: '2111',
+                        kind: '0',
                     })
                 ]
             )
@@ -29,14 +31,21 @@ describe('Campaign controller', () => {
         const housingIds = ['ref1', 'ref2'];
 
         const req = getMockReq({
-            body: { name: 'Campagne 2', housingIds },
+            body: { draftCampaign: { startMonth: '2112', kind: '0'}, housingIds },
         })
         const { res } = getMockRes()
 
         await campaignController.create(req, res)
 
         expect(res.status).toHaveBeenCalledWith(200)
-        expect(res.json).toHaveBeenCalledWith({count: 2})
+        expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+                    campaignNumber: 2,
+                    startMonth: '2112',
+                    kind: '0',
+                }
+            )
+        )
 
         await db(campaignsHousingTable)
             .whereIn('housingRef', housingIds)

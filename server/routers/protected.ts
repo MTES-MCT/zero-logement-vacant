@@ -21,7 +21,7 @@ router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwne
 router.get('/api/housing/campaign/:campaignId', jwtCheck, housingController.listByCampaign);
 router.get('/api/housing/campaign/:campaignId/export', jwtCheck, housingController.exportByCampaign);
 
-router.post('/api/campaigns', jwtCheck, campaignController.list);
+router.get('/api/campaigns', jwtCheck, campaignController.list);
 router.post('/api/campaigns/creation', jwtCheck, campaignController.create);
 router.put('/api/campaigns/:campaignId', jwtCheck, campaignController.validateStep);
 // router.get('/api/campaigns/import', jwtCheck, campaignController.importFromAirtable);

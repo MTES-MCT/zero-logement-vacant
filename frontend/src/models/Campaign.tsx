@@ -15,7 +15,9 @@ export interface Campaign {
     filters: HousingFilters;
     createdAt: Date;
     validatedAt?: Date;
+    exportedAt?: Date;
     sentAt?: Date;
+    housingCount: number;
 }
 
 export enum CampaignKinds {
@@ -23,5 +25,17 @@ export enum CampaignKinds {
 }
 
 export enum CampaignSteps {
-    OwnersValidation, SendingConfirmation
+    OwnersValidation, Export, Sending, InProgess
+}
+
+export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
+    return c1.campaignNumber < c2.campaignNumber ? -1 :
+        c1.campaignNumber > c2.campaignNumber ? 1 : 0
+}
+
+export const campaignStep = (campaign: Campaign) => {
+    return (!campaign?.validatedAt) ? CampaignSteps.OwnersValidation :
+        !campaign?.exportedAt ? CampaignSteps.Export :
+            !campaign?.sentAt ? CampaignSteps.Sending :
+                CampaignSteps.InProgess
 }

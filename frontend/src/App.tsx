@@ -10,8 +10,9 @@ import thunk from 'redux-thunk';
 import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
-import CampaignsView from './views/Campaigns/CampainsView';
+import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
+import CampaignView from './views/Campaign/CampainView';
 
 
 function AppWrapper () {
@@ -42,7 +43,8 @@ function App() {
                     <Switch>
                         {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                        {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsView} />}
+                        {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}
+                        {user && user.accessToken && <Route exact path="/campagnes/:id" component={CampaignView} />}
                         {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
                         {user && user.accessToken && <Route exact path="/campagnes/proprietaires/:id" component={OwnerView} />}
                         <Route path="/" component={LoginView} />

@@ -5,12 +5,11 @@ import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
 import { fr } from "date-fns/locale";
 
 
-const listCampaigns = async (search?: string) => {
+const listCampaigns = async () => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns`, {
-        method: 'POST',
+        method: 'GET',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ search }),
     })
         .then(_ => _.json())
         .then(_ => _.map((_: any) => parseCampaign(_)))

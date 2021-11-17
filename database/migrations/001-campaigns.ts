@@ -11,6 +11,7 @@ exports.up = function(knex) {
                 table.jsonb('filters');
                 table.timestamp('createdAt').defaultTo(knex.fn.now());
                 table.timestamp('validatedAt');
+                table.timestamp('exportedAt');
                 table.timestamp('sentAt');
             }),
         knex.schema// @ts-ignore

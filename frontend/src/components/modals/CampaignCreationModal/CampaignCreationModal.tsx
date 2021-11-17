@@ -58,7 +58,7 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
 
     const campaignStartOptions = [
         {value: '', label: 'Sélectionner', disabled: true, hidden: true},
-        ...[0, 1, 2, 3, 4, 5, 6].map(n => {
+        ...[0, 1, 2, 3, 4, 5].map(n => {
             return {
                 value: format(addMonths(new Date(), n), 'yyMM'),
                 label: format(addMonths(new Date(), n), 'MMMM yyyy', { locale: fr })
@@ -83,8 +83,9 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
             <ModalContent>
                 <Container fluid>
                     <Text size="md">
-                        <span>
-                            <b>{housingCount}</b> logements / <b>{ownerCount}</b> propriétaires</span>
+                        <span data-testid="housing-infos">
+                            <b>{housingCount}</b> logements / <b>{ownerCount}</b> propriétaires
+                        </span>
                     </Text>
                     <Row gutters>
                         <Col n="5">
@@ -95,6 +96,7 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
                                 onChange={(e: any) => setCampaignStartMonth(e.target.value)}
                                 messageType={errors['campaignStartMonth'] ? 'error' : undefined}
                                 message={errors['campaignStartMonth']}
+                                data-testid="start-month-select"
                             />
                         </Col>
                         <Col n="5">

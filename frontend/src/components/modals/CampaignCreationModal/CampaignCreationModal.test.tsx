@@ -1,41 +1,62 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
+import { Provider } from 'react-redux';
+import { applyMiddleware, createStore } from 'redux';
+import applicationReducer from '../../../store/reducers/applicationReducers';
+import thunk from 'redux-thunk';
 
 describe('Campagne creation modal', () => {
 
-    test('should display housing count, name input and submit button', () => {
+    let store: any;
+
+    beforeEach(() => {
+        store = createStore(
+            applicationReducer,
+            applyMiddleware(thunk)
+        );
+    });
+
+    test('should display housing count, select with next 6 months input and submit button', () => {
 
         render(
-            <CampaignCreationModal housingCount={2}
-                                   ownerCount={1}
-                                   onSubmit={() => {}}
-                                   onClose={() => {}} />
+            <Provider store={store}>
+                <CampaignCreationModal housingCount={2}
+                                       ownerCount={1}
+                                       onSubmit={() => {}}
+                                       onClose={() => {}} />
+            </Provider>
         );
 
-        const housingCountTextElement = screen.getByText('2 logements');
-        const ownerCountTextElement = screen.getByText('1 propriétaires');
-        const campaignNameInputElement = screen.getByTestId('campaign-name-input');
+        const housingInfosTextElement = screen.getByTestId('housing-infos');
+        const startMonthSelectElement = screen.getByTestId('start-month-select');
         const createButton = screen.getByTestId('create-button');
-        expect(housingCountTextElement).toBeInTheDocument();
-        expect(ownerCountTextElement).toBeInTheDocument();
-        expect(campaignNameInputElement).toBeInTheDocument();
+        expect(housingInfosTextElement).toBeInTheDocument();
+        expect(housingInfosTextElement).toContainHTML('<b>2</b> logements / <b>1</b> propriétaires');
+        expect(startMonthSelectElement).toBeInTheDocument();
+        expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7)
         expect(createButton).toBeInTheDocument();
     });
 
-    test('should require campaign name', () => {
+    test('should require campaign start month', async() => {
 
         render(
-            <CampaignCreationModal housingCount={2}
-                                   ownerCount={1}
-                                   onSubmit={() => {}}
-                                   onClose={() => {}} />
+            <Provider store={store}>
+                <CampaignCreationModal housingCount={2}
+                                       ownerCount={1}
+                                       onSubmit={() => {
+                                       }}
+                                       onClose={() => {
+                                       }}/>
+            </Provider>
         );
 
-        fireEvent.click(screen.getByTestId('create-button'));
+        act(() => {
+            fireEvent.click(screen.getByTestId('create-button'));
+        })
 
-        const campaignNameInputElement = screen.getByTestId('campaign-name-input');
-        expect(campaignNameInputElement.querySelector('.fr-error-text')).toBeInTheDocument();
+        const startMonthSelectElement = await screen.findByTestId('start-month-select');
+        expect(startMonthSelectElement.querySelector('.fr-error-text')).toBeInTheDocument();
     });
 
 });

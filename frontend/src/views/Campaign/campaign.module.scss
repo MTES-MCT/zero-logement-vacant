@@ -1,0 +1,78 @@
+.campaignCard {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.16), 0 1px 0px -2px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
+  padding: 24px;
+  margin-left: -16px;
+  margin-right: -16px;
+
+  & + .campaignCard {
+    margin-top: 32px;
+  }
+}
+
+.campaignStat {
+  color: var(--bf500);
+  font-weight: bold;
+  display: inline-block;
+
+  .statTitle {
+    font-size: 32px;
+    line-height: 40px;
+  }
+
+  .statLabel {
+    font-size: 14px;
+  }
+
+  &.campaignStat {
+    margin-right: 40px;
+  }
+}
+
+.campaignStep {
+  padding: 24px;
+
+  & + .campaignStep {
+    margin-top: 24px;
+  }
+
+  &.currentStep {
+    border: 1px solid var(--g300);
+    border-top: 2px solid var(--bf500);
+  }
+
+  &:not(.currentStep) {
+    background-color: var(--bf100-g750);
+  }
+
+  h2 {
+    color: var(--bf500);
+    font-size: 18px;
+    line-height: 24px;
+    margin-bottom: 8px;
+  }
+
+  .stepLabel {
+
+    & > div {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .stepNumber {
+      border: 2px solid var(--bf500);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      font-size: 18px;
+      line-height: 32px;
+      font-weight: bold;
+      text-align: center;
+      color: var(--bf500);
+      margin-right: 24px;
+    }
+
+    button, a {
+      float: right;
+    }
+  }
+}

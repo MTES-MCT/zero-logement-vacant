@@ -42,7 +42,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
             {
                 ...campaignApi,
                 validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
-                sentAt: step === CampaignSteps.SendingConfirmation ? new Date() : campaignApi.sentAt
+                exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
+                sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt
             }
         ))
         .then(campaignApi => response.status(200).json(campaignApi));

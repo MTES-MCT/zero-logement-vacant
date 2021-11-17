@@ -27,7 +27,7 @@ const AppBreadcrumb = ( { additionalItems }: { additionalItems? : UserNavItem[] 
     }, [location, additionalItems])
 
     return (
-        <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-3w">
+        <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-2w">
             {items.map((item, index) =>
                 index < items.length -1 ?
                     <BreadcrumbItem href={item.url}

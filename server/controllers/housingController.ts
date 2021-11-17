@@ -173,7 +173,7 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
     const campaignApi = await campaignRepository.get(campaignId)
     const housingRefs = await campaignHousingRepository.getHousingList(campaignId)
 
-    const fileName = `${campaignApi.name}.xlsx`;
+    const fileName = `${campaignApi.campaignNumber}.xlsx`;
 
     const Airtable = require('airtable');
     const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);

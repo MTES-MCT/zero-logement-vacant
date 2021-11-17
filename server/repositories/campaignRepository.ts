@@ -29,7 +29,7 @@ const lastCampaignNumber = async (): Promise<any> => {
         return db(campaignsTable)
             .max('campaignNumber')
             .first()
-            .then(_ => _.max);
+            .then(_ => _ ? _.max : 0);
     } catch (err) {
         console.error('Listing campaigns failed', err);
         throw new Error('Listing campaigns failed');

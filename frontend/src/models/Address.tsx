@@ -1,4 +1,4 @@
-export interface AddressApi {
+export interface Address {
     houseNumber?: string;
     street: string;
     postalCode: string;

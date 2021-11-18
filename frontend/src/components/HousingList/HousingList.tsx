@@ -58,10 +58,9 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
     const addressColumn = {
         name: 'address',
         label: 'Adresse',
-        render: ({ address, municipality }: Housing) =>
+        render: ({ _, rawAddress }: Housing) =>
             <>
-                <div className="capitalize">{capitalize(address)}</div>
-                <div>{capitalize(municipality)}</div>
+                <div className="capitalize">{capitalize(rawAddress)}</div>
             </>
     };
 

@@ -1,7 +1,9 @@
+import { Address } from 'cluster';
+
 export interface Housing {
     id: string;
-    address: string;
-    municipality: string;
+    rawAddress: string;
+    address: Address;
     ownerFullName: string;
     ownerAddress: string;
     ownerId: string;

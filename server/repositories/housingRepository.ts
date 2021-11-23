@@ -116,7 +116,7 @@ const list = async (filters: HousingFiltersApi, offset: number, limit: number): 
             }
         }
 
-        var query = db
+        const query = db
             .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name')
             .from(`${housingTable}`)
             .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)

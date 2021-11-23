@@ -215,9 +215,7 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 }
 
 const escapeValue = (value?: string) => {
-
-
-    return value ? value.replace(/\'/g, '\'\'') : ''
+    return value ? value.replace(/'/g, '\'\'') : ''
 }
 
 const housingController =  {

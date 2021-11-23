@@ -81,7 +81,7 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
     const ownerColumn = {
         name: 'owner',
         label: 'Propriétaire',
-        render: ({ owner }: Housing) => <div className="capitalize">{capitalize(owner.fullName)}</div>
+        render: ({ owner }: Housing) => <div>{owner.fullName}</div>
     };
 
     const ownerAddressColumn = {

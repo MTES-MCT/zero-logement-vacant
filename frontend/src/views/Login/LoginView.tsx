@@ -21,7 +21,7 @@ const LoginView = () => {
     };
 
     if (user) {
-        return <Redirect to="/logements" />;
+        return <Redirect to="/accueil" />;
     }
 
     return (

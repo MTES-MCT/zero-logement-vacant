@@ -20,7 +20,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
 
     useEffect(() => {
         dispatch(getOwnerEvents(ownerId));
-    }, [ownerId, dispatch])
+    }, [dispatch])
 
     return (
         <>

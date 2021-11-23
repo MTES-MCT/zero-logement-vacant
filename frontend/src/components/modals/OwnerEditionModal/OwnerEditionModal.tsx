@@ -27,7 +27,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
 
     const ownerForm = yup.object().shape({
         fullName: yup.string().required('Veuillez renseigner un nom.'),
-        email: yup.string().email('Veuillez renseigner un email valide.'),
+        email: yup.string().email('Veuillez renseigner un email valide.').nullable(),
         birthDate: yup
             .date()
             .nullable()

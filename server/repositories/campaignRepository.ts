@@ -62,8 +62,8 @@ const update = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
             .returning('*')
             .then(_ => _[0]);
     } catch (err) {
-        console.error('Inserting campaign failed', err, campaignApi);
-        throw new Error('Inserting campaign failed');
+        console.error('Updating campaign failed', err, campaignApi);
+        throw new Error('Updating campaign failed');
     }
 }
 

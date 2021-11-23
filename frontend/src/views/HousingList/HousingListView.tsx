@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
@@ -50,6 +50,10 @@ const HousingListView = () => {
             query
         }));
     }
+
+    useEffect(() => {
+        dispatch(filterHousing(filters))
+    }, [dispatch])
 
 
     return (

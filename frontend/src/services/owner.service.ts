@@ -2,23 +2,17 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { Owner } from '../models/Owner';
 import { parseISO } from 'date-fns';
+import { toTitleCase } from '../utils/stringUtils';
 
 
-const getOwner = async (id: string) => {
+const getOwner = async (id: string): Promise<Owner> => {
 
     return await fetch(`${config.apiEndpoint}/api/owners/${id}`, {
         method: 'GET',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
     })
         .then(response => response.json())
-        .then((d: any) => ({
-            id: d.id,
-            rawAddress: d.rawAddress,
-            fullName: d.fullName,
-            birthDate: d.birthDate ? parseISO(d.birthDate) : undefined,
-            email: d.email,
-            phone: d.phone
-        } as Owner))
+        .then(_ => parseOwner(_))
 };
 
 const updateOwner = async (owner: Owner) => {
@@ -37,9 +31,16 @@ const updateOwner = async (owner: Owner) => {
         })
 };
 
+const parseOwner = (o: any): Owner => ({
+    ...o,
+    birthDate: o.birthDate ? parseISO(o.birthDate) : undefined,
+    fullName: toTitleCase(o.fullName.replace(/^(MME |M )/i, ''))
+} as Owner)
+
 const ownerService = {
     getOwner,
-    updateOwner
+    updateOwner,
+    parseOwner
 };
 
 export default ownerService;

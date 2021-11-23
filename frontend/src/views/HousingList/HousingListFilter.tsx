@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Col, Container, Row, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +7,6 @@ import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
     housingAreaOptions,
-    HousingFilters,
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
@@ -24,25 +23,14 @@ const HousingListFilter = () => {
     const dispatch = useDispatch();
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
-    const [housingFilters, setHousingFilters] = useState<HousingFilters>(filters ?? {});
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
-    useEffect(() => {
-        dispatch(filterHousing(housingFilters));
-    }, [housingFilters, dispatch])
-
-    useEffect(() => {
-        setHousingFilters(filters)
-    }, [filters])
-
-
     const onChangeFilters = (changedFilters: any) => {
-        setHousingFilters({
+        dispatch(filterHousing({
             ...filters,
             ...changedFilters
-        })
+        }))
     }
-
 
     return (
         <Container fluid>

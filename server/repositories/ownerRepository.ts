@@ -10,7 +10,7 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
             .first()
             .then((result: any) => <OwnerApi>{
                 id: result.id,
-                rawAddress: result.raw_address,
+                rawAddress: result.raw_address.filter((_: string) => _.length),
                 fullName: result.full_name,
                 birthDate: result.birth_date,
                 email: result.email,
@@ -22,6 +22,26 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
     }
 }
 
+const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
+    try {
+        return db(ownerTable)
+            .where('id', ownerApi.id)
+            .update({
+                raw_address: ownerApi.rawAddress,
+                full_name: ownerApi.fullName,
+                birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
+                email: ownerApi.email,
+                phone: ownerApi.phone
+            })
+            .returning('*')
+            .then(_ => _[0]);
+    } catch (err) {
+        console.error('Updating owner failed', err, ownerApi);
+        throw new Error('Updating owner failed');
+    }
+}
+
 export default {
-    get
+    get,
+    update
 }

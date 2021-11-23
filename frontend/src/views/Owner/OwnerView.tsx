@@ -38,8 +38,8 @@ const OwnerView = () => {
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
                     <Container>
-                        <AppBreadcrumb additionalItems={[{url: '', label: capitalize(owner.fullName)}]}/>
-                        {owner && <Title as="h1" className="fr-py-2w">{capitalize(owner.fullName)}</Title> }
+                        <AppBreadcrumb additionalItems={[{url: '', label: owner.fullName}]}/>
+                        {owner && <Title as="h1" className="fr-py-2w">{owner.fullName}</Title> }
                     </Container>
                 </div>
                 <Container spacing="py-4w">
@@ -70,7 +70,7 @@ const OwnerView = () => {
                             </Text>
                             <Text size="md" className="fr-mb-1w">
                                 Nom&nbsp;
-                                <b className="capitalize" data-testid="fullName-text">{capitalize(owner.fullName)}</b>
+                                <b data-testid="fullName-text">{owner.fullName}</b>
                             </Text>
                             { owner.birthDate && isValid(owner.birthDate) &&
                                 <Text size="md" className="fr-mb-1w">

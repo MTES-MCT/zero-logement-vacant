@@ -186,10 +186,10 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     console.log('Normalize address')
 
-    const housingList = await housingRepository.list()
+    const housingList = await housingRepository.list({}, 0, 10000)
 
     const housingAdresses = await addressService.normalizeAddresses(
-        housingList.map((housing: HousingApi) => ({
+        housingList.entities.map((housing: HousingApi) => ({
             housingId: housing.id,
             rawAddress: housing.rawAddress
         }))

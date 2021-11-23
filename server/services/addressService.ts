@@ -49,7 +49,7 @@ const normalizeAdressesOld = async (addresses: string[][]): Promise<AddressApi[]
     })
 }
 
-const normalizeAddresses = async (addresses: {housingId: string, rawAddress: string}[]): Promise<{ housingId: string, addressApi: AddressApi }[]> => {
+const normalizeAddresses = async (addresses: {housingId: string, rawAddress: string[]}[]): Promise<{ housingId: string, addressApi: AddressApi }[]> => {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet();

@@ -1,6 +1,6 @@
 export interface Owner {
     id: string;
-    address: string[];
+    rawAddress: string[];
     fullName: string;
     birthDate?: Date;
     email?: string;

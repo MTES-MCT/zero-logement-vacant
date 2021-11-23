@@ -1,6 +1,6 @@
 export interface OwnerApi {
     id: string;
-    address: string[];
+    rawAddress: string[];
     fullName: string;
     birthDate?: string;
     email?: string;

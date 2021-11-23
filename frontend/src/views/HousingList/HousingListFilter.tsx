@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
-import { Col, Container, Row, Select, Text } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterHousing } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    constructionPeriodOptions,
-    contactsCountOptions,
+    buildingPeriodOptions,
     housingAreaOptions,
     HousingFilters,
     housingKindOptions,
@@ -14,6 +13,7 @@ import {
     multiOwnerOptions,
     ownerAgeOptions,
     ownerKindOptions,
+    taxedOptions,
     vacancyDurationOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -26,11 +26,6 @@ const HousingListFilter = () => {
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [housingFilters, setHousingFilters] = useState<HousingFilters>(filters ?? {});
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
-
-
-    const emptyOptions = [
-        {value: "", label: "Sélectionner", disabled: true, hidden: true}
-    ]
 
     useEffect(() => {
         dispatch(filterHousing(housingFilters));
@@ -108,9 +103,9 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Date de construction"
-                                        options={constructionPeriodOptions}
-                                        initialValues={filters.constructionPeriods}
-                                        onChange={(values) => onChangeFilters({constructionPeriods: values})}/>
+                                        options={buildingPeriodOptions}
+                                        initialValues={filters.buildingPeriods}
+                                        onChange={(values) => onChangeFilters({buildingPeriods: values})}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Durée de vacance"
@@ -119,54 +114,52 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
                     </Col>
                     <Col n="3">
-                        <Select
-                            label="Taxe"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
+                        <AppMultiSelect label="Taxe"
+                                        options={taxedOptions}
+                                        initialValues={filters.isTaxedValues}
+                                        onChange={(values) => onChangeFilters({isTaxedValues: values})}/>
                     </Col>
                 </Row>
-                <Text size="md" className="fr-mb-1w fr-mt-4w">
-                    <b>Emplacement</b>
-                </Text>
-                <Row gutters>
-                    <Col n="3">
-                        <Select
-                            label="Commune"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
-                    </Col>
-                    <Col n="3">
-                        <Select
-                            label="Périmètre"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
-                    </Col>
-                </Row>
-                <Text size="md" className="fr-mb-1w fr-mt-4w">
-                    <b>Campagnes</b>
-                </Text>
-                <Row gutters>
-                    <Col n="3">
-                        <AppMultiSelect label="Prise de contact"
-                                        options={contactsCountOptions}
-                                        initialValues={filters.contactsCounts}
-                                        onChange={(values) => onChangeFilters({contactsCounts: values})}/>
-                    </Col>
-                    <Col n="3">
-                        <Select
-                            label="Périmètre"
-                            options={emptyOptions}
-                            selected=""
-                            onChange={() => {}}
-                        />
-                    </Col>
-                </Row>
+                {/*<Text size="md" className="fr-mb-1w fr-mt-4w">*/}
+                {/*    <b>Emplacement</b>*/}
+                {/*</Text>*/}
+                {/*<Row gutters>*/}
+                {/*    <Col n="3">*/}
+                {/*        <Select*/}
+                {/*            label="Commune"*/}
+                {/*            options={emptyOptions}*/}
+                {/*            selected=""*/}
+                {/*            onChange={() => {}}*/}
+                {/*        />*/}
+                {/*    </Col>*/}
+                {/*    <Col n="3">*/}
+                {/*        <Select*/}
+                {/*            label="Périmètre"*/}
+                {/*            options={emptyOptions}*/}
+                {/*            selected=""*/}
+                {/*            onChange={() => {}}*/}
+                {/*        />*/}
+                {/*    </Col>*/}
+                {/*</Row>*/}
+                {/*<Text size="md" className="fr-mb-1w fr-mt-4w">*/}
+                {/*    <b>Campagnes</b>*/}
+                {/*</Text>*/}
+                {/*<Row gutters>*/}
+                {/*    <Col n="3">*/}
+                {/*        <AppMultiSelect label="Prise de contact"*/}
+                {/*                        options={contactsCountOptions}*/}
+                {/*                        initialValues={filters.contactsCounts}*/}
+                {/*                        onChange={(values) => onChangeFilters({contactsCounts: values})}/>*/}
+                {/*    </Col>*/}
+                {/*    <Col n="3">*/}
+                {/*        <Select*/}
+                {/*            label="Périmètre"*/}
+                {/*            options={emptyOptions}*/}
+                {/*            selected=""*/}
+                {/*            onChange={() => {}}*/}
+                {/*        />*/}
+                {/*    </Col>*/}
+                {/*</Row>*/}
             </div>
             }
             <Row gutters>

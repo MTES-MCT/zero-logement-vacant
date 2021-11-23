@@ -13,7 +13,7 @@ const getOwner = async (id: string) => {
         .then(response => response.json())
         .then((d: any) => ({
             id: d.id,
-            address: d.address,
+            rawAddress: d.rawAddress,
             fullName: d.fullName,
             birthDate: d.birthDate ? parseISO(d.birthDate) : undefined,
             email: d.email,

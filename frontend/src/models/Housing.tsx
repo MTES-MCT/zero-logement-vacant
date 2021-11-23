@@ -1,12 +1,11 @@
 import { Address } from 'cluster';
+import { Owner } from './Owner';
 
 export interface Housing {
     id: string;
-    rawAddress: string;
+    rawAddress: string[];
     address: Address;
-    ownerFullName: string;
-    ownerAddress: string;
-    ownerId: string;
+    owner: Owner;
 }
 
 export interface HousingDetails {

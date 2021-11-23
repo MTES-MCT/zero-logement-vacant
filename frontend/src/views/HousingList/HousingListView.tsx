@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
-import HousingList, { HousingDisplayKey, maxRecords } from '../../components/HousingList/HousingList';
+import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
-import { filterHousing, searchHousing } from '../../store/actions/housingAction';
+import { filterHousing } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { DraftCampaign } from '../../models/Campaign';
-import { useHistory } from "react-router-dom";
+import { useHistory } from 'react-router-dom';
 
 
 const HousingListView = () => {
@@ -23,7 +23,7 @@ const HousingListView = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
 
-    const { housingList, filters } = useSelector((state: ApplicationState) => state.housing);
+    const { housingList, filters, totalCount } = useSelector((state: ApplicationState) => state.housing);
 
     const create = (draftCampaign: DraftCampaign) => {
         dispatch(createCampaign(draftCampaign, selectedHousingIds))
@@ -33,17 +33,23 @@ const HousingListView = () => {
 
     const getDistinctOwners = () => {return housingList
         .filter(housing => selectedHousingIds.indexOf(housing.id) !== -1)
-        .map(housing => housing.ownerId)
+        .map(housing => housing.owner.id)
         .filter((id, index, array) => array.indexOf(id) === index)
     }
 
     const removeFilter = (removedFilter: any) => {
         dispatch(filterHousing({
             ...filters,
-            ...removedFilter
+            ...removedFilter,
         }));
     }
 
+    const search = (query: string) => {
+        dispatch(filterHousing({
+            ...filters,
+            query
+        }));
+    }
 
 
     return (
@@ -56,7 +62,7 @@ const HousingListView = () => {
                             <Title as="h1">Base de données</Title>
                         </Col>
                         <Col n="4">
-                            <AppSearchBar onSearch={(input: string) => {dispatch(searchHousing(input))}} />
+                            <AppSearchBar onSearch={search} />
                         </Col>
                     </Row>
                     <Row>
@@ -74,13 +80,8 @@ const HousingListView = () => {
                     <>
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
-                                {housingList.length > 0
-                                    ? <Text
-                                        className="fr-my-2w"><b>{housingList.length >= maxRecords ? 'Plus de ' + maxRecords : housingList.length}</b> logements</Text>
-                                    : <Text className="fr-my-2w"><b>Aucun logement</b></Text>
-                                }
+                                <b>{totalCount} logements </b>
                             </Col>
-                            {housingList.length > 0 &&
                             <Col>
                                 <Button title="Créer la campagne"
                                         onClick={() => setIsModalOpen(true)}
@@ -95,7 +96,6 @@ const HousingListView = () => {
                                                        onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
                                                        onClose={() => setIsModalOpen(false)}/>}
                             </Col>
-                            }
                         </Row>
                         <HousingList housingList={housingList}
                                      displayKind={HousingDisplayKey.Housing}

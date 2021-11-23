@@ -7,8 +7,10 @@ export interface HousingFilters {
     housingKinds: string[];
     housingStates: string[];
     housingAreas: string[];
-    constructionPeriods: string[];
+    buildingPeriods: string[];
     vacancyDurations: string[];
+    isTaxedValues: string[];
+    query: string;
 }
 
 export interface HousingFilterOption {
@@ -28,7 +30,7 @@ export const ownerKindOptions: HousingFilterOption[] = [
     {value: "Particulier", label: "Particulier"},
     {value: "Investisseur", label: "Investisseur"},
     {value: "SCI", label: "SCI"},
-    {value: "Autres", label: "Autres"}
+    {value: "Autre", label: "Autres"}
 ];
 
 export const contactsCountOptions: HousingFilterOption[] = [
@@ -64,9 +66,9 @@ export const housingStateOptions: HousingFilterOption[] = [
     {value: "Inconfortable", label: "Inconfortable"}
 ];
 
-export const constructionPeriodOptions: HousingFilterOption[] = [
+export const buildingPeriodOptions: HousingFilterOption[] = [
     {value: "lt1919", label: "Avant 1919"},
-    {value: "1919to1942", label: "Entre 1919 et 1945"},
+    {value: "1919to1945", label: "Entre 1919 et 1945"},
     {value: "1946to1990", label: "Entre 1946 et 1990"},
     {value: "gt1991", label: "1991 ou après"},
 ];
@@ -81,4 +83,9 @@ export const vacancyDurationOptions = [
     {value: "2to5", label: "2 - 5 ans"},
     {value: "gt5", label: "Plus de 5 ans"},
     {value: "gt10", label: "Plus de 10 ans"}
+];
+
+export const taxedOptions: HousingFilterOption[] = [
+    {value: "true", label: "Oui", badgeLabel: "Taxé"},
+    {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];

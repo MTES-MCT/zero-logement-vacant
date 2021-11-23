@@ -88,7 +88,7 @@ const OwnerView = () => {
                                     Adresse postale&nbsp;
                                 </span>
                                 <span style={{display: 'inline-block'}}>
-                                    <b className="capitalize"> {owner.address.map((_, i) =>
+                                    <b className="capitalize"> {owner.rawAddress.map((_, i) =>
                                         <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>) }</b>
                                 </span>
                             </Text>

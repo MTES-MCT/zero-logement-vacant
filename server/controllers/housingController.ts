@@ -6,89 +6,18 @@ import ExcelJS from 'exceljs';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
 import { HousingApi } from '../models/HousingApi';
-
-
-export interface HousingFilters {
-    ownerKind?: string;
-    ownerKinds: string[];
-    ownerAge?: string;
-    multiOwner?: boolean;
-    beneficiaryCount?: number;
-    housingKind?: string;
-    housingState?: string;
-    housingArea?: string;
-    vacancyDuration?: string;
-}
-
-// const buildFilterByFormula = (housingFilters: HousingFilters, search: string) => {
-//
-//     const allFilters = [
-//         housingFilters.multiOwner === undefined ? '' : `{Multipropriétaire de logements vacants} ${housingFilters.multiOwner ? "=" : "!="} 'Multipropriétaire'`,
-//         housingFilters.ownerKinds.length ? `OR(${housingFilters.ownerKinds.map((ownerKind: string) => `TRIM({Type de propriétaire}) = '${ownerKind}'`).reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '',
-//         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} > 0' : '',
-//         housingFilters.ownerAge === 'lt35' ? '{Age (pour filtre)} <= 35' : '',
-//         housingFilters.ownerAge === '35to65' ? '{Age (pour filtre)} >= 35' : '',
-//         housingFilters.ownerAge === '35to65' ? '{Age (pour filtre)} <= 65' : '',
-//         housingFilters.ownerAge === 'gt65' ? '{Age (pour filtre)} >= 65' : '',
-//         housingFilters.ownerAge === 'gt75' ? '{Age (pour filtre)} >= 75' : '',
-//         housingFilters.beneficiaryCount ? `{Nombre d'ayants-droit} = ${housingFilters.beneficiaryCount}` : '',
-//         housingFilters.housingKind ? `TRIM({Type de logement}) = '${housingFilters.housingKind}'` : '',
-//         housingFilters.housingState ? `TRIM({Logement inconfortable (champ choix simple)}) = '${housingFilters.housingState}'` : '',
-//         housingFilters.housingArea === 'lt75' ? '{Surface habitable} > 0' : '',
-//         housingFilters.housingArea === 'lt75' ? '{Surface habitable} <= 75' : '',
-//         housingFilters.housingArea === '75to150' ? '{Surface habitable} >= 75' : '',
-//         housingFilters.housingArea === '75to150' ? '{Surface habitable} <= 150' : '',
-//         housingFilters.housingArea === 'gt150' ? '{Surface habitable} >= 150' : '',
-//         housingFilters.vacancyDuration === 'lt2' ? `{Début de la vacance} >= ${new Date().getFullYear() - 2}` : '',
-//         housingFilters.vacancyDuration === '2to5' ? `{Début de la vacance} < ${new Date().getFullYear() - 2}` : '',
-//         housingFilters.vacancyDuration === '2to5' ? `{Début de la vacance} >= ${new Date().getFullYear() - 5}` : '',
-//         housingFilters.vacancyDuration === 'gt5' ? `{Début de la vacance} < ${new Date().getFullYear() - 5}` : '',
-//         housingFilters.vacancyDuration === 'gt10' ? `{Début de la vacance} < ${new Date().getFullYear() - 10}` : '',
-//         search ? `FIND(LOWER("${search}"), LOWER({Adresse}&{Propriétaire}))` : ''
-//     ].filter(_ => _.length);
-//
-//     return allFilters.length ? `AND(${allFilters.reduce((s1: string, s2: string) => `${s1}, ${s2}`)})` : '';
-//
-// }
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('List housing')
 
-    return housingRepository.list()
-        .then(_ => response.status(200).json(_));
+    const page = request.body.page;
+    const perPage = request.body.perPage;
+    const filters = <HousingFiltersApi> request.body.filters ?? {};
 
-    // const Airtable = require('airtable');
-    // const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
-    //
-    // const filters = request.body.filters ?? {};
-    // const search = request.body.search;
-    //
-    // console.log('filterByFormula', buildFilterByFormula(filters, search))
-    //
-    // return base('🏡 Adresses').select({
-    //     maxRecords: 500,
-    //     fields: [
-    //         'Adresse',
-    //         'Nom de la commune du logement',
-    //         'Propriétaire',
-    //         'Age (pour filtre)',
-    //         'ID propriétaire'
-    //     ],
-    //     filterByFormula: buildFilterByFormula(filters, search)
-    // })
-    //     .all()
-    //     .then((results: any) => {
-    //         return response.status(200).json(results.map((result: any) => ({
-    //             id: result.id,
-    //             address: result.fields['Adresse'],
-    //             municipality: result.fields['Nom de la commune du logement'],
-    //             ownerFullName: result.fields['Propriétaire'],
-    //             ownerId: result.fields['ID propriétaire'][0],
-    //             tags: [result.fields['Age (pour filtre)'] ?? 0 > 75 ? '> 75 ans' : ''].filter(_ => _.length)
-    //         })));
-    //     })
-    //     .catch((_: any) => console.error(_));
+    return housingRepository.list(filters, (page - 1) * perPage, perPage)
+        .then(_ => response.status(200).json(_));
 };
 
 const listByOwner = async (request: Request, response: Response): Promise<Response> => {

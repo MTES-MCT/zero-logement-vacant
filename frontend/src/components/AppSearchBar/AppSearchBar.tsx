@@ -6,9 +6,9 @@ import classNames from 'classnames';
 
 const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: (text: string) => void, placeholder?: string, buttonLabel?: string, size?: string }) => {
 
-    const { search } = useSelector((state: ApplicationState) => state.housing);
+    const { query } = useSelector((state: ApplicationState) => state.housing.filters);
 
-    const [searchInput, setSearchInput] = useState<string>(search);
+    const [searchInput, setSearchInput] = useState<string>(query);
 
     const onKeyDown = (e: any) => (e.keyCode === 13) && submitSearch(e);
 

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
-    constructionPeriodOptions,
+    buildingPeriodOptions,
     contactsCountOptions,
     housingAreaOptions,
     HousingFilterOption,
@@ -11,7 +11,7 @@ import {
     housingStateOptions,
     multiOwnerOptions,
     ownerAgeOptions,
-    ownerKindOptions,
+    ownerKindOptions, taxedOptions,
     vacancyDurationOptions,
 } from '../../models/HousingFilters';
 
@@ -65,12 +65,15 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
             <HousingFilterBadges options={housingStateOptions}
                           filters={filters.housingStates}
                           onChange={onChange && ((values) => onChange({housingStates: values}))}/>
-            <HousingFilterBadges options={constructionPeriodOptions}
-                          filters={filters.constructionPeriods}
-                          onChange={onChange && ((values) => onChange({constructionPeriods: values}))}/>
+            <HousingFilterBadges options={buildingPeriodOptions}
+                          filters={filters.buildingPeriods}
+                          onChange={onChange && ((values) => onChange({buildingPeriods: values}))}/>
             <HousingFilterBadges options={vacancyDurationOptions}
                           filters={filters.vacancyDurations}
                           onChange={onChange && ((values) => onChange({vacancyDurations: values}))}/>
+            <HousingFilterBadges options={taxedOptions}
+                          filters={filters.isTaxedValues}
+                          onChange={onChange && ((values) => onChange({isTaxedValues: values}))}/>
         </>
     )
 

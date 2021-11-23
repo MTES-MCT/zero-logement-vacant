@@ -5,7 +5,7 @@ exports.up = function(knex) {
             .createTable('housing', (table) => {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
                 table.string('invariant').notNullable();
-                table.string('raw_address').notNullable();
+                table.specificType('raw_address', 'text[]').notNullable();
                 table.string('house_number');
                 table.string('street');
                 table.string('postal_code');
@@ -14,12 +14,12 @@ exports.up = function(knex) {
                 table.string('longitude').notNullable();
                 table.integer('cadastral_classification').notNullable();
                 table.boolean('uncomfortable').notNullable();
-                table.string('vacancy_start_year').notNullable();
+                table.integer('vacancy_start_year').notNullable();
                 table.string('housing_kind').notNullable();
                 table.integer('rooms_count').notNullable();
                 table.integer('living_area').notNullable();
                 table.string('cadastral_reference').notNullable();
-                table.string('building_year');
+                table.integer('building_year');
                 table.date('mutation_date').notNullable();
                 table.boolean('taxed').notNullable();
             })

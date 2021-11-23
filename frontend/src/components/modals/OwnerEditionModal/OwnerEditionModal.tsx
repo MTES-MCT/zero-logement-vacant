@@ -20,7 +20,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
 
     const [fullName, setFullName] = useState(owner.fullName ?? '');
     const [birthDate, setBirthDate] = useState(owner.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : '');
-    const [address, setAddress] = useState(owner.address);
+    const [rawAddress, setRawAddress] = useState<string[]>(owner.rawAddress);
     const [email, setEmail] = useState(owner.email);
     const [phone, setPhone] = useState(owner.phone);
     const [errors, setErrors] = useState<any>({});
@@ -45,7 +45,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                     ...owner,
                     fullName,
                     birthDate: birthDate.length ? parse(birthDate, 'dd/MM/yyyy', new Date()) : undefined,
-                    address,
+                    rawAddress,
                     email,
                     phone
                 });
@@ -89,8 +89,8 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                     <AccordionItem title="Coordonnées">
                         <TextInput
                             textarea
-                            value={address.reduce((a1, a2) => `${a1}\n${a2}`)}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value.split('\n'))}
+                            value={rawAddress.reduce((a1, a2) => `${a1}\n${a2}`)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRawAddress(e.target.value.split('\n'))}
                             label="Adresse postale"
                             messageType={errors['address'] ? 'error' : ''}
                             message={errors['address']}

@@ -1,13 +1,15 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Table } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './housing-list.module.scss';
 import { updateWithValue } from '../../utils/arrayUtils';
 import { Link, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { changePagination } from '../../store/actions/housingAction';
 
-export const maxRecords = 500;
 
 export enum HousingDisplayKey {
     Housing, Owner
@@ -15,10 +17,12 @@ export enum HousingDisplayKey {
 
 const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Housing[], displayKind: HousingDisplayKey, onSelect?: (selectedIds: string[]) => void }) => {
 
+    const dispatch = useDispatch();
     const location = useLocation();
-    const [, setPage] = useState(1);
-    const [perPage, setPerPage] = useState<number>(50);
+
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    const { totalCount, currentPage, perPage } = useSelector((state: ApplicationState) => state.housing);
 
     const checkAll = (checked: boolean) => {
         if (checked) {
@@ -26,6 +30,14 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
         } else {
             setSelectedIds([]);
         }
+    }
+
+    const changePerPage = (perPage: number) => {
+        dispatch(changePagination(1, perPage));
+    }
+
+    const changePage = (page: number) => {
+        dispatch(changePagination(page, perPage));
     }
 
     useEffect(() => {
@@ -58,28 +70,35 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
     const addressColumn = {
         name: 'address',
         label: 'Adresse',
-        render: ({ _, rawAddress }: Housing) =>
+        render: ({ id, rawAddress }: Housing) =>
             <>
-                <div className="capitalize">{capitalize(rawAddress)}</div>
+                {rawAddress.map((line, lineIdx) =>
+                    <div key={id + '-rawAddress-' + lineIdx} className="capitalize">{capitalize(line)}</div>
+                )}
             </>
     };
 
     const ownerColumn = {
         name: 'owner',
         label: 'Propriétaire',
-        render: ({ ownerFullName }: Housing) => <div className="capitalize">{capitalize(ownerFullName)}</div>
+        render: ({ owner }: Housing) => <div className="capitalize">{capitalize(owner.fullName)}</div>
     };
 
     const ownerAddressColumn = {
         name: 'ownerAddress',
         label: 'Adresse du propriétaire',
-        render: ({ ownerAddress }: Housing) => <div className="capitalize">{capitalize(ownerAddress)}</div>
+        render: ({ owner }: Housing) =>
+            <>
+                {owner.rawAddress.map((line, lineIdx) =>
+                    <div key={owner.id + '-rawAddress-' + lineIdx} className="capitalize">{capitalize(line)}</div>
+                )}
+            </>
     };
 
     const campaignColumn = {
         name: 'campaign',
         label: 'Campagne',
-        render: ({ ownerAddress }: Housing) => <div className="capitalize">{capitalize(ownerAddress)}</div>
+        render: () => <></>
     };
 
     const statusColumn = {
@@ -91,8 +110,8 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
     const viewColumn = {
         name: 'view',
         headerRender: () => '',
-        render: ({ ownerId }: Housing) =>
-            <Link title="Voir" to={location.pathname + '/proprietaires/' + ownerId} className="ds-fr--inline fr-link">
+        render: ({ owner }: Housing) =>
+            <Link title="Voir" to={location.pathname + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
                 Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
     }
@@ -115,30 +134,31 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
                     rowKey="id"
                     data={housingList}
                     columns={columns()}
-                    pagination
-                    paginationPosition="center"
-                    setPage={setPage}
-                    perPage={perPage}
                     fixedLayout={true}
                     className="zlv-table-with-view zlv-table-with-select"
                     data-testid="housing-table"
                 />
+                <div className="fr-react-table--pagination-center nav">
+                    <Pagination onClick={changePage}
+                                currentPage={currentPage}
+                                pageCount={Math.ceil(totalCount / perPage)}/>
+                </div>
                 <div style={{textAlign: 'center'}}>
                     <Button
-                        onClick={() => setPerPage(20)}
+                        onClick={() => changePerPage(20)}
                         secondary
                         disabled={perPage === 20}
                         title="title">20 résultats par pages
                     </Button>
                     <Button
-                        onClick={() => setPerPage(50)}
+                        onClick={() => changePerPage(50)}
                         className="fr-mx-3w"
                         secondary
                         disabled={perPage === 50}
                         title="title">50 résultats par pages
                     </Button>
                     <Button
-                        onClick={() => setPerPage(100)}
+                        onClick={() => changePerPage(100)}
                         secondary
                         disable={perPage === 100}
                         title="title">100 résultats par pages

@@ -3,12 +3,12 @@ import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
 
 
-const listHousing = async (filters?: HousingFilters, search?: string) => {
+const listHousing = async (filters: HousingFilters, page: number, perPage: number) => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filters, search }),
+        body: JSON.stringify({ filters, page, perPage }),
     }).then(_ => _.json());
 };
 

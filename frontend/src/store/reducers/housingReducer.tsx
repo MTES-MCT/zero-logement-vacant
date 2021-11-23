@@ -5,8 +5,10 @@ import { HousingFilters } from '../../models/HousingFilters';
 
 export interface HousingState {
     housingList: Housing[];
+    totalCount: number;
+    currentPage: number;
+    perPage: number;
     filters: HousingFilters;
-    search: string;
 }
 
 export const initialFilters = {
@@ -18,14 +20,18 @@ export const initialFilters = {
     housingKinds: [],
     housingStates: [],
     housingAreas: [],
-    constructionPeriods: [],
-    vacancyDurations: []
+    buildingPeriods: [],
+    vacancyDurations: [],
+    isTaxedValues: [],
+    query: ''
 } as HousingFilters;
 
 const initialState = {
     housingList: [],
     filters: initialFilters,
-    search: ''
+    currentPage: 1,
+    perPage: 20,
+    totalCount: 0
 };
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
@@ -34,14 +40,19 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
             return {
                 ...state,
                 housingList: undefined,
-                filters: action.filters,
-                search: action.search
+                totalCount: 0,
+                currentPage: action.currentPage,
+                perPage: action.perPage,
+                filters: action.filters
             };
-        case HOUSING_LIST_FETCHED:
-            return {
+        case HOUSING_LIST_FETCHED: {
+            const isCurrentFetching = action.filters === state.filters && action.currentPage === state.currentPage && action.perPage === state.perPage
+            return !isCurrentFetching ? state : {
                 ...state,
-                housingList: (action.filters === state.filters && action.search === state.search) ? action.housingList : state.housingList
+                housingList: action.housingList,
+                totalCount: action.totalCount
             };
+        }
         default:
             return state;
     }

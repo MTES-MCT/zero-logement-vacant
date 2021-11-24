@@ -48,12 +48,12 @@ describe('Campaign controller', () => {
         )
 
         await db(campaignsHousingTable)
-            .whereIn('housingRef', housingIds)
+            .whereIn('housing_id', housingIds)
             .count('*').then(result => {
             expect(result).toStrictEqual([{count: "2"}])
         });
         await db(campaignsHousingTable)
-            .whereIn('housingRef', housingIds)
+            .whereIn('housing_id', housingIds)
             .countDistinct('campaignId').then(result => {
             expect(result).toStrictEqual([{count: "1"}])
         });

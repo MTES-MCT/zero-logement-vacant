@@ -1,0 +1,11 @@
+.itemError {
+
+  section {
+    border: 1px solid var(--error);
+  }
+  h3 {
+    button {
+      color: var(--error) !important;
+    }
+  }
+}

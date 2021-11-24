@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { Col, Container, Row, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { filterHousing } from '../../store/actions/housingAction';
+import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
@@ -26,7 +26,7 @@ const HousingListFilter = () => {
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
     const onChangeFilters = (changedFilters: any) => {
-        dispatch(filterHousing({
+        dispatch(changeHousingFiltering({
             ...filters,
             ...changedFilters
         }))

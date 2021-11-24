@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
+import housingRepository from '../repositories/housingRepository';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -19,12 +20,17 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
-    const housingRefs = request.body.housingIds;
+    const allHousing = request.body.allHousing;
 
     const lastNumber = await campaignRepository.lastCampaignNumber()
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{campaignNumber: (lastNumber ?? 0) + 1, startMonth, kind, filters})
 
-    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingRefs)
+
+    const housingIds = allHousing ?
+        await housingRepository.list(filters).then(_ => _.entities.map(_ => _.id)) :
+        request.body.housingIds;
+
+    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
     return response.status(200).json(newCampaignApi);
 

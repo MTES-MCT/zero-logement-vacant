@@ -5,17 +5,22 @@ import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import { campaignsHousingTable } from './campaignHousingRepository';
 
 export const housingTable = 'housing';
 
 
-const list = async (filters: HousingFiltersApi, offset: number, limit: number): Promise<PaginatedResultApi<HousingApi>> => {
+const list = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
-
-        console.log('filters.housingKinds', filters.housingKinds)
-
         const filter = (queryBuilder: any) => {
+            if (filters.campaignIds?.length) {
+                queryBuilder.whereExists((whereBuilder: any) => {
+                    whereBuilder.from(campaignsHousingTable)
+                        .whereIn('campaign_id', filters.campaignIds)
+                        .whereRaw(`housing_id = ${housingTable}.id`)
+                })
+            }
             if (filters.ownerKinds?.length) {
                 queryBuilder.whereIn('owner_kind', filters.ownerKinds)
             }
@@ -60,8 +65,10 @@ const list = async (filters: HousingFiltersApi, offset: number, limit: number): 
                     }
                 })
             }
-            if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
-                queryBuilder.where('uncomfortable', true)
+            if (filters.housingStates?.length) {
+                if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
+                    queryBuilder.where('uncomfortable', true)
+                }
             }
             if (filters.buildingPeriods?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -123,8 +130,13 @@ const list = async (filters: HousingFiltersApi, offset: number, limit: number): 
             .modify(filter)
 
         const results = await query
-            .offset(offset)
-            .limit(limit)
+            .modify((queryBuilder: any) => {
+                if (page && perPage) {
+                    queryBuilder
+                        .offset((page - 1) * perPage)
+                        .limit(perPage)
+                }
+            })
 
         const housingCount: number = await db(housingTable)
             .count()
@@ -133,28 +145,31 @@ const list = async (filters: HousingFiltersApi, offset: number, limit: number): 
             .then(_ => Number(_[0].count))
 
         return <PaginatedResultApi<HousingApi>> {
-            totalCount: housingCount,
-            entities: results.map((r: any) => (<HousingApi>{
-                id: r.id,
-                rawAddress: r.raw_address,
+            entities: results.map((result: any) => (<HousingApi>{
+                id: result.id,
+                rawAddress: result.raw_address,
                 address: <AddressApi>{
-                    houseNumber: r.house_number,
-                    street: r.street,
-                    postalCode: r.postal_code,
-                    city: r.city
+                    houseNumber: result.house_number,
+                    street: result.street,
+                    postalCode: result.postal_code,
+                    city: result.city
                 },
                 owner: <OwnerApi>{
-                    id: r.owner_id,
-                    rawAddress: r.owner_raw_address,
-                    fullName: r.full_name
+                    id: result.owner_id,
+                    rawAddress: result.owner_raw_address,
+                    fullName: result.full_name
                 }
-            }))
+            })),
+            totalCount: housingCount,
+            page,
+            perPage
         }
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');
     }
 }
+
 
 const rawUpdate = async (update: string): Promise<HousingApi[]> => {
     try {

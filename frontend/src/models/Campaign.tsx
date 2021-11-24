@@ -18,6 +18,7 @@ export interface Campaign {
     exportedAt?: Date;
     sentAt?: Date;
     housingCount: number;
+    ownerCount: number;
 }
 
 export enum CampaignKinds {

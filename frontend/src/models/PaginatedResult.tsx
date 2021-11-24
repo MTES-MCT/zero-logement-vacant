@@ -1,5 +1,6 @@
 export interface PaginatedResult<T> {
     totalCount: number;
-    hasNextPage: boolean;
-    entities: Array<T>
+    entities: Array<T>;
+    page: number;
+    perPage: number;
 }

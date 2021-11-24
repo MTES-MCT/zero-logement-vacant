@@ -15,12 +15,12 @@ const listCampaigns = async () => {
         .then(_ => _.map((_: any) => parseCampaign(_)))
 };
 
-const createCampaign = async (draftCampaign: DraftCampaign, housingIds: string[]): Promise<Campaign> => {
+const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/creation`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftCampaign, housingIds }),
+        body: JSON.stringify({ draftCampaign, allHousing, housingIds }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));

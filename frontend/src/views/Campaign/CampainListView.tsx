@@ -32,7 +32,7 @@ const CampaignsListView = () => {
                                 <Row alignItems="middle">
                                     <Col spacing="my-3w">
                                         <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}> - </div>
+                                            <div className={styles.statTitle}>{campaign.ownerCount}</div>
                                             <span className={styles.statLabel}>propriétaires</span>
                                         </div>
                                         <div className={styles.campaignStat}>

@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Col, Container, Row, Tab, Tabs, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { listCampaignHousing, validCampaignStep } from '../../store/actions/campaignAction';
+import {
+    changeCampaignHousingPagination,
+    listCampaignHousing,
+    validCampaignStep,
+} from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { Campaign, campaignStep, CampaignSteps } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
 import classNames from 'classnames';
+import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 
 
 const CampaignView = () => {
@@ -18,7 +22,7 @@ const CampaignView = () => {
 
     const [campaign, setCampaign] = useState<Campaign>();
 
-    const { campaignList, campaignHousingList, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignList, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(listCampaignHousing(id))
@@ -52,7 +56,7 @@ const CampaignView = () => {
                         <Row>
                             <Col spacing="my-3w">
                                 <div className={styles.campaignStat}>
-                                    <div className={styles.statTitle}> -</div>
+                                    <div className={styles.statTitle}>{campaign.ownerCount}</div>
                                     <span className={styles.statLabel}>propriétaires</span>
                                 </div>
                                 <div className={styles.campaignStat}>
@@ -69,7 +73,7 @@ const CampaignView = () => {
                 </div>
 
 
-                    {campaignHousingList.length &&
+                    {paginatedHousing.entities.length &&
                     <Container spacing="py-4w">
                         {campaignStep(campaign) == CampaignSteps.OwnersValidation &&
                         <div className={classNames(styles.campaignStep, styles.currentStep)}>
@@ -88,7 +92,9 @@ const CampaignView = () => {
                                 </Button>
                             </div>
                             <div className="fr-pt-4w">
-                                <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
+                                <HousingList paginatedHousing={paginatedHousing}
+                                             onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
+                                             displayKind={HousingDisplayKey.Owner}/>
                             </div>
                         </div>
                         }
@@ -172,9 +178,9 @@ const CampaignView = () => {
 
                         {campaignStep(campaign) === CampaignSteps.InProgess &&
                         <Tabs>
-                            <Tab label={`En attente de retour (${campaignHousingList.length})`}>
+                            <Tab label={`En attente de retour (${paginatedHousing.entities.length})`}>
                                 <div className="fr-pt-4w">
-                                    <HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>
+                                    {/*<HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>*/}
                                 </div>
                             </Tab>
                             <Tab label="Suivi en cours (0)">

@@ -15,6 +15,7 @@ import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { format, isDate, parse } from 'date-fns';
+import styles from './owner-edition-modal.module.scss';
 
 const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: (owner: Owner) => void, onClose: () => void}) => {
 
@@ -68,8 +69,8 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>Modifier la rubrique &rdquo;propriétaire&rdquo;</ModalTitle>
             <ModalContent>
-                <Accordion className="custom-class">
-                    <AccordionItem title="Identité" initExpand={true}>
+                <Accordion>
+                    <AccordionItem title="Identité" initExpand={true} className={errors['fullName'] || errors['birthDate'] ? styles.itemError : undefined}>
                         <TextInput
                             value={fullName}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
@@ -86,7 +87,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                             message={errors['birthDate']}
                         />
                     </AccordionItem>
-                    <AccordionItem title="Coordonnées">
+                    <AccordionItem title="Coordonnées" className={errors['address'] || errors['email'] || errors['phone'] ? styles.itemError : undefined}>
                         <TextInput
                             textarea
                             value={rawAddress.reduce((a1, a2) => `${a1}\n${a2}`)}

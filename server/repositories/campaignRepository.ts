@@ -1,6 +1,8 @@
 import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
+import { housingTable } from './housingRepository';
+import { ownerTable } from './ownerRepository';
 
 export const campaignsTable = 'campaigns';
 
@@ -20,10 +22,26 @@ const list = async (): Promise<CampaignApi[]> => {
     try {
         return db
             .select(`${campaignsTable}.*`)
-            .count('id', {as: 'housingCount'})
+            .count(`${campaignsTable}.id`, {as: 'housingCount'})
+            .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
-            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaignId`)
-            .groupBy('id')
+            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
+            .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .groupBy(`${campaignsTable}.id`)
+            .then(_ => _.map((result: any) => <CampaignApi>{
+                id: result.id,
+                campaignNumber: result.campaign_number,
+                startMonth: result.start_month,
+                kind: result.kind,
+                filters: result.filters,
+                createdAt: result.created_at,
+                validatedAt: result.validated_at,
+                exportedAt: result.exported_at,
+                sentAt: result.sent_at,
+                housingCount: result.housingCount,
+                ownerCount: result.ownerCount
+            }))
     } catch (err) {
         console.error('Listing campaigns failed', err);
         throw new Error('Listing campaigns failed');
@@ -33,7 +51,7 @@ const list = async (): Promise<CampaignApi[]> => {
 const lastCampaignNumber = async (): Promise<any> => {
     try {
         return db(campaignsTable)
-            .max('campaignNumber')
+            .max('campaign_number')
             .first()
             .then(_ => _ ? _.max : 0);
     } catch (err) {
@@ -45,7 +63,12 @@ const lastCampaignNumber = async (): Promise<any> => {
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
-            .insert(campaignApi)
+            .insert({
+                campaign_number: campaignApi.campaignNumber,
+                start_month: campaignApi.startMonth,
+                kind: campaignApi.kind,
+                filters: campaignApi.filters
+            })
             .returning('*')
             .then(_ => _[0]);
     } catch (err) {

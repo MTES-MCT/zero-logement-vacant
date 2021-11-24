@@ -3,6 +3,9 @@ import { Campaign, CampaignSteps, DraftCampaign } from '../../models/Campaign';
 import campaignService from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import housingService from '../../services/housing.service';
+import { ApplicationState } from '../reducers/applicationReducers';
+import { PaginatedResult } from '../../models/PaginatedResult';
+import { Housing } from '../../models/Housing';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -12,25 +15,25 @@ export const CAMPAIGN_CREATED = 'CAMPAIGN_CREATED';
 export const CAMPAIGN_UPDATED = 'CAMPAIGN_UPDATED';
 
 export interface FetchCampaignListAction {
-    type: typeof FETCH_CAMPAIGN_LIST,
-    search: string
+    type: typeof FETCH_CAMPAIGN_LIST
 }
 
 export interface CampaignListFetchedAction {
     type: typeof CAMPAIGN_LIST_FETCHED,
-    campaignList: Campaign[],
-    search: string
+    campaignList: Campaign[]
 }
 
 export interface FetchCampaignHousingListAction {
     type: typeof FETCH_CAMPAIGN_HOUSING_LIST,
-    campaignId: string
+    campaignId: string,
+    page: number,
+    perPage: number
 }
 
 export interface CampaignHousingListFetchedAction {
     type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
     campaignId: string,
-    campaignHousingList: Campaign[],
+    paginatedHousing: PaginatedResult<Housing>,
     exportURL: string
 }
 
@@ -75,35 +78,70 @@ export const listCampaigns = () => {
 
 export const listCampaignHousing = (campaignId: string) => {
 
-    return function (dispatch: Dispatch) {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
+        const page = 1
+        const perPage = getState().campaign.paginatedHousing.perPage
+
         dispatch({
             type: FETCH_CAMPAIGN_HOUSING_LIST,
-            campaignId
+            campaignId,
+            page,
+            perPage,
         });
 
-        housingService.listByCampaign(campaignId)
-            .then(campaignHousingList => {
+
+        housingService.listByCampaign(campaignId, page, perPage)
+            .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_HOUSING_LIST_FETCHED,
                     campaignId,
-                    campaignHousingList,
+                    paginatedHousing: result,
                     exportURL: campaignService.getExportURL(campaignId)
                 });
             });
     };
 };
 
-export const createCampaign = (draftCampaign: DraftCampaign, housingIds: string[]) => {
+
+export const changeCampaignHousingPagination = (page: number, perPage: number) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const campaignId = getState().campaign.campaignId
+
+        dispatch({
+            type: FETCH_CAMPAIGN_HOUSING_LIST,
+            campaignId,
+            page: page,
+            perPage
+        });
+
+        housingService.listByCampaign(campaignId, page, perPage)
+            .then((result: PaginatedResult<Housing>) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: CAMPAIGN_HOUSING_LIST_FETCHED,
+                    campaignId,
+                    paginatedHousing: result
+                });
+            });
+    };
+};
+
+
+export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean, housingIds: string[]) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        campaignService.createCampaign(draftCampaign, housingIds)
+        campaignService.createCampaign(draftCampaign, allHousing, housingIds)
             .then((campaign) => {
                 dispatch(hideLoading());
                 dispatch({

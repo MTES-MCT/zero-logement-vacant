@@ -1,13 +1,11 @@
 import { Housing } from '../../models/Housing';
 import { FETCH_HOUSING_LIST, HOUSING_LIST_FETCHED, HousingActionTypes } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
+import { PaginatedResult } from '../../models/PaginatedResult';
 
 
 export interface HousingState {
-    housingList: Housing[];
-    totalCount: number;
-    currentPage: number;
-    perPage: number;
+    paginatedHousing: PaginatedResult<Housing>;
     filters: HousingFilters;
 }
 
@@ -27,11 +25,14 @@ export const initialFilters = {
 } as HousingFilters;
 
 const initialState = {
-    housingList: [],
+    paginatedHousing: {
+        entities: [],
+        page: 1,
+        perPage: 20,
+        totalCount: 0
+    },
     filters: initialFilters,
-    currentPage: 1,
-    perPage: 20,
-    totalCount: 0
+    checkedHousingIds: []
 };
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
@@ -39,18 +40,27 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         case FETCH_HOUSING_LIST:
             return {
                 ...state,
-                housingList: undefined,
-                totalCount: 0,
-                currentPage: action.currentPage,
-                perPage: action.perPage,
-                filters: action.filters
+                paginatedHousing: {
+                    entities: [],
+                    totalCount: 0,
+                    page: action.page,
+                    perPage: action.perPage
+                },
+                filters: action.filters,
+                checkedHousingIds: []
             };
         case HOUSING_LIST_FETCHED: {
-            const isCurrentFetching = action.filters === state.filters && action.currentPage === state.currentPage && action.perPage === state.perPage
+            const isCurrentFetching =
+                action.filters === state.filters &&
+                action.paginatedHousing.page === state.paginatedHousing.page &&
+                action.paginatedHousing.perPage === state.paginatedHousing.perPage
             return !isCurrentFetching ? state : {
                 ...state,
-                housingList: action.housingList,
-                totalCount: action.totalCount
+                paginatedHousing: {
+                    ...state.paginatedHousing,
+                    entities: action.paginatedHousing.entities,
+                    totalCount: action.paginatedHousing.totalCount,
+                },
             };
         }
         default:

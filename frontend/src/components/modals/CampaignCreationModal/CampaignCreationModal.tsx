@@ -33,7 +33,7 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
         campaignKind: yup.string().required('Veuillez sélectionner le type de campagne.')
     });
 
-    const { housingList, filters } = useSelector((state: ApplicationState) => state.housing);
+    const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = () => {
         campaignForm
@@ -116,11 +116,11 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
                             <div className="fr-my-1w">
                                 <HousingFiltersBadges />
                             </div>
-                            {housingList.length === housingCount ?
+                            {paginatedHousing.entities.length === housingCount ?
                                 <i>Aucun logement n&apos;a été retiré des résultats de la recherche avec ces filtres.</i> :
-                                housingList.length - housingCount === 1 ?
+                                paginatedHousing.entities.length - housingCount === 1 ?
                                     <i>Un logement a été retiré des résultats de la recherche avec ces filtres.</i> :
-                                    <i>{housingList.length - housingCount} logements ont été retirés des résultats de la recherche avec ces filtres.</i>
+                                    <i>{paginatedHousing.entities.length - housingCount} logements ont été retirés des résultats de la recherche avec ces filtres.</i>
                             }
                         </Col>
                     </Row>

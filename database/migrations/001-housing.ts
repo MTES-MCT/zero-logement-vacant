@@ -1,6 +1,7 @@
 // @ts-ignore
 exports.up = function(knex) {
     return Promise.all([
+        knex.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'),
         knex.schema// @ts-ignore
             .createTable('housing', (table) => {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
@@ -29,6 +30,7 @@ exports.up = function(knex) {
 // @ts-ignore
 exports.down = function(knex) {
   return Promise.all([
-      knex.schema.dropTable('housing')
+      knex.schema.dropTable('housing'),
+      knex.raw('DROP EXTENSION IF EXISTS "uuid-ossp";')
   ]);
 };

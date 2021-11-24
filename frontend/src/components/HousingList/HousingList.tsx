@@ -1,67 +1,68 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
-import styles from './housing-list.module.scss';
 import { updateWithValue } from '../../utils/arrayUtils';
 import { Link, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { changePagination } from '../../store/actions/housingAction';
+import { PaginatedResult } from '../../models/PaginatedResult';
 
 
 export enum HousingDisplayKey {
     Housing, Owner
 }
 
-const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Housing[], displayKind: HousingDisplayKey, onSelect?: (selectedIds: string[]) => void }) => {
+const HousingList = (
+    {
+        paginatedHousing,
+        onChangePagination,
+        displayKind,
+        checkedIds,
+        onCheckId
+    }: {
+        paginatedHousing: PaginatedResult<Housing>,
+        onChangePagination: (page: number, perPage: number) => void,
+        displayKind: HousingDisplayKey,
+        checkedIds?: string[],
+        onCheckId?: (selectedIds: string[]) => void,
+        onCheckAll?: (selected: boolean) => void,
+    }) => {
 
-    const dispatch = useDispatch();
     const location = useLocation();
 
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-    const { totalCount, currentPage, perPage } = useSelector((state: ApplicationState) => state.housing);
+    const [allChecked, setAllChecked] = useState<boolean>(false);
 
     const checkAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedIds(housingList.map(_ => _.id));
-        } else {
-            setSelectedIds([]);
+        setAllChecked(checked);
+    }
+
+    const checkOne = (id: string, checked: boolean) => {
+        const updatedCheckIds = updateWithValue(checkedIds, id, checked)
+        if (onCheckId) {
+            onCheckId(updatedCheckIds)
         }
     }
 
     const changePerPage = (perPage: number) => {
-        dispatch(changePagination(1, perPage));
+        onChangePagination(1, perPage)
     }
 
     const changePage = (page: number) => {
-        dispatch(changePagination(page, perPage));
+        onChangePagination(page, paginatedHousing.perPage)
     }
-
-    useEffect(() => {
-        if (onSelect) {
-            onSelect(selectedIds);
-        }
-    }, [selectedIds, onSelect]);
-
-
-    useEffect(() => {
-        setSelectedIds([]);
-    }, [housingList])
 
     const selectColumn = {
         name: 'select',
         headerRender: () =>
             <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
-                      className={selectedIds.length > 0 && selectedIds.length < housingList.length ? styles.indeterminate : ''}
+                      checked={allChecked}
+                      // className={!allChecked && checkedIds?.length < paginatedHousing.totalCount ? styles.indeterminate : ''}
                       label="">
             </Checkbox>,
         render: ({ id }: Housing) =>
             <Checkbox value={id}
-                      onChange={(e: ChangeEvent<any>) => setSelectedIds(updateWithValue(selectedIds, e.target.value, e.target.checked))}
-                      checked={selectedIds.indexOf(id) !== -1}
+                      onChange={(e: ChangeEvent<any>) => checkOne(e.target.value, e.target.checked)}
+                      checked={allChecked || checkedIds?.indexOf(id) !== -1}
                       data-testid={'housing-check-' + id}
                       label="">
             </Checkbox>
@@ -111,8 +112,8 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
         name: 'view',
         headerRender: () => '',
         render: ({ owner }: Housing) =>
-            <Link title="Voir" to={location.pathname + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
-                Voir<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+            <Link title="Afficher" to={location.pathname + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
+                Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
     }
 
@@ -127,12 +128,12 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
 
     return (
         <>
-            { housingList && housingList.length > 0 && <>
+            { paginatedHousing.entities?.length > 0 && <>
                 <Table
                     caption="Logements"
                     captionPosition="none"
                     rowKey="id"
-                    data={housingList}
+                    data={paginatedHousing.entities}
                     columns={columns()}
                     fixedLayout={true}
                     className="zlv-table-with-view zlv-table-with-select"
@@ -140,27 +141,27 @@ const HousingList = ({ housingList, displayKind,  onSelect }: { housingList: Hou
                 />
                 <div className="fr-react-table--pagination-center nav">
                     <Pagination onClick={changePage}
-                                currentPage={currentPage}
-                                pageCount={Math.ceil(totalCount / perPage)}/>
+                                currentPage={paginatedHousing.page}
+                                pageCount={Math.ceil(paginatedHousing.totalCount / paginatedHousing.perPage)}/>
                 </div>
                 <div style={{textAlign: 'center'}}>
                     <Button
                         onClick={() => changePerPage(20)}
                         secondary
-                        disabled={perPage === 20}
+                        disabled={paginatedHousing.perPage === 20}
                         title="title">20 résultats par pages
                     </Button>
                     <Button
                         onClick={() => changePerPage(50)}
                         className="fr-mx-3w"
                         secondary
-                        disabled={perPage === 50}
+                        disabled={paginatedHousing.perPage === 50}
                         title="title">50 résultats par pages
                     </Button>
                     <Button
                         onClick={() => changePerPage(100)}
                         secondary
-                        disable={perPage === 100}
+                        disable={paginatedHousing.perPage === 100}
                         title="title">100 résultats par pages
                     </Button>
                 </div>

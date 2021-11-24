@@ -6,7 +6,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
-import { filterHousing } from '../../store/actions/housingAction';
+import { changeHousingFiltering, changeHousingPagination } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -22,37 +22,38 @@ const HousingListView = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
+    const [allHousing, setAllHousing] = useState<boolean>(false);
 
-    const { housingList, filters, totalCount } = useSelector((state: ApplicationState) => state.housing);
+    const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = (draftCampaign: DraftCampaign) => {
-        dispatch(createCampaign(draftCampaign, selectedHousingIds))
+        dispatch(createCampaign(draftCampaign, allHousing, selectedHousingIds))
         setIsModalOpen(false)
         history.push("/campagnes");
     }
 
-    const getDistinctOwners = () => {return housingList
+    const getDistinctOwners = () => {return paginatedHousing.entities
         .filter(housing => selectedHousingIds.indexOf(housing.id) !== -1)
         .map(housing => housing.owner.id)
         .filter((id, index, array) => array.indexOf(id) === index)
     }
 
     const removeFilter = (removedFilter: any) => {
-        dispatch(filterHousing({
+        dispatch(changeHousingFiltering({
             ...filters,
             ...removedFilter,
         }));
     }
 
     const search = (query: string) => {
-        dispatch(filterHousing({
+        dispatch(changeHousingFiltering({
             ...filters,
             query
         }));
     }
 
     useEffect(() => {
-        dispatch(filterHousing(filters))
+        dispatch(changeHousingFiltering(filters))
     }, [dispatch])
 
 
@@ -80,11 +81,11 @@ const HousingListView = () => {
                 <Row>
                     <HousingFiltersBadges onChange={(values) => removeFilter(values)} />
                 </Row>
-                {housingList &&
+                {paginatedHousing &&
                     <>
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
-                                <b>{totalCount} logements </b>
+                                <b>{paginatedHousing.totalCount} logements </b>
                             </Col>
                             <Col>
                                 <Button title="Créer la campagne"
@@ -101,9 +102,12 @@ const HousingListView = () => {
                                                        onClose={() => setIsModalOpen(false)}/>}
                             </Col>
                         </Row>
-                        <HousingList housingList={housingList}
+                        <HousingList paginatedHousing={paginatedHousing}
+                                     onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
                                      displayKind={HousingDisplayKey.Housing}
-                                     onSelect={(ids: string[]) => setSelectedHousingIds(ids)}/>
+                                     checkedIds={selectedHousingIds}
+                                     onCheckId={(ids: string[]) => setSelectedHousingIds(ids)}
+                                     onCheckAll={(selected: boolean) => setAllHousing(selected)}/>
                     </>
                 }
             </Container>

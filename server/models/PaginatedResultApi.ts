@@ -1,4 +1,6 @@
 export interface PaginatedResultApi<T> {
     totalCount: number;
-    entities: Array<T>
+    entities: Array<T>;
+    page: number;
+    perPage: number;
 }

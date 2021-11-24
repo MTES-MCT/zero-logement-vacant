@@ -9,6 +9,7 @@ export interface CampaignApi {
     exportedAt?: Date;
     sentAt?: Date;
     housingCount?: number;
+    ownerCount?: number;
 }
 
 export enum CampaignSteps {

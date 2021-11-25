@@ -41,12 +41,14 @@ const listByCampaign = async (campaignId: string, page: number, perPage: number)
         }));
 };
 
-const listByOwner = async (ownerId: string) => {
+const listByOwner = async (ownerId: string): Promise<Housing[]> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/owner/${ownerId}`, {
         method: 'GET',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
-    }).then(_ => _.json());
+    })
+        .then(_ => _.json())
+        .then(_ => _.map((h: any) => parseHousing(h)));
 };
 
 const parseHousing = (h: any): Housing => ({

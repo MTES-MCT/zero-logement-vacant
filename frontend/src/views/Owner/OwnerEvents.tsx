@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { format } from 'date-fns';
 import { getOwnerEvents } from '../../store/actions/ownerAction';
 import { fr } from 'date-fns/locale';
-import EventCreationModal from '../../components/modals/EventCreationModal/EventCreationModal';
 
 
 const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
@@ -28,20 +27,20 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                 <Col>
                     <Title as="h2" look="h3">Historique du dossier</Title>
                 </Col>
-                <Col n="5">
-                    <Button title="Ajouter un événement"
-                            secondary
-                            size="sm"
-                            icon="fr-fi-add-line"
-                            className="float-right"
-                            onClick={() => {setIsModalOpen(true)}}>
-                        Ajouter un événement
-                    </Button>
-                    {isModalOpen &&
-                    <EventCreationModal onSubmit={() => {}}
-                                        onClose={() => setIsModalOpen(false)} />
-                    }
-                </Col>
+                {/*<Col n="5">*/}
+                {/*    <Button title="Ajouter un événement"*/}
+                {/*            secondary*/}
+                {/*            size="sm"*/}
+                {/*            icon="fr-fi-add-line"*/}
+                {/*            className="float-right"*/}
+                {/*            onClick={() => {setIsModalOpen(true)}}>*/}
+                {/*        Ajouter un événement*/}
+                {/*    </Button>*/}
+                {/*    {isModalOpen &&*/}
+                {/*    <EventCreationModal onSubmit={() => {}}*/}
+                {/*                        onClose={() => setIsModalOpen(false)} />*/}
+                {/*    }*/}
+                {/*</Col>*/}
             </Row>
             {events &&
                 <>
@@ -62,7 +61,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                             )
                         }
                     </ul>
-                    {!expandEvents &&
+                    {!expandEvents && events.length > 3 &&
                         <button className="ds-fr--inline fr-link"
                                 type="button"
                                 onClick={() => setExpandEvents(!expandEvents)}>

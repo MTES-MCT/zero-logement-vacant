@@ -27,3 +27,13 @@ ul.ownerEvents {
   }
 }
 
+.bordered {
+  border: 1px solid var(--g300);
+
+  hr {
+    border-top: 1px solid var(--g300);
+    border-left: 1px solid var(--g300);
+    border-bottom: none;
+  }
+}
+

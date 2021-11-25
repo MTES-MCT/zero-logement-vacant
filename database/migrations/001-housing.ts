@@ -7,6 +7,7 @@ exports.up = function(knex) {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
                 table.string('invariant').notNullable();
                 table.specificType('raw_address', 'text[]').notNullable();
+                table.string('insee_code').notNullable();
                 table.string('house_number');
                 table.string('street');
                 table.string('postal_code');

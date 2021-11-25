@@ -1,4 +1,3 @@
-import config from '../utils/config';
 import { Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
@@ -19,55 +18,27 @@ const list = async (request: Request, response: Response): Promise<Response> => 
         .then(_ => response.status(200).json(_));
 };
 
+const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    const page = request.body.page;
+    const perPage = request.body.perPage;
+
+    console.log('List housing by campaign', campaignId, page, perPage)
+
+    return housingRepository.list({campaignIds: [campaignId]}, (page - 1) * perPage, perPage)
+        .then(_ => response.status(200).json(_));
+};
+
 const listByOwner = async (request: Request, response: Response): Promise<Response> => {
 
     const ownerId = request.params.ownerId;
 
     console.log('List housing by owner', ownerId)
 
-    const Airtable = require('airtable');
-    const base = new Airtable({apiKey: config.airTable.apiKey}).base(config.airTable.base);
-
-    return base('🏡 Adresses').select({
-        maxRecords: 500,
-        fields: [
-            'Adresse',
-            'Nom de la commune du logement',
-            'Surface habitable',
-            'Type de logement',
-            'Nombre de pièces',
-            'Année de construction',
-            'Début de la vacance'
-        ],
-        filterByFormula: `{Record-ID=proprietaire} = '${ownerId}'`
-    })
-        .all()
-        .then((results: any) => {
-            return response.status(200).json(results.map((result: any) => ({
-                id: result.id,
-                address: result.fields['Adresse'],
-                municipality: result.fields['Nom de la commune du logement'],
-                kind: result.fields['Type de logement'].trimRight() === 'MAISON' ? 'Maison' : result.fields['Type de logement'].trimRight() === 'APPART' ? 'Appartement' : undefined,
-                surface: result.fields['Surface habitable'],
-                rooms: result.fields['Nombre de pièces'],
-                buildingYear: result.fields['Année de construction'],
-                vacancyStart: result.fields['Début de la vacance'],
-            })));
-        })
-        .catch((_: any) => console.error(_));
-};
-
-const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
-
-    const campaignId = request.params.campaignId;
-
-    const page = 1; // request.body.page;
-    const perPage = 100; //request.body.perPage;
-
-    console.log('List housing by campaign', campaignId)
-
-    return housingRepository.list({campaignIds: [campaignId]}, (page - 1) * perPage, perPage)
-        .then(_ => response.status(200).json(_));
+    return housingRepository.list({ownerIds: [ownerId]})
+        .then(_ => response.status(200).json(_.entities));
 };
 
 

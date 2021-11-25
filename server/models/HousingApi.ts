@@ -7,4 +7,9 @@ export interface HousingApi {
     rawAddress: string[];
     address: AddressApi;
     owner: OwnerApi;
+    livingArea: number;
+    housingKind: string;
+    roomsCount: number;
+    buildingYear?: number;
+    vacancyStartYear: number;
 }

@@ -21,10 +21,28 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                         .whereRaw(`housing_id = ${housingTable}.id`)
                 })
             }
+            if (filters.ownerIds?.length) {
+                queryBuilder.whereIn('o.id', filters.ownerIds)
+            }
             if (filters.ownerKinds?.length) {
                 queryBuilder.whereIn('owner_kind', filters.ownerKinds)
             }
-            //TODO Age
+            if (filters.ownerAges?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.ownerAges?.indexOf('lt40') !== -1) {
+                        whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) <= 40")
+                    }
+                    if (filters.ownerAges?.indexOf('40to60') !== -1) {
+                        whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) between 40 and 60")
+                    }
+                    if (filters.ownerAges?.indexOf('60to75') !== -1) {
+                        whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) between 60 and 75")
+                    }
+                    if (filters.ownerAges?.indexOf('gt75') !== -1) {
+                        whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) >= 75")
+                    }
+                })
+            }
             if (filters.multiOwners?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     if (filters.multiOwners?.indexOf('true') !== -1) {
@@ -159,7 +177,12 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                     id: result.owner_id,
                     rawAddress: result.owner_raw_address,
                     fullName: result.full_name
-                }
+                },
+                livingArea: result.living_area,
+                housingKind: result.housing_kind,
+                roomsCount: result.rooms_count,
+                buildingYear: result.building_year,
+                vacancyStartYear: result.vacancy_start_year
             })),
             totalCount: housingCount,
             page,
@@ -170,7 +193,6 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
         throw new Error('Listing housing failed');
     }
 }
-
 
 const rawUpdate = async (update: string): Promise<HousingApi[]> => {
     try {

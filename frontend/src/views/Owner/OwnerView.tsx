@@ -11,7 +11,7 @@ import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-
+import classNames from 'classnames';
 
 const OwnerView = () => {
 
@@ -44,7 +44,7 @@ const OwnerView = () => {
                 </div>
                 <Container spacing="py-4w">
                     <Row className="fr-grid-row--center">
-                        <Col n="6" className="bg-100 fr-py-2w fr-px-3w">
+                        <Col n="6" className={classNames(styles.bordered, 'fr-py-2w', 'fr-px-3w')}>
                             <Row>
                                 <Col>
                                     <Title as="h2" look="h3">Propriétaire</Title>
@@ -68,37 +68,42 @@ const OwnerView = () => {
                             <Text size="lg" className="fr-mb-1w">
                                 <b>Identité</b>
                             </Text>
+                            <hr />
                             <Text size="md" className="fr-mb-1w">
-                                Nom&nbsp;
-                                <b data-testid="fullName-text">{owner.fullName}</b>
+                                <b>Nom :&nbsp;</b>
+                                <span data-testid="fullName-text">{owner.fullName}</span>
                             </Text>
                             { owner.birthDate && isValid(owner.birthDate) &&
                                 <Text size="md" className="fr-mb-1w">
-                                    Date de naissance&nbsp;
-                                    <b className="capitalize" data-testid="birthDate-text">{format(owner.birthDate, 'dd/MM/yyyy')}</b>
-                                    <b> ({differenceInYears(new Date(), owner.birthDate)} ans)</b>
+                                    <b>Date de naissance :&nbsp;</b>
+                                    <span className="capitalize" data-testid="birthDate-text">{format(owner.birthDate, 'dd/MM/yyyy')}</span>
+                                    <span> ({differenceInYears(new Date(), owner.birthDate)} ans)</span>
                                 </Text>
                             }
 
                             <Text size="lg" className="fr-pt-5w fr-mb-1w">
                                 <b>Coordonnées</b>
                             </Text>
+                            <hr />
                             <Text size="md" className="fr-mb-1w">
                                 <span style={{verticalAlign: 'top'}}>
-                                    Adresse postale&nbsp;
+                                    <b>Adresse postale :&nbsp;</b>
                                 </span>
                                 <span style={{display: 'inline-block'}}>
-                                    <b className="capitalize"> {owner.rawAddress.map((_, i) =>
-                                        <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>) }</b>
+                                    <span className="capitalize">
+                                        {owner.rawAddress.map((_, i) =>
+                                            <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                        }
+                                    </span>
                                 </span>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
-                                Adresse mail&nbsp;
-                                <b data-testid="email-text">{owner.email}</b>
+                                <b>Adresse mail :&nbsp;</b>
+                                <span data-testid="email-text">{owner.email}</span>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
-                                Numéro de téléphone&nbsp;
-                                <b data-testid="phone-text">{owner.phone}</b>
+                                <b>Numéro de téléphone &nbsp;</b>
+                                <span data-testid="phone-text">{owner.phone}</span>
                             </Text>
                         </Col>
                         <Col n="6" className="fr-py-2w fr-px-3w">
@@ -106,57 +111,59 @@ const OwnerView = () => {
                         </Col>
                     </Row>
                     {housingList.map((housing, index) =>
-                        <div key={housing.id} className="fr-pt-6w">
-                            <Title as="h2" look="h3">Logement {index + 1}</Title>
-                            <Row>
-                                <Col n="4">
-                                    <Text size="lg" className="fr-mb-1w">
-                                        <b>Emplacement</b>
-                                    </Text>
-                                    <span style={{verticalAlign: 'top'}}>
-                                        Adresse &nbsp;
+                        <>
+                        <Row key={housing.id} className="bg-100 fr-p-3w fr-my-2w">
+                            <Col n="12">
+                                <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
+                                <Text size="xs" className="fr-mb-2w">{housing.invariant}</Text>
+                            </Col>
+                            <Col n="4">
+                                <Text size="lg" className="fr-mb-1w">
+                                    <b>Emplacement</b>
+                                </Text>
+                                <span style={{verticalAlign: 'top'}}>
+                                    <b>Adresse :&nbsp;</b>
+                                </span>
+                                <span style={{display: 'inline-block'}} className="capitalize">
+                                    <span  style={{display: 'block'}}>
+                                        {housing.rawAddress.map((_, i) =>
+                                            <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                        }
                                     </span>
-                                    <span style={{display: 'inline-block'}} className="capitalize">
-                                        <span  style={{display: 'block'}}>
-                                            <b>{capitalize(housing.address)}</b>
-                                        </span>
-                                        <span>
-                                            <b> {capitalize(housing.municipality)}</b>
-                                        </span>
-                                    </span>
-                                </Col>
-                                <Col n="4">
-                                    <Text size="lg" className="fr-mb-1w">
-                                        <b>Caractéristiques</b>
-                                    </Text>
-                                    <Text size="md" className="fr-mb-1w">
-                                        Type&nbsp;
-                                        <b>{housing.kind}</b>
-                                    </Text>
-                                    <Text size="md" className="fr-mb-1w">
-                                        Surface&nbsp;
-                                        <b>{housing.surface} m2</b>
-                                    </Text>
-                                    <Text size="md" className="fr-mb-1w">
-                                        Pièces&nbsp;
-                                        <b>{housing.rooms}</b>
-                                    </Text>
-                                    <Text size="md" className="fr-mb-1w">
-                                        Construction&nbsp;
-                                        <b>{housing.buildingYear}</b>
-                                    </Text>
-                                </Col>
-                                <Col n="4">
-                                    <Text size="lg" className="fr-mb-1w">
-                                        <b>Situation</b>
-                                    </Text>
-                                    <Text size="md" className="fr-mb-1w">
-                                        Durée de la vacance&nbsp;
-                                        <b>{(new Date()).getFullYear() - housing.vacancyStart} ans ({housing.vacancyStart})</b>
-                                    </Text>
-                                </Col>
-                            </Row>
-                        </div>
+                                </span>
+                            </Col>
+                            <Col n="4">
+                                <Text size="lg" className="fr-mb-1w">
+                                    <b>Caractéristiques</b>
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Type :&nbsp;</b>
+                                    {housing.housingKind}
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Surface :&nbsp;</b>
+                                    {housing.livingArea} m2
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Pièces :&nbsp;</b>
+                                    {housing.roomsCount}
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Construction :&nbsp;</b>
+                                    {housing.buildingYear}
+                                </Text>
+                            </Col>
+                            <Col n="4">
+                                <Text size="lg" className="fr-mb-1w">
+                                    <b>Situation</b>
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Durée de la vacance :&nbsp;</b>
+                                    {(new Date()).getFullYear() - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
+                                </Text>
+                            </Col>
+                        </Row>
+                        </>
                     )}
                 </Container>
             </>}

@@ -2,12 +2,12 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { HousingDetails } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { EventKinds } from '../../models/OwnerEvent';
 import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
+import { Housing } from '../../models/Housing';
 
 export const FETCHING_OWNER = 'FETCHING_OWNER';
 export const OWNER_FETCHED = 'OWNER_FETCHED';
@@ -32,7 +32,7 @@ export interface FetchingOwnerHousingAction {
 
 export interface OwnerHousingFetchedAction {
     type: typeof OWNER_HOUSING_FETCHED,
-    housingList: HousingDetails[]
+    housingList: Housing[]
 }
 
 export interface OwnerUpdatedAction {

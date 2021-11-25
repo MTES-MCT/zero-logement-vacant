@@ -3,22 +3,16 @@ import { Owner } from './Owner';
 
 export interface Housing {
     id: string;
+    invariant: string;
     rawAddress: string[];
     address: Address;
     owner: Owner;
+    livingArea: number;
+    housingKind: string;
+    roomsCount: number;
+    buildingYear?: number;
+    vacancyStartYear: number;
 }
-
-export interface HousingDetails {
-    id: string;
-    address: string;
-    municipality: string;
-    surface?: number;
-    kind?: string;
-    rooms?: number;
-    buildingYear: number;
-    vacancyStart: number;
-}
-
 
 export interface SelectedHousing {
     all: boolean;

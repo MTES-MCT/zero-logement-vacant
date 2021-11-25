@@ -4,6 +4,17 @@ import campaignHousingRepository from '../repositories/campaignHousingRepository
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 
+const get = async (request: Request, response: Response): Promise<Response> => {
+
+    const id = request.params.id;
+
+    console.log('Get campaigns')
+
+    return campaignRepository.get(id)
+        .then(_ => response.status(200).json(_));
+
+}
+
 const list = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('List campaigns')
@@ -106,6 +117,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 // }
 
 const campaignController =  {
+    get,
     list,
     create,
     validateStep,

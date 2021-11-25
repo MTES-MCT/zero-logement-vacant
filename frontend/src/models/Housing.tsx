@@ -18,3 +18,9 @@ export interface HousingDetails {
     buildingYear: number;
     vacancyStart: number;
 }
+
+
+export interface SelectedHousing {
+    all: boolean;
+    ids: string[];
+}

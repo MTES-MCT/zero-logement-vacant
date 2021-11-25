@@ -146,12 +146,11 @@ const CampaignView = () => {
                                 </Button>
                                 }
                                 {campaignStep(campaign) === CampaignSteps.Sending &&
-                                <a href={exportURL}
-                                   onClick={() => validStep(CampaignSteps.Sending)}
-                                   className="fr-btn--md fr-btn"
-                                   download>
-                                    Confirmer
-                                </a>
+                                <Button
+                                onClick={() => validStep(CampaignSteps.Sending)}
+                                title="Valider">
+                                Confirmer
+                                </Button>
                                 }
                             </div>
                         </div>
@@ -180,7 +179,9 @@ const CampaignView = () => {
                         <Tabs>
                             <Tab label={`En attente de retour (${paginatedHousing.entities.length})`}>
                                 <div className="fr-pt-4w">
-                                    {/*<HousingList housingList={campaignHousingList} displayKind={HousingDisplayKey.Owner}/>*/}
+                                    <HousingList paginatedHousing={paginatedHousing}
+                                                 onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
+                                                 displayKind={HousingDisplayKey.Owner}/>
                                 </div>
                             </Tab>
                             <Tab label="Suivi en cours (0)">

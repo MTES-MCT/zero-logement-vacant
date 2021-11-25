@@ -19,11 +19,12 @@ const jwtCheck = expressJWT({
 router.post('/api/housing', jwtCheck, housingController.list);
 router.get('/api/housing/owner/:ownerId', jwtCheck, housingController.listByOwner);
 router.get('/api/housing/campaign/:campaignId', jwtCheck, housingController.listByCampaign);
-// router.get('/api/housing/campaign/:campaignId/export', jwtCheck, housingController.exportByCampaign);
+router.get('/api/housing/campaign/:campaignId/export', jwtCheck, housingController.exportByCampaign);
 router.get('/api/housing/normalizeAddresses', jwtCheck, housingController.normalizeAddresses);
 
 router.get('/api/campaigns', jwtCheck, campaignController.list);
 router.post('/api/campaigns/creation', jwtCheck, campaignController.create);
+router.get('/api/campaigns/:campaignId', jwtCheck, campaignController.get);
 router.put('/api/campaigns/:campaignId', jwtCheck, campaignController.validateStep);
 // router.get('/api/campaigns/import', jwtCheck, campaignController.importFromAirtable);
 

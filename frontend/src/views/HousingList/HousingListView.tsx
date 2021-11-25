@@ -13,6 +13,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { DraftCampaign } from '../../models/Campaign';
 import { useHistory } from 'react-router-dom';
+import { SelectedHousing } from '../../models/Housing';
 
 
 const HousingListView = () => {
@@ -21,21 +22,14 @@ const HousingListView = () => {
     const history = useHistory();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedHousingIds, setSelectedHousingIds] = useState<string[]>([]);
-    const [allHousing, setAllHousing] = useState<boolean>(false);
+    const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = (draftCampaign: DraftCampaign) => {
-        dispatch(createCampaign(draftCampaign, allHousing, selectedHousingIds))
+        dispatch(createCampaign(draftCampaign, selectedHousing.all, selectedHousing.ids))
         setIsModalOpen(false)
         history.push("/campagnes");
-    }
-
-    const getDistinctOwners = () => {return paginatedHousing.entities
-        .filter(housing => selectedHousingIds.indexOf(housing.id) !== -1)
-        .map(housing => housing.owner.id)
-        .filter((id, index, array) => array.indexOf(id) === index)
     }
 
     const removeFilter = (removedFilter: any) => {
@@ -91,13 +85,13 @@ const HousingListView = () => {
                                 <Button title="Créer la campagne"
                                         onClick={() => setIsModalOpen(true)}
                                         data-testid="create-campaign-button"
-                                        disabled={selectedHousingIds.length === 0}
+                                        disabled={!selectedHousing.all || selectedHousing?.ids.length === 0}
                                         className="float-right">
                                     Créer la campagne
                                 </Button>
                                 {isModalOpen &&
-                                <CampaignCreationModal housingCount={selectedHousingIds.length}
-                                                       ownerCount={getDistinctOwners().length}
+                                <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount : selectedHousing.ids.length}
+                                                       ownerCount={0}
                                                        onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
                                                        onClose={() => setIsModalOpen(false)}/>}
                             </Col>
@@ -105,9 +99,7 @@ const HousingListView = () => {
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
                                      displayKind={HousingDisplayKey.Housing}
-                                     checkedIds={selectedHousingIds}
-                                     onCheckId={(ids: string[]) => setSelectedHousingIds(ids)}
-                                     onCheckAll={(selected: boolean) => setAllHousing(selected)}/>
+                                     onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                     </>
                 }
             </Container>

@@ -147,6 +147,7 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
         return <PaginatedResultApi<HousingApi>> {
             entities: results.map((result: any) => (<HousingApi>{
                 id: result.id,
+                invariant: result.invariant,
                 rawAddress: result.raw_address,
                 address: <AddressApi>{
                     houseNumber: result.house_number,

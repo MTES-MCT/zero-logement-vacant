@@ -1,7 +1,7 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
-import { Housing } from '../../models/Housing';
+import { Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { updateWithValue } from '../../utils/arrayUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -17,29 +17,35 @@ const HousingList = (
         paginatedHousing,
         onChangePagination,
         displayKind,
-        checkedIds,
-        onCheckId
+        onSelectHousing,
     }: {
         paginatedHousing: PaginatedResult<Housing>,
         onChangePagination: (page: number, perPage: number) => void,
         displayKind: HousingDisplayKey,
-        checkedIds?: string[],
-        onCheckId?: (selectedIds: string[]) => void,
-        onCheckAll?: (selected: boolean) => void,
+        onSelectHousing?: (selectedHousing: SelectedHousing) => void
     }) => {
 
     const location = useLocation();
 
+    const [checkedIds, setCheckedIds] = useState<string[]>([]);
     const [allChecked, setAllChecked] = useState<boolean>(false);
 
     const checkAll = (checked: boolean) => {
         setAllChecked(checked);
+        const updatedCheckIds = checked ? paginatedHousing.entities.map(_ => _.id) : []
+        setCheckedIds(updatedCheckIds)
+        if (onSelectHousing) {
+            onSelectHousing({all: checked, ids: updatedCheckIds})
+        }
     }
 
     const checkOne = (id: string, checked: boolean) => {
         const updatedCheckIds = updateWithValue(checkedIds, id, checked)
-        if (onCheckId) {
-            onCheckId(updatedCheckIds)
+        const updatedAllChecked = updatedCheckIds.length === paginatedHousing.totalCount
+        setCheckedIds(updatedCheckIds)
+        setAllChecked(updatedAllChecked)
+        if (onSelectHousing) {
+            onSelectHousing({all: updatedAllChecked, ids: updatedCheckIds})
         }
     }
 
@@ -50,6 +56,12 @@ const HousingList = (
     const changePage = (page: number) => {
         onChangePagination(page, paginatedHousing.perPage)
     }
+
+    useEffect(() => {
+        if (allChecked) {
+            setCheckedIds(paginatedHousing.entities.map(_ => _.id))
+        }
+    }, [paginatedHousing])
 
     const selectColumn = {
         name: 'select',

@@ -1,10 +1,12 @@
 import { Campaign } from '../../models/Campaign';
 import {
     CAMPAIGN_CREATED,
+    CAMPAIGN_FETCHED,
     CAMPAIGN_HOUSING_LIST_FETCHED,
     CAMPAIGN_LIST_FETCHED,
     CAMPAIGN_UPDATED,
     CampaignActionTypes,
+    FETCH_CAMPAIGN,
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
 } from '../actions/campaignAction';
@@ -14,14 +16,13 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 
 export interface CampaignState {
     campaignList: Campaign[];
-    campaignId: string;
+    campaign?: Campaign;
     paginatedHousing: PaginatedResult<Housing>;
     exportURL: string;
 }
 
 const initialState: CampaignState = {
     campaignList: [] as Campaign[],
-    campaignId: '',
     paginatedHousing: {
         entities: [],
         page: 1,
@@ -43,6 +44,16 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 ...state,
                 campaignList: action.campaignList
             };
+        case FETCH_CAMPAIGN:
+            return {
+                ...state,
+                campaign: undefined,
+            };
+        case CAMPAIGN_FETCHED:
+            return {
+                ...state,
+                campaign: action.campaign
+            };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
                 ...state,
@@ -56,7 +67,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
-                action.campaignId === state.campaignId &&
+                action.campaignId === state.campaign?.id &&
                 action.paginatedHousing.page === state.paginatedHousing.page &&
                 action.paginatedHousing.perPage === state.paginatedHousing.perPage
             return !isCurrentFetching ? state : {
@@ -76,12 +87,12 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     ...state.campaignList,
                     action.campaign
                 ],
-                campaignHousingList: [],
-                campaignId: action.campaign.id
+                campaignHousingList: []
             };
         case CAMPAIGN_UPDATED:
             return {
                 ...state,
+                campaign: action.campaign,
                 campaignList: [
                     ...state.campaignList.filter(_ => _.id !== action.campaign.id),
                     action.campaign

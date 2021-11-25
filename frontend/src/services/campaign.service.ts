@@ -5,7 +5,7 @@ import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
 import { fr } from "date-fns/locale";
 
 
-const listCampaigns = async () => {
+const listCampaigns = async (): Promise<Campaign[]> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns`, {
         method: 'GET',
@@ -13,6 +13,16 @@ const listCampaigns = async () => {
     })
         .then(_ => _.json())
         .then(_ => _.map((_: any) => parseCampaign(_)))
+};
+
+const getCampaign = async (campaignId: string): Promise<Campaign> => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
+        method: 'GET',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+    })
+        .then(_ => _.json())
+        .then((_: any) => parseCampaign(_))
 };
 
 const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
@@ -51,6 +61,7 @@ const parseCampaign = (c: any): Campaign => ({
 
 const campaignService = {
     listCampaigns,
+    getCampaign,
     createCampaign,
     validCampaignStep,
     getExportURL

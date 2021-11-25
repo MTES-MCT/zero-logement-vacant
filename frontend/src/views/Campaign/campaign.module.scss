@@ -56,10 +56,6 @@
       color: green !important;
       border: 2px solid green !important;
     }
-
-    .currentOnly {
-      display: none;
-    }
   }
 
   &:not(.currentStep):not(.oldStep) {

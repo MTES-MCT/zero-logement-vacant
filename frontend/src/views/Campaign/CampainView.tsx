@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button, Col, Container, Row, Tab, Tabs, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
+    getCampaign,
     listCampaignHousing,
     validCampaignStep,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { Campaign, campaignStep, CampaignSteps } from '../../models/Campaign';
+import { campaignStep, CampaignSteps } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
@@ -20,17 +21,13 @@ const CampaignView = () => {
     const dispatch = useDispatch();
     const { id } = useParams<{id: string}>();
 
-    const [campaign, setCampaign] = useState<Campaign>();
-
-    const { campaignList, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaign, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(listCampaignHousing(id))
+        dispatch(getCampaign(id))
     }, [id, dispatch])
 
-    useEffect(() => {
-        setCampaign(campaignList.find(c => c.id === id))
-    }, [campaignList])
 
     const validStep = (step: CampaignSteps) => {
         if (campaign) {
@@ -87,20 +84,23 @@ const CampaignView = () => {
                                     </div>
                                     <div>
                                         <h2>Validation de la liste des propriétaires</h2>
-                                        <span className={styles.currentOnly}>Validez la liste des propriétaires et logements à inclure dans votre campagne</span>
+                                        <span>Validez la liste des propriétaires et logements à inclure dans votre campagne</span>
                                     </div>
+                                    {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
                                     <Button
                                         onClick={() => validStep(CampaignSteps.OwnersValidation)}
-                                        title="Valider"
-                                        className={styles.currentOnly}>
+                                        title="Valider">
                                         Valider
                                     </Button>
+                                    }
                                 </div>
-                                <div className={classNames('fr-pt-4w', styles.currentOnly)}>
+                                {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
+                                <div className="fr-pt-4w">
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
                                                  displayKind={HousingDisplayKey.Owner}/>
                                 </div>
+                                }
                             </div>
 
                             <div className={classNames(styles.campaignStep,
@@ -114,7 +114,7 @@ const CampaignView = () => {
                                         <h2>Export des données propriétaires</h2>
                                         <span>Ajustez les variables et exportez vos données pour créer votre fichier de publipostage, envoi par email ou rencontre.</span>
                                     </div>
-                                    {campaignStep(campaign) !== CampaignSteps.Export &&
+                                    {campaignStep(campaign) < CampaignSteps.Export &&
                                     <Button
                                         disabled
                                         title="En attente">
@@ -143,7 +143,7 @@ const CampaignView = () => {
                                         <h2>Envoi de la campagne</h2>
                                         <span>Datez l’envoi qui marque le début de votre campagne.</span>
                                     </div>
-                                    {campaignStep(campaign) !== CampaignSteps.Sending &&
+                                    {campaignStep(campaign) < CampaignSteps.Sending &&
                                     <Button
                                         disabled
                                         title="En attente">

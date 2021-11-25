@@ -6,11 +6,11 @@ import housingRepository from '../repositories/housingRepository';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
-    const id = request.params.id;
+    const campaignId = request.params.campaignId;
 
-    console.log('Get campaigns')
+    console.log('Get campaign', campaignId)
 
-    return campaignRepository.get(id)
+    return campaignRepository.get(campaignId)
         .then(_ => response.status(200).json(_));
 
 }

@@ -75,104 +75,108 @@ const CampaignView = () => {
 
                     {paginatedHousing.entities.length &&
                     <Container spacing="py-4w">
-                        {campaignStep(campaign) == CampaignSteps.OwnersValidation &&
-                        <div className={classNames(styles.campaignStep, styles.currentStep)}>
-                            <div className={styles.stepLabel}>
-                                <div>
-                                    <div className={styles.stepNumber}>1</div>
-                                </div>
-                                <div>
-                                    <h2>Validation de la liste des propriétaires</h2>
-                                    <span>Validez la liste des propriétaires et logements à inclure dans votre campagne</span>
-                                </div>
-                                <Button
-                                    onClick={() => validStep(CampaignSteps.OwnersValidation)}
-                                    title="Valider">
-                                    Valider
-                                </Button>
-                            </div>
-                            <div className="fr-pt-4w">
-                                <HousingList paginatedHousing={paginatedHousing}
-                                             onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
-                                             displayKind={HousingDisplayKey.Owner}/>
-                            </div>
-                        </div>
-                        }
-
-                        {campaignStep(campaign) <= CampaignSteps.Export &&
-                        <div className={classNames(styles.campaignStep, { 'currentStep': true })}>
-                            <div className={styles.stepLabel}>
-                                <div>
-                                    <div className={styles.stepNumber}>2</div>
-                                </div>
-                                <div>
-                                    <h2>Export des données propriétaires</h2>
-                                    <span>Ajustez les variables et exportez vos données pour créer votre fichier de publipostage, envoi par email ou rencontre.</span>
-                                </div>
-                                {campaignStep(campaign) !== CampaignSteps.Export &&
-                                <Button
-                                    disabled
-                                    title="En attente">
-                                    En attente
-                                </Button>
-                                }
-                                {campaignStep(campaign) === CampaignSteps.Export &&
-                                <a href={exportURL}
-                                   onClick={() => validStep(CampaignSteps.Export)}
-                                   className="fr-btn--md fr-btn"
-                                   download>
-                                    Exporter
-                                </a>
-                                }
-                            </div>
-                        </div>
-                        }
-
-                        {campaignStep(campaign) <= CampaignSteps.Sending &&
-                        <div className={styles.campaignStep}>
-                            <div className={styles.stepLabel}>
-                                <div>
-                                    <div className={styles.stepNumber}>3</div>
-                                </div>
-                                <div>
-                                    <h2>Envoi de la campagne</h2>
-                                    <span>Datez l’envoi qui marque le début de votre campagne.</span>
-                                </div>
-                                {campaignStep(campaign) !== CampaignSteps.Sending &&
-                                <Button
-                                    disabled
-                                    title="En attente">
-                                    En attente
-                                </Button>
-                                }
-                                {campaignStep(campaign) === CampaignSteps.Sending &&
-                                <Button
-                                onClick={() => validStep(CampaignSteps.Sending)}
-                                title="Valider">
-                                Confirmer
-                                </Button>
-                                }
-                            </div>
-                        </div>
-                        }
 
                         {campaignStep(campaign) < CampaignSteps.InProgess &&
-                        <div className={styles.campaignStep}>
-                            <div className={styles.stepLabel}>
-                                <div>
-                                    <div className={styles.stepNumber}>4</div>
+                        <>
+                            <div className={classNames(styles.campaignStep,
+                                campaignStep(campaign) === CampaignSteps.OwnersValidation ? styles.currentStep :
+                                    campaignStep(campaign) > CampaignSteps.OwnersValidation ? styles.oldStep : '')}>
+                                <div className={styles.stepLabel}>
+                                    <div>
+                                        <div className={styles.stepNumber}>1</div>
+                                    </div>
+                                    <div>
+                                        <h2>Validation de la liste des propriétaires</h2>
+                                        <span className={styles.currentOnly}>Validez la liste des propriétaires et logements à inclure dans votre campagne</span>
+                                    </div>
+                                    <Button
+                                        onClick={() => validStep(CampaignSteps.OwnersValidation)}
+                                        title="Valider"
+                                        className={styles.currentOnly}>
+                                        Valider
+                                    </Button>
                                 </div>
-                                <div>
-                                    <h2>Suivi de la campagne</h2>
-                                    <span>Complétez et suivez toutes les interactions avec les propriétaires.</span>
+                                <div className={classNames('fr-pt-4w', styles.currentOnly)}>
+                                    <HousingList paginatedHousing={paginatedHousing}
+                                                 onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
+                                                 displayKind={HousingDisplayKey.Owner}/>
                                 </div>
-                                <Button
-                                    disabled
-                                    title="En attente">
-                                    En attente
-                                </Button>
                             </div>
-                        </div>
+
+                            <div className={classNames(styles.campaignStep,
+                                campaignStep(campaign) === CampaignSteps.Export ? styles.currentStep :
+                                    campaignStep(campaign) > CampaignSteps.Export ? styles.oldStep : '')}>
+                                <div className={styles.stepLabel}>
+                                    <div>
+                                        <div className={styles.stepNumber}>2</div>
+                                    </div>
+                                    <div>
+                                        <h2>Export des données propriétaires</h2>
+                                        <span>Ajustez les variables et exportez vos données pour créer votre fichier de publipostage, envoi par email ou rencontre.</span>
+                                    </div>
+                                    {campaignStep(campaign) !== CampaignSteps.Export &&
+                                    <Button
+                                        disabled
+                                        title="En attente">
+                                        En attente
+                                    </Button>
+                                    }
+                                    {campaignStep(campaign) === CampaignSteps.Export &&
+                                    <a href={exportURL}
+                                       onClick={() => validStep(CampaignSteps.Export)}
+                                       className="fr-btn--md fr-btn"
+                                       download>
+                                        Exporter
+                                    </a>
+                                    }
+                                </div>
+                            </div>
+
+                            <div className={classNames(styles.campaignStep,
+                                campaignStep(campaign) === CampaignSteps.Sending ? styles.currentStep :
+                                    campaignStep(campaign) > CampaignSteps.Sending ? styles.oldStep : '')}>
+                                <div className={styles.stepLabel}>
+                                    <div>
+                                        <div className={styles.stepNumber}>3</div>
+                                    </div>
+                                    <div>
+                                        <h2>Envoi de la campagne</h2>
+                                        <span>Datez l’envoi qui marque le début de votre campagne.</span>
+                                    </div>
+                                    {campaignStep(campaign) !== CampaignSteps.Sending &&
+                                    <Button
+                                        disabled
+                                        title="En attente">
+                                        En attente
+                                    </Button>
+                                    }
+                                    {campaignStep(campaign) === CampaignSteps.Sending &&
+                                    <Button
+                                    onClick={() => validStep(CampaignSteps.Sending)}
+                                    title="Valider">
+                                    Confirmer
+                                    </Button>
+                                    }
+                                </div>
+                            </div>
+
+                            <div className={styles.campaignStep}>
+                                <div className={styles.stepLabel}>
+                                    <div>
+                                        <div className={styles.stepNumber}>4</div>
+                                    </div>
+                                    <div>
+                                        <h2>Suivi de la campagne</h2>
+                                        <span>Complétez et suivez toutes les interactions avec les propriétaires.</span>
+                                    </div>
+                                    <Button
+                                        disabled
+                                        title="En attente">
+                                        En attente
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
                         }
 
                         {campaignStep(campaign) === CampaignSteps.InProgess &&

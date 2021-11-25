@@ -7,6 +7,11 @@
   & + .campaignCard {
     margin-top: 32px;
   }
+
+  hr {
+    border-left: 1px solid var(--g300);
+    border-top: 1px solid var(--g300);
+  }
 }
 
 .campaignStat {
@@ -40,7 +45,24 @@
     border-top: 2px solid var(--bf500);
   }
 
-  &:not(.currentStep) {
+  &.oldStep {
+    border: 1px solid green;
+
+    h2 {
+      color: green !important;
+    }
+
+    .stepNumber {
+      color: green !important;
+      border: 2px solid green !important;
+    }
+
+    .currentOnly {
+      display: none;
+    }
+  }
+
+  &:not(.currentStep):not(.oldStep) {
     background-color: var(--bf100-g750);
   }
 

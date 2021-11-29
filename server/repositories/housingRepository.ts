@@ -185,7 +185,7 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 roomsCount: result.rooms_count,
                 buildingYear: result.building_year,
                 vacancyStartYear: result.vacancy_start_year,
-                campaignIds: result.campaign_ids.map((_: any) => _?.campaign_id)
+                campaignIds: result.campaign_ids.map((_: any) => _?.campaign_id).filter((_: any) => _)
             })),
             totalCount: housingCount,
             page,

@@ -87,7 +87,7 @@ const HousingList = (
             </Checkbox>,
         render: ({ id }: Housing) =>
             <Checkbox value={id}
-                      onChange={(e: ChangeEvent<any>) => checkOne(e.target.value, e.target.checked)}
+                      onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
                       checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
                       data-testid={'housing-check-' + id}
                       label="">
@@ -127,7 +127,7 @@ const HousingList = (
         label: 'Campagne',
         render: ({ campaignIds, id } : Housing) =>
             <>
-                {campaignIds.length ?
+                {campaignIds?.length ?
                     campaignIds.map(campaignId =>
                         <div key={id + '-campaign-' + campaignId}>
                             {campaignList?.find(c => c.id === campaignId)?.name}

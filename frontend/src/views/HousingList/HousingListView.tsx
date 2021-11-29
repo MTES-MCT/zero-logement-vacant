@@ -25,11 +25,10 @@ const HousingListView = () => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
+    const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
     const create = (draftCampaign: DraftCampaign) => {
         dispatch(createCampaign(draftCampaign, selectedHousing.all, selectedHousing.ids))
-        setIsModalOpen(false)
-        history.push("/campagnes");
     }
 
     const removeFilter = (removedFilter: any) => {
@@ -49,6 +48,12 @@ const HousingListView = () => {
     useEffect(() => {
         dispatch(changeHousingFiltering(filters))
     }, [dispatch])
+
+    useEffect(() => {
+        if (campaignFetchingId) {
+            history.push(`/campagnes/${campaignFetchingId}`);
+        }
+    }, [campaignFetchingId])
 
 
     return (
@@ -85,12 +90,12 @@ const HousingListView = () => {
                                 <Button title="Créer la campagne"
                                         onClick={() => setIsModalOpen(true)}
                                         data-testid="create-campaign-button"
-                                        disabled={!selectedHousing.all || selectedHousing?.ids.length === 0}
+                                        disabled={!selectedHousing.all && selectedHousing?.ids.length === 0}
                                         className="float-right">
                                     Créer la campagne
                                 </Button>
                                 {isModalOpen &&
-                                <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount : selectedHousing.ids.length}
+                                <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
                                                        ownerCount={0}
                                                        onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
                                                        onClose={() => setIsModalOpen(false)}/>}
@@ -98,6 +103,7 @@ const HousingListView = () => {
                         </Row>
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
+                                     filters={filters}
                                      displayKind={HousingDisplayKey.Housing}
                                      onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                     </>

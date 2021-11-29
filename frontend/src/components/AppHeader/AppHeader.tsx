@@ -38,7 +38,7 @@ function AppHeader() {
                     <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                     <Service
                         title="Zéro Logement Vacant"
-                        description="Mobiliser les propriétaires de logements vacants"/>
+                        description=""/>
                 </HeaderBody>
                 {user &&
                     <HeaderNav data-testid="header-nav">

@@ -89,3 +89,18 @@ export const taxedOptions: HousingFilterOption[] = [
     {value: "true", label: "Oui", badgeLabel: "Taxé"},
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
+
+export const hasFilters = (housingFilters: HousingFilters) => {
+    return Boolean(housingFilters.ownerKinds.length ||
+        housingFilters.ownerAges.length ||
+        housingFilters.multiOwners.length ||
+        housingFilters.beneficiaryCounts.length ||
+        housingFilters.contactsCounts.length ||
+        housingFilters.housingKinds.length ||
+        housingFilters. housingStates.length ||
+        housingFilters.housingAreas.length ||
+        housingFilters.buildingPeriods.length ||
+        housingFilters.vacancyDurations.length ||
+        housingFilters.isTaxedValues.length ||
+        housingFilters.query.length);
+}

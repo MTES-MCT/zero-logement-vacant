@@ -10,7 +10,15 @@ export const campaignsTable = 'campaigns';
 const get = async (campaignId: string): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
-            .where('id', campaignId)
+            .select(`${campaignsTable}.*`)
+            .count(`${campaignsTable}.id`, {as: 'housingCount'})
+            .countDistinct('o.id', {as: 'ownerCount'})
+            .from(campaignsTable)
+            .where(`${campaignsTable}.id`, campaignId)
+            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
+            .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .groupBy(`${campaignsTable}.id`)
             .first()
             .then((result: any) => parseCampaignApi(result))
     } catch (err) {
@@ -66,13 +74,13 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     }
 }
 
-const update = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
+const update = async (campaignApi: CampaignApi): Promise<string> => {
     try {
         return db(campaignsTable)
             .where('id', campaignApi.id)
             .update(formatCampaignApi(campaignApi))
             .returning('*')
-            .then(_ => parseCampaignApi(_[0]))
+            .then(_ => _[0])
     } catch (err) {
         console.error('Updating campaign failed', err, campaignApi);
         throw new Error('Updating campaign failed');
@@ -102,9 +110,7 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     created_at: campaignApi.createdAt,
     validated_at: campaignApi.validatedAt,
     exported_at: campaignApi.exportedAt,
-    sent_at: campaignApi.sentAt,
-    housingCount: campaignApi.housingCount,
-    ownerCount: campaignApi.ownerCount
+    sent_at: campaignApi.sentAt
 })
 
 export default {

@@ -1,8 +1,7 @@
 .campaignCard {
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.16), 0 1px 0px -2px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
   padding: 24px;
-  margin-left: -16px;
-  margin-right: -16px;
+  background-color: white;
 
   & + .campaignCard {
     margin-top: 32px;

@@ -27,30 +27,32 @@ export interface CampaignListFetchedAction {
 
 export interface FetchCampaignAction {
     type: typeof FETCH_CAMPAIGN
+    campaignFetchingId: string
 }
 
 export interface CampaignFetchedAction {
     type: typeof CAMPAIGN_FETCHED,
     campaign: Campaign[]
+    campaignFetchingId: string
 }
 
 export interface FetchCampaignHousingListAction {
     type: typeof FETCH_CAMPAIGN_HOUSING_LIST,
-    campaignId: string,
+    campaignHousingFetchingId: string,
     page: number,
     perPage: number
 }
 
 export interface CampaignHousingListFetchedAction {
     type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
-    campaignId: string,
+    campaignHousingFetchingId: string,
     paginatedHousing: PaginatedResult<Housing>,
     exportURL: string
 }
 
 export interface CampaignCreatedAction {
     type: typeof CAMPAIGN_CREATED,
-    campaign: Campaign
+    campaignId: string
 }
 
 export interface CampaignUpdatedAction {
@@ -179,11 +181,11 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
         dispatch(showLoading());
 
         campaignService.createCampaign(draftCampaign, allHousing, housingIds)
-            .then((campaign) => {
+            .then((campaignId) => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_CREATED,
-                    campaign
+                    campaignId
                 });
             });
     };

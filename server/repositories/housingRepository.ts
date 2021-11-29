@@ -142,9 +142,10 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
         }
 
         const query = db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name')
+            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', `${campaignsHousingTable}.campaign_id`)
             .from(`${housingTable}`)
             .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .leftJoin(campaignsHousingTable, 'housing_id', `${housingTable}.id`)
             .modify(filter)
 
         const results = await query
@@ -182,7 +183,8 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 housingKind: result.housing_kind,
                 roomsCount: result.rooms_count,
                 buildingYear: result.building_year,
-                vacancyStartYear: result.vacancy_start_year
+                vacancyStartYear: result.vacancy_start_year,
+                campaigns: result.campaign_id
             })),
             totalCount: housingCount,
             page,

@@ -36,14 +36,17 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const lastNumber = await campaignRepository.lastCampaignNumber()
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{campaignNumber: (lastNumber ?? 0) + 1, startMonth, kind, filters})
 
-
     const housingIds = allHousing ?
-        await housingRepository.list(filters).then(_ => _.entities.map(_ => _.id)) :
+        await housingRepository.list(filters)
+            .then(_ => _.entities
+                .map(_ => _.id)
+                .filter(id => request.body.housingIds.indexOf(id) === -1)
+            ):
         request.body.housingIds;
 
     await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
-    return response.status(200).json(newCampaignApi);
+    return response.status(200).json(newCampaignApi.id);
 
 }
 
@@ -54,16 +57,15 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     console.log('Validate campaign step', campaignId, step)
 
-    return campaignRepository.get(campaignId)
-        .then((campaignApi: CampaignApi) => campaignRepository.update(
-            {
-                ...campaignApi,
-                validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
-                exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
-                sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt
-            }
-        ))
-        .then(campaignApi => response.status(200).json(campaignApi));
+    const updatedCampaign = await campaignRepository.get(campaignId).then((campaignApi: CampaignApi) => ({
+        ...campaignApi,
+        validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
+        exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
+        sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt
+    }))
+
+    return campaignRepository.update(updatedCampaign)
+        .then(_ => response.status(200).json(updatedCampaign))
 
 }
 

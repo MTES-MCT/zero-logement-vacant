@@ -15,6 +15,8 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 
 
 export interface CampaignState {
+    campaignFetchingId?: string;
+    campaignHousingFetchingId?: string;
     campaignList: Campaign[];
     campaign?: Campaign;
     paginatedHousing: PaginatedResult<Housing>;
@@ -47,17 +49,19 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case FETCH_CAMPAIGN:
             return {
                 ...state,
+                campaignFetchingId: action.campaignFetchingId,
                 campaign: undefined,
             };
         case CAMPAIGN_FETCHED:
             return {
                 ...state,
-                campaign: action.campaign
+                campaignFetchingId: undefined,
+                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign
             };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
                 ...state,
-                campaignId: action.campaignId,
+                campaignHousingFetchingId: action.campaignHousingFetchingId,
                 paginatedHousing: {
                     entities: [],
                     totalCount: 0,
@@ -67,11 +71,12 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
-                action.campaignId === state.campaign?.id &&
+                action.campaignHousingFetchingId === state.campaignHousingFetchingId &&
                 action.paginatedHousing.page === state.paginatedHousing.page &&
                 action.paginatedHousing.perPage === state.paginatedHousing.perPage
             return !isCurrentFetching ? state : {
                 ...state,
+                campaignHousingFetchingId: undefined,
                 paginatedHousing: {
                     ...state.paginatedHousing,
                     entities: action.paginatedHousing.entities,
@@ -83,10 +88,8 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case CAMPAIGN_CREATED:
             return {
                 ...state,
-                campaignList: [
-                    ...state.campaignList,
-                    action.campaign
-                ],
+                campaignFetchingId: action.campaignId,
+                campaign: undefined,
                 campaignHousingList: []
             };
         case CAMPAIGN_UPDATED:

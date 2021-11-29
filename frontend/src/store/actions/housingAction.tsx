@@ -19,8 +19,7 @@ export interface FetchHousingListAction {
 export interface HousingListFetchedAction {
     type: typeof HOUSING_LIST_FETCHED,
     paginatedHousing: PaginatedResult<Housing>,
-    filters: HousingFilters,
-    checkedHousingIds: string[]
+    filters: HousingFilters
 }
 
 export type HousingActionTypes = FetchHousingListAction | HousingListFetchedAction;

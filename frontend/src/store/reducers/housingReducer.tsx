@@ -46,8 +46,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                     page: action.page,
                     perPage: action.perPage
                 },
-                filters: action.filters,
-                checkedHousingIds: []
+                filters: action.filters
             };
         case HOUSING_LIST_FETCHED: {
             const isCurrentFetching =

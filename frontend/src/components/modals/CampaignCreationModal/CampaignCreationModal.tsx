@@ -21,6 +21,7 @@ import { CampaignKinds, DraftCampaign } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import { hasFilters } from '../../../models/HousingFilters';
 
 const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {housingCount: number, ownerCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
 
@@ -84,7 +85,7 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
                 <Container fluid>
                     <Text size="md">
                         <span data-testid="housing-infos">
-                            <b>{housingCount}</b> logements / <b>{ownerCount}</b> propriétaires
+                            <b>{housingCount}</b> logements
                         </span>
                     </Text>
                     <Row gutters>
@@ -110,20 +111,24 @@ const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {h
                             />
                         </Col>
                     </Row>
+                    {hasFilters(filters) &&
                     <Row className="fr-mt-4w">
                         <Col>
                             La liste a été établie à partir des filtres suivants :
                             <div className="fr-my-1w">
-                                <HousingFiltersBadges />
+                                <HousingFiltersBadges/>
                             </div>
-                            {paginatedHousing.entities.length === housingCount ?
-                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche avec ces filtres.</i> :
-                                paginatedHousing.entities.length - housingCount === 1 ?
+                            {paginatedHousing.totalCount === housingCount ?
+                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche avec ces
+                                    filtres.</i> :
+                                paginatedHousing.totalCount - housingCount === 1 ?
                                     <i>Un logement a été retiré des résultats de la recherche avec ces filtres.</i> :
-                                    <i>{paginatedHousing.entities.length - housingCount} logements ont été retirés des résultats de la recherche avec ces filtres.</i>
+                                    <i>{paginatedHousing.totalCount - housingCount} logements ont été retirés des
+                                        résultats de la recherche avec ces filtres.</i>
                             }
                         </Col>
                     </Row>
+                    }
                 </Container>
             </ModalContent>
             <ModalFooter>

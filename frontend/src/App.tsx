@@ -2,6 +2,7 @@ import React from 'react';
 import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
+import AppFooter from './components/AppFooter/AppFooter';
 import LoginView from './views/Login/LoginView';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
@@ -49,6 +50,7 @@ function App() {
                         {user && user.accessToken && <Route exact path="/campagnes/proprietaires/:id" component={OwnerView} />}
                         <Route path="/" component={LoginView} />
                     </Switch>
+                    <AppFooter />
                 </BrowserRouter>
             </React.Suspense>
         </>

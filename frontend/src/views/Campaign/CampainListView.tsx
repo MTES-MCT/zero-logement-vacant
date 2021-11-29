@@ -16,7 +16,9 @@ const CampaignsListView = () => {
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        dispatch(listCampaigns());
+        if (!campaignList) {
+            dispatch(listCampaigns());
+        }
     }, [dispatch])
 
     return (
@@ -26,7 +28,7 @@ const CampaignsListView = () => {
                 <Title as="h1" className="fr-mb-4w">Campagnes</Title>
                 <Tabs>
                     <Tab label="Campagne(s) en cours">
-                        {campaignList.sort(campaignNumberSort).map(campaign =>
+                        {campaignList?.sort(campaignNumberSort).map(campaign =>
                             <div key={campaign.id} className={styles.campaignCard}>
                                 <Row>
                                     <Col>

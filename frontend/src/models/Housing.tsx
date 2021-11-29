@@ -12,6 +12,7 @@ export interface Housing {
     roomsCount: number;
     buildingYear?: number;
     vacancyStartYear: number;
+    campaignIds: string[];
 }
 
 export interface SelectedHousing {

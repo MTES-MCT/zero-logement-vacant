@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
-import { Container, Title, Row, Col, Alert } from '@dataesr/react-dsfr';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listCampaigns } from '../../store/actions/campaignAction';
 import styles from '../Campaign/campaign.module.scss';
-import { campaignStep, CampaignSteps } from '../../models/Campaign';
 
 
 const DashboardView = () => {
@@ -16,7 +14,9 @@ const DashboardView = () => {
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        dispatch(listCampaigns());
+        if (!campaignList) {
+            dispatch(listCampaigns());
+        }
     }, [dispatch])
 
     return (
@@ -37,7 +37,7 @@ const DashboardView = () => {
                     <Title as="h2">
                         Campagne (s) en cours
                     </Title>
-                    {campaignList.map(campaign =>
+                    {campaignList?.map(campaign =>
                         <div key={campaign.id} className={styles.campaignCard}>
                             <Row>
                                 <Col>

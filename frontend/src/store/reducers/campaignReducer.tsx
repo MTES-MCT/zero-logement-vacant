@@ -17,14 +17,13 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 export interface CampaignState {
     campaignFetchingId?: string;
     campaignHousingFetchingId?: string;
-    campaignList: Campaign[];
+    campaignList?: Campaign[];
     campaign?: Campaign;
     paginatedHousing: PaginatedResult<Housing>;
     exportURL: string;
 }
 
 const initialState: CampaignState = {
-    campaignList: [] as Campaign[],
     paginatedHousing: {
         entities: [],
         page: 1,
@@ -97,7 +96,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 ...state,
                 campaign: action.campaign,
                 campaignList: [
-                    ...state.campaignList.filter(_ => _.id !== action.campaign.id),
+                    ...(state.campaignList ?? []).filter(_ => _.id !== action.campaign.id),
                     action.campaign
                 ]
             };

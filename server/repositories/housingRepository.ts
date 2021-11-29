@@ -142,10 +142,11 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
         }
 
         const query = db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', `${campaignsHousingTable}.campaign_id`)
+            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', db.raw('json_agg(campaigns) campaign_ids'))
             .from(`${housingTable}`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
-            .leftJoin(campaignsHousingTable, 'housing_id', `${housingTable}.id`)
+            .joinRaw(`join ${ownerTable} as o on (${housingTable}.invariant = any(o.invariants))`)
+            .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
+            .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 
         const results = await query
@@ -184,7 +185,7 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 roomsCount: result.rooms_count,
                 buildingYear: result.building_year,
                 vacancyStartYear: result.vacancy_start_year,
-                campaigns: result.campaign_id
+                campaignIds: result.campaign_ids.map((_: any) => _?.campaign_id)
             })),
             totalCount: housingCount,
             page,

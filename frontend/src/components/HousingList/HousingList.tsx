@@ -7,6 +7,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { listCampaigns } from '../../store/actions/campaignAction';
 
 
 export enum HousingDisplayKey {
@@ -28,10 +31,13 @@ const HousingList = (
         onSelectHousing?: (selectedHousing: SelectedHousing) => void
     }) => {
 
+    const dispatch = useDispatch();
     const location = useLocation();
 
     const [checkedIds, setCheckedIds] = useState<string[]>([]);
     const [allChecked, setAllChecked] = useState<boolean>(false);
+
+    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     const checkAll = (checked: boolean) => {
         const selectedHousing = {all: checked, ids: []}
@@ -42,13 +48,19 @@ const HousingList = (
         }
     }
 
-    const checkOne = (id: string, checked: boolean) => {
+    const checkOne = (id: string) => {
         const updatedCheckIds = (checkedIds.indexOf(id) === -1) ? [...checkedIds, id] : checkedIds.filter(f => f !== id)
         setCheckedIds(updatedCheckIds)
         if (onSelectHousing) {
             onSelectHousing({all: allChecked, ids: updatedCheckIds})
         }
     }
+
+    useEffect(() => {
+        if (!campaignList) {
+            dispatch(listCampaigns());
+        }
+    }, [dispatch])
 
     useEffect(() => {
         if (filters) {
@@ -113,7 +125,17 @@ const HousingList = (
     const campaignColumn = {
         name: 'campaign',
         label: 'Campagne',
-        render: () => <></>
+        render: ({ campaignIds, id } : Housing) =>
+            <>
+                {campaignIds.length ?
+                    campaignIds.map(campaignId =>
+                        <div key={id + '-campaign-' + campaignId}>
+                            {campaignList?.find(c => c.id === campaignId)?.name}
+                        </div>
+                    ) :
+                    'Jamais contacté'
+                }
+            </>
     };
 
     const statusColumn = {

@@ -12,5 +12,5 @@ export interface HousingApi {
     roomsCount: number;
     buildingYear?: number;
     vacancyStartYear: number;
-    campaigns: string[];
+    campaignIds: string[];
 }

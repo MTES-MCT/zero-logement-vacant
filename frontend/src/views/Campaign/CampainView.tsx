@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button, Col, Container, Row, Tab, Tabs, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -14,7 +14,6 @@ import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
 import classNames from 'classnames';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { SelectedHousing } from '../../models/Housing';
 
 
 const CampaignView = () => {
@@ -23,8 +22,6 @@ const CampaignView = () => {
     const { id } = useParams<{id: string}>();
 
     const { campaign, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
-
-    const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     useEffect(() => {
         dispatch(listCampaignHousing(id))

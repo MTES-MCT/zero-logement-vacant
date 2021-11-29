@@ -23,7 +23,7 @@ import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { hasFilters } from '../../../models/HousingFilters';
 
-const CampaignCreationModal = ({housingCount, ownerCount, onSubmit, onClose}: {housingCount: number, ownerCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
+const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
 
     const [campaignStartMonth, setCampaignStartMonth] = useState('');
     const [campaignKind, setCampaignKind] = useState('');

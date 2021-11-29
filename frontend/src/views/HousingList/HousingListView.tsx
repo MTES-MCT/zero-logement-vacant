@@ -96,7 +96,6 @@ const HousingListView = () => {
                                 </Button>
                                 {isModalOpen &&
                                 <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
-                                                       ownerCount={0}
                                                        onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
                                                        onClose={() => setIsModalOpen(false)}/>}
                             </Col>

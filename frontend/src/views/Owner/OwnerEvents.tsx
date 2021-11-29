@@ -12,7 +12,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
 
     const dispatch = useDispatch();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [expandEvents, setExpandEvents] = useState(false);
     const { events } = useSelector((state: ApplicationState) => state.owner);

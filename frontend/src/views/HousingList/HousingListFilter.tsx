@@ -24,6 +24,7 @@ const HousingListFilter = () => {
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
+    const [currentExpandedFilter, setCurrentExpandedFilter] = useState<boolean>(false);
 
     const onChangeFilters = (changedFilters: any) => {
         dispatch(changeHousingFiltering({
@@ -43,7 +44,8 @@ const HousingListFilter = () => {
                         <AppMultiSelect label="Type"
                                         options={ownerKindOptions}
                                         initialValues={filters.ownerKinds}
-                                        onChange={(values) => onChangeFilters({ownerKinds: values})}/>
+                                        onChange={(values) => onChangeFilters({ownerKinds: values})}
+                        />
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Âge"

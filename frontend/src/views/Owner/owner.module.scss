@@ -1,5 +1,5 @@
 .bg-100 {
-  background-color: var(--g100);
+  background-color: var(--grey-975);
 
   h1 {
     text-transform: capitalize;
@@ -14,13 +14,13 @@ ul.ownerEvents {
     padding-bottom: 0;
 
     .ownerEvent {
-      border-left: 1px solid var(--g400);
+      border-left: 1px solid var(--grey-850);
       padding: 0 0 24px 24px;
       margin: 0 0 0 -15px;
 
 
       .eventDate {
-        color: var(--g600);
+        color: var(--grey-425);
         margin-bottom: 0;
       }
     }
@@ -28,11 +28,11 @@ ul.ownerEvents {
 }
 
 .bordered {
-  border: 1px solid var(--g300);
+  border: 1px solid var(--grey-925);
 
   hr {
-    border-top: 1px solid var(--g300);
-    border-left: 1px solid var(--g300);
+    border-top: 1px solid var(--grey-925);
+    border-left: 1px solid var(--grey-925);
     border-bottom: none;
   }
 }

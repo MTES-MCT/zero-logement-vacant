@@ -2,7 +2,18 @@ import React, { useState } from 'react';
 import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 
-const AppMultiSelect = ( { label, options, initialValues, onChange }: { label: string, options: { label: string, value: string }[], initialValues: string[], onChange: (values: string[]) => void }) => {
+const AppMultiSelect = (
+    {
+        label,
+        options,
+        initialValues,
+        onChange
+    }: {
+        label: string,
+        options: { label: string, value: string }[],
+        initialValues: string[],
+        onChange: (values: string[]) => void
+    }) => {
 
     const [showOptions, setShowOptions] = useState(false);
 

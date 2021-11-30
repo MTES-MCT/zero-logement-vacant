@@ -1,3 +1,5 @@
+@import "colors";
+
 .zlv-table-with-view {
   th:last-child {
     width: 120px;
@@ -24,13 +26,13 @@
 }
 
 .bg-100 {
-  background-color: var(--g100)
+  background-color: var(--grey-975)
 }
 .bg-300 {
-  background-color: var(--g300)
+  background-color: var(--grey-925)
 }
 .bg-bf200 {
-  background-color: var(--bf200-bf300)
+  background-color: var(--blue-france-950)
 }
 
 .capitalize {
@@ -50,7 +52,7 @@
 }
 
 .fr-tag {
-  color: var(--bf500) !important;
+  color: var(--blue-france-113) !important;
   background-color: #E5E5F4 !important;
 
   button {
@@ -71,8 +73,8 @@ button.fr-select {
   position: relative;
 
   .select-multi-options {
-    background-color: var(--w);
-    box-shadow: 0 0 10px var(--g300);
+    background-color: var(--white-1000);
+    box-shadow: 0 0 10px var(--grey-925);
     position: absolute;
     z-index: 10;
     width: 100%;

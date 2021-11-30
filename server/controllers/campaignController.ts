@@ -3,6 +3,8 @@ import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
+import eventRepository from '../repositories/eventRepository';
+import { EventApi, EventKinds } from '../models/EventApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -65,9 +67,18 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
 
-    return campaignRepository.update(updatedCampaign)
-        .then(_ => response.status(200).json(updatedCampaign))
+    const events = await campaignHousingRepository.getHousingOwnerIds(campaignId)
+        .then(_ => _.map(ids => <EventApi>{
+            housingId: ids.housingId,
+            ownerId: ids.ownerId,
+            kind: EventKinds.CampaignSend,
+            content:'Campagne envoyée'
+        }))
 
+    return Promise.all([
+        eventRepository.addByCampaign(campaignId, events),
+        campaignRepository.update(updatedCampaign)
+    ]).then(_ => response.status(200).json(updatedCampaign))
 }
 
 // const importFromAirtable = async (request: Request, response: Response): Promise<Response> => {

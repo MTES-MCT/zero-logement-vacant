@@ -133,7 +133,7 @@ const CampaignView = () => {
                                 <div className="fr-pt-4w">
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
-                                                 displayKind={HousingDisplayKey.Owner}/>
+                                                 displayKind={HousingDisplayKey.Housing}/>
                                 </div>
                                 }
                             </div>
@@ -248,18 +248,18 @@ const CampaignView = () => {
                                                  displayKind={HousingDisplayKey.Owner}/>
                                 </div>
                             </Tab>
-                            <Tab label="Suivi en cours (0)">
-                                TODO
-                            </Tab>
-                            <Tab label="Sans suite (0)">
-                                TODO
-                            </Tab>
-                            <Tab label="Non vacant (0)">
-                                TODO
-                            </Tab>
-                            <Tab label="Sortie de procédure (0)">
-                                TODO
-                            </Tab>
+                            {/*<Tab label="Suivi en cours (0)">*/}
+                            {/*    TODO*/}
+                            {/*</Tab>*/}
+                            {/*<Tab label="Sans suite (0)">*/}
+                            {/*    TODO*/}
+                            {/*</Tab>*/}
+                            {/*<Tab label="Non vacant (0)">*/}
+                            {/*    TODO*/}
+                            {/*</Tab>*/}
+                            {/*<Tab label="Sortie de procédure (0)">*/}
+                            {/*    TODO*/}
+                            {/*</Tab>*/}
                         </Tabs>
                         }
                     </Container>

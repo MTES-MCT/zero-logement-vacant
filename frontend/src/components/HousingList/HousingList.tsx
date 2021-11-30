@@ -80,18 +80,26 @@ const HousingList = (
     const selectColumn = {
         name: 'select',
         headerRender: () =>
-            <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
-                      checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
-                      className={checkedIds.length !== 0 ? styles.indeterminate : ''}
-                      label="">
-            </Checkbox>,
+            <>
+                {onSelectHousing &&
+                    <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
+                    checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
+                    className={checkedIds.length !== 0 ? styles.indeterminate : ''}
+                    label="">
+                    </Checkbox>
+                }
+            </>,
         render: ({ id }: Housing) =>
-            <Checkbox value={id}
-                      onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
-                      checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
-                      data-testid={'housing-check-' + id}
-                      label="">
-            </Checkbox>
+            <>
+                {onSelectHousing &&
+                <Checkbox value={id}
+                          onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
+                          checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
+                          data-testid={'housing-check-' + id}
+                          label="">
+                </Checkbox>
+                }
+            </>
     };
 
     const addressColumn = {
@@ -141,7 +149,7 @@ const HousingList = (
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: () => {}
+        render: () => <div className={styles.statusLabel}>En attente de retour</div>
     };
 
     const viewColumn = {

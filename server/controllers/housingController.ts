@@ -138,9 +138,6 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
     ') as c(id, postal_code, house_number, street, city)' +
     ' WHERE h.id::text = c.id'
 
-    console.log('update', update)
-
-
     await housingRepository.rawUpdate(update)
 
     return response.status(200).json(housingAdresses)

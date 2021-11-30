@@ -42,6 +42,7 @@ function App() {
                 <BrowserRouter>
                     <AppHeader />
                     <Switch>
+                        {user && user.accessToken && <Route exact path="/" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
                         {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}

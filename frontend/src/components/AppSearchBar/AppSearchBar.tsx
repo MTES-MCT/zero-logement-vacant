@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import classNames from 'classnames';
@@ -16,6 +16,10 @@ const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: 
         e.preventDefault();
         onSearch(searchInput);
     }
+
+    useEffect(() => {
+        setSearchInput(query)
+    }, [query])
 
     return (
         <form role="search" data-testid="search-form" className={classNames('fr-search-bar', { 'fr-search-bar--lg': (size === 'lg'), }) } onSubmit={(e: any) => submitSearch(e)}>

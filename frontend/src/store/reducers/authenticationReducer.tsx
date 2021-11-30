@@ -28,7 +28,7 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
                 ...state,
                 isLoggedIn: false,
                 user: null,
-                error: 'failed'
+                error: "Échec de l'authentification"
             };
         case LOGOUT:
             return {

@@ -8,6 +8,7 @@ export interface CampaignApi {
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
+    sendingDate?: string;
     housingCount?: number;
     ownerCount?: number;
 }

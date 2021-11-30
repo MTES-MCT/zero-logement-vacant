@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Header, HeaderBody, HeaderNav, Logo, NavItem, Service } from '@dataesr/react-dsfr';
-import { Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import {
+    Header,
+    HeaderBody,
+    HeaderNav,
+    Logo,
+    NavItem,
+    Service,
+    Tool,
+    ToolItem,
+    ToolItemGroup,
+} from '@dataesr/react-dsfr';
+import { Link, useHistory, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
+import { logout } from '../../store/actions/authenticationAction';
 
 function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
@@ -29,7 +40,15 @@ function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
 function AppHeader() {
 
+    const dispatch = useDispatch();
+    const history = useHistory();
+
     const { user } = useSelector((state: ApplicationState) => state.authentication);
+
+    const logoutUser = () => {
+        dispatch(logout())
+        history.push('/accueil');
+    }
 
     return (
         <>
@@ -39,6 +58,13 @@ function AppHeader() {
                     <Service
                         title="Zéro Logement Vacant"
                         description=""/>
+                    {user &&
+                    <Tool>
+                        <ToolItemGroup>
+                            <ToolItem icon='ri-lock-line' onClick={() => logoutUser()}>Me déconnecter</ToolItem>
+                        </ToolItemGroup>
+                    </Tool>
+                    }
                 </HeaderBody>
                 {user &&
                     <HeaderNav data-testid="header-nav">

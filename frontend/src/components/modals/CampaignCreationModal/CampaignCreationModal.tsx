@@ -111,24 +111,26 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                             />
                         </Col>
                     </Row>
-                    {hasFilters(filters) &&
                     <Row className="fr-mt-4w">
                         <Col>
-                            La liste a été établie à partir des filtres suivants :
-                            <div className="fr-my-1w">
-                                <HousingFiltersBadges/>
-                            </div>
+                            {hasFilters(filters) ?
+                                <>
+                                La liste a été établie à partir des filtres suivants :
+                                <div className="fr-my-1w">
+                                    <HousingFiltersBadges/>
+                                </div>
+                                </> :
+                                <div>La liste a été établie sans filtres.</div>
+
+                            }
                             {paginatedHousing.totalCount === housingCount ?
-                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche avec ces
-                                    filtres.</i> :
+                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i> :
                                 paginatedHousing.totalCount - housingCount === 1 ?
-                                    <i>Un logement a été retiré des résultats de la recherche avec ces filtres.</i> :
-                                    <i>{paginatedHousing.totalCount - housingCount} logements ont été retirés des
-                                        résultats de la recherche avec ces filtres.</i>
+                                    <i>Un logement a été retiré des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i> :
+                                    <i>{paginatedHousing.totalCount - housingCount} logements ont été retirés des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i>
                             }
                         </Col>
                     </Row>
-                    }
                 </Container>
             </ModalContent>
             <ModalFooter>

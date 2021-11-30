@@ -42,12 +42,13 @@ function App() {
                 <BrowserRouter>
                     <AppHeader />
                     <Switch>
+                        {user && user.accessToken && <Route exact path="/" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
                         {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
                         {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}
                         {user && user.accessToken && <Route exact path="/campagnes/:id" component={CampaignView} />}
                         {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
-                        {user && user.accessToken && <Route exact path="/campagnes/proprietaires/:id" component={OwnerView} />}
+                        {user && user.accessToken && <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />}
                         <Route path="/" component={LoginView} />
                     </Switch>
                     <AppFooter />

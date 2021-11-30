@@ -4,9 +4,10 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .createTable('events', (table) => {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-                table.string('ownerId').notNullable();
+                table.string('owner_id');
+                table.string('housing_id');
                 table.string('kind').notNullable();
-                table.timestamp('createdAt').defaultTo(knex.fn.now());
+                table.timestamp('created_at').defaultTo(knex.fn.now());
                 table.string('content')
             })
     ]);

@@ -18,7 +18,7 @@ import {
 const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
     return (
         <>
-            {options.filter(o => filters.indexOf(o.value) !== -1).map((option, index) =>
+            {options.filter(o => o.value.length && filters.indexOf(o.value) !== -1).map((option, index) =>
                 <span className="fr-tag fr-tag--sm fr-fi-icon" key={option + '-' + index}>
                     {option.badgeLabel ?? option.label}
                     {onChange &&
@@ -43,37 +43,40 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
         <>
             <HousingFilterBadges options={ownerKindOptions}
                           filters={filters.ownerKinds}
-                          onChange={onChange && ((values) => onChange({ownerKinds: values}))}/>
+                          onChange={onChange && (values => onChange({ownerKinds: values}))}/>
             <HousingFilterBadges options={ownerAgeOptions}
                           filters={filters.ownerAges}
-                          onChange={onChange && ((values) => onChange({ownerAges: values}))}/>
+                          onChange={onChange && (values => onChange({ownerAges: values}))}/>
             <HousingFilterBadges options={multiOwnerOptions}
                           filters={filters.multiOwners}
-                          onChange={onChange && ((values) => onChange({multiOwners: values}))}/>
+                          onChange={onChange && (values => onChange({multiOwners: values}))}/>
             <HousingFilterBadges options={beneficiaryCountOptions}
                           filters={filters.beneficiaryCounts}
-                          onChange={onChange && ((values) => onChange({beneficiaryCounts: values}))}/>
+                          onChange={onChange && (values => onChange({beneficiaryCounts: values}))}/>
             <HousingFilterBadges options={housingKindOptions}
                           filters={filters.housingKinds}
-                          onChange={onChange && ((values) => onChange({housingKinds: values}))}/>
+                          onChange={onChange && (values => onChange({housingKinds: values}))}/>
             <HousingFilterBadges options={contactsCountOptions}
                           filters={filters.contactsCounts}
-                          onChange={onChange && ((values) => onChange({contactsCounts: values}))}/>
+                          onChange={onChange && (values => onChange({contactsCounts: values}))}/>
             <HousingFilterBadges options={housingAreaOptions}
                           filters={filters.housingAreas}
-                          onChange={onChange && ((values) => onChange({housingAreas: values}))}/>
+                          onChange={onChange && (values => onChange({housingAreas: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
                           filters={filters.housingStates}
-                          onChange={onChange && ((values) => onChange({housingStates: values}))}/>
+                          onChange={onChange && (values => onChange({housingStates: values}))}/>
             <HousingFilterBadges options={buildingPeriodOptions}
                           filters={filters.buildingPeriods}
-                          onChange={onChange && ((values) => onChange({buildingPeriods: values}))}/>
+                          onChange={onChange && (values => onChange({buildingPeriods: values}))}/>
             <HousingFilterBadges options={vacancyDurationOptions}
                           filters={filters.vacancyDurations}
-                          onChange={onChange && ((values) => onChange({vacancyDurations: values}))}/>
+                          onChange={onChange && (values => onChange({vacancyDurations: values}))}/>
             <HousingFilterBadges options={taxedOptions}
                           filters={filters.isTaxedValues}
-                          onChange={onChange && ((values) => onChange({isTaxedValues: values}))}/>
+                          onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
+            <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
+                          filters={[filters.query]}
+                          onChange={onChange && (() => onChange({query: ''}))}/>
         </>
     )
 

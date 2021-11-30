@@ -110,7 +110,8 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     created_at: campaignApi.createdAt,
     validated_at: campaignApi.validatedAt,
     exported_at: campaignApi.exportedAt,
-    sent_at: campaignApi.sentAt
+    sent_at: campaignApi.sentAt,
+    sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined,
 })
 
 export default {

@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import classNames from 'classnames';
 
 
-const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: (text: string) => void, placeholder?: string, buttonLabel?: string, size?: string }) => {
+const AppSearchBar = (
+    {
+        onSearch,
+        placeholder,
+        buttonLabel,
+        size,
+        disabled
+    }: {
+        onSearch: (text: string) => void,
+        placeholder?: string,
+        buttonLabel?: string,
+        size?: string,
+        disabled?: boolean
+    }) => {
 
     const { query } = useSelector((state: ApplicationState) => state.housing.filters);
 
@@ -17,6 +30,10 @@ const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: 
         onSearch(searchInput);
     }
 
+    useEffect(() => {
+        setSearchInput(query)
+    }, [query])
+
     return (
         <form role="search" data-testid="search-form" className={classNames('fr-search-bar', { 'fr-search-bar--lg': (size === 'lg'), }) } onSubmit={(e: any) => submitSearch(e)}>
             <label className="fr-label">{buttonLabel ?? 'Rechercher'}</label>
@@ -26,10 +43,12 @@ const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: 
                    data-testid="search-input"
                    value={searchInput}
                    onChange={(e) => setSearchInput(e.target.value)}
-                   onKeyDown={onKeyDown}/>
+                   onKeyDown={onKeyDown}
+                    disabled={disabled}/>
             <button type="submit"
                     className={classNames('fr-btn', { 'fr-btn--lg': (size === 'lg') })}
-                    title="Bouton de recherche">
+                    title="Bouton de recherche"
+                    disabled={disabled}>
                 {buttonLabel ?? 'Rechercher'}
             </button>
         </form>

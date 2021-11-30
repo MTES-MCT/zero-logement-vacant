@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Button, Col, Container, Row, Tab, Tabs, Title } from '@dataesr/react-dsfr';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { Button, Col, Container, Row, Tab, Tabs, TextInput, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
@@ -14,12 +14,29 @@ import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
 import classNames from 'classnames';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
+import CampaignExportModal from '../../components/modals/CampaignExportModal/CampaignExportModal';
+import { format, isDate, parse } from 'date-fns';
+import * as yup from 'yup';
+import { ValidationError } from 'yup/es';
 
 
 const CampaignView = () => {
 
     const dispatch = useDispatch();
     const { id } = useParams<{id: string}>();
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
+    const [errors, setErrors] = useState<any>({});
+
+    const sendingForm = yup.object().shape({
+        sendingDate: yup
+            .date()
+            .transform((curr, originalValue) => {
+                return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+            })
+            .typeError('Veuillez renseigner une date valide.')
+    });
 
     const { campaign, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
@@ -31,7 +48,25 @@ const CampaignView = () => {
 
     const validStep = (step: CampaignSteps) => {
         if (campaign) {
-            dispatch(validCampaignStep(campaign.id, step))
+            if (step === CampaignSteps.Sending) {
+                sendingForm
+                    .validate({ sendingDate }, {abortEarly: false})
+                    .then(() => {
+                        dispatch(validCampaignStep(campaign.id, step, sendingDate.length ? parse(sendingDate, 'dd/MM/yyyy', new Date()) : undefined,))
+                    })
+                    .catch(err => {
+                        const object: any = {};
+                        err.inner.forEach((x: ValidationError) => {
+                            if (x.path !== undefined && x.errors.length) {
+                                object[x.path] = x.errors[0];
+                            }
+                        });
+                        setErrors(object);
+                    })
+            }
+            else {
+                dispatch(validCampaignStep(campaign.id, step))
+            }
         }
     }
 
@@ -111,8 +146,11 @@ const CampaignView = () => {
                                         <div className={styles.stepNumber}>2</div>
                                     </div>
                                     <div>
-                                        <h2>Export des données propriétaires</h2>
-                                        <span>Ajustez les variables et exportez vos données pour créer votre fichier de publipostage, envoi par email ou rencontre.</span>
+                                        <h2>Export du fichier de données propriétaires</h2>
+                                        <span>
+                                            Ajustez les variables et exportez vos données pour créer votre fichier de publipostage, pour votre envoi email
+                                            <br />ou en vue d’une rencontre avec les propriétaires.
+                                        </span>
                                     </div>
                                     {campaignStep(campaign) < CampaignSteps.Export &&
                                     <Button
@@ -122,12 +160,21 @@ const CampaignView = () => {
                                     </Button>
                                     }
                                     {campaignStep(campaign) === CampaignSteps.Export &&
-                                    <a href={exportURL}
-                                       onClick={() => validStep(CampaignSteps.Export)}
-                                       className="fr-btn--md fr-btn"
-                                       download>
-                                        Exporter
-                                    </a>
+                                    <>
+                                        <Button title="Exporter"
+                                                onClick={() => setIsModalOpen(true)}
+                                                data-testid="export-campaign-button"
+                                                className="float-right">
+                                            Exporter
+                                        </Button>
+                                        {isModalOpen &&
+                                        <CampaignExportModal housingCount={campaign.housingCount}
+                                                             ownerCount={campaign.ownerCount}
+                                                             exportURL={exportURL}
+                                                             onSubmit={() => validStep(CampaignSteps.Export)}
+                                                             onClose={() => setIsModalOpen(false)}/>
+                                        }
+                                    </>
                                     }
                                 </div>
                             </div>
@@ -150,14 +197,27 @@ const CampaignView = () => {
                                         En attente
                                     </Button>
                                     }
-                                    {campaignStep(campaign) === CampaignSteps.Sending &&
-                                    <Button
-                                    onClick={() => validStep(CampaignSteps.Sending)}
-                                    title="Valider">
-                                    Confirmer
-                                    </Button>
-                                    }
                                 </div>
+                                {campaignStep(campaign) === CampaignSteps.Sending &&
+                                <Row spacing="pt-3w pl-4w ml-4w" className="fr-grid-row--bottom">
+                                    <Col n="3">
+                                        <TextInput
+                                            value={sendingDate}
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setSendingDate(e.target.value)}
+                                            label="Date d'envoi"
+                                            messageType={errors['sendingDate'] ? 'error' : ''}
+                                            message={errors['sendingDate']}
+                                        />
+                                    </Col>
+                                    <Col>
+                                        <Button className="float-right"
+                                            onClick={() => validStep(CampaignSteps.Sending)}
+                                            title="Valider">
+                                            Confirmer
+                                        </Button>
+                                    </Col>
+                                </Row>
+                                }
                             </div>
 
                             <div className={styles.campaignStep}>

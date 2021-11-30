@@ -5,6 +5,7 @@ import { HousingApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
+import { AddressApi } from '../models/AddressApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -72,31 +73,29 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
 
     worksheet.columns = [
         { header: 'Invariant', key: 'invariant' },
-        { header: 'Civilité', key: 'civility' },
         { header: 'Propriétaire', key: 'owner' },
-        { header: 'Numéro du propriétaire', key: 'ownerNumber' },
-        { header: 'Rue du propriétaire', key: 'ownerStreet' },
-        { header: 'Code postal du propriétaire', key: 'ownerPostCode' },
-        { header: 'Commune du propriétaire', key: 'ownerCity' },
-        { header: 'Numéro du logement', key: 'housingNumber' },
-        { header: 'Rue du logement', key: 'housingStreet' },
-        { header: 'Code postal du logement', key: 'housingPostCode' },
-        { header: 'Commune du logement', key: 'housingCity' },
+        { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+        { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+        { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+        { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
+
+    const reduceAddressApi = (addressApi: AddressApi) => {
+        return `${addressApi.houseNumber} ${addressApi.street}\n${addressApi.postalCode} ${addressApi.city}`
+    }
+
+    const reduceRawAddress= (rawAddress: string[]) => {
+        return rawAddress.filter(_ => _).reduce((a1, a2) =>`${a1}\n${a2}`)
+    }
 
     housingList.map((housing: HousingApi, index: number) => {
         worksheet.addRow({
             invariant: housing.invariant,
-            civility: '', //TODO
             owner: housing.owner.fullName,
-            ownerNumber: ownerAdresses[index].addressApi.houseNumber,
-            ownerStreet: ownerAdresses[index].addressApi.street,
-            ownerPostCode: ownerAdresses[index].addressApi.postalCode,
-            ownerCity: ownerAdresses[index].addressApi.city,
-            housingNumber: housingAdresses[index].addressApi.houseNumber,
-            housingStreet: housingAdresses[index].addressApi.street,
-            housingPostCode: housingAdresses[index].addressApi.postalCode,
-            housingCity: housingAdresses[index].addressApi.city,
+            ownerRawAddress: reduceRawAddress(housing.owner.rawAddress),
+            ownerAddress: reduceAddressApi(ownerAdresses[index].addressApi),
+            housingRawAddress: reduceRawAddress(housing.rawAddress),
+            housingAddress: reduceAddressApi(housingAdresses[index].addressApi)
         });
     })
 

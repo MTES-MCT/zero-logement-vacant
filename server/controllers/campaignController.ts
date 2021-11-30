@@ -61,7 +61,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         ...campaignApi,
         validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
         exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
-        sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt
+        sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
+        sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
 
     return campaignRepository.update(updatedCampaign)

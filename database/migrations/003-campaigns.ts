@@ -12,6 +12,7 @@ exports.up = function(knex) {
                 table.timestamp('validated_at');
                 table.timestamp('exported_at');
                 table.timestamp('sent_at');
+                table.date('sending_date');
             }),
         knex.schema// @ts-ignore
             .createTable('campaigns_housing', (table) => {

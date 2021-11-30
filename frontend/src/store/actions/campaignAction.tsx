@@ -191,15 +191,14 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
     };
 };
 
-export const validCampaignStep = (campaignId: string, step: CampaignSteps) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps, sendingDate?: Date) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        campaignService.validCampaignStep(campaignId, step)
+        campaignService.validCampaignStep(campaignId, step, sendingDate)
             .then(campaign => {
-                console.log('campaign', campaign)
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_UPDATED,

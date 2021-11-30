@@ -1,6 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
+
+const useOutsideClick = (ref: any, onOutsideClick: () => void) => {
+    useEffect(() => {
+        const handleClickOutside = (event: any) => {
+            if (ref.current && !ref.current.contains(event.target)) {
+                onOutsideClick();
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [ref]);
+}
+
 
 const AppMultiSelect = (
     {
@@ -15,6 +31,9 @@ const AppMultiSelect = (
         onChange: (values: string[]) => void
     }) => {
 
+    const wrapperRef = useRef(null);
+    useOutsideClick(wrapperRef, () => setShowOptions(false));
+
     const [showOptions, setShowOptions] = useState(false);
 
     const onChangeValue = (value: string, isChecked: boolean) => {
@@ -22,7 +41,6 @@ const AppMultiSelect = (
             ...initialValues.filter(v => v !== value),
             ...(isChecked ? [value] : [])
         ]);
-        setShowOptions(false)
     }
 
     const selectedOptions = () => {
@@ -32,7 +50,7 @@ const AppMultiSelect = (
     }
 
     return (
-        <div className="select-multi-input">
+        <div className="select-multi-input" ref={wrapperRef}>
             <span className="fr-label">{label}</span>
             <button className="fr-select"
                     onClick={() => setShowOptions(!showOptions)}>

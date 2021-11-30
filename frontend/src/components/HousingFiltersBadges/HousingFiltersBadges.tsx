@@ -76,7 +76,7 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
                           onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}
-                          onChange={onChange && (_ => onChange({query: ''}))}/>
+                          onChange={onChange && (() => onChange({query: ''}))}/>
         </>
     )
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Alert, Col, Container, Row, Tab, Tabs, Title } from '@dataesr/react-dsfr';
+import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { listCampaigns } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -29,6 +29,9 @@ const CampaignsListView = () => {
                 <Tabs>
                     <Tab label="Campagne(s) en cours">
                         <>
+                            {campaignList && !campaignList.length &&
+                                <Text>Il n&acute;y a pas de campagne en cours.</Text>
+                            }
                             {campaignList?.sort(campaignNumberSort).map(campaign =>
                                 <div key={campaign.id} className={styles.campaignCard}>
                                     <Row>
@@ -76,7 +79,9 @@ const CampaignsListView = () => {
                         </>
                     </Tab>
                     <Tab label="Campagnes passées">
-                        <></>
+                        <>
+                             <Text>Il n&acute;y a pas de campagne passée.</Text>
+                        </>
                     </Tab>
                 </Tabs>
             </Container>

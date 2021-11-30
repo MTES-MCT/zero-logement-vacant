@@ -4,7 +4,20 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import classNames from 'classnames';
 
 
-const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: (text: string) => void, placeholder?: string, buttonLabel?: string, size?: string }) => {
+const AppSearchBar = (
+    {
+        onSearch,
+        placeholder,
+        buttonLabel,
+        size,
+        disabled
+    }: {
+        onSearch: (text: string) => void,
+        placeholder?: string,
+        buttonLabel?: string,
+        size?: string,
+        disabled?: boolean
+    }) => {
 
     const { query } = useSelector((state: ApplicationState) => state.housing.filters);
 
@@ -30,10 +43,12 @@ const AppSearchBar = ({ onSearch, placeholder, buttonLabel, size }: { onSearch: 
                    data-testid="search-input"
                    value={searchInput}
                    onChange={(e) => setSearchInput(e.target.value)}
-                   onKeyDown={onKeyDown}/>
+                   onKeyDown={onKeyDown}
+                    disabled={disabled}/>
             <button type="submit"
                     className={classNames('fr-btn', { 'fr-btn--lg': (size === 'lg') })}
-                    title="Bouton de recherche">
+                    title="Bouton de recherche"
+                    disabled={disabled}>
                 {buttonLabel ?? 'Rechercher'}
             </button>
         </form>

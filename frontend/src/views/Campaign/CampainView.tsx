@@ -18,6 +18,7 @@ import CampaignExportModal from '../../components/modals/CampaignExportModal/Cam
 import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import { SelectedHousing } from '../../models/Housing';
 
 
 const CampaignView = () => {
@@ -26,6 +27,9 @@ const CampaignView = () => {
     const { id } = useParams<{id: string}>();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
+    const [removedHousingIds, setRemovedHousingIds] = useState<string[]>([]);
+
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [errors, setErrors] = useState<any>({});
 
@@ -45,6 +49,12 @@ const CampaignView = () => {
         dispatch(getCampaign(id))
     }, [id, dispatch])
 
+    const remove = () => {
+        const removedIds = [...removedHousingIds, ...selectedHousing.ids]
+        setRemovedHousingIds(removedIds)
+        dispatch(changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, removedIds))
+    }
+
 
     const validStep = (step: CampaignSteps) => {
         if (campaign) {
@@ -52,7 +62,7 @@ const CampaignView = () => {
                 sendingForm
                     .validate({ sendingDate }, {abortEarly: false})
                     .then(() => {
-                        dispatch(validCampaignStep(campaign.id, step, sendingDate.length ? parse(sendingDate, 'dd/MM/yyyy', new Date()) : undefined,))
+                        dispatch(validCampaignStep(campaign.id, step, {sendingDate : sendingDate.length ? parse(sendingDate, 'dd/MM/yyyy', new Date()) : undefined}))
                     })
                     .catch(err => {
                         const object: any = {};
@@ -65,7 +75,7 @@ const CampaignView = () => {
                     })
             }
             else {
-                dispatch(validCampaignStep(campaign.id, step))
+                dispatch(validCampaignStep(campaign.id, step, {excludeHousingIds: removedHousingIds}))
             }
         }
     }
@@ -74,38 +84,35 @@ const CampaignView = () => {
         <>
             {campaign &&
                 <>
-                <div className="bg-100">
-                    <Container className="bg-100">
-                        <AppBreadcrumb additionalItems={[{ url: '', label: campaign.name }]}/>
-                        <Row>
-                            <Col>
-                                <Title as="h1">{campaign.name}</Title>
-                            </Col>
-                            <Col>
-                                {/*<AppSearchBar onSearch={(input: string) => {}} />*/}
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col spacing="my-3w">
-                                <div className={styles.campaignStat}>
-                                    <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                    <span className={styles.statLabel}>propriétaires</span>
-                                </div>
-                                <div className={styles.campaignStat}>
-                                    <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                    <span className={styles.statLabel}>logement</span>
-                                </div>
-                                <div className={styles.campaignStat}>
-                                    <div className={styles.statTitle}> -</div>
-                                    <span className={styles.statLabel}>retours</span>
-                                </div>
-                            </Col>
-                        </Row>
-                    </Container>
-                </div>
-
-
-                    {Boolean(paginatedHousing.entities.length) &&
+                    <div className="bg-100">
+                        <Container className="bg-100">
+                            <AppBreadcrumb additionalItems={[{ url: '', label: campaign.name }]}/>
+                            <Row>
+                                <Col>
+                                    <Title as="h1">{campaign.name}</Title>
+                                </Col>
+                                <Col>
+                                    {/*<AppSearchBar onSearch={(input: string) => {}} />*/}
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col spacing="my-3w">
+                                    <div className={styles.campaignStat}>
+                                        <div className={styles.statTitle}>{campaign.ownerCount}</div>
+                                        <span className={styles.statLabel}>propriétaires</span>
+                                    </div>
+                                    <div className={styles.campaignStat}>
+                                        <div className={styles.statTitle}>{campaign.housingCount}</div>
+                                        <span className={styles.statLabel}>logement</span>
+                                    </div>
+                                    <div className={styles.campaignStat}>
+                                        <div className={styles.statTitle}> -</div>
+                                        <span className={styles.statLabel}>retours</span>
+                                    </div>
+                                </Col>
+                            </Row>
+                        </Container>
+                    </div>
                     <Container spacing="py-4w">
 
                         {campaignStep(campaign) < CampaignSteps.InProgess &&
@@ -131,9 +138,16 @@ const CampaignView = () => {
                                 </div>
                                 {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
                                 <div className="fr-pt-4w">
+                                    <button
+                                        className="ds-fr--inline fr-link"
+                                        type="button"
+                                        onClick={() => remove()}>
+                                        Supprimer de la liste
+                                    </button>
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
-                                                 displayKind={HousingDisplayKey.Housing}/>
+                                                 displayKind={HousingDisplayKey.Housing}
+                                                 onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                                 </div>
                                 }
                             </div>
@@ -263,7 +277,6 @@ const CampaignView = () => {
                         </Tabs>
                         }
                     </Container>
-                    }
                 </>
             }
         </>

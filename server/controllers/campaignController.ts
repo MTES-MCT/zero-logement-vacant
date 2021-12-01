@@ -56,6 +56,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
+    const excludeHousingIds = request.body.excludeHousingIds;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -67,7 +68,12 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
 
-    if (step === EventKinds.CampaignSend) {
+    if (step === CampaignSteps.OwnersValidation && excludeHousingIds) {
+        console.log('remove ', campaignId, excludeHousingIds)
+        await campaignHousingRepository.removeHousingFromCampaign(campaignId, excludeHousingIds)
+    }
+
+    if (step === CampaignSteps.Sending) {
         await campaignHousingRepository.getHousingOwnerIds(campaignId)
             .then(results => eventRepository.addByCampaign(
                 campaignId,
@@ -81,7 +87,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }
 
     return campaignRepository.update(updatedCampaign)
-        .then(_ => response.status(200).json(updatedCampaign))
+        .then(() => campaignRepository.get(campaignId))
+        .then(_ => response.status(200).json(_))
 }
 
 // const importFromAirtable = async (request: Request, response: Response): Promise<Response> => {

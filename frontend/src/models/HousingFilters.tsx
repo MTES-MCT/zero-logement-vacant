@@ -11,6 +11,7 @@ export interface HousingFilters {
     vacancyDurations: string[];
     isTaxedValues: string[];
     query: string;
+    excludedIds: string[];
 }
 
 export interface HousingFilterOption {

@@ -128,7 +128,6 @@ export const listCampaignHousing = (campaignId: string) => {
             perPage,
         });
 
-
         housingService.listByCampaign(campaignId, page, perPage)
             .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
@@ -143,7 +142,7 @@ export const listCampaignHousing = (campaignId: string) => {
 };
 
 
-export const changeCampaignHousingPagination = (page: number, perPage: number) => {
+export const changeCampaignHousingPagination = (page: number, perPage: number, excludedIds?: string[]) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -160,13 +159,14 @@ export const changeCampaignHousingPagination = (page: number, perPage: number) =
                 perPage
             });
 
-            housingService.listByCampaign(campaignId, page, perPage)
+            housingService.listByCampaign(campaignId, page, perPage, excludedIds)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({
                         type: CAMPAIGN_HOUSING_LIST_FETCHED,
                         campaignId,
-                        paginatedHousing: result
+                        paginatedHousing: result,
+                        exportURL: campaignService.getExportURL(campaignId)
                     });
                 });
         }
@@ -191,13 +191,13 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
     };
 };
 
-export const validCampaignStep = (campaignId: string, step: CampaignSteps, sendingDate?: Date) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date, excludeHousingIds?: string[]}) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        campaignService.validCampaignStep(campaignId, step, sendingDate)
+        campaignService.validCampaignStep(campaignId, step, params)
             .then(campaign => {
                 dispatch(hideLoading());
                 dispatch({

@@ -2,7 +2,7 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { format, parse, parseISO } from 'date-fns';
 import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
-import { fr } from "date-fns/locale";
+import { fr } from 'date-fns/locale';
 
 
 const listCampaigns = async (): Promise<Campaign[]> => {
@@ -35,12 +35,12 @@ const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean,
         .then(_ => _.json());
 };
 
-const validCampaignStep = async (campaignId: string, step: CampaignSteps, sendingDate?: Date): Promise<Campaign> => {
+const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date, excludeHousingIds?: string[]}): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, sendingDate }),
+        body: JSON.stringify({ step, sendingDate: params?.sendingDate, excludeHousingIds: params?.excludeHousingIds }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));

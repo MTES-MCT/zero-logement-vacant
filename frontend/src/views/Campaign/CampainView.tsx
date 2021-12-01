@@ -202,7 +202,10 @@ const CampaignView = () => {
                                         <CampaignExportModal housingCount={campaign.housingCount}
                                                              ownerCount={campaign.ownerCount}
                                                              exportURL={exportURL}
-                                                             onSubmit={() => validStep(CampaignSteps.Export)}
+                                                             onSubmit={() => {
+                                                                 validStep(CampaignSteps.Export);
+                                                                 setIsModalOpen(false);
+                                                             }}
                                                              onClose={() => setIsModalOpen(false)}/>
                                         }
                                     </>

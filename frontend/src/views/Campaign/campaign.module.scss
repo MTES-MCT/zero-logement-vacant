@@ -82,13 +82,13 @@
       color: var(--blue-france-113);
       margin-right: 24px;
     }
+  }
 
-    .stepAction {
-      float: right;
+  .stepAction {
+    float: right;
 
-      &.success, &.success > button {
-        color: var(--success-main-525)
-      }
+    &.success, &.success > button {
+      color: var(--success-main-525)
     }
   }
 }

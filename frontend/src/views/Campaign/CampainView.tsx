@@ -186,28 +186,29 @@ const CampaignView = () => {
                                     {currentStep() < CampaignSteps.Export &&
                                     <Button
                                         disabled
-                                        title="En attente">
+                                        title="En attente"
+                                        className={styles.stepAction}>
                                         En attente
                                     </Button>
                                     }
                                     {currentStep() === CampaignSteps.Export &&
                                     <>
-                                        <Button title="Exporter"
-                                                onClick={() => setIsModalOpen(true)}
-                                                data-testid="export-campaign-button"
-                                                className="float-right">
-                                            Exporter
-                                        </Button>
-                                        {isModalOpen &&
-                                        <CampaignExportModal housingCount={campaign.housingCount}
-                                                             ownerCount={campaign.ownerCount}
-                                                             exportURL={exportURL}
-                                                             onSubmit={() => {
-                                                                 validStep(CampaignSteps.Export);
-                                                                 setIsModalOpen(false);
-                                                             }}
-                                                             onClose={() => setIsModalOpen(false)}/>
-                                        }
+                                    <Button title="Exporter"
+                                            onClick={() => setIsModalOpen(true)}
+                                            data-testid="export-campaign-button"
+                                            className={styles.stepAction}>
+                                        Exporter
+                                    </Button>
+                                    {isModalOpen &&
+                                    <CampaignExportModal housingCount={campaign.housingCount}
+                                                         ownerCount={campaign.ownerCount}
+                                                         exportURL={exportURL}
+                                                         onSubmit={() => {
+                                                             validStep(CampaignSteps.Export);
+                                                             setIsModalOpen(false);
+                                                         }}
+                                                         onClose={() => setIsModalOpen(false)}/>
+                                    }
                                     </>
                                     }
                                     {currentStep() > CampaignSteps.Export &&
@@ -238,7 +239,8 @@ const CampaignView = () => {
                                     {currentStep() < CampaignSteps.Sending &&
                                     <Button
                                         disabled
-                                        title="En attente">
+                                        title="En attente"
+                                        className={styles.stepAction}>
                                         En attente
                                     </Button>
                                     }
@@ -255,9 +257,10 @@ const CampaignView = () => {
                                         />
                                     </Col>
                                     <Col>
-                                        <Button className="float-right"
+                                        <Button
                                             onClick={() => validStep(CampaignSteps.Sending)}
-                                            title="Valider">
+                                            title="Valider"
+                                            className={styles.stepAction}>
                                             Confirmer
                                         </Button>
                                     </Col>
@@ -276,7 +279,8 @@ const CampaignView = () => {
                                     </div>
                                     <Button
                                         disabled
-                                        title="En attente">
+                                        title="En attente"
+                                        className={styles.stepAction}>
                                         En attente
                                     </Button>
                                 </div>

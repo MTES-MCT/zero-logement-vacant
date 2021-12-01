@@ -81,11 +81,11 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
     ];
 
     const reduceAddressApi = (addressApi: AddressApi) => {
-        return `${addressApi.houseNumber} ${addressApi.street}\n${addressApi.postalCode} ${addressApi.city}`
+        return `${addressApi.houseNumber} ${addressApi.street} ${addressApi.postalCode} ${addressApi.city}`
     }
 
     const reduceRawAddress= (rawAddress: string[]) => {
-        return rawAddress.filter(_ => _).reduce((a1, a2) =>`${a1}\n${a2}`)
+        return rawAddress.filter(_ => _).reduce((a1, a2) =>`${a1}${String.fromCharCode(10)}${a2}`)
     }
 
     housingList.map((housing: HousingApi, index: number) => {

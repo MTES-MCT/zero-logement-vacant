@@ -24,7 +24,6 @@ const HousingListFilter = () => {
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
-    const [currentExpandedFilter, setCurrentExpandedFilter] = useState<boolean>(false);
 
     const onChangeFilters = (changedFilters: any) => {
         dispatch(changeHousingFiltering({

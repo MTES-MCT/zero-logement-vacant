@@ -66,6 +66,9 @@ const HousingList = (
         if (filters) {
             setAllChecked(false)
             setCheckedIds([])
+            if (onSelectHousing) {
+                onSelectHousing({all: false, ids: []})
+            }
         }
     }, [filters])
 

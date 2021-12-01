@@ -111,7 +111,6 @@ const OwnerView = () => {
                         </Col>
                     </Row>
                     {housingList.map((housing, index) =>
-                        <>
                         <Row key={housing.id} className="bg-100 fr-p-3w fr-my-2w">
                             <Col n="12">
                                 <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
@@ -163,7 +162,6 @@ const OwnerView = () => {
                                 </Text>
                             </Col>
                         </Row>
-                        </>
                     )}
                 </Container>
             </>}

@@ -57,7 +57,7 @@ const AppMultiSelect = (
                 {selectedOptions()}
             </button>
             <div className={classNames('select-multi-options', { 'select-multi-options__visible': showOptions })}>
-                <CheckboxGroup legend="">
+                <CheckboxGroup legend="" data-testid={`${label.toLowerCase()}-checkbox-group`}>
                     {options.map((option, index) =>
                         <Checkbox
                             label={option.label}

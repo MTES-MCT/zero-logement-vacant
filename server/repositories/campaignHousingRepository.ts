@@ -36,7 +36,21 @@ const getHousingOwnerIds = async (campaignId: string): Promise<{housingId: strin
     }
 }
 
+const removeHousingFromCampaign = async (campaignId: string, housingIds: string[]): Promise<number> => {
+    try {
+        return db
+            .delete()
+            .from(`${campaignsHousingTable}`)
+            .where('campaign_id', campaignId)
+            .whereIn('housing_id', housingIds)
+    } catch (err) {
+        console.error('Removing housing from campaign failed', err, campaignId, housingIds);
+        throw new Error('Removing housing from campaign failed');
+    }
+}
+
 export default {
     insertHousingList,
-    getHousingOwnerIds
+    getHousingOwnerIds,
+    removeHousingFromCampaign
 }

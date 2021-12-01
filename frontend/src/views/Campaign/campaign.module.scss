@@ -6,15 +6,10 @@
   & + .campaignCard {
     margin-top: 32px;
   }
-
-  hr {
-    border-left: 1px solid var(--g300);
-    border-top: 1px solid var(--g300);
-  }
 }
 
 .campaignStat {
-  color: var(--bf500);
+  color: var(--blue-france-113);
   font-weight: bold;
   display: inline-block;
 
@@ -40,29 +35,29 @@
   }
 
   &.currentStep {
-    border: 1px solid var(--g300);
-    border-top: 2px solid var(--bf500);
+    border: 1px solid var(--grey-925);
+    border-top: 2px solid var(--blue-france-113);
   }
 
   &.oldStep {
-    border: 1px solid green;
+    border: 1px solid var(--success-main-525);
 
     h2 {
-      color: green !important;
+      color: var(--success-main-525) !important;
     }
 
     .stepNumber {
-      color: green !important;
-      border: 2px solid green !important;
+      color: var(--success-main-525) !important;
+      border: 2px solid var(--success-main-525) !important;
     }
   }
 
   &:not(.currentStep):not(.oldStep) {
-    background-color: var(--bf100-g750);
+    background-color: var(--blue-france-975);
   }
 
   h2 {
-    color: var(--bf500);
+    color: var(--blue-france-113);
     font-size: 18px;
     line-height: 24px;
     margin-bottom: 8px;
@@ -76,7 +71,7 @@
     }
 
     .stepNumber {
-      border: 2px solid var(--bf500);
+      border: 2px solid var(--blue-france-113);
       border-radius: 50%;
       width: 38px;
       height: 38px;
@@ -84,12 +79,16 @@
       line-height: 32px;
       font-weight: bold;
       text-align: center;
-      color: var(--bf500);
+      color: var(--blue-france-113);
       margin-right: 24px;
     }
+  }
 
-    button, a {
-      float: right;
+  .stepAction {
+    float: right;
+
+    &.success, &.success > button {
+      color: var(--success-main-525)
     }
   }
 }

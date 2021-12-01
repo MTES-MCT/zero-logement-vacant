@@ -1,6 +1,7 @@
 import { Dispatch } from 'redux';
 import { User } from '../../models/User';
 import authService from '../../services/auth.service';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
 
 export const LOGIN = 'LOGIN';
 export const LOGIN_FAIL = 'LOGIN_FAIL';
@@ -21,6 +22,9 @@ export type AuthenticationActionTypes = LoginAction | LoginFail | Logout;
 
 export const login = (email: string, password: string) => {
     return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
         authService.login(email, password)
             .then(user => {
                 if (user.accessToken) {
@@ -38,6 +42,9 @@ export const login = (email: string, password: string) => {
                 dispatch({
                     type: LOGIN_FAIL,
                 });
+            })
+            .finally(() => {
+                dispatch(hideLoading());
             });
     };
 };

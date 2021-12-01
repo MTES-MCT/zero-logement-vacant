@@ -9,14 +9,12 @@ const AppSearchBar = (
         onSearch,
         placeholder,
         buttonLabel,
-        size,
-        disabled
+        size
     }: {
         onSearch: (text: string) => void,
         placeholder?: string,
         buttonLabel?: string,
-        size?: string,
-        disabled?: boolean
+        size?: string
     }) => {
 
     const { query } = useSelector((state: ApplicationState) => state.housing.filters);
@@ -43,12 +41,10 @@ const AppSearchBar = (
                    data-testid="search-input"
                    value={searchInput}
                    onChange={(e) => setSearchInput(e.target.value)}
-                   onKeyDown={onKeyDown}
-                    disabled={disabled}/>
+                   onKeyDown={onKeyDown}/>
             <button type="submit"
                     className={classNames('fr-btn', { 'fr-btn--lg': (size === 'lg') })}
-                    title="Bouton de recherche"
-                    disabled={disabled}>
+                    title="Bouton de recherche">
                 {buttonLabel ?? 'Rechercher'}
             </button>
         </form>

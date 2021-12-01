@@ -60,12 +60,7 @@ const lastCampaignNumber = async (): Promise<any> => {
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
-            .insert({
-                campaign_number: campaignApi.campaignNumber,
-                start_month: campaignApi.startMonth,
-                kind: campaignApi.kind,
-                filters: campaignApi.filters
-            })
+            .insert(formatCampaignApi(campaignApi))
             .returning('*')
             .then(_ => parseCampaignApi(_[0]))
     } catch (err) {

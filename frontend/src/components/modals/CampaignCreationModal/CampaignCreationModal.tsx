@@ -124,7 +124,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
 
                             }
                             {paginatedHousing.totalCount === housingCount ?
-                                <i>Aucun logement n&apos;a été retiré des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i> :
+                                <></> :
                                 paginatedHousing.totalCount - housingCount === 1 ?
                                     <i>Un logement a été retiré des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i> :
                                     <i>{paginatedHousing.totalCount - housingCount} logements ont été retirés des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i>

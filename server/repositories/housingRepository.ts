@@ -139,6 +139,9 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                     whereBuilder.orWhereRaw(`array_to_string(o.raw_address, '%') like '%${filters.query?.toUpperCase()}%'`)
                 })
             }
+            if (filters.excludedIds?.length) {
+                queryBuilder.whereNotIn(`${housingTable}.id`, filters.excludedIds)
+            }
         }
 
         const query = db

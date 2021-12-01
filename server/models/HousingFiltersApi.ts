@@ -13,4 +13,5 @@ export interface HousingFiltersApi {
     campaignIds?: string[];
     ownerIds?: string[];
     query?: string;
+    excludedIds?: string[];
 }

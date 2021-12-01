@@ -36,7 +36,13 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const allHousing = request.body.allHousing;
 
     const lastNumber = await campaignRepository.lastCampaignNumber()
-    const newCampaignApi = await campaignRepository.insert(<CampaignApi>{campaignNumber: (lastNumber ?? 0) + 1, startMonth, kind, filters})
+    const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
+        campaignNumber: (lastNumber ?? 0) + 1,
+        startMonth,
+        kind,
+        filters,
+        validatedAt: new Date()
+    })
 
     const housingIds = allHousing ?
         await housingRepository.list(filters)
@@ -56,6 +62,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
+    const excludeHousingIds = request.body.excludeHousingIds;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -67,18 +74,27 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
 
-    const events = await campaignHousingRepository.getHousingOwnerIds(campaignId)
-        .then(_ => _.map(ids => <EventApi>{
-            housingId: ids.housingId,
-            ownerId: ids.ownerId,
-            kind: EventKinds.CampaignSend,
-            content:'Campagne envoyée'
-        }))
+    if (step === CampaignSteps.OwnersValidation && excludeHousingIds) {
+        console.log('remove ', campaignId, excludeHousingIds)
+        await campaignHousingRepository.removeHousingFromCampaign(campaignId, excludeHousingIds)
+    }
 
-    return Promise.all([
-        eventRepository.addByCampaign(campaignId, events),
-        campaignRepository.update(updatedCampaign)
-    ]).then(_ => response.status(200).json(updatedCampaign))
+    if (step === CampaignSteps.Sending) {
+        await campaignHousingRepository.getHousingOwnerIds(campaignId)
+            .then(results => eventRepository.addByCampaign(
+                campaignId,
+                results.map(ids => <EventApi>{
+                    housingId: ids.housingId,
+                    ownerId: ids.ownerId,
+                    kind: EventKinds.CampaignSend,
+                    content:'Campagne envoyée'
+                })
+            ))
+    }
+
+    return campaignRepository.update(updatedCampaign)
+        .then(() => campaignRepository.get(campaignId))
+        .then(_ => response.status(200).json(_))
 }
 
 // const importFromAirtable = async (request: Request, response: Response): Promise<Response> => {

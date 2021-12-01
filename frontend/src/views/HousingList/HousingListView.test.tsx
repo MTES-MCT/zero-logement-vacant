@@ -14,6 +14,7 @@ import { initialFilters } from '../../store/reducers/housingReducer';
 import { genHousing } from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
+import { ownerKindOptions } from '../../models/HousingFilters';
 
 describe('housing view', () => {
 
@@ -61,48 +62,29 @@ describe('housing view', () => {
         expect(additionalFiltersElement).not.toBeVisible();
     });
 
-    // test('should filter', async () => {
-    //
-    //     fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
-    //
-    //     render(
-    //         <Provider store={store}>
-    //             <Router history={createMemoryHistory()}>
-    //                 <HousingListView/>
-    //             </Router>
-    //         </Provider>
-    //     );
-    //
-    //     expect(fetchMock).toHaveBeenCalledWith(
-    //         `${config.apiEndpoint}/api/housing`, {
-    //             method: 'POST',
-    //             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ filters: initialFilters, search: '' }),
-    //         });
-    //
-    //     const ownerKindFilterElement = screen.getByTestId('owner-kind-filter').querySelector('select');
-    //     const ownerAgeFilterElement = screen.getByTestId('owner-age-filter').querySelector('select');
-    //     const ownerKindSelectedOption = 'SCI';
-    //     const ownerAgeSelectedOption = 'gt65';
-    //
-    //     act(() => { fireEvent.change(ownerKindFilterElement!, { target: { value: ownerKindSelectedOption } }) })
-    //
-    //     expect(fetchMock).toHaveBeenCalledWith(
-    //         `${config.apiEndpoint}/api/housing`, {
-    //         method: 'POST',
-    //         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ filters: { ...initialFilters, ownerKind: ownerKindSelectedOption}, search: ''}),
-    //     });
-    //
-    //     act(() => { fireEvent.change(ownerAgeFilterElement!, { target: { value: ownerAgeSelectedOption } }) })
-    //
-    //     expect(fetchMock).toHaveBeenCalledWith(
-    //         `${config.apiEndpoint}/api/housing`, {
-    //             method: 'POST',
-    //             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ filters: { ...initialFilters, ownerKind: ownerKindSelectedOption, ownerAge: ownerAgeSelectedOption}, search: ''}),
-    //         });
-    // });
+    test('should filter', async () => {
+
+        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
+
+        const ownerKindCheckboxes = screen.queryAllByTestId('type-checkbox-group')[0].querySelectorAll('input');
+
+        act(() => { fireEvent.click(ownerKindCheckboxes[0]) } )
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            `${config.apiEndpoint}/api/housing`, {
+                method: 'POST',
+                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filters: { ...initialFilters, ownerKinds: [ownerKindOptions[0].value]}, page: 1, perPage: 20}),
+            });
+    });
 
     test('should search', async () => {
 
@@ -116,13 +98,6 @@ describe('housing view', () => {
             </Provider>
         );
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            `${config.apiEndpoint}/api/housing`, {
-                method: 'POST',
-                headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: initialFilters, search: '' }),
-            });
-
         const searchInputElement = screen.getByTestId('search-input');
         const searchFormElement = screen.getByTestId('search-form');
         fireEvent.change(searchInputElement, {target: {value: 'my search'}});
@@ -133,7 +108,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: initialFilters, search: 'my search'}),
+            body: JSON.stringify({ filters: {...initialFilters, query: 'my search'}, page: 1, perPage: 20}),
         });
     });
 

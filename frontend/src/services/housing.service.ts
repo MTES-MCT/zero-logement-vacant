@@ -21,15 +21,16 @@ const listHousing = async (filters: HousingFilters, page: number, perPage: numbe
         }));
 };
 
-const listByCampaign = async (campaignId: string, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
+const listByCampaign = async (campaignId: string, page: number, perPage: number, excludedIds: string[] = []): Promise<PaginatedResult<Housing>> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
             filters: {
-              ...initialFilters,
-              campaignIds: [campaignId]
+                ...initialFilters,
+                campaignIds: [campaignId],
+                excludedIds
             },
             page,
             perPage }),

@@ -49,11 +49,11 @@ const CampaignsListView = () => {
                                         <Col spacing="my-3w">
                                             <div className={styles.campaignStat}>
                                                 <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                                <span className={styles.statLabel}>propriétaires</span>
+                                                <span className={styles.statLabel}>{campaign.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
                                             </div>
                                             <div className={styles.campaignStat}>
                                                 <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                                <span className={styles.statLabel}>logement</span>
+                                                <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                             </div>
                                             <div className={styles.campaignStat}>
                                                 <div className={styles.statTitle}> - </div>

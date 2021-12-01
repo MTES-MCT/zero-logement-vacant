@@ -34,7 +34,7 @@ export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
         c1.campaignNumber > c2.campaignNumber ? 1 : 0
 }
 
-export const campaignStep = (campaign: Campaign) => {
+export const campaignStep = (campaign?: Campaign) => {
     return (!campaign?.validatedAt) ? CampaignSteps.OwnersValidation :
         !campaign?.exportedAt ? CampaignSteps.Export :
             !campaign?.sentAt ? CampaignSteps.Sending :

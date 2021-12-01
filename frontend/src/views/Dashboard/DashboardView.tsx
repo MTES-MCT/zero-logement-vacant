@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Title, Text } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listCampaigns } from '../../store/actions/campaignAction';
 import styles from '../Campaign/campaign.module.scss';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 
 
 const DashboardView = () => {
@@ -26,10 +25,9 @@ const DashboardView = () => {
                 <Title as="h1" className="fr-py-3w">
                     Bienvenue sur Zéro Logement Vacant
                 </Title>
-                <AppSearchBar onSearch={() => {}}
-                              placeholder="Rechercher une adresse ou un propriétaire..."
-                              size="lg"
-                              disabled={true}/>
+                {/*<AppSearchBar onSearch={() => {}}*/}
+                {/*              placeholder="Rechercher une adresse ou un propriétaire..."*/}
+                {/*              size="lg"/>*/}
                 <Link title="Accéder à la base de données" to="/logements" className="ds-fr--inline fr-link float-right fr-pr-0 fr-py-3w">
                     Accéder à la base de données<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                 </Link>
@@ -59,11 +57,11 @@ const DashboardView = () => {
                                 <Col spacing="my-3w">
                                     <div className={styles.campaignStat}>
                                         <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                        <span className={styles.statLabel}>propriétaires</span>
+                                        <span className={styles.statLabel}>{campaign.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
                                         <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                        <span className={styles.statLabel}>logement</span>
+                                        <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
                                         <div className={styles.statTitle}> - </div>

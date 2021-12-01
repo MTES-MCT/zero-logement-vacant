@@ -40,20 +40,20 @@
   }
 
   &.oldStep {
-    border: 1px solid green;
+    border: 1px solid var(--success-main-525);
 
     h2 {
-      color: green !important;
+      color: var(--success-main-525) !important;
     }
 
     .stepNumber {
-      color: green !important;
-      border: 2px solid green !important;
+      color: var(--success-main-525) !important;
+      border: 2px solid var(--success-main-525) !important;
     }
   }
 
   &:not(.currentStep):not(.oldStep) {
-    background-color: var(--bf100-g750);
+    background-color: var(--blue-france-975);
   }
 
   h2 {
@@ -83,8 +83,12 @@
       margin-right: 24px;
     }
 
-    button, a {
+    .stepAction {
       float: right;
+
+      &.success, &.success > button {
+        color: var(--success-main-525)
+      }
     }
   }
 }

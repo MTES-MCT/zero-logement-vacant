@@ -36,7 +36,13 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const allHousing = request.body.allHousing;
 
     const lastNumber = await campaignRepository.lastCampaignNumber()
-    const newCampaignApi = await campaignRepository.insert(<CampaignApi>{campaignNumber: (lastNumber ?? 0) + 1, startMonth, kind, filters})
+    const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
+        campaignNumber: (lastNumber ?? 0) + 1,
+        startMonth,
+        kind,
+        filters,
+        validatedAt: new Date()
+    })
 
     const housingIds = allHousing ?
         await housingRepository.list(filters)

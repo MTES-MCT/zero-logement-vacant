@@ -102,7 +102,7 @@ const OwnerView = () => {
                                 <span data-testid="email-text">{owner.email}</span>
                             </Text>
                             <Text size="md" className="fr-mb-1w">
-                                <b>Numéro de téléphone &nbsp;</b>
+                                <b>Numéro de téléphone :&nbsp;</b>
                                 <span data-testid="phone-text">{owner.phone}</span>
                             </Text>
                         </Col>
@@ -114,7 +114,7 @@ const OwnerView = () => {
                         <Row key={housing.id} className="bg-100 fr-p-3w fr-my-2w">
                             <Col n="12">
                                 <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
-                                <Text size="xs" className="fr-mb-2w">{housing.invariant}</Text>
+                                <Text size="xs" className="fr-mb-2w"><b>Invariant fiscal :&nbsp;</b>{housing.invariant}</Text>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">

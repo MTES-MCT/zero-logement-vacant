@@ -29,6 +29,7 @@ const CampaignView = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [removedHousingIds, setRemovedHousingIds] = useState<string[]>([]);
+    const [forcedStep, setForcedStep] = useState<CampaignSteps>();
 
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [errors, setErrors] = useState<any>({});
@@ -55,6 +56,9 @@ const CampaignView = () => {
         dispatch(changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, removedIds))
     }
 
+    const currentStep = (): CampaignSteps => {
+        return forcedStep ?? campaignStep(campaign)
+    }
 
     const validStep = (step: CampaignSteps) => {
         if (campaign) {
@@ -77,6 +81,7 @@ const CampaignView = () => {
             else {
                 dispatch(validCampaignStep(campaign.id, step, {excludeHousingIds: removedHousingIds}))
             }
+            setForcedStep(step + 1)
         }
     }
 
@@ -99,14 +104,14 @@ const CampaignView = () => {
                                 <Col spacing="my-3w">
                                     <div className={styles.campaignStat}>
                                         <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                        <span className={styles.statLabel}>propriétaires</span>
+                                        <span className={styles.statLabel}>{campaign.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
                                         <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                        <span className={styles.statLabel}>logement</span>
+                                        <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}> -</div>
+                                        <div className={styles.statTitle}> - </div>
                                         <span className={styles.statLabel}>retours</span>
                                     </div>
                                 </Col>
@@ -115,28 +120,40 @@ const CampaignView = () => {
                     </div>
                     <Container spacing="py-4w">
 
-                        {campaignStep(campaign) < CampaignSteps.InProgess &&
+                        {currentStep() < CampaignSteps.InProgess &&
                         <>
                             <div className={classNames(styles.campaignStep,
-                                campaignStep(campaign) === CampaignSteps.OwnersValidation ? styles.currentStep :
-                                    campaignStep(campaign) > CampaignSteps.OwnersValidation ? styles.oldStep : '')}>
+                                currentStep() === CampaignSteps.OwnersValidation ? styles.currentStep :
+                                    currentStep() > CampaignSteps.OwnersValidation ? styles.oldStep : '')}>
                                 <div className={styles.stepLabel}>
                                     <div>
                                         <div className={styles.stepNumber}>1</div>
                                     </div>
                                     <div>
-                                        <h2>Validation de la liste des propriétaires</h2>
-                                        <span>Validez la liste des propriétaires et logements à inclure dans votre campagne</span>
+                                        <h2>Création de la liste des propriétaires</h2>
+                                        <span>Ajoutez ou supprimez des propriétaires de votre campagne.</span>
                                     </div>
-                                    {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
+                                    {currentStep() === CampaignSteps.OwnersValidation &&
                                     <Button
                                         onClick={() => validStep(CampaignSteps.OwnersValidation)}
-                                        title="Valider">
+                                        title="Valider"
+                                        className={styles.stepAction}>
                                         Valider
                                     </Button>
                                     }
+                                    {currentStep() > CampaignSteps.OwnersValidation &&
+                                    <div className={classNames(styles.stepAction, styles.success)}>
+                                        <button
+                                            className="ds-fr--inline fr-link"
+                                            type="button"
+                                            onClick={() => setForcedStep(CampaignSteps.OwnersValidation)}>
+                                            Modifier la liste
+                                        </button>
+                                        <span className="fr-fi-check-line" aria-hidden="true" />
+                                    </div>
+                                    }
                                 </div>
-                                {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
+                                {currentStep() === CampaignSteps.OwnersValidation &&
                                 <div className="fr-pt-4w">
                                     <button
                                         className="ds-fr--inline fr-link"
@@ -153,8 +170,8 @@ const CampaignView = () => {
                             </div>
 
                             <div className={classNames(styles.campaignStep,
-                                campaignStep(campaign) === CampaignSteps.Export ? styles.currentStep :
-                                    campaignStep(campaign) > CampaignSteps.Export ? styles.oldStep : '')}>
+                                currentStep() === CampaignSteps.Export ? styles.currentStep :
+                                    currentStep() > CampaignSteps.Export ? styles.oldStep : '')}>
                                 <div className={styles.stepLabel}>
                                     <div>
                                         <div className={styles.stepNumber}>2</div>
@@ -166,14 +183,14 @@ const CampaignView = () => {
                                             <br />ou en vue d’une rencontre avec les propriétaires.
                                         </span>
                                     </div>
-                                    {campaignStep(campaign) < CampaignSteps.Export &&
+                                    {currentStep() < CampaignSteps.Export &&
                                     <Button
                                         disabled
                                         title="En attente">
                                         En attente
                                     </Button>
                                     }
-                                    {campaignStep(campaign) === CampaignSteps.Export &&
+                                    {currentStep() === CampaignSteps.Export &&
                                     <>
                                         <Button title="Exporter"
                                                 onClick={() => setIsModalOpen(true)}
@@ -190,12 +207,23 @@ const CampaignView = () => {
                                         }
                                     </>
                                     }
+                                    {currentStep() > CampaignSteps.Export &&
+                                    <div className={classNames(styles.stepAction, styles.success)}>
+                                        <button
+                                            className="ds-fr--inline fr-link"
+                                            type="button"
+                                            onClick={() => setForcedStep(CampaignSteps.Export)}>
+                                            Modifier
+                                        </button>
+                                        <span className="fr-fi-check-line" aria-hidden="true" />
+                                    </div>
+                                    }
                                 </div>
                             </div>
 
                             <div className={classNames(styles.campaignStep,
-                                campaignStep(campaign) === CampaignSteps.Sending ? styles.currentStep :
-                                    campaignStep(campaign) > CampaignSteps.Sending ? styles.oldStep : '')}>
+                                currentStep() === CampaignSteps.Sending ? styles.currentStep :
+                                    currentStep() > CampaignSteps.Sending ? styles.oldStep : '')}>
                                 <div className={styles.stepLabel}>
                                     <div>
                                         <div className={styles.stepNumber}>3</div>
@@ -204,7 +232,7 @@ const CampaignView = () => {
                                         <h2>Envoi de la campagne</h2>
                                         <span>Datez l’envoi qui marque le début de votre campagne.</span>
                                     </div>
-                                    {campaignStep(campaign) < CampaignSteps.Sending &&
+                                    {currentStep() < CampaignSteps.Sending &&
                                     <Button
                                         disabled
                                         title="En attente">
@@ -212,7 +240,7 @@ const CampaignView = () => {
                                     </Button>
                                     }
                                 </div>
-                                {campaignStep(campaign) === CampaignSteps.Sending &&
+                                {currentStep() === CampaignSteps.Sending &&
                                 <Row spacing="pt-3w pl-4w ml-4w" className="fr-grid-row--bottom">
                                     <Col n="3">
                                         <TextInput
@@ -253,7 +281,7 @@ const CampaignView = () => {
                         </>
                         }
 
-                        {campaignStep(campaign) === CampaignSteps.InProgess &&
+                        {currentStep() === CampaignSteps.InProgess &&
                         <Tabs>
                             <Tab label={`En attente de retour (${paginatedHousing.entities.length})`}>
                                 <div className="fr-pt-4w">

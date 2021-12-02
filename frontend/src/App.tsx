@@ -14,6 +14,7 @@ import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampainView';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 
 function AppWrapper () {
@@ -41,16 +42,19 @@ function App() {
             <React.Suspense fallback={<></>}>
                 <BrowserRouter>
                     <AppHeader />
-                    <Switch>
-                        {user && user.accessToken && <Route exact path="/" component={DashboardView} />}
-                        {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
-                        {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                        {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}
-                        {user && user.accessToken && <Route exact path="/campagnes/:id" component={CampaignView} />}
-                        {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
-                        {user && user.accessToken && <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />}
-                        <Route path="/" component={LoginView} />
-                    </Switch>
+                    <ScrollToTop />
+                    <div className="zlv-container">
+                        <Switch>
+                            {user && user.accessToken && <Route exact path="/" component={DashboardView} />}
+                            {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
+                            {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
+                            {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}
+                            {user && user.accessToken && <Route exact path="/campagnes/:id" component={CampaignView} />}
+                            {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
+                            {user && user.accessToken && <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />}
+                            <Route path="/" component={LoginView} />
+                        </Switch>
+                    </div>
                     <AppFooter />
                 </BrowserRouter>
             </React.Suspense>

@@ -21,14 +21,42 @@ const HousingListView = () => {
     const history = useHistory();
     const { search } = useLocation();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createAlert, setCreateAlert] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
     const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
-    const create = (draftCampaign: DraftCampaign) => {
+
+    useEffect(() => {
+        dispatch(changeHousingFiltering(filters))
+    }, [dispatch])
+
+    useEffect(() => {
+        if (campaignFetchingId) {
+            history.push(`/campagnes/${campaignFetchingId}`);
+        }
+    }, [campaignFetchingId])
+
+    const create = () => {
+        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
+            setCreateAlert(true)
+        } else {
+            setCreateAlert(false)
+            setIsCreateModalOpen(true)
+        }
+    }
+
+    const onSubmitDraftCampaign = (draftCampaign: DraftCampaign) => {
         dispatch(createCampaign(draftCampaign, selectedHousing.all, selectedHousing.ids))
+    }
+
+    const onSelectHousing = (selectedHousing: SelectedHousing) => {
+        if (selectedHousing.all || selectedHousing?.ids.length !== 0) {
+            setCreateAlert(false)
+        }
+        setSelectedHousing(selectedHousing)
     }
 
     const removeFilter = (removedFilter: any) => {
@@ -44,16 +72,6 @@ const HousingListView = () => {
             query
         }));
     }
-
-    useEffect(() => {
-        dispatch(changeHousingFiltering(filters))
-    }, [dispatch])
-
-    useEffect(() => {
-        if (campaignFetchingId) {
-            history.push(`/campagnes/${campaignFetchingId}`);
-        }
-    }, [campaignFetchingId])
 
 
     return (
@@ -88,29 +106,36 @@ const HousingListView = () => {
                                className="fr-mb-3w"
                                closable/>
                         }
+
+                        { createAlert &&
+                        <Alert title=""
+                               description="Vous devez sélectionner au moins un logement pour créer une campagne."
+                               className="fr-my-3w"
+                               type="error"
+                               closable/>
+                        }
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
                                 <b>{paginatedHousing.totalCount} logements </b>
                             </Col>
                             <Col>
                                 <Button title="Créer la campagne"
-                                        onClick={() => setIsModalOpen(true)}
+                                        onClick={() => create()}
                                         data-testid="create-campaign-button"
-                                        disabled={!selectedHousing.all && selectedHousing?.ids.length === 0}
                                         className="float-right">
                                     Créer la campagne
                                 </Button>
-                                {isModalOpen &&
+                                {isCreateModalOpen &&
                                 <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
-                                                       onSubmit={(draftCampaign: DraftCampaign) => create(draftCampaign)}
-                                                       onClose={() => setIsModalOpen(false)}/>}
+                                                       onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
+                                                       onClose={() => setIsCreateModalOpen(false)}/>}
                             </Col>
                         </Row>
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
                                      filters={filters}
                                      displayKind={HousingDisplayKey.Housing}
-                                     onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
+                                     onSelectHousing={onSelectHousing}/>
                     </>
                 }
             </Container>

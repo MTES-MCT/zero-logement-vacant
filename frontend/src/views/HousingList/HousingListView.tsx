@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
@@ -12,14 +12,14 @@ import CampaignCreationModal from '../../components/modals/CampaignCreationModal
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { DraftCampaign } from '../../models/Campaign';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { SelectedHousing } from '../../models/Housing';
-
 
 const HousingListView = () => {
 
     const dispatch = useDispatch();
     const history = useHistory();
+    const { search } = useLocation();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
@@ -38,7 +38,7 @@ const HousingListView = () => {
         }));
     }
 
-    const search = (query: string) => {
+    const searchWithQuery = (query: string) => {
         dispatch(changeHousingFiltering({
             ...filters,
             query
@@ -66,7 +66,7 @@ const HousingListView = () => {
                             <Title as="h1">Base de données</Title>
                         </Col>
                         <Col n="4">
-                            <AppSearchBar onSearch={search} />
+                            <AppSearchBar onSearch={searchWithQuery} />
                         </Col>
                     </Row>
                     <Row>
@@ -82,6 +82,12 @@ const HousingListView = () => {
                 </Row>
                 {paginatedHousing &&
                     <>
+                        { (new URLSearchParams(search)).get('campagne') &&
+                        <Alert title="Création d’une campagne"
+                               description="Pour créer une nouvelle campagne, sélectionnez les propriétaires que vous souhaitez cibler, puis cliquez sur le bouton “créer la campagne”."
+                               className="fr-mb-3w"
+                               closable/>
+                        }
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
                                 <b>{paginatedHousing.totalCount} logements </b>

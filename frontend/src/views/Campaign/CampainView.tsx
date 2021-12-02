@@ -290,7 +290,7 @@ const CampaignView = () => {
 
                         {currentStep() === CampaignSteps.InProgess &&
                         <Tabs>
-                            <Tab label={`En attente de retour (${paginatedHousing.entities.length})`}>
+                            <Tab label={`En attente de retour (${paginatedHousing.totalCount})`}>
                                 <div className="fr-pt-4w">
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}

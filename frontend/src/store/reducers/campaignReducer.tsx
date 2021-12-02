@@ -94,11 +94,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case CAMPAIGN_UPDATED:
             return {
                 ...state,
-                campaign: action.campaign,
-                campaignList: [
-                    ...(state.campaignList ?? []).filter(_ => _.id !== action.campaign.id),
-                    action.campaign
-                ]
+                campaign: action.campaign
             };
         default:
             return state;

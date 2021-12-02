@@ -14,9 +14,7 @@ const DashboardView = () => {
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        if (!campaignList) {
-            dispatch(listCampaigns());
-        }
+        dispatch(listCampaigns());
     }, [dispatch])
 
     return (

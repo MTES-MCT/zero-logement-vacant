@@ -11,7 +11,7 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { initialFilters } from '../../store/reducers/housingReducer';
-import { genHousing } from '../../../test/fixtures.test';
+import { genCampaign, genHousing, genPaginatedResult } from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
@@ -112,15 +112,26 @@ describe('housing view', () => {
         });
     });
 
-    test('should disable the creation of the campaign when no housing are selected', async () => {
+    test('should display an alert message on creating campaign if no housing are selected', async () => {
 
-        fetchMock.mockResponse(JSON.stringify([genHousing()]), { status: 200 });
+        const housing = genHousing();
+        const campaign = genCampaign();
+        const paginated = genPaginatedResult([housing]);
+
+        fetchMock.doMockIf('http://localhost:3001/api/housing', 'tiuiyiyi');
+        fetchMock.doMockIf(
+            `${config.apiEndpoint}/api/campaigns`,
+            JSON.stringify([campaign]), { status: 200 });
 
         const history = createMemoryHistory();
         render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
 
-        const createCampaignButton = await screen.findByTestId('create-campaign-button');
-        expect(createCampaignButton).toBeDisabled();
+        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const noHousingAlert = await screen.findByTestId('no-housing-alert');
+
+        fireEvent.click(createCampaignButton);
+
+        expect(noHousingAlert).toBeInTheDocument();
     });
 
     test('should enable the creation of the campaign when at least a housing is selected', async () => {

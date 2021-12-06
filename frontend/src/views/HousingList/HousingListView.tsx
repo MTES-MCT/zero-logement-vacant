@@ -112,6 +112,7 @@ const HousingListView = () => {
                                description="Vous devez sélectionner au moins un logement pour créer une campagne."
                                className="fr-my-3w"
                                type="error"
+                               data-testid="no-housing-alert"
                                closable/>
                         }
                         <Row alignItems="middle" className="fr-pb-1w">

@@ -169,6 +169,7 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
 
         const housingCount: number = await db(housingTable)
             .count()
+            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

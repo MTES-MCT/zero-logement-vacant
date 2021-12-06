@@ -92,6 +92,8 @@ button.fr-select {
 
     &.select-multi-options__visible {
       display: inherit;
+      max-height: 250px;
+      overflow: auto;
     }
 
     .fr-checkbox-group {

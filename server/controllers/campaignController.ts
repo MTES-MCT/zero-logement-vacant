@@ -5,6 +5,7 @@ import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
+import { RequestUser } from '../models/UserApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -21,7 +22,9 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     console.log('List campaigns')
 
-    return campaignRepository.list()
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    return campaignRepository.list(establishmentId)
         .then(_ => response.status(200).json(_));
 
 }

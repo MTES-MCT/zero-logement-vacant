@@ -13,14 +13,14 @@ const LoginView = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const { user, error } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser, error } = useSelector((state: ApplicationState) => state.authentication);
 
     const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         dispatch(login(email, password));
     };
 
-    if (user) {
+    if (authUser) {
         return <Redirect to="/accueil" />;
     }
 

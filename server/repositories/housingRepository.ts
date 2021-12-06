@@ -131,6 +131,12 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                     }
                 })
             }
+            if (filters.localities?.length) {
+                queryBuilder.whereIn('insee_code', filters.localities)
+            }
+            if (filters.housingScopes?.length) {
+                queryBuilder.whereIn('housing_scope', filters.housingScopes)
+            }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     whereBuilder.orWhere('full_name', 'like', `%${filters.query?.toUpperCase()}%`)
@@ -146,7 +152,7 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
 
         const query = db
             .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', db.raw('json_agg(campaigns) campaign_ids'))
-            .from(`${housingTable}`)
+            .from(housingTable)
             .joinRaw(`join ${ownerTable} as o on (${housingTable}.invariant = any(o.invariants))`)
             .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
             .groupBy(`${housingTable}.id`, 'o.id')
@@ -163,7 +169,6 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
 
         const housingCount: number = await db(housingTable)
             .count()
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

@@ -33,7 +33,7 @@ function AppWrapper () {
 
 function App() {
 
-    const { user } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
 
     FetchInterceptor();
 
@@ -42,19 +42,21 @@ function App() {
             <React.Suspense fallback={<></>}>
                 <BrowserRouter>
                     <AppHeader />
-                    <ScrollToTop />
-                    <div className="zlv-container">
-                        <Switch>
-                            {user && user.accessToken && <Route exact path="/" component={DashboardView} />}
-                            {user && user.accessToken && <Route exact path="/accueil" component={DashboardView} />}
-                            {user && user.accessToken && <Route exact path="/logements" component={HousingListView} />}
-                            {user && user.accessToken && <Route exact path="/campagnes" component={CampaignsListView} />}
-                            {user && user.accessToken && <Route exact path="/campagnes/:id" component={CampaignView} />}
-                            {user && user.accessToken && <Route exact path="/logements/proprietaires/:id" component={OwnerView} />}
-                            {user && user.accessToken && <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />}
-                            <Route path="/" component={LoginView} />
-                        </Switch>
-                    </div>
+                    {authUser && authUser.accessToken ?
+                        <div className="zlv-container">
+                            <ScrollToTop />
+                            <Switch>
+                                <Route exact path="/" component={DashboardView} />
+                                <Route exact path="/accueil" component={DashboardView} />
+                                <Route exact path="/logements" component={HousingListView} />
+                                <Route exact path="/campagnes" component={CampaignsListView} />
+                                <Route exact path="/campagnes/:id" component={CampaignView} />
+                                <Route exact path="/logements/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />
+                            </Switch>
+                        </div> :
+                        <Route path="/" component={LoginView} />
+                    }
                     <AppFooter />
                 </BrowserRouter>
             </React.Suspense>

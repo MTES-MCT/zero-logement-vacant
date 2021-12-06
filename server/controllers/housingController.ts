@@ -6,6 +6,8 @@ import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi } from '../models/AddressApi';
+import localityRepository from '../repositories/localityRepository';
+import { RequestUser } from '../models/UserApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -13,9 +15,12 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     const page = request.body.page;
     const perPage = request.body.perPage;
+    const establishmentId = (<RequestUser>request.user).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
-    return housingRepository.list(filters, page, perPage)
+    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
+
+    return housingRepository.list({...filters, localities: userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1)}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 

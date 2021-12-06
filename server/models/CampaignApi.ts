@@ -1,5 +1,6 @@
 export interface CampaignApi {
     id: string;
+    establishmentId: number;
     campaignNumber: number;
     startMonth: string;
     kind: string;

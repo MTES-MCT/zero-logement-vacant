@@ -27,7 +27,8 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const list = async (): Promise<CampaignApi[]> => {
+const list = async (establishmentId: number): Promise<CampaignApi[]> => {
+
     try {
         return db
             .select(`${campaignsTable}.*`)
@@ -37,6 +38,7 @@ const list = async (): Promise<CampaignApi[]> => {
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
             .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .where(`${campaignsTable}.establishment_id`, establishmentId)
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {

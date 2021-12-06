@@ -105,6 +105,11 @@ const HousingList = (
             </>
     };
 
+    const rowNumberColumn = {
+        name: 'number',
+        render: ({ rowNumber }: any) => <>#{rowNumber}</>
+    }
+
     const addressColumn = {
         name: 'address',
         label: 'Adresse',
@@ -167,9 +172,9 @@ const HousingList = (
     const columns = () => {
         switch (displayKind) {
             case HousingDisplayKey.Housing :
-                return [selectColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
+                return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
+                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
         }
     }
 
@@ -180,10 +185,10 @@ const HousingList = (
                     caption="Logements"
                     captionPosition="none"
                     rowKey="id"
-                    data={paginatedHousing.entities}
+                    data={paginatedHousing.entities.map((_, index) => ({..._, rowNumber: (paginatedHousing.page - 1) * paginatedHousing.perPage + index + 1}) )}
                     columns={columns()}
                     fixedLayout={true}
-                    className="zlv-table-with-view zlv-table-with-select"
+                    className="zlv-table-with-view with-select with-row-number"
                     data-testid="housing-table"
                 />
                 <div className="fr-react-table--pagination-center nav">

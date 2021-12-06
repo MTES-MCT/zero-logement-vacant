@@ -12,20 +12,26 @@
   table:before {
     display: none !important;
   }
-}
 
-.zlv-table-with-select {
-  th:first-child {
-    width: 48px;
-  }
+  &.with-select {
+    th:first-child {
+      width: 48px;
+    }
 
-  td {
-    .fr-checkbox-group input[type=checkbox]+label:before {
-      margin-top: 0;
+    td {
+      .fr-checkbox-group input[type=checkbox]+label:before {
+        margin-top: 0;
+      }
+    }
+    input[type=checkbox]+label:before {
+       margin-top: 0 !important;
     }
   }
-  input[type=checkbox]+label:before {
-     margin-top: 0 !important;
+
+  &.with-row-number {
+    th:nth-child(2) {
+      width: 62px;
+    }
   }
 }
 

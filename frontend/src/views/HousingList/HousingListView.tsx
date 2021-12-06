@@ -103,7 +103,7 @@ const HousingListView = () => {
                         { (new URLSearchParams(search)).get('campagne') &&
                         <Alert title="Création d’une campagne"
                                description="Pour créer une nouvelle campagne, sélectionnez les propriétaires que vous souhaitez cibler, puis cliquez sur le bouton “créer la campagne”."
-                               className="fr-mb-3w"
+                               className="fr-my-3w"
                                closable/>
                         }
 

@@ -11,7 +11,7 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { initialFilters } from '../../store/reducers/housingReducer';
-import { genHousing } from '../../../test/fixtures.test';
+import { genAuthUser, genCampaign, genHousing, genPaginatedResult } from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
@@ -20,16 +20,27 @@ describe('housing view', () => {
 
     let store: any;
 
+    const defaultFetchMock = (request: Request) => {
+        return Promise.resolve(
+            (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(genPaginatedResult([])), init: { status: 200 }} :
+                (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                    {body: '', init: {status: 404 } }
+        )
+    }
+
     beforeEach(() => {
         fetchMock.resetMocks();
         store = createStore(
             applicationReducer,
+            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
             applyMiddleware(thunk)
         );
     });
 
     test('should only show owner filters initially', () => {
-        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+
+        fetchMock.mockResponse(defaultFetchMock);
+
         render(
             <Provider store={store}>
                 <Router history={createMemoryHistory()}>
@@ -44,7 +55,9 @@ describe('housing view', () => {
     });
 
     test('should enable to show and hide additional filters ', () => {
-        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+
+        fetchMock.mockResponse(defaultFetchMock);
+
         render(
             <Provider store={store}>
                 <Router history={createMemoryHistory()}>
@@ -64,7 +77,7 @@ describe('housing view', () => {
 
     test('should filter', async () => {
 
-        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>
@@ -88,7 +101,7 @@ describe('housing view', () => {
 
     test('should search', async () => {
 
-        fetchMock.mockResponse(JSON.stringify([]), { status: 200 });
+        fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>
@@ -112,36 +125,63 @@ describe('housing view', () => {
         });
     });
 
-    test('should disable the creation of the campaign when no housing are selected', async () => {
+    test('should display an alert message on creating campaign if no housing are selected', async () => {
 
-        fetchMock.mockResponse(JSON.stringify([genHousing()]), { status: 200 });
+        const housing = genHousing();
+        const campaign = genCampaign();
+        const paginated = genPaginatedResult([housing]);
 
-        const history = createMemoryHistory();
-        render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
+        fetchMock.mockResponse((request: Request) => {
+            return Promise.resolve(
+                (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(paginated), init: { status: 200 }} :
+                    (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([campaign]), init: { status: 200 }} :
+                        {body: '', init: {status: 404 } }
+            )
+        });
 
-        const createCampaignButton = await screen.findByTestId('create-campaign-button');
-        expect(createCampaignButton).toBeDisabled();
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
+
+        const createCampaignButton = screen.getByTestId('create-campaign-button');
+
+        fireEvent.click(createCampaignButton);
+
+        const noHousingAlert = screen.getByTestId('no-housing-alert');
+        expect(noHousingAlert).toBeInTheDocument();
     });
 
     test('should enable the creation of the campaign when at least a housing is selected', async () => {
 
         const housing = genHousing();
+        const campaign = genCampaign();
+        const paginated = genPaginatedResult([housing]);
 
-        fetchMock.doMockIf(
-            `${config.apiEndpoint}/api/housing`,
-            JSON.stringify([housing]), { status: 200 });
+        fetchMock.mockResponse((request: Request) => {
+            return Promise.resolve(
+                (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(paginated), init: { status: 200 }} :
+                    (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([campaign]), init: { status: 200 }} :
+                        {body: '', init: {status: 404 } }
+            )
+        });
 
-        const history = createMemoryHistory();
-        render(<Provider store={store}><Router history={history}><HousingListView/></Router></Provider>);
+        render(
+            <Provider store={store}>
+                <Router history={createMemoryHistory()}>
+                    <HousingListView/>
+                </Router>
+            </Provider>
+        );
 
-        const createCampaignButton = await screen.findByTestId('create-campaign-button');
+        const createCampaignButton = screen.getByTestId('create-campaign-button');
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
         const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
         fireEvent.click(housing1CheckboxElement);
-
-        expect(createCampaignButton).toBeEnabled();
-
         fireEvent.click(createCampaignButton);
 
         const campaignCreationModal = screen.getByTestId('campaign-creation-modal');

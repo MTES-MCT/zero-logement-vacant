@@ -22,6 +22,7 @@ const HousingListFilter = () => {
 
     const dispatch = useDispatch();
 
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
@@ -108,46 +109,23 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({isTaxedValues: values})}/>
                     </Col>
                 </Row>
-                {/*<Text size="md" className="fr-mb-1w fr-mt-4w">*/}
-                {/*    <b>Emplacement</b>*/}
-                {/*</Text>*/}
-                {/*<Row gutters>*/}
-                {/*    <Col n="3">*/}
-                {/*        <Select*/}
-                {/*            label="Commune"*/}
-                {/*            options={emptyOptions}*/}
-                {/*            selected=""*/}
-                {/*            onChange={() => {}}*/}
-                {/*        />*/}
-                {/*    </Col>*/}
-                {/*    <Col n="3">*/}
-                {/*        <Select*/}
-                {/*            label="Périmètre"*/}
-                {/*            options={emptyOptions}*/}
-                {/*            selected=""*/}
-                {/*            onChange={() => {}}*/}
-                {/*        />*/}
-                {/*    </Col>*/}
-                {/*</Row>*/}
-                {/*<Text size="md" className="fr-mb-1w fr-mt-4w">*/}
-                {/*    <b>Campagnes</b>*/}
-                {/*</Text>*/}
-                {/*<Row gutters>*/}
-                {/*    <Col n="3">*/}
-                {/*        <AppMultiSelect label="Prise de contact"*/}
-                {/*                        options={contactsCountOptions}*/}
-                {/*                        initialValues={filters.contactsCounts}*/}
-                {/*                        onChange={(values) => onChangeFilters({contactsCounts: values})}/>*/}
-                {/*    </Col>*/}
-                {/*    <Col n="3">*/}
-                {/*        <Select*/}
-                {/*            label="Périmètre"*/}
-                {/*            options={emptyOptions}*/}
-                {/*            selected=""*/}
-                {/*            onChange={() => {}}*/}
-                {/*        />*/}
-                {/*    </Col>*/}
-                {/*</Row>*/}
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Emplacement</b>
+                </Text>
+                <Row gutters>
+                    <Col n="3">
+                        <AppMultiSelect label="Commune"
+                                        options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
+                                        initialValues={filters.localities}
+                                        onChange={(values) => onChangeFilters({localities: values})}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Périmètre"
+                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopes}
+                                        onChange={(values) => onChangeFilters({housingScopes: values})}/>
+                    </Col>
+                </Row>
             </div>
             }
             <Row gutters>

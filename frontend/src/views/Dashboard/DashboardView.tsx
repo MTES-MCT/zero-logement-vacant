@@ -14,9 +14,7 @@ const DashboardView = () => {
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        if (!campaignList) {
-            dispatch(listCampaigns());
-        }
+        dispatch(listCampaigns());
     }, [dispatch])
 
     return (
@@ -72,7 +70,7 @@ const DashboardView = () => {
                         </div>
                     )}
                     <div className="align-center fr-pt-4w">
-                        <Link title="Accéder à la base de données" to="/logements" className="fr-btn--md fr-btn">
+                        <Link title="Accéder à la base de données" to="/logements?campagne=true" className="fr-btn--md fr-btn">
                             Créer une campagne
                         </Link>
                     </div>

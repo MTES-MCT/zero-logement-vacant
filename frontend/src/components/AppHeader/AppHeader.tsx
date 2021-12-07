@@ -43,7 +43,7 @@ function AppHeader() {
     const dispatch = useDispatch();
     const history = useHistory();
 
-    const { user } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
 
     const logoutUser = () => {
         dispatch(logout())
@@ -57,8 +57,8 @@ function AppHeader() {
                     <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                     <Service
                         title="Zéro Logement Vacant"
-                        description=""/>
-                    {user &&
+                        description={authUser ? authUser.user.establishment.name : ''}/>
+                    {authUser &&
                     <Tool>
                         <ToolItemGroup>
                             <ToolItem icon='ri-lock-line' onClick={() => logoutUser()}>Me déconnecter</ToolItem>
@@ -66,7 +66,7 @@ function AppHeader() {
                     </Tool>
                     }
                 </HeaderBody>
-                {user &&
+                {authUser &&
                     <HeaderNav data-testid="header-nav">
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />

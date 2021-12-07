@@ -7,7 +7,7 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import applicationReducer from '../../store/reducers/applicationReducers';
 import thunk from 'redux-thunk';
-import { genUser } from '../../../test/fixtures.test';
+import { genAuthUser } from '../../../test/fixtures.test';
 
 describe('AppHeader', () => {
 
@@ -23,7 +23,7 @@ describe('AppHeader', () => {
     test('should display navbar when a user is logged', () => {
         const store = createStore(
             applicationReducer,
-            {authentication: {isLoggedIn: true, user: genUser()}},
+            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
             applyMiddleware(thunk)
         );
 

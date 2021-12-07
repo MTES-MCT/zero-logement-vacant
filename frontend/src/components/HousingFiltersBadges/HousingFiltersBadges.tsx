@@ -38,6 +38,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
 const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
 
     return (
         <>
@@ -74,6 +75,12 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
             <HousingFilterBadges options={taxedOptions}
                           filters={filters.isTaxedValues}
                           onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
+            <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
+                          filters={filters.localities}
+                          onChange={onChange && (values => onChange({localities: values}))}/>
+            <HousingFilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                          filters={filters.housingScopes}
+                          onChange={onChange && (values => onChange({housingScopes: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}
                           onChange={onChange && (() => onChange({query: ''}))}/>

@@ -5,6 +5,7 @@ import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
+import { RequestUser } from '../models/UserApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -21,7 +22,9 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     console.log('List campaigns')
 
-    return campaignRepository.list()
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    return campaignRepository.list(establishmentId)
         .then(_ => response.status(200).json(_));
 
 }
@@ -30,17 +33,22 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     console.log('Create campaign')
 
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const userId = (<RequestUser>request.user).userId;
+
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
     const allHousing = request.body.allHousing;
 
-    const lastNumber = await campaignRepository.lastCampaignNumber()
+    const lastNumber = await campaignRepository.lastCampaignNumber(establishmentId)
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
+        establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
         startMonth,
         kind,
         filters,
+        createdBy: userId,
         validatedAt: new Date()
     })
 
@@ -63,6 +71,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     const campaignId = request.params.campaignId;
     const step = request.body.step;
     const excludeHousingIds = request.body.excludeHousingIds;
+    const userId = (<RequestUser>request.user).userId;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -87,7 +96,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
                     housingId: ids.housingId,
                     ownerId: ids.ownerId,
                     kind: EventKinds.CampaignSend,
-                    content:'Campagne envoyée'
+                    content: 'Campagne envoyée',
+                    createdBy: userId
                 })
             ))
     }

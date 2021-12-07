@@ -22,7 +22,6 @@ describe('Campagne creation modal', () => {
         render(
             <Provider store={store}>
                 <CampaignCreationModal housingCount={2}
-                                       ownerCount={1}
                                        onSubmit={() => {}}
                                        onClose={() => {}} />
             </Provider>
@@ -32,7 +31,7 @@ describe('Campagne creation modal', () => {
         const startMonthSelectElement = screen.getByTestId('start-month-select');
         const createButton = screen.getByTestId('create-button');
         expect(housingInfosTextElement).toBeInTheDocument();
-        expect(housingInfosTextElement).toContainHTML('<b>2</b> logements / <b>1</b> propriétaires');
+        expect(housingInfosTextElement).toContainHTML('<b>2</b> logements');
         expect(startMonthSelectElement).toBeInTheDocument();
         expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7)
         expect(createButton).toBeInTheDocument();
@@ -43,7 +42,6 @@ describe('Campagne creation modal', () => {
         render(
             <Provider store={store}>
                 <CampaignCreationModal housingCount={2}
-                                       ownerCount={1}
                                        onSubmit={() => {
                                        }}
                                        onClose={() => {

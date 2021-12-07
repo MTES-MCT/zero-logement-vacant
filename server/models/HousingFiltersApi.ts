@@ -12,6 +12,8 @@ export interface HousingFiltersApi {
     isTaxedValues?: string[];
     campaignIds?: string[];
     ownerIds?: string[];
+    localities?: string[];
+    housingScopes?: string[];
     query?: string;
     excludedIds?: string[];
 }

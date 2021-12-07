@@ -60,7 +60,7 @@ describe('login view', () => {
 
     });
 
-    test('should route to housing view when login succeeded', async () => {
+    test('should route to dashboard view when login succeeded', async () => {
 
         fetchMock.mockResponseOnce(JSON.stringify({ email: 'email', accessToken: 'accessToken' }), { status: 200 });
 
@@ -82,7 +82,7 @@ describe('login view', () => {
 
         expect(fetchMock).toHaveBeenCalled();
 
-        await waitFor(() => expect(history.location.pathname).toBe("/logements"));
+        await waitFor(() => expect(history.location.pathname).toBe("/accueil"));
 
     });
 

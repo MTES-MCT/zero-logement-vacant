@@ -4,7 +4,7 @@ insert into housing(invariant, raw_address, insee_code, latitude, longitude, cad
 select
        invariant,
        array[ltrim(trim(libvoie), '0'), trim(libcom)],
-       substr(to_char(dir, '999'), 1, 3) || lpad(trim(to_char(territoire, '999')), 3, '0'),
+       trim(substr(to_char(dir, '999'), 1, 3) || lpad(trim(to_char(territoire, '999')), 3, '0')),
        ff_x_4326,
        ff_y_4326,
        ff_dcapec2,

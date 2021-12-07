@@ -1,5 +1,5 @@
-import { Address } from 'cluster';
 import { Owner } from './Owner';
+import { Address } from './Address';
 
 export interface Housing {
     id: string;

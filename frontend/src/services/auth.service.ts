@@ -1,7 +1,7 @@
 import config from '../utils/config';
-import { User } from '../models/User';
+import { AuthUser } from '../models/User';
 
-const login = async (email: string, password: string): Promise<User> => {
+const login = async (email: string, password: string): Promise<AuthUser> => {
 
     return fetch(`${config.apiEndpoint}/api/authenticate`, {
         method: 'POST',
@@ -15,24 +15,24 @@ const login = async (email: string, password: string): Promise<User> => {
                 throw new Error('Authentication failed')
             }
         })
-        .then((user) => {
-            if (user.accessToken) {
-                localStorage.setItem('user', JSON.stringify(user));
+        .then((authUser) => {
+            if (authUser.accessToken) {
+                localStorage.setItem('authUser', JSON.stringify(authUser));
             }
-            return user;
+            return authUser;
         })
 };
 
 
 const logout = (): void => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('authUser');
 };
 
 
 const authHeader = () => {
-    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
-    return user && user.accessToken
-        ? { 'x-access-token': user.accessToken }
+    const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
+    return authUser && authUser.accessToken
+        ? { 'x-access-token': authUser.accessToken }
         : undefined;
 }
 

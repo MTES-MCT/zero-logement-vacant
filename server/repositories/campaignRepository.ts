@@ -27,7 +27,8 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const list = async (): Promise<CampaignApi[]> => {
+const list = async (establishmentId: number): Promise<CampaignApi[]> => {
+
     try {
         return db
             .select(`${campaignsTable}.*`)
@@ -35,8 +36,9 @@ const list = async (): Promise<CampaignApi[]> => {
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
-            .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .joinRaw(`left join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .where(`${campaignsTable}.establishment_id`, establishmentId)
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {
@@ -45,9 +47,10 @@ const list = async (): Promise<CampaignApi[]> => {
     }
 }
 
-const lastCampaignNumber = async (): Promise<any> => {
+const lastCampaignNumber = async (establishmentId: number): Promise<any> => {
     try {
         return db(campaignsTable)
+            .where('establishment_id', establishmentId)
             .max('campaign_number')
             .first()
             .then(_ => _ ? _.max : 0);
@@ -58,6 +61,8 @@ const lastCampaignNumber = async (): Promise<any> => {
 }
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
+
+    console.log('campaignApi', campaignApi)
     try {
         return db(campaignsTable)
             .insert(formatCampaignApi(campaignApi))
@@ -84,10 +89,12 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 
 const parseCampaignApi = (result: any) => <CampaignApi>{
     id: result.id,
+    establishmentId: result.establishment_id,
     campaignNumber: result.campaign_number,
     startMonth: result.start_month,
     kind: result.kind,
     filters: result.filters,
+    createdBy: result.created_by,
     createdAt: result.created_at,
     validatedAt: result.validated_at,
     exportedAt: result.exported_at,
@@ -98,10 +105,12 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
 
 const formatCampaignApi = (campaignApi: CampaignApi) => ({
     id: campaignApi.id,
+    establishment_id: campaignApi.establishmentId,
     campaign_number: campaignApi.campaignNumber,
     start_month: campaignApi.startMonth,
     kind: campaignApi.kind,
     filters: campaignApi.filters,
+    created_by: campaignApi.createdBy,
     created_at: campaignApi.createdAt,
     validated_at: campaignApi.validatedAt,
     exported_at: campaignApi.exportedAt,

@@ -103,7 +103,7 @@ const HousingListView = () => {
                         { (new URLSearchParams(search)).get('campagne') &&
                         <Alert title="Création d’une campagne"
                                description="Pour créer une nouvelle campagne, sélectionnez les propriétaires que vous souhaitez cibler, puis cliquez sur le bouton “créer la campagne”."
-                               className="fr-mb-3w"
+                               className="fr-my-3w"
                                closable/>
                         }
 
@@ -112,6 +112,7 @@ const HousingListView = () => {
                                description="Vous devez sélectionner au moins un logement pour créer une campagne."
                                className="fr-my-3w"
                                type="error"
+                               data-testid="no-housing-alert"
                                closable/>
                         }
                         <Row alignItems="middle" className="fr-pb-1w">

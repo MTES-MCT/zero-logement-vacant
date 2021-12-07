@@ -1,14 +1,17 @@
 import { Request, Response } from 'express';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi } from '../models/EventApi';
+import { RequestUser } from '../models/UserApi';
 
 const create = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Create event')
 
+    const userId = (<RequestUser>request.user).userId;
+
     const event = request.body.event;
 
-    return eventRepository.insert(<EventApi>event)
+    return eventRepository.insert(<EventApi>{...event, createdBy: userId})
         .then(_ => response.status(200).json(_));
 
 }

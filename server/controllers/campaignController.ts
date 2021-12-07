@@ -34,6 +34,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
     console.log('Create campaign')
 
     const establishmentId = (<RequestUser>request.user).establishmentId;
+    const userId = (<RequestUser>request.user).userId;
 
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
@@ -47,6 +48,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
         startMonth,
         kind,
         filters,
+        createdBy: userId,
         validatedAt: new Date()
     })
 
@@ -69,6 +71,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     const campaignId = request.params.campaignId;
     const step = request.body.step;
     const excludeHousingIds = request.body.excludeHousingIds;
+    const userId = (<RequestUser>request.user).userId;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -93,7 +96,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
                     housingId: ids.housingId,
                     ownerId: ids.ownerId,
                     kind: EventKinds.CampaignSend,
-                    content:'Campagne envoyée'
+                    content: 'Campagne envoyée',
+                    createdBy: userId
                 })
             ))
     }

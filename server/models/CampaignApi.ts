@@ -5,6 +5,7 @@ export interface CampaignApi {
     startMonth: string;
     kind: string;
     filters: string[];
+    createdBy?: string,
     createdAt?: Date;
     validatedAt?: Date;
     exportedAt?: Date;

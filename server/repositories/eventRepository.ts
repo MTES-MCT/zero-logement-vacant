@@ -45,6 +45,7 @@ const parseEventApi = (result: any) => <EventApi>{
     ownerId: result.owner_id,
     housingId: result.housing_id,
     kind: result.kind,
+    createdBy: result.created_by,
     createdAt: result.created_at,
     content: result.content
 }
@@ -55,6 +56,7 @@ const formatEventApi = (eventApi: EventApi) => ({
     owner_id: eventApi.ownerId,
     housing_id: eventApi.housingId,
     kind: eventApi.kind,
+    created_by: eventApi.createdBy,
     created_at: eventApi.createdAt,
     content: eventApi.content
 })

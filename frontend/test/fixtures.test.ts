@@ -1,6 +1,6 @@
 import { Owner } from '../src/models/Owner';
 import { Housing } from '../src/models/Housing';
-import { User } from '../src/models/User';
+import { AuthUser, User } from '../src/models/User';
 import { Address } from '../src/models/Address';
 import { Campaign, CampaignKinds } from '../src/models/Campaign';
 import { initialFilters } from '../src/store/reducers/housingReducer';
@@ -25,10 +25,24 @@ export function genNumber(length = 10) {
     });
 }
 
+export function genAuthUser() {
+    return {
+        accessToken: randomstring.generate(),
+        user: genUser()
+    } as AuthUser;
+}
+
 export function genUser() {
     return {
         email: genEmail(),
-        accessToken: randomstring.generate()
+        firstName: randomstring.generate(),
+        lastName: randomstring.generate(),
+        establishment: {
+            id: genNumber(10),
+            name: randomstring.generate(),
+            housingScopes: [],
+            localities: []
+        }
     } as User;
 }
 
@@ -94,6 +108,6 @@ export function genPaginatedResult<T>(results: Array<T>) {
         totalCount: genNumber(2),
         entities: results,
         page: 1,
-        perPage: 10
+        perPage: 20
     } as PaginatedResult<T>
 }

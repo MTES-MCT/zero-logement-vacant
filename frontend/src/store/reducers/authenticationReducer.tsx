@@ -6,13 +6,13 @@ const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 export interface AuthenticationState {
     isLoggedIn: boolean;
     authUser: AuthUser;
-    error: string;
+    error?: string;
 }
 
 const initialState =
     authUser && authUser.accessToken
         ? { isLoggedIn: true, authUser: authUser }
-        : { isLoggedIn: false, user: null };
+        : { isLoggedIn: false, authUser: null };
 
 const authenticationReducer = (state = initialState, action: AuthenticationActionTypes) => {
     switch (action.type) {

@@ -47,9 +47,10 @@ const list = async (establishmentId: number): Promise<CampaignApi[]> => {
     }
 }
 
-const lastCampaignNumber = async (): Promise<any> => {
+const lastCampaignNumber = async (establishmentId: number): Promise<any> => {
     try {
         return db(campaignsTable)
+            .where('establishment_id', establishmentId)
             .max('campaign_number')
             .first()
             .then(_ => _ ? _.max : 0);
@@ -86,6 +87,7 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 
 const parseCampaignApi = (result: any) => <CampaignApi>{
     id: result.id,
+    establishmentId: result.establishment_id,
     campaignNumber: result.campaign_number,
     startMonth: result.start_month,
     kind: result.kind,
@@ -100,6 +102,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
 
 const formatCampaignApi = (campaignApi: CampaignApi) => ({
     id: campaignApi.id,
+    establishment_id: campaignApi.establishmentId,
     campaign_number: campaignApi.campaignNumber,
     start_month: campaignApi.startMonth,
     kind: campaignApi.kind,

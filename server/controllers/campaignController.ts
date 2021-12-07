@@ -33,13 +33,16 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     console.log('Create campaign')
 
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
     const allHousing = request.body.allHousing;
 
-    const lastNumber = await campaignRepository.lastCampaignNumber()
+    const lastNumber = await campaignRepository.lastCampaignNumber(establishmentId)
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
+        establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
         startMonth,
         kind,

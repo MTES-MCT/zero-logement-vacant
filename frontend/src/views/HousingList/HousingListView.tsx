@@ -14,6 +14,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import { DraftCampaign } from '../../models/Campaign';
 import { useHistory, useLocation } from 'react-router-dom';
 import { SelectedHousing } from '../../models/Housing';
+import { initialFilters } from '../../store/reducers/housingReducer';
 
 const HousingListView = () => {
 
@@ -28,10 +29,14 @@ const HousingListView = () => {
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
     const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
-
     useEffect(() => {
-        dispatch(changeHousingFiltering(filters))
-    }, [dispatch])
+        const query = (new URLSearchParams(search)).get('q')
+        if (query) {
+            dispatch(changeHousingFiltering({ ...initialFilters, query }))
+        } else {
+            dispatch(changeHousingFiltering(filters))
+        }
+    }, [search, dispatch])
 
     useEffect(() => {
         if (campaignFetchingId) {

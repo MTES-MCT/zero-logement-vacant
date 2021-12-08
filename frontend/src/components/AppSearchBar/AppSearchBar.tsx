@@ -31,16 +31,16 @@ const AppSearchResult = ({ searchResult, query}: {searchResult: SearchResult, qu
 const AppSearchBar = (
     {
         onSearch,
+        onKeySearch,
         placeholder,
         buttonLabel,
-        size,
-        hotSearch
+        size
     }: {
-        onSearch: (text: string) => Promise<SearchResult[] | void>,
+        onSearch: (text: string) => void,
+        onKeySearch?: (text: string) => Promise<SearchResult[] | void>,
         placeholder?: string,
         buttonLabel?: string,
-        size?: string,
-        hotSearch?: boolean
+        size?: string
     }) => {
 
     const { query } = useSelector((state: ApplicationState) => state.housing.filters);
@@ -50,17 +50,17 @@ const AppSearchBar = (
 
     const onKeyDown = (e: any) => (e.keyCode === 13) && submitSearch(e);
 
-    const onKeyUp = () => hotSearch && search();
+    const onKeyUp = () => {
+        if (onKeySearch) {
+            onKeySearch(searchInput).then(results => {
+                setSearchResults(results ?? undefined)
+            });
+        }
+    }
 
     const submitSearch = (e: SubmitEvent) => {
         e.preventDefault();
-        search();
-    }
-
-    const search = () => {
-        onSearch(searchInput).then(results => {
-            setSearchResults(results ?? undefined)
-        });
+        onSearch(searchInput);
     }
 
     useEffect(() => {

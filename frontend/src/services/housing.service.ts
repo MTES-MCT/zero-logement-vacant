@@ -5,6 +5,7 @@ import { Housing } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialFilters } from '../store/reducers/housingReducer';
+import { toTitleCase } from '../utils/stringUtils';
 
 
 const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
@@ -19,6 +20,27 @@ const listHousing = async (filters: HousingFilters, page: number, perPage: numbe
             ...result,
             entities: result.entities.map((e: any) => parseHousing(e))
         }));
+};
+
+const quickSearchService = (): {abort: () => void, fetch: (query: string) => Promise<PaginatedResult<Housing>>} => {
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    return {
+        abort: () => controller.abort(),
+        fetch: (query: string) => fetch(`${config.apiEndpoint}/api/housing`, {
+            method: 'POST',
+            headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filters: {...initialFilters, query}, page: 1, perPage: 20 }),
+            signal
+        })
+            .then(_ => _.json())
+            .then(result => ({
+                ...result,
+                entities: result.entities.map((e: any) => parseHousing(e))
+            }))
+    };
 };
 
 const listByCampaign = async (campaignId: string, page: number, perPage: number, excludedIds: string[] = []): Promise<PaginatedResult<Housing>> => {
@@ -54,13 +76,15 @@ const listByOwner = async (ownerId: string): Promise<Housing[]> => {
 
 const parseHousing = (h: any): Housing => ({
     ...h,
+    rawAddress: h.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
     owner: ownerService.parseOwner(h.owner)
 } as Housing)
 
 const housingService = {
     listHousing,
     listByCampaign,
-    listByOwner
+    listByOwner,
+    quickSearchService
 };
 
 export default housingService;

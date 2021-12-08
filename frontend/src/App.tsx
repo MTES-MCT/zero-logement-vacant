@@ -4,7 +4,7 @@ import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import AppFooter from './components/AppFooter/AppFooter';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -46,13 +46,14 @@ function App() {
                         <div className="zlv-container">
                             <ScrollToTop />
                             <Switch>
-                                <Route exact path="/" component={DashboardView} />
+                                <Route exact path="/">
+                                    <Redirect to="/accueil" />
+                                </Route>
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
                                 <Route exact path="/campagnes/:id" component={CampaignView} />
-                                <Route exact path="/logements/proprietaires/:id" component={OwnerView} />
-                                <Route exact path="/campagnes/:campagneId/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="*/proprietaires/:id" component={OwnerView} />
                             </Switch>
                         </div> :
                         <Route path="/" component={LoginView} />

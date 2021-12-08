@@ -71,6 +71,7 @@ const HousingListView = () => {
             ...filters,
             query
         }));
+        return Promise.resolve()
     }
 
 

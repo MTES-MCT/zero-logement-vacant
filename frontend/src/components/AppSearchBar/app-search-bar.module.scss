@@ -1,0 +1,20 @@
+.searchContainer {
+  position: relative;
+  width: 100%;
+
+  .searchResults {
+    background-color: var(--grey-950);
+    position: absolute;
+    top: 56px;
+    z-index: 10;
+    width: 100%;
+    max-height: 250px;
+    overflow: auto;
+
+    a {
+      display: block;
+      color: var(--black-50);
+    }
+
+  }
+}

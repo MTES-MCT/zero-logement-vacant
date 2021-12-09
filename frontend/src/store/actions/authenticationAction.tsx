@@ -20,12 +20,12 @@ export interface Logout {
 
 export type AuthenticationActionTypes = LoginAction | LoginFail | Logout;
 
-export const login = (email: string, password: string) => {
+export const login = (email: string, password: string, establishmentId?: number) => {
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        authService.login(email, password)
+        authService.login(email, password, establishmentId)
             .then(authUser => {
                 if (authUser.accessToken) {
                     dispatch({

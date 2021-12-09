@@ -1,12 +1,10 @@
-import { EstablishmentApi } from './EstablishmentApi';
-
 export interface UserApi {
     id: string,
     email: string,
     password: string,
     firstName: string,
     lastName: string,
-    establishment: EstablishmentApi
+    establishmentId?: number
 }
 
 

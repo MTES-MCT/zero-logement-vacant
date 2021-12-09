@@ -50,7 +50,7 @@ const LoginView = () => {
 
     const establishmentOptions = [
         { value: '', label: 'Sélectionner un EPCI', disabled: true },
-        { value: '19031', label: 'Commune de Brive-la-Gaillarde' },
+        /*{ value: '19031', label: 'Commune de Brive-la-Gaillarde' },*/
         { value: '200066637', label: 'CC Hautes Terres Communauté' },
         { value: '200066660', label: 'CC Saint-Flour Communauté' },
         { value: '200067205', label: 'CA du Cotentin' },

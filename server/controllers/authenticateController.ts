@@ -30,12 +30,12 @@ const signin = async (request: Request, response: Response): Promise<Response> =
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id }, config.auth.secret, { expiresIn: 86400 })
                 });
             }
-            return response.status(401).send({ accessToken: null })
+            return response.sendStatus(401)
         }
-        return response.status(401).send({ accessToken: null })
+        return response.sendStatus(401)
 
     } catch {
-        return response.status(401).send({ accessToken: null })
+        return response.sendStatus(401)
     }
 };
 

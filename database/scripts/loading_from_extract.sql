@@ -1,4 +1,3 @@
-
 insert into housing(invariant, raw_address, insee_code, latitude, longitude, cadastral_classification,
                     uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
                     building_year, mutation_date, taxed)

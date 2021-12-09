@@ -25,25 +25,22 @@ const userCheck = (req: Request, res: Response, next: NextFunction): void => {
     }
 };
 
-router.use(jwtCheck)
-router.use(userCheck)
+router.post('/api/housing', jwtCheck, userCheck, housingController.list);
+router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
+router.get('/api/housing/campaign/:campaignId', jwtCheck, userCheck, housingController.listByCampaign);
+router.get('/api/housing/campaign/:campaignId/export', jwtCheck, userCheck, housingController.exportByCampaign);
+router.get('/api/housing/normalizeAddresses', jwtCheck, userCheck, housingController.normalizeAddresses);
 
-router.post('/api/housing', housingController.list);
-router.get('/api/housing/owner/:ownerId', housingController.listByOwner);
-router.get('/api/housing/campaign/:campaignId', housingController.listByCampaign);
-router.get('/api/housing/campaign/:campaignId/export', housingController.exportByCampaign);
-router.get('/api/housing/normalizeAddresses', housingController.normalizeAddresses);
-
-router.get('/api/campaigns', campaignController.list);
-router.post('/api/campaigns/creation', campaignController.create);
-router.get('/api/campaigns/:campaignId', campaignController.get);
-router.put('/api/campaigns/:campaignId', campaignController.validateStep);
+router.get('/api/campaigns', jwtCheck, userCheck, campaignController.list);
+router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.create);
+router.get('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.get);
+router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
 // router.get('/api/campaigns/import', campaignController.importFromAirtable);
 
-router.get('/api/owners/:id', ownerController.get);
-router.put('/api/owners/:ownerId', ownerController.ownerValidators, ownerController.update);
+router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);
+router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerValidators, ownerController.update);
 
-router.get('/api/events/owner/:ownerId', eventController.listByOwnerId);
-router.post('/api/events/creation', eventController.create);
+router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
+router.post('/api/events/creation', jwtCheck, userCheck, eventController.create);
 
 export default router;

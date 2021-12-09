@@ -16,7 +16,7 @@ const LoginView = () => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [establishmentId, setEstablishmentId] = useState<string | undefined>('');
+    const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});
 
     const { error } = useSelector((state: ApplicationState) => state.authentication);
@@ -36,7 +36,7 @@ const LoginView = () => {
         e.preventDefault();
         loginForm
             .validate({ isAdmin: pathname === '/admin', email, password, establishmentId }, {abortEarly: false})
-            .then(() => dispatch(login(email, password, Number(establishmentId))))
+            .then(() => dispatch(login(email, password, establishmentId.length ? Number(establishmentId) : undefined)))
             .catch(err => {
                 const object: any = {};
                 err.inner.forEach((x: ValidationError) => {

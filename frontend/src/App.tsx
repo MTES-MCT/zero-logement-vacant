@@ -15,6 +15,7 @@ import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampainView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import { isValidUser } from './models/User';
 
 
 function AppWrapper () {
@@ -42,21 +43,27 @@ function App() {
             <React.Suspense fallback={<></>}>
                 <BrowserRouter>
                     <AppHeader />
-                    {authUser && authUser.accessToken ?
+                    {isValidUser(authUser) ?
                         <div className="zlv-container">
                             <ScrollToTop />
                             <Switch>
-                                <Route exact path="/">
-                                    <Redirect to="/accueil" />
-                                </Route>
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
                                 <Route exact path="/campagnes/:id" component={CampaignView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
+                                <Route path="/*">
+                                    <Redirect to="/accueil" />
+                                </Route>
                             </Switch>
                         </div> :
-                        <Route path="/" component={LoginView} />
+                        <Switch>
+                            <Route exact path="/" component={LoginView} />
+                            <Route exact path="/admin" component={LoginView} />
+                            <Route path="/*">
+                                <Redirect to="/" />
+                            </Route>
+                        </Switch>
                     }
                     <AppFooter />
                 </BrowserRouter>

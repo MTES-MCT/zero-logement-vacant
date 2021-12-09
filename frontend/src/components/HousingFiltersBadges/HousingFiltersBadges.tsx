@@ -38,7 +38,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
 const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
-    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
 
     return (
         <>

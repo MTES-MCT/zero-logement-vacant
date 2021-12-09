@@ -22,7 +22,7 @@ const HousingListFilter = () => {
 
     const dispatch = useDispatch();
 
-    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 

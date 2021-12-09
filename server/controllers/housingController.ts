@@ -20,7 +20,9 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
 
-    return housingRepository.list({...filters, localities: userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1)}, page, perPage)
+    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
+
+    return housingRepository.list({...filters, localities: filterLocalities}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 

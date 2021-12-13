@@ -31,7 +31,7 @@ const initialState = {
     paginatedHousing: {
         entities: [],
         page: 1,
-        perPage: 20,
+        perPage: 50,
         totalCount: 0
     },
     filters: initialFilters,

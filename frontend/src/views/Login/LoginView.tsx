@@ -1,10 +1,10 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { Alert, Button, Container, Select, TextInput } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../store/actions/authenticationAction';
+import { fetchAvailableEstablishments, login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
@@ -16,10 +16,11 @@ const LoginView = () => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<{ value: string, label: string, disabled?: boolean }[] | undefined>();
     const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});
 
-    const { error } = useSelector((state: ApplicationState) => state.authentication);
+    const { error, availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
 
     const loginForm = yup.object().shape({
         isAdmin: yup.boolean(),
@@ -31,12 +32,30 @@ const LoginView = () => {
         })
     });
 
+    useEffect(() => {
+        if (pathname === '/admin') {
+            dispatch(fetchAvailableEstablishments())
+        }
+    }, [dispatch])
+
+    useEffect(() => {
+        if (availableEstablishments) {
+            setAvailableEstablishmentOptions([
+                { value: '', label: 'Sélectionner un EPCI', disabled: true },
+                ...availableEstablishments.map(e => ({
+                    value: e.id,
+                    label: e.name
+                }))
+            ])
+        }
+    }, [availableEstablishments])
+
     const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
         setFormErrors({});
         e.preventDefault();
         loginForm
             .validate({ isAdmin: pathname === '/admin', email, password, establishmentId }, {abortEarly: false})
-            .then(() => dispatch(login(email, password, establishmentId.length ? Number(establishmentId) : undefined)))
+            .then(() => dispatch(login(email, password, establishmentId.length ? establishmentId : undefined)))
             .catch(err => {
                 const object: any = {};
                 err.inner.forEach((x: ValidationError) => {
@@ -47,18 +66,6 @@ const LoginView = () => {
                 setFormErrors(object);
             })
     };
-
-    const establishmentOptions = [
-        { value: '', label: 'Sélectionner un EPCI', disabled: true },
-        /*{ value: '19031', label: 'Commune de Brive-la-Gaillarde' },*/
-        { value: '200066637', label: 'CC Hautes Terres Communauté' },
-        { value: '200066660', label: 'CC Saint-Flour Communauté' },
-        { value: '200067205', label: 'CA du Cotentin' },
-        { value: '200070464', label: 'CC Cœur de Maurienne Arvan' },
-        { value: '200071082', label: 'CA Montluçon Communauté' },
-        { value: '243600327', label: 'CA Châteauroux Métropole' },
-        { value: '247200090', label: 'CC de Sablé-sur-Sarthe' }
-    ];
 
     return (
         <>
@@ -81,11 +88,11 @@ const LoginView = () => {
                         data-testid="password-input"
                         label="Mot de passe : "
                     />
-                    {pathname === ('/admin') &&
+                    {pathname === ('/admin') && availableEstablishmentOptions &&
                         <Select
                             label="Lancement"
                             selected={establishmentId}
-                            options={establishmentOptions}
+                            options={availableEstablishmentOptions}
                             messageType={formErrors['establishmentId'] ? 'error' : undefined}
                             message={formErrors['establishmentId']}
                             onChange={(e: any) => setEstablishmentId(e.target.value)}

@@ -18,7 +18,7 @@ const jwtCheck = expressJWT({
 });
 
 const userCheck = (req: Request, res: Response, next: NextFunction): void => {
-    if (req.user && (<RequestUser>req.user).userId && (<RequestUser>req.user).establishmentId) {
+    if ((<RequestUser>req.user).userId && (<RequestUser>req.user).establishmentId) {
         next();
     } else {
         res.sendStatus(401);

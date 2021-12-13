@@ -39,6 +39,15 @@ const signin = async (request: Request, response: Response): Promise<Response> =
     }
 };
 
+const listAvailableEstablishments = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('listAvailableEstablishments')
+
+    return establishmentRepository.listAvailable()
+             .then(_ => response.status(200).json(_));
+};
+
 export default {
     signin,
+    listAvailableEstablishments
 };

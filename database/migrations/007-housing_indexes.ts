@@ -12,10 +12,6 @@ exports.up = function(knex) {
         knex.schema // @ts-ignore
             .table('owners', function (table) {
                 table.index(['invariants'], 'owner_invariants_idx');
-            }),
-        knex.schema // @ts-ignore
-            .alterTable('users', (table) => {
-                table.integer('establishment_id').nullable().alter();
             })
     ]);
 };

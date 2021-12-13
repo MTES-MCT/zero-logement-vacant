@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import { AuthUser } from '../models/User';
 
-const login = async (email: string, password: string, establishmentId?: number): Promise<AuthUser> => {
+const login = async (email: string, password: string, establishmentId?: string): Promise<AuthUser> => {
 
     return fetch(`${config.apiEndpoint}/api/authenticate`, {
         method: 'POST',

@@ -10,6 +10,8 @@ insert into establishments (epci_id, name, localities_id) (
 
 INSERT INTO public.establishments (name, localities_id)
 VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'));
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Commune d''Ajaccio', (select array_agg(id) from localities where geo_code='2A004'), true);
 
 update establishments set available = true where epci_id in
 ('200066637',

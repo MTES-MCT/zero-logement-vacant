@@ -2,6 +2,7 @@ import { Housing } from '../../models/Housing';
 import { FETCH_HOUSING_LIST, HOUSING_LIST_FETCHED, HousingActionTypes } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
+import config from '../../utils/config';
 
 
 export interface HousingState {
@@ -31,7 +32,7 @@ const initialState = {
     paginatedHousing: {
         entities: [],
         page: 1,
-        perPage: 50,
+        perPage: config.perPageDefault,
         totalCount: 0
     },
     filters: initialFilters,

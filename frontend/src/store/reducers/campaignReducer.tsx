@@ -12,6 +12,7 @@ import {
 } from '../actions/campaignAction';
 import { Housing } from '../../models/Housing';
 import { PaginatedResult } from '../../models/PaginatedResult';
+import config from '../../utils/config';
 
 
 export interface CampaignState {
@@ -27,7 +28,7 @@ const initialState: CampaignState = {
     paginatedHousing: {
         entities: [],
         page: 1,
-        perPage: 50,
+        perPage: config.perPageDefault,
         totalCount: 0
     },
     exportURL: ''

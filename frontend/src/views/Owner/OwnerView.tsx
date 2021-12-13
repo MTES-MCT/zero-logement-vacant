@@ -12,6 +12,7 @@ import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEd
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
+import config from '../../utils/config';
 
 const OwnerView = () => {
 
@@ -157,8 +158,8 @@ const OwnerView = () => {
                                     <b>Situation</b>
                                 </Text>
                                 <Text size="md" className="fr-mb-1w">
-                                    <b>Durée de vacance au 01/01/2020 :&nbsp;</b>
-                                    {2020 - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
+                                    <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
+                                    {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                 </Text>
                             </Col>
                         </Row>

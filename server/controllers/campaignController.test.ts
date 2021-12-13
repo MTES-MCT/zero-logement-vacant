@@ -7,7 +7,7 @@ describe('Campaign controller', () => {
 
         const req = getMockReq({
             user: {
-                establishmentId: 1
+                establishmentId: 'fb42415a-a41a-4b22-bf47-7bedfb419a63'
             }
         })
         const { res } = getMockRes()

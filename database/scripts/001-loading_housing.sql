@@ -16,7 +16,7 @@ select
        refcad,
        (case when (ff_jannath > 100) then ff_jannath end),
        to_date(anmutation, 'M/D/YY'),
-       trim(txtlv) = ''
+       trim(txtlv) <> ''
 from _extract_zlv
 where ff_ccthp in ('V', 'L', 'P');
 

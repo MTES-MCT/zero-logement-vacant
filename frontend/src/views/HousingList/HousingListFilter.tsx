@@ -103,7 +103,7 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Taxe"
+                        <AppMultiSelect label="Taxé (THLV ou TLV)"
                                         options={taxedOptions}
                                         initialValues={filters.isTaxedValues}
                                         onChange={(values) => onChangeFilters({isTaxedValues: values})}/>

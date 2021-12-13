@@ -37,7 +37,7 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
     }
 }
 
-const listAvailable = async (): Promise<EstablishmentApi> => {
+const listAvailable = async (): Promise<EstablishmentApi[]> => {
     try {
         return db(establishmentsTable)
             .where('available', true)

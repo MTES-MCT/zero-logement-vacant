@@ -157,8 +157,8 @@ const OwnerView = () => {
                                     <b>Situation</b>
                                 </Text>
                                 <Text size="md" className="fr-mb-1w">
-                                    <b>Durée de la vacance :&nbsp;</b>
-                                    {(new Date()).getFullYear() - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
+                                    <b>Durée de vacance au 01/01/2020 :&nbsp;</b>
+                                    {2020 - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                 </Text>
                             </Col>
                         </Row>

@@ -97,7 +97,7 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({buildingPeriods: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Durée de vacance"
+                        <AppMultiSelect label="Durée de vacance au 01/01/2020"
                                         options={vacancyDurationOptions}
                                         initialValues={filters.vacancyDurations}
                                         onChange={(values) => onChangeFilters({vacancyDurations: values})}/>

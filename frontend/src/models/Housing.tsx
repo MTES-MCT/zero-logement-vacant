@@ -6,6 +6,8 @@ export interface Housing {
     invariant: string;
     rawAddress: string[];
     address: Address;
+    latitude?: number;
+    longitude?: number;
     owner: Owner;
     livingArea: number;
     housingKind: string;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title, Link } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
@@ -131,6 +131,13 @@ const OwnerView = () => {
                                         }
                                     </span>
                                 </span>
+                                <div className="fr-mt-2w">
+                                    <Link title="Localiser dans Google Map - nouvelle fenêtre"
+                                          href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                          target="_blank">
+                                        Localiser
+                                    </Link>
+                                </div>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">

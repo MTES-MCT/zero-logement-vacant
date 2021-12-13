@@ -184,6 +184,8 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                     postalCode: result.postal_code,
                     city: result.city
                 },
+                latitude: result.latitude,
+                longitude: result.longitude,
                 owner: <OwnerApi>{
                     id: result.owner_id,
                     rawAddress: result.owner_raw_address,

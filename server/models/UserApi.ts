@@ -4,11 +4,11 @@ export interface UserApi {
     password: string,
     firstName: string,
     lastName: string,
-    establishmentId?: number
+    establishmentId?: string
 }
 
 
 export interface RequestUser {
     userId: string;
-    establishmentId: number;
+    establishmentId: string;
 }

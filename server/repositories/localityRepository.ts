@@ -1,12 +1,15 @@
 import db from './db';
 import { LocalityApi } from '../models/EstablishmentApi';
+import { establishmentsTable } from './establishmentRepository';
 
 export const localitiesTable = 'localities';
 
-const listByEstablishmentId = async (establishmentId: number): Promise<LocalityApi[]> => {
+const listByEstablishmentId = async (establishmentId: string): Promise<LocalityApi[]> => {
+
     try {
         return db(localitiesTable)
-            .where('establishment_id', establishmentId)
+            .joinRaw(`join ${establishmentsTable} as e on (${localitiesTable}.id = any(e.localities_id))`)
+            .where('e.id', establishmentId)
             .then(_ => _.map(_ => parseLocalityApi(_)))
     } catch (err) {
         console.error('Listing localities failed', err);

@@ -11,7 +11,7 @@ const get = async (establishmentId: number): Promise<EstablishmentApi> => {
                 db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name)) as localities')
             )
             .from(establishmentsTable)
-            .join(`${localitiesTable} as l`, `${establishmentsTable}.id`, `l.establishment_id`)
+            .joinRaw(`join ${localitiesTable} as l on (l.id = any(${establishmentsTable}.localities_id))`)
             .where(`${establishmentsTable}.id`, establishmentId)
             .groupBy(`${establishmentsTable}.id`)
             .first()
@@ -37,7 +37,24 @@ const get = async (establishmentId: number): Promise<EstablishmentApi> => {
     }
 }
 
+const listAvailable = async (): Promise<EstablishmentApi> => {
+    try {
+        return db(establishmentsTable)
+            .where('available', true)
+            .then(_ => _.map(result => (
+                    <EstablishmentApi> {
+                    id: result.id,
+                    name: result.name
+                }
+            )))
+    } catch (err) {
+        console.error('Listing available establishment failed', err);
+        throw new Error('Listing available establishment by email failed');
+    }
+}
+
 export default {
-    get
+    get,
+    listAvailable
 }
 

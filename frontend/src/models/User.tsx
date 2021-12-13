@@ -11,7 +11,7 @@ export interface User {
 }
 
 export interface Establishment {
-    id: number,
+    id: string,
     name: string,
     housingScopes: string[],
     localities: {

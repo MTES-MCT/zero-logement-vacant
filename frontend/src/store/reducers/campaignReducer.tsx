@@ -22,6 +22,7 @@ export interface CampaignState {
     campaign?: Campaign;
     paginatedHousing: PaginatedResult<Housing>;
     exportURL: string;
+    loading: boolean;
 }
 
 const initialState: CampaignState = {
@@ -31,7 +32,8 @@ const initialState: CampaignState = {
         perPage: config.perPageDefault,
         totalCount: 0
     },
-    exportURL: ''
+    exportURL: '',
+    loading: true
 };
 
 const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
@@ -40,23 +42,27 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignList: [],
+                loading: true
             };
         case CAMPAIGN_LIST_FETCHED:
             return {
                 ...state,
-                campaignList: action.campaignList
+                campaignList: action.campaignList,
+                loading: false
             };
         case FETCH_CAMPAIGN:
             return {
                 ...state,
                 campaignFetchingId: action.campaignFetchingId,
                 campaign: undefined,
+                loading: true
             };
         case CAMPAIGN_FETCHED:
             return {
                 ...state,
                 campaignFetchingId: undefined,
-                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign
+                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign,
+                loading: false
             };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
@@ -67,7 +73,8 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     totalCount: 0,
                     page: action.page,
                     perPage: action.perPage
-                }
+                },
+                loading: true
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
@@ -82,7 +89,8 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     entities: action.paginatedHousing.entities,
                     totalCount: action.paginatedHousing.totalCount,
                 },
-                exportURL: action.exportURL
+                exportURL: action.exportURL,
+                loading: false
             };
         }
         case CAMPAIGN_CREATED:

@@ -13,7 +13,7 @@ const CampaignsListView = () => {
 
     const dispatch = useDispatch();
 
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignList, loading } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(listCampaigns());
@@ -26,11 +26,11 @@ const CampaignsListView = () => {
                 <Title as="h1" className="fr-mb-4w">Campagnes</Title>
                 <Tabs>
                     <Tab label="Campagne(s) en cours">
-                        <>
+                        {!loading && <>
                             {campaignList && !campaignList.length &&
                                 <Text>Il n&acute;y a pas de campagne en cours.</Text>
                             }
-                            {campaignList?.sort(campaignNumberSort).map(campaign =>
+                            {campaignList && campaignList.sort(campaignNumberSort).map(campaign =>
                                 <div key={campaign.id} className={styles.campaignCard}>
                                     <Row>
                                         <Col>
@@ -74,7 +74,7 @@ const CampaignsListView = () => {
 
                                 </div>
                             )}
-                        </>
+                        </>}
                     </Tab>
                     <Tab label="Campagnes passées">
                         <>

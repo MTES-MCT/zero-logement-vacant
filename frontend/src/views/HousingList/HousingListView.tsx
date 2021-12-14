@@ -26,7 +26,7 @@ const HousingListView = () => {
     const [createAlert, setCreateAlert] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
-    const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
+    const { paginatedHousing, filters, loading } = useSelector((state: ApplicationState) => state.housing);
     const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
@@ -104,7 +104,7 @@ const HousingListView = () => {
                 <Row>
                     <HousingFiltersBadges onChange={(values) => removeFilter(values)} />
                 </Row>
-                {paginatedHousing &&
+                {paginatedHousing && !loading &&
                     <>
                         { (new URLSearchParams(search)).get('campagne') &&
                         <Alert title="Création d’une campagne"

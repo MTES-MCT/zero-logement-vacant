@@ -33,6 +33,7 @@ const updateOwner = async (owner: Owner) => {
 
 const parseOwner = (o: any): Owner => ({
     ...o,
+    rawAddress: o.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
     birthDate: o.birthDate ? parseISO(o.birthDate) : undefined,
     fullName: toTitleCase(o.fullName.replace(/^(MME |M )/i, ''))
 } as Owner)

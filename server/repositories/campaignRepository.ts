@@ -27,7 +27,7 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const list = async (establishmentId: number): Promise<CampaignApi[]> => {
+const list = async (establishmentId: string): Promise<CampaignApi[]> => {
 
     try {
         return db
@@ -47,7 +47,7 @@ const list = async (establishmentId: number): Promise<CampaignApi[]> => {
     }
 }
 
-const lastCampaignNumber = async (establishmentId: number): Promise<any> => {
+const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
     try {
         return db(campaignsTable)
             .where('establishment_id', establishmentId)

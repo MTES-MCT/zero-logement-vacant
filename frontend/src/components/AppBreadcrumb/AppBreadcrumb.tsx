@@ -10,6 +10,12 @@ const AppBreadcrumb = ( { additionalItems }: { additionalItems? : UserNavItem[] 
     const [items, setItems] = useState<UserNavItem[]>([getUserNavItem(UserNavItems.Dashboard)]);
 
     useEffect(() => {
+        if (location.pathname.indexOf(getUserNavItem(UserNavItems.Dashboard).url) !== -1) {
+            setItems([
+                getUserNavItem(UserNavItems.Dashboard),
+                ...additionalItems ?? []]
+            )
+        }
         if (location.pathname.indexOf(getUserNavItem(UserNavItems.Campaign).url) !== -1) {
             setItems([
                 getUserNavItem(UserNavItems.Dashboard),

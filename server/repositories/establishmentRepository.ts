@@ -4,7 +4,7 @@ import { EstablishmentApi } from '../models/EstablishmentApi';
 
 export const establishmentsTable = 'establishments';
 
-const get = async (establishmentId: number): Promise<EstablishmentApi> => {
+const get = async (establishmentId: string): Promise<EstablishmentApi> => {
     try {
         return db
             .select(`${establishmentsTable}.*`,
@@ -37,7 +37,7 @@ const get = async (establishmentId: number): Promise<EstablishmentApi> => {
     }
 }
 
-const listAvailable = async (): Promise<EstablishmentApi> => {
+const listAvailable = async (): Promise<EstablishmentApi[]> => {
     try {
         return db(establishmentsTable)
             .where('available', true)

@@ -12,6 +12,10 @@ exports.up = function(knex) {
         knex.schema // @ts-ignore
             .table('owners', function (table) {
                 table.index(['invariants'], 'owner_invariants_idx');
+            }),
+        knex.schema // @ts-ignore
+            .table('campaigns', function (table) {
+                table.index(['establishment_id'], 'campaigns_establishment_idx');
             })
     ]);
 };
@@ -19,6 +23,10 @@ exports.up = function(knex) {
 // @ts-ignore
 exports.down = function(knex) {
   return Promise.all([
+      knex.schema // @ts-ignore
+          .table('campaigns', function (table) {
+              table.dropIndex(['establishment_id'], 'campaigns_establishment_idx');
+          }),
       knex.schema // @ts-ignore
           .table('housing', function (table) {
               table.dropIndex(['invariant'], 'housing_invariant_idx');

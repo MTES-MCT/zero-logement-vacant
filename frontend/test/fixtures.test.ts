@@ -108,6 +108,6 @@ export function genPaginatedResult<T>(results: Array<T>) {
         totalCount: genNumber(2),
         entities: results,
         page: 1,
-        perPage: 20
+        perPage: 50
     } as PaginatedResult<T>
 }

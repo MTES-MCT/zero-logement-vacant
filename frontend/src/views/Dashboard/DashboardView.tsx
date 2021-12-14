@@ -1,21 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listCampaigns } from '../../store/actions/campaignAction';
 import styles from '../Campaign/campaign.module.scss';
+import housingService from '../../services/housing.service';
+import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
 
 
 const DashboardView = () => {
 
     const dispatch = useDispatch();
+    const history = useHistory();
 
     const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    const quickSearchAbortRef = useRef<() => void | null>();
 
     useEffect(() => {
         dispatch(listCampaigns());
     }, [dispatch])
+
+    const quickSearch = (query: string) => {
+        if (quickSearchAbortRef.current) {
+            quickSearchAbortRef.current()
+        }
+        const quickSearchService = housingService.quickSearchService()
+        quickSearchAbortRef.current = quickSearchService.abort;
+
+        const reduceRawAddress = (rawAddress: string[]) => rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)
+
+
+        if (query.length) {
+            return quickSearchService.fetch(query)
+                .then(_ => _.entities.map(
+                    housing => ({
+                        title: `${reduceRawAddress(housing.rawAddress)} (${housing.owner.fullName} - ${reduceRawAddress(housing.owner.rawAddress)})`,
+                        redirectUrl: '/accueil/proprietaires/' + housing.owner.id
+                    } as SearchResult)
+                ))
+                .catch(err => console.log('error', err))
+        } else {
+            return Promise.resolve([])
+        }
+    }
+
+    const search = (query: string) => {
+        history.push('/logements?q='+query);
+    }
 
     return (
         <>
@@ -23,9 +55,10 @@ const DashboardView = () => {
                 <Title as="h1" className="fr-py-3w">
                     Bienvenue sur Zéro Logement Vacant
                 </Title>
-                {/*<AppSearchBar onSearch={() => {}}*/}
-                {/*              placeholder="Rechercher une adresse ou un propriétaire..."*/}
-                {/*              size="lg"/>*/}
+                <AppSearchBar onSearch={search}
+                              onKeySearch={quickSearch}
+                              placeholder="Rechercher une adresse ou un propriétaire..."
+                              size="lg"/>
                 <Link title="Accéder à la base de données" to="/logements" className="ds-fr--inline fr-link float-right fr-pr-0 fr-py-3w">
                     Accéder à la base de données<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                 </Link>

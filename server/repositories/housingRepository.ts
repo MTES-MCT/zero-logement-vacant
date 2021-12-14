@@ -106,18 +106,18 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
             }
             if (filters.vacancyDurations?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    const thisYear = (new Date()).getFullYear()
+                    const dataYear = 2020
                     if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [thisYear - 2, thisYear])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 2, dataYear])
                     }
                     if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [thisYear - 5, thisYear - 3])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 5, dataYear - 3])
                     }
-                    if (filters.vacancyDurations?.indexOf('gt5') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [0, thisYear - 6])
+                    if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear -10, dataYear - 6])
                     }
                     if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [0, thisYear - 11])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 11])
                     }
                 })
             }
@@ -184,6 +184,8 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                     postalCode: result.postal_code,
                     city: result.city
                 },
+                latitude: result.latitude,
+                longitude: result.longitude,
                 owner: <OwnerApi>{
                     id: result.owner_id,
                     rawAddress: result.owner_raw_address,

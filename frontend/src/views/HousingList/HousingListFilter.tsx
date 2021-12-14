@@ -17,6 +17,7 @@ import {
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
+import config from '../../utils/config';
 
 const HousingListFilter = () => {
 
@@ -97,13 +98,13 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({buildingPeriods: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Durée de vacance"
+                        <AppMultiSelect label={`Durée de vacance au 01/01/${config.dataYear}`}
                                         options={vacancyDurationOptions}
                                         initialValues={filters.vacancyDurations}
                                         onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Taxe"
+                        <AppMultiSelect label="Taxé (THLV ou TLV)"
                                         options={taxedOptions}
                                         initialValues={filters.isTaxedValues}
                                         onChange={(values) => onChangeFilters({isTaxedValues: values})}/>

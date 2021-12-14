@@ -23,6 +23,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
                     {option.badgeLabel ?? option.label}
                     {onChange &&
                     <button className="ri-md ri-close-line fr-pr-0"
+                            title="Supprimer le filtre"
                             onClick={() => {
                                 onChange(filters.filter(v => v !== option.value))
                             }}>

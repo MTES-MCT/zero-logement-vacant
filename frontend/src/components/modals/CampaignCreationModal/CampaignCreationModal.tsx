@@ -134,13 +134,13 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                 </Container>
             </ModalContent>
             <ModalFooter>
-                <Button title="title"
+                <Button title="Annuler"
                         secondary
                         className="fr-mr-2w"
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                <Button title="title"
+                <Button title="Enregistrer"
                         onClick={() => create()}
                         data-testid="create-button">
                     Enregistrer

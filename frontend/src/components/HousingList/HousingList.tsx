@@ -201,20 +201,20 @@ const HousingList = (
                         onClick={() => changePerPage(50)}
                         secondary
                         disabled={paginatedHousing.perPage === 50}
-                        title="title">50 résultats par page
+                        title="Afficher 50 résultats par page">50 résultats par page
                     </Button>
                     <Button
                         onClick={() => changePerPage(100)}
                         className="fr-mx-3w"
                         secondary
                         disabled={paginatedHousing.perPage === 100}
-                        title="title">100 résultats par page
+                        title="Afficher 100 résultats par page">100 résultats par page
                     </Button>
                     <Button
                         onClick={() => changePerPage(200)}
                         secondary
                         disable={paginatedHousing.perPage === 200}
-                        title="title">200 résultats par page
+                        title="Afficher 200 résultats par page">200 résultats par page
                     </Button>
                 </div>
             </>}

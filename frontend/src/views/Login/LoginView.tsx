@@ -100,6 +100,7 @@ const LoginView = () => {
                     }
                     <Button
                         submit
+                        title="Se connecter"
                         data-testid="login-button">
                         Se connecter
                     </Button>

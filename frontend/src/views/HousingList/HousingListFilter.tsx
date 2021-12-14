@@ -134,6 +134,7 @@ const HousingListFilter = () => {
                     <button
                         className="ds-fr--inline fr-link float-right fr-mt-4w"
                         type="button"
+                        title={expandFilters? 'Afficher moins de filtres' : 'Afficher plus de filtres'}
                         aria-controls="additional-filters"
                         aria-expanded={expandFilters}
                         onClick={() => setExpandFilters(!expandFilters)}

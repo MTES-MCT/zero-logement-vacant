@@ -147,7 +147,7 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
 
         fireEvent.click(createCampaignButton);
 
@@ -177,7 +177,7 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
         const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 

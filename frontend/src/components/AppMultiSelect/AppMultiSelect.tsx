@@ -1,22 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
-
-const useOutsideClick = (ref: any, onOutsideClick: () => void) => {
-    useEffect(() => {
-        const handleClickOutside = (event: any) => {
-            if (ref.current && !ref.current.contains(event.target)) {
-                onOutsideClick();
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [ref]);
-}
-
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 const AppMultiSelect = (
     {

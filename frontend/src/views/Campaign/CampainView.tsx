@@ -19,6 +19,7 @@ import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing } from '../../models/Housing';
+import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 
 
 const CampaignView = () => {
@@ -85,6 +86,11 @@ const CampaignView = () => {
         }
     }
 
+    const menuActions = [
+        {title: 'Changer le statut', onClick: () => {console.log('change statut')}},
+        {title: 'Supprimer', onClick: () => {console.log('supprimer')}}
+    ] as MenuAction[]
+
     return (
         <>
             {campaign &&
@@ -146,6 +152,7 @@ const CampaignView = () => {
                                         <button
                                             className="ds-fr--inline fr-link"
                                             type="button"
+                                            title="Modifier la liste"
                                             onClick={() => setForcedStep(CampaignSteps.OwnersValidation)}>
                                             Modifier la liste
                                         </button>
@@ -158,6 +165,7 @@ const CampaignView = () => {
                                     <button
                                         className="ds-fr--inline fr-link"
                                         type="button"
+                                        title="Supprimer de la liste"
                                         onClick={() => remove()}>
                                         Supprimer de la liste
                                     </button>
@@ -216,6 +224,7 @@ const CampaignView = () => {
                                         <button
                                             className="ds-fr--inline fr-link"
                                             type="button"
+                                            title="Modifier"
                                             onClick={() => setForcedStep(CampaignSteps.Export)}>
                                             Modifier
                                         </button>
@@ -291,12 +300,19 @@ const CampaignView = () => {
                         {currentStep() === CampaignSteps.InProgess &&
                         <Tabs>
                             <Tab label={`En attente de retour (${loading ? '...' : paginatedHousing.totalCount})`}>
-                                <div className="fr-pt-4w">
-                                    {loading}
+                                {!loading&& <>
+                                    <Row alignItems="middle" className="fr-pb-1w">
+                                        <Col>
+                                            <b>{paginatedHousing.totalCount} logements </b>
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                       <AppActionsMenu actions={menuActions} />
+                                    </Row>
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
                                                  displayKind={HousingDisplayKey.Owner}/>
-                                </div>
+                                </>}
                             </Tab>
                             {/*<Tab label="Suivi en cours (0)">*/}
                             {/*    TODO*/}

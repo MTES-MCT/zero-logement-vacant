@@ -1,0 +1,17 @@
+.actionsMenuContainer {
+  position: relative;
+
+  .actions {
+    background-color: var(--white-1000);
+    border: 1px solid var(--grey-950);
+    position: absolute;
+    z-index: 10;
+    padding: 4px;
+
+    button {
+      width: max-content;
+      margin: 8px 0;
+    }
+
+  }
+}

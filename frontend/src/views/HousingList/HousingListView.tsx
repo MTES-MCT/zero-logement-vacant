@@ -26,7 +26,7 @@ const HousingListView = () => {
     const [createAlert, setCreateAlert] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
-    const { paginatedHousing, filters, loading } = useSelector((state: ApplicationState) => state.housing);
+    const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
     const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
@@ -104,7 +104,7 @@ const HousingListView = () => {
                 <Row>
                     <HousingFiltersBadges onChange={(values) => removeFilter(values)} />
                 </Row>
-                {paginatedHousing && !loading &&
+                {paginatedHousing &&
                     <>
                         { (new URLSearchParams(search)).get('campagne') &&
                         <Alert title="Création d’une campagne"
@@ -121,6 +121,7 @@ const HousingListView = () => {
                                data-testid="no-housing-alert"
                                closable/>
                         }
+                        {!paginatedHousing.loading &&
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
                                 <b>{paginatedHousing.totalCount} logements </b>
@@ -133,11 +134,13 @@ const HousingListView = () => {
                                     Créer la campagne
                                 </Button>
                                 {isCreateModalOpen &&
-                                <CampaignCreationModal housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
-                                                       onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
-                                                       onClose={() => setIsCreateModalOpen(false)}/>}
+                                <CampaignCreationModal
+                                    housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
+                                    onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
+                                    onClose={() => setIsCreateModalOpen(false)}/>}
                             </Col>
                         </Row>
+                        }
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
                                      filters={filters}

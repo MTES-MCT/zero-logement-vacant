@@ -44,7 +44,7 @@ const CampaignView = () => {
             .typeError('Veuillez renseigner une date valide.')
     });
 
-    const { campaign, paginatedHousing, exportURL, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaign, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(listCampaignHousing(id))
@@ -299,20 +299,20 @@ const CampaignView = () => {
 
                         {currentStep() === CampaignSteps.InProgess &&
                         <Tabs>
-                            <Tab label={`En attente de retour (${loading ? '...' : paginatedHousing.totalCount})`}>
-                                {!loading&& <>
+                            <Tab label={`En attente de retour (${paginatedHousing.loading ? '...' : paginatedHousing.totalCount})`}>
+                                {!paginatedHousing.loading && <>
                                     <Row alignItems="middle" className="fr-pb-1w">
                                         <Col>
                                             <b>{paginatedHousing.totalCount} logements </b>
                                         </Col>
                                     </Row>
                                     <Row>
-                                       <AppActionsMenu actions={menuActions} />
+                                        <AppActionsMenu actions={menuActions} />
                                     </Row>
-                                    <HousingList paginatedHousing={paginatedHousing}
-                                                 onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
-                                                 displayKind={HousingDisplayKey.Owner}/>
                                 </>}
+                                <HousingList paginatedHousing={paginatedHousing}
+                                             onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
+                                             displayKind={HousingDisplayKey.Owner}/>
                             </Tab>
                             {/*<Tab label="Suivi en cours (0)">*/}
                             {/*    TODO*/}

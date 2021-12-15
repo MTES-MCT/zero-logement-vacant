@@ -8,7 +8,6 @@ import config from '../../utils/config';
 export interface HousingState {
     paginatedHousing: PaginatedResult<Housing>;
     filters: HousingFilters;
-    loading: boolean;
 }
 
 export const initialFilters = {
@@ -34,11 +33,11 @@ const initialState = {
         entities: [],
         page: 1,
         perPage: config.perPageDefault,
-        totalCount: 0
+        totalCount: 0,
+        loading: true
     },
     filters: initialFilters,
-    checkedHousingIds: [],
-    loading: true
+    checkedHousingIds: []
 };
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
@@ -50,10 +49,10 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                     entities: [],
                     totalCount: 0,
                     page: action.page,
-                    perPage: action.perPage
+                    perPage: action.perPage,
+                    loading: true
                 },
-                filters: action.filters,
-                loading: true
+                filters: action.filters
             };
         case HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
@@ -66,8 +65,8 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                     ...state.paginatedHousing,
                     entities: action.paginatedHousing.entities,
                     totalCount: action.paginatedHousing.totalCount,
-                },
-                loading: false
+                    loading: false
+                }
             };
         }
         default:

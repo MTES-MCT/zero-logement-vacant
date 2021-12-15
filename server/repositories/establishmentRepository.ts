@@ -41,6 +41,7 @@ const listAvailable = async (): Promise<EstablishmentApi[]> => {
     try {
         return db(establishmentsTable)
             .where('available', true)
+            .orderBy('name')
             .then(_ => _.map(result => (
                     <EstablishmentApi> {
                     id: result.id,

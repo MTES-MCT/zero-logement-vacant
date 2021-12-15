@@ -30,7 +30,8 @@ const initialState: CampaignState = {
         entities: [],
         page: 1,
         perPage: config.perPageDefault,
-        totalCount: 0
+        totalCount: 0,
+        loading: true
     },
     exportURL: '',
     loading: true
@@ -72,9 +73,9 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     entities: [],
                     totalCount: 0,
                     page: action.page,
-                    perPage: action.perPage
+                    perPage: action.perPage,
+                    loading: true
                 },
-                loading: true
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
@@ -88,9 +89,9 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     ...state.paginatedHousing,
                     entities: action.paginatedHousing.entities,
                     totalCount: action.paginatedHousing.totalCount,
+                    loading: false
                 },
                 exportURL: action.exportURL,
-                loading: false
             };
         }
         case CAMPAIGN_CREATED:

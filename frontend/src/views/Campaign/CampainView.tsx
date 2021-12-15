@@ -43,7 +43,7 @@ const CampaignView = () => {
             .typeError('Veuillez renseigner une date valide.')
     });
 
-    const { campaign, paginatedHousing, exportURL, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaign, paginatedHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(listCampaignHousing(id))
@@ -290,9 +290,8 @@ const CampaignView = () => {
 
                         {currentStep() === CampaignSteps.InProgess &&
                         <Tabs>
-                            <Tab label={`En attente de retour (${loading ? '...' : paginatedHousing.totalCount})`}>
+                            <Tab label={`En attente de retour (${paginatedHousing.loading ? '...' : paginatedHousing.totalCount})`}>
                                 <div className="fr-pt-4w">
-                                    {loading}
                                     <HousingList paginatedHousing={paginatedHousing}
                                                  onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
                                                  displayKind={HousingDisplayKey.Owner}/>

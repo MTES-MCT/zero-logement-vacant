@@ -204,17 +204,17 @@ const HousingList = (
                         title="Afficher 50 résultats par page">50 résultats par page
                     </Button>
                     <Button
-                        onClick={() => changePerPage(100)}
+                        onClick={() => changePerPage(200)}
                         className="fr-mx-3w"
                         secondary
-                        disabled={paginatedHousing.perPage === 100}
-                        title="Afficher 100 résultats par page">100 résultats par page
+                        disabled={paginatedHousing.perPage === 200}
+                        title="Afficher 200 résultats par page">200 résultats par page
                     </Button>
                     <Button
-                        onClick={() => changePerPage(200)}
+                        onClick={() => changePerPage(500)}
                         secondary
-                        disable={paginatedHousing.perPage === 200}
-                        title="Afficher 200 résultats par page">200 résultats par page
+                        disabled={paginatedHousing.perPage === 500}
+                        title="Afficher 500 résultats par page">500 résultats par page
                     </Button>
                 </div>
             </>}

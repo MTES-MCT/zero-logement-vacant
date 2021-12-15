@@ -122,7 +122,7 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
-                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), {value: 'None', label: 'Hors périmètres prioritaires'}]}
                                         initialValues={filters.housingScopes}
                                         onChange={(values) => onChangeFilters({housingScopes: values})}/>
                     </Col>

@@ -135,7 +135,12 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
             if (filters.housingScopes?.length) {
-                queryBuilder.whereIn('housing_scope', filters.housingScopes)
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.housingScopes?.indexOf('None') !== -1) {
+                        whereBuilder.orWhereNull('housing_scope')
+                    }
+                    whereBuilder.orWhereIn('housing_scope', filters.housingScopes)
+                })
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {

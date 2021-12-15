@@ -4,7 +4,7 @@ insert into housing(invariant, raw_address, insee_code, latitude, longitude, cad
 select
        invariant,
        array[ltrim(trim(libvoie), '0'), trim(libcom)],
-       trim(substr(to_char(dir, '999'), 1, 3) || lpad(trim(to_char(territoire, '999')), 3, '0')),
+       codecom,
        ff_x_4326,
        ff_y_4326,
        ff_dcapec2,
@@ -26,9 +26,9 @@ insert into owners(full_name, administrator, raw_address, birth_date, owner_kind
            var.administrator,
            array[trim(adresse1), trim(adresse2), trim(adresse3), trim(adresse4)],
            (case
-               when ff_jdatnss <> 0 and (
+               when ff_jdatnss <> '0' and ff_jdatnss <> '00/00/0000' and (
                    (var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%')) then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * ff_jdatnss end),
+                   (var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%')) then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss, '99999') end),
            (case
                when trim(groupe) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') and

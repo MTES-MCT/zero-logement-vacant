@@ -108,16 +108,16 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 queryBuilder.where(function(whereBuilder: any) {
                     const dataYear = 2020
                     if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 2, dataYear])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
                     }
                     if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 5, dataYear - 3])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 4, dataYear - 2])
                     }
                     if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear -10, dataYear - 6])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear -9, dataYear - 5])
                     }
                     if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 11])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 10])
                     }
                 })
             }

@@ -83,8 +83,8 @@ export const multiOwnerOptions: HousingFilterOption[] = [
 
 export const vacancyDurationOptions = [
     {value: "lt2", label: "Moins de 2 ans"},
-    {value: "2to5", label: "2 - 5 ans"},
-    {value: "5to10", label: "5 - 10 ans"},
+    {value: "2to5", label: "Entre 2 et 5 ans"},
+    {value: "5to10", label: "Entre 5 et 10 ans"},
     {value: "gt10", label: "Plus de 10 ans"}
 ];
 

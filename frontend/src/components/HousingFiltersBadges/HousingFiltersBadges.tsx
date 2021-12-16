@@ -10,6 +10,7 @@ import {
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
+    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions, taxedOptions,
     vacancyDurationOptions,
@@ -79,7 +80,7 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
             <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                           filters={filters.localities}
                           onChange={onChange && (values => onChange({localities: values}))}/>
-            <HousingFilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+            <HousingFilterBadges options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                           filters={filters.housingScopes}
                           onChange={onChange && (values => onChange({housingScopes: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}

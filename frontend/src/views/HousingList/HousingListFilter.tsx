@@ -10,6 +10,7 @@ import {
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
+    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions,
     taxedOptions,
@@ -122,7 +123,7 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
-                                        options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), {value: 'None', label: 'Hors périmètres prioritaires'}]}
+                                        options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                                         initialValues={filters.housingScopes}
                                         onChange={(values) => onChangeFilters({housingScopes: values})}/>
                     </Col>

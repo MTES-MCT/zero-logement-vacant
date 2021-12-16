@@ -93,6 +93,8 @@ export const taxedOptions: HousingFilterOption[] = [
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
 
+export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
+
 export const hasFilters = (housingFilters: HousingFilters) => {
     return Boolean(housingFilters.ownerKinds.length ||
         housingFilters.ownerAges.length ||
@@ -107,3 +109,4 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.isTaxedValues.length ||
         housingFilters.query.length);
 }
+

@@ -1,16 +1,14 @@
-import { EstablishmentApi } from './EstablishmentApi';
-
 export interface UserApi {
     id: string,
     email: string,
     password: string,
     firstName: string,
     lastName: string,
-    establishment: EstablishmentApi
+    establishmentId?: string
 }
 
 
 export interface RequestUser {
     userId: string;
-    establishmentId: number;
+    establishmentId: string;
 }

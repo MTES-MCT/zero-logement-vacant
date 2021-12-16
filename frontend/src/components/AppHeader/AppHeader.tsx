@@ -17,6 +17,7 @@ import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { logout } from '../../store/actions/authenticationAction';
+import { isValidUser } from '../../models/User';
 
 function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
@@ -57,8 +58,8 @@ function AppHeader() {
                     <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                     <Service
                         title="Zéro Logement Vacant"
-                        description={authUser ? authUser.user.establishment.name : ''}/>
-                    {authUser &&
+                        description={isValidUser(authUser) ? authUser.establishment.name : ''}/>
+                    {isValidUser(authUser) &&
                     <Tool>
                         <ToolItemGroup>
                             <ToolItem icon='ri-lock-line' onClick={() => logoutUser()}>Me déconnecter</ToolItem>
@@ -66,7 +67,7 @@ function AppHeader() {
                     </Tool>
                     }
                 </HeaderBody>
-                {authUser &&
+                {isValidUser(authUser) &&
                     <HeaderNav data-testid="header-nav">
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />

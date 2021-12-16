@@ -2,6 +2,7 @@ import { Housing } from '../../models/Housing';
 import { FETCH_HOUSING_LIST, HOUSING_LIST_FETCHED, HousingActionTypes } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
+import config from '../../utils/config';
 
 
 export interface HousingState {
@@ -31,8 +32,9 @@ const initialState = {
     paginatedHousing: {
         entities: [],
         page: 1,
-        perPage: 20,
-        totalCount: 0
+        perPage: config.perPageDefault,
+        totalCount: 0,
+        loading: true
     },
     filters: initialFilters,
     checkedHousingIds: []
@@ -47,7 +49,8 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                     entities: [],
                     totalCount: 0,
                     page: action.page,
-                    perPage: action.perPage
+                    perPage: action.perPage,
+                    loading: true
                 },
                 filters: action.filters
             };
@@ -62,7 +65,8 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                     ...state.paginatedHousing,
                     entities: action.paginatedHousing.entities,
                     totalCount: action.paginatedHousing.totalCount,
-                },
+                    loading: false
+                }
             };
         }
         default:

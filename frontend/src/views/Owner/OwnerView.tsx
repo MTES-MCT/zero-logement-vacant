@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title, Link } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
@@ -12,6 +12,7 @@ import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEd
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
+import config from '../../utils/config';
 
 const OwnerView = () => {
 
@@ -130,6 +131,13 @@ const OwnerView = () => {
                                         }
                                     </span>
                                 </span>
+                                <div className="fr-mt-2w">
+                                    <Link title="Localiser dans Google Map - nouvelle fenêtre"
+                                          href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                          target="_blank">
+                                        Localiser
+                                    </Link>
+                                </div>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">
@@ -157,8 +165,8 @@ const OwnerView = () => {
                                     <b>Situation</b>
                                 </Text>
                                 <Text size="md" className="fr-mb-1w">
-                                    <b>Durée de la vacance :&nbsp;</b>
-                                    {(new Date()).getFullYear() - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
+                                    <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
+                                    {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                 </Text>
                             </Col>
                         </Row>

@@ -10,6 +10,7 @@ import {
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
+    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions, taxedOptions,
     vacancyDurationOptions,
@@ -23,6 +24,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
                     {option.badgeLabel ?? option.label}
                     {onChange &&
                     <button className="ri-md ri-close-line fr-pr-0"
+                            title="Supprimer le filtre"
                             onClick={() => {
                                 onChange(filters.filter(v => v !== option.value))
                             }}>
@@ -38,7 +40,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
 const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
 
     const { filters } = useSelector((state: ApplicationState) => state.housing);
-    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
 
     return (
         <>
@@ -78,7 +80,7 @@ const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
             <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                           filters={filters.localities}
                           onChange={onChange && (values => onChange({localities: values}))}/>
-            <HousingFilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+            <HousingFilterBadges options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                           filters={filters.housingScopes}
                           onChange={onChange && (values => onChange({housingScopes: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}

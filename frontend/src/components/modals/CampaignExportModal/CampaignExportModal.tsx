@@ -59,7 +59,7 @@ const CampaignExportModal = (
                 </Container>
             </ModalContent>
             <ModalFooter>
-                <Button title="title"
+                <Button title="Annuler"
                         secondary
                         className="fr-mr-2w"
                         onClick={() => onClose()}>

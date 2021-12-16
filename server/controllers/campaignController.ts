@@ -6,6 +6,7 @@ import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
+import localityRepository from '../repositories/localityRepository';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -52,8 +53,12 @@ const create = async (request: Request, response: Response): Promise<Response> =
         validatedAt: new Date()
     })
 
+    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
+
+    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
+
     const housingIds = allHousing ?
-        await housingRepository.list(filters)
+        await housingRepository.list({...filters, localities: filterLocalities})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)

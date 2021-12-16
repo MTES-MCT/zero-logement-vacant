@@ -1,28 +1,71 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
-import { Redirect } from 'react-router-dom';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import { Alert, Button, Container, TextInput } from '@dataesr/react-dsfr';
+import { Alert, Button, Container, Select, TextInput } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../store/actions/authenticationAction';
+import { fetchAvailableEstablishments, login } from '../../store/actions/authenticationAction';
+
+import * as yup from 'yup';
+import { ValidationError } from 'yup/es';
 
 const LoginView = () => {
 
     const dispatch = useDispatch();
+    const { pathname } = useLocation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<{ value: string, label: string, disabled?: boolean }[] | undefined>();
+    const [establishmentId, setEstablishmentId] = useState<string>('');
+    const [formErrors, setFormErrors] = useState<any>({});
 
-    const { authUser, error } = useSelector((state: ApplicationState) => state.authentication);
+    const { error, availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
+
+    const loginForm = yup.object().shape({
+        isAdmin: yup.boolean(),
+        email: yup.string().required('Veuillez renseigner un email.').email('Veuillez renseigner un email valide.'),
+        password: yup.string().required('Veuillez renseigner un mot de passe.'),
+        establishmentId: yup.string().when('isAdmin', {
+            is: true,
+            then: yup.string().min(1, 'Veuillez sélectionner un EPCI.')
+        })
+    });
+
+    useEffect(() => {
+        if (pathname === '/admin') {
+            dispatch(fetchAvailableEstablishments())
+        }
+    }, [dispatch])
+
+    useEffect(() => {
+        if (availableEstablishments) {
+            setAvailableEstablishmentOptions([
+                { value: '', label: 'Sélectionner un EPCI', disabled: true },
+                ...availableEstablishments.map(e => ({
+                    value: e.id,
+                    label: e.name
+                }))
+            ])
+        }
+    }, [availableEstablishments])
 
     const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
+        setFormErrors({});
         e.preventDefault();
-        dispatch(login(email, password));
+        loginForm
+            .validate({ isAdmin: pathname === '/admin', email, password, establishmentId }, {abortEarly: false})
+            .then(() => dispatch(login(email, password, establishmentId.length ? establishmentId : undefined)))
+            .catch(err => {
+                const object: any = {};
+                err.inner.forEach((x: ValidationError) => {
+                    if (x.path !== undefined && x.errors.length) {
+                        object[x.path] = x.errors[0];
+                    }
+                });
+                setFormErrors(object);
+            })
     };
-
-    if (authUser) {
-        return <Redirect to="/accueil" />;
-    }
 
     return (
         <>
@@ -31,28 +74,33 @@ const LoginView = () => {
                     <TextInput
                         value={email}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                        required
+                        messageType={formErrors['email'] ? 'error' : ''}
+                        message={formErrors['email']}
                         data-testid="email-input"
                         label="Adresse email : "
                     />
-                    <div className="fr-input-group" data-testid="password-input">
-                        <label className="fr-label" htmlFor="text-input-password">
-                            Mot de passe :
-                            <span className="error"> *</span>
-                        </label>
-                        <div className="fr-input-wrap">
-                            <input
-                                className="fr-input"
-                                type="password"
-                                id="text-input-password"
-                                name="text-input-password"
-                                required
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}/>
-                        </div>
-                    </div>
+                    <TextInput
+                        value={password}
+                        type='password'
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                        messageType={formErrors['password'] ? 'error' : ''}
+                        message={formErrors['password']}
+                        data-testid="password-input"
+                        label="Mot de passe : "
+                    />
+                    {pathname === ('/admin') && availableEstablishmentOptions &&
+                        <Select
+                            label="Lancement"
+                            selected={establishmentId}
+                            options={availableEstablishmentOptions}
+                            messageType={formErrors['establishmentId'] ? 'error' : undefined}
+                            message={formErrors['establishmentId']}
+                            onChange={(e: any) => setEstablishmentId(e.target.value)}
+                        />
+                    }
                     <Button
                         submit
+                        title="Se connecter"
                         data-testid="login-button">
                         Se connecter
                     </Button>

@@ -28,7 +28,13 @@ export function genNumber(length = 10) {
 export function genAuthUser() {
     return {
         accessToken: randomstring.generate(),
-        user: genUser()
+        user: genUser(),
+        establishment: {
+            id: genNumber(10),
+            name: randomstring.generate(),
+            housingScopes: [],
+            localities: []
+        }
     } as AuthUser;
 }
 
@@ -36,13 +42,7 @@ export function genUser() {
     return {
         email: genEmail(),
         firstName: randomstring.generate(),
-        lastName: randomstring.generate(),
-        establishment: {
-            id: genNumber(10),
-            name: randomstring.generate(),
-            housingScopes: [],
-            localities: []
-        }
+        lastName: randomstring.generate()
     } as User;
 }
 
@@ -108,6 +108,6 @@ export function genPaginatedResult<T>(results: Array<T>) {
         totalCount: genNumber(2),
         entities: results,
         page: 1,
-        perPage: 20
+        perPage: 50
     } as PaginatedResult<T>
 }

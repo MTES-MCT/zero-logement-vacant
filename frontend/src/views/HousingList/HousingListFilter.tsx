@@ -10,6 +10,7 @@ import {
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
+    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions,
     taxedOptions,
@@ -17,12 +18,13 @@ import {
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
+import config from '../../utils/config';
 
 const HousingListFilter = () => {
 
     const dispatch = useDispatch();
 
-    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser.user);
+    const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
@@ -97,13 +99,13 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({buildingPeriods: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Durée de vacance"
+                        <AppMultiSelect label={`Durée de vacance au 01/01/${config.dataYear}`}
                                         options={vacancyDurationOptions}
                                         initialValues={filters.vacancyDurations}
                                         onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Taxe"
+                        <AppMultiSelect label="Taxé (THLV ou TLV)"
                                         options={taxedOptions}
                                         initialValues={filters.isTaxedValues}
                                         onChange={(values) => onChangeFilters({isTaxedValues: values})}/>
@@ -121,7 +123,7 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
-                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        options={[...establishment.housingScopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                                         initialValues={filters.housingScopes}
                                         onChange={(values) => onChangeFilters({housingScopes: values})}/>
                     </Col>
@@ -133,6 +135,7 @@ const HousingListFilter = () => {
                     <button
                         className="ds-fr--inline fr-link float-right fr-mt-4w"
                         type="button"
+                        title={expandFilters? 'Afficher moins de filtres' : 'Afficher plus de filtres'}
                         aria-controls="additional-filters"
                         aria-expanded={expandFilters}
                         onClick={() => setExpandFilters(!expandFilters)}

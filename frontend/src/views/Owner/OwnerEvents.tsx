@@ -64,6 +64,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                     {!expandEvents && events.length > 3 &&
                         <button className="ds-fr--inline fr-link"
                                 type="button"
+                                title="Voir tout le suivi"
                                 onClick={() => setExpandEvents(!expandEvents)}>
                             Voir tout le suivi<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                         </button>

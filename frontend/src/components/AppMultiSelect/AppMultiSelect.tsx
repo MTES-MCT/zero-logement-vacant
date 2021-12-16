@@ -53,6 +53,7 @@ const AppMultiSelect = (
         <div className="select-multi-input" ref={wrapperRef}>
             <span className="fr-label">{label}</span>
             <button className="fr-select"
+                    title={showOptions ? 'Masquer les options' : 'Afficher les options'}
                     onClick={() => setShowOptions(!showOptions)}>
                 {selectedOptions()}
             </button>

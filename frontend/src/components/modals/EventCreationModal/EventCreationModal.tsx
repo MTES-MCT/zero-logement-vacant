@@ -16,13 +16,13 @@ const EventCreationModal = ({onSubmit, onClose}: {onSubmit: (name: string) => vo
 
             </ModalContent>
             <ModalFooter>
-                <Button title="title"
+                <Button title="Annuler"
                         secondary
                         className="fr-mr-2w"
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                <Button title="title"
+                <Button title="Enregistrer"
                         onClick={() => onSubmit}
                         disabled
                         data-testid="create-button">

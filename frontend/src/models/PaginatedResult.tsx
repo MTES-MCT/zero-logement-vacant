@@ -3,4 +3,5 @@ export interface PaginatedResult<T> {
     entities: Array<T>;
     page: number;
     perPage: number;
+    loading: boolean;
 }

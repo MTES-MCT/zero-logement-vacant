@@ -12,6 +12,7 @@ import {
 } from '../actions/campaignAction';
 import { Housing } from '../../models/Housing';
 import { PaginatedResult } from '../../models/PaginatedResult';
+import config from '../../utils/config';
 
 
 export interface CampaignState {
@@ -21,16 +22,19 @@ export interface CampaignState {
     campaign?: Campaign;
     paginatedHousing: PaginatedResult<Housing>;
     exportURL: string;
+    loading: boolean;
 }
 
 const initialState: CampaignState = {
     paginatedHousing: {
         entities: [],
         page: 1,
-        perPage: 20,
-        totalCount: 0
+        perPage: config.perPageDefault,
+        totalCount: 0,
+        loading: true
     },
-    exportURL: ''
+    exportURL: '',
+    loading: true
 };
 
 const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
@@ -39,23 +43,27 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignList: [],
+                loading: true
             };
         case CAMPAIGN_LIST_FETCHED:
             return {
                 ...state,
-                campaignList: action.campaignList
+                campaignList: action.campaignList,
+                loading: false
             };
         case FETCH_CAMPAIGN:
             return {
                 ...state,
                 campaignFetchingId: action.campaignFetchingId,
                 campaign: undefined,
+                loading: true
             };
         case CAMPAIGN_FETCHED:
             return {
                 ...state,
                 campaignFetchingId: undefined,
-                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign
+                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign,
+                loading: false
             };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
@@ -65,8 +73,9 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     entities: [],
                     totalCount: 0,
                     page: action.page,
-                    perPage: action.perPage
-                }
+                    perPage: action.perPage,
+                    loading: true
+                },
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
@@ -80,8 +89,9 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     ...state.paginatedHousing,
                     entities: action.paginatedHousing.entities,
                     totalCount: action.paginatedHousing.totalCount,
+                    loading: false
                 },
-                exportURL: action.exportURL
+                exportURL: action.exportURL,
             };
         }
         case CAMPAIGN_CREATED:

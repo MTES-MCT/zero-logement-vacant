@@ -1,7 +1,7 @@
 import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { housingTable } from './housingRepository';
+import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 
 export const campaignsTable = 'campaigns';
@@ -15,9 +15,10 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
             .where(`${campaignsTable}.id`, campaignId)
-            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
+            .join(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .groupBy(`${campaignsTable}.id`)
             .first()
             .then((result: any) => parseCampaignApi(result))
@@ -27,7 +28,7 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const list = async (establishmentId: number): Promise<CampaignApi[]> => {
+const list = async (establishmentId: string): Promise<CampaignApi[]> => {
 
     try {
         return db
@@ -35,9 +36,10 @@ const list = async (establishmentId: number): Promise<CampaignApi[]> => {
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
-            .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
-            .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`left join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
+            .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
@@ -47,7 +49,7 @@ const list = async (establishmentId: number): Promise<CampaignApi[]> => {
     }
 }
 
-const lastCampaignNumber = async (establishmentId: number): Promise<any> => {
+const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
     try {
         return db(campaignsTable)
             .where('establishment_id', establishmentId)

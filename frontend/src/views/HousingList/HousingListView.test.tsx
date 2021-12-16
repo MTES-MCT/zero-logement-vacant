@@ -95,7 +95,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: { ...initialFilters, ownerKinds: [ownerKindOptions[0].value]}, page: 1, perPage: 20}),
+                body: JSON.stringify({ filters: { ...initialFilters, ownerKinds: [ownerKindOptions[0].value]}, page: 1, perPage: config.perPageDefault}),
             });
     });
 
@@ -121,7 +121,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: {...initialFilters, query: 'my search'}, page: 1, perPage: 20}),
+            body: JSON.stringify({ filters: {...initialFilters, query: 'my search'}, page: 1, perPage: config.perPageDefault}),
         });
     });
 
@@ -147,7 +147,7 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
 
         fireEvent.click(createCampaignButton);
 
@@ -177,7 +177,7 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const createCampaignButton = screen.getByTestId('create-campaign-button');
+        const createCampaignButton = await screen.findByTestId('create-campaign-button');
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
         const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
 

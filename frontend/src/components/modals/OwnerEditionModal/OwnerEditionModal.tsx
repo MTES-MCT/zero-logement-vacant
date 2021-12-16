@@ -116,13 +116,13 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                 </Accordion>
             </ModalContent>
             <ModalFooter>
-                <Button title="title"
+                <Button title="Annuler"
                         secondary
                         className="fr-mr-2w"
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                <Button title="title"
+                <Button title="Enregistrer"
                         onClick={() => submit()}
                         data-testid="create-button">
                     Enregistrer

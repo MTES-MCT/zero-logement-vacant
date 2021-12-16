@@ -8,8 +8,8 @@ insert into establishments (epci_id, name, localities_id) (
     where lpad(l1.codgeo, 5, '0') = l2.geo_code group by epci, libepci
 );
 
-INSERT INTO public.establishments (name, localities_id)
-VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'));
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune d''Ajaccio', (select array_agg(id) from localities where geo_code='2A004'), true);
 

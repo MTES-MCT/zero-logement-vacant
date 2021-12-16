@@ -6,14 +6,16 @@ exports.up = function(knex) {
             .createTable('housing', (table) => {
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
                 table.string('invariant').notNullable();
+                table.string('local_id').notNullable();
+                table.string('building_id').notNullable();
                 table.specificType('raw_address', 'text[]').notNullable();
                 table.string('insee_code').notNullable();
                 table.string('house_number');
                 table.string('street');
                 table.string('postal_code');
                 table.string('city');
-                table.string('latitude').notNullable();
-                table.string('longitude').notNullable();
+                table.double('latitude').notNullable();
+                table.double('longitude').notNullable();
                 table.integer('cadastral_classification').notNullable();
                 table.boolean('uncomfortable').notNullable();
                 table.integer('vacancy_start_year').notNullable();
@@ -24,7 +26,11 @@ exports.up = function(knex) {
                 table.integer('building_year');
                 table.date('mutation_date').notNullable();
                 table.boolean('taxed').notNullable();
-            })
+            }),
+        knex.schema // @ts-ignore
+            .table('housing', function (table) {
+                table.index(['insee_code'], 'housing_insee_code_idx');
+            }),
     ]);
 };
 

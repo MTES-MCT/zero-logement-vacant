@@ -14,6 +14,10 @@ exports.up = function(knex) {
                 table.timestamp('sent_at');
                 table.date('sending_date');
             }),
+        knex.schema // @ts-ignore
+            .table('campaigns', function (table) {
+                table.index(['establishment_id'], 'campaigns_establishment_idx');
+            }),
         knex.schema// @ts-ignore
             .createTable('campaigns_housing', (table) => {
                 table.uuid('campaign_id').references('id').inTable('campaigns');

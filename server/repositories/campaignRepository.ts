@@ -1,7 +1,7 @@
 import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { housingTable } from './housingRepository';
+import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 
 export const campaignsTable = 'campaigns';
@@ -17,7 +17,8 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
             .where(`${campaignsTable}.id`, campaignId)
             .join(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .groupBy(`${campaignsTable}.id`)
             .first()
             .then((result: any) => parseCampaignApi(result))
@@ -37,7 +38,8 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
             .from(campaignsTable)
             .join(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))

@@ -1,5 +1,5 @@
 import db from './db';
-import { housingTable } from './housingRepository';
+import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 
 export const campaignsHousingTable = 'campaigns_housing';
@@ -21,11 +21,12 @@ const insertHousingList = async (campaignId: string, housingIds: string[]): Prom
 const getHousingOwnerIds = async (campaignId: string): Promise<{housingId: string, ownerId: string}[]> => {
     try {
         return db
-            .select('housing_id', 'o.id as owner_id')
+            .select(`${campaignsHousingTable}.housing_id`, 'o.id as owner_id')
             .from(`${campaignsHousingTable}`)
             .where('campaign_id', campaignId)
             .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .then(_ => _.map(_ => ({
                 housingId: _.housing_id,
                 ownerId: _.owner_id,

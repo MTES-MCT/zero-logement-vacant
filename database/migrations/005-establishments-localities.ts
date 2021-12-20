@@ -23,13 +23,21 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .alterTable('housing', (table) => {
                 table.string('housing_scope');
-            })
+            }),
+        knex.schema // @ts-ignore
+            .table('campaigns', function (table) {
+                table.index(['establishment_id'], 'campaigns_establishment_idx');
+            }),
     ]);
 };
 
 // @ts-ignore
 exports.down = function(knex) {
   return Promise.all([
+      knex.schema // @ts-ignore
+          .table('campaigns', function (table) {
+              table.dropIndex(['establishment_id'], 'campaigns_establishment_idx');
+          }),
       knex.schema// @ts-ignore
           .alterTable('housing', (table) => {
               table.dropColumn('housing_scope');

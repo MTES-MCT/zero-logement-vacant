@@ -8,6 +8,7 @@ import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 
 export const housingTable = 'housing';
+export const ownersHousingTable = 'owners_housing';
 
 
 const list = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
@@ -46,10 +47,10 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
             if (filters.multiOwners?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     if (filters.multiOwners?.indexOf('true') !== -1) {
-                        whereBuilder.orWhereRaw('array_length(invariants, 1) > 1')
+                        whereBuilder.orWhereRaw('array_length(local_ids, 1) > 1')
                     }
                     if (filters.multiOwners?.indexOf('false') !== -1) {
-                        whereBuilder.orWhereRaw('array_length(invariants, 1) = 1')
+                        whereBuilder.orWhereRaw('array_length(local_ids, 1) = 1')
                     }
                 })
             }
@@ -108,16 +109,16 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 queryBuilder.where(function(whereBuilder: any) {
                     const dataYear = 2020
                     if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 2, dataYear])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
                     }
                     if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 5, dataYear - 3])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 4, dataYear - 2])
                     }
                     if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear -10, dataYear - 6])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [dataYear -9, dataYear - 5])
                     }
                     if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-                        whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 11])
+                        whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 10])
                     }
                 })
             }
@@ -135,7 +136,12 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
             if (filters.housingScopes?.length) {
-                queryBuilder.whereIn('housing_scope', filters.housingScopes)
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.housingScopes?.indexOf('None') !== -1) {
+                        whereBuilder.orWhereNull('housing_scope')
+                    }
+                    whereBuilder.orWhereIn('housing_scope', filters.housingScopes)
+                })
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -153,7 +159,8 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
         const query = db
             .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', db.raw('json_agg(campaigns) campaign_ids'))
             .from(housingTable)
-            .joinRaw(`join ${ownerTable} as o on (${housingTable}.invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
@@ -169,7 +176,8 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
 
         const housingCount: number = await db(housingTable)
             .count()
-            .joinRaw(`join ${ownerTable} as o on (invariant = any(o.invariants))`)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

@@ -21,4 +21,4 @@ update establishments set available = true where epci_id in
  '200071082',
  '243600327',
  '247200090'
-) or name = 'Commune de Brive-la-Gaillarde';
+);

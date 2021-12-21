@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
-import { Housing } from '../models/Housing';
+import { CampaignHousing, Housing } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialFilters } from '../store/reducers/housingReducer';
@@ -43,25 +43,31 @@ const quickSearchService = (): {abort: () => void, fetch: (query: string) => Pro
     };
 };
 
-const listByCampaign = async (campaignId: string, page: number, perPage: number, excludedIds: string[] = []): Promise<PaginatedResult<Housing>> => {
+const listByCampaign = async (campaignId: string, page: number, perPage: number): Promise<PaginatedResult<CampaignHousing>> => {
 
-    return await fetch(`${config.apiEndpoint}/api/housing`, {
+    return await fetch(`${config.apiEndpoint}/api/housing/campaign/${campaignId}`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            filters: {
-                ...initialFilters,
-                campaignIds: [campaignId],
-                excludedIds
-            },
+            campaignId,
             page,
             perPage }),
     })
         .then(_ => _.json())
         .then(result => ({
             ...result,
-            entities: result.entities.map((e: any) => parseHousing(e))
+            entities: result.entities.map((e: any) => parseHousing(e) as CampaignHousing)
         }));
+};
+
+const updateCampaignHousing = async (campaignHousing: CampaignHousing): Promise<CampaignHousing> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/campaign`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(campaignHousing),
+    })
+        .then(_ => _.json());
 };
 
 const listByOwner = async (ownerId: string): Promise<Housing[]> => {
@@ -83,6 +89,7 @@ const parseHousing = (h: any): Housing => ({
 const housingService = {
     listHousing,
     listByCampaign,
+    updateCampaignHousing,
     listByOwner,
     quickSearchService
 };

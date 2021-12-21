@@ -29,10 +29,7 @@ const AppActionsMenu = (
                 aria-expanded={expandActions}
                 onClick={() => {setExpandActions(!expandActions)}}
             >
-                {expandActions
-                    ? <>Actions<span className="fr-fi-arrow-right-s-line" aria-hidden="true" /></>
-                    : <>Actions<span className="fr-fi-arrow-down-s-line" aria-hidden="true" /></>
-                }
+                Actions<span className="ri-more-2-fill" aria-hidden="true" />
             </button>
             {expandActions &&
             <div className={styles.actions}>

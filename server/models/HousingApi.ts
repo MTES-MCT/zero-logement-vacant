@@ -16,3 +16,10 @@ export interface HousingApi {
     vacancyStartYear: number;
     campaignIds: string[];
 }
+
+export interface CampaignHousingApi extends HousingApi {
+    campaignId: string;
+    status?: string;
+    step?: string;
+    precision?: string;
+}

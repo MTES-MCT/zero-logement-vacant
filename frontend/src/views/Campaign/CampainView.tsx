@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Button, Col, Container, Row, Tab, Tabs, TextInput, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, TextInput, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
@@ -19,7 +19,7 @@ import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing } from '../../models/Housing';
-import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
+import CampaignInProgress from './CampainInProgress';
 
 
 const CampaignView = () => {
@@ -85,11 +85,6 @@ const CampaignView = () => {
             setForcedStep(step + 1)
         }
     }
-
-    const menuActions = [
-        {title: 'Changer le statut', onClick: () => {console.log('change statut')}},
-        {title: 'Supprimer', onClick: () => {console.log('supprimer')}}
-    ] as MenuAction[]
 
     return (
         <>
@@ -298,35 +293,7 @@ const CampaignView = () => {
                         }
 
                         {currentStep() === CampaignSteps.InProgess &&
-                        <Tabs>
-                            <Tab label={`En attente de retour (${paginatedHousing.loading ? '...' : paginatedHousing.totalCount})`}>
-                                {!paginatedHousing.loading && <>
-                                    <Row alignItems="middle" className="fr-pb-1w">
-                                        <Col>
-                                            <b>{paginatedHousing.totalCount} logements </b>
-                                        </Col>
-                                    </Row>
-                                    <Row>
-                                        <AppActionsMenu actions={menuActions} />
-                                    </Row>
-                                </>}
-                                <HousingList paginatedHousing={paginatedHousing}
-                                             onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
-                                             displayKind={HousingDisplayKey.Owner}/>
-                            </Tab>
-                            {/*<Tab label="Suivi en cours (0)">*/}
-                            {/*    TODO*/}
-                            {/*</Tab>*/}
-                            {/*<Tab label="Sans suite (0)">*/}
-                            {/*    TODO*/}
-                            {/*</Tab>*/}
-                            {/*<Tab label="Non vacant (0)">*/}
-                            {/*    TODO*/}
-                            {/*</Tab>*/}
-                            {/*<Tab label="Sortie de procédure (0)">*/}
-                            {/*    TODO*/}
-                            {/*</Tab>*/}
-                        </Tabs>
+                            <CampaignInProgress />
                         }
                     </Container>
                 </>

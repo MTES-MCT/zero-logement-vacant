@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import { HousingApi } from '../models/HousingApi';
+import { CampaignHousingApi, HousingApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
 import { RequestUser } from '../models/UserApi';
+import campaignHousingRepository from '../repositories/campaignHousingRepository';
+import { validationResult } from 'express-validator';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -26,19 +28,6 @@ const list = async (request: Request, response: Response): Promise<Response> => 
         .then(_ => response.status(200).json(_));
 };
 
-const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
-
-    const campaignId = request.params.campaignId;
-
-    const page = request.body.page;
-    const perPage = request.body.perPage;
-
-    console.log('List housing by campaign', campaignId, page, perPage)
-
-    return housingRepository.list({campaignIds: [campaignId]}, (page - 1) * perPage, perPage)
-        .then(_ => response.status(200).json(_));
-};
-
 const listByOwner = async (request: Request, response: Response): Promise<Response> => {
 
     const ownerId = request.params.ownerId;
@@ -49,6 +38,35 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
         .then(_ => response.status(200).json(_.entities));
 };
 
+const listCampaignHousing = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    const page = request.body.page;
+    const perPage = request.body.perPage;
+
+    console.log('List campaign housing', campaignId, page, perPage)
+
+    return campaignHousingRepository.listCampaignHousing(campaignId, page, perPage)
+        .then(_ => response.status(200).json(_));
+}
+
+
+
+const updateCampaignHousing = async (request: Request, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(400).json({ errors: errors.array() });
+    }
+
+    console.log('Update campaign housing')
+
+    const campaignHousingApi = <CampaignHousingApi>request.body;
+
+    return campaignHousingRepository.update(campaignHousingApi)
+        .then(campaignHousingApi => response.status(200).json(campaignHousingApi));
+};
 
 const exportByCampaign = async (request: Request, response: Response): Promise<Response> => {
 
@@ -158,7 +176,8 @@ const escapeValue = (value?: string) => {
 const housingController =  {
     list,
     listByOwner,
-    listByCampaign,
+    listCampaignHousing,
+    updateCampaignHousing,
     exportByCampaign,
     normalizeAddresses
 };

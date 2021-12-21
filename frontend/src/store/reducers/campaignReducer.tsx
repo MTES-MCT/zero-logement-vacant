@@ -10,7 +10,7 @@ import {
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
 } from '../actions/campaignAction';
-import { Housing } from '../../models/Housing';
+import { CampaignHousing } from '../../models/Housing';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
 
@@ -20,7 +20,7 @@ export interface CampaignState {
     campaignHousingFetchingId?: string;
     campaignList?: Campaign[];
     campaign?: Campaign;
-    paginatedHousing: PaginatedResult<Housing>;
+    paginatedHousing: PaginatedResult<CampaignHousing>;
     exportURL: string;
     loading: boolean;
 }

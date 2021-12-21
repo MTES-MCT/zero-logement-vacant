@@ -5,7 +5,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import housingService from '../../services/housing.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { Housing } from '../../models/Housing';
+import { CampaignHousing, Housing } from '../../models/Housing';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -46,7 +46,7 @@ export interface FetchCampaignHousingListAction {
 export interface CampaignHousingListFetchedAction {
     type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
     campaignHousingFetchingId: string,
-    paginatedHousing: PaginatedResult<Housing>,
+    paginatedHousing: PaginatedResult<CampaignHousing>,
     exportURL: string
 }
 
@@ -123,7 +123,7 @@ export const listCampaignHousing = (campaignId: string) => {
 
         dispatch({
             type: FETCH_CAMPAIGN_HOUSING_LIST,
-            campaignId,
+            campaignHousingFetchingId: campaignId,
             page,
             perPage,
         });
@@ -133,7 +133,7 @@ export const listCampaignHousing = (campaignId: string) => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_HOUSING_LIST_FETCHED,
-                    campaignId,
+                    campaignHousingFetchingId: campaignId,
                     paginatedHousing: result,
                     exportURL: campaignService.getExportURL(campaignId)
                 });
@@ -154,7 +154,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, e
 
             dispatch({
                 type: FETCH_CAMPAIGN_HOUSING_LIST,
-                campaignId,
+                campaignHousingFetchingId: campaignId,
                 page: page,
                 perPage
             });
@@ -164,7 +164,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, e
                     dispatch(hideLoading());
                     dispatch({
                         type: CAMPAIGN_HOUSING_LIST_FETCHED,
-                        campaignId,
+                        campaignHousingFetchingId: campaignId,
                         paginatedHousing: result,
                         exportURL: campaignService.getExportURL(campaignId)
                     });
@@ -207,5 +207,23 @@ export const validCampaignStep = (campaignId: string, step: CampaignSteps, param
             });
     };
 };
+
+export const updateCampaignHousing = (campaignHousing: CampaignHousing) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const paginatedHousing = getState().campaign.paginatedHousing;
+
+        housingService.updateCampaignHousing(campaignHousing)
+            .then(_ => {
+                dispatch(hideLoading());
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage)(dispatch, getState);
+                getCampaign(campaignHousing.campaignId)(dispatch);
+            });
+
+    }
+}
 
 

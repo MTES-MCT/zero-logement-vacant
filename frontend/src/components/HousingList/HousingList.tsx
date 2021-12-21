@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
-import { Housing, SelectedHousing } from '../../models/Housing';
+import { CampaignHousing, Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
@@ -23,12 +23,14 @@ const HousingList = (
         filters,
         displayKind,
         onSelectHousing,
+        additionalColumns
     }: {
         paginatedHousing: PaginatedResult<Housing>,
         onChangePagination: (page: number, perPage: number) => void,
         filters?: HousingFilters,
         displayKind: HousingDisplayKey,
-        onSelectHousing?: (selectedHousing: SelectedHousing) => void
+        onSelectHousing?: (selectedHousing: SelectedHousing) => void,
+        additionalColumns?: any[]
     }) => {
 
     const dispatch = useDispatch();
@@ -157,7 +159,11 @@ const HousingList = (
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: () => <div className={styles.statusLabel}>En attente de retour</div>
+        render: ({ status, step } : CampaignHousing) =>
+            <>
+                <div className={styles.statusLabel}>{status}</div>
+                {step && <div className={styles.statusLabel}>{step}</div>}
+            </>
     };
 
     const viewColumn = {
@@ -174,7 +180,7 @@ const HousingList = (
             case HousingDisplayKey.Housing :
                 return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
+                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, ...additionalColumns ?? [], viewColumn];
         }
     }
 

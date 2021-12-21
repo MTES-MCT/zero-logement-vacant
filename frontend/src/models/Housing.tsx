@@ -21,3 +21,10 @@ export interface SelectedHousing {
     all: boolean;
     ids: string[];
 }
+
+export interface CampaignHousing extends Housing {
+    campaignId: string;
+    status: string;
+    step?: string;
+    precision?: string;
+}

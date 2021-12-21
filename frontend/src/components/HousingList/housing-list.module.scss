@@ -19,4 +19,9 @@
   width: fit-content;
   font-weight: 700;
   color: rgba(102, 103, 61, 1);
+  text-wrap: none;
+
+  & + .statusLabel {
+    margin-top: 8px;
+  }
 }

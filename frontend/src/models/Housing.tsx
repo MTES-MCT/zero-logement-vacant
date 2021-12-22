@@ -36,3 +36,7 @@ export interface CampaignHousingUpdate {
     step?: string,
     precision?: string
 }
+
+export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCount: number) => {
+    return selectedHousing.all ? totalCount - selectedHousing.ids.length : selectedHousing.ids.length
+}

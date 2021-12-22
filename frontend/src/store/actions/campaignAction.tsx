@@ -2,11 +2,11 @@ import { Dispatch } from 'redux';
 import { Campaign, CampaignSteps, DraftCampaign } from '../../models/Campaign';
 import campaignService from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import housingService from '../../services/housing.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { CampaignHousing, Housing, CampaignHousingUpdate } from '../../models/Housing';
+import { CampaignHousing, CampaignHousingUpdate, Housing } from '../../models/Housing';
 import { CampaignHousingStatus } from '../../models/CampaignHousingState';
+import campaignHousingService from '../../services/campaignHousing.service';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -134,7 +134,7 @@ export const listCampaignHousing = (campaignId: string, status: CampaignHousingS
             perPage,
         });
 
-        housingService.listByCampaign(campaignId, page, perPage, status)
+        campaignHousingService.listByCampaign(campaignId, page, perPage, status)
             .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
                 dispatch({
@@ -167,7 +167,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
                 perPage
             });
 
-            housingService.listByCampaign(campaignId, page, perPage, status, excludedIds)
+            campaignHousingService.listByCampaign(campaignId, page, perPage, status, excludedIds)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({
@@ -200,7 +200,7 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
     };
 };
 
-export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date, excludeHousingIds?: string[]}) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}) => {
 
     return function (dispatch: Dispatch) {
 
@@ -225,11 +225,29 @@ export const updateCampaignHousingList = (campaignId: string, campaignHousingUpd
 
         const paginatedHousing = getState().campaign.campaignHousingByStatus[campaignHousingUpdate.prevStatus];
 
-        housingService.updateCampaignHousing(campaignId, campaignHousingUpdate, allHousing, housingIds)
+        campaignHousingService.updateCampaignHousingList(campaignId, campaignHousingUpdate, allHousing, housingIds)
             .then(_ => {
                 dispatch(hideLoading());
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.prevStatus)(dispatch, getState);
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.status)(dispatch, getState);
+                getCampaign(campaignId)(dispatch);
+            });
+
+    }
+}
+
+export const removeCampaignHousingList = (campaignId: string, allHousing: boolean, housingIds: string[], currentStatus: CampaignHousingStatus) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const paginatedHousing = getState().campaign.campaignHousingByStatus[currentStatus];
+
+        campaignHousingService.removeCampaignHousingList(campaignId, allHousing, housingIds, currentStatus)
+            .then(_ => {
+                dispatch(hideLoading());
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, currentStatus)(dispatch, getState);
                 getCampaign(campaignId)(dispatch);
             });
 

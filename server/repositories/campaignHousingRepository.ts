@@ -54,13 +54,9 @@ const removeHousingFromCampaign = async (campaignId: string, housingIds: string[
     }
 }
 
-const listCampaignHousing = async (campaignId: string, status: number, page?: number, perPage?: number, excludedIds?: string[]): Promise<PaginatedResultApi<CampaignHousingApi>> => {
+const listCampaignHousing = async (campaignId: string, status: number, page?: number, perPage?: number): Promise<PaginatedResultApi<CampaignHousingApi>> => {
     try {
         const filter = (queryBuilder: any) => {
-            if (excludedIds?.length) {
-                queryBuilder.whereNotIn(`${housingTable}.id`, excludedIds)
-            }
-
             if (status !== undefined) {
                 queryBuilder.where('ch.status', status)
             }

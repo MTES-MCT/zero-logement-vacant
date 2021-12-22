@@ -13,7 +13,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { DraftCampaign } from '../../models/Campaign';
 import { useHistory, useLocation } from 'react-router-dom';
-import { SelectedHousing } from '../../models/Housing';
+import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialFilters } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
 
@@ -28,7 +28,7 @@ const HousingListView = () => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
-    const { campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignFetchingId, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         const query = (new URLSearchParams(search)).get('q')
@@ -40,7 +40,7 @@ const HousingListView = () => {
     }, [search, dispatch])
 
     useEffect(() => {
-        if (campaignFetchingId) {
+        if (campaignFetchingId && !campaign) {
             history.push(`/campagnes/${campaignFetchingId}`);
         }
     }, [campaignFetchingId])
@@ -136,7 +136,7 @@ const HousingListView = () => {
                                 </Button>
                                 {isCreateModalOpen &&
                                 <CampaignCreationModal
-                                    housingCount={selectedHousing.all ? paginatedHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
+                                    housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
                                     onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
                                     onClose={() => setIsCreateModalOpen(false)}/>}
                             </Col>

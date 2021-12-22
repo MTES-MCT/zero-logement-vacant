@@ -1,9 +1,9 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Button, Col, Row, TextInput } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, TextInput } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
-    listCampaignHousing,
+    listCampaignHousing, removeCampaignHousingList,
     validCampaignStep,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -15,8 +15,10 @@ import CampaignExportModal from '../../components/modals/CampaignExportModal/Cam
 import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
-import { SelectedHousing } from '../../models/Housing';
+import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { CampaignHousingStatus } from '../../models/CampaignHousingState';
+import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
+import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
 
 const CampaignToValidate = () => {
@@ -25,8 +27,9 @@ const CampaignToValidate = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
-    const [removedHousingIds, setRemovedHousingIds] = useState<string[]>([]);
+    const [actionAlert, setActionAlert] = useState(false);
     const [forcedStep, setForcedStep] = useState<CampaignSteps>();
+    const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [errors, setErrors] = useState<any>({});
@@ -47,12 +50,6 @@ const CampaignToValidate = () => {
             dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.Waiting))
         }
     }, [campaign, dispatch])
-
-    const remove = () => {
-        const removedIds = [...removedHousingIds, ...selectedHousing.ids]
-        setRemovedHousingIds(removedIds)
-        dispatch(changeCampaignHousingPagination(campaignHousingByStatus[CampaignHousingStatus.Waiting].page, campaignHousingByStatus[CampaignHousingStatus.Waiting].perPage, CampaignHousingStatus.Waiting, removedIds))
-    }
 
     const currentStep = (): CampaignSteps => {
         return forcedStep ?? campaignStep(campaign)
@@ -77,11 +74,26 @@ const CampaignToValidate = () => {
                     })
             }
             else {
-                dispatch(validCampaignStep(campaign.id, step, {excludeHousingIds: removedHousingIds}))
+                dispatch(validCampaignStep(campaign.id, step))
             }
             setForcedStep(step + 1)
         }
     }
+
+    const selectedCount = (campaignHousingStatus: CampaignHousingStatus) => selectedHousingCount(selectedHousing, campaignHousingByStatus[campaignHousingStatus].totalCount)
+
+    const handleAction = (action : (selectedHousing: SelectedHousing) => void) => {
+        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
+            setActionAlert(true)
+        } else {
+            setActionAlert(false)
+            action(selectedHousing)
+        }
+    }
+
+    const menuActions = [
+        { title: 'Supprimer', onClick: () => handleAction(() => setIsRemovingModalOpen(true))}
+    ] as MenuAction[]
 
     return (
         <>
@@ -120,19 +132,30 @@ const CampaignToValidate = () => {
                         }
                     </div>
                     {currentStep() === CampaignSteps.OwnersValidation &&
-                    <div className="fr-pt-4w">
-                        <button
-                            className="ds-fr--inline fr-link"
-                            type="button"
-                            title="Supprimer de la liste"
-                            onClick={() => remove()}>
-                            Supprimer de la liste
-                        </button>
-                        <HousingList paginatedHousing={campaignHousingByStatus[CampaignHousingStatus.Waiting]}
-                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, CampaignHousingStatus.Waiting))}
-                                     displayKind={HousingDisplayKey.Housing}
-                                     onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
-                    </div>
+                        <div className="fr-pt-4w">
+                            { actionAlert &&
+                                <Alert title=""
+                                       description="Vous devez sélectionner au moins un logement réaliser cette action."
+                                       className="fr-my-3w"
+                                       type="error"
+                                       data-testid="no-housing-alert"
+                                       closable/>
+                            }
+                            <AppActionsMenu actions={menuActions}/>
+                            <HousingList paginatedHousing={campaignHousingByStatus[CampaignHousingStatus.Waiting]}
+                                         onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, CampaignHousingStatus.Waiting))}
+                                         displayKind={HousingDisplayKey.Housing}
+                                         onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
+                            {isRemovingModalOpen &&
+                                <ConfirmationModal
+                                    content={`Êtes-vous sûr de vouloir supprimer ${selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements`} ?`}
+                                    onSubmit={() => {
+                                        dispatch(removeCampaignHousingList(campaign!.id, selectedHousing.all, selectedHousing.ids, CampaignHousingStatus.Waiting))
+                                        setIsRemovingModalOpen(false);
+                                    }}
+                                    onClose={() => setIsRemovingModalOpen(false)}/>
+                            }
+                        </div>
                     }
                 </div>
 

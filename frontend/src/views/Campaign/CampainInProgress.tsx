@@ -4,16 +4,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
     listCampaignHousing,
+    removeCampaignHousingList,
     updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { CampaignHousing, SelectedHousing } from '../../models/Housing';
+import { CampaignHousing, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import CampaignStatusUpdatingModal
     from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
 import { CampaignHousingStatus, getCampaignHousingState } from '../../models/CampaignHousingState';
 import { displayCount } from '../../utils/stringUtils';
+import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
@@ -23,23 +25,26 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const [actionAlert, setActionAlert] = useState(false);
     const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
+    const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
     const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     const paginatedCampaignHousing = campaignHousingByStatus[status];
 
+    const handleAction = (action : (selectedHousing: SelectedHousing) => void) => {
+        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
+            setActionAlert(true)
+        } else {
+            setActionAlert(false)
+            action(selectedHousing)
+        }
+    }
+
+    const selectedCount = selectedHousingCount(selectedHousing, paginatedCampaignHousing.totalCount)
+
     const menuActions = [
-        {
-            title: 'Changer le statut', onClick: () => {
-                if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
-                    setActionAlert(true)
-                } else {
-                    setActionAlert(false)
-                    setUpdatingModalSelectedHousing(selectedHousing)
-                }
-            }
-        },
-        {title: 'Supprimer', onClick: () => {console.log('supprimer')}}
+        { title: 'Changer le statut', onClick: () => handleAction(setUpdatingModalSelectedHousing) },
+        { title: 'Supprimer', onClick: () => handleAction(() => setIsRemovingModalOpen(true))}
     ] as MenuAction[]
 
     const modifyColumn = {
@@ -107,13 +112,22 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             }
             {updatingModalSelectedHousing &&
                 <CampaignStatusUpdatingModal
-                    housingCount={selectedHousing.all ? paginatedCampaignHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
+                    housingCount={selectedCount}
                     initialStatus={status}
                     onSubmit={(campaignHousingUpdate) => {
                         dispatch(updateCampaignHousingList(campaign!.id, campaignHousingUpdate, selectedHousing.all, selectedHousing.ids))
                         setUpdatingModalSelectedHousing(undefined);
                     }}
                     onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
+            }
+            {isRemovingModalOpen &&
+                <ConfirmationModal
+                    content={`Êtes-vous sûr de vouloir supprimer ${selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} ?`}
+                    onSubmit={() => {
+                        dispatch(removeCampaignHousingList(campaign!.id, selectedHousing.all, selectedHousing.ids, status))
+                        setIsRemovingModalOpen(false);
+                    }}
+                    onClose={() => setIsRemovingModalOpen(false)}/>
             }
         </>
     )

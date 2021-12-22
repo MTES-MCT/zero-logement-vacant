@@ -75,7 +75,6 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
-    const excludeHousingIds = request.body.excludeHousingIds;
     const userId = (<RequestUser>request.user).userId;
 
     console.log('Validate campaign step', campaignId, step)
@@ -87,11 +86,6 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
         sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
-
-    if (step === CampaignSteps.OwnersValidation && excludeHousingIds) {
-        console.log('remove ', campaignId, excludeHousingIds)
-        await campaignHousingRepository.removeHousingFromCampaign(campaignId, excludeHousingIds)
-    }
 
     if (step === CampaignSteps.Sending) {
         await campaignHousingRepository.getHousingOwnerIds(campaignId)

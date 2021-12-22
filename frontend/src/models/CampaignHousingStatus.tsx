@@ -1,7 +1,8 @@
 import { DefaultOption } from './SelectOption';
 
-export interface CampaignHousingStatus {
-    title: string;
+export interface CampaignHousingState {
+    status: CampaignHousingStatus;
+    title: string,
     steps?: CampaignHousingStep[];
 }
 
@@ -14,11 +15,21 @@ export interface CampaignHousingPrecision {
     title: string
 }
 
-export const CampaignHousingStatusList: CampaignHousingStatus[] = [
+export enum CampaignHousingStatus {
+    Waiting,
+    InProgress,
+    NotVacant,
+    NoAction,
+    Exit
+}
+
+export const CampaignHousingStates: CampaignHousingState[] = [
     {
-        title: 'En attente de retour'
+        status: CampaignHousingStatus.Waiting,
+        title: 'En attente de retour',
     },
     {
+        status: CampaignHousingStatus.InProgress,
         title: 'Suivi en cours',
         steps: [
             {
@@ -65,6 +76,7 @@ export const CampaignHousingStatusList: CampaignHousingStatus[] = [
         ]
     },
     {
+        status: CampaignHousingStatus.NotVacant,
         title: 'Non-vacant',
         steps: [
             {
@@ -76,6 +88,7 @@ export const CampaignHousingStatusList: CampaignHousingStatus[] = [
         ]
     },
     {
+        status: CampaignHousingStatus.NoAction,
         title: 'Sans suite',
         steps: [
             {
@@ -138,6 +151,7 @@ export const CampaignHousingStatusList: CampaignHousingStatus[] = [
         ]
     },
     {
+        status: CampaignHousingStatus.Exit,
         title: 'Sortie de la vacance',
         steps: [
             {
@@ -152,16 +166,20 @@ export const CampaignHousingStatusList: CampaignHousingStatus[] = [
     }
 ]
 
-export const getStepOptions = (status: string) => {
-    const campaignHousingStatus = CampaignHousingStatusList.find(s => s.title === status)
-    return campaignHousingStatus?.steps ? [
+export const getCampaignHousingState = (status: CampaignHousingStatus) => {
+    return CampaignHousingStates[status]
+}
+
+export const getStepOptions = (status: CampaignHousingStatus) => {
+    const campaignHousingState = getCampaignHousingState(status)
+    return campaignHousingState.steps ? [
         DefaultOption,
-        ...campaignHousingStatus.steps.map(step => ({value: step.title, label: step.title}))
+        ...campaignHousingState.steps.map(step => ({value: step.title, label: step.title}))
     ] : undefined;
 }
 
-export const getPrecisionOptions = (status: string, step?: string) => {
-    const campaignHousingStep = CampaignHousingStatusList.find(s => s.title === status)?.steps?.find(s => s.title === step)
+export const getPrecisionOptions = (status: CampaignHousingStatus, step?: string) => {
+    const campaignHousingStep = getCampaignHousingState(status).steps?.find(s => s.title === step)
     return campaignHousingStep?.precisions ? [
         DefaultOption,
         ...campaignHousingStep.precisions.map(step => ({value: step.title, label: step.title}))

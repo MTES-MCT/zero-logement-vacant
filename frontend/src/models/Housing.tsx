@@ -1,5 +1,6 @@
 import { Owner } from './Owner';
 import { Address } from './Address';
+import { CampaignHousingStatus } from './CampaignHousingStatus';
 
 export interface Housing {
     id: string;
@@ -24,7 +25,7 @@ export interface SelectedHousing {
 
 export interface CampaignHousing extends Housing {
     campaignId: string;
-    status: string;
+    status: CampaignHousingStatus;
     step?: string;
     precision?: string;
 }

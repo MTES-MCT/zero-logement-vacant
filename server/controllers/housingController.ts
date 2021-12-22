@@ -44,10 +44,12 @@ const listCampaignHousing = async (request: Request, response: Response): Promis
 
     const page = request.body.page;
     const perPage = request.body.perPage;
+    const status = request.body.status;
+    const excludedIds = request.body.excludedIds;
 
-    console.log('List campaign housing', campaignId, page, perPage)
+    console.log('List campaign housing', campaignId, page, perPage, status, excludedIds)
 
-    return campaignHousingRepository.listCampaignHousing(campaignId, page, perPage)
+    return campaignHousingRepository.listCampaignHousing(campaignId, page, perPage, status, excludedIds)
         .then(_ => response.status(200).json(_));
 }
 

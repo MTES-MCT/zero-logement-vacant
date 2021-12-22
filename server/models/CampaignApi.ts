@@ -11,8 +11,13 @@ export interface CampaignApi {
     exportedAt?: Date;
     sentAt?: Date;
     sendingDate?: string;
-    housingCount?: number;
-    ownerCount?: number;
+    housingCount: number;
+    waitingCount: number;
+    inProgressCount: number;
+    notVacantCount: number;
+    noActionCount: number;
+    exitCount: number;
+    ownerCount: number;
 }
 
 export enum CampaignSteps {

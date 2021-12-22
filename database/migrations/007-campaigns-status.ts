@@ -3,7 +3,7 @@ exports.up = function(knex) {
     return Promise.all([
         knex.schema// @ts-ignore
             .alterTable('campaigns_housing', table => {
-                table.string('status').default('En attente de retour');
+                table.integer('status').default(0);
                 table.string('step');
                 table.string('precision');
             }),

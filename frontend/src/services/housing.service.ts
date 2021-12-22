@@ -6,6 +6,7 @@ import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
+import { CampaignHousingStatus } from '../models/CampaignHousingStatus';
 
 
 const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
@@ -43,7 +44,7 @@ const quickSearchService = (): {abort: () => void, fetch: (query: string) => Pro
     };
 };
 
-const listByCampaign = async (campaignId: string, page: number, perPage: number): Promise<PaginatedResult<CampaignHousing>> => {
+const listByCampaign = async (campaignId: string, page: number, perPage: number, status: CampaignHousingStatus, excludedIds: string[] = []): Promise<PaginatedResult<CampaignHousing>> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/campaign/${campaignId}`, {
         method: 'POST',
@@ -51,7 +52,9 @@ const listByCampaign = async (campaignId: string, page: number, perPage: number)
         body: JSON.stringify({
             campaignId,
             page,
-            perPage }),
+            perPage,
+            status,
+            excludedIds}),
     })
         .then(_ => _.json())
         .then(result => ({

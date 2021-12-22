@@ -14,7 +14,12 @@ import {
     Text,
 } from '@dataesr/react-dsfr';
 import { CampaignHousing } from '../../../models/Housing';
-import { CampaignHousingStatusList, getPrecisionOptions, getStepOptions } from '../../../models/Status';
+import {
+    CampaignHousingStates,
+    CampaignHousingStatus,
+    getPrecisionOptions,
+    getStepOptions,
+} from '../../../models/CampaignHousingStatus';
 import { SelectOption } from '../../../models/SelectOption';
 
 import * as yup from 'yup';
@@ -32,18 +37,18 @@ const CampaignStatusUpdatingModal = (
     }) => {
 
 
-    const [status, setStatus] = useState<string>(campaignHousing.status);
+    const [status, setStatus] = useState<CampaignHousingStatus>(campaignHousing.status);
     const [step, setStep] = useState<string | undefined>(campaignHousing.step);
     const [precision, setPrecision] = useState<string | undefined>(campaignHousing.precision);
     const [stepOptions, setStepOptions] = useState<SelectOption[] | undefined>(getStepOptions(status));
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[] | undefined>(getPrecisionOptions(status, step));
     const [formErrors, setFormErrors] = useState<any>({});
 
-    const statusOptions = CampaignHousingStatusList.map(status => (
-        {value: status.title, label: status.title}
+    const statusOptions = CampaignHousingStates.map(status => (
+        {value: status.status, label: status.title}
     ))
 
-    const selectStatus = (newStatus: string) => {
+    const selectStatus = (newStatus: CampaignHousingStatus) => {
         setStatus(newStatus);
         setStep(undefined);
         setPrecision(undefined);

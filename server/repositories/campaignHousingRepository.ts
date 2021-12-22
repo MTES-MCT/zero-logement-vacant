@@ -54,8 +54,17 @@ const removeHousingFromCampaign = async (campaignId: string, housingIds: string[
     }
 }
 
-const listCampaignHousing = async (campaignId: string, page?: number, perPage?: number): Promise<PaginatedResultApi<CampaignHousingApi>> => {
+const listCampaignHousing = async (campaignId: string, page?: number, perPage?: number, status?: number, excludedIds?: string[]): Promise<PaginatedResultApi<CampaignHousingApi>> => {
     try {
+        const filter = (queryBuilder: any) => {
+            if (excludedIds?.length) {
+                queryBuilder.whereNotIn(`${housingTable}.id`, excludedIds)
+            }
+
+            if (status !== undefined) {
+                queryBuilder.where('ch.status', status)
+            }
+        }
 
         const query = db
             .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', `ch.*`)
@@ -66,6 +75,7 @@ const listCampaignHousing = async (campaignId: string, page?: number, perPage?: 
             .where (`ch.campaign_id`, campaignId)
 
         const results = await query
+            .modify(filter)
             .modify((queryBuilder: any) => {
                 if (page && perPage) {
                     queryBuilder
@@ -80,6 +90,7 @@ const listCampaignHousing = async (campaignId: string, page?: number, perPage?: 
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, 'o.id')
             .join({ch: campaignsHousingTable}, `${housingTable}.id`, 'ch.housing_id')
             .where (`ch.campaign_id`, campaignId)
+            .modify(filter)
             .then(_ => Number(_[0].count))
 
         return <PaginatedResultApi<CampaignHousingApi>> {

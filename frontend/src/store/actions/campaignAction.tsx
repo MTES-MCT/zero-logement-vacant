@@ -6,6 +6,7 @@ import housingService from '../../services/housing.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { CampaignHousing, Housing } from '../../models/Housing';
+import { CampaignHousingStatus } from '../../models/CampaignHousingStatus';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -39,6 +40,7 @@ export interface CampaignFetchedAction {
 export interface FetchCampaignHousingListAction {
     type: typeof FETCH_CAMPAIGN_HOUSING_LIST,
     campaignHousingFetchingId: string,
+    status: CampaignHousingStatus,
     page: number,
     perPage: number
 }
@@ -46,6 +48,7 @@ export interface FetchCampaignHousingListAction {
 export interface CampaignHousingListFetchedAction {
     type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
     campaignHousingFetchingId: string,
+    status: CampaignHousingStatus,
     paginatedHousing: PaginatedResult<CampaignHousing>,
     exportURL: string
 }
@@ -112,28 +115,30 @@ export const getCampaign = (campaignId: string) => {
     };
 };
 
-export const listCampaignHousing = (campaignId: string) => {
+export const listCampaignHousing = (campaignId: string, status: CampaignHousingStatus) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
         const page = 1
-        const perPage = getState().campaign.paginatedHousing.perPage
+        const perPage = getState().campaign.campaignHousingByStatus[status].perPage
 
         dispatch({
             type: FETCH_CAMPAIGN_HOUSING_LIST,
             campaignHousingFetchingId: campaignId,
+            status,
             page,
             perPage,
         });
 
-        housingService.listByCampaign(campaignId, page, perPage)
+        housingService.listByCampaign(campaignId, page, perPage, status)
             .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_HOUSING_LIST_FETCHED,
                     campaignHousingFetchingId: campaignId,
+                    status,
                     paginatedHousing: result,
                     exportURL: campaignService.getExportURL(campaignId)
                 });
@@ -142,7 +147,7 @@ export const listCampaignHousing = (campaignId: string) => {
 };
 
 
-export const changeCampaignHousingPagination = (page: number, perPage: number, excludedIds?: string[]) => {
+export const changeCampaignHousingPagination = (page: number, perPage: number, status: CampaignHousingStatus, excludedIds?: string[]) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -155,16 +160,18 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, e
             dispatch({
                 type: FETCH_CAMPAIGN_HOUSING_LIST,
                 campaignHousingFetchingId: campaignId,
+                status,
                 page: page,
                 perPage
             });
 
-            housingService.listByCampaign(campaignId, page, perPage, excludedIds)
+            housingService.listByCampaign(campaignId, page, perPage, status, excludedIds)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({
                         type: CAMPAIGN_HOUSING_LIST_FETCHED,
                         campaignHousingFetchingId: campaignId,
+                        status,
                         paginatedHousing: result,
                         exportURL: campaignService.getExportURL(campaignId)
                     });
@@ -208,18 +215,19 @@ export const validCampaignStep = (campaignId: string, step: CampaignSteps, param
     };
 };
 
-export const updateCampaignHousing = (campaignHousing: CampaignHousing) => {
+export const updateCampaignHousing = (campaignHousing: CampaignHousing, prevStatus: CampaignHousingStatus) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
-        const paginatedHousing = getState().campaign.paginatedHousing;
+        const paginatedHousing = getState().campaign.campaignHousingByStatus[prevStatus];
 
         housingService.updateCampaignHousing(campaignHousing)
             .then(_ => {
                 dispatch(hideLoading());
-                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage)(dispatch, getState);
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, prevStatus)(dispatch, getState);
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousing.status)(dispatch, getState);
                 getCampaign(campaignHousing.campaignId)(dispatch);
             });
 

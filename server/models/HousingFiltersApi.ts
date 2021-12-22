@@ -15,5 +15,4 @@ export interface HousingFiltersApi {
     localities?: string[];
     housingScopes?: string[];
     query?: string;
-    excludedIds?: string[];
 }

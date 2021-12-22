@@ -15,7 +15,6 @@ export interface HousingFilters {
     localities: string[];
     housingScopes: string[];
     query: string;
-    excludedIds: string[];
 }
 
 export interface HousingFilterOption extends SelectOption {

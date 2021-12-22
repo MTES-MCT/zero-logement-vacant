@@ -18,6 +18,11 @@ export interface Campaign {
     exportedAt?: Date;
     sentAt?: Date;
     housingCount: number;
+    waitingCount: number;
+    inProgressCount: number;
+    notVacantCount: number;
+    noActionCount: number;
+    exitCount: number;
     ownerCount: number;
 }
 

@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
-import { CampaignHousing, Housing, SelectedHousing } from '../../models/Housing';
+import { Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
@@ -156,16 +156,6 @@ const HousingList = (
             </>
     };
 
-    const statusColumn = {
-        name: 'status',
-        label: 'Statut',
-        render: ({ status, step } : CampaignHousing) =>
-            <>
-                <div className={styles.statusLabel}>{status}</div>
-                {step && <div className={styles.statusLabel}>{step}</div>}
-            </>
-    };
-
     const viewColumn = {
         name: 'view',
         headerRender: () => '',
@@ -180,7 +170,7 @@ const HousingList = (
             case HousingDisplayKey.Housing :
                 return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, ...additionalColumns ?? [], viewColumn];
+                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, ...additionalColumns ?? [], viewColumn];
         }
     }
 

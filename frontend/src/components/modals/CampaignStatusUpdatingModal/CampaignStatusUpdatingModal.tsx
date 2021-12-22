@@ -10,42 +10,47 @@ import {
     ModalTitle,
     Row,
     Select,
-    Tag,
     Text,
 } from '@dataesr/react-dsfr';
-import { CampaignHousing } from '../../../models/Housing';
+import { CampaignHousing, CampaignHousingUpdate } from '../../../models/Housing';
 import {
     CampaignHousingStates,
     CampaignHousingStatus,
+    getCampaignHousingState,
     getPrecisionOptions,
     getStepOptions,
-} from '../../../models/CampaignHousingStatus';
+} from '../../../models/CampaignHousingState';
 import { SelectOption } from '../../../models/SelectOption';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import { displayCount } from '../../../utils/stringUtils';
 
 const CampaignStatusUpdatingModal = (
     {
         campaignHousing,
+        housingCount,
+        initialStatus,
         onSubmit,
         onClose
     }: {
-        campaignHousing: CampaignHousing,
-        onSubmit: (campaignHousing: CampaignHousing) => void,
+        campaignHousing?: CampaignHousing,
+        housingCount?: number,
+        initialStatus: CampaignHousingStatus,
+        onSubmit: (campaignHousingUpdate: CampaignHousingUpdate) => void,
         onClose: () => void
     }) => {
 
 
-    const [status, setStatus] = useState<CampaignHousingStatus>(campaignHousing.status);
-    const [step, setStep] = useState<string | undefined>(campaignHousing.step);
-    const [precision, setPrecision] = useState<string | undefined>(campaignHousing.precision);
+    const [status, setStatus] = useState<CampaignHousingStatus>(campaignHousing ? campaignHousing.status : initialStatus);
+    const [step, setStep] = useState<string | undefined>(campaignHousing?.step);
+    const [precision, setPrecision] = useState<string | undefined>(campaignHousing?.precision);
     const [stepOptions, setStepOptions] = useState<SelectOption[] | undefined>(getStepOptions(status));
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[] | undefined>(getPrecisionOptions(status, step));
     const [formErrors, setFormErrors] = useState<any>({});
 
     const statusOptions = CampaignHousingStates.map(status => (
-        {value: status.status, label: status.title}
+        {value: String(status.status), label: status.title}
     ))
 
     const selectStatus = (newStatus: CampaignHousingStatus) => {
@@ -79,7 +84,7 @@ const CampaignStatusUpdatingModal = (
         updatingForm
             .validate({ hasSteps: stepOptions !== undefined, hasPrecisions: precisionOptions !== undefined, status, step, precision }, {abortEarly: false})
             .then(() => onSubmit({
-                ...campaignHousing,
+                prevStatus: initialStatus,
                 status,
                 step,
                 precision
@@ -107,19 +112,26 @@ const CampaignStatusUpdatingModal = (
             </ModalTitle>
             <ModalContent>
                 <Container fluid>
-                    <Text>
-                        Logement concerné : {campaignHousing.rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)}
-                    </Text>
+                    {campaignHousing &&
+                        <Text>
+                            Logement concerné : {campaignHousing.rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)}
+                        </Text>
+                    }
+                    {housingCount &&
+                        <Text>
+                            {displayCount(housingCount, 'logement concerné')}.
+                        </Text>
+                    }
                     <Text>
                         Statut actuel :&nbsp;
-                        <Tag as="span" size="sm">Suivi en cours</Tag>
+                        <span className="status-label">{getCampaignHousingState(status).title}</span>
                     </Text>
                     <Row gutters>
                         <Col n="4">
                             <Select
                                 label="Nouveau statut"
                                 options={statusOptions}
-                                selected={status}
+                                selected={String(status)}
                                 messageType={formErrors['status'] ? 'error' : undefined}
                                 message={formErrors['status']}
                                 onChange={(e: any) => selectStatus(e.target.value)}/>

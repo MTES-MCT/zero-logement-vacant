@@ -16,7 +16,7 @@ import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing } from '../../models/Housing';
-import { CampaignHousingStatus } from '../../models/CampaignHousingStatus';
+import { CampaignHousingStatus } from '../../models/CampaignHousingState';
 
 
 const CampaignToValidate = () => {

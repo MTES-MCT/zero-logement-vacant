@@ -2,7 +2,7 @@ import db from './db';
 import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
-import { CampaignHousingApi } from '../models/HousingApi';
+import { CampaignHousingApi, CampaignHousingUpdateApi } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { OwnerApi } from '../models/OwnerApi';
 
@@ -54,7 +54,7 @@ const removeHousingFromCampaign = async (campaignId: string, housingIds: string[
     }
 }
 
-const listCampaignHousing = async (campaignId: string, page?: number, perPage?: number, status?: number, excludedIds?: string[]): Promise<PaginatedResultApi<CampaignHousingApi>> => {
+const listCampaignHousing = async (campaignId: string, status: number, page?: number, perPage?: number, excludedIds?: string[]): Promise<PaginatedResultApi<CampaignHousingApi>> => {
     try {
         const filter = (queryBuilder: any) => {
             if (excludedIds?.length) {
@@ -131,24 +131,23 @@ const listCampaignHousing = async (campaignId: string, page?: number, perPage?: 
     }
 }
 
-const update = async (campaignHousingApi: CampaignHousingApi): Promise<CampaignHousingApi> => {
+const updateList = async (campaignId: string, campaignHousingUpdateApi: CampaignHousingUpdateApi, housingIds: string[]): Promise<CampaignHousingApi[]> => {
 
-    console.log('update', campaignHousingApi)
+    console.log('update', campaignId, housingIds)
 
     try {
         return db(campaignsHousingTable)
-            .where('housing_id', campaignHousingApi.id)
-            .andWhere('campaign_id', campaignHousingApi.campaignId)
+            .whereIn('housing_id', housingIds)
+            .andWhere('campaign_id', campaignId)
             .update({
-                status: campaignHousingApi.status,
-                step: campaignHousingApi.step,
-                precision: campaignHousingApi.precision,
+                status: campaignHousingUpdateApi.status,
+                step: campaignHousingUpdateApi.step,
+                precision: campaignHousingUpdateApi.precision,
             })
-            .returning('*')
-            .then(_ => _[0]);
+            .returning('*');
     } catch (err) {
-        console.error('Updating campaign housing failed', err, campaignHousingApi);
-        throw new Error('Updating campaign housing failed');
+        console.error('Updating campaign housing list failed', err, campaignId, housingIds);
+        throw new Error('Updating campaign housing list failed');
     }
 }
 
@@ -157,5 +156,5 @@ export default {
     getHousingOwnerIds,
     removeHousingFromCampaign,
     listCampaignHousing,
-    update
+    updateList
 }

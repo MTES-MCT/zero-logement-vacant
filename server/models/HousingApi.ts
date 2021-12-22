@@ -1,5 +1,6 @@
 import { AddressApi } from './AddressApi';
 import { OwnerApi } from './OwnerApi';
+import { CampaignHousingStatusApi } from './CampaignHousingStatusApi';
 
 export interface HousingApi {
     id: string;
@@ -22,4 +23,11 @@ export interface CampaignHousingApi extends HousingApi {
     status?: string;
     step?: string;
     precision?: string;
+}
+
+export interface CampaignHousingUpdateApi {
+    prevStatus: CampaignHousingStatusApi,
+    status: CampaignHousingStatusApi,
+    step?: string,
+    precision?: string
 }

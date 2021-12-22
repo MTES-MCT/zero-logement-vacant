@@ -5,8 +5,8 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import housingService from '../../services/housing.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { CampaignHousing, Housing } from '../../models/Housing';
-import { CampaignHousingStatus } from '../../models/CampaignHousingStatus';
+import { CampaignHousing, Housing, CampaignHousingUpdate } from '../../models/Housing';
+import { CampaignHousingStatus } from '../../models/CampaignHousingState';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -101,7 +101,8 @@ export const getCampaign = (campaignId: string) => {
         dispatch(showLoading());
 
         dispatch({
-            type: FETCH_CAMPAIGN
+            type: FETCH_CAMPAIGN,
+            campaignFetchingId: campaignId
         });
 
         campaignService.getCampaign(campaignId)
@@ -109,6 +110,7 @@ export const getCampaign = (campaignId: string) => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_FETCHED,
+                    campaignFetchingId: campaignId,
                     campaign
                 });
             });
@@ -215,20 +217,20 @@ export const validCampaignStep = (campaignId: string, step: CampaignSteps, param
     };
 };
 
-export const updateCampaignHousing = (campaignHousing: CampaignHousing, prevStatus: CampaignHousingStatus) => {
+export const updateCampaignHousingList = (campaignId: string, campaignHousingUpdate: CampaignHousingUpdate, allHousing: boolean, housingIds: string[]) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
-        const paginatedHousing = getState().campaign.campaignHousingByStatus[prevStatus];
+        const paginatedHousing = getState().campaign.campaignHousingByStatus[campaignHousingUpdate.prevStatus];
 
-        housingService.updateCampaignHousing(campaignHousing)
+        housingService.updateCampaignHousing(campaignId, campaignHousingUpdate, allHousing, housingIds)
             .then(_ => {
                 dispatch(hideLoading());
-                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, prevStatus)(dispatch, getState);
-                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousing.status)(dispatch, getState);
-                getCampaign(campaignHousing.campaignId)(dispatch);
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.prevStatus)(dispatch, getState);
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.status)(dispatch, getState);
+                getCampaign(campaignId)(dispatch);
             });
 
     }

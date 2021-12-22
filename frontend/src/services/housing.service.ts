@@ -1,12 +1,12 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
-import { CampaignHousing, Housing } from '../models/Housing';
+import { CampaignHousing, Housing, CampaignHousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
-import { CampaignHousingStatus } from '../models/CampaignHousingStatus';
+import { CampaignHousingStatus } from '../models/CampaignHousingState';
 
 
 const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
@@ -63,12 +63,12 @@ const listByCampaign = async (campaignId: string, page: number, perPage: number,
         }));
 };
 
-const updateCampaignHousing = async (campaignHousing: CampaignHousing): Promise<CampaignHousing> => {
+const updateCampaignHousing = async (campaignId: string, campaignHousingUpdate: CampaignHousingUpdate, allHousing: boolean, housingIds: string[]): Promise<CampaignHousing> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/campaign`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify(campaignHousing),
+        body: JSON.stringify({ campaignId, campaignHousingUpdate, allHousing, housingIds }),
     })
         .then(_ => _.json());
 };

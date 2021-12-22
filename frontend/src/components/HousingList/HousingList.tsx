@@ -86,7 +86,7 @@ const HousingList = (
         name: 'select',
         headerRender: () =>
             <>
-                {onSelectHousing && filters &&
+                {onSelectHousing &&
                     <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
                     checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
                     className={checkedIds.length !== 0 ? styles.indeterminate : ''}

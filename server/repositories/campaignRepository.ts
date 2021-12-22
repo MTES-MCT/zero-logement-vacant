@@ -3,7 +3,7 @@ import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
-import { StatusTitles } from '../models/StatusApi';
+import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
 
 export const campaignsTable = 'campaigns';
 
@@ -13,11 +13,11 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
         return db(campaignsTable)
             .select(
                 `${campaignsTable}.*`,
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.Waiting}') as "waitingCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.InProgress}') as "inProgressCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.NotVacant}') as "notVacantCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -42,11 +42,11 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
         return db
             .select(
                 `${campaignsTable}.*`,
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.Waiting}') as "waitingCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.InProgress}') as "inProgressCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.NotVacant}') as "notVacantCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${StatusTitles.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -56,6 +56,7 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
+            .orderBy('campaign_number')
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {

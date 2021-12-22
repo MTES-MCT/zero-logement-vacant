@@ -8,20 +8,3 @@
     color: white !important;
   }
 }
-
-.statusLabel {
-  background-color: rgba(254, 247, 218, 1);
-  border-radius: 3px;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  font-size: 12px;
-  line-height: 20px;
-  width: fit-content;
-  font-weight: 700;
-  color: rgba(102, 103, 61, 1);
-  text-wrap: none;
-
-  & + .statusLabel {
-    margin-top: 8px;
-  }
-}

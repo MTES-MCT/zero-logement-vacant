@@ -1,33 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Row, Tab, Tabs } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tab, Tabs } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
     listCampaignHousing,
-    updateCampaignHousing,
+    updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { CampaignHousing, Housing, SelectedHousing } from '../../models/Housing';
+import { CampaignHousing, SelectedHousing } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import CampaignStatusUpdatingModal
     from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
-import { CampaignHousingStatus, getCampaignHousingState } from '../../models/CampaignHousingStatus';
-import styles from '../../components/HousingList/housing-list.module.scss';
+import { CampaignHousingStatus, getCampaignHousingState } from '../../models/CampaignHousingState';
+import { displayCount } from '../../utils/stringUtils';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
     const dispatch = useDispatch();
 
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
-    const [statusUpdatingModalHousing, setStatusUpdatingModalHousing] = useState<Housing | undefined>();
+    const [actionAlert, setActionAlert] = useState(false);
+    const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
+    const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
 
-    const { campaignHousingByStatus } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     const paginatedCampaignHousing = campaignHousingByStatus[status];
 
     const menuActions = [
-        {title: 'Changer le statut', onClick: () => {console.log('change statut')}},
+        {
+            title: 'Changer le statut', onClick: () => {
+                if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
+                    setActionAlert(true)
+                } else {
+                    setActionAlert(false)
+                    setUpdatingModalSelectedHousing(selectedHousing)
+                }
+            }
+        },
         {title: 'Supprimer', onClick: () => {console.log('supprimer')}}
     ] as MenuAction[]
 
@@ -38,17 +49,9 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             <>
                 <Button title="Mettre à jour"
                         secondary
-                        onClick={() => {setStatusUpdatingModalHousing(campaignHousing)}}>
+                        onClick={() => setUpdatingModalCampaignHousing(campaignHousing)}>
                     Mettre à jour &nbsp;<span className="fr-fi-edit-fill" aria-hidden="true" />
                 </Button>
-                {statusUpdatingModalHousing?.id === campaignHousing.id &&
-                <CampaignStatusUpdatingModal
-                    campaignHousing={campaignHousing}
-                    onSubmit={(modifiedCampaignHousing) => {
-                        dispatch(updateCampaignHousing(modifiedCampaignHousing, campaignHousing.status));
-                        setStatusUpdatingModalHousing(undefined);
-                    }}
-                    onClose={() => setStatusUpdatingModalHousing(undefined)}/>}
             </>
     }
 
@@ -57,8 +60,8 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         label: 'Statut',
         render: ({ status, step } : CampaignHousing) =>
             <>
-                <div className={styles.statusLabel}>{getCampaignHousingState(status).title}</div>
-                {step && <div className={styles.statusLabel}>{step}</div>}
+                <div className="status-label">{getCampaignHousingState(status).title}</div>
+                    {step && step !== getCampaignHousingState(status).title && <div className="status-label">{step}</div>}
             </>
     };
 
@@ -67,18 +70,51 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             {!paginatedCampaignHousing.loading && <>
                 <Row alignItems="middle" className="fr-pb-1w">
                     <Col>
-                        <b>{paginatedCampaignHousing.totalCount} logements </b>
+                        <b>{displayCount(paginatedCampaignHousing.totalCount, 'logement')}</b>
                     </Col>
                 </Row>
-                <Row>
-                    <AppActionsMenu actions={menuActions} />
-                </Row>
+                {paginatedCampaignHousing.totalCount > 0 && <>
+                    { actionAlert &&
+                        <Alert title=""
+                               description="Vous devez sélectionner au moins un logement réaliser cette action."
+                               className="fr-my-3w"
+                               type="error"
+                               data-testid="no-housing-alert"
+                               closable/>
+                    }
+                    <Row>
+                        <AppActionsMenu actions={menuActions}/>
+                    </Row>
+                </> }
             </>}
             <HousingList paginatedHousing={paginatedCampaignHousing}
                          onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
                          displayKind={HousingDisplayKey.Owner}
-                         onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}
+                         onSelectHousing={(selectedHousing: SelectedHousing) => {
+                             setSelectedHousing(selectedHousing);
+                             setActionAlert(false);
+                         }}
                          additionalColumns={[statusColumn, modifyColumn]}/>
+            {updatingModalCampaignHousing &&
+                <CampaignStatusUpdatingModal
+                    campaignHousing={updatingModalCampaignHousing}
+                    initialStatus={status}
+                    onSubmit={(campaignHousingUpdate) => {
+                        dispatch(updateCampaignHousingList(campaign!.id, campaignHousingUpdate, false, [updatingModalCampaignHousing?.id]))
+                        setUpdatingModalCampaignHousing(undefined);
+                    }}
+                    onClose={() => setUpdatingModalCampaignHousing(undefined)}/>
+            }
+            {updatingModalSelectedHousing &&
+                <CampaignStatusUpdatingModal
+                    housingCount={selectedHousing.all ? paginatedCampaignHousing.totalCount - selectedHousing.ids.length : selectedHousing.ids.length}
+                    initialStatus={status}
+                    onSubmit={(campaignHousingUpdate) => {
+                        dispatch(updateCampaignHousingList(campaign!.id, campaignHousingUpdate, selectedHousing.all, selectedHousing.ids))
+                        setUpdatingModalSelectedHousing(undefined);
+                    }}
+                    onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
+            }
         </>
     )
 }

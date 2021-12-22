@@ -15,6 +15,7 @@ import { DraftCampaign } from '../../models/Campaign';
 import { useHistory, useLocation } from 'react-router-dom';
 import { SelectedHousing } from '../../models/Housing';
 import { initialFilters } from '../../store/reducers/housingReducer';
+import { displayCount } from '../../utils/stringUtils';
 
 const HousingListView = () => {
 
@@ -124,7 +125,7 @@ const HousingListView = () => {
                         {!paginatedHousing.loading &&
                         <Row alignItems="middle" className="fr-pb-1w">
                             <Col>
-                                <b>{paginatedHousing.totalCount} logements </b>
+                                <b>{displayCount(paginatedHousing.totalCount, 'logement')}</b>
                             </Col>
                             <Col>
                                 <Button title="Créer la campagne"

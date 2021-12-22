@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import { CampaignHousingApi, HousingApi } from '../models/HousingApi';
+import { CampaignHousingUpdateApi, HousingApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
@@ -9,7 +9,6 @@ import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
 import { RequestUser } from '../models/UserApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { validationResult } from 'express-validator';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -49,25 +48,33 @@ const listCampaignHousing = async (request: Request, response: Response): Promis
 
     console.log('List campaign housing', campaignId, page, perPage, status, excludedIds)
 
-    return campaignHousingRepository.listCampaignHousing(campaignId, page, perPage, status, excludedIds)
+    return campaignHousingRepository.listCampaignHousing(campaignId, status, page, perPage, excludedIds)
         .then(_ => response.status(200).json(_));
 }
 
 
 
-const updateCampaignHousing = async (request: Request, response: Response): Promise<Response> => {
-
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
-    }
+const updateCampaignHousingList = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Update campaign housing')
 
-    const campaignHousingApi = <CampaignHousingApi>request.body;
+    const campaignId = <string>request.body.campaignId;
+    const campaignHousingUpdateApi = <CampaignHousingUpdateApi>request.body.campaignHousingUpdate;
+    const allHousing = <boolean>request.body.allHousing;
 
-    return campaignHousingRepository.update(campaignHousingApi)
-        .then(campaignHousingApi => response.status(200).json(campaignHousingApi));
+    console.log('allHousing', allHousing)
+
+    const housingIds = allHousing ?
+        await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.prevStatus)
+            .then(_ => _.entities
+                .map(_ => _.id)
+                .filter(id => request.body.housingIds.indexOf(id) === -1)
+            ): request.body.housingIds;
+
+    console.log('housingIds', housingIds)
+
+    return campaignHousingRepository.updateList(campaignId, campaignHousingUpdateApi, housingIds)
+        .then(_ => response.status(200).json(_));
 };
 
 const exportByCampaign = async (request: Request, response: Response): Promise<Response> => {
@@ -179,7 +186,7 @@ const housingController =  {
     list,
     listByOwner,
     listCampaignHousing,
-    updateCampaignHousing,
+    updateCampaignHousingList,
     exportByCampaign,
     normalizeAddresses
 };

@@ -53,13 +53,12 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignFetchingId: action.campaignFetchingId,
-                campaign: undefined,
+                campaign: action.campaignFetchingId === state.campaignFetchingId ? state.campaign : undefined,
                 loading: true
             };
         case CAMPAIGN_FETCHED:
             return {
                 ...state,
-                campaignFetchingId: undefined,
                 campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign,
                 loading: false
             };

@@ -27,7 +27,7 @@ const userCheck = (req: Request, res: Response, next: NextFunction): void => {
 
 router.post('/api/housing', jwtCheck, userCheck, housingController.list);
 router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
-router.post('/api/housing/campaign', jwtCheck, userCheck, housingController.updateCampaignHousing);
+router.post('/api/housing/campaign', jwtCheck, userCheck, housingController.updateCampaignHousingList);
 router.post('/api/housing/campaign/:campaignId', jwtCheck, userCheck, housingController.listCampaignHousing);
 router.get('/api/housing/campaign/:campaignId/export', jwtCheck, userCheck, housingController.exportByCampaign);
 router.get('/api/housing/normalizeAddresses', jwtCheck, userCheck, housingController.normalizeAddresses);

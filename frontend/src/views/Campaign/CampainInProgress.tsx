@@ -72,63 +72,65 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
     return (
         <>
-            {!paginatedCampaignHousing.loading && <>
-                <Row alignItems="middle" className="fr-pb-1w">
+            {campaign && <>
+                {!paginatedCampaignHousing.loading && <>
+                    <Row alignItems="middle" className="fr-pb-1w">
                     <Col>
-                        <b>{displayCount(paginatedCampaignHousing.totalCount, 'logement')}</b>
+                    <b>{displayCount(paginatedCampaignHousing.totalCount, 'logement')}</b>
                     </Col>
-                </Row>
-                {paginatedCampaignHousing.totalCount > 0 && <>
-                    { actionAlert &&
+                    </Row>
+                    {paginatedCampaignHousing.totalCount > 0 && <>
+                        {actionAlert &&
                         <Alert title=""
                                description="Vous devez sélectionner au moins un logement réaliser cette action."
                                className="fr-my-3w"
                                type="error"
                                data-testid="no-housing-alert"
                                closable/>
-                    }
-                    <Row>
-                        <AppActionsMenu actions={menuActions}/>
-                    </Row>
-                </> }
-            </>}
-            <HousingList paginatedHousing={paginatedCampaignHousing}
-                         onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
-                         displayKind={HousingDisplayKey.Owner}
-                         onSelectHousing={(selectedHousing: SelectedHousing) => {
-                             setSelectedHousing(selectedHousing);
-                             setActionAlert(false);
-                         }}
-                         additionalColumns={[statusColumn, modifyColumn]}/>
-            {updatingModalCampaignHousing &&
-                <CampaignStatusUpdatingModal
+                        }
+                        <Row>
+                            <AppActionsMenu actions={menuActions}/>
+                        </Row>
+                    </>}
+                    </>}
+                    <HousingList paginatedHousing={paginatedCampaignHousing}
+                    onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
+                    displayKind={HousingDisplayKey.Owner}
+                    onSelectHousing={(selectedHousing: SelectedHousing) => {
+                    setSelectedHousing(selectedHousing);
+                    setActionAlert(false);
+                }}
+                    additionalColumns={[statusColumn, modifyColumn]}/>
+                {updatingModalCampaignHousing &&
+                    <CampaignStatusUpdatingModal
                     campaignHousing={updatingModalCampaignHousing}
                     initialStatus={status}
                     onSubmit={(campaignHousingUpdate) => {
-                        dispatch(updateCampaignHousingList(campaign!.id, campaignHousingUpdate, false, [updatingModalCampaignHousing?.id]))
-                        setUpdatingModalCampaignHousing(undefined);
-                    }}
+                    dispatch(updateCampaignHousingList(campaign.id, campaignHousingUpdate, false, [updatingModalCampaignHousing?.id]))
+                    setUpdatingModalCampaignHousing(undefined);
+                }}
                     onClose={() => setUpdatingModalCampaignHousing(undefined)}/>
-            }
-            {updatingModalSelectedHousing &&
-                <CampaignStatusUpdatingModal
+                }
+                {updatingModalSelectedHousing &&
+                    <CampaignStatusUpdatingModal
                     housingCount={selectedCount}
                     initialStatus={status}
                     onSubmit={(campaignHousingUpdate) => {
-                        dispatch(updateCampaignHousingList(campaign!.id, campaignHousingUpdate, selectedHousing.all, selectedHousing.ids))
-                        setUpdatingModalSelectedHousing(undefined);
-                    }}
+                    dispatch(updateCampaignHousingList(campaign.id, campaignHousingUpdate, selectedHousing.all, selectedHousing.ids))
+                    setUpdatingModalSelectedHousing(undefined);
+                }}
                     onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
-            }
-            {isRemovingModalOpen &&
-                <ConfirmationModal
+                }
+                {isRemovingModalOpen &&
+                    <ConfirmationModal
                     content={`Êtes-vous sûr de vouloir supprimer ${selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} ?`}
                     onSubmit={() => {
-                        dispatch(removeCampaignHousingList(campaign!.id, selectedHousing.all, selectedHousing.ids, status))
-                        setIsRemovingModalOpen(false);
-                    }}
+                    dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, status))
+                    setIsRemovingModalOpen(false);
+                }}
                     onClose={() => setIsRemovingModalOpen(false)}/>
-            }
+                }
+            </>}
         </>
     )
 }

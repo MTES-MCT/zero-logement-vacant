@@ -150,7 +150,7 @@ const CampaignToValidate = () => {
                                 <ConfirmationModal
                                     content={`Êtes-vous sûr de vouloir supprimer ${selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements`} ?`}
                                     onSubmit={() => {
-                                        dispatch(removeCampaignHousingList(campaign!.id, selectedHousing.all, selectedHousing.ids, CampaignHousingStatus.Waiting))
+                                        dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, CampaignHousingStatus.Waiting))
                                         setIsRemovingModalOpen(false);
                                     }}
                                     onClose={() => setIsRemovingModalOpen(false)}/>

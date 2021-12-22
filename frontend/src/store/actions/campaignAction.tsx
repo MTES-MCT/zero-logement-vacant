@@ -226,7 +226,7 @@ export const updateCampaignHousingList = (campaignId: string, campaignHousingUpd
         const paginatedHousing = getState().campaign.campaignHousingByStatus[campaignHousingUpdate.prevStatus];
 
         campaignHousingService.updateCampaignHousingList(campaignId, campaignHousingUpdate, allHousing, housingIds)
-            .then(_ => {
+            .then(() => {
                 dispatch(hideLoading());
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.prevStatus)(dispatch, getState);
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.status)(dispatch, getState);
@@ -245,7 +245,7 @@ export const removeCampaignHousingList = (campaignId: string, allHousing: boolea
         const paginatedHousing = getState().campaign.campaignHousingByStatus[currentStatus];
 
         campaignHousingService.removeCampaignHousingList(campaignId, allHousing, housingIds, currentStatus)
-            .then(_ => {
+            .then(() => {
                 dispatch(hideLoading());
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, currentStatus)(dispatch, getState);
                 getCampaign(campaignId)(dispatch);

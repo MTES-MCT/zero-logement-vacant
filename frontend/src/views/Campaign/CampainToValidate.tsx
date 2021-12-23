@@ -1,9 +1,10 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, TextInput } from '@dataesr/react-dsfr';
+import { Button, Col, Row, TextInput } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
-    listCampaignHousing, removeCampaignHousingList,
+    listCampaignHousing,
+    removeCampaignHousingList,
     validCampaignStep,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -27,7 +28,6 @@ const CampaignToValidate = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
-    const [actionAlert, setActionAlert] = useState(false);
     const [forcedStep, setForcedStep] = useState<CampaignSteps>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
@@ -82,17 +82,8 @@ const CampaignToValidate = () => {
 
     const selectedCount = (campaignHousingStatus: CampaignHousingStatus) => selectedHousingCount(selectedHousing, campaignHousingByStatus[campaignHousingStatus].totalCount)
 
-    const handleAction = (action : (selectedHousing: SelectedHousing) => void) => {
-        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
-            setActionAlert(true)
-        } else {
-            setActionAlert(false)
-            action(selectedHousing)
-        }
-    }
-
     const menuActions = [
-        { title: 'Supprimer', onClick: () => handleAction(() => setIsRemovingModalOpen(true))}
+        { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
     ] as MenuAction[]
 
     return (
@@ -133,14 +124,6 @@ const CampaignToValidate = () => {
                     </div>
                     {currentStep() === CampaignSteps.OwnersValidation &&
                         <div className="fr-pt-4w">
-                            { actionAlert &&
-                                <Alert title=""
-                                       description="Vous devez sélectionner au moins un logement réaliser cette action."
-                                       className="fr-my-3w"
-                                       type="error"
-                                       data-testid="no-housing-alert"
-                                       closable/>
-                            }
                             <AppActionsMenu actions={menuActions}/>
                             <HousingList paginatedHousing={campaignHousingByStatus[CampaignHousingStatus.Waiting]}
                                          onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, CampaignHousingStatus.Waiting))}

@@ -136,7 +136,7 @@ const CampaignToValidate = () => {
                                         setIsRemovingModalOpen(false);
                                     }}
                                     onClose={() => setIsRemovingModalOpen(false)}>
-                                    Êtes-vous sûr de vouloir supprimer {selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements de cette campagne`} ?
+                                    Êtes-vous sûr de vouloir supprimer {selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements`} de cette campagne ?
                                 </ConfirmationModal>
                             }
                         </div>

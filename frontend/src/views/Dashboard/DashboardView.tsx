@@ -28,14 +28,11 @@ const DashboardView = () => {
         const quickSearchService = housingService.quickSearchService()
         quickSearchAbortRef.current = quickSearchService.abort;
 
-        const reduceRawAddress = (rawAddress: string[]) => rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)
-
-
         if (query.length) {
             return quickSearchService.fetch(query)
                 .then(_ => _.entities.map(
                     housing => ({
-                        title: `${reduceRawAddress(housing.rawAddress)} (${housing.owner.fullName} - ${reduceRawAddress(housing.owner.rawAddress)})`,
+                        title: `${housing.rawAddress.join(' - ')} (${housing.owner.fullName} - ${housing.owner.rawAddress.join(' - ')})`,
                         redirectUrl: '/accueil/proprietaires/' + housing.owner.id
                     } as SearchResult)
                 ))

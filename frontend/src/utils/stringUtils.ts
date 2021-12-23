@@ -13,5 +13,5 @@ export const toTitleCase = (string: string) => {
 export const displayCount = (housingCount: number, label: string) => {
     return housingCount === 0 ? `Aucun ${label}` :
         housingCount === 1 ? `Un ${label}` :
-            `${housingCount} ${label.split(' ').map(_ => `${_}s`).reduce((l1, l2) => `${l1} ${l2}`)}`
+            `${housingCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
 }

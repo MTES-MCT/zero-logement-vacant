@@ -90,7 +90,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                     <AccordionItem title="Coordonnées" className={errors['address'] || errors['email'] || errors['phone'] ? styles.itemError : undefined}>
                         <TextInput
                             textarea
-                            value={rawAddress.reduce((a1, a2) => `${a1}\n${a2}`)}
+                            value={rawAddress.join('\n')}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setRawAddress(e.target.value.split('\n'))}
                             label="Adresse postale"
                             messageType={errors['address'] ? 'error' : ''}

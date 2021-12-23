@@ -114,7 +114,7 @@ const CampaignStatusUpdatingModal = (
                 <Container fluid>
                     {campaignHousing &&
                         <Text>
-                            Logement concerné : {campaignHousing.rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)}
+                            Logement concerné : {campaignHousing.rawAddress.join(' - ')}
                         </Text>
                     }
                     {housingCount &&

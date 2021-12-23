@@ -38,6 +38,7 @@ router.get('/api/campaigns', jwtCheck, userCheck, campaignController.list);
 router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.create);
 router.get('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.get);
 router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
+router.delete('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.deleteCampaign);
 // router.get('/api/campaigns/import', campaignController.importFromAirtable);
 
 router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);

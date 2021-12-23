@@ -254,4 +254,19 @@ export const removeCampaignHousingList = (campaignId: string, allHousing: boolea
     }
 }
 
+export const deleteCampaign = (campaignId: string) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        campaignService.deleteCampaign(campaignId)
+            .then(() => {
+                dispatch(hideLoading());
+                listCampaigns()(dispatch)
+            });
+
+    }
+}
+
 

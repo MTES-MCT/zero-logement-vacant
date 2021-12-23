@@ -105,6 +105,17 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
     }
 }
 
+const deleteCampaign = async (campaignId: string): Promise<number> => {
+    try {
+        return db(campaignsTable)
+            .delete()
+            .where('id', campaignId)
+    } catch (err) {
+        console.error('Deleting campaign failed', err, campaignId);
+        throw new Error('Deleting campaign failed');
+    }
+}
+
 const parseCampaignApi = (result: any) => <CampaignApi>{
     id: result.id,
     establishmentId: result.establishment_id,
@@ -146,5 +157,6 @@ export default {
     list,
     lastCampaignNumber,
     insert,
-    update
+    update,
+    deleteCampaign
 }

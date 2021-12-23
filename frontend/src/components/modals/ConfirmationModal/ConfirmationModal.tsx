@@ -1,22 +1,13 @@
 import React from 'react';
-import {
-    Button,
-    Container,
-    Modal,
-    ModalClose,
-    ModalContent,
-    ModalFooter,
-    ModalTitle,
-    Text,
-} from '@dataesr/react-dsfr';
+import { Button, Container, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle } from '@dataesr/react-dsfr';
 
 const ConfirmationModal = (
     {
-        content,
+        children,
         onSubmit,
         onClose
     }: {
-        content: string,
+        children: any,
         onSubmit: () => void,
         onClose: () => void
     }) => {
@@ -31,9 +22,7 @@ const ConfirmationModal = (
             </ModalTitle>
             <ModalContent>
                 <Container fluid>
-                    <Text size="md" className="fr-mb-0">
-                        {content}
-                    </Text>
+                    {children}
                 </Container>
             </ModalContent>
             <ModalFooter>

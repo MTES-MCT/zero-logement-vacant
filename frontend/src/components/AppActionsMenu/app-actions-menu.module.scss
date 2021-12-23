@@ -3,10 +3,6 @@
   padding-top: 16px;
   padding-bottom: 16px;
 
-  button {
-    padding-left: 0;
-  }
-
   .actions {
     background-color: var(--white-1000);
     border: 1px solid var(--grey-950);
@@ -18,7 +14,6 @@
       display: block;
       width: max-content;
       margin: 8px 0;
-      padding-left: 8px;
     }
 
   }

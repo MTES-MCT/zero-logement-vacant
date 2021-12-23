@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Tab, Tabs } from '@dataesr/react-dsfr';
+import { Button, Tab, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
@@ -99,17 +99,20 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                         <CampaignStatusUpdatingModal
                             housingCount={selectedCount}
                             initialStatus={status}
-                            onSubmit={(campaignHousingUpdate) => submitSelectedHousingUpdate(campaignHousingUpdate)}
+                            onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
                             onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                     }
                     {isRemovingModalOpen &&
                         <ConfirmationModal
-                            content={`Êtes-vous sûr de vouloir supprimer ${selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} ?`}
                             onSubmit={() => {
                                 dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, status))
                                 setIsRemovingModalOpen(false);
                             }}
-                            onClose={() => setIsRemovingModalOpen(false)}/>
+                            onClose={() => setIsRemovingModalOpen(false)}>
+                            <Text size="md" className="fr-mb-0">
+                                Êtes-vous sûr de vouloir supprimer {selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} ?
+                            </Text>
+                        </ConfirmationModal>
                     }
                 </>}
             </>}

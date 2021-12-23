@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { listCampaigns } from '../../store/actions/campaignAction';
+import { deleteCampaign, listCampaigns } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './campaign.module.scss';
 import { Link } from 'react-router-dom';
-import { campaignNumberSort, campaignStep, CampaignSteps } from '../../models/Campaign';
+import { Campaign, campaignNumberSort, campaignStep, CampaignSteps } from '../../models/Campaign';
+import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
+import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
 
 const CampaignsListView = () => {
@@ -14,10 +16,15 @@ const CampaignsListView = () => {
     const dispatch = useDispatch();
 
     const { campaignList, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const [removingModalCampaign, setRemovingModalCampaign] = useState<Campaign | undefined>();
 
     useEffect(() => {
         dispatch(listCampaigns());
     }, [dispatch])
+
+    const menuActions = (campaign: Campaign) => [
+        { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaign)}
+    ] as MenuAction[]
 
     return (
         <>
@@ -32,11 +39,14 @@ const CampaignsListView = () => {
                             }
                             {campaignList && campaignList.sort(campaignNumberSort).map(campaign =>
                                 <div key={campaign.id} className={styles.campaignCard}>
-                                    <Row>
+                                    <Row alignItems="middle">
                                         <Col>
                                             <Title as="h2" look="h3">{campaign.name}</Title>
                                         </Col>
-                                        <Col n="2">
+                                        <Col n="1">
+                                            <AppActionsMenu actions={menuActions(campaign)}/>
+                                        </Col>
+                                        <Col n="1" spacing="ml-2w">
                                             <Link title="Accéder à la campagne" to={'/campagnes/' + campaign.id} className="fr-btn--md fr-btn float-right">
                                                 Accéder
                                             </Link>
@@ -83,6 +93,22 @@ const CampaignsListView = () => {
                     </Tab>
                 </Tabs>
             </Container>
+            {removingModalCampaign &&
+                <ConfirmationModal
+                    onSubmit={() => {
+                        dispatch(deleteCampaign(removingModalCampaign.id))
+                        setRemovingModalCampaign(undefined);
+                    }}
+                    onClose={() => setRemovingModalCampaign(undefined)}>
+                    <Text size="md">
+                        Êtes-vous sûr de vouloir supprimer cette campagne ?
+                    </Text>
+                    {(removingModalCampaign.campaignNumber < (campaignList ?? []).length) &&
+                        <Alert description="Les campagnes suivantes seront renumérotées"
+                               type="info"/>
+                    }
+                </ConfirmationModal>
+            }
         </>
     );
 };

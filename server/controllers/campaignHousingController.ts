@@ -68,7 +68,7 @@ const removeCampaignHousingList = async (request: Request, response: Response): 
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
             ): request.body.housingIds;
 
-    return campaignHousingRepository.removeHousingFromCampaign(campaignId, housingIds)
+    return campaignHousingRepository.deleteHousingFromCampaign(campaignId, housingIds)
         .then(_ => response.status(200).json(_));
 };
 

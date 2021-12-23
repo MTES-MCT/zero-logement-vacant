@@ -35,6 +35,15 @@ const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean,
         .then(_ => _.json());
 };
 
+const deleteCampaign = async (campaignId: string): Promise<void> => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+    })
+        .then(() => {});
+};
+
 const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
@@ -62,6 +71,7 @@ const campaignService = {
     listCampaigns,
     getCampaign,
     createCampaign,
+    deleteCampaign,
     validCampaignStep,
     getExportURL
 };

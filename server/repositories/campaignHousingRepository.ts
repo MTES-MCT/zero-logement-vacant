@@ -22,13 +22,17 @@ const insertHousingList = async (campaignId: string, housingIds: string[]): Prom
     }
 }
 
-const removeHousingFromCampaign = async (campaignId: string, housingIds: string[]): Promise<number> => {
+const deleteHousingFromCampaign = async (campaignId: string, housingIds?: string[]): Promise<number> => {
     try {
-        return db
+        return db(campaignsHousingTable)
             .delete()
-            .from(`${campaignsHousingTable}`)
             .where('campaign_id', campaignId)
-            .whereIn('housing_id', housingIds)
+            .modify((queryBuilder: any) => {
+                if (housingIds) {
+                    queryBuilder.whereIn('housing_id', housingIds)
+                }
+            })
+
     } catch (err) {
         console.error('Removing housing from campaign failed', err, campaignId, housingIds);
         throw new Error('Removing housing from campaign failed');
@@ -132,7 +136,7 @@ const parseCampaignHousingApi = (result: any, campaignId: string) => <CampaignHo
 
 export default {
     insertHousingList,
-    removeHousingFromCampaign,
+    deleteHousingFromCampaign,
     listCampaignHousing,
     updateList
 }

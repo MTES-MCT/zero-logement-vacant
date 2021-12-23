@@ -106,6 +106,36 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         .then(_ => response.status(200).json(_))
 }
 
+
+const deleteCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    const campaigns = await campaignRepository.list(establishmentId)
+    const campaignToDelete = campaigns.find(_ => _.id === campaignId)
+
+    if (!campaignToDelete) {
+        return response.sendStatus(401)
+    } else {
+
+        await campaignHousingRepository.deleteHousingFromCampaign(campaignId)
+
+        await campaignRepository.deleteCampaign(campaignId)
+
+        return Promise.all(
+            campaigns
+                .filter(_ => _.campaignNumber > campaignToDelete.campaignNumber)
+                .map(campaign => campaignRepository.update({
+                    ...campaign,
+                    campaignNumber: campaign.campaignNumber - 1
+                }))
+        )
+            .then(() => response.send(200))
+    }
+
+}
+
 // const importFromAirtable = async (request: Request, response: Response): Promise<Response> => {
 //
 //     console.log('Import campaign from Airtable')
@@ -160,6 +190,7 @@ const campaignController =  {
     list,
     create,
     validateStep,
+    deleteCampaign
     // importFromAirtable
 };
 

@@ -3,18 +3,21 @@
   padding-top: 16px;
   padding-bottom: 16px;
 
-  .actions {
-    background-color: var(--white-1000);
-    border: 1px solid var(--grey-950);
-    position: absolute;
-    z-index: 10;
-    padding: 4px;
+  .actionsMenuFitContainer {
+    width: fit-content;
 
-    button {
-      display: block;
-      width: max-content;
-      margin: 8px 0;
+    .actions {
+      background-color: var(--white-1000);
+      border: 1px solid var(--grey-950);
+      position: absolute;
+      z-index: 10;
+      padding: 4px;
+
+      button {
+        display: block;
+        width: max-content;
+        margin: 8px 0;
+      }
     }
-
   }
 }

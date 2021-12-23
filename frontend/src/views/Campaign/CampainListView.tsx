@@ -114,4 +114,3 @@ const CampaignsListView = () => {
 };
 
 export default CampaignsListView;
-

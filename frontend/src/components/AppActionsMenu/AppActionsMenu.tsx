@@ -20,7 +20,8 @@ const AppActionsMenu = ({ actions } : { actions: MenuAction[] }) => {
             setActionAlert(true)
             setExpandActions(false);
         } else {
-            setActionAlert(false)
+            setActionAlert(false);
+            setExpandActions(false);
             action.onClick()
         }
     }
@@ -39,31 +40,33 @@ const AppActionsMenu = ({ actions } : { actions: MenuAction[] }) => {
                        data-testid="no-housing-alert"
                        closable/>
             }
-            <div className={styles.actionsMenuContainer} ref={wrapperRef}>
-                <button
-                    className="fr-link"
-                    type="button"
-                    title={expandActions? 'Masquer les actions' : 'Afficher les actions'}
-                    aria-controls="actions"
-                    aria-expanded={expandActions}
-                    onClick={() => {setExpandActions(!expandActions)}}
-                >
-                    Actions<span className="ri-more-2-fill" aria-hidden="true" />
-                </button>
-                {expandActions &&
-                <div className={styles.actions}>
-                    {actions.map((action, actionIdx) =>
-                        <button  key={'action_' + actionIdx}
-                                 className="ds-fr--inline fr-link"
-                                 type="button"
-                                 title={action.title}
-                                 onClick={() => handleAction(action)}
-                        >
-                            {action.title}
-                        </button>
-                    )}
+            <div className={styles.actionsMenuContainer}>
+                <div className={styles.actionsMenuFitContainer} ref={wrapperRef}>
+                    <button
+                        className="fr-link"
+                        type="button"
+                        title={expandActions? 'Masquer les actions' : 'Afficher les actions'}
+                        aria-controls="actions"
+                        aria-expanded={expandActions}
+                        onClick={() => {setExpandActions(!expandActions)}}
+                    >
+                        Actions<span className="ri-more-2-fill" aria-hidden="true" />
+                    </button>
+                    {expandActions &&
+                    <div className={styles.actions}>
+                        {actions.map((action, actionIdx) =>
+                            <button  key={'action_' + actionIdx}
+                                     className="ds-fr--inline fr-link"
+                                     type="button"
+                                     title={action.title}
+                                     onClick={() => handleAction(action)}
+                            >
+                                {action.title}
+                            </button>
+                        )}
+                    </div>
+                    }
                 </div>
-                }
             </div>
         </>
     );

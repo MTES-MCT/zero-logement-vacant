@@ -9,9 +9,13 @@ insert into establishments (epci_id, name, localities_id) (
 );
 
 INSERT INTO public.establishments (name, localities_id, available)
-VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune d''Ajaccio', (select array_agg(id) from localities where geo_code='2A004'), true);
+INSERT INTO establishments(epci_id, name, localities_id, available)
+VALUES ('251503199', 'SIVU "Auze-Ouest-Cantal"', (select array_agg(id) from localities where geo_code in ('15088', '15182', '15204')), true);
+VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Commune de Mulhouse', (select array_agg(id) from localities where geo_code='68224'), true);
 
 update establishments set available = true where epci_id in
 ('200066637',
@@ -20,5 +24,11 @@ update establishments set available = true where epci_id in
  '200070464',
  '200071082',
  '243600327',
- '247200090'
+ '247200090',
+ '200071934',
+ '200073419',
+ '200065928',
+ '200066009',
+ '200046977',
+ '251503199'
 );

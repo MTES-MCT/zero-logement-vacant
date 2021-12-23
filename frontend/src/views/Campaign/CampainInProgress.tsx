@@ -110,7 +110,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                             }}
                             onClose={() => setIsRemovingModalOpen(false)}>
                             <Text size="md" className="fr-mb-0">
-                                Êtes-vous sûr de vouloir supprimer {selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} ?
+                                Êtes-vous sûr de vouloir supprimer {selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements de cette campagne`} ?
                             </Text>
                         </ConfirmationModal>
                     }

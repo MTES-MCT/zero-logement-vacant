@@ -9,7 +9,7 @@ import {
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { CampaignHousing, SelectedHousing, selectedHousingCount } from '../../models/Housing';
+import { CampaignHousing, CampaignHousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import CampaignStatusUpdatingModal
     from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
@@ -60,6 +60,21 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             </>
     };
 
+    const submitCampaignHousingUpdate = (updated: CampaignHousingUpdate) => {
+        const initial = updatingModalCampaignHousing;
+        if (initial && (initial.status !== updated.status || initial.step != updated.step || initial.precision != updated.precision)) {
+            dispatch(updateCampaignHousingList(initial.campaignId, updated, false, [initial.id]))
+        }
+        setUpdatingModalCampaignHousing(undefined)
+    }
+
+    const submitSelectedHousingUpdate = (updated: CampaignHousingUpdate) => {
+        if (campaign && status !== updated.status) {
+            dispatch(updateCampaignHousingList(campaign.id, updated, selectedHousing.all, selectedHousing.ids))
+        }
+        setUpdatingModalSelectedHousing(undefined);
+    }
+
     return (
         <>
             {campaign && <>
@@ -77,20 +92,14 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                         <CampaignStatusUpdatingModal
                             campaignHousing={updatingModalCampaignHousing}
                             initialStatus={status}
-                            onSubmit={(campaignHousingUpdate) => {
-                                dispatch(updateCampaignHousingList(campaign.id, campaignHousingUpdate, false, [updatingModalCampaignHousing?.id]))
-                                setUpdatingModalCampaignHousing(undefined);
-                            }}
+                            onSubmit={(campaignHousingUpdate) => submitCampaignHousingUpdate(campaignHousingUpdate)}
                             onClose={() => setUpdatingModalCampaignHousing(undefined)}/>
                     }
                     {updatingModalSelectedHousing &&
                         <CampaignStatusUpdatingModal
                             housingCount={selectedCount}
                             initialStatus={status}
-                            onSubmit={(campaignHousingUpdate) => {
-                                dispatch(updateCampaignHousingList(campaign.id, campaignHousingUpdate, selectedHousing.all, selectedHousing.ids))
-                                setUpdatingModalSelectedHousing(undefined);
-                            }}
+                            onSubmit={(campaignHousingUpdate) => submitSelectedHousingUpdate(campaignHousingUpdate)}
                             onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                     }
                     {isRemovingModalOpen &&
@@ -138,11 +147,11 @@ const CampaignInProgress = () => {
             <Tab label={getTabLabel(CampaignHousingStatus.InProgress)}>
                 <TabContent status={CampaignHousingStatus.InProgress}/>
             </Tab>
-            <Tab label={getTabLabel(CampaignHousingStatus.NoAction)}>
-                <TabContent status={CampaignHousingStatus.NoAction}/>
-            </Tab>
             <Tab label={getTabLabel(CampaignHousingStatus.NotVacant)}>
                 <TabContent status={CampaignHousingStatus.NotVacant}/>
+            </Tab>
+            <Tab label={getTabLabel(CampaignHousingStatus.NoAction)}>
+                <TabContent status={CampaignHousingStatus.NoAction}/>
             </Tab>
             <Tab label={getTabLabel(CampaignHousingStatus.Exit)}>
                 <TabContent status={CampaignHousingStatus.Exit}/>

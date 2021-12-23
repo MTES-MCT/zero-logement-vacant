@@ -7,6 +7,7 @@ import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
+import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -88,12 +89,11 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }))
 
     if (step === CampaignSteps.Sending) {
-        await campaignHousingRepository.getHousingOwnerIds(campaignId)
-            .then(results => eventRepository.addByCampaign(
-                campaignId,
-                results.map(ids => <EventApi>{
-                    housingId: ids.housingId,
-                    ownerId: ids.ownerId,
+        await campaignHousingRepository.listCampaignHousing(campaignId, CampaignHousingStatusApi.Waiting)
+            .then(results => eventRepository.insertList(
+                results.entities.map(campaignHousing => <EventApi>{
+                    housingId: campaignHousing.id,
+                    ownerId: campaignHousing.owner.id,
                     kind: EventKinds.CampaignSend,
                     content: 'Campagne envoyée',
                     createdBy: userId

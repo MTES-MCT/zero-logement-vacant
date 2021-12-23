@@ -28,15 +28,15 @@ const listByOwnerId = async (ownerId: string): Promise<EventApi[]> => {
     }
 }
 
-const addByCampaign = async (campaignId: string, events: EventApi[]): Promise<EventApi[]> => {
+const insertList = async (events: EventApi[]): Promise<EventApi[]> => {
 
     try {
         return db(eventsTable)
             .insert(events.map(_ => formatEventApi(_)))
             .returning('*');
     } catch (err) {
-        console.error('Inserting events for campaign failed', err, campaignId);
-        throw new Error('Inserting events for campaign failed');
+        console.error('Inserting events failed', err);
+        throw new Error('Inserting events failed');
     }
 }
 
@@ -47,7 +47,8 @@ const parseEventApi = (result: any) => <EventApi>{
     kind: result.kind,
     createdBy: result.created_by,
     createdAt: result.created_at,
-    content: result.content
+    content: result.content,
+    details: result.details,
 }
 
 
@@ -58,11 +59,12 @@ const formatEventApi = (eventApi: EventApi) => ({
     kind: eventApi.kind,
     created_by: eventApi.createdBy,
     created_at: eventApi.createdAt,
-    content: eventApi.content
+    content: eventApi.content,
+    details: eventApi.details
 })
 
 export default {
     insert,
     listByOwnerId,
-    addByCampaign
+    insertList
 }

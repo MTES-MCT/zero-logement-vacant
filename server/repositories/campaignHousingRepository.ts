@@ -22,25 +22,6 @@ const insertHousingList = async (campaignId: string, housingIds: string[]): Prom
     }
 }
 
-const getHousingOwnerIds = async (campaignId: string): Promise<{housingId: string, ownerId: string}[]> => {
-    try {
-        return db
-            .select(`${campaignsHousingTable}.housing_id`, 'o.id as owner_id')
-            .from(`${campaignsHousingTable}`)
-            .where('campaign_id', campaignId)
-            .join(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
-            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .then(_ => _.map(_ => ({
-                housingId: _.housing_id,
-                ownerId: _.owner_id,
-            })))
-    } catch (err) {
-        console.error('Getting housing and owner ids failed', err, campaignId);
-        throw new Error('Getting housing and owner ids failed');
-    }
-}
-
 const removeHousingFromCampaign = async (campaignId: string, housingIds: string[]): Promise<number> => {
     try {
         return db
@@ -90,33 +71,7 @@ const listCampaignHousing = async (campaignId: string, status: number, page?: nu
             .then(_ => Number(_[0].count))
 
         return <PaginatedResultApi<CampaignHousingApi>> {
-            entities: results.map((result: any) => (<CampaignHousingApi>{
-                id: result.id,
-                invariant: result.invariant,
-                rawAddress: result.raw_address,
-                address: <AddressApi>{
-                    houseNumber: result.house_number,
-                    street: result.street,
-                    postalCode: result.postal_code,
-                    city: result.city
-                },
-                latitude: result.latitude,
-                longitude: result.longitude,
-                owner: <OwnerApi>{
-                    id: result.owner_id,
-                    rawAddress: result.owner_raw_address,
-                    fullName: result.full_name
-                },
-                livingArea: result.living_area,
-                housingKind: result.housing_kind,
-                roomsCount: result.rooms_count,
-                buildingYear: result.building_year,
-                vacancyStartYear: result.vacancy_start_year,
-                campaignId,
-                status: result.status,
-                step: result.step,
-                precision: result.precision,
-            })),
+            entities: results.map((_: any) => (parseCampaignHousingApi(_, campaignId))),
             totalCount: campaignHousingCount,
             page,
             perPage
@@ -137,8 +92,8 @@ const updateList = async (campaignId: string, campaignHousingUpdateApi: Campaign
             .andWhere('campaign_id', campaignId)
             .update({
                 status: campaignHousingUpdateApi.status,
-                step: campaignHousingUpdateApi.step,
-                precision: campaignHousingUpdateApi.precision,
+                step: campaignHousingUpdateApi.step ?? null,
+                precision: campaignHousingUpdateApi.precision ?? null,
             })
             .returning('*');
     } catch (err) {
@@ -147,9 +102,36 @@ const updateList = async (campaignId: string, campaignHousingUpdateApi: Campaign
     }
 }
 
+const parseCampaignHousingApi = (result: any, campaignId: string) => <CampaignHousingApi>{
+    id: result.id,
+    invariant: result.invariant,
+    rawAddress: result.raw_address,
+    address: <AddressApi>{
+        houseNumber: result.house_number,
+        street: result.street,
+        postalCode: result.postal_code,
+        city: result.city
+    },
+    latitude: result.latitude,
+    longitude: result.longitude,
+    owner: <OwnerApi>{
+        id: result.owner_id,
+        rawAddress: result.owner_raw_address,
+        fullName: result.full_name
+    },
+    livingArea: result.living_area,
+    housingKind: result.housing_kind,
+    roomsCount: result.rooms_count,
+    buildingYear: result.building_year,
+    vacancyStartYear: result.vacancy_start_year,
+    campaignId,
+    status: result.status,
+    step: result.step,
+    precision: result.precision,
+}
+
 export default {
     insertHousingList,
-    getHousingOwnerIds,
     removeHousingFromCampaign,
     listCampaignHousing,
     updateList

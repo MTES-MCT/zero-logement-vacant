@@ -3,6 +3,7 @@ import authService from './auth.service';
 import { EventKinds } from '../models/OwnerEvent';
 import { OwnerEvent } from '../models/OwnerEvent';
 import { parseISO } from "date-fns";
+import { getCampaignHousingState } from '../models/CampaignHousingState';
 
 const createEvent = async (ownerId: string, kind: EventKinds, content: string): Promise<number> => {
 
@@ -31,7 +32,8 @@ const parseEvent = (e: any): OwnerEvent => ({
     ownerId: e.ownerId,
     kind: e.kind,
     createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
-    content: e.content
+    content: e.content,
+    details: parseInt(e.kind) === EventKinds.StatusChange ? e.details.replace(/([0-9])/, (a: number) => getCampaignHousingState(a).title) : e.details
 } as OwnerEvent)
 
 const eventService = {

@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { CampaignHousingUpdateApi } from '../models/HousingApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
+import eventRepository from '../repositories/eventRepository';
+import { EventApi, EventKinds } from '../models/EventApi';
+import { RequestUser } from '../models/UserApi';
 
 const listCampaignHousing = async (request: Request, response: Response): Promise<Response> => {
 
@@ -21,6 +24,7 @@ const updateCampaignHousingList = async (request: Request, response: Response): 
 
     console.log('Update campaign housing list')
 
+    const userId = (<RequestUser>request.user).userId;
     const campaignId = <string>request.body.campaignId;
     const campaignHousingUpdateApi = <CampaignHousingUpdateApi>request.body.campaignHousingUpdate;
     const allHousing = <boolean>request.body.allHousing;
@@ -32,8 +36,21 @@ const updateCampaignHousingList = async (request: Request, response: Response): 
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
             ): request.body.housingIds;
 
-    return campaignHousingRepository.updateList(campaignId, campaignHousingUpdateApi, housingIds)
-        .then(_ => response.status(200).json(_));
+    const prevCampaignHousingWithOwners = await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.prevStatus)
+        .then(_ => _.entities.filter( campaignHousing => housingIds.indexOf(campaignHousing.id) !== -1))
+
+    const updatedCampaignHousing = await campaignHousingRepository.updateList(campaignId, campaignHousingUpdateApi, housingIds)
+
+    await eventRepository.insertList(prevCampaignHousingWithOwners.map(campaignHousing => (<EventApi>{
+        housingId: campaignHousing.id,
+        ownerId: campaignHousing.owner.id,
+        kind: EventKinds.StatusChange,
+        content: 'Changement du statut',
+        details: `Statut précédent : ${[campaignHousing.status, campaignHousing.step, campaignHousing.precision].filter(_ => _ !== null).join(' - ')}`,
+        createdBy: userId
+    })))
+
+    return response.status(200).json(updatedCampaignHousing);
 };
 
 const removeCampaignHousingList = async (request: Request, response: Response): Promise<Response> => {

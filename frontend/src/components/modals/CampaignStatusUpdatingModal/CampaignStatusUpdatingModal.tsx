@@ -69,11 +69,11 @@ const CampaignStatusUpdatingModal = (
 
     const updatingForm = yup.object().shape({
         status: yup.string().required('Veuillez sélectionner un statut.'),
-        step: yup.string().when('hasSteps', {
+        step: yup.string().nullable().when('hasSteps', {
             is: true,
             then: yup.string().required('Veuillez sélectionner une étape.')
         }),
-        precision: yup.string().when('hasPrecisions', {
+        precision: yup.string().nullable().when('hasPrecisions', {
             is: true,
             then: yup.string().required('Veuillez sélectionner une précision.')
         }),
@@ -85,7 +85,7 @@ const CampaignStatusUpdatingModal = (
             .validate({ hasSteps: stepOptions !== undefined, hasPrecisions: precisionOptions !== undefined, status, step, precision }, {abortEarly: false})
             .then(() => onSubmit({
                 prevStatus: initialStatus,
-                status,
+                status: +status,
                 step,
                 precision
             }))

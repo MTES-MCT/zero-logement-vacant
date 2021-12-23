@@ -55,6 +55,8 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                         </Text>
                                         <Text className="fr-mb-0">
                                             {event.content}
+                                            <br />
+                                            {event.details}
                                         </Text>
                                     </div>
                                 </li>

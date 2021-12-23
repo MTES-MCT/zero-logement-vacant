@@ -6,9 +6,11 @@ export interface EventApi {
     createdBy?: string,
     createdAt?: Date;
     content?: string;
+    details?: string;
 }
 
 export enum EventKinds {
     OwnerUpdate,
-    CampaignSend
+    CampaignSend,
+    StatusChange
 }

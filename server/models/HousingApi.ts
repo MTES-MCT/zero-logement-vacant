@@ -20,7 +20,7 @@ export interface HousingApi {
 
 export interface CampaignHousingApi extends HousingApi {
     campaignId: string;
-    status?: string;
+    status?: CampaignHousingStatusApi;
     step?: string;
     precision?: string;
 }

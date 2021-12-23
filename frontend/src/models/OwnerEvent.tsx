@@ -4,8 +4,11 @@ export interface OwnerEvent {
     kind: EventKinds;
     createdAt: Date;
     content?: string;
+    details?: string;
 }
 
 export enum EventKinds {
-    OwnerUpdate
+    OwnerUpdate,
+    CampaignSend,
+    StatusChange
 }

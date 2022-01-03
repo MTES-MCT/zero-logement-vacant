@@ -4,7 +4,6 @@ export interface OwnerEvent {
     kind: EventKinds;
     createdAt: Date;
     content?: string;
-    details?: string;
 }
 
 export enum EventKinds {

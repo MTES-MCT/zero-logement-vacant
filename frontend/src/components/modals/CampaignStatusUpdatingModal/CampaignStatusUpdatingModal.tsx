@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import {
     Button,
     Col,
@@ -11,6 +11,7 @@ import {
     Row,
     Select,
     Text,
+    TextInput,
 } from '@dataesr/react-dsfr';
 import { CampaignHousing, CampaignHousingUpdate } from '../../../models/Housing';
 import {
@@ -20,7 +21,7 @@ import {
     getPrecisionOptions,
     getStepOptions,
 } from '../../../models/CampaignHousingState';
-import { SelectOption } from '../../../models/SelectOption';
+import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
@@ -47,6 +48,8 @@ const CampaignStatusUpdatingModal = (
     const [precision, setPrecision] = useState<string | undefined>(campaignHousing?.precision);
     const [stepOptions, setStepOptions] = useState<SelectOption[] | undefined>(getStepOptions(status));
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[] | undefined>(getPrecisionOptions(status, step));
+    const [contactKind, setContactKind] = useState<string | undefined>(undefined)
+    const [comment, setComment] = useState<string>('')
     const [formErrors, setFormErrors] = useState<any>({});
 
     const statusOptions = CampaignHousingStates.map(status => (
@@ -67,6 +70,11 @@ const CampaignStatusUpdatingModal = (
         setPrecisionOptions(getPrecisionOptions(status, newStep));
     }
 
+    const contactKindOptions = [
+        DefaultOption,
+        {value: 'Appel entrant', label: 'Appel entrant'}
+    ]
+
     const updatingForm = yup.object().shape({
         status: yup.string().required('Veuillez sélectionner un statut.'),
         step: yup.string().nullable().when('hasSteps', {
@@ -77,17 +85,20 @@ const CampaignStatusUpdatingModal = (
             is: true,
             then: yup.string().required('Veuillez sélectionner une précision.')
         }),
+        contactKind: yup.string().required('Veuillez sélectionner une intéraction.'),
     });
 
     const submitForm = () => {
         setFormErrors({});
         updatingForm
-            .validate({ hasSteps: stepOptions !== undefined, hasPrecisions: precisionOptions !== undefined, status, step, precision }, {abortEarly: false})
+            .validate({ hasSteps: stepOptions !== undefined, hasPrecisions: precisionOptions !== undefined, status, step, precision, contactKind }, {abortEarly: false})
             .then(() => onSubmit({
                 prevStatus: initialStatus,
                 status: +status,
                 step,
-                precision
+                precision,
+                contactKind,
+                comment
             }))
             .catch((err: any) => {
                 const object: any = {};
@@ -122,7 +133,10 @@ const CampaignStatusUpdatingModal = (
                             {displayCount(housingCount, 'logement concerné')}.
                         </Text>
                     }
-                    <Text>
+                    <Text className="fr-mb-2w">
+                        <b>CHANGEMENT DE STATUT</b>
+                    </Text>
+                    <Text className="fr-mb-2w">
                         Statut actuel :&nbsp;
                         <span className="status-label">{getCampaignHousingState(status).title}</span>
                     </Text>
@@ -157,6 +171,30 @@ const CampaignStatusUpdatingModal = (
                                 message={formErrors['precision']}
                                 onChange={(e: any) => setPrecision(e.target.value)}/>
                             }
+                        </Col>
+                    </Row>
+                    <Text className="fr-mb-2w fr-mt-4w">
+                        <b>INTERACTIONS</b>
+                    </Text>
+                    <Row gutters>
+                        <Col n="4">
+                            <Select
+                                label="Type d'intéraction"
+                                options={contactKindOptions}
+                                selected={contactKind}
+                                messageType={formErrors['contactKind'] ? 'error' : undefined}
+                                message={formErrors['contactKind']}
+                                onChange={(e: any) => setContactKind(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <Row gutters>
+                        <Col n="12">
+                            <TextInput
+                                textarea
+                                label="Commentaire"
+                                rows="3"
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+                            />
                         </Col>
                     </Row>
                 </Container>

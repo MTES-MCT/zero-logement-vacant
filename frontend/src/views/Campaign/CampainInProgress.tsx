@@ -65,17 +65,14 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     };
 
     const submitCampaignHousingUpdate = (updated: CampaignHousingUpdate) => {
-        const initial = updatingModalCampaignHousing;
-        if (initial && (initial.status !== updated.status || initial.step != updated.step || initial.precision != updated.precision)) {
-            dispatch(updateCampaignHousingList(initial.campaignId, updated, false, [initial.id]))
+        if (updatingModalCampaignHousing) {
+            dispatch(updateCampaignHousingList(updatingModalCampaignHousing.campaignId, updated, false, [updatingModalCampaignHousing.id]))
         }
         setUpdatingModalCampaignHousing(undefined)
     }
 
     const submitSelectedHousingUpdate = (updated: CampaignHousingUpdate) => {
-        if (status !== updated.status) {
-            dispatch(updateCampaignHousingList(campaign.id, updated, selectedHousing.all, selectedHousing.ids))
-        }
+        dispatch(updateCampaignHousingList(campaign.id, updated, selectedHousing.all, selectedHousing.ids))
         setUpdatingModalSelectedHousing(undefined);
     }
 

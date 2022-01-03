@@ -29,5 +29,7 @@ export interface CampaignHousingUpdateApi {
     prevStatus: CampaignHousingStatusApi,
     status: CampaignHousingStatusApi,
     step?: string,
-    precision?: string
+    precision?: string,
+    contactKind: string,
+    comment: string
 }

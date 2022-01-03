@@ -24,14 +24,13 @@ const listByCampaign = async (campaignId: string, page: number, perPage: number,
         }));
 };
 
-const updateCampaignHousingList = async (campaignId: string, campaignHousingUpdate: CampaignHousingUpdate, allHousing: boolean, housingIds: string[]): Promise<CampaignHousing> => {
+const updateCampaignHousingList = async (campaignId: string, campaignHousingUpdate: CampaignHousingUpdate, allHousing: boolean, housingIds: string[]): Promise<any> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/campaign`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ campaignId, campaignHousingUpdate, allHousing, housingIds }),
-    })
-        .then(_ => _.json());
+    });
 };
 
 const removeCampaignHousingList = async (campaignId: string, allHousing: boolean, housingIds: string[], status: CampaignHousingStatus): Promise<CampaignHousing> => {

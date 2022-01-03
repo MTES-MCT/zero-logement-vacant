@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CampaignHousingUpdateApi } from '../models/HousingApi';
+import { CampaignHousingApi, CampaignHousingUpdateApi } from '../models/HousingApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
 import eventRepository from '../repositories/eventRepository';
@@ -45,13 +45,36 @@ const updateCampaignHousingList = async (request: Request, response: Response): 
         housingId: campaignHousing.id,
         ownerId: campaignHousing.owner.id,
         kind: EventKinds.StatusChange,
-        content: 'Changement du statut',
-        details: `Statut précédent : ${[campaignHousing.status, campaignHousing.step, campaignHousing.precision].filter(_ => _ !== null).join(' - ')}`,
+        content: [
+            campaignHousingUpdateApi.contactKind,
+            getStatusLabel(campaignHousing, campaignHousingUpdateApi),
+            campaignHousingUpdateApi.comment
+        ]
+            .filter(_ => _ !== null && _ !== undefined)
+            .join('. '),
         createdBy: userId
     })))
 
     return response.status(200).json(updatedCampaignHousing);
 };
+
+const getStatusLabel = (campaignHousing: CampaignHousingApi, campaignHousingUpdateApi: CampaignHousingUpdateApi) => {
+
+    return (campaignHousing.status !== campaignHousingUpdateApi.status ||
+        campaignHousing.step != campaignHousingUpdateApi.step ||
+        campaignHousing.precision != campaignHousingUpdateApi.precision) ?
+        [
+            'Passage à ' + [
+                'En attente de retour',
+                'Suivi en cours',
+                'Non-vacant',
+                'Sans suite',
+                'Sortie de la vacance'
+            ][campaignHousingUpdateApi.status],
+            campaignHousingUpdateApi.step,
+            campaignHousingUpdateApi.precision
+        ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
+}
 
 const removeCampaignHousingList = async (request: Request, response: Response): Promise<Response> => {
 

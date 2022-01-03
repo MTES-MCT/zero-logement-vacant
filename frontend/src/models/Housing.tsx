@@ -34,7 +34,9 @@ export interface CampaignHousingUpdate {
     prevStatus: CampaignHousingStatus,
     status: CampaignHousingStatus,
     step?: string,
-    precision?: string
+    precision?: string,
+    contactKind?: string,
+    comment?: string
 }
 
 export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCount: number) => {

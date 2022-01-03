@@ -47,8 +47,7 @@ const parseEventApi = (result: any) => <EventApi>{
     kind: result.kind,
     createdBy: result.created_by,
     createdAt: result.created_at,
-    content: result.content,
-    details: result.details,
+    content: result.content
 }
 
 
@@ -59,8 +58,7 @@ const formatEventApi = (eventApi: EventApi) => ({
     kind: eventApi.kind,
     created_by: eventApi.createdBy,
     created_at: eventApi.createdAt,
-    content: eventApi.content,
-    details: eventApi.details
+    content: eventApi.content
 })
 
 export default {

@@ -16,8 +16,8 @@ import {
 import { CampaignHousing, CampaignHousingUpdate } from '../../../models/Housing';
 import {
     CampaignHousingStates,
-    CampaignHousingStatus,
-    getCampaignHousingState,
+    CampaignHousingStatus, getCampaignHousingPrecision,
+    getCampaignHousingState, getCampaignHousingStep,
     getPrecisionOptions,
     getStepOptions,
 } from '../../../models/CampaignHousingState';
@@ -138,7 +138,31 @@ const CampaignStatusUpdatingModal = (
                     </Text>
                     <Text className="fr-mb-2w">
                         Statut actuel :&nbsp;
-                        <span className="status-label">{getCampaignHousingState(status).title}</span>
+                        <span style={{
+                            backgroundColor: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).bgcolor})`,
+                            color: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).color})`,
+                        }}
+                             className='status-label'>
+                            {getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).title}
+                        </span>
+                        {campaignHousing && campaignHousing.step && campaignHousing.step !== getCampaignHousingState(campaignHousing.status).title &&
+                            <span style={{
+                                backgroundColor: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.bgcolor})`,
+                                color: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.color})`,
+                            }}
+                                 className='status-label'>
+                                {campaignHousing.step}
+                            </span>
+                        }
+                        {campaignHousing && campaignHousing.step && campaignHousing.precision &&
+                            <span style={{
+                                backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.bgcolor})`,
+                                color: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.color})`,
+                            }}
+                                 className='status-label'>
+                                {campaignHousing.precision}
+                            </span>
+                        }
                     </Text>
                     <Row gutters>
                         <Col n="4">

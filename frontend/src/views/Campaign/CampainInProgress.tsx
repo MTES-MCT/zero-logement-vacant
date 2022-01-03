@@ -13,7 +13,11 @@ import { CampaignHousing, CampaignHousingUpdate, SelectedHousing, selectedHousin
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import CampaignStatusUpdatingModal
     from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
-import { CampaignHousingStatus, getCampaignHousingState } from '../../models/CampaignHousingState';
+import {
+    CampaignHousingStatus,
+    getCampaignHousingState,
+    getCampaignHousingStep,
+} from '../../models/CampaignHousingState';
 import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
@@ -59,8 +63,22 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         label: 'Statut',
         render: ({ status, step } : CampaignHousing) =>
             <>
-                <div className="status-label">{getCampaignHousingState(status).title}</div>
-                    {step && step !== getCampaignHousingState(status).title && <div className="status-label">{step}</div>}
+                <div style={{
+                    backgroundColor: `var(${getCampaignHousingState(status).bgcolor})`,
+                    color: `var(${getCampaignHousingState(status).color})`,
+                }}
+                     className='status-label'>
+                    {getCampaignHousingState(status).title}
+                </div>
+                {step && step !== getCampaignHousingState(status).title &&
+                    <div style={{
+                        backgroundColor: `var(${getCampaignHousingStep(status, step)?.bgcolor})`,
+                        color: `var(${getCampaignHousingStep(status, step)?.color})`,
+                    }}
+                         className='status-label'>
+                        {step}
+                    </div>
+                }
             </>
     };
 

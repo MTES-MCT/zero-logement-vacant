@@ -333,28 +333,28 @@ export const CampaignHousingStates: CampaignHousingState[] = [
     {
         status: CampaignHousingStatus.Exit,
         title: 'Sortie de la vacance',
-        color: '--',
-        bgcolor: '--',
+        color: '--blue-ecume-sun-247',
+        bgcolor: '--blue-ecume-950',
         steps: [
             {
                 title: 'Sortie de la vacance',
-                color: '--',
-                bgcolor: '--',
+                color: '--blue-ecume-sun-247',
+                bgcolor: '--blue-ecume-950',
                 precisions: [
                     {
                         title: 'Loué',
-                        color: '--',
-                        bgcolor: '--'
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
                     },
                     {
                         title: 'Vendu',
-                        color: '--',
-                        bgcolor: '--'
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
                     },
                     {
                         title: 'Occupation personnelle ou pour un proche',
-                        color: '--',
-                        bgcolor: '--'
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
                     }
                 ]
             }

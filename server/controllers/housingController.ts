@@ -8,6 +8,7 @@ import ExcelJS from 'exceljs';
 import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
 import { RequestUser } from '../models/UserApi';
+import { OwnerApi } from '../models/OwnerApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -45,7 +46,7 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
     const campaignApi = await campaignRepository.get(campaignId)
     const housingList = await housingRepository.list({campaignIds: [campaignId]}).then(_ => _.entities)
 
-    const fileName = `${campaignApi.campaignNumber}.xlsx`;
+    const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.map((housing: HousingApi) => ({
@@ -62,9 +63,10 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
     )
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Logements');
+    const housingWorksheet = workbook.addWorksheet('Logements');
+    const ownerWorksheet = workbook.addWorksheet('Propriétaires');
 
-    worksheet.columns = [
+    housingWorksheet.columns = [
         { header: 'Invariant', key: 'invariant' },
         { header: 'Propriétaire', key: 'owner' },
         { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
@@ -73,26 +75,61 @@ const exportByCampaign = async (request: Request, response: Response): Promise<R
         { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
 
-    const reduceAddressApi = (addressApi: AddressApi) => {
-        return `${addressApi.houseNumber} ${addressApi.street} ${addressApi.postalCode} ${addressApi.city}`
-    }
-
-    const reduceRawAddress= (rawAddress: string[]) => {
-        return rawAddress.filter(_ => _).reduce((a1, a2) =>`${a1}${String.fromCharCode(10)}${a2}`)
-    }
-
-    housingList.map((housing: HousingApi, index: number) => {
-        worksheet.addRow({
+    housingList.map((housing: HousingApi) => {
+        housingWorksheet.addRow({
             invariant: housing.invariant,
             owner: housing.owner.fullName,
             ownerRawAddress: reduceRawAddress(housing.owner.rawAddress),
-            ownerAddress: reduceAddressApi(ownerAdresses[index].addressApi),
+            ownerAddress: reduceAddressApi(ownerAdresses.find(_ => _.housingId === housing.owner.id)?.addressApi),
             housingRawAddress: reduceRawAddress(housing.rawAddress),
-            housingAddress: reduceAddressApi(housingAdresses[index].addressApi)
+            housingAddress: reduceAddressApi(housingAdresses.find(_ => _.housingId === housing.id)?.addressApi)
         });
     })
 
-    worksheet.columns.forEach(column => {
+    housingWorksheet.columns.forEach(column => {
+        const lengths = column.values?.filter(v => v !== undefined).map(v => (v ?? "").toString().length) ?? [10];
+        column.width = Math.max(...lengths);
+    });
+
+    const housingListByOwner = housingList.reduce((ownersHousing: {owner: OwnerApi, housingList: HousingApi[]}[], housing) => [
+        ...ownersHousing.filter(_ => _.owner.id !== housing.owner.id),
+        {
+            owner: housing.owner,
+            housingList: [
+                ...(ownersHousing.find(_ => _.owner.id === housing.owner.id)?.housingList ?? []),
+                housing
+            ]
+        }
+    ], [])
+
+    const maxHousingCount = Math.max(...housingListByOwner.map(_ => _.housingList.length))
+
+    ownerWorksheet.columns = [
+        { header: 'Propriétaire', key: 'owner' },
+        { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+        { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+        ...[...Array(maxHousingCount).keys()].map(index => [
+            { header: `Adresse LOVAC du logement ${index + 1}`, key: `housingRawAddress_${index}` },
+            { header: `Adresse BAN du logement ${index + 1}`, key: `housingAddress_${index}` },
+        ]).flat()
+    ];
+
+    housingListByOwner.map((ownerHousing: {owner: OwnerApi, housingList: HousingApi[]}) => {
+        const row: any = {
+            owner: ownerHousing.owner.fullName,
+            ownerRawAddress: reduceRawAddress(ownerHousing.owner.rawAddress),
+            ownerAddress: reduceAddressApi(ownerAdresses.find(_ => _.housingId === ownerHousing.owner.id)?.addressApi)
+        }
+
+        ownerHousing.housingList.forEach((housing, index) => {
+            row[`housingRawAddress_${index}`] = reduceRawAddress(ownerHousing.housingList[index]?.rawAddress);
+            row[`housingAddress_${index}`] = reduceAddressApi(housingAdresses.find(_ => _.housingId === housing.id)?.addressApi)
+        })
+
+        ownerWorksheet.addRow(row);
+    })
+
+    ownerWorksheet.columns.forEach(column => {
         const lengths = column.values?.filter(v => v !== undefined).map(v => (v ?? "").toString().length) ?? [10];
         column.width = Math.max(...lengths);
     });
@@ -135,6 +172,15 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     return response.status(200).json(housingAdresses)
 
+}
+
+
+const reduceAddressApi = (addressApi?: AddressApi) => {
+    return addressApi ? [addressApi.houseNumber, addressApi.street, addressApi.postalCode, addressApi.city].filter(_ => _).join(' ') : addressApi
+}
+
+const reduceRawAddress = (rawAddress?: string[]) => {
+    return rawAddress ? rawAddress.filter(_ => _).join(String.fromCharCode(10)) : rawAddress
 }
 
 const escapeValue = (value?: string) => {

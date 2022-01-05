@@ -72,7 +72,15 @@ const CampaignStatusUpdatingModal = (
 
     const contactKindOptions = [
         DefaultOption,
-        {value: 'Appel entrant', label: 'Appel entrant'}
+        {value: 'Appel entrant', label: 'Appel entrant'},
+        {value: 'Appel sortant - relance', label: 'Appel sortant - relance'},
+        {value: 'Courrier entrant', label: 'Courrier entrant'},
+        {value: 'Formulaire en ligne', label: 'Formulaire en ligne'},
+        {value: 'Mail entrant', label: 'Mail entrant'},
+        {value: 'Mail sortant', label: 'Mail sortant'},
+        {value: 'Retour indirect - via acteur terrain', label: 'Retour indirect - via acteur terrain'},
+        {value: 'Retour poste - NPAI', label: 'Retour poste - NPAI'},
+        {value: 'Visite - Rencontre', label: 'Visite - Rencontre'}
     ]
 
     const updatingForm = yup.object().shape({

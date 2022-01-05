@@ -106,3 +106,26 @@ button.fr-select {
   }
 }
 
+
+
+.status-label {
+  border-radius: 3px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 20px;
+  width: fit-content;
+  font-weight: 700;
+  color: rgba(102, 103, 61, 1);
+  text-wrap: none;
+
+  & + div.status-label {
+    margin-top: 8px;
+  }
+  & + span.status-label {
+    margin-left: 8px;
+  }
+
+}
+
+

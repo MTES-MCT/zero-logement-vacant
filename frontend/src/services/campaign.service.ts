@@ -35,12 +35,21 @@ const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean,
         .then(_ => _.json());
 };
 
-const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date, excludeHousingIds?: string[]}): Promise<Campaign> => {
+const deleteCampaign = async (campaignId: string): Promise<void> => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+    })
+        .then(() => {});
+};
+
+const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, sendingDate: params?.sendingDate, excludeHousingIds: params?.excludeHousingIds }),
+        body: JSON.stringify({ step, sendingDate: params?.sendingDate }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -62,6 +71,7 @@ const campaignService = {
     listCampaigns,
     getCampaign,
     createCampaign,
+    deleteCampaign,
     validCampaignStep,
     getExportURL
 };

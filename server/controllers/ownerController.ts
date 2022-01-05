@@ -11,7 +11,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 
     return ownerRepository.get(id)
         .then(_ => response.status(200).json(_));
-};
+}
 
 const update = async (request: Request, response: Response): Promise<Response> => {
 
@@ -27,7 +27,8 @@ const update = async (request: Request, response: Response): Promise<Response> =
     const ownerApi = <OwnerApi>request.body.owner;
 
     return ownerRepository.update(ownerApi)
-        .then(ownerApi => response.status(200).json(ownerApi));};
+        .then(ownerApi => response.status(200).json(ownerApi));
+}
 
 
 const ownerValidators = [

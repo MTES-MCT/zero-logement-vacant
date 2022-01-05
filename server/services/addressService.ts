@@ -61,7 +61,7 @@ const normalizeAddresses = async (addresses: {housingId: string, rawAddress: str
 
     worksheet.addRows(addresses.map(address => ({
         housingId: address.housingId,
-        rawAddress: address.rawAddress.reduce((a1, a2) => `${a1} ${a2}`)
+        rawAddress: address.rawAddress.join(' ')
     })));
 
     const tmpCsvFileName = `${new Date().getTime()}.csv`;

@@ -1,34 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
-
-const useOutsideClick = (ref: any, onOutsideClick: () => void) => {
-    useEffect(() => {
-        const handleClickOutside = (event: any) => {
-            if (ref.current && !ref.current.contains(event.target)) {
-                onOutsideClick();
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [ref]);
-}
-
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 const AppMultiSelect = (
     {
         label,
+        defaultOption,
         options,
         initialValues,
-        onChange
+        onChange,
+        messageType,
+        message
     }: {
         label: string,
+        defaultOption?: string,
         options: { label: string, value: string }[],
         initialValues: string[],
-        onChange: (values: string[]) => void
+        onChange: (values: string[]) => void,
+        messageType?: string,
+        message?: string
     }) => {
 
     const wrapperRef = useRef(null);
@@ -46,17 +37,20 @@ const AppMultiSelect = (
     const selectedOptions = () => {
         const maxLength = 28;
         const joinedOptions = options.filter(o => initialValues.indexOf(o.value) !== -1).map(_ => _.label).join(', ')
-        return joinedOptions.length ? `${joinedOptions.slice(0, maxLength)}${joinedOptions.length > maxLength ? '...' : ''}` : 'Tous'
+        return joinedOptions.length ? `${joinedOptions.slice(0, maxLength)}${joinedOptions.length > maxLength ? '...' : ''}` : (defaultOption ?? 'Tous')
     }
 
     return (
         <div className="select-multi-input" ref={wrapperRef}>
-            <span className="fr-label">{label}</span>
-            <button className="fr-select"
-                    title={showOptions ? 'Masquer les options' : 'Afficher les options'}
-                    onClick={() => setShowOptions(!showOptions)}>
-                {selectedOptions()}
-            </button>
+            <div className={classNames({[`fr-select-group--${messageType}`]: messageType})}>
+                <label className="fr-label">{label}</label>
+                <button className="fr-select"
+                        title={showOptions ? 'Masquer les options' : 'Afficher les options'}
+                        onClick={() => setShowOptions(!showOptions)}>
+                    {selectedOptions()}
+                </button>
+                {(message && messageType) && <p className={`fr-${messageType}-text`}>{message}</p>}
+            </div>
             <div className={classNames('select-multi-options', { 'select-multi-options__visible': showOptions })}>
                 <CheckboxGroup legend="" data-testid={`${label.toLowerCase()}-checkbox-group`}>
                     {options.map((option, index) =>

@@ -7,6 +7,7 @@ import ownerController from '../controllers/ownerController';
 import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
+import campaignHousingController from '../controllers/campaignHousingController';
 
 const  router = express.Router();
 
@@ -26,15 +27,19 @@ const userCheck = (req: Request, res: Response, next: NextFunction): void => {
 };
 
 router.post('/api/housing', jwtCheck, userCheck, housingController.list);
+router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
 router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
-router.get('/api/housing/campaign/:campaignId', jwtCheck, userCheck, housingController.listByCampaign);
-router.get('/api/housing/campaign/:campaignId/export', jwtCheck, userCheck, housingController.exportByCampaign);
+router.get('/api/housing/campaign/:campaignId/export', jwtCheck, userCheck, housingController.exportHousingByCampaign);
 router.get('/api/housing/normalizeAddresses', jwtCheck, userCheck, housingController.normalizeAddresses);
+router.post('/api/housing/campaign/:campaignId', jwtCheck, userCheck, campaignHousingController.listCampaignHousing);
+router.post('/api/housing/campaign', jwtCheck, userCheck, campaignHousingController.updateCampaignHousingList);
+router.delete('/api/housing/campaign', jwtCheck, userCheck, campaignHousingController.removeCampaignHousingList);
 
 router.get('/api/campaigns', jwtCheck, userCheck, campaignController.list);
 router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.create);
 router.get('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.get);
 router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
+router.delete('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.deleteCampaign);
 // router.get('/api/campaigns/import', campaignController.importFromAirtable);
 
 router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);

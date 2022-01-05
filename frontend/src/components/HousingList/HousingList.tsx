@@ -23,12 +23,14 @@ const HousingList = (
         filters,
         displayKind,
         onSelectHousing,
+        additionalColumns
     }: {
         paginatedHousing: PaginatedResult<Housing>,
         onChangePagination: (page: number, perPage: number) => void,
         filters?: HousingFilters,
         displayKind: HousingDisplayKey,
-        onSelectHousing?: (selectedHousing: SelectedHousing) => void
+        onSelectHousing?: (selectedHousing: SelectedHousing) => void,
+        additionalColumns?: any[]
     }) => {
 
     const dispatch = useDispatch();
@@ -84,7 +86,7 @@ const HousingList = (
         name: 'select',
         headerRender: () =>
             <>
-                {onSelectHousing && filters &&
+                {onSelectHousing &&
                     <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
                     checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
                     className={checkedIds.length !== 0 ? styles.indeterminate : ''}
@@ -154,12 +156,6 @@ const HousingList = (
             </>
     };
 
-    const statusColumn = {
-        name: 'status',
-        label: 'Statut',
-        render: () => <div className={styles.statusLabel}>En attente de retour</div>
-    };
-
     const viewColumn = {
         name: 'view',
         headerRender: () => '',
@@ -174,7 +170,7 @@ const HousingList = (
             case HousingDisplayKey.Housing :
                 return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, statusColumn, viewColumn];
+                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, ...additionalColumns ?? [], viewColumn];
         }
     }
 

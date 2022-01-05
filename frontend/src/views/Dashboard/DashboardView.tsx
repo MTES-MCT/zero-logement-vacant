@@ -28,14 +28,11 @@ const DashboardView = () => {
         const quickSearchService = housingService.quickSearchService()
         quickSearchAbortRef.current = quickSearchService.abort;
 
-        const reduceRawAddress = (rawAddress: string[]) => rawAddress.reduce((a1, a2) => `${a1} - ${a2}`)
-
-
         if (query.length) {
             return quickSearchService.fetch(query)
                 .then(_ => _.entities.map(
                     housing => ({
-                        title: `${reduceRawAddress(housing.rawAddress)} (${housing.owner.fullName} - ${reduceRawAddress(housing.owner.rawAddress)})`,
+                        title: `${housing.rawAddress.join(' - ')} (${housing.owner.fullName} - ${housing.owner.rawAddress.join(' - ')})`,
                         redirectUrl: '/accueil/proprietaires/' + housing.owner.id
                     } as SearchResult)
                 ))
@@ -96,7 +93,7 @@ const DashboardView = () => {
                                             <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                         </div>
                                         <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}> - </div>
+                                            <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
                                             <span className={styles.statLabel}>retours</span>
                                         </div>
                                     </Col>

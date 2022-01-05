@@ -1,8 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { EventKinds } from '../models/OwnerEvent';
-import { OwnerEvent } from '../models/OwnerEvent';
-import { parseISO } from "date-fns";
+import { EventKinds, OwnerEvent } from '../models/OwnerEvent';
+import { parseISO } from 'date-fns';
 
 const createEvent = async (ownerId: string, kind: EventKinds, content: string): Promise<number> => {
 

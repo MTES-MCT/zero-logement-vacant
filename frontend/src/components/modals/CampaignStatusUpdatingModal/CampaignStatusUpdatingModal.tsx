@@ -87,13 +87,13 @@ const CampaignStatusUpdatingModal = (
         status: yup.string().required('Veuillez sélectionner un statut.'),
         step: yup.string().nullable().when('hasSteps', {
             is: true,
-            then: yup.string().required('Veuillez sélectionner une étape.')
+            then: yup.string().required('Veuillez sélectionner un sous statut.')
         }),
         precision: yup.string().nullable().when('hasPrecisions', {
             is: true,
             then: yup.string().required('Veuillez sélectionner une précision.')
         }),
-        contactKind: yup.string().required('Veuillez sélectionner une interaction.'),
+        contactKind: yup.string().required('Veuillez sélectionner un type d\'interaction.'),
     });
 
     const submitForm = () => {
@@ -185,7 +185,7 @@ const CampaignStatusUpdatingModal = (
                         <Col n="4">
                             {stepOptions &&
                             <Select
-                                label="Étape"
+                                label="Sous-statut"
                                 options={stepOptions}
                                 selected={step}
                                 messageType={formErrors['step'] ? 'error' : undefined}

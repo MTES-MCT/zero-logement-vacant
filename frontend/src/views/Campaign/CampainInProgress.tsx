@@ -14,7 +14,7 @@ import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppA
 import CampaignStatusUpdatingModal
     from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
 import {
-    CampaignHousingStatus,
+    CampaignHousingStatus, getCampaignHousingPrecision,
     getCampaignHousingState,
     getCampaignHousingStep,
 } from '../../models/CampaignHousingState';
@@ -51,6 +51,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         render: (campaignHousing: CampaignHousing) =>
             <>
                 <Button title="Mettre à jour"
+                        size="sm"
                         secondary
                         onClick={() => setUpdatingModalCampaignHousing(campaignHousing)}>
                     Mettre à jour &nbsp;<span className="fr-fi-edit-fill" aria-hidden="true" />
@@ -61,7 +62,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: ({ status, step } : CampaignHousing) =>
+        render: ({ status, step, precision } : CampaignHousing) =>
             <>
                 <div style={{
                     backgroundColor: `var(${getCampaignHousingState(status).bgcolor})`,
@@ -78,6 +79,15 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                          className='status-label'>
                         {step}
                     </div>
+                }
+                {step && precision &&
+                    <div style={{
+                        backgroundColor: `var(${getCampaignHousingPrecision(status, step, precision)?.bgcolor})`,
+                        color: `var(${getCampaignHousingPrecision(status, step, precision)?.color})`,
+                    }}
+                          className='status-label'>
+                                {precision}
+                            </div>
                 }
             </>
     };

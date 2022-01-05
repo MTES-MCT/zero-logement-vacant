@@ -131,7 +131,34 @@ export const CampaignHousingStates: CampaignHousingState[] = [
             {
                 title: 'Intervention publique',
                 color: '--pink-macaron-sun-406',
-                bgcolor: '--pink-macaron-950'
+                bgcolor: '--pink-macaron-950',
+                precisions: [
+                    {
+                        title: 'ORI - TIRORI',
+                        color: '',
+                        bgcolor: ''
+                    },
+                    {
+                        title: 'Bien sans maitre',
+                        color: '',
+                        bgcolor: ''
+                    },
+                    {
+                        title: 'Abandon manifeste',
+                        color: '',
+                        bgcolor: ''
+                    },
+                    {
+                        title: 'DIA - préemption',
+                        color: '',
+                        bgcolor: ''
+                    },
+                    {
+                        title: 'Procédure d’habitat indigne',
+                        color: '',
+                        bgcolor: ''
+                    }
+                ]
             },
             {
                 title: 'En sortie sans accompagnement',
@@ -337,26 +364,19 @@ export const CampaignHousingStates: CampaignHousingState[] = [
         bgcolor: '--blue-ecume-950',
         steps: [
             {
-                title: 'Sortie de la vacance',
-                color: '--blue-ecume-sun-247',
-                bgcolor: '--blue-ecume-950',
-                precisions: [
-                    {
-                        title: 'Loué',
-                        color: '--blue-ecume-975',
-                        bgcolor: '--blue-ecume-sun-247'
-                    },
-                    {
-                        title: 'Vendu',
-                        color: '--blue-ecume-main-400',
-                        bgcolor: '--green-archipel-975'
-                    },
-                    {
-                        title: 'Occupation personnelle ou pour un proche',
-                        color: '--blue-ecume-975',
-                        bgcolor: '--blue-ecume-sun-247-active'
-                    }
-                ]
+                title: 'Loué',
+                color: '--blue-ecume-975',
+                bgcolor: '--blue-ecume-sun-247'
+            },
+            {
+                title: 'Vendu',
+                color: '--blue-ecume-main-400',
+                bgcolor: '--green-archipel-975'
+            },
+            {
+                title: 'Occupation personnelle ou pour un proche',
+                color: '--blue-ecume-975',
+                bgcolor: '--blue-ecume-sun-247-active'
             }
         ]
     }

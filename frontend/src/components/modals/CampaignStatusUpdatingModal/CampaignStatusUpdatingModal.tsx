@@ -85,7 +85,7 @@ const CampaignStatusUpdatingModal = (
             is: true,
             then: yup.string().required('Veuillez sélectionner une précision.')
         }),
-        contactKind: yup.string().required('Veuillez sélectionner une intéraction.'),
+        contactKind: yup.string().required('Veuillez sélectionner une interaction.'),
     });
 
     const submitForm = () => {
@@ -203,7 +203,7 @@ const CampaignStatusUpdatingModal = (
                     <Row gutters>
                         <Col n="4">
                             <Select
-                                label="Type d'intéraction"
+                                label="Type d'interaction"
                                 options={contactKindOptions}
                                 selected={contactKind}
                                 messageType={formErrors['contactKind'] ? 'error' : undefined}

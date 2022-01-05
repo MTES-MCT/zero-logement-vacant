@@ -48,7 +48,7 @@ const CampaignView = () => {
                                         <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}> - </div>
+                                        <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
                                         <span className={styles.statLabel}>retours</span>
                                     </div>
                                 </Col>

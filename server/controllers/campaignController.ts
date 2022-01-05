@@ -94,8 +94,9 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
                 results.entities.map(campaignHousing => <EventApi>{
                     housingId: campaignHousing.id,
                     ownerId: campaignHousing.owner.id,
+                    campaignId,
                     kind: EventKinds.CampaignSend,
-                    content: 'Campagne envoyée',
+                    content: 'Ajout dans la campagne',
                     createdBy: userId
                 })
             ))
@@ -120,6 +121,8 @@ const deleteCampaign = async (request: Request, response: Response): Promise<Res
     } else {
 
         await campaignHousingRepository.deleteHousingFromCampaign(campaignId)
+
+        await eventRepository.deleteEventsFromCampaign(campaignId)
 
         await campaignRepository.deleteCampaign(campaignId)
 

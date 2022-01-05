@@ -45,6 +45,7 @@ const updateCampaignHousingList = async (request: Request, response: Response): 
         housingId: campaignHousing.id,
         ownerId: campaignHousing.owner.id,
         kind: EventKinds.StatusChange,
+        campaignId,
         content: [
             campaignHousingUpdateApi.contactKind,
             getStatusLabel(campaignHousing, campaignHousingUpdateApi),

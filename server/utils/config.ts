@@ -17,4 +17,5 @@ export default {
     },
     databaseUrl: process.env.DATABASE_URL,
     databaseUrlTest: process.env.DATABASE_URL_TEST,
+    sentryDNS: process.env.SENTRY_DNS
 };

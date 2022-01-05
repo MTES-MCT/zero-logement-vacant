@@ -23,7 +23,7 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
 
-    return housingRepository.list({...filters, localities: filterLocalities}, page, perPage)
+    return housingRepository.listWithFilters({...filters, localities: filterLocalities}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 
@@ -33,20 +33,60 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
 
     console.log('List housing by owner', ownerId)
 
-    return housingRepository.list({ownerIds: [ownerId]})
+    return housingRepository.listWithFilters({ownerIds: [ownerId]})
         .then(_ => response.status(200).json(_.entities));
 };
 
-const exportByCampaign = async (request: Request, response: Response): Promise<Response> => {
+const exportHousingByCampaign = async (request: Request, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
 
     console.log('Export housing by campaign', campaignId)
 
     const campaignApi = await campaignRepository.get(campaignId)
-    const housingList = await housingRepository.list({campaignIds: [campaignId]}).then(_ => _.entities)
+    const housingList = await housingRepository.listWithFilters({campaignIds: [campaignId]}).then(_ => _.entities)
 
     const fileName = `C${campaignApi.campaignNumber}.xlsx`;
+
+    return await exportHousingList(housingList, fileName, response);
+
+}
+
+const exportHousingWithFilters = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Export housing with filters')
+
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    const filters = <HousingFiltersApi> request.body.filters ?? {};
+    const allHousing = request.body.allHousing;
+
+    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
+    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
+
+    const housingIds = allHousing ?
+        await housingRepository.listWithFilters({...filters, localities: filterLocalities})
+            .then(_ => _.entities
+                .map(_ => _.id)
+                .filter(id => request.body.housingIds.indexOf(id) === -1)
+            ):
+        request.body.housingIds;
+
+    const housingList = await housingRepository.listByIds(housingIds)
+
+    const fileName = `export_${(new Date()).toDateString()}.xlsx`;
+
+    return await exportHousingList(housingList, fileName, response);
+
+}
+
+const exportHousingList = async (housingList: HousingApi[], fileName: string, response: Response): Promise<Response> => {
+
+
+    console.log('housingList', housingList.map((housing: HousingApi) => ({
+        housingId: housing.owner.id,
+        rawAddress: housing.owner.rawAddress
+    })))
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.map((housing: HousingApi) => ({
@@ -149,7 +189,7 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     console.log('Normalize address')
 
-    const housingList = await housingRepository.list({}, 0, 10000)
+    const housingList = await housingRepository.listWithFilters({}, 0, 10000)
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.entities.map((housing: HousingApi) => ({
@@ -190,7 +230,8 @@ const escapeValue = (value?: string) => {
 const housingController =  {
     list,
     listByOwner,
-    exportByCampaign,
+    exportHousingByCampaign,
+    exportHousingWithFilters,
     normalizeAddresses
 };
 

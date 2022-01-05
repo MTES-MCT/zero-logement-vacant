@@ -11,7 +11,7 @@ export const housingTable = 'housing';
 export const ownersHousingTable = 'owners_housing';
 
 
-const list = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
+const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
         const filter = (queryBuilder: any) => {
@@ -179,34 +179,26 @@ const list = async (filters: HousingFiltersApi, page?: number, perPage?: number)
             .then(_ => Number(_[0].count))
 
         return <PaginatedResultApi<HousingApi>> {
-            entities: results.map((result: any) => (<HousingApi>{
-                id: result.id,
-                invariant: result.invariant,
-                rawAddress: result.raw_address,
-                address: <AddressApi>{
-                    houseNumber: result.house_number,
-                    street: result.street,
-                    postalCode: result.postal_code,
-                    city: result.city
-                },
-                latitude: result.latitude,
-                longitude: result.longitude,
-                owner: <OwnerApi>{
-                    id: result.owner_id,
-                    rawAddress: result.owner_raw_address,
-                    fullName: result.full_name
-                },
-                livingArea: result.living_area,
-                housingKind: result.housing_kind,
-                roomsCount: result.rooms_count,
-                buildingYear: result.building_year,
-                vacancyStartYear: result.vacancy_start_year,
-                campaignIds: result.campaign_ids.map((_: any) => _?.campaign_id).filter((_: any) => _)
-            })),
+            entities: results.map((result: any) => parseHousingApi(result)),
             totalCount: housingCount,
             page,
             perPage
         }
+    } catch (err) {
+        console.error('Listing housing failed', err);
+        throw new Error('Listing housing failed');
+    }
+}
+
+const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
+    try {
+        return db
+            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name')
+            .from(housingTable)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .whereIn(`${housingTable}.id`, ids)
+            .then(_ => _.map(_ => parseHousingApi(_)))
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');
@@ -222,7 +214,35 @@ const rawUpdate = async (update: string): Promise<HousingApi[]> => {
     }
 }
 
+const parseHousingApi = (result: any) => (
+    <HousingApi>{
+        id: result.id,
+        invariant: result.invariant,
+        rawAddress: result.raw_address,
+        address: <AddressApi>{
+            houseNumber: result.house_number,
+            street: result.street,
+            postalCode: result.postal_code,
+            city: result.city
+        },
+        latitude: result.latitude,
+        longitude: result.longitude,
+        owner: <OwnerApi>{
+            id: result.owner_id,
+            rawAddress: result.owner_raw_address,
+            fullName: result.full_name
+        },
+        livingArea: result.living_area,
+        housingKind: result.housing_kind,
+        roomsCount: result.rooms_count,
+        buildingYear: result.building_year,
+        vacancyStartYear: result.vacancy_start_year,
+        campaignIds: (result.campaign_ids ?? []).map((_: any) => _?.campaign_id).filter((_: any) => _)
+    }
+)
+
 export default {
-    list,
+    listWithFilters,
+    listByIds,
     rawUpdate
 }

@@ -59,7 +59,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
 
     const housingIds = allHousing ?
-        await housingRepository.list({...filters, localities: filterLocalities})
+        await housingRepository.listWithFilters({...filters, localities: filterLocalities})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)

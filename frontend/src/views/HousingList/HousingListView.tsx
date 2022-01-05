@@ -16,6 +16,8 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialFilters } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
+import housingService from '../../services/housing.service';
+import { format } from 'date-fns';
 
 const HousingListView = () => {
 
@@ -24,7 +26,7 @@ const HousingListView = () => {
     const { search } = useLocation();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [createAlert, setCreateAlert] = useState(false);
+    const [noHousingAlert, setNoHousingAlert] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
@@ -47,10 +49,31 @@ const HousingListView = () => {
 
     const create = () => {
         if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
-            setCreateAlert(true)
+            setNoHousingAlert(true)
         } else {
-            setCreateAlert(false)
+            setNoHousingAlert(false)
             setIsCreateModalOpen(true)
+        }
+    }
+
+    const exportHousing = () => {
+        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
+            setNoHousingAlert(true)
+        } else {
+            setNoHousingAlert(false)
+            housingService.exportHousing(filters, selectedHousing.all, selectedHousing.ids)
+                .then((response) => {
+                    const link = document.createElement("a");
+                    link.href = window.URL.createObjectURL(response);
+                    link.download = `export_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+
+                    document.body.appendChild(link);
+
+                    link.click();
+                    setTimeout(function() {
+                        window.URL.revokeObjectURL(link.href);
+                    }, 200);
+                });
         }
     }
 
@@ -60,7 +83,7 @@ const HousingListView = () => {
 
     const onSelectHousing = (selectedHousing: SelectedHousing) => {
         if (selectedHousing.all || selectedHousing?.ids.length !== 0) {
-            setCreateAlert(false)
+            setNoHousingAlert(false)
         }
         setSelectedHousing(selectedHousing)
     }
@@ -114,32 +137,42 @@ const HousingListView = () => {
                                closable/>
                         }
 
-                        { createAlert &&
+                        { noHousingAlert &&
                         <Alert title=""
-                               description="Vous devez sélectionner au moins un logement pour créer une campagne."
+                               description="Vous devez sélectionner au moins un logement."
                                className="fr-my-3w"
                                type="error"
                                data-testid="no-housing-alert"
                                closable/>
                         }
                         {!paginatedHousing.loading &&
-                        <Row alignItems="middle" className="fr-pb-1w">
+                        <Row alignItems="middle" className="fr-py-1w">
                             <Col>
                                 <b>{displayCount(paginatedHousing.totalCount, 'logement')}</b>
                             </Col>
-                            <Col>
-                                <Button title="Créer la campagne"
-                                        onClick={() => create()}
-                                        data-testid="create-campaign-button"
-                                        className="float-right">
-                                    Créer la campagne
-                                </Button>
-                                {isCreateModalOpen &&
-                                <CampaignCreationModal
-                                    housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
-                                    onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
-                                    onClose={() => setIsCreateModalOpen(false)}/>}
-                            </Col>
+                            {paginatedHousing.totalCount > 0 &&
+                                <Col>
+                                    <Button title="Créer la campagne"
+                                            onClick={() => create()}
+                                            data-testid="create-campaign-button"
+                                            className="float-right">
+                                        Créer la campagne
+                                    </Button>
+                                    <Button title="Exporter"
+                                            secondary
+                                            onClick={() => exportHousing()}
+                                            data-testid="export-campaign-button"
+                                            className="float-right fr-mr-2w"
+                                            icon="fr-fi-download-line">
+                                        Exporter
+                                    </Button>
+                                    {isCreateModalOpen &&
+                                    <CampaignCreationModal
+                                        housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
+                                        onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
+                                        onClose={() => setIsCreateModalOpen(false)}/>}
+                                </Col>
+                            }
                         </Row>
                         }
                         <HousingList paginatedHousing={paginatedHousing}

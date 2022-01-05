@@ -22,6 +22,17 @@ const listHousing = async (filters: HousingFilters, page: number, perPage: numbe
         }));
 };
 
+const exportHousing = async (filters: HousingFilters, allHousing: boolean, housingIds?: string[]): Promise<Blob> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/export`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters, allHousing, housingIds }),
+    })
+        .then(_ => _.blob())
+
+};
+
 const quickSearchService = (): {abort: () => void, fetch: (query: string) => Promise<PaginatedResult<Housing>>} => {
 
     const controller = new AbortController();
@@ -62,7 +73,8 @@ export const parseHousing = (h: any): Housing => ({
 const housingService = {
     listHousing,
     listByOwner,
-    quickSearchService
+    quickSearchService,
+    exportHousing
 };
 
 export default housingService;

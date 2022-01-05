@@ -82,12 +82,6 @@ const exportHousingWithFilters = async (request: Request, response: Response): P
 
 const exportHousingList = async (housingList: HousingApi[], fileName: string, response: Response): Promise<Response> => {
 
-
-    console.log('housingList', housingList.map((housing: HousingApi) => ({
-        housingId: housing.owner.id,
-        rawAddress: housing.owner.rawAddress
-    })))
-
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.map((housing: HousingApi) => ({
             housingId: housing.id,

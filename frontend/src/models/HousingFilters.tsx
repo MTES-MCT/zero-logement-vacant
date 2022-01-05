@@ -1,3 +1,5 @@
+import { SelectOption } from './SelectOption';
+
 export interface HousingFilters {
     ownerKinds: string[];
     ownerAges: string[];
@@ -13,12 +15,9 @@ export interface HousingFilters {
     localities: string[];
     housingScopes: string[];
     query: string;
-    excludedIds: string[];
 }
 
-export interface HousingFilterOption {
-    value: string;
-    label: string;
+export interface HousingFilterOption extends SelectOption {
     badgeLabel?: string;
 }
 

@@ -1,5 +1,8 @@
 import campaignController from './campaignController';
 import { getMockReq, getMockRes } from '@jest-mock/express';
+import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
+import db from '../repositories/db';
+import { campaignsTable } from '../repositories/campaignRepository';
 
 describe('Campaign controller', () => {
 
@@ -28,38 +31,66 @@ describe('Campaign controller', () => {
         )
     })
 
-    // it('should create a new campaign', async () => {
-    //
-    //     const housingIds = ['ref1', 'ref2'];
-    //
-    //     const req = getMockReq({
-    //         body: { draftCampaign: { startMonth: '2112', kind: '0'}, housingIds },
-    //     })
-    //     const { res } = getMockRes()
-    //
-    //     await campaignController.create(req, res)
-    //
-    //     expect(res.status).toHaveBeenCalledWith(200)
-    //     expect(res.json).toHaveBeenCalledWith(
-    //         expect.objectContaining({
-    //                 campaign_number: 2,
-    //                 start_month: '2112',
-    //                 kind: '0',
-    //             }
-    //         )
-    //     )
-    //
-    //     await db(campaignsHousingTable)
-    //         .whereIn('housing_id', housingIds)
-    //         .count('*').then(result => {
-    //         expect(result).toStrictEqual([{count: "2"}])
-    //     });
-    //     await db(campaignsHousingTable)
-    //         .whereIn('housing_id', housingIds)
-    //         .countDistinct('campaignId').then(result => {
-    //         expect(result).toStrictEqual([{count: "1"}])
-    //     });
-    // })
+    it('should create a new campaign', async () => {
+
+        const housingIds = ['c0ec7153-0e1c-4770-bc98-ad6ce1779f9a', '3180bb27-1ca8-4e32-bc71-79f04e424aa8'];
+
+        const req = getMockReq({
+            user: {
+                establishmentId: 'fb42415a-a41a-4b22-bf47-7bedfb419a63',
+                userId: '8da707d6-ff58-4366-a2b3-59472c600dca'
+            },
+            body: {
+                draftCampaign: {
+                    startMonth: '2112',
+                    kind: '0',
+                    filters: {}
+                },
+                housingIds
+            },
+        })
+        const { res } = getMockRes()
+
+        await campaignController.create(req, res)
+
+        expect(res.status).toHaveBeenCalledWith(200)
+        expect(res.json).toHaveBeenCalledWith(
+            expect.any(String)
+        )
+
+        await db(campaignsTable)
+            .where('establishment_id', 'fb42415a-a41a-4b22-bf47-7bedfb419a63')
+            .andWhere('campaign_number', '2')
+            .then(result => {
+                expect(result[0]).toEqual(expect.objectContaining({
+                        campaign_number: 2,
+                        start_month: '2112',
+                        kind: '0',
+                    }
+                ))
+            });
+
+        await db(campaignsHousingTable)
+            .join(campaignsTable, 'campaign_id', 'id')
+            .where('establishment_id', 'fb42415a-a41a-4b22-bf47-7bedfb419a63')
+            .andWhere('campaign_number', '2')
+            .then(result => {
+                expect(result).toEqual(expect.arrayContaining([
+                    expect.objectContaining(
+                        {
+                            housing_id: 'c0ec7153-0e1c-4770-bc98-ad6ce1779f9a',
+                            status: 0
+                        }
+                    ),
+                    expect.objectContaining(
+                    {
+                            housing_id: '3180bb27-1ca8-4e32-bc71-79f04e424aa8',
+                            status: 0
+                        }
+                    )
+                ]))
+            });
+    })
 
 
 

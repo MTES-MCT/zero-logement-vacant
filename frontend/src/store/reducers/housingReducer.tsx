@@ -24,8 +24,7 @@ export const initialFilters = {
     isTaxedValues: [],
     localities: [],
     housingScopes: [],
-    query: '',
-    excludedIds: []
+    query: ''
 } as HousingFilters;
 
 const initialState = {

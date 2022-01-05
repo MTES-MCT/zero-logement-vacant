@@ -22,6 +22,7 @@ import { CampaignKinds, DraftCampaign } from '../../../models/Campaign';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { hasFilters } from '../../../models/HousingFilters';
+import { displayCount } from '../../../utils/stringUtils';
 
 const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
 
@@ -85,7 +86,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                 <Container fluid>
                     <Text size="md">
                         <span data-testid="housing-infos">
-                            <b>{housingCount}</b> logements
+                            <b>{displayCount(housingCount, 'logement')}</b>
                         </span>
                     </Text>
                     <Row gutters>

@@ -22,6 +22,17 @@ const listHousing = async (filters: HousingFilters, page: number, perPage: numbe
         }));
 };
 
+const exportHousing = async (filters: HousingFilters, allHousing: boolean, housingIds?: string[]): Promise<Blob> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/export`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters, allHousing, housingIds }),
+    })
+        .then(_ => _.blob())
+
+};
+
 const quickSearchService = (): {abort: () => void, fetch: (query: string) => Promise<PaginatedResult<Housing>>} => {
 
     const controller = new AbortController();
@@ -43,27 +54,6 @@ const quickSearchService = (): {abort: () => void, fetch: (query: string) => Pro
     };
 };
 
-const listByCampaign = async (campaignId: string, page: number, perPage: number, excludedIds: string[] = []): Promise<PaginatedResult<Housing>> => {
-
-    return await fetch(`${config.apiEndpoint}/api/housing`, {
-        method: 'POST',
-        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            filters: {
-                ...initialFilters,
-                campaignIds: [campaignId],
-                excludedIds
-            },
-            page,
-            perPage }),
-    })
-        .then(_ => _.json())
-        .then(result => ({
-            ...result,
-            entities: result.entities.map((e: any) => parseHousing(e))
-        }));
-};
-
 const listByOwner = async (ownerId: string): Promise<Housing[]> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/owner/${ownerId}`, {
@@ -74,7 +64,7 @@ const listByOwner = async (ownerId: string): Promise<Housing[]> => {
         .then(_ => _.map((h: any) => parseHousing(h)));
 };
 
-const parseHousing = (h: any): Housing => ({
+export const parseHousing = (h: any): Housing => ({
     ...h,
     rawAddress: h.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
     owner: ownerService.parseOwner(h.owner)
@@ -82,9 +72,9 @@ const parseHousing = (h: any): Housing => ({
 
 const housingService = {
     listHousing,
-    listByCampaign,
     listByOwner,
-    quickSearchService
+    quickSearchService,
+    exportHousing
 };
 
 export default housingService;

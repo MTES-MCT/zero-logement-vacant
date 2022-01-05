@@ -10,29 +10,27 @@ import {
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
 } from '../actions/campaignAction';
-import { Housing } from '../../models/Housing';
-import { PaginatedResult } from '../../models/PaginatedResult';
-import config from '../../utils/config';
-
+import { CampaignHousing } from '../../models/Housing';
+import { initialPaginatedResult, PaginatedResult } from '../../models/PaginatedResult';
 
 export interface CampaignState {
     campaignFetchingId?: string;
     campaignHousingFetchingId?: string;
     campaignList?: Campaign[];
     campaign?: Campaign;
-    paginatedHousing: PaginatedResult<Housing>;
+    campaignHousingByStatus: PaginatedResult<CampaignHousing>[],
     exportURL: string;
     loading: boolean;
 }
 
 const initialState: CampaignState = {
-    paginatedHousing: {
-        entities: [],
-        page: 1,
-        perPage: config.perPageDefault,
-        totalCount: 0,
-        loading: true
-    },
+    campaignHousingByStatus: [
+        initialPaginatedResult(),
+        initialPaginatedResult(),
+        initialPaginatedResult(),
+        initialPaginatedResult(),
+        initialPaginatedResult()
+    ],
     exportURL: '',
     loading: true
 };
@@ -55,13 +53,12 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignFetchingId: action.campaignFetchingId,
-                campaign: undefined,
+                campaign: action.campaignFetchingId === state.campaignFetchingId ? state.campaign : undefined,
                 loading: true
             };
         case CAMPAIGN_FETCHED:
             return {
                 ...state,
-                campaignFetchingId: undefined,
                 campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign,
                 loading: false
             };
@@ -69,28 +66,35 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
             return {
                 ...state,
                 campaignHousingFetchingId: action.campaignHousingFetchingId,
-                paginatedHousing: {
-                    entities: [],
-                    totalCount: 0,
-                    page: action.page,
-                    perPage: action.perPage,
-                    loading: true
-                },
+                campaignHousingByStatus: [
+                    ...state.campaignHousingByStatus.filter((_, index) => index < action.status),
+                    {
+                        entities: [],
+                        totalCount: 0,
+                        page: action.page,
+                        perPage: action.perPage,
+                        loading: true
+                    },
+                    ...state.campaignHousingByStatus.filter((_, index) => index > action.status),
+                ]
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
                 action.campaignHousingFetchingId === state.campaignHousingFetchingId &&
-                action.paginatedHousing.page === state.paginatedHousing.page &&
-                action.paginatedHousing.perPage === state.paginatedHousing.perPage
+                action.paginatedHousing.page === state.campaignHousingByStatus[action.status].page &&
+                action.paginatedHousing.perPage === state.campaignHousingByStatus[action.status].perPage
             return !isCurrentFetching ? state : {
                 ...state,
-                campaignHousingFetchingId: undefined,
-                paginatedHousing: {
-                    ...state.paginatedHousing,
-                    entities: action.paginatedHousing.entities,
-                    totalCount: action.paginatedHousing.totalCount,
-                    loading: false
-                },
+                campaignHousingByStatus: [
+                    ...state.campaignHousingByStatus.filter((_, index) => index < action.status),
+                    {
+                        ...state.campaignHousingByStatus[action.status],
+                        entities: action.paginatedHousing.entities,
+                        totalCount: action.paginatedHousing.totalCount,
+                        loading: false
+                    },
+                    ...state.campaignHousingByStatus.filter((_, index) => index > action.status),
+                ],
                 exportURL: action.exportURL,
             };
         }

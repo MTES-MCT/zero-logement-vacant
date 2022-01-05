@@ -7,5 +7,7 @@ export interface OwnerEvent {
 }
 
 export enum EventKinds {
-    OwnerUpdate
+    OwnerUpdate,
+    CampaignSend,
+    StatusChange
 }

@@ -31,7 +31,7 @@ describe('Campagne creation modal', () => {
         const startMonthSelectElement = screen.getByTestId('start-month-select');
         const createButton = screen.getByTestId('create-button');
         expect(housingInfosTextElement).toBeInTheDocument();
-        expect(housingInfosTextElement).toContainHTML('<b>2</b> logements');
+        expect(housingInfosTextElement).toContainHTML('<b>2 logements</b>');
         expect(startMonthSelectElement).toBeInTheDocument();
         expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7)
         expect(createButton).toBeInTheDocument();

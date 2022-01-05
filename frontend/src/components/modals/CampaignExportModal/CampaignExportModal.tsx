@@ -11,6 +11,7 @@ import {
     RadioGroup,
     Text,
 } from '@dataesr/react-dsfr';
+import { displayCount } from '../../../utils/stringUtils';
 
 const CampaignExportModal = (
     {
@@ -39,10 +40,10 @@ const CampaignExportModal = (
             <ModalContent>
                 <Container fluid>
                     <Text size="md" className="fr-mb-0">
-                        <b>{housingCount}</b> logements
+                        <b>{displayCount(housingCount, 'logement')}</b>
                     </Text>
                     <Text size="md">
-                        <b>{ownerCount}</b> propriétaires
+                        <b>{displayCount(ownerCount, 'propriétaire')}</b>
                     </Text>
                     <RadioGroup legend="">
                         <Radio

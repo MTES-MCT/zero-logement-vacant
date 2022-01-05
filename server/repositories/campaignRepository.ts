@@ -3,6 +3,7 @@ import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
+import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
 
 export const campaignsTable = 'campaigns';
 
@@ -10,7 +11,14 @@ export const campaignsTable = 'campaigns';
 const get = async (campaignId: string): Promise<CampaignApi> => {
     try {
         return db(campaignsTable)
-            .select(`${campaignsTable}.*`)
+            .select(
+                `${campaignsTable}.*`,
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+            )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
@@ -32,7 +40,14 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
 
     try {
         return db
-            .select(`${campaignsTable}.*`)
+            .select(
+                `${campaignsTable}.*`,
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+            )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
@@ -41,6 +56,7 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
+            .orderBy('campaign_number')
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {
@@ -89,6 +105,17 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
     }
 }
 
+const deleteCampaign = async (campaignId: string): Promise<number> => {
+    try {
+        return db(campaignsTable)
+            .delete()
+            .where('id', campaignId)
+    } catch (err) {
+        console.error('Deleting campaign failed', err, campaignId);
+        throw new Error('Deleting campaign failed');
+    }
+}
+
 const parseCampaignApi = (result: any) => <CampaignApi>{
     id: result.id,
     establishmentId: result.establishment_id,
@@ -102,6 +129,11 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     exportedAt: result.exported_at,
     sentAt: result.sent_at,
     housingCount: result.housingCount,
+    waitingCount: result.waitingCount,
+    inProgressCount: result.inProgressCount,
+    notVacantCount: result.notVacantCount,
+    noActionCount: result.noActionCount,
+    exitCount: result.exitCount,
     ownerCount: result.ownerCount
 }
 
@@ -125,5 +157,6 @@ export default {
     list,
     lastCampaignNumber,
     insert,
-    update
+    update,
+    deleteCampaign
 }

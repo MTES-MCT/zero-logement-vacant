@@ -1,5 +1,6 @@
 import { Owner } from './Owner';
 import { Address } from './Address';
+import { CampaignHousingStatus } from './CampaignHousingState';
 
 export interface Housing {
     id: string;
@@ -20,4 +21,24 @@ export interface Housing {
 export interface SelectedHousing {
     all: boolean;
     ids: string[];
+}
+
+export interface CampaignHousing extends Housing {
+    campaignId: string;
+    status: CampaignHousingStatus;
+    step?: string;
+    precision?: string;
+}
+
+export interface CampaignHousingUpdate {
+    prevStatus: CampaignHousingStatus,
+    status: CampaignHousingStatus,
+    step?: string,
+    precision?: string,
+    contactKind?: string,
+    comment?: string
+}
+
+export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCount: number) => {
+    return selectedHousing.all ? totalCount - selectedHousing.ids.length : selectedHousing.ids.length
 }

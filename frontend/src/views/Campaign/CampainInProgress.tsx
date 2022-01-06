@@ -115,7 +115,8 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                              onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
                              displayKind={HousingDisplayKey.Owner}
                              onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}
-                             additionalColumns={[statusColumn, modifyColumn]} />
+                             additionalColumns={[statusColumn, modifyColumn]}
+                             tableClassName="campaign"/>
                 {updatingModalCampaignHousing &&
                     <CampaignStatusUpdatingModal
                         campaignHousing={updatingModalCampaignHousing}

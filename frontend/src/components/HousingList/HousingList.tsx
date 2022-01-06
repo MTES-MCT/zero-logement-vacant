@@ -10,6 +10,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { listCampaigns } from '../../store/actions/campaignAction';
+import classNames from 'classnames';
 
 
 export enum HousingDisplayKey {
@@ -23,14 +24,16 @@ const HousingList = (
         filters,
         displayKind,
         onSelectHousing,
-        additionalColumns
+        additionalColumns,
+        tableClassName
     }: {
         paginatedHousing: PaginatedResult<Housing>,
         onChangePagination: (page: number, perPage: number) => void,
         filters?: HousingFilters,
         displayKind: HousingDisplayKey,
         onSelectHousing?: (selectedHousing: SelectedHousing) => void,
-        additionalColumns?: any[]
+        additionalColumns?: any[],
+        tableClassName?: string
     }) => {
 
     const dispatch = useDispatch();
@@ -184,7 +187,7 @@ const HousingList = (
                     data={paginatedHousing.entities.map((_, index) => ({..._, rowNumber: (paginatedHousing.page - 1) * paginatedHousing.perPage + index + 1}) )}
                     columns={columns()}
                     fixedLayout={true}
-                    className="zlv-table-with-view with-select with-row-number"
+                    className={classNames('zlv-table-with-view', tableClassName)}
                     data-testid="housing-table"
                 />
                 <div className="fr-react-table--pagination-center nav">

@@ -5,32 +5,47 @@
 }
 
 .zlv-table-with-view {
-  th:last-child {
-    width: 120px;
-  }
 
   table:before {
     display: none !important;
   }
 
-  &.with-select {
-    th:first-child {
-      width: 48px;
-    }
-
-    td {
-      .fr-checkbox-group input[type=checkbox]+label:before {
-        margin-top: 0;
-      }
-    }
-    input[type=checkbox]+label:before {
-       margin-top: 0 !important;
-    }
+  th:first-child {
+    width: 48px;
   }
 
-  &.with-row-number {
-    th:nth-child(2) {
-      width: 62px;
+  input[type=checkbox]+label:before {
+     margin-top: 0 !important;
+  }
+
+  th:nth-child(2), tr > td:nth-child(2)  {
+    width: 42px;
+    padding-left: 8px;
+    padding-right: 0;
+  }
+
+  th:last-child, tr > td:last-child  {
+    width: 100px;
+    padding: 0;
+  }
+
+  &.campaign {
+
+    th:nth-child(3) {
+      width: 20%;
+    }
+
+    th:nth-child(4) {
+      width: 30%;
+    }
+
+    th:nth-child(5) {
+      width: 50%;
+    }
+
+    th:nth-child(6), tr > td:nth-child(6)  {
+      width: 150px;
+      padding: 0;
     }
   }
 }

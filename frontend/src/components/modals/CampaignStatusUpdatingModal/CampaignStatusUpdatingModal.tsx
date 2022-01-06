@@ -141,37 +141,38 @@ const CampaignStatusUpdatingModal = (
                             {displayCount(housingCount, 'logement concerné')}.
                         </Text>
                     }
-                    <Text className="fr-mb-2w">
-                        <b>CHANGEMENT DE STATUT</b>
-                    </Text>
-                    <Text className="fr-mb-2w">
-                        Statut actuel :&nbsp;
-                        <span style={{
-                            backgroundColor: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).bgcolor})`,
-                            color: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).color})`,
-                        }}
-                             className='status-label'>
-                            {getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).title}
-                        </span>
-                        {campaignHousing && campaignHousing.step && campaignHousing.step !== getCampaignHousingState(campaignHousing.status).title &&
+                    <Row gutters>
+                        <Col n="4">
+                            <b>CHANGEMENT DE STATUT</b>
+                        </Col>
+                        <Col>
                             <span style={{
-                                backgroundColor: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.bgcolor})`,
-                                color: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.color})`,
+                                backgroundColor: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).bgcolor})`,
+                                color: `var(${getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).color})`,
                             }}
                                  className='status-label'>
-                                {campaignHousing.step}
+                                {getCampaignHousingState(campaignHousing ? campaignHousing.status : initialStatus).title}
                             </span>
-                        }
-                        {campaignHousing && campaignHousing.step && campaignHousing.precision &&
-                            <span style={{
-                                backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.bgcolor})`,
-                                color: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.color})`,
-                            }}
-                                 className='status-label'>
-                                {campaignHousing.precision}
-                            </span>
-                        }
-                    </Text>
+                            {campaignHousing && campaignHousing.step && campaignHousing.step !== getCampaignHousingState(campaignHousing.status).title &&
+                                <span style={{
+                                    backgroundColor: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.bgcolor})`,
+                                    color: `var(${getCampaignHousingStep(campaignHousing.status, campaignHousing.step)?.color})`,
+                                }}
+                                     className='status-label'>
+                                    {campaignHousing.step}
+                                </span>
+                            }
+                            {campaignHousing && campaignHousing.step && campaignHousing.precision &&
+                                <span style={{
+                                    backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.bgcolor})`,
+                                    color: `var(${getCampaignHousingPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)?.color})`,
+                                }}
+                                     className='status-label'>
+                                    {campaignHousing.precision}
+                                </span>
+                            }
+                        </Col>
+                    </Row>
                     <Row gutters>
                         <Col n="4">
                             <Select

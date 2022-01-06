@@ -8,7 +8,7 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
     try {
         return db
             .select(`${establishmentsTable}.*`,
-                db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name)) as localities')
+                db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name) order by l.name) as localities')
             )
             .from(establishmentsTable)
             .joinRaw(`join ${localitiesTable} as l on (l.id = any(${establishmentsTable}.localities_id))`)
@@ -21,10 +21,11 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                         id: result.id,
                         name: result.name,
                         housingScopes: result.housing_scopes ?? [],
-                        localities: result.localities.map((l: { geo_code: any; name: any; }) => ({
-                            geoCode: l.geo_code,
-                            name: l.name
-                        }))
+                        localities: result.localities
+                            .map((l: { geo_code: any; name: any; }) => ({
+                                geoCode: l.geo_code,
+                                name: l.name
+                            }))
                     }
                 } else {
                     console.error('Establishment not found', establishmentId);

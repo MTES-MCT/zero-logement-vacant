@@ -1,17 +1,16 @@
 import * as Sentry from '@sentry/node';
-import * as sentryIntegrations from '@sentry/integrations';
 import { Express } from 'express';
 import config from './config';
+import * as sentryIntegrations from '@sentry/integrations';
 
-/**
- * @see https://sentry.io/betagouv-f7/sante-psy-prod/getting-started/node-express/
- */
 const initCaptureConsole = (): void => {
+
   const logLevel = ['error'];
+
   console.log(`Initializing Sentry for log level "${logLevel}" and config: ${config.sentryDNS}`);
+
   Sentry.init({
     dsn: config.sentryDNS,
-    // https://docs.sentry.io/platforms/javascript/configuration/integrations/plugin/#captureconsole
     integrations: [
       new sentryIntegrations.CaptureConsole({ levels: logLevel }),
     ],
@@ -26,8 +25,9 @@ const initCaptureConsoleWithHandler = (app: Express): void => {
     // transaction/span/breadcrumb is attached to its own Hub instance
     app.use(Sentry.Handlers.requestHandler());
 
-    // The error handler must be before any other error middleware and after all controllers
-    app.use(Sentry.Handlers.errorHandler());
+    // TracingHandler creates a trace for every incoming request
+    app.use(Sentry.Handlers.tracingHandler());
+
   } else {
     console.log('Sentry was not initialized as SENTRY_DNS env variable is missing');
   }

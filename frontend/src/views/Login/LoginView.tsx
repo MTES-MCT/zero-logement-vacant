@@ -28,7 +28,7 @@ const LoginView = () => {
         password: yup.string().required('Veuillez renseigner un mot de passe.'),
         establishmentId: yup.string().when('isAdmin', {
             is: true,
-            then: yup.string().min(1, 'Veuillez sélectionner un EPCI.')
+            then: yup.string().min(1, 'Veuillez sélectionner un établissement.')
         })
     });
 
@@ -41,7 +41,7 @@ const LoginView = () => {
     useEffect(() => {
         if (availableEstablishments) {
             setAvailableEstablishmentOptions([
-                { value: '', label: 'Sélectionner un EPCI', disabled: true },
+                { value: '', label: 'Sélectionner un établissement', disabled: true },
                 ...availableEstablishments.map(e => ({
                     value: e.id,
                     label: e.name

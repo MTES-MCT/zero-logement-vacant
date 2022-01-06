@@ -16,6 +16,8 @@ VALUES ('251503199', 'SIVU "Auze-Ouest-Cantal"', (select array_agg(id) from loca
 VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Mulhouse', (select array_agg(id) from localities where geo_code='68224'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Département du Cher', (select array_agg(id) from localities where geo_code like '18%'), true);
 
 update establishments set available = true where epci_id in
 ('200066637',

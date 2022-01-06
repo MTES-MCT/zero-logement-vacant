@@ -18,6 +18,7 @@ import { initialFilters } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
 import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
 
 const HousingListView = () => {
 
@@ -61,6 +62,7 @@ const HousingListView = () => {
             setNoHousingAlert(true)
         } else {
             setNoHousingAlert(false)
+            dispatch(showLoading());
             housingService.exportHousing(filters, selectedHousing.all, selectedHousing.ids)
                 .then((response) => {
                     const link = document.createElement("a");
@@ -71,6 +73,7 @@ const HousingListView = () => {
 
                     link.click();
                     setTimeout(function() {
+                        dispatch(hideLoading());
                         window.URL.revokeObjectURL(link.href);
                     }, 200);
                 });

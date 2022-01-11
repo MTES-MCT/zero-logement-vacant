@@ -61,7 +61,7 @@
   text-align: center;
 }
 
-.fr-tag {
+.fr-tag-click {
   color: var(--blue-france-113) !important;
   background-color: #E5E5F4 !important;
 
@@ -69,7 +69,7 @@
     background-color: #E5E5F4 !important;
   }
 
-  & + .fr-tag {
+  & + .fr-tag-click {
     margin-left: 8px;
   }
 }

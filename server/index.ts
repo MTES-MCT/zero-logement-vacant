@@ -5,6 +5,7 @@ import unprotectedRouter from './routers/unprotected';
 import config from './utils/config';
 
 import cors from 'cors';
+import sentry from './utils/sentry';
 
 const PORT = config.serverPort || 3001;
 
@@ -20,6 +21,9 @@ app.use(unprotectedRouter);
 app.use(protectedRouter);
 
 if (config.environment === 'production') {
+
+    sentry.initCaptureConsoleWithHandler(app);
+
     app.use(express.static(path.join(__dirname, '../../frontend/build')));
     app.get('*', function (req: any, res: { sendFile: (arg0: any) => void; }) {
         res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));

@@ -58,7 +58,6 @@ const CampaignHousingStatusForm = (
     const selectStep = (newStep?: string) => {
         setStep(newStep);
         if (newStep && status) {
-            console.log('set step', newStep)
             setPrecisionOptions(getPrecisionOptions(status, newStep));
             setPrecision(getPrecisionOptions(status, newStep)?.map(_ => _.label).find(_ => _ === precision));
         } else {
@@ -127,37 +126,38 @@ const CampaignHousingStatusForm = (
 
     return (
         <>
-            <Text className="fr-mb-2w">
-                <b>CHANGEMENT DE STATUT</b>
-            </Text>
-            <Text className="fr-mb-2w">
-                Statut actuel :&nbsp;
-                <span style={{
-                    backgroundColor: `var(${getCampaignHousingState(previousStatus).bgcolor})`,
-                    color: `var(${getCampaignHousingState(previousStatus).color})`,
-                }}
-                      className='status-label'>
-                    {getCampaignHousingState(previousStatus).title}
-                </span>
-                {previousStep &&
+            <Row gutters>
+                <Col n="4">
+                    <b>CHANGEMENT DE STATUT</b>
+                </Col>
+                <Col>
                     <span style={{
-                        backgroundColor: `var(${getCampaignHousingStep(previousStatus, previousStep)?.bgcolor})`,
-                        color: `var(${getCampaignHousingStep(previousStatus, previousStep)?.color})`,
+                        backgroundColor: `var(${getCampaignHousingState(previousStatus).bgcolor})`,
+                        color: `var(${getCampaignHousingState(previousStatus).color})`,
                     }}
                           className='status-label'>
-                        {previousStep}
+                        {getCampaignHousingState(previousStatus).title}
                     </span>
-                }
-                {previousStep && previousPrecision &&
-                    <span style={{
-                        backgroundColor: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.bgcolor})`,
-                        color: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.color})`,
-                    }}
-                          className='status-label'>
-                        {previousPrecision}
-                    </span>
-                }
-            </Text>
+                    {previousStep &&
+                        <span style={{
+                            backgroundColor: `var(${getCampaignHousingStep(previousStatus, previousStep)?.bgcolor})`,
+                            color: `var(${getCampaignHousingStep(previousStatus, previousStep)?.color})`,
+                        }}
+                              className='status-label'>
+                            {previousStep}
+                        </span>
+                    }
+                    {previousStep && previousPrecision &&
+                        <span style={{
+                            backgroundColor: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.bgcolor})`,
+                            color: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.color})`,
+                        }}
+                              className='status-label'>
+                            {previousPrecision}
+                        </span>
+                    }
+                </Col>
+            </Row>
             <Row gutters>
                 <Col n="4">
                     <Select

@@ -20,6 +20,16 @@ const listCampaignHousing = async (request: Request, response: Response): Promis
         .then(_ => response.status(200).json(_));
 }
 
+const listCampaignHousingByOwner = async (request: Request, response: Response): Promise<Response> => {
+
+    const ownerId = request.params.ownerId;
+
+    console.log('List campaign housing by owner', ownerId)
+
+    return campaignHousingRepository.listCampaignHousingByOwner(ownerId)
+        .then(_ => response.status(200).json(_));
+}
+
 const updateCampaignHousingList = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Update campaign housing list')
@@ -98,6 +108,7 @@ const removeCampaignHousingList = async (request: Request, response: Response): 
 
 const campaignHousingController =  {
     listCampaignHousing,
+    listCampaignHousingByOwner,
     updateCampaignHousingList,
     removeCampaignHousingList
 };

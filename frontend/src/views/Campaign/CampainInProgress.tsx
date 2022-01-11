@@ -4,15 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
     listCampaignHousing,
-    removeCampaignHousingList,
-    updateCampaignHousingList,
+    removeCampaignHousingList, updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { CampaignHousing, CampaignHousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
-import CampaignStatusUpdatingModal
-    from '../../components/modals/CampaignStatusUpdatingModal/CampaignStatusUpdatingModal';
+import CampaignHousingStatusModal
+    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import {
     CampaignHousingStatus, getCampaignHousingPrecision,
     getCampaignHousingState,
@@ -20,6 +19,8 @@ import {
 } from '../../models/CampaignHousingState';
 import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import CampaignHousingListStatusModal
+    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingListStatusModal';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
@@ -92,10 +93,8 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             </>
     };
 
-    const submitCampaignHousingUpdate = (updated: CampaignHousingUpdate) => {
-        if (updatingModalCampaignHousing) {
-            dispatch(updateCampaignHousingList(updatingModalCampaignHousing.campaignId, updated, false, [updatingModalCampaignHousing.id]))
-        }
+    const submitCampaignHousingUpdate = (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => {
+        dispatch(updateCampaignHousingList(campaignHousing.campaignId, campaignHousingUpdate, false, [campaignHousing.id]))
         setUpdatingModalCampaignHousing(undefined)
     }
 
@@ -118,14 +117,14 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                              additionalColumns={[statusColumn, modifyColumn]}
                              tableClassName="campaign"/>
                 {updatingModalCampaignHousing &&
-                    <CampaignStatusUpdatingModal
-                        campaignHousing={updatingModalCampaignHousing}
-                        initialStatus={status}
-                        onSubmit={(campaignHousingUpdate) => submitCampaignHousingUpdate(campaignHousingUpdate)}
+                    <CampaignHousingStatusModal
+                        housingList={[updatingModalCampaignHousing]}
+                        campaignHousingList={[updatingModalCampaignHousing]}
+                        onSubmit={submitCampaignHousingUpdate}
                         onClose={() => setUpdatingModalCampaignHousing(undefined)}/>
                 }
                 {updatingModalSelectedHousing &&
-                    <CampaignStatusUpdatingModal
+                    <CampaignHousingListStatusModal
                         housingCount={selectedCount}
                         initialStatus={status}
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}

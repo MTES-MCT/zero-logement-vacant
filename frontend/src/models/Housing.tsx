@@ -31,7 +31,7 @@ export interface CampaignHousing extends Housing {
 }
 
 export interface CampaignHousingUpdate {
-    prevStatus: CampaignHousingStatus,
+    previousStatus: CampaignHousingStatus,
     status: CampaignHousingStatus,
     step?: string,
     precision?: string,
@@ -42,3 +42,5 @@ export interface CampaignHousingUpdate {
 export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCount: number) => {
     return selectedHousing.all ? totalCount - selectedHousing.ids.length : selectedHousing.ids.length
 }
+
+export const HousingSort = (h1: Housing, h2: Housing) => h1.invariant.localeCompare(h2.invariant)

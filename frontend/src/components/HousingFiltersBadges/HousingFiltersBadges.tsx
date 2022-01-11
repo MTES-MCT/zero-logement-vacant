@@ -20,7 +20,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
     return (
         <>
             {options.filter(o => o.value.length && filters.indexOf(o.value) !== -1).map((option, index) =>
-                <span className="fr-tag fr-tag--sm fr-fi-icon" key={option + '-' + index}>
+                <span className="fr-tag fr-tag-click fr-tag--sm fr-fi-icon" key={option + '-' + index}>
                     {option.badgeLabel ?? option.label}
                     {onChange &&
                     <button className="ri-md ri-close-line fr-pr-0"

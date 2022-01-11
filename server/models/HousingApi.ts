@@ -26,7 +26,7 @@ export interface CampaignHousingApi extends HousingApi {
 }
 
 export interface CampaignHousingUpdateApi {
-    prevStatus: CampaignHousingStatusApi,
+    previousStatus: CampaignHousingStatusApi,
     status: CampaignHousingStatusApi,
     step?: string,
     precision?: string,

@@ -223,12 +223,12 @@ export const updateCampaignHousingList = (campaignId: string, campaignHousingUpd
 
         dispatch(showLoading());
 
-        const paginatedHousing = getState().campaign.campaignHousingByStatus[campaignHousingUpdate.prevStatus];
+        const paginatedHousing = getState().campaign.campaignHousingByStatus[campaignHousingUpdate.previousStatus];
 
         campaignHousingService.updateCampaignHousingList(campaignId, campaignHousingUpdate, allHousing, housingIds)
             .then(() => {
                 dispatch(hideLoading());
-                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.prevStatus)(dispatch, getState);
+                changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.previousStatus)(dispatch, getState);
                 changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, campaignHousingUpdate.status)(dispatch, getState);
                 getCampaign(campaignId)(dispatch);
             });

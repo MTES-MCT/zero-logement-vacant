@@ -28,6 +28,8 @@ const listByOwner = async (ownerId: string) => {
 const parseEvent = (e: any): OwnerEvent => ({
     id: e.id,
     ownerId: e.ownerId,
+    housingId: e.housingId,
+    campaignId: e.campaignId,
     kind: e.kind,
     createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
     content: e.content

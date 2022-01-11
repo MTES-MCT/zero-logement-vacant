@@ -1,37 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Col, Container, Row, Text, Title, Link } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
-import { getOwner, getOwnerHousing, update } from '../../store/actions/ownerAction';
+import {
+    getOwner,
+    getOwnerCampaignHousing,
+    getOwnerHousing,
+    update,
+    updateOwnerCampaignHousing,
+} from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
+import CampaignHousingStatusModal
+    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
+import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
 
 const OwnerView = () => {
 
     const dispatch = useDispatch();
     const { id } = useParams<{id: string}>();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
+    const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
+    const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
+        dispatch(getOwnerCampaignHousing(id));
     }, [id, dispatch])
 
 
     const updateOwner = (owner: Owner) => {
         dispatch(update(owner));
-        setIsModalOpen(false);
+        setIsModalOwnerOpen(false);
+    }
+
+    const submitCampaignHousingUpdate = (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => {
+        dispatch(updateOwnerCampaignHousing(campaignHousing.campaignId, campaignHousing.id, campaignHousingUpdate))
+        setIsModalStatusOpen(false)
     }
 
     return (
@@ -40,7 +56,27 @@ const OwnerView = () => {
                 <div className={styles.titleContainer}>
                     <Container>
                         <AppBreadcrumb additionalItems={[{url: '', label: owner.fullName}]}/>
-                        {owner && <Title as="h1" className="fr-py-2w">{owner.fullName}</Title> }
+                        {owner &&
+                            <Row alignItems="middle">
+                                <Col>
+                                    <Title as="h1" className="fr-py-2w">{owner.fullName}</Title>
+                                </Col>
+                                <Col>
+                                    <Button title="Modifier le dossier"
+                                            icon="fr-fi-edit-line"
+                                            className="float-right"
+                                            onClick={() => {setIsModalStatusOpen(true)}}>
+                                        Modifier le dossier
+                                    </Button>
+                                    {isModalStatusOpen &&
+                                        <CampaignHousingStatusModal housingList={housingList}
+                                                                    campaignHousingList={campaignHousingList}
+                                                                    onSubmit={submitCampaignHousingUpdate}
+                                                                    onClose={() => setIsModalStatusOpen(false)} />
+                                    }
+                                </Col>
+                            </Row>
+                        }
                     </Container>
                 </div>
                 <Container spacing="py-4w">
@@ -56,13 +92,13 @@ const OwnerView = () => {
                                             size="sm"
                                             icon="fr-fi-edit-line"
                                             className="float-right"
-                                            onClick={() => {setIsModalOpen(true)}}>
+                                            onClick={() => {setIsModalOwnerOpen(true)}}>
                                         Modifier
                                     </Button>
-                                    {isModalOpen &&
+                                    {isModalOwnerOpen &&
                                     <OwnerEditionModal owner={owner}
                                                        onSubmit={(owner: Owner) => updateOwner(owner)}
-                                                       onClose={() => setIsModalOpen(false)} />
+                                                       onClose={() => setIsModalOwnerOpen(false)} />
                                     }
                                 </Col>
                             </Row>

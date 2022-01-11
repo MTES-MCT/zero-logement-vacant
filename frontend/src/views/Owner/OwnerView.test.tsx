@@ -10,7 +10,7 @@ import authService from '../../services/auth.service';
 import OwnerView from './OwnerView';
 import { createMemoryHistory } from 'history';
 import { Route, Router } from 'react-router-dom';
-import { genHousing, genOwner } from '../../../test/fixtures.test';
+import { genCampaign, genHousing, genOwner } from '../../../test/fixtures.test';
 import { format } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 
@@ -47,8 +47,21 @@ describe('housing view', () => {
                             body: JSON.stringify([housing1, housing2]),
                             init: { status: 200 }
                         };
+                    } else if (request.url === `${config.apiEndpoint}/api/campaign/housing/owner/${owner.id}`) {
+                        return {
+                            body: JSON.stringify([housing1, housing2]),
+                            init: { status: 200 }
+                        };
                     } else if (request.url === `${config.apiEndpoint}/api/events/owner/${owner.id}`) {
-                        return { body: JSON.stringify([]), init: { status: 200 } }
+                        return {
+                            body: JSON.stringify([]),
+                            init: { status: 200 }
+                        }
+                    } else if (request.url === `${config.apiEndpoint}/api/campaigns`) {
+                        return {
+                            body: JSON.stringify([genCampaign()]),
+                            init: { status: 200 }
+                        }
                     } else return { body: '', init: { status: 404 } }
                 })()
             )

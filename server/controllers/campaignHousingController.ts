@@ -40,13 +40,13 @@ const updateCampaignHousingList = async (request: Request, response: Response): 
     const allHousing = <boolean>request.body.allHousing;
 
     const housingIds = allHousing ?
-        await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.prevStatus)
+        await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.previousStatus)
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
             ): request.body.housingIds;
 
-    const prevCampaignHousingWithOwners = await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.prevStatus)
+    const prevCampaignHousingWithOwners = await campaignHousingRepository.listCampaignHousing(campaignId, campaignHousingUpdateApi.previousStatus)
         .then(_ => _.entities.filter( campaignHousing => housingIds.indexOf(campaignHousing.id) !== -1))
 
     const updatedCampaignHousing = await campaignHousingRepository.updateList(campaignId, campaignHousingUpdateApi, housingIds)

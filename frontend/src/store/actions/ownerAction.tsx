@@ -7,12 +7,15 @@ import { EventKinds } from '../../models/OwnerEvent';
 import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
-import { Housing } from '../../models/Housing';
+import { CampaignHousing, CampaignHousingUpdate, Housing } from '../../models/Housing';
+import campaignHousingService from '../../services/campaignHousing.service';
 
 export const FETCHING_OWNER = 'FETCHING_OWNER';
 export const OWNER_FETCHED = 'OWNER_FETCHED';
 export const FETCHING_OWNER_HOUSING = 'FETCHING_OWNER_HOUSING';
 export const OWNER_HOUSING_FETCHED = 'OWNER_HOUSING_FETCHED';
+export const FETCHING_OWNER_CAMPAIGN_HOUSING = 'FETCHING_OWNER_CAMPAIGN_HOUSING';
+export const OWNER_CAMPAIGN_HOUSING_FETCHED = 'OWNER_CAMPAIGN_HOUSING_FETCHED';
 export const OWNER_UPDATED = 'OWNER_UPDATED';
 export const FETCHING_OWNER_EVENTS = 'FETCHING_OWNER_EVENTS';
 export const OWNER_EVENTS_FETCHED = 'OWNER_EVENTS_FETCHED';
@@ -35,6 +38,15 @@ export interface OwnerHousingFetchedAction {
     housingList: Housing[]
 }
 
+export interface FetchingOwnerCampaignHousingAction {
+    type: typeof FETCHING_OWNER_CAMPAIGN_HOUSING
+}
+
+export interface OwnerCampaignHousingFetchedAction {
+    type: typeof OWNER_CAMPAIGN_HOUSING_FETCHED,
+    campaignHousingList: CampaignHousing[]
+}
+
 export interface OwnerUpdatedAction {
     type: typeof OWNER_UPDATED,
     owner: Owner
@@ -54,6 +66,8 @@ export type OwnerActionTypes =
     OwnerFetchedAction |
     FetchingOwnerHousingAction |
     OwnerHousingFetchedAction |
+    FetchingOwnerCampaignHousingAction |
+    OwnerCampaignHousingFetchedAction |
     OwnerUpdatedAction |
     FetchingOwnerEventsAction |
     OwnerEventsFetchedAction;
@@ -95,6 +109,27 @@ export const getOwnerHousing = (ownerId: string) => {
                 dispatch({
                     type: OWNER_HOUSING_FETCHED,
                     housingList
+                });
+            });
+    };
+};
+
+export const getOwnerCampaignHousing = (ownerId: string) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        dispatch({
+            type: FETCHING_OWNER_CAMPAIGN_HOUSING
+        });
+
+        campaignHousingService.listByOwner(ownerId)
+            .then(campaignHousingList => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: OWNER_CAMPAIGN_HOUSING_FETCHED,
+                    campaignHousingList
                 });
             });
     };
@@ -159,3 +194,21 @@ export const createEvent = (ownerId: string, kind: EventKinds, content: string) 
             });
     };
 };
+
+export const updateOwnerCampaignHousing = (campaignId: string, housingId: string, campaignHousingUpdate: CampaignHousingUpdate) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const ownerState = getState().owner;
+
+        campaignHousingService.updateCampaignHousingList(campaignId, campaignHousingUpdate, false, [housingId])
+            .then(() => {
+                dispatch(hideLoading());
+                getOwnerCampaignHousing(ownerState.owner.id)(dispatch);
+                getOwnerEvents(ownerState.owner.id)(dispatch);
+            });
+
+    }
+}

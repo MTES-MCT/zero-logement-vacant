@@ -49,7 +49,7 @@ const CampaignHousingStatusModal = (
     },[dispatch])
 
 
-    const housingOptions = housingList.length === 1 ? [{value: housingList[0].id, label: housingList[0].rawAddress}] : [
+    const housingOptions = housingList.length === 1 ? [{value: housingList[0].id, label: housingList[0].rawAddress.join(' - ')}] : [
         DefaultOption,
         ...housingList.map(housing => (
             {value: housing.id, label: [`Logement ${housingList.findIndex(h => h.id === housing.id) + 1}`, ...housing.rawAddress].join(' - ')}

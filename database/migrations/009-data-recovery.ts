@@ -8,7 +8,7 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .alterTable('events', (table) => {
                 table.text('content').alter();
-                table.text('contactKind');
+                table.text('contact_kind');
             }),
         knex.schema// @ts-ignore
             .alterTable('campaigns', (table) => {
@@ -26,7 +26,7 @@ exports.down = function(knex) {
           }),
       knex.schema// @ts-ignore
           .alterTable('events', (table) => {
-              table.dropColumn('contactKind');
+              table.dropColumn('contact_kind');
           }),
       knex.schema// @ts-ignore
           .alterTable('campaigns', (table) => {

@@ -61,7 +61,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                         <TagGroup>
                                             <Tag as="span"
                                                  size="sm">
-                                                {format(event.createdAt, 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                                                {format(event.createdAt, 'dd MMMM yyyy', { locale: fr })}
                                             </Tag>
                                         </TagGroup>
                                         {event.housingId &&
@@ -71,7 +71,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                         }
                                         <div className="fr-mb-0">
                                             {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}": `}
-                                            {event.content}
+                                            {event.contactKind && `${event.contactKind}. `}{event.content}
                                         </div>
                                     </div>
                                 </li>

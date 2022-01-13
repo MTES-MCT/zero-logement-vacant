@@ -32,7 +32,8 @@ const parseEvent = (e: any): OwnerEvent => ({
     campaignId: e.campaignId,
     kind: e.kind,
     createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
-    content: e.content
+    content: e.content,
+    contactKind: e.contactKind
 } as OwnerEvent)
 
 const eventService = {

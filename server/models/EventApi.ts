@@ -7,6 +7,7 @@ export interface EventApi {
     createdBy?: string,
     createdAt?: Date;
     content?: string;
+    contactKind?: string;
 }
 
 export enum EventKinds {

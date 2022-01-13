@@ -2,18 +2,20 @@ import { Owner } from '../../models/Owner';
 import {
     FETCHING_OWNER, FETCHING_OWNER_EVENTS,
     FETCHING_OWNER_HOUSING, OWNER_EVENTS_FETCHED,
+    FETCHING_OWNER_CAMPAIGN_HOUSING, OWNER_CAMPAIGN_HOUSING_FETCHED,
     OWNER_FETCHED,
     OWNER_HOUSING_FETCHED,
     OWNER_UPDATED,
     OwnerActionTypes,
 } from '../actions/ownerAction';
 import { OwnerEvent } from '../../models/OwnerEvent';
-import { Housing } from '../../models/Housing';
+import { CampaignHousing, Housing, HousingSort } from '../../models/Housing';
 
 
 export interface OwnerState {
     owner: Owner;
     housingList: Housing[];
+    campaignHousingList: CampaignHousing[];
     events: OwnerEvent[];
 }
 
@@ -39,7 +41,17 @@ const ownerReducer = (state = initialState, action: OwnerActionTypes) => {
         case OWNER_HOUSING_FETCHED:
             return {
                 ...state,
-                housingList: action.housingList
+                housingList: action.housingList.sort(HousingSort)
+            };
+        case FETCHING_OWNER_CAMPAIGN_HOUSING:
+            return {
+                ...state,
+                campaignHousingList: []
+            };
+        case OWNER_CAMPAIGN_HOUSING_FETCHED:
+            return {
+                ...state,
+                campaignHousingList: action.campaignHousingList.sort(HousingSort)
             };
         case OWNER_UPDATED:
             return {

@@ -75,11 +75,27 @@ const listCampaignHousing = async (campaignId: string, status: number, page?: nu
             .then(_ => Number(_[0].count))
 
         return <PaginatedResultApi<CampaignHousingApi>> {
-            entities: results.map((_: any) => (parseCampaignHousingApi(_, campaignId))),
+            entities: results.map((_: any) => (parseCampaignHousingApi(_))),
             totalCount: campaignHousingCount,
             page,
             perPage
         }
+    } catch (err) {
+        console.error('Listing campaign housing failed', err);
+        throw new Error('Listing campaign housing failed');
+    }
+}
+
+const listCampaignHousingByOwner = async (ownerId: string): Promise<CampaignHousingApi[]> => {
+    try {
+        return db
+            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', `ch.*`)
+            .from(housingTable)
+            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, 'o.id')
+            .join({ch: campaignsHousingTable}, `${housingTable}.id`, 'ch.housing_id')
+            .where(`${ownersHousingTable}.owner_id`, ownerId)
+            .then(_ => _.map(_ => parseCampaignHousingApi(_)))
     } catch (err) {
         console.error('Listing campaign housing failed', err);
         throw new Error('Listing campaign housing failed');
@@ -106,7 +122,7 @@ const updateList = async (campaignId: string, campaignHousingUpdateApi: Campaign
     }
 }
 
-const parseCampaignHousingApi = (result: any, campaignId: string) => <CampaignHousingApi>{
+const parseCampaignHousingApi = (result: any) => <CampaignHousingApi>{
     id: result.id,
     invariant: result.invariant,
     rawAddress: result.raw_address,
@@ -128,7 +144,7 @@ const parseCampaignHousingApi = (result: any, campaignId: string) => <CampaignHo
     roomsCount: result.rooms_count,
     buildingYear: result.building_year,
     vacancyStartYear: result.vacancy_start_year,
-    campaignId,
+    campaignId: result.campaign_id,
     status: result.status,
     step: result.step,
     precision: result.precision,
@@ -138,5 +154,6 @@ export default {
     insertHousingList,
     deleteHousingFromCampaign,
     listCampaignHousing,
+    listCampaignHousingByOwner,
     updateList
 }

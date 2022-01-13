@@ -43,18 +43,18 @@ const CampaignHousingStatusModal = (
         if (!campaignList) {
             dispatch(listCampaigns())
         }
-        if (housingList?.length === 1) {
+        if (housingList.length === 1) {
             selectHousing(housingList[0].id)
         }
     },[dispatch])
 
 
-    const housingOptions = housingList ? [
+    const housingOptions = housingList.length === 1 ? [{value: housingList[0].id, label: housingList[0].rawAddress}] : [
         DefaultOption,
         ...housingList.map(housing => (
             {value: housing.id, label: [`Logement ${housingList.findIndex(h => h.id === housing.id) + 1}`, ...housing.rawAddress].join(' - ')}
         ))
-    ]: undefined
+    ];
 
     const selectHousing = (housingId: string) => {
         setHousingId(housingId);

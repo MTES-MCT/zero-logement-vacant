@@ -39,7 +39,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
     const userId = (<RequestUser>request.user).userId;
 
     const startMonth = request.body.draftCampaign.startMonth;
-    const kind = request.body.draftCampaign.kind;
+    const reminderNumber = request.body.draftCampaign.reminderNumber;
     const filters = request.body.draftCampaign.filters;
     const allHousing = request.body.allHousing;
 
@@ -48,7 +48,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
         establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
         startMonth,
-        reminderNumber: kind,
+        reminderNumber,
         filters,
         createdBy: userId,
         validatedAt: new Date()

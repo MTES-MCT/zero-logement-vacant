@@ -2,7 +2,7 @@ import { Owner } from '../src/models/Owner';
 import { Housing } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { Address } from '../src/models/Address';
-import { Campaign, CampaignKinds } from '../src/models/Campaign';
+import { Campaign } from '../src/models/Campaign';
 import { initialFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
 
@@ -94,7 +94,7 @@ export function genCampaign() {
         id: randomstring.generate(),
         campaignNumber: genNumber(1),
         startMonth: '2201',
-        reminderNumber: CampaignKinds.Initial,
+        reminderNumber: 0,
         name: randomstring.generate(),
         filters: initialFilters,
         createdAt: new Date(),

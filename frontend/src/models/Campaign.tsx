@@ -2,7 +2,7 @@ import { HousingFilters } from './HousingFilters';
 
 export interface DraftCampaign {
     startMonth: string;
-    kind: CampaignKinds;
+    reminderNumber: number;
     filters: HousingFilters;
 }
 
@@ -10,7 +10,7 @@ export interface Campaign {
     id: string;
     campaignNumber: number;
     startMonth: string;
-    reminderNumber: CampaignKinds;
+    reminderNumber: number;
     name: string;
     filters: HousingFilters;
     createdAt: Date;
@@ -24,10 +24,6 @@ export interface Campaign {
     noActionCount: number;
     exitCount: number;
     ownerCount: number;
-}
-
-export enum CampaignKinds {
-    Initial
 }
 
 export enum CampaignSteps {

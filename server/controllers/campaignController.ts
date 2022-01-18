@@ -48,7 +48,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
         establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
         startMonth,
-        kind,
+        reminderNumber: kind,
         filters,
         createdBy: userId,
         validatedAt: new Date()

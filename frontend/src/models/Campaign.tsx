@@ -10,7 +10,7 @@ export interface Campaign {
     id: string;
     campaignNumber: number;
     startMonth: string;
-    kind: CampaignKinds;
+    reminderNumber: CampaignKinds;
     name: string;
     filters: HousingFilters;
     createdAt: Date;

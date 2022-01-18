@@ -94,7 +94,7 @@ export function genCampaign() {
         id: randomstring.generate(),
         campaignNumber: genNumber(1),
         startMonth: '2201',
-        kind: CampaignKinds.Initial,
+        reminderNumber: CampaignKinds.Initial,
         name: randomstring.generate(),
         filters: initialFilters,
         createdAt: new Date(),

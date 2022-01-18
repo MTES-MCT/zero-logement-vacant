@@ -61,7 +61,9 @@ const getExportURL = (campaignId: string) => {
 
 const parseCampaign = (c: any): Campaign => ({
     ...c,
-    name: `C${c.campaignNumber} - ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })} - ${c.kind === '0' ? 'envoi initial' : 'relance'}`,
+    name: `C${c.campaignNumber} - 
+        ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })} - 
+        ${c.reminderNumber === 0 ? 'Envoi initial' : 'Relance n°' + c.reminderNumber}`,
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined

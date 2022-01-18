@@ -57,6 +57,7 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .orderBy('campaign_number')
+            .orderBy('reminder_number')
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {
@@ -121,7 +122,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     establishmentId: result.establishment_id,
     campaignNumber: result.campaign_number,
     startMonth: result.start_month,
-    kind: result.kind,
+    reminderNumber: result.reminder_number,
     filters: result.filters,
     createdBy: result.created_by,
     createdAt: result.created_at,
@@ -142,7 +143,7 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     establishment_id: campaignApi.establishmentId,
     campaign_number: campaignApi.campaignNumber,
     start_month: campaignApi.startMonth,
-    kind: campaignApi.kind,
+    reminder_number: campaignApi.reminderNumber,
     filters: campaignApi.filters,
     created_by: campaignApi.createdBy,
     created_at: campaignApi.createdAt,

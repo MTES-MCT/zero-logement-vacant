@@ -15,6 +15,7 @@ export interface Housing {
     roomsCount: number;
     buildingYear?: number;
     vacancyStartYear: number;
+    dataYears: number[];
     campaignIds: string[];
 }
 
@@ -43,4 +44,7 @@ export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCoun
     return selectedHousing.all ? totalCount - selectedHousing.ids.length : selectedHousing.ids.length
 }
 
-export const HousingSort = (h1: Housing, h2: Housing) => h1.invariant.localeCompare(h2.invariant)
+export const HousingSort = (h1: Housing, h2: Housing) =>
+    Math.max(...h1.dataYears) === Math.max(...h2.dataYears) ?
+        h1.invariant.localeCompare(h2.invariant) :
+        Math.max(...h1.dataYears) - Math.max(...h2.dataYears);

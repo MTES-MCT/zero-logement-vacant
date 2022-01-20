@@ -84,6 +84,7 @@ export function genHousing() {
         roomsCount: genNumber(1),
         buildingYear: genNumber(4),
         vacancyStartYear: genNumber(4),
+        dataYears: [2021],
         campaignIds: []
     } as Housing;
 }

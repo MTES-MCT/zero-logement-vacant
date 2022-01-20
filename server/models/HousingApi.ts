@@ -16,6 +16,7 @@ export interface HousingApi {
     buildingYear?: number;
     vacancyStartYear: number;
     campaignIds: string[];
+    dataYears: number[];
 }
 
 export interface CampaignHousingApi extends HousingApi {

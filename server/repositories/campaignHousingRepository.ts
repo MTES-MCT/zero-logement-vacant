@@ -144,6 +144,7 @@ const parseCampaignHousingApi = (result: any) => <CampaignHousingApi>{
     roomsCount: result.rooms_count,
     buildingYear: result.building_year,
     vacancyStartYear: result.vacancy_start_year,
+    dataYears: result.data_years,
     campaignId: result.campaign_id,
     status: result.status,
     step: result.step,

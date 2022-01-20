@@ -237,6 +237,7 @@ const parseHousingApi = (result: any) => (
         roomsCount: result.rooms_count,
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
+        dataYears: result.data_years,
         campaignIds: (result.campaign_ids ?? []).map((_: any) => _?.campaign_id).filter((_: any) => _)
     }
 )

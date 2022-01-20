@@ -19,8 +19,7 @@ import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
-import CampaignHousingStatusModal
-    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
+import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
 
 const OwnerView = () => {
@@ -151,7 +150,11 @@ const OwnerView = () => {
                         <Row key={housing.id} className="bg-100 fr-p-3w fr-my-2w">
                             <Col n="12">
                                 <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
-                                <Text size="xs" className="fr-mb-2w"><b>Invariant fiscal :&nbsp;</b>{housing.invariant}</Text>
+                                <Text size="xs" className="fr-mb-2w">
+                                    <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
+                                    <br />
+                                    <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
+                                </Text>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">

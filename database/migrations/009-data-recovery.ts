@@ -13,8 +13,6 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .alterTable('campaigns', (table) => {
                 table.specificType('recovery_id', 'text');
-                table.integer('kind').alter();
-                table.renameColumn('kind', 'reminder_number');
             })
     ]);
 };
@@ -33,7 +31,6 @@ exports.down = function(knex) {
       knex.schema// @ts-ignore
           .alterTable('campaigns', (table) => {
               table.dropColumn('recovery_id');
-              table.renameColumn('reminder_number', 'kind')
           })
   ]);
 };

@@ -17,7 +17,8 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -46,7 +47,8 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -135,6 +137,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     notVacantCount: result.notVacantCount,
     noActionCount: result.noActionCount,
     exitCount: result.exitCount,
+    npaiCount: result.npaiCount,
     ownerCount: result.ownerCount
 }
 

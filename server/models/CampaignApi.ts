@@ -17,6 +17,7 @@ export interface CampaignApi {
     notVacantCount: number;
     noActionCount: number;
     exitCount: number;
+    npaiCount: number;
     ownerCount: number;
 }
 

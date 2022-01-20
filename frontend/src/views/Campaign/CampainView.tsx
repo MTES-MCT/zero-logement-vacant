@@ -3,7 +3,7 @@ import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCampaign } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { campaignStep, CampaignSteps } from '../../models/Campaign';
+import { campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
@@ -48,7 +48,7 @@ const CampaignView = () => {
                                         <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
                                     <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
+                                        <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                         <span className={styles.statLabel}>retours</span>
                                     </div>
                                 </Col>

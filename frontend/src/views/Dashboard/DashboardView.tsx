@@ -7,6 +7,7 @@ import { listCampaigns } from '../../store/actions/campaignAction';
 import styles from '../Campaign/campaign.module.scss';
 import housingService from '../../services/housing.service';
 import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
+import { returnRate } from '../../models/Campaign';
 
 
 const DashboardView = () => {
@@ -93,7 +94,7 @@ const DashboardView = () => {
                                             <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                         </div>
                                         <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
+                                            <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                             <span className={styles.statLabel}>retours</span>
                                         </div>
                                     </Col>

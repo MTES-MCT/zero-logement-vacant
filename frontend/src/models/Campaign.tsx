@@ -23,6 +23,7 @@ export interface Campaign {
     notVacantCount: number;
     noActionCount: number;
     exitCount: number;
+    npaiCount: number;
     ownerCount: number;
 }
 
@@ -41,3 +42,5 @@ export const campaignStep = (campaign?: Campaign) => {
             !campaign?.sentAt ? CampaignSteps.Sending :
                 CampaignSteps.InProgess
 }
+
+export const returnRate = (campaign: Campaign) => Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100)

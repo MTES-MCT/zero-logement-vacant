@@ -6,7 +6,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './campaign.module.scss';
 import { Link } from 'react-router-dom';
-import { Campaign, campaignNumberSort, campaignStep, CampaignSteps } from '../../models/Campaign';
+import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
@@ -64,7 +64,7 @@ const CampaignsListView = () => {
                                                 <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                             </div>
                                             <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
+                                                <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                                 <span className={styles.statLabel}>retours</span>
                                             </div>
                                         </Col>

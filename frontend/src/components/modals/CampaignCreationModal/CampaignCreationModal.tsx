@@ -118,7 +118,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                                 <>
                                 La liste a été établie à partir des filtres suivants :
                                 <div className="fr-my-1w">
-                                    <HousingFiltersBadges/>
+                                    <HousingFiltersBadges filters={filters}/>
                                 </div>
                                 </> :
                                 <div>La liste a été établie sans filtres.</div>

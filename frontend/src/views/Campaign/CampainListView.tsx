@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
 
 const CampaignsListView = () => {
@@ -79,6 +80,11 @@ const CampaignsListView = () => {
                                                    description="L’export du fichier de publipostage est disponible et est indispensable avant de passer au suivi. Vous pouvez toujours modifier la liste des propriétaires si vous le souhaitez."
                                                    type="error"/>
                                             }
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col>
+                                            <HousingFiltersBadges filters={campaign.filters}/>
                                         </Col>
                                     </Row>
 

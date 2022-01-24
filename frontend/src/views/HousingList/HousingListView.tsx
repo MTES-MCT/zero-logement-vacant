@@ -129,7 +129,7 @@ const HousingListView = () => {
             </div>
             <Container spacing="pt-2w">
                 <Row>
-                    <HousingFiltersBadges onChange={(values) => removeFilter(values)} />
+                    <HousingFiltersBadges filters={filters} onChange={(values) => removeFilter(values)} />
                 </Row>
                 {paginatedHousing &&
                     <>

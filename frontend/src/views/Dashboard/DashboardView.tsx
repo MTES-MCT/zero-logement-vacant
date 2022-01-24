@@ -8,6 +8,7 @@ import styles from '../Campaign/campaign.module.scss';
 import housingService from '../../services/housing.service';
 import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
 import { returnRate } from '../../models/Campaign';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
 
 const DashboardView = () => {
@@ -97,6 +98,11 @@ const DashboardView = () => {
                                             <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                             <span className={styles.statLabel}>retours</span>
                                         </div>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col>
+                                        <HousingFiltersBadges filters={campaign.filters}/>
                                     </Col>
                                 </Row>
                             </div>

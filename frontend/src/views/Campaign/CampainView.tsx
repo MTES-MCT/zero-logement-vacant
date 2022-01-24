@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
 import CampaignInProgress from './CampainInProgress';
 import CampaignToValidate from './CampainToValidate';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
 
 const CampaignView = () => {
@@ -51,6 +52,11 @@ const CampaignView = () => {
                                         <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                         <span className={styles.statLabel}>retours</span>
                                     </div>
+                                </Col>
+                            </Row>
+                            <Row className="fr-pb-2w">
+                                <Col>
+                                    <HousingFiltersBadges filters={campaign.filters}/>
                                 </Col>
                             </Row>
                         </Container>

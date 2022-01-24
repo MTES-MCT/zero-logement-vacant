@@ -6,7 +6,7 @@ import {
     buildingPeriodOptions,
     contactsCountOptions,
     housingAreaOptions,
-    HousingFilterOption,
+    HousingFilterOption, HousingFilters,
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
@@ -37,9 +37,8 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
 }
 
 
-const HousingFiltersBadges = ({ onChange }: { onChange?: (_: any) => void}) => {
+const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, onChange?: (_: any) => void}) => {
 
-    const { filters } = useSelector((state: ApplicationState) => state.housing);
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
 
     return (

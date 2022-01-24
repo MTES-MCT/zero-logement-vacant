@@ -148,10 +148,10 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    whereBuilder.orWhere('full_name', 'like', `%${filters.query?.toUpperCase()}%`)
-                    whereBuilder.orWhere('administrator', 'like', `%${filters.query?.toUpperCase()}%`)
-                    whereBuilder.orWhereRaw(`array_to_string(${housingTable}.raw_address, '%') like ?`, `%${filters.query?.toUpperCase()}%`)
-                    whereBuilder.orWhereRaw(`array_to_string(o.raw_address, '%') like ?`, `%${filters.query?.toUpperCase()}%`)
+                    whereBuilder.orWhereRaw('upper(full_name) like ?', `%${filters.query?.toUpperCase()}%`)
+                    whereBuilder.orWhereRaw('upper(administrator) like ?', `%${filters.query?.toUpperCase()}%`)
+                    whereBuilder.orWhereRaw(`upper(array_to_string(${housingTable}.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
+                    whereBuilder.orWhereRaw(`upper(array_to_string(o.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
                 })
             }
         }

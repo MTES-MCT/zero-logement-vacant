@@ -70,7 +70,8 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                             </div>
                                         }
                                         <div className="fr-mb-0">
-                                            {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}": `}
+                                            {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}"`}
+                                            {event.contactKind || event.content ? ': ' : ''}
                                             {event.contactKind && `${event.contactKind}. `}{event.content}
                                         </div>
                                     </div>

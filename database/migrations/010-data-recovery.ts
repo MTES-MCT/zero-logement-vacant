@@ -4,6 +4,11 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .alterTable('housing', (table) => {
                 table.specificType('data_years', 'integer[]').defaultTo('{2021}');
+                table.string('building_id').nullable().alter();
+                table.boolean('taxed').nullable().alter();
+                table.date('mutation_date').nullable().alter();
+                table.double('latitude').nullable().alter();
+                table.double('longitude').nullable().alter();
             }),
         knex.schema// @ts-ignore
             .alterTable('campaigns', (table) => {

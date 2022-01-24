@@ -143,6 +143,9 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     whereBuilder.orWhereIn('housing_scope', filters.housingScopes)
                 })
             }
+            if (filters.dataYears?.length) {
+                queryBuilder.whereRaw('data_years && array[?]::integer[]', filters.dataYears)
+            }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     whereBuilder.orWhere('full_name', 'like', `%${filters.query?.toUpperCase()}%`)

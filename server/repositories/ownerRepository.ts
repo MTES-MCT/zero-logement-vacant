@@ -36,7 +36,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
 
 export const parseOwnerApi = (result: any) => <OwnerApi>{
     id: result.id,
-    rawAddress: result.raw_address.filter((_: string) => _.length),
+    rawAddress: result.raw_address.filter((_: string) => _ && _.length),
     fullName: result.full_name,
     birthDate: result.birth_date,
     email: result.email,

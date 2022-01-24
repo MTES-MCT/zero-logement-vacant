@@ -14,6 +14,7 @@ export interface HousingFilters {
     isTaxedValues: string[];
     localities: string[];
     housingScopes: string[];
+    dataYears: number[];
     query: string;
 }
 

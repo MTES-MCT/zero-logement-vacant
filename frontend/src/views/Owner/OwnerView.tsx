@@ -21,23 +21,27 @@ import classNames from 'classnames';
 import config from '../../utils/config';
 import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
+import { getCampaign } from '../../store/actions/campaignAction';
 
 const OwnerView = () => {
 
     const dispatch = useDispatch();
-    const { id } = useParams<{id: string}>();
+    const { id, campaignId } = useParams<{id: string, campaignId?: string}>();
 
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
     const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
+    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
         dispatch(getOwnerCampaignHousing(id));
+        if (campaignId && !campaign) {
+            dispatch(getCampaign(campaignId))
+        }
     }, [id, dispatch])
-
 
     const updateOwner = (owner: Owner) => {
         dispatch(update(owner));
@@ -54,7 +58,7 @@ const OwnerView = () => {
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
                     <Container>
-                        <AppBreadcrumb additionalItems={[{url: '', label: owner.fullName}]}/>
+                        <AppBreadcrumb additionalItems={[...campaignId && campaign ? [{url: '/campagnes/' + campaignId, label: campaign.name}] : [], {url: '', label: owner.fullName}]}/>
                         {owner &&
                             <Row alignItems="middle">
                                 <Col>

@@ -359,7 +359,7 @@ export const CampaignHousingStates: CampaignHousingState[] = [
     },
     {
         status: CampaignHousingStatus.Exit,
-        title: 'Sortie de la vacance',
+        title: 'Accompagnement terminé',
         color: '--blue-ecume-sun-247',
         bgcolor: '--blue-ecume-950',
         steps: [

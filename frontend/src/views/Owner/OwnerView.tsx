@@ -229,7 +229,7 @@ const OwnerView = () => {
                                     </Text>
                                 </Col>
                             </Row>
-                            {housing.campaignIds.length > 0 &&
+                            {housing.campaignIds.length > 0 && campaignHousingList &&
                                 <Row>
                                     <Col n="12">
                                         <Text size="lg" className="fr-mb-1w">

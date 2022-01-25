@@ -27,6 +27,7 @@ import {
     getCampaignHousingState,
     getCampaignHousingStep,
 } from '../../models/CampaignHousingState';
+import { ensure } from '../../utils/arrayUtils';
 
 const OwnerView = () => {
 
@@ -62,7 +63,7 @@ const OwnerView = () => {
     }
 
     const campaignHousing = (campaignId: string, housingId: string) =>
-        campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId)!
+        ensure(campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId))
 
     return (
         <>

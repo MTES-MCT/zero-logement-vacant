@@ -1,4 +1,5 @@
 import { DefaultOption } from './SelectOption';
+import { CampaignHousing } from './Housing';
 
 export interface CampaignHousingState {
     status: CampaignHousingStatus;
@@ -386,12 +387,24 @@ export const getCampaignHousingState = (status: CampaignHousingStatus) => {
     return CampaignHousingStates[status]
 }
 
-export const getCampaignHousingStep = (status: CampaignHousingStatus, stepTitle: string): CampaignHousingStep | undefined => {
+export const getStep = (status: CampaignHousingStatus, stepTitle: string): CampaignHousingStep | undefined => {
     return getCampaignHousingState(status).steps?.filter(s => s.title === stepTitle)[0]
 }
 
-export const getCampaignHousingPrecision = (status: CampaignHousingStatus, stepTitle: string, precisionTitle: string): CampaignHousingPrecision | undefined => {
-    return getCampaignHousingStep(status, stepTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
+export const getCampaignHousingStep = (campaignHousing: CampaignHousing): CampaignHousingStep | undefined => {
+    if (campaignHousing.step) {
+        return getStep(campaignHousing.status, campaignHousing.step)
+    }
+}
+
+export const getPrecision = (status: CampaignHousingStatus, stepTitle: string, precisionTitle: string): CampaignHousingPrecision | undefined => {
+    return getStep(status, stepTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
+}
+
+export const getCampaignHousingPrecision = (campaignHousing: CampaignHousing): CampaignHousingPrecision | undefined => {
+    if (campaignHousing.step && campaignHousing.precision) {
+        return getPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)
+    }
 }
 
 export const getStepOptions = (status: CampaignHousingStatus) => {

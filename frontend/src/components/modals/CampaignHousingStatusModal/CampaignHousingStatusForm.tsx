@@ -4,9 +4,9 @@ import { CampaignHousingUpdate } from '../../../models/Housing';
 import {
     CampaignHousingStates,
     CampaignHousingStatus,
-    getCampaignHousingPrecision,
+    getPrecision,
     getCampaignHousingState,
-    getCampaignHousingStep,
+    getStep,
     getPrecisionOptions,
     getStepOptions,
 } from '../../../models/CampaignHousingState';
@@ -140,8 +140,8 @@ const CampaignHousingStatusForm = (
                     </span>
                     {previousStep &&
                         <span style={{
-                            backgroundColor: `var(${getCampaignHousingStep(previousStatus, previousStep)?.bgcolor})`,
-                            color: `var(${getCampaignHousingStep(previousStatus, previousStep)?.color})`,
+                            backgroundColor: `var(${getStep(previousStatus, previousStep)?.bgcolor})`,
+                            color: `var(${getStep(previousStatus, previousStep)?.color})`,
                         }}
                               className='status-label'>
                             {previousStep}
@@ -149,8 +149,8 @@ const CampaignHousingStatusForm = (
                     }
                     {previousStep && previousPrecision &&
                         <span style={{
-                            backgroundColor: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.bgcolor})`,
-                            color: `var(${getCampaignHousingPrecision(previousStatus, previousStep, previousPrecision)?.color})`,
+                            backgroundColor: `var(${getPrecision(previousStatus, previousStep, previousPrecision)?.bgcolor})`,
+                            color: `var(${getPrecision(previousStatus, previousStep, previousPrecision)?.color})`,
                         }}
                               className='status-label'>
                             {previousPrecision}

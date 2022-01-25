@@ -21,7 +21,12 @@ import classNames from 'classnames';
 import config from '../../utils/config';
 import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
-import { getCampaign } from '../../store/actions/campaignAction';
+import { getCampaign, listCampaigns } from '../../store/actions/campaignAction';
+import {
+    getCampaignHousingPrecision,
+    getCampaignHousingState,
+    getCampaignHousingStep,
+} from '../../models/CampaignHousingState';
 
 const OwnerView = () => {
 
@@ -32,7 +37,7 @@ const OwnerView = () => {
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
     const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
-    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignList, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
@@ -40,6 +45,9 @@ const OwnerView = () => {
         dispatch(getOwnerCampaignHousing(id));
         if (campaignId && !campaign) {
             dispatch(getCampaign(campaignId))
+        }
+        if (!campaignList) {
+            dispatch(listCampaigns())
         }
     }, [id, dispatch])
 
@@ -52,6 +60,9 @@ const OwnerView = () => {
         dispatch(updateOwnerCampaignHousing(campaignHousing.campaignId, campaignHousing.id, campaignHousingUpdate))
         setIsModalStatusOpen(false)
     }
+
+    const campaignHousing = (campaignId: string, housingId: string) =>
+        campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId)!
 
     return (
         <>
@@ -151,68 +162,117 @@ const OwnerView = () => {
                         </Col>
                     </Row>
                     {housingList.map((housing, index) =>
-                        <Row key={housing.id} className="bg-100 fr-p-3w fr-my-2w">
-                            <Col n="12">
-                                <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
-                                <Text size="xs" className="fr-mb-2w">
-                                    <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
-                                    <br />
-                                    <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
-                                </Text>
-                            </Col>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Emplacement</b>
-                                </Text>
-                                <span style={{verticalAlign: 'top'}}>
-                                    <b>Adresse :&nbsp;</b>
-                                </span>
-                                <span style={{display: 'inline-block'}} className="capitalize">
-                                    <span  style={{display: 'block'}}>
-                                        {housing.rawAddress.map((_, i) =>
-                                            <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
-                                        }
+                        <div key={housing.id} className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
+                            <Row>
+                                <Col n="12">
+                                    <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
+                                    <Text size="xs" className="fr-mb-2w">
+                                        <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
+                                        <br />
+                                        <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
+                                    </Text>
+                                </Col>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Emplacement</b>
+                                    </Text>
+                                    <hr />
+                                    <span style={{verticalAlign: 'top'}}>
+                                        <b>Adresse :&nbsp;</b>
                                     </span>
-                                </span>
-                                <div className="fr-mt-2w">
-                                    <Link title="Localiser dans Google Map - nouvelle fenêtre"
-                                          href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
-                                          target="_blank">
-                                        Localiser
-                                    </Link>
-                                </div>
-                            </Col>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Caractéristiques</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    <b>Type :&nbsp;</b>
-                                    {housing.housingKind}
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    <b>Surface :&nbsp;</b>
-                                    {housing.livingArea} m2
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    <b>Pièces :&nbsp;</b>
-                                    {housing.roomsCount}
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    <b>Construction :&nbsp;</b>
-                                    {housing.buildingYear}
-                                </Text>
-                            </Col>
-                            <Col n="4">
-                                <Text size="lg" className="fr-mb-1w">
-                                    <b>Situation</b>
-                                </Text>
-                                <Text size="md" className="fr-mb-1w">
-                                    <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
-                                    {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
-                                </Text>
-                            </Col>
-                        </Row>
+                                    <span style={{display: 'inline-block'}} className="capitalize">
+                                        <span  style={{display: 'block'}}>
+                                            {housing.rawAddress.map((_, i) =>
+                                                <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                            }
+                                        </span>
+                                    </span>
+                                    <div className="fr-mt-2w">
+                                        <Link title="Localiser dans Google Map - nouvelle fenêtre"
+                                              href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                              target="_blank">
+                                            Localiser
+                                        </Link>
+                                    </div>
+                                </Col>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Caractéristiques</b>
+                                    </Text>
+                                    <hr />
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Type :&nbsp;</b>
+                                        {housing.housingKind}
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Surface :&nbsp;</b>
+                                        {housing.livingArea} m2
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Pièces :&nbsp;</b>
+                                        {housing.roomsCount}
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Construction :&nbsp;</b>
+                                        {housing.buildingYear}
+                                    </Text>
+                                </Col>
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Situation</b>
+                                    </Text>
+                                    <hr />
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
+                                        {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
+                                    </Text>
+                                </Col>
+                            </Row>
+                            {housing.campaignIds.length > 0 &&
+                                <Row>
+                                    <Col n="12">
+                                        <Text size="lg" className="fr-mb-1w">
+                                            <b>{housing.campaignIds.length === 1 ? 'Campagne' : 'Campagnes'}</b>
+                                        </Text>
+                                        <hr/>
+                                        {housing.campaignIds.map(campaignId =>
+                                            <div key={`${campaignId}_${housing.id}`} className="fr-pb-2w">
+                                                <span style={{ verticalAlign: 'top' }}>
+                                                    <b>{campaignList?.find(campaign => campaign.id === campaignId)?.name}</b>
+                                                </span>
+                                                <div>
+                                                    <span style={{
+                                                        backgroundColor: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).bgcolor})`,
+                                                        color: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).color})`,
+                                                    }}
+                                                          className='status-label'>
+                                                        {getCampaignHousingState(campaignHousing(campaignId, housing.id).status).title}
+                                                    </span>
+                                                    {campaignHousing(campaignId, housing.id).step &&
+                                                        <span style={{
+                                                            backgroundColor: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.bgcolor})`,
+                                                            color: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.color})`,
+                                                        }}
+                                                              className='status-label'>
+                                                            {campaignHousing(campaignId, housing.id).step}
+                                                        </span>
+                                                    }
+                                                    {campaignHousing(campaignId, housing.id).step && campaignHousing(campaignId, housing.id).precision &&
+                                                        <span style={{
+                                                            backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.bgcolor})`,
+                                                            color: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.color})`,
+                                                        }}
+                                                              className='status-label'>
+                                                            {campaignHousing(campaignId, housing.id).precision}
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Col>
+                                </Row>
+                            }
+                        </div>
                     )}
                 </Container>
             </>}

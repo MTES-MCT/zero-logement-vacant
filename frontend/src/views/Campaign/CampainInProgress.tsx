@@ -13,9 +13,9 @@ import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppA
 import CampaignHousingStatusModal
     from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import {
-    CampaignHousingStatus, getCampaignHousingPrecision,
+    CampaignHousingStatus, getPrecision,
     getCampaignHousingState,
-    getCampaignHousingStep,
+    getStep,
 } from '../../models/CampaignHousingState';
 import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
@@ -74,8 +74,8 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                 </div>
                 {step && step !== getCampaignHousingState(status).title &&
                     <div style={{
-                        backgroundColor: `var(${getCampaignHousingStep(status, step)?.bgcolor})`,
-                        color: `var(${getCampaignHousingStep(status, step)?.color})`,
+                        backgroundColor: `var(${getStep(status, step)?.bgcolor})`,
+                        color: `var(${getStep(status, step)?.color})`,
                     }}
                          className='status-label'>
                         {step}
@@ -83,8 +83,8 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                 }
                 {step && precision &&
                     <div style={{
-                        backgroundColor: `var(${getCampaignHousingPrecision(status, step, precision)?.bgcolor})`,
-                        color: `var(${getCampaignHousingPrecision(status, step, precision)?.color})`,
+                        backgroundColor: `var(${getPrecision(status, step, precision)?.bgcolor})`,
+                        color: `var(${getPrecision(status, step, precision)?.color})`,
                     }}
                           className='status-label'>
                                 {precision}

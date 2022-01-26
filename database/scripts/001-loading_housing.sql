@@ -7,8 +7,10 @@ select
        ff_idbat as building_id,
        array[ltrim(trim(libvoie), '0'), trim(libcom)] as raw_address,
        codecom as insee_code,
-       replace(ff_x_4326, ',', '.')::double precision as latitude,
-       replace(ff_y_4326, ',', '.')::double precision as longitude,
+       ff_x_4326 as latitude,
+--        replace(ff_x_4326, ',', '.')::double precision as latitude,
+       ff_y_4326 as longitude,
+--        replace(ff_y_4326, ',', '.')::double precision as longitude,
        ff_dcapec2 as cadastral_classification,
        (ff_dcapec2 > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0) as uncomfortable,
        debutvacance as vacancy_start_year,
@@ -93,8 +95,10 @@ where h.invariant = e.invariant
   and h.building_id = ff_idbat
   and h.raw_address = array[ltrim(trim(libvoie), '0'), trim(libcom)]
   and h.insee_code = codecom
-  and h.latitude = replace(ff_x_4326, ',', '.')::double precision
-  and h.longitude = replace(ff_y_4326, ',', '.')::double precision
+  and h.latitude = ff_x_4326
+--   and h.latitude = replace(ff_x_4326, ',', '.')::double precision
+  and h.longitude = ff_y_4326
+--   and h.longitude = replace(ff_y_4326, ',', '.')::double precision
   and h.cadastral_classification = ff_dcapec2
   and h.uncomfortable = ((ff_dcapec2 > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0))
   and h.vacancy_start_year = debutvacance

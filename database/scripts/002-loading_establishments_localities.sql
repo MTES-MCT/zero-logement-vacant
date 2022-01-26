@@ -20,6 +20,10 @@ VALUES ('Département du Cher', (select array_agg(id) from localities where geo_
 VALUES ('Commune de Mulhouse', (select array_agg(id) from localities where geo_code='68224'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Vire Normandie', (select array_agg(id) from localities where geo_code='14762'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Commune de Roubaix', (select array_agg(id) from localities where geo_code='59512'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Département de la Meuse', (select array_agg(id) from localities where geo_code like '55%'), true);
 
 update establishments set available = true where epci_id in
 ('200066637',
@@ -38,5 +42,9 @@ update establishments set available = true where epci_id in
  '245400676',
  '200040715',
  '246700488',
- '200067759'
+ '200067759',
+ '243300316',
+ '200093201',
+ '200069037',
+ '200066389'
 );

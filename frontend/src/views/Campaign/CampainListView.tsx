@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteCampaign, listCampaigns } from '../../store/actions/campaignAction';
+import { deleteCampaign } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './campaign.module.scss';
@@ -10,18 +10,16 @@ import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate }
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
+    const campaignList = useCampaignList();
 
-    const { campaignList, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { loading } = useSelector((state: ApplicationState) => state.campaign);
     const [removingModalCampaign, setRemovingModalCampaign] = useState<Campaign | undefined>();
-
-    useEffect(() => {
-        dispatch(listCampaigns());
-    }, [dispatch])
 
     const menuActions = (campaign: Campaign) => [
         { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaign)}

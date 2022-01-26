@@ -196,6 +196,7 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
                     type: CAMPAIGN_CREATED,
                     campaignId
                 });
+                listCampaigns()(dispatch)
             });
     };
 };

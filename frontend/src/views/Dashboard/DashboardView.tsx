@@ -1,27 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { Link, useHistory } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { listCampaigns } from '../../store/actions/campaignAction';
 import styles from '../Campaign/campaign.module.scss';
 import housingService from '../../services/housing.service';
 import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
 import { returnRate } from '../../models/Campaign';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 const DashboardView = () => {
 
-    const dispatch = useDispatch();
     const history = useHistory();
+    const campaignList = useCampaignList();
 
-    const { campaignList, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { loading } = useSelector((state: ApplicationState) => state.campaign);
     const quickSearchAbortRef = useRef<() => void | null>();
-
-    useEffect(() => {
-        dispatch(listCampaigns());
-    }, [dispatch])
 
     const quickSearch = (query: string) => {
         if (quickSearchAbortRef.current) {

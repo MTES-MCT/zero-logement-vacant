@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Row, Tag, Title, TagGroup } from '@dataesr/react-dsfr';
+import { Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { format } from 'date-fns';
 import { getOwnerEvents } from '../../store/actions/ownerAction';
 import { fr } from 'date-fns/locale';
-import { listCampaigns } from '../../store/actions/campaignAction';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
 
     const dispatch = useDispatch();
+    const campaignList = useCampaignList();
 
     // const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [expandEvents, setExpandEvents] = useState(false);
     const { events, housingList } = useSelector((state: ApplicationState) => state.owner);
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwnerEvents(ownerId));
     }, [dispatch])
-
-    useEffect(() => {
-        if (!campaignList) {
-            dispatch(listCampaigns())
-        }
-    },[campaignList])
 
     return (
         <>

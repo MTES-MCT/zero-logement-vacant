@@ -21,24 +21,27 @@ import classNames from 'classnames';
 import config from '../../utils/config';
 import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
-import { getCampaign, listCampaigns } from '../../store/actions/campaignAction';
+import { getCampaign } from '../../store/actions/campaignAction';
 import {
     getCampaignHousingPrecision,
     getCampaignHousingState,
     getCampaignHousingStep,
 } from '../../models/CampaignHousingState';
 import { ensure } from '../../utils/arrayUtils';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 const OwnerView = () => {
 
     const dispatch = useDispatch();
+    const campaignList = useCampaignList();
+
     const { id, campaignId } = useParams<{id: string, campaignId?: string}>();
 
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
     const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
-    const { campaignList, campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
@@ -46,9 +49,6 @@ const OwnerView = () => {
         dispatch(getOwnerCampaignHousing(id));
         if (campaignId && !campaign) {
             dispatch(getCampaign(campaignId))
-        }
-        if (!campaignList) {
-            dispatch(listCampaigns())
         }
     }, [id, dispatch])
 
@@ -229,7 +229,7 @@ const OwnerView = () => {
                                     </Text>
                                 </Col>
                             </Row>
-                            {housing.campaignIds.length > 0 && campaignHousingList &&
+                            {housing.campaignIds.length > 0 && campaignHousingList.length > 0 &&
                                 <Row>
                                     <Col n="12">
                                         <Text size="lg" className="fr-mb-1w">

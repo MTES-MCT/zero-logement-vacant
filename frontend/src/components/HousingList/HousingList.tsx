@@ -7,10 +7,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { listCampaigns } from '../../store/actions/campaignAction';
 import classNames from 'classnames';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 export enum HousingDisplayKey {
@@ -36,13 +34,11 @@ const HousingList = (
         tableClassName?: string
     }) => {
 
-    const dispatch = useDispatch();
     const location = useLocation();
+    const campaignList = useCampaignList();
 
     const [checkedIds, setCheckedIds] = useState<string[]>([]);
     const [allChecked, setAllChecked] = useState<boolean>(false);
-
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
 
     const checkAll = (checked: boolean) => {
         const selectedHousing = {all: checked, ids: []}
@@ -60,12 +56,6 @@ const HousingList = (
             onSelectHousing({all: allChecked, ids: updatedCheckIds})
         }
     }
-
-    useEffect(() => {
-        if (!campaignList) {
-            dispatch(listCampaigns());
-        }
-    }, [dispatch])
 
     useEffect(() => {
         if (filters) {

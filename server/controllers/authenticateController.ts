@@ -32,7 +32,7 @@ const signin = async (request: Request, response: Response): Promise<Response> =
             }
             return response.sendStatus(401)
         }
-        console.error('Invalid password for email', email)
+        console.log('Invalid password for email', email)
         return response.sendStatus(401)
 
     } catch {

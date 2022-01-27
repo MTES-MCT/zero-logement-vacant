@@ -6,7 +6,7 @@ export const usersTable = 'users';
 const getByEmail = async (email: string): Promise<UserApi> => {
     try {
         return db(usersTable)
-            .where('email', email)
+            .whereRaw('upper(email) = upper(?)', email)
             .first()
             .then(result => {
                 if (result) {

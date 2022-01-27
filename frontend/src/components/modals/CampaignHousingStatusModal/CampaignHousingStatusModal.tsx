@@ -12,10 +12,9 @@ import {
 } from '@dataesr/react-dsfr';
 import { CampaignHousing, CampaignHousingUpdate, Housing } from '../../../models/Housing';
 import { DefaultOption, SelectOption } from '../../../models/SelectOption';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../../store/reducers/applicationReducers';
-import { listCampaigns } from '../../../store/actions/campaignAction';
+import { useDispatch } from 'react-redux';
 import CampaignHousingStatusForm from './CampaignHousingStatusForm';
+import { useCampaignList } from '../../../hooks/useCampaignList';
 
 const CampaignHousingStatusModal = (
     {
@@ -32,17 +31,13 @@ const CampaignHousingStatusModal = (
 
     const dispatch = useDispatch();
     const statusFormRef = useRef<{validate: () => void}>();
+    const campaignList = useCampaignList();
 
     const [housingId, setHousingId] = useState<string>();
     const [campaignHousingOptions, setCampaignHousingOptions] = useState<SelectOption[]>();
     const [campaignHousing, setCampaignHousing] = useState<CampaignHousing>();
 
-    const { campaignList } = useSelector((state: ApplicationState) => state.campaign);
-
     useEffect(() => {
-        if (!campaignList) {
-            dispatch(listCampaigns())
-        }
         if (housingList.length === 1) {
             selectHousing(housingList[0].id)
         }

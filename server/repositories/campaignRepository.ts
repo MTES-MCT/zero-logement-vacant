@@ -17,7 +17,8 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -46,7 +47,8 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`)
+                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -57,6 +59,7 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .orderBy('campaign_number')
+            .orderBy('reminder_number')
             .groupBy(`${campaignsTable}.id`)
             .then(_ => _.map((result: any) => parseCampaignApi(result)))
     } catch (err) {
@@ -121,7 +124,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     establishmentId: result.establishment_id,
     campaignNumber: result.campaign_number,
     startMonth: result.start_month,
-    kind: result.kind,
+    reminderNumber: result.reminder_number,
     filters: result.filters,
     createdBy: result.created_by,
     createdAt: result.created_at,
@@ -134,6 +137,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     notVacantCount: result.notVacantCount,
     noActionCount: result.noActionCount,
     exitCount: result.exitCount,
+    npaiCount: result.npaiCount,
     ownerCount: result.ownerCount
 }
 
@@ -142,7 +146,7 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     establishment_id: campaignApi.establishmentId,
     campaign_number: campaignApi.campaignNumber,
     start_month: campaignApi.startMonth,
-    kind: campaignApi.kind,
+    reminder_number: campaignApi.reminderNumber,
     filters: campaignApi.filters,
     created_by: campaignApi.createdBy,
     created_at: campaignApi.createdAt,

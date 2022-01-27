@@ -17,7 +17,7 @@ import { fr } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../../store/reducers/applicationReducers';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
-import { CampaignKinds, DraftCampaign } from '../../../models/Campaign';
+import { DraftCampaign } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
@@ -43,7 +43,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
             .then(() => {
                 onSubmit({
                     startMonth: campaignStartMonth,
-                    kind: CampaignKinds.Initial,
+                    reminderNumber: parseInt(campaignKind),
                     filters
                 } as DraftCampaign);
             })
@@ -70,7 +70,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
 
     const campaignKindOptions = [
         {value: '', label: 'Sélectionner', disabled: true, hidden: true},
-        {value: 'init', label: 'Envoi initial'}
+        {value: '0', label: 'Envoi initial'}
     ]
 
     return (
@@ -118,7 +118,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                                 <>
                                 La liste a été établie à partir des filtres suivants :
                                 <div className="fr-my-1w">
-                                    <HousingFiltersBadges/>
+                                    <HousingFiltersBadges filters={filters}/>
                                 </div>
                                 </> :
                                 <div>La liste a été établie sans filtres.</div>

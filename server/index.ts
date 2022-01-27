@@ -6,6 +6,7 @@ import config from './utils/config';
 
 import cors from 'cors';
 import sentry from './utils/sentry';
+import rateLimit from 'express-rate-limit';
 
 const PORT = config.serverPort || 3001;
 
@@ -16,6 +17,13 @@ if (config.environment === 'development') {
 }
 
 app.use(express.json());
+
+const rateLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes window
+    max: parseInt(config.maxRate ?? '10000'), // start blocking after X requests for windowMs time
+    message: 'Too many request from this address, try again later please.',
+});
+app.use(rateLimiter);
 
 app.use(unprotectedRouter);
 app.use(protectedRouter);

@@ -14,6 +14,7 @@ export interface HousingFilters {
     isTaxedValues: string[];
     localities: string[];
     housingScopes: string[];
+    dataYears: number[];
     query: string;
 }
 
@@ -22,10 +23,10 @@ export interface HousingFilterOption extends SelectOption {
 }
 
 export const ownerAgeOptions: HousingFilterOption[] = [
-    {value: "lt40", label: "Moins de 40 ans"},
-    {value: "40to60", label: "40 - 60 ans"},
-    {value: "60to75", label: "60 - 75 ans"},
-    {value: "gt75", label: "75 ans et plus"}
+    {value: "lt40", label: "Moins de 40 ans", badgeLabel: "Âge : moins de 40 ans"},
+    {value: "40to60", label: "40 - 60 ans", badgeLabel: "Âge : 40 - 60 ans"},
+    {value: "60to75", label: "60 - 75 ans", badgeLabel: "Âge : 60 - 75 ans"},
+    {value: "gt75", label: "75 ans et plus", badgeLabel: "Âge : 75 ans et plus"},
 ];
 
 export const ownerKindOptions: HousingFilterOption[] = [
@@ -81,10 +82,10 @@ export const multiOwnerOptions: HousingFilterOption[] = [
 ];
 
 export const vacancyDurationOptions = [
-    {value: "lt2", label: "Moins de 2 ans"},
-    {value: "2to5", label: "Entre 2 et 5 ans"},
-    {value: "5to10", label: "Entre 5 et 10 ans"},
-    {value: "gt10", label: "Plus de 10 ans"}
+    {value: "lt2", label: "Moins de 2 ans", badgeLabel: "Durée de vacance : moins de 2 ans"},
+    {value: "2to5", label: "Entre 2 et 5 ans", badgeLabel: "Durée de vacance : entre 2 et 5 ans"},
+    {value: "5to10", label: "Entre 5 et 10 ans", badgeLabel: "Durée de vacance : entre 5 et 10 ans"},
+    {value: "gt10", label: "Plus de 10 ans", badgeLabel: "Durée de vacance : plus de 10 ans"},
 ];
 
 export const taxedOptions: HousingFilterOption[] = [

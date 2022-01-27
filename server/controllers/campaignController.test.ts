@@ -24,7 +24,7 @@ describe('Campaign controller', () => {
                     expect.objectContaining({
                         campaignNumber: 1,
                         startMonth: '2111',
-                        kind: '0',
+                        reminderNumber: 0,
                     })
                 ]
             )
@@ -43,7 +43,7 @@ describe('Campaign controller', () => {
             body: {
                 draftCampaign: {
                     startMonth: '2112',
-                    kind: '0',
+                    reminderNumber: 0,
                     filters: {}
                 },
                 housingIds
@@ -65,7 +65,7 @@ describe('Campaign controller', () => {
                 expect(result[0]).toEqual(expect.objectContaining({
                         campaign_number: 2,
                         start_month: '2112',
-                        kind: '0',
+                        reminder_number: 0,
                     }
                 ))
             });

@@ -24,6 +24,7 @@ export const initialFilters = {
     isTaxedValues: [],
     localities: [],
     housingScopes: [],
+    dataYears: [2021],
     query: ''
 } as HousingFilters;
 

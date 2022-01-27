@@ -3,7 +3,7 @@ export interface CampaignApi {
     establishmentId: string;
     campaignNumber: number;
     startMonth: string;
-    kind: string;
+    reminderNumber: string;
     filters: string[];
     createdBy?: string,
     createdAt?: Date;
@@ -17,6 +17,7 @@ export interface CampaignApi {
     notVacantCount: number;
     noActionCount: number;
     exitCount: number;
+    npaiCount: number;
     ownerCount: number;
 }
 

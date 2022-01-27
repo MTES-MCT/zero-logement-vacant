@@ -2,7 +2,7 @@ import { HousingFilters } from './HousingFilters';
 
 export interface DraftCampaign {
     startMonth: string;
-    kind: CampaignKinds;
+    reminderNumber: number;
     filters: HousingFilters;
 }
 
@@ -10,7 +10,7 @@ export interface Campaign {
     id: string;
     campaignNumber: number;
     startMonth: string;
-    kind: CampaignKinds;
+    reminderNumber: number;
     name: string;
     filters: HousingFilters;
     createdAt: Date;
@@ -23,11 +23,8 @@ export interface Campaign {
     notVacantCount: number;
     noActionCount: number;
     exitCount: number;
+    npaiCount: number;
     ownerCount: number;
-}
-
-export enum CampaignKinds {
-    Initial
 }
 
 export enum CampaignSteps {
@@ -45,3 +42,5 @@ export const campaignStep = (campaign?: Campaign) => {
             !campaign?.sentAt ? CampaignSteps.Sending :
                 CampaignSteps.InProgess
 }
+
+export const returnRate = (campaign: Campaign) => Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100)

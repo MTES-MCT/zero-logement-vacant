@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteCampaign, listCampaigns } from '../../store/actions/campaignAction';
+import { deleteCampaign } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './campaign.module.scss';
 import { Link } from 'react-router-dom';
-import { Campaign, campaignNumberSort, campaignStep, CampaignSteps } from '../../models/Campaign';
+import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
+    const campaignList = useCampaignList();
 
-    const { campaignList, loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { loading } = useSelector((state: ApplicationState) => state.campaign);
     const [removingModalCampaign, setRemovingModalCampaign] = useState<Campaign | undefined>();
-
-    useEffect(() => {
-        dispatch(listCampaigns());
-    }, [dispatch])
 
     const menuActions = (campaign: Campaign) => [
         { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaign)}
@@ -64,7 +63,7 @@ const CampaignsListView = () => {
                                                 <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                             </div>
                                             <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}> {Math.round(100 - campaign.waitingCount / campaign.housingCount * 100)}%</div>
+                                                <div className={styles.statTitle}> {returnRate(campaign)}%</div>
                                                 <span className={styles.statLabel}>retours</span>
                                             </div>
                                         </Col>
@@ -79,6 +78,11 @@ const CampaignsListView = () => {
                                                    description="L’export du fichier de publipostage est disponible et est indispensable avant de passer au suivi. Vous pouvez toujours modifier la liste des propriétaires si vous le souhaitez."
                                                    type="error"/>
                                             }
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col>
+                                            <HousingFiltersBadges filters={campaign.filters}/>
                                         </Col>
                                     </Row>
 

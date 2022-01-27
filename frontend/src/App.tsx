@@ -51,6 +51,7 @@ function App() {
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
                                 <Route exact path="/campagnes/:id" component={CampaignView} />
+                                <Route exact path="/campagnes/:campaignId/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
                                 <Route path="/*">
                                     <Redirect to="/accueil" />

@@ -1,4 +1,5 @@
 import { DefaultOption } from './SelectOption';
+import { CampaignHousing } from './Housing';
 
 export interface CampaignHousingState {
     status: CampaignHousingStatus;
@@ -193,18 +194,52 @@ export const CampaignHousingStates: CampaignHousingState[] = [
             {
                 title: 'Déclaré non-vacant',
                 color: '--green-emeraude-sun-425',
-                bgcolor: '--green-emeraude-925'
+                bgcolor: '--green-emeraude-925',
+                precisions: [
+                    {
+                        title: 'Occupé par le propriétaire',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    },
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    }
+                ]
             },
             {
                 title: 'Constaté non-vacant',
                 color: '--green-bourgeon-975',
-                bgcolor: '--green-bourgeon-sun-425-active'
+                bgcolor: '--green-bourgeon-sun-425-active',
+                precisions: [
+                    {
+                        title: 'Occupé par le propriétaire',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    },
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    }
+                ]
             }
         ]
     },
     {
         status: CampaignHousingStatus.NoAction,
-        title: 'Sans suite',
+        title: 'Bloqué',
         color: '--blue-cumulus-975',
         bgcolor: '--blue-cumulus-main-526',
         steps: [
@@ -359,7 +394,7 @@ export const CampaignHousingStates: CampaignHousingState[] = [
     },
     {
         status: CampaignHousingStatus.Exit,
-        title: 'Sortie de la vacance',
+        title: 'Accompagnement terminé',
         color: '--blue-ecume-sun-247',
         bgcolor: '--blue-ecume-950',
         steps: [
@@ -386,12 +421,24 @@ export const getCampaignHousingState = (status: CampaignHousingStatus) => {
     return CampaignHousingStates[status]
 }
 
-export const getCampaignHousingStep = (status: CampaignHousingStatus, stepTitle: string): CampaignHousingStep | undefined => {
+export const getStep = (status: CampaignHousingStatus, stepTitle: string): CampaignHousingStep | undefined => {
     return getCampaignHousingState(status).steps?.filter(s => s.title === stepTitle)[0]
 }
 
-export const getCampaignHousingPrecision = (status: CampaignHousingStatus, stepTitle: string, precisionTitle: string): CampaignHousingPrecision | undefined => {
-    return getCampaignHousingStep(status, stepTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
+export const getCampaignHousingStep = (campaignHousing: CampaignHousing): CampaignHousingStep | undefined => {
+    if (campaignHousing.step) {
+        return getStep(campaignHousing.status, campaignHousing.step)
+    }
+}
+
+export const getPrecision = (status: CampaignHousingStatus, stepTitle: string, precisionTitle: string): CampaignHousingPrecision | undefined => {
+    return getStep(status, stepTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
+}
+
+export const getCampaignHousingPrecision = (campaignHousing: CampaignHousing): CampaignHousingPrecision | undefined => {
+    if (campaignHousing.step && campaignHousing.precision) {
+        return getPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)
+    }
 }
 
 export const getStepOptions = (status: CampaignHousingStatus) => {

@@ -194,12 +194,46 @@ export const CampaignHousingStates: CampaignHousingState[] = [
             {
                 title: 'Déclaré non-vacant',
                 color: '--green-emeraude-sun-425',
-                bgcolor: '--green-emeraude-925'
+                bgcolor: '--green-emeraude-925',
+                precisions: [
+                    {
+                        title: 'Occupé par le propriétaire',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    },
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    }
+                ]
             },
             {
                 title: 'Constaté non-vacant',
                 color: '--green-bourgeon-975',
-                bgcolor: '--green-bourgeon-sun-425-active'
+                bgcolor: '--green-bourgeon-sun-425-active',
+                precisions: [
+                    {
+                        title: 'Occupé par le propriétaire',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    },
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    }
+                ]
             }
         ]
     },

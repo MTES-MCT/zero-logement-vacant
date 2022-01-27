@@ -205,7 +205,7 @@ export const CampaignHousingStates: CampaignHousingState[] = [
     },
     {
         status: CampaignHousingStatus.NoAction,
-        title: 'Sans suite',
+        title: 'Bloqué',
         color: '--blue-cumulus-975',
         bgcolor: '--blue-cumulus-main-526',
         steps: [

@@ -1,6 +1,6 @@
 insert into housing(invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification,
                     uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
-                    building_year, mutation_date, taxed, data_years)
+                    building_year, mutation_date, taxed, data_years, beneficiary_count)
 select
        invariant,
        ff_idlocal as local_id,
@@ -21,12 +21,13 @@ select
        (case when (ff_jannath > 100) then ff_jannath end) as building_year,
        to_date(anmutation, 'M/D/YY') as mutation_date,
        trim(txtlv) <> '' as taxed,
-       array_agg(annee)
+       array_agg(annee),
+       ff_ndroit
 from _extract_zlv
 where ff_ccthp in ('V', 'L', 'P')
 and ff_idlocal not in (select local_id from housing)
 group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
-         housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed;
+         housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, ff_ndroit;
 
 update housing h set data_years = array_prepend(annee, h.data_years)
 from _extract_zlv e
@@ -37,7 +38,7 @@ and not(h.data_years @> ARRAY[e.annee]);
 -- update housing set data_years = ARRAY[2021];
 
 
-insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, beneficiary_count, local_ids)
+insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, local_ids)
     select
            upper(var.owner),
            var.administrator,
@@ -60,9 +61,6 @@ insert into owners(full_name, administrator, raw_address, birth_date, owner_kind
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail,
-           (case
-                when (var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') or
-                     (var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%') then ff_ndroit end) as beneficiary_count,
            array_agg(distinct(ff_idlocal))
     from _extract_zlv, lateral (
         select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim("GESTRE/PPRE") end) as owner,
@@ -73,7 +71,7 @@ insert into owners(full_name, administrator, raw_address, birth_date, owner_kind
         and o.birth_date = birth_date
     )
     and not exists(select * from owners o where o.local_ids::text[] @> ARRAY[ff_idlocal])
-    group by (owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, nom_ff, owner_kind, owner_kind_detail, beneficiary_count);
+    group by (owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, nom_ff, owner_kind, owner_kind_detail);
 
 
 update owners o set local_ids = array_prepend(ff_idlocal, local_ids::text[])

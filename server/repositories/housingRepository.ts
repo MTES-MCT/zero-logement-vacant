@@ -56,12 +56,12 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             }
             if (filters.beneficiaryCounts?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    whereBuilder.whereIn('beneficiary_count', filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_)))
+                    whereBuilder.whereIn(`${housingTable}.beneficiary_count`, filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_)))
                     if (filters.beneficiaryCounts?.indexOf('0') !== -1) {
-                        whereBuilder.orWhereNull('beneficiary_count')
+                        whereBuilder.orWhereNull(`${housingTable}.beneficiary_count`)
                     }
                     if (filters.beneficiaryCounts?.indexOf('gt5') !== -1) {
-                        whereBuilder.orWhereRaw('beneficiary_count >= 5')
+                        whereBuilder.orWhereRaw(`${housingTable}.beneficiary_count >= 5`)
                     }
                 })
             }

@@ -3,6 +3,7 @@ export interface CampaignApi {
     establishmentId: string;
     campaignNumber: number;
     startMonth: string;
+    kind: CampaignKinds;
     reminderNumber: string;
     filters: string[];
     createdBy?: string,
@@ -23,4 +24,8 @@ export interface CampaignApi {
 
 export enum CampaignSteps {
     OwnersValidation, Export, Sending, InProgess
+}
+
+export enum CampaignKinds {
+    Initial, Remind, Surveying, DoorToDoor, BeforeZlv
 }

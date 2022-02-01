@@ -17,12 +17,13 @@ import { fr } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../../store/reducers/applicationReducers';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
-import { DraftCampaign } from '../../../models/Campaign';
+import { CampaignKinds, DraftCampaign, getCampaignKindLabel } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { hasFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
+import { DefaultOption } from '../../../models/SelectOption';
 
 const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
 
@@ -43,7 +44,8 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
             .then(() => {
                 onSubmit({
                     startMonth: campaignStartMonth,
-                    reminderNumber: parseInt(campaignKind),
+                    kind: parseInt(campaignKind),
+                    reminderNumber: 0,
                     filters
                 } as DraftCampaign);
             })
@@ -69,8 +71,12 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
     ];
 
     const campaignKindOptions = [
-        {value: '', label: 'Sélectionner', disabled: true, hidden: true},
-        {value: '0', label: 'Envoi initial'}
+        DefaultOption,
+        {value: String(CampaignKinds.Initial), label: getCampaignKindLabel(CampaignKinds.Initial)},
+        // {value: String(CampaignKinds.Remind), label: getCampaignKindLabel(CampaignKinds.Remind)},
+        {value: String(CampaignKinds.Surveying), label: getCampaignKindLabel(CampaignKinds.Surveying)},
+        {value: String(CampaignKinds.DoorToDoor), label: getCampaignKindLabel(CampaignKinds.DoorToDoor)},
+        {value: String(CampaignKinds.BeforeZlv), label: getCampaignKindLabel(CampaignKinds.BeforeZlv)}
     ]
 
     return (

@@ -2,6 +2,7 @@ import { HousingFilters } from './HousingFilters';
 
 export interface DraftCampaign {
     startMonth: string;
+    kind: CampaignKinds;
     reminderNumber: number;
     filters: HousingFilters;
 }
@@ -10,6 +11,7 @@ export interface Campaign {
     id: string;
     campaignNumber: number;
     startMonth: string;
+    kind: CampaignKinds;
     reminderNumber: number;
     name: string;
     filters: HousingFilters;
@@ -25,6 +27,25 @@ export interface Campaign {
     exitCount: number;
     npaiCount: number;
     ownerCount: number;
+}
+
+export enum CampaignKinds {
+    Initial, Remind, Surveying, DoorToDoor, BeforeZlv
+}
+
+export const getCampaignKindLabel = (kind: CampaignKinds) => {
+    switch (kind) {
+        case CampaignKinds.Initial:
+            return 'Envoi initial';
+        case CampaignKinds.Remind:
+            return 'Relance';
+        case CampaignKinds.Surveying:
+            return 'Arpentage';
+        case CampaignKinds.DoorToDoor:
+            return 'Porte à porte';
+        case CampaignKinds.BeforeZlv:
+            return 'Dossiers gérés avant l\'outil';
+    }
 }
 
 export enum CampaignSteps {

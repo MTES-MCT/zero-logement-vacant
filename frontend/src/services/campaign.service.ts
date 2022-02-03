@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { format, parse, parseISO } from 'date-fns';
-import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
+import { Campaign, CampaignKinds, CampaignSteps, DraftCampaign, getCampaignKindLabel } from '../models/Campaign';
 import { fr } from 'date-fns/locale';
 
 
@@ -63,7 +63,7 @@ const parseCampaign = (c: any): Campaign => ({
     ...c,
     name: `C${c.campaignNumber} - 
         ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })} - 
-        ${c.reminderNumber === 0 ? 'Envoi initial' : 'Relance n°' + c.reminderNumber}`,
+        ${getCampaignKindLabel(c.kind)}${c.kind === CampaignKinds.Remind ? ' n°' + c.reminderNumber : ''}`,
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined

@@ -109,7 +109,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                         </Col>
                         <Col n="5">
                             <Select
-                                label="Envoi"
+                                label="Type"
                                 options={campaignKindOptions}
                                 selected={campaignKind}
                                 onChange={(e: any) => setCampaignKind(e.target.value)}

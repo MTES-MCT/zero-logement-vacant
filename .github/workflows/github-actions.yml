@@ -10,7 +10,7 @@ jobs:
         node-version: [14.x]
     services:
       postgres:
-        image: postgres
+        image: postgres/postgis
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

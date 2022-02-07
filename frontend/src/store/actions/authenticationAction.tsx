@@ -1,8 +1,9 @@
 import { Dispatch } from 'redux';
-import { AuthUser, Establishment } from '../../models/User';
+import { AuthUser } from '../../models/User';
 import authService from '../../services/auth.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import establishmentService from '../../services/establishment.service';
+import { Establishment } from '../../models/Establishment';
 
 export const LOGIN = 'LOGIN';
 export const LOGIN_FAIL = 'LOGIN_FAIL';

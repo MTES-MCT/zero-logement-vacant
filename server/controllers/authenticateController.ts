@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
+import localityRepository from '../repositories/localityRepository';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -24,9 +25,12 @@ const signin = async (request: Request, response: Response): Promise<Response> =
             const establishment = await establishmentRepository.get(establishmentId)
 
             if (establishment) {
+
+                const housingScopes = establishment.housingScopes.scopes ? establishment.housingScopes : await localityRepository.listHousingScopes(establishment.localities.map(_ => _.geoCode))
+
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},
-                    establishment,
+                    establishment: {...establishment, housingScopes},
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id }, config.auth.secret, { expiresIn: 86400 })
                 });
             }

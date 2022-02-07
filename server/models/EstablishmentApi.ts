@@ -1,9 +1,15 @@
 export interface EstablishmentApi {
     id: string,
     name: string,
-    housingScopes: string[],
+    housingScopes: HousingScopesApi,
     localities: LocalityApi[]
 }
+
+export interface HousingScopesApi {
+    geom: boolean,
+    scopes: string[]
+}
+
 
 export interface LocalityApi {
     geoCode: string,

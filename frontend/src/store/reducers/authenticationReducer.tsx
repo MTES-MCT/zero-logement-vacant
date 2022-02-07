@@ -5,7 +5,8 @@ import {
     LOGIN_FAIL,
     LOGOUT,
 } from '../actions/authenticationAction';
-import { AuthUser, Establishment } from '../../models/User';
+import { AuthUser } from '../../models/User';
+import { Establishment } from '../../models/Establishment';
 
 const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 

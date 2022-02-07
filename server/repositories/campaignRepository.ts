@@ -126,7 +126,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     startMonth: result.start_month,
     kind: result.kind,
     reminderNumber: result.reminder_number,
-    filters: result.filters,
+    filters: {...result.filters, housingScopes: result.filters.housingScopes.scopes ? result.filters.housingScopes : {geom: false, scopes: result.filters.housingScopes}},
     createdBy: result.created_by,
     createdAt: result.created_at,
     validatedAt: result.validated_at,

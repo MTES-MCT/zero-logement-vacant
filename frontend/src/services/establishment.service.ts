@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { Establishment } from '../models/User';
+import { Establishment } from '../models/Establishment';
 
 
 const listAvailableEstablishments = async (): Promise<Establishment[]> => {

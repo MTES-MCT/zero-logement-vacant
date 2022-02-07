@@ -136,18 +136,18 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
-            if (filters.housingScopes.scopes.length) {
+            if (filters.housingScopes && filters.housingScopes.scopes.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    if (filters.housingScopes.geom) {
+                    if (filters.housingScopes?.geom) {
                         if (filters.housingScopes.scopes.indexOf('None') !== -1) {
                             whereBuilder.orWhereNull('hsg.type')
                         }
                         whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
                     } else {
-                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
                             whereBuilder.orWhereNull('housing_scope')
                         }
-                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes.scopes)
+                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
                     }
                 })
             }

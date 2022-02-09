@@ -51,7 +51,7 @@ describe('Campaign controller', () => {
         })
         const { res } = getMockRes()
 
-        await campaignController.create(req, res)
+        await campaignController.createCampaign(req, res)
 
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(

@@ -165,9 +165,14 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
         }
 
         const query = db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name',
-                db.raw('json_agg(distinct(campaigns)) campaign_ids'),
-                db.raw('array_agg(distinct(hsg.type))'),
+            .select(
+                `${housingTable}.*`,
+                'o.id as owner_id',
+                'o.raw_address as owner_raw_address',
+                'o.full_name',
+                'o.administrator',
+                db.raw('json_agg(campaigns) campaign_ids'),
+                db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
@@ -246,7 +251,8 @@ const parseHousingApi = (result: any) => (
         owner: <OwnerApi>{
             id: result.owner_id,
             rawAddress: result.owner_raw_address,
-            fullName: result.full_name
+            fullName: result.full_name,
+            administrator: result.administrator
         },
         livingArea: result.living_area,
         housingKind: result.housing_kind,

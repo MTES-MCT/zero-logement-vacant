@@ -38,6 +38,7 @@ export const parseOwnerApi = (result: any) => <OwnerApi>{
     id: result.id,
     rawAddress: result.raw_address.filter((_: string) => _ && _.length),
     fullName: result.full_name,
+    administrator: result.administrator,
     birthDate: result.birth_date,
     email: result.email,
     phone: result.phone

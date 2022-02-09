@@ -163,6 +163,10 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.raw_address as owner_raw_address',
                 'o.full_name',
                 'o.administrator',
+                'o.house_number as owner_house_number',
+                'o.street as owner_street',
+                'o.postal_code as owner_postal_code',
+                'o.city as owner_city',
                 db.raw('json_agg(campaigns) campaign_ids')
             )
             .from(housingTable)
@@ -203,7 +207,17 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     try {
         return db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name')
+            .select(
+                `${housingTable}.*`,
+                'o.id as owner_id',
+                'o.raw_address as owner_raw_address',
+                'o.full_name',
+                'o.administrator',
+                'o.house_number as owner_house_number',
+                'o.street as owner_street',
+                'o.postal_code as owner_postal_code',
+                'o.city as owner_city'
+            )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
@@ -215,19 +229,34 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
-const rawUpdate = async (update: string): Promise<HousingApi[]> => {
+const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
-        return db.raw(update)
+        const update = 'UPDATE housing as h SET ' +
+            'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
+            'FROM (values' +
+            housingAdresses
+                .filter(ha => ha.addressId)
+                .map(ha => `('${ha.addressId}', '${ha.addressApi.postalCode}', '${ha.addressApi.houseNumber ?? ''}', '${escapeValue(ha.addressApi.street)}', '${escapeValue(ha.addressApi.city)}')`)
+            +
+            ') as c(id, postal_code, house_number, street, city)' +
+            ' WHERE h.id::text = c.id'
+
+        return db.raw(update);
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');
     }
 }
 
+const escapeValue = (value?: string) => {
+    return value ? value.replace(/'/g, '\'\'') : ''
+}
+
 const parseHousingApi = (result: any) => (
     <HousingApi>{
         id: result.id,
         invariant: result.invariant,
+        inseeCode: result.insee_code,
         rawAddress: result.raw_address,
         address: <AddressApi>{
             houseNumber: result.house_number,
@@ -241,7 +270,13 @@ const parseHousingApi = (result: any) => (
             id: result.owner_id,
             rawAddress: result.owner_raw_address,
             fullName: result.full_name,
-            administrator: result.administrator
+            administrator: result.administrator,
+            address: <AddressApi>{
+                houseNumber: result.owner_house_number,
+                street: result.owner_street,
+                postalCode: result.owner_postal_code,
+                city: result.owner_city
+            }
         },
         livingArea: result.living_area,
         housingKind: result.housing_kind,
@@ -256,5 +291,5 @@ const parseHousingApi = (result: any) => (
 export default {
     listWithFilters,
     listByIds,
-    rawUpdate
+    updateAddressList
 }

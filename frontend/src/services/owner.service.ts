@@ -35,7 +35,8 @@ const parseOwner = (o: any): Owner => ({
     ...o,
     rawAddress: o.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
     birthDate: o.birthDate ? parseISO(o.birthDate) : undefined,
-    fullName: toTitleCase(o.fullName.replace(/^(MME |M )/i, ''))
+    fullName: toTitleCase(o.fullName.replace(/^(MME |M )/i, '')),
+    administrator: o.administrator ? toTitleCase(o.administrator) : undefined
 } as Owner)
 
 const ownerService = {

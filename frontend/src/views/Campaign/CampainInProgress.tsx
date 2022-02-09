@@ -3,24 +3,28 @@ import { Button, Tab, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
+    createCampaignReminder,
     listCampaignHousing,
-    removeCampaignHousingList, updateCampaignHousingList,
+    removeCampaignHousingList,
+    updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { CampaignHousing, CampaignHousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
-import CampaignHousingStatusModal
-    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
+import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
 import {
-    CampaignHousingStatus, getPrecision,
+    CampaignHousingStatus,
     getCampaignHousingState,
+    getPrecision,
     getStep,
 } from '../../models/CampaignHousingState';
 import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignHousingListStatusModal
     from '../../components/modals/CampaignHousingStatusModal/CampaignHousingListStatusModal';
+import CampaignReminderCreationModal
+    from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
@@ -29,6 +33,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
+    const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
     const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
@@ -43,6 +48,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
     const menuActions = [
         { title: 'Changer le statut', selectedHousing, onClick: () => setUpdatingModalSelectedHousing(selectedHousing) },
+        { title: 'Créer une relance', selectedHousing, onClick: () => setReminderModalSelectedHousing(selectedHousing) },
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
     ] as MenuAction[]
 
@@ -103,6 +109,10 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         setUpdatingModalSelectedHousing(undefined);
     }
 
+    const submitCampaignReminder = (startMonth: string) => {
+        dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
+    }
+
     return (
         <>
             {!paginatedCampaignHousing.loading && <>
@@ -128,6 +138,13 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                         housingCount={selectedCount}
                         initialStatus={status}
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
+                        onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
+                }
+                {reminderModalSelectedHousing &&
+                    <CampaignReminderCreationModal
+                        housingCount={selectedCount}
+                        initialCampaign={campaign}
+                        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}
                         onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                 }
                 {isRemovingModalOpen &&

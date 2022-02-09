@@ -38,9 +38,10 @@ router.post('/api/campaign/housing', jwtCheck, userCheck, campaignHousingControl
 router.delete('/api/campaign/housing', jwtCheck, userCheck, campaignHousingController.removeCampaignHousingList);
 
 router.get('/api/campaigns', jwtCheck, userCheck, campaignController.list);
-router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.create);
+router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
 router.get('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.get);
 router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
+router.post('/api/campaigns/:campaignId/reminder', jwtCheck, userCheck, campaignController.createReminderCampaign);
 router.delete('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.deleteCampaign);
 // router.get('/api/campaigns/import', campaignController.importFromAirtable);
 

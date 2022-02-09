@@ -1,4 +1,4 @@
-import { CampaignApi } from '../models/CampaignApi';
+import { CampaignApi, CampaignKinds } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingTable, ownersHousingTable } from './housingRepository';
@@ -73,6 +73,21 @@ const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
         return db(campaignsTable)
             .where('establishment_id', establishmentId)
             .max('campaign_number')
+            .first()
+            .then(_ => _ ? _.max : 0);
+    } catch (err) {
+        console.error('Listing campaigns failed', err);
+        throw new Error('Listing campaigns failed');
+    }
+}
+
+const lastReminderNumber = async (establishmentId: string, campaignNumber: number): Promise<any> => {
+    try {
+        return db(campaignsTable)
+            .where('establishment_id', establishmentId)
+            .andWhere('campaign_number', campaignNumber)
+            .andWhere('kind', CampaignKinds.Remind)
+            .max('reminder_number')
             .first()
             .then(_ => _ ? _.max : 0);
     } catch (err) {
@@ -162,6 +177,7 @@ export default {
     get,
     list,
     lastCampaignNumber,
+    lastReminderNumber,
     insert,
     update,
     deleteCampaign

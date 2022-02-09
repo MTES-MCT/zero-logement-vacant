@@ -1,11 +1,13 @@
+import { HousingFiltersApi } from './HousingFiltersApi';
+
 export interface CampaignApi {
     id: string;
     establishmentId: string;
     campaignNumber: number;
     startMonth: string;
     kind: CampaignKinds;
-    reminderNumber: string;
-    filters: string[];
+    reminderNumber: number;
+    filters: HousingFiltersApi;
     createdBy?: string,
     createdAt?: Date;
     validatedAt?: Date;

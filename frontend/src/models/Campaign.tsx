@@ -3,7 +3,6 @@ import { HousingFilters } from './HousingFilters';
 export interface DraftCampaign {
     startMonth: string;
     kind: CampaignKinds;
-    reminderNumber: number;
     filters: HousingFilters;
 }
 

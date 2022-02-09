@@ -5,7 +5,7 @@ import { getCampaign } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import styles from './campaign.module.scss';
 import CampaignInProgress from './CampainInProgress';
 import CampaignToValidate from './CampainToValidate';
@@ -15,13 +15,20 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 const CampaignView = () => {
 
     const dispatch = useDispatch();
+    const history = useHistory();
     const { id } = useParams<{id: string}>();
 
-    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaign, campaignFetchingId } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getCampaign(id))
     }, [id, dispatch])
+
+    useEffect(() => {
+        if (campaignFetchingId && campaignFetchingId !== campaign?.id) {
+            history.push(`/campagnes/${campaignFetchingId}`);
+        }
+    }, [campaignFetchingId])
 
     return (
         <>

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
+import { CampaignApi, CampaignKinds, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
@@ -31,7 +31,7 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
 }
 
-const create = async (request: Request, response: Response): Promise<Response> => {
+const createCampaign = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Create campaign')
 
@@ -40,7 +40,6 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
-    const reminderNumber = request.body.draftCampaign.reminderNumber;
     const filters = request.body.draftCampaign.filters;
     const allHousing = request.body.allHousing;
 
@@ -50,7 +49,7 @@ const create = async (request: Request, response: Response): Promise<Response> =
         campaignNumber: (lastNumber ?? 0) + 1,
         startMonth,
         kind,
-        reminderNumber,
+        reminderNumber: 0,
         filters,
         createdBy: userId,
         validatedAt: new Date()
@@ -62,6 +61,46 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     const housingIds = allHousing ?
         await housingRepository.listWithFilters({...filters, localities: filterLocalities})
+            .then(_ => _.entities
+                .map(_ => _.id)
+                .filter(id => request.body.housingIds.indexOf(id) === -1)
+            ):
+        request.body.housingIds;
+
+    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
+
+    return response.status(200).json(newCampaignApi.id);
+
+}
+
+const createReminderCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    console.log('Create a reminder campaign for', campaignId)
+
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const userId = (<RequestUser>request.user).userId;
+
+    const startMonth = request.body.startMonth;
+    const allHousing = request.body.allHousing;
+
+    const campaign = await campaignRepository.get(campaignId)
+    const lastReminderNumber = await campaignRepository.lastReminderNumber(establishmentId, campaign.campaignNumber)
+
+    const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
+        establishmentId,
+        campaignNumber: campaign.campaignNumber,
+        startMonth,
+        kind: CampaignKinds.Remind,
+        reminderNumber: lastReminderNumber + 1,
+        filters: campaign.filters,
+        createdBy: userId,
+        validatedAt: new Date()
+    })
+
+    const housingIds = allHousing ?
+        await housingRepository.listWithFilters({campaignIds: [campaignId]})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
@@ -193,7 +232,8 @@ const deleteCampaign = async (request: Request, response: Response): Promise<Res
 const campaignController =  {
     get,
     list,
-    create,
+    createCampaign,
+    createReminderCampaign,
     validateStep,
     deleteCampaign
     // importFromAirtable

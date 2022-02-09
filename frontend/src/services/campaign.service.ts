@@ -35,6 +35,16 @@ const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean,
         .then(_ => _.json());
 };
 
+const createCampaignReminder = async (campaign: Campaign, startMonth: string,  allHousing: boolean, housingIds?: string[]): Promise<string> => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaign.id}/reminder`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startMonth, allHousing, housingIds }),
+    })
+        .then(_ => _.json());
+};
+
 const deleteCampaign = async (campaignId: string): Promise<void> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
@@ -73,6 +83,7 @@ const campaignService = {
     listCampaigns,
     getCampaign,
     createCampaign,
+    createCampaignReminder,
     deleteCampaign,
     validCampaignStep,
     getExportURL

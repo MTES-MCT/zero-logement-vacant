@@ -34,6 +34,10 @@ INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Roubaix', (select array_agg(id) from localities where geo_code='59512'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Département de la Meuse', (select array_agg(id) from localities where geo_code like '55%'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('Commune de Fort de France', (select array_agg(id) from localities where geo_code='97209'), true);
+INSERT INTO public.establishments (name, localities_id, available)
+VALUES ('ADIL du Doubs', (select array_agg(id) from localities where geo_code like '25%'), true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -71,5 +75,10 @@ update establishments set available = true where epci_id in
  '247100589',
  '200035814',
  '248400053',
- '200069037'
+ '200069037',
+ '200069052',
+ '200023737',
+ '241500230',
+ '200067254',
+ '200042190'
 );

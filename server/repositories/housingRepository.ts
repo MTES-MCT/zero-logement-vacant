@@ -6,6 +6,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
+import { housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const ownersHousingTable = 'owners_housing';
@@ -135,12 +136,19 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
-            if (filters.housingScopes?.length) {
+            if (filters.housingScopes && filters.housingScopes.scopes.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    if (filters.housingScopes?.indexOf('None') !== -1) {
-                        whereBuilder.orWhereNull('housing_scope')
+                    if (filters.housingScopes?.geom) {
+                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+                            whereBuilder.orWhereNull('hsg.type')
+                        }
+                        whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+                    } else {
+                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
+                            whereBuilder.orWhereNull('housing_scope')
+                        }
+                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
                     }
-                    whereBuilder.orWhereIn('housing_scope', filters.housingScopes)
                 })
             }
             if (filters.dataYears?.length) {
@@ -163,12 +171,14 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.raw_address as owner_raw_address',
                 'o.full_name',
                 'o.administrator',
-                db.raw('json_agg(campaigns) campaign_ids')
+                db.raw('json_agg(campaigns) campaign_ids'),
+                db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
+            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 
@@ -182,9 +192,10 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             })
 
         const housingCount: number = await db(housingTable)
-            .count()
+            .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

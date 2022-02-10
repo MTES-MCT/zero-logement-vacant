@@ -1,4 +1,5 @@
 import { SelectOption } from './SelectOption';
+import { HousingScopes } from './Establishment';
 
 export interface HousingFilters {
     ownerKinds: string[];
@@ -13,7 +14,7 @@ export interface HousingFilters {
     vacancyDurations: string[];
     isTaxedValues: string[];
     localities: string[];
-    housingScopes: string[];
+    housingScopes: HousingScopes;
     dataYears: number[];
     query: string;
 }

@@ -3,6 +3,7 @@ import { localitiesTable } from './localityRepository';
 import { EstablishmentApi } from '../models/EstablishmentApi';
 
 export const establishmentsTable = 'establishments';
+export const housingScopeGeometryTable = 'housing_scopes_geom';
 
 const get = async (establishmentId: string): Promise<EstablishmentApi> => {
     try {
@@ -20,7 +21,10 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                     return <EstablishmentApi>{
                         id: result.id,
                         name: result.name,
-                        housingScopes: result.housing_scopes ?? [],
+                        housingScopes: {
+                            geom: false,
+                            scopes: result.housing_scopes
+                        },
                         localities: result.localities
                             .map((l: { geo_code: any; name: any; }) => ({
                                 geoCode: l.geo_code,

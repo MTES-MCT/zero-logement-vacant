@@ -9,6 +9,7 @@ import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
 import { RequestUser } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
+import ownerRepository from '../repositories/ownerRepository';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -82,20 +83,6 @@ const exportHousingWithFilters = async (request: Request, response: Response): P
 
 const exportHousingList = async (housingList: HousingApi[], fileName: string, response: Response): Promise<Response> => {
 
-    const housingAdresses = await addressService.normalizeAddresses(
-        housingList.map((housing: HousingApi) => ({
-            housingId: housing.id,
-            rawAddress: housing.rawAddress
-        }))
-    )
-
-    const ownerAdresses = await addressService.normalizeAddresses(
-        housingList.map((housing: HousingApi) => ({
-            housingId: housing.owner.id,
-            rawAddress: housing.owner.rawAddress
-        }))
-    )
-
     const workbook = new ExcelJS.Workbook();
     const housingWorksheet = workbook.addWorksheet('Logements');
     const ownerWorksheet = workbook.addWorksheet('Propriétaires');
@@ -109,14 +96,16 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
 
+    console.log('ADDRERERR', housingList.map(_ => _.owner.address))
+
     housingList.map((housing: HousingApi) => {
         housingWorksheet.addRow({
             invariant: housing.invariant,
             owner: housing.owner.fullName,
             ownerRawAddress: reduceRawAddress(housing.owner.rawAddress),
-            ownerAddress: reduceAddressApi(ownerAdresses.find(_ => _.housingId === housing.owner.id)?.addressApi),
+            ownerAddress: reduceAddressApi(housing.owner.address),
             housingRawAddress: reduceRawAddress(housing.rawAddress),
-            housingAddress: reduceAddressApi(housingAdresses.find(_ => _.housingId === housing.id)?.addressApi)
+            housingAddress: reduceAddressApi(housing.address)
         });
     })
 
@@ -152,12 +141,12 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         const row: any = {
             owner: ownerHousing.owner.fullName,
             ownerRawAddress: reduceRawAddress(ownerHousing.owner.rawAddress),
-            ownerAddress: reduceAddressApi(ownerAdresses.find(_ => _.housingId === ownerHousing.owner.id)?.addressApi)
+            ownerAddress: reduceAddressApi(ownerHousing.owner.address)
         }
 
         ownerHousing.housingList.forEach((housing, index) => {
             row[`housingRawAddress_${index}`] = reduceRawAddress(ownerHousing.housingList[index]?.rawAddress);
-            row[`housingAddress_${index}`] = reduceAddressApi(housingAdresses.find(_ => _.housingId === housing.id)?.addressApi)
+            row[`housingAddress_${index}`] = reduceAddressApi(housing.address)
         })
 
         ownerWorksheet.addRow(row);
@@ -183,28 +172,31 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     console.log('Normalize address')
 
-    const housingList = await housingRepository.listWithFilters({}, 0, 10000)
+    const establishmentId = request.params.establishmentId;
+
+    const localities = await localityRepository.listByEstablishmentId(establishmentId)
+
+    const housingList = await housingRepository.listWithFilters({localities: localities.map(_ => _.geoCode)}, 1, 10000)
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.entities.map((housing: HousingApi) => ({
-            housingId: housing.id,
-            rawAddress: housing.rawAddress
+            addressId: housing.id,
+            rawAddress: housing.rawAddress,
+            inseeCode: housing.inseeCode
+        }))
+    )
+    await housingRepository.updateAddressList(housingAdresses)
+
+    const ownerAdresses = await addressService.normalizeAddresses(
+        housingList.entities.map((housing: HousingApi) => ({
+            addressId: housing.owner.id,
+            rawAddress: housing.owner.rawAddress
         }))
     )
 
-    const update = 'UPDATE housing as h SET ' +
-    'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
-    'FROM (values' +
-        housingAdresses // TODO filter only results with same latitude and longitude
-            .filter(ha => ha.housingId)
-            .map(ha => `('${ha.housingId}', '${ha.addressApi.postalCode}', '${ha.addressApi.houseNumber ?? ''}', '${escapeValue(ha.addressApi.street)}', '${escapeValue(ha.addressApi.city)}')`)
-     +
-    ') as c(id, postal_code, house_number, street, city)' +
-    ' WHERE h.id::text = c.id'
+    await ownerRepository.updateAddressList(ownerAdresses)
 
-    await housingRepository.rawUpdate(update)
-
-    return response.status(200).json(housingAdresses)
+    return response.sendStatus(200)
 
 }
 
@@ -215,10 +207,6 @@ const reduceAddressApi = (addressApi?: AddressApi) => {
 
 const reduceRawAddress = (rawAddress?: string[]) => {
     return rawAddress ? rawAddress.filter(_ => _).join(String.fromCharCode(10)) : rawAddress
-}
-
-const escapeValue = (value?: string) => {
-    return value ? value.replace(/'/g, '\'\'') : ''
 }
 
 const housingController =  {

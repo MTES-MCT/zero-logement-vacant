@@ -5,6 +5,7 @@ import { CampaignHousingStatusApi } from './CampaignHousingStatusApi';
 export interface HousingApi {
     id: string;
     invariant: string,
+    inseeCode: string,
     rawAddress: string[];
     address: AddressApi;
     latitude?: number;

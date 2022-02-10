@@ -1,5 +1,7 @@
 import db from './db';
 import { OwnerApi } from '../models/OwnerApi';
+import { AddressApi } from '../models/AddressApi';
+import { HousingApi } from '../models/HousingApi';
 
 export const ownerTable = 'owners';
 
@@ -34,9 +36,39 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
     }
 }
 
+
+const updateAddressList = async (ownerAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
+    try {
+        const update = 'UPDATE owners as o SET ' +
+            'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
+            'FROM (values' +
+            ownerAdresses
+                .filter(oa => oa.addressId)
+                .map(ha => `('${ha.addressId}', '${ha.addressApi.postalCode}', '${ha.addressApi.houseNumber ?? ''}', '${escapeValue(ha.addressApi.street)}', '${escapeValue(ha.addressApi.city)}')`)
+            +
+            ') as c(id, postal_code, house_number, street, city)' +
+            ' WHERE o.id::text = c.id'
+
+        return db.raw(update);
+    } catch (err) {
+        console.error('Listing housing failed', err);
+        throw new Error('Listing housing failed');
+    }
+}
+
+const escapeValue = (value?: string) => {
+    return value ? value.replace(/'/g, '\'\'') : ''
+}
+
 export const parseOwnerApi = (result: any) => <OwnerApi>{
     id: result.id,
     rawAddress: result.raw_address.filter((_: string) => _ && _.length),
+    address: <AddressApi>{
+        houseNumber: result.house_number,
+        street: result.street,
+        postalCode: result.postal_code,
+        city: result.city
+    },
     fullName: result.full_name,
     administrator: result.administrator,
     birthDate: result.birth_date,
@@ -46,5 +78,6 @@ export const parseOwnerApi = (result: any) => <OwnerApi>{
 
 export default {
     get,
-    update
+    update,
+    updateAddressList
 }

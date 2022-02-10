@@ -49,19 +49,21 @@ const normalizeAdressesOld = async (addresses: string[][]): Promise<AddressApi[]
     })
 }
 
-const normalizeAddresses = async (addresses: {housingId: string, rawAddress: string[]}[]): Promise<{ housingId: string, addressApi: AddressApi }[]> => {
+const normalizeAddresses = async (addresses: {addressId: string, rawAddress: string[], inseeCode?: string}[]): Promise<{ addressId: string, addressApi: AddressApi }[]> => {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet();
 
     worksheet.columns = [
-        { header: 'housingId', key: 'housingId' },
-        { header: 'rawAddress', key: 'rawAddress' }
+        { header: 'addressId', key: 'addressId' },
+        { header: 'rawAddress', key: 'rawAddress' },
+        { header: 'inseeCode', key: 'inseeCode' }
     ];
 
     worksheet.addRows(addresses.map(address => ({
-        housingId: address.housingId,
-        rawAddress: address.rawAddress.join(' ')
+        addressId: address.addressId,
+        rawAddress: address.rawAddress.join(' '),
+        inseeCode: address.inseeCode
     })));
 
     const tmpCsvFileName = `${new Date().getTime()}.csv`;
@@ -70,6 +72,7 @@ const normalizeAddresses = async (addresses: {housingId: string, rawAddress: str
         .then(() => {
             const form = new FormData();
             form.append('data', fs.createReadStream(tmpCsvFileName));
+            form.append('citycode', 'inseeCode');
             form.append('columns', 'rawAddress');
             form.append('result_columns', 'result_type');
             form.append('result_columns', 'result_housenumber');
@@ -90,8 +93,8 @@ const normalizeAddresses = async (addresses: {housingId: string, rawAddress: str
 
     return csvText.split('\n').slice(1).map(line => {
         const columns = line.split(',')
-        return <{ housingId: string, addressApi: AddressApi }>{
-            housingId: columns[headers.indexOf('housingId')],
+        return <{ addressId: string, addressApi: AddressApi }>{
+            addressId: columns[headers.indexOf('addressId')],
             addressApi: {
                 houseNumber: columns[headers.indexOf('result_housenumber')],
                 street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,

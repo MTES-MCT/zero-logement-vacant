@@ -79,13 +79,11 @@
 .fr-tag-click {
   color: var(--blue-france-113) !important;
   background-color: #E5E5F4 !important;
+  margin-right: 8px;
+  margin-bottom: 4px;
 
   button {
     background-color: #E5E5F4 !important;
-  }
-
-  & + .fr-tag-click {
-    margin-left: 8px;
   }
 }
 

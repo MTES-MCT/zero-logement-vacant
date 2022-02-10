@@ -3,7 +3,6 @@ import { Button, Tab, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
-    createCampaignReminder,
     listCampaignHousing,
     removeCampaignHousingList,
     updateCampaignHousingList,
@@ -23,8 +22,6 @@ import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignHousingListStatusModal
     from '../../components/modals/CampaignHousingStatusModal/CampaignHousingListStatusModal';
-import CampaignReminderCreationModal
-    from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
@@ -109,9 +106,9 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         setUpdatingModalSelectedHousing(undefined);
     }
 
-    const submitCampaignReminder = (startMonth: string) => {
-        dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
-    }
+    // const submitCampaignReminder = (startMonth: string) => {
+    //     dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
+    // }
 
     return (
         <>

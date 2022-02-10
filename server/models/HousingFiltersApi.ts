@@ -1,3 +1,5 @@
+import { HousingScopesApi } from './EstablishmentApi';
+
 export interface HousingFiltersApi {
     ownerKinds?: string[];
     ownerAges?: string[];
@@ -13,7 +15,7 @@ export interface HousingFiltersApi {
     campaignIds?: string[];
     ownerIds?: string[];
     localities?: string[];
-    housingScopes?: string[];
+    housingScopes?: HousingScopesApi;
     dataYears?: number[];
     query?: string;
 }

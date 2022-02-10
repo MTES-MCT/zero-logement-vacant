@@ -79,9 +79,11 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                           filters={filters.localities}
                           onChange={onChange && (values => onChange({localities: values}))}/>
-            <HousingFilterBadges options={[...establishment.housingScopes?.scopes?.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                          filters={filters.housingScopes.scopes}
-                          onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
+            {establishment.housingScopes && establishment.housingScopes.scopes &&
+                <HousingFilterBadges options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
+                filters={filters.housingScopes.scopes}
+                onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
+            }
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}
                           onChange={onChange && (() => onChange({query: ''}))}/>

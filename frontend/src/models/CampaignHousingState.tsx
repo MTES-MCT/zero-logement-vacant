@@ -210,6 +210,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
                         title: 'Vendu',
                         color: '--blue-ecume-main-400',
                         bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Cause inconnue',
+                        color: '--blue-ecume-sun-247-active',
+                        bgcolor: '--purple-glycine-975'
                     }
                 ]
             },
@@ -232,6 +237,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
                         title: 'Vendu',
                         color: '--blue-ecume-main-400',
                         bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Cause inconnue',
+                        color: '--blue-ecume-sun-247-active',
+                        bgcolor: '--purple-glycine-975'
                     }
                 ]
             }

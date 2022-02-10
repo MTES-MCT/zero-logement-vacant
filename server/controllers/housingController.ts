@@ -96,8 +96,6 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
 
-    console.log('ADDRERERR', housingList.map(_ => _.owner.address))
-
     housingList.map((housing: HousingApi) => {
         housingWorksheet.addRow({
             invariant: housing.invariant,

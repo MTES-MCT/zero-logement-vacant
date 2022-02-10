@@ -182,7 +182,6 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
     };
 };
 
-
 export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean, housingIds: string[]) => {
 
     return function (dispatch: Dispatch) {
@@ -190,6 +189,24 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
         dispatch(showLoading());
 
         campaignService.createCampaign(draftCampaign, allHousing, housingIds)
+            .then((campaignId) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: CAMPAIGN_CREATED,
+                    campaignId
+                });
+                listCampaigns()(dispatch)
+            });
+    };
+};
+
+export const createCampaignReminder = (campaign: Campaign, startMonth: string, allHousing: boolean, housingIds: string[]) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        campaignService.createCampaignReminder(campaign, startMonth, allHousing, housingIds)
             .then((campaignId) => {
                 dispatch(hideLoading());
                 dispatch({

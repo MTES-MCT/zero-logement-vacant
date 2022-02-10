@@ -32,7 +32,7 @@ export function genAuthUser() {
         establishment: {
             id: genNumber(10),
             name: randomstring.generate(),
-            housingScopes: [],
+            housingScopes: {geom: true, scopes: []},
             localities: []
         }
     } as AuthUser;

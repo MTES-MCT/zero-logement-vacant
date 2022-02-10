@@ -1,4 +1,4 @@
-import { CampaignApi } from '../models/CampaignApi';
+import { CampaignApi, CampaignKinds } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingTable, ownersHousingTable } from './housingRepository';
@@ -81,9 +81,24 @@ const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
     }
 }
 
+const lastReminderNumber = async (establishmentId: string, campaignNumber: number): Promise<any> => {
+    try {
+        return db(campaignsTable)
+            .where('establishment_id', establishmentId)
+            .andWhere('campaign_number', campaignNumber)
+            .andWhere('kind', CampaignKinds.Remind)
+            .max('reminder_number')
+            .first()
+            .then(_ => _ ? _.max : 0);
+    } catch (err) {
+        console.error('Listing campaigns failed', err);
+        throw new Error('Listing campaigns failed');
+    }
+}
+
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 
-    console.log('campaignApi', campaignApi)
+    console.log('Insert campaignApi for establishment', campaignApi.establishmentId)
     try {
         return db(campaignsTable)
             .insert(formatCampaignApi(campaignApi))
@@ -126,7 +141,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     startMonth: result.start_month,
     kind: result.kind,
     reminderNumber: result.reminder_number,
-    filters: result.filters,
+    filters: {...result.filters, housingScopes: result.filters.housingScopes?.scopes ? result.filters.housingScopes : {geom: false, scopes: result.filters.housingScopes}},
     createdBy: result.created_by,
     createdAt: result.created_at,
     validatedAt: result.validated_at,
@@ -162,6 +177,7 @@ export default {
     get,
     list,
     lastCampaignNumber,
+    lastReminderNumber,
     insert,
     update,
     deleteCampaign

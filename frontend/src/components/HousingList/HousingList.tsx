@@ -119,7 +119,15 @@ const HousingList = (
     const ownerColumn = {
         name: 'owner',
         label: 'Propriétaire',
-        render: ({ owner }: Housing) => <div>{owner.fullName}</div>
+        render: ({ owner }: Housing) =>
+            <>
+                <div>{owner.fullName}</div>
+                {owner.administrator &&
+                    <div>
+                        ({owner.administrator})
+                    </div>
+                }
+            </>
     };
 
     const ownerAddressColumn = {

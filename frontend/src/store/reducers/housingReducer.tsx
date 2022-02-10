@@ -23,7 +23,7 @@ export const initialFilters = {
     vacancyDurations: [],
     isTaxedValues: [],
     localities: [],
-    housingScopes: [],
+    housingScopes: {geom: true, scopes: []},
     dataYears: [2021],
     query: ''
 } as HousingFilters;

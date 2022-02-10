@@ -6,6 +6,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
+import { housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const ownersHousingTable = 'owners_housing';
@@ -135,12 +136,19 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
-            if (filters.housingScopes?.length) {
+            if (filters.housingScopes && filters.housingScopes.scopes.length) {
                 queryBuilder.where(function(whereBuilder: any) {
-                    if (filters.housingScopes?.indexOf('None') !== -1) {
-                        whereBuilder.orWhereNull('housing_scope')
+                    if (filters.housingScopes?.geom) {
+                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+                            whereBuilder.orWhereNull('hsg.type')
+                        }
+                        whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+                    } else {
+                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
+                            whereBuilder.orWhereNull('housing_scope')
+                        }
+                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
                     }
-                    whereBuilder.orWhereIn('housing_scope', filters.housingScopes)
                 })
             }
             if (filters.dataYears?.length) {
@@ -157,11 +165,24 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
         }
 
         const query = db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name', db.raw('json_agg(campaigns) campaign_ids'))
+            .select(
+                `${housingTable}.*`,
+                'o.id as owner_id',
+                'o.raw_address as owner_raw_address',
+                'o.full_name',
+                'o.administrator',
+                'o.house_number as owner_house_number',
+                'o.street as owner_street',
+                'o.postal_code as owner_postal_code',
+                'o.city as owner_city',
+                db.raw('json_agg(campaigns) campaign_ids'),
+                db.raw('array_agg(distinct(hsg.type))')
+            )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
+            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 
@@ -175,9 +196,10 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             })
 
         const housingCount: number = await db(housingTable)
-            .count()
+            .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 
@@ -196,7 +218,17 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     try {
         return db
-            .select(`${housingTable}.*`, 'o.id as owner_id', 'o.raw_address as owner_raw_address', 'o.full_name')
+            .select(
+                `${housingTable}.*`,
+                'o.id as owner_id',
+                'o.raw_address as owner_raw_address',
+                'o.full_name',
+                'o.administrator',
+                'o.house_number as owner_house_number',
+                'o.street as owner_street',
+                'o.postal_code as owner_postal_code',
+                'o.city as owner_city'
+            )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
@@ -208,19 +240,34 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
-const rawUpdate = async (update: string): Promise<HousingApi[]> => {
+const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
-        return db.raw(update)
+        const update = 'UPDATE housing as h SET ' +
+            'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
+            'FROM (values' +
+            housingAdresses
+                .filter(ha => ha.addressId)
+                .map(ha => `('${ha.addressId}', '${ha.addressApi.postalCode}', '${ha.addressApi.houseNumber ?? ''}', '${escapeValue(ha.addressApi.street)}', '${escapeValue(ha.addressApi.city)}')`)
+            +
+            ') as c(id, postal_code, house_number, street, city)' +
+            ' WHERE h.id::text = c.id'
+
+        return db.raw(update);
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');
     }
 }
 
+const escapeValue = (value?: string) => {
+    return value ? value.replace(/'/g, '\'\'') : ''
+}
+
 const parseHousingApi = (result: any) => (
     <HousingApi>{
         id: result.id,
         invariant: result.invariant,
+        inseeCode: result.insee_code,
         rawAddress: result.raw_address,
         address: <AddressApi>{
             houseNumber: result.house_number,
@@ -233,7 +280,14 @@ const parseHousingApi = (result: any) => (
         owner: <OwnerApi>{
             id: result.owner_id,
             rawAddress: result.owner_raw_address,
-            fullName: result.full_name
+            fullName: result.full_name,
+            administrator: result.administrator,
+            address: <AddressApi>{
+                houseNumber: result.owner_house_number,
+                street: result.owner_street,
+                postalCode: result.owner_postal_code,
+                city: result.owner_city
+            }
         },
         livingArea: result.living_area,
         housingKind: result.housing_kind,
@@ -248,5 +302,5 @@ const parseHousingApi = (result: any) => (
 export default {
     listWithFilters,
     listByIds,
-    rawUpdate
+    updateAddressList
 }

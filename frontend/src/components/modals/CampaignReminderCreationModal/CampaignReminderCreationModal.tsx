@@ -14,39 +14,39 @@ import {
 } from '@dataesr/react-dsfr';
 import { addMonths, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../../../store/reducers/applicationReducers';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
-import { CampaignKinds, DraftCampaign, getCampaignKindLabel } from '../../../models/Campaign';
+import { Campaign } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { hasFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
-import { DefaultOption } from '../../../models/SelectOption';
 
-const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
+const CampaignReminderCreationModal = (
+    {
+        housingCount,
+        initialCampaign,
+        onSubmit,
+        onClose
+    }: {
+        housingCount: number,
+        initialCampaign: Campaign,
+        onSubmit: (startMonth: string) => void,
+        onClose: () => void
+    }) => {
 
     const [campaignStartMonth, setCampaignStartMonth] = useState('');
-    const [campaignKind, setCampaignKind] = useState('');
     const [errors, setErrors] = useState<any>({});
 
     const campaignForm = yup.object().shape({
-        campaignStartMonth: yup.string().required('Veuillez sélectionner le mois de lancement de la campagne.'),
-        campaignKind: yup.string().required('Veuillez sélectionner le type de campagne.')
+        campaignStartMonth: yup.string().required('Veuillez sélectionner le mois de lancement de la campagne de relance.'),
     });
-
-    const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = () => {
         campaignForm
-            .validate({ campaignStartMonth, campaignKind }, {abortEarly: false})
+            .validate({ campaignStartMonth }, {abortEarly: false})
             .then(() => {
-                onSubmit({
-                    startMonth: campaignStartMonth,
-                    kind: parseInt(campaignKind),
-                    filters
-                } as DraftCampaign);
+                onSubmit(campaignStartMonth);
             })
             .catch(err => {
                 const object: any = {};
@@ -69,14 +69,6 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
         })
     ];
 
-    const campaignKindOptions = [
-        DefaultOption,
-        {value: String(CampaignKinds.Initial), label: getCampaignKindLabel(CampaignKinds.Initial)},
-        {value: String(CampaignKinds.Surveying), label: getCampaignKindLabel(CampaignKinds.Surveying)},
-        {value: String(CampaignKinds.DoorToDoor), label: getCampaignKindLabel(CampaignKinds.DoorToDoor)},
-        {value: String(CampaignKinds.BeforeZlv), label: getCampaignKindLabel(CampaignKinds.BeforeZlv)}
-    ]
-
     return (
         <Modal isOpen={true}
                hide={() => onClose()}
@@ -84,7 +76,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>
                 <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-                Créer la campagne
+                Créer la campagne de relance
             </ModalTitle>
             <ModalContent>
                 <Container fluid>
@@ -105,34 +97,15 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                                 data-testid="start-month-select"
                             />
                         </Col>
-                        <Col n="5">
-                            <Select
-                                label="Type"
-                                options={campaignKindOptions}
-                                selected={campaignKind}
-                                onChange={(e: any) => setCampaignKind(e.target.value)}
-                                messageType={errors['campaignKind'] ? 'error' : undefined}
-                                message={errors['campaignKind']}
-                            />
-                        </Col>
                     </Row>
                     <Row className="fr-mt-4w">
                         <Col>
-                            {hasFilters(filters) ?
+                            {hasFilters(initialCampaign.filters) &&
                                 <>
-                                La liste a été établie à partir des filtres suivants :
                                 <div className="fr-my-1w">
-                                    <HousingFiltersBadges filters={filters}/>
+                                    <HousingFiltersBadges filters={initialCampaign.filters}/>
                                 </div>
-                                </> :
-                                <div>La liste a été établie sans filtres.</div>
-
-                            }
-                            {paginatedHousing.totalCount === housingCount ?
-                                <></> :
-                                paginatedHousing.totalCount - housingCount === 1 ?
-                                    <i>Un logement a été retiré des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i> :
-                                    <i>{paginatedHousing.totalCount - housingCount} logements ont été retirés des résultats de la recherche{hasFilters(filters) && <> avec ces filtres</>}.</i>
+                                </>
                             }
                         </Col>
                     </Row>
@@ -155,5 +128,5 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
     );
 };
 
-export default CampaignCreationModal;
+export default CampaignReminderCreationModal;
 

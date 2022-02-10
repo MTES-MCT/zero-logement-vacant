@@ -98,7 +98,7 @@ const lastReminderNumber = async (establishmentId: string, campaignNumber: numbe
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 
-    console.log('campaignApi', campaignApi)
+    console.log('Insert campaignApi for establishment', campaignApi.establishmentId)
     try {
         return db(campaignsTable)
             .insert(formatCampaignApi(campaignApi))

@@ -33,7 +33,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
-    const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
+    // const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
     const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
@@ -48,7 +48,7 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
     const menuActions = [
         { title: 'Changer le statut', selectedHousing, onClick: () => setUpdatingModalSelectedHousing(selectedHousing) },
-        { title: 'Créer une relance', selectedHousing, onClick: () => setReminderModalSelectedHousing(selectedHousing) },
+        // { title: 'Créer une relance', selectedHousing, onClick: () => setReminderModalSelectedHousing(selectedHousing) },
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
     ] as MenuAction[]
 
@@ -140,13 +140,13 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
                         onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                 }
-                {reminderModalSelectedHousing &&
-                    <CampaignReminderCreationModal
-                        housingCount={selectedCount}
-                        initialCampaign={campaign}
-                        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}
-                        onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
-                }
+                {/*{reminderModalSelectedHousing &&*/}
+                {/*    <CampaignReminderCreationModal*/}
+                {/*        housingCount={selectedCount}*/}
+                {/*        initialCampaign={campaign}*/}
+                {/*        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}*/}
+                {/*        onClose={() => setUpdatingModalSelectedHousing(undefined)}/>*/}
+                {/*}*/}
                 {isRemovingModalOpen &&
                     <ConfirmationModal
                         onSubmit={() => {

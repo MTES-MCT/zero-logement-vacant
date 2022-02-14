@@ -16,9 +16,16 @@ import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampainView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { isValidUser } from './models/User';
+import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 
 
 function AppWrapper () {
+
+    const instance = createInstance({
+        urlBase: 'https://stats.data.gouv.fr/',
+        siteId: 212,
+        linkTracking: false, // optional, default value: true
+    })
 
     const store = createStore(
         applicationReducer,
@@ -26,9 +33,11 @@ function AppWrapper () {
     );
 
     return (
-        <Provider store={store}>
-            <App />
-        </Provider>
+        <MatomoProvider value={instance}>
+            <Provider store={store}>
+                <App />
+            </Provider>
+        </MatomoProvider>
     );
 }
 

@@ -46,7 +46,7 @@ const HousingListFilter = () => {
         const prevFilterValues = prevFilterEntry ? prevFilterEntry[1] as Array<string> : []
         const newValues = filterValues.filter(_ => prevFilterValues.indexOf(_) === -1)
         if (newValues.length) {
-            trackEvent({ category: 'Filtre', action: filterLabel, name: newValues.toString() })
+            trackEvent({ category: 'Filtre', action: `Filtre par ${filterLabel}`, name: newValues.toString(), value: establishment.siren })
         }
     }
 

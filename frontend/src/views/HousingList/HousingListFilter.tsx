@@ -19,20 +19,35 @@ import {
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
+import { useMatomo } from '@datapunt/matomo-tracker-react'
+
 
 const HousingListFilter = () => {
 
     const dispatch = useDispatch();
+    const { trackEvent } = useMatomo()
 
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
     const [expandFilters, setExpandFilters] = useState<boolean>(false);
 
-    const onChangeFilters = (changedFilters: any) => {
+    const onChangeFilters = (changedFilters: any, filterLabel: string) => {
         dispatch(changeHousingFiltering({
             ...filters,
             ...changedFilters
         }))
+        trackNewFilter(changedFilters, filterLabel)
+    }
+
+    const trackNewFilter = (changedFilters: any, filterLabel: string) => {
+        const filterEntry = Object.entries(changedFilters)[0]
+        const prevFilterEntry = Object.entries(filters).find(_ => _[0] === filterEntry[0])
+        const filterValues = filterEntry[1] as Array<string>
+        const prevFilterValues = prevFilterEntry ? prevFilterEntry[1] as Array<string> : []
+        const newValues = filterValues.filter(_ => prevFilterValues.indexOf(_) === -1)
+        if (newValues.length) {
+            trackEvent({ category: 'Filtre', action: filterLabel, name: newValues.toString() })
+        }
     }
 
     return (
@@ -46,25 +61,25 @@ const HousingListFilter = () => {
                         <AppMultiSelect label="Type"
                                         options={ownerKindOptions}
                                         initialValues={filters.ownerKinds}
-                                        onChange={(values) => onChangeFilters({ownerKinds: values})}/>
+                                        onChange={(values) => onChangeFilters({ownerKinds: values}, 'Type')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Âge"
                                         options={ownerAgeOptions}
                                         initialValues={filters.ownerAges}
-                                        onChange={(values) => onChangeFilters({ownerAges: values})}/>
+                                        onChange={(values) => onChangeFilters({ownerAges: values}, 'Âge')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Multi-propriété"
                                         options={multiOwnerOptions}
                                         initialValues={filters.multiOwners}
-                                        onChange={(values) => onChangeFilters({multiOwners: values})}/>
+                                        onChange={(values) => onChangeFilters({multiOwners: values}, 'Multi-propriété')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Ayants droit"
                                         options={beneficiaryCountOptions}
                                         initialValues={filters.beneficiaryCounts}
-                                        onChange={(values) => onChangeFilters({beneficiaryCounts: values})}/>
+                                        onChange={(values) => onChangeFilters({beneficiaryCounts: values}, 'Ayants droit')}/>
                     </Col>
                 </Row>
             </div>
@@ -78,37 +93,37 @@ const HousingListFilter = () => {
                         <AppMultiSelect label="Type"
                                         options={housingKindOptions}
                                         initialValues={filters.housingKinds}
-                                        onChange={(values) => onChangeFilters({housingKinds: values})}/>
+                                        onChange={(values) => onChangeFilters({housingKinds: values}, 'Type')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Surface"
                                         options={housingAreaOptions}
                                         initialValues={filters.housingAreas}
-                                        onChange={(values) => onChangeFilters({housingAreas: values})}/>
+                                        onChange={(values) => onChangeFilters({housingAreas: values}, 'Surface')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="État"
                                         options={housingStateOptions}
                                         initialValues={filters.housingStates}
-                                        onChange={(values) => onChangeFilters({housingStates: values})}/>
+                                        onChange={(values) => onChangeFilters({housingStates: values}, 'État')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Date de construction"
                                         options={buildingPeriodOptions}
                                         initialValues={filters.buildingPeriods}
-                                        onChange={(values) => onChangeFilters({buildingPeriods: values})}/>
+                                        onChange={(values) => onChangeFilters({buildingPeriods: values}, 'Date de construction')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label={`Durée de vacance au 01/01/${config.dataYear}`}
                                         options={vacancyDurationOptions}
                                         initialValues={filters.vacancyDurations}
-                                        onChange={(values) => onChangeFilters({vacancyDurations: values})}/>
+                                        onChange={(values) => onChangeFilters({vacancyDurations: values}, 'Durée de vacance au 01/01/${config.dataYear}')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Taxé (THLV ou TLV)"
                                         options={taxedOptions}
                                         initialValues={filters.isTaxedValues}
-                                        onChange={(values) => onChangeFilters({isTaxedValues: values})}/>
+                                        onChange={(values) => onChangeFilters({isTaxedValues: values}, 'Taxé (THLV ou TLV)')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
@@ -119,13 +134,13 @@ const HousingListFilter = () => {
                         <AppMultiSelect label="Commune"
                                         options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                                         initialValues={filters.localities}
-                                        onChange={(values) => onChangeFilters({localities: values})}/>
+                                        onChange={(values) => onChangeFilters({localities: values}, 'Commune')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
                                         options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                                         initialValues={filters.housingScopes.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}})}/>
+                                        onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
                     </Col>
                 </Row>
             </div>

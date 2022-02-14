@@ -20,12 +20,14 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
 import { useMatomo } from '@datapunt/matomo-tracker-react'
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 
 const HousingListFilter = () => {
 
     const dispatch = useDispatch();
-    const { trackEvent } = useMatomo()
+    const { trackEvent } = useMatomo();
+    const campaignList = useCampaignList();
 
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
@@ -143,6 +145,19 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
                     </Col>
                 </Row>
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Campagnes</b>
+                </Text>
+                {campaignList &&
+                    <Row gutters>
+                        <Col n="3">
+                            <AppMultiSelect label="Campagne"
+                                            options={campaignList.map(c => ({ value: c.id, label: c.name }))}
+                                            initialValues={filters.campaignIds}
+                                            onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
+                        </Col>
+                    </Row>
+                }
             </div>
             }
             <Row gutters>

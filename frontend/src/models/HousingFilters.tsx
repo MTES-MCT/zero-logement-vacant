@@ -13,6 +13,7 @@ export interface HousingFilters {
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
+    campaignIds: string[];
     localities: string[];
     housingScopes: HousingScopes;
     dataYears: number[];

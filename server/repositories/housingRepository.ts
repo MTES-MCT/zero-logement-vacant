@@ -152,7 +152,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 })
             }
             if (filters.dataYears?.length) {
-                queryBuilder.whereRaw('data_years && array[?]::integer[]', filters.dataYears)
+                queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {

@@ -4,7 +4,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
-    contactsCountOptions,
+    contactsCountOptions, dataYearsOptions,
     housingAreaOptions,
     HousingFilterOption, HousingFilters,
     housingKindOptions,
@@ -91,6 +91,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                      filters={filters.campaignIds}
                                      onChange={onChange && (values => onChange({campaignIds: values}))}/>
             }
+            <HousingFilterBadges options={dataYearsOptions}
+                                 filters={filters.dataYears?.map(_ => String(_))}
+                                 onChange={onChange && (values => onChange({dataYears: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}
                           onChange={onChange && (() => onChange({query: ''}))}/>

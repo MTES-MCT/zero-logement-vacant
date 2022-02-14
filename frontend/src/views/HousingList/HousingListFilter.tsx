@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    buildingPeriodOptions,
+    buildingPeriodOptions, dataYearsOptions,
     housingAreaOptions,
     housingKindOptions,
     housingStateOptions,
@@ -148,16 +148,22 @@ const HousingListFilter = () => {
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Campagnes</b>
                 </Text>
-                {campaignList &&
-                    <Row gutters>
+                <Row gutters>
+                    {campaignList &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
                                             options={campaignList.map(c => ({ value: c.id, label: c.name }))}
                                             initialValues={filters.campaignIds}
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>
-                    </Row>
-                }
+                    }
+                    <Col n="3">
+                        <AppMultiSelect label="Millésime"
+                                        options={dataYearsOptions}
+                                        initialValues={filters.dataYears.map(_ => String(_))}
+                                        onChange={(values) => onChangeFilters({dataYears: values}, 'Millésime')}/>
+                    </Col>
+                </Row>
             </div>
             }
             <Row gutters>

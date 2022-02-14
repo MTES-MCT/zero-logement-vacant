@@ -175,7 +175,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(campaigns) campaign_ids'),
+                db.raw('json_agg(distinct(campaigns)) campaign_ids'),
                 db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)

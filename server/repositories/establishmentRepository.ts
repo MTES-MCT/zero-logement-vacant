@@ -21,6 +21,7 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                     return <EstablishmentApi>{
                         id: result.id,
                         name: result.name,
+                        siren: result.siren,
                         housingScopes: {
                             geom: false,
                             scopes: result.housing_scopes

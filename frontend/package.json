@@ -23,7 +23,6 @@
     "date-fns": "^2.24.0",
     "fetch-intercept": "^2.4.0",
     "lodash": "^4.17.21",
-    "node-sass": "^6.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^7.2.5",
@@ -59,6 +58,7 @@
     "eslint": "^7.11.0",
     "eslint-plugin-react": "^7.26.1",
     "jest-fetch-mock": "^3.0.3",
-    "randomstring": "^1.2.1"
+    "randomstring": "^1.2.1",
+    "sass": "^1.49.7"
   }
 }

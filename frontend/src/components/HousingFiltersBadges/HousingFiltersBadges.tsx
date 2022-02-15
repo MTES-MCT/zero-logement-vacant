@@ -86,13 +86,13 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                      filters={filters.housingScopes.scopes}
                                      onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
             }
-            {campaignList &&
+            {campaignList && filters.campaignIds &&
                 <HousingFilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
                                      filters={filters.campaignIds}
                                      onChange={onChange && (values => onChange({campaignIds: values}))}/>
             }
             <HousingFilterBadges options={dataYearsOptions}
-                                 filters={filters.dataYears?.map(_ => String(_))}
+                                 filters={(filters.dataYears?? []).map(_ => String(_))}
                                  onChange={onChange && (values => onChange({dataYears: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}

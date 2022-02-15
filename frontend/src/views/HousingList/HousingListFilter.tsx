@@ -149,7 +149,7 @@ const HousingListFilter = () => {
                     <b>Campagnes</b>
                 </Text>
                 <Row gutters>
-                    {campaignList &&
+                    {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
                                             options={campaignList.map(c => ({ value: c.id, label: c.name }))}
@@ -160,7 +160,7 @@ const HousingListFilter = () => {
                     <Col n="3">
                         <AppMultiSelect label="Millésime"
                                         options={dataYearsOptions}
-                                        initialValues={filters.dataYears.map(_ => String(_))}
+                                        initialValues={(filters.dataYears ?? []).map(_ => String(_))}
                                         onChange={(values) => onChangeFilters({dataYears: values}, 'Millésime')}/>
                     </Col>
                 </Row>

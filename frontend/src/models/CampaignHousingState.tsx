@@ -46,20 +46,20 @@ export const CampaignHousingStates: CampaignHousingState[] = [
             {
                 title: 'À recontacter',
                 color: '--green-emeraude-sun-425',
-                bgcolor: '--green-emeraude-925'
-            },
-            {
-                title: 'Informations transmises',
-                color: '--green-menthe-sun-373',
-                bgcolor: '--green-menthe-975',
+                bgcolor: '--green-emeraude-925',
                 precisions: [
                     {
-                        title: 'Intéressé',
-                        color: '--green-emeraude-975',
-                        bgcolor: '--green-archipel-sun-391'
+                        title: 'Informations transmises - Encore à convaincre',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
                     },
                     {
-                        title: 'Pas intéressé - à recontacter plus tard',
+                        title: 'Mauvais moment',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Recherche autre interlocuteur',
                         color: '--grey-1000',
                         bgcolor: '--green-menthe-850'
                     }
@@ -79,6 +79,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
                         title: 'Étude faisabilité',
                         color: '--blue-ecume-main-400',
                         bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Informations transmises - rendez-vous à fixer',
+                        color: '--grey-1000',
+                        bgcolor: '--green-menthe-850'
                     },
                     {
                         title: 'Autre',

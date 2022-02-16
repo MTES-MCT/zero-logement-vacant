@@ -31,6 +31,7 @@ router.post('/api/housing/export', jwtCheck, userCheck, housingController.export
 router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
 router.get('/api/housing/campaign/:campaignId/export', jwtCheck, userCheck, housingController.exportHousingByCampaign);
 router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
+router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
 
 router.post('/api/campaign/:campaignId/housing/', jwtCheck, userCheck, campaignHousingController.listCampaignHousing);
 router.get('/api/campaign/housing/owner/:ownerId', jwtCheck, userCheck, campaignHousingController.listCampaignHousingByOwner);

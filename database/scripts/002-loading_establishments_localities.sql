@@ -12,7 +12,7 @@ insert into localities (geo_code, name) values
     ('69388', 'Lyon 8e Arrondissement'),
     ('69389', 'Lyon 9e Arrondissement');
 
-insert into establishments (epci_id, name, localities_id) (
+insert into establishments (siren, name, localities_id) (
     select distinct(epci), libepci, array_agg(l2.id)
     from _localities l1, localities l2
     where lpad(l1.codgeo, 5, '0') = l2.geo_code group by epci, libepci
@@ -21,7 +21,7 @@ insert into establishments (epci_id, name, localities_id) (
 INSERT INTO public.establishments (name, localities_id, available)
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune d''Ajaccio', (select array_agg(id) from localities where geo_code='2A004'), true);
-INSERT INTO establishments(epci_id, name, localities_id, available)
+INSERT INTO establishments(siren, name, localities_id, available)
 VALUES ('251503199', 'SIVU "Auze-Ouest-Cantal"', (select array_agg(id) from localities where geo_code in ('15088', '15182', '15204')), true);
 VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
 INSERT INTO public.establishments (name, localities_id, available)
@@ -38,6 +38,10 @@ INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Fort de France', (select array_agg(id) from localities where geo_code='97209'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('ADIL du Doubs', (select array_agg(id) from localities where geo_code like '25%'), true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Mantes-la-Jolie', (select array_agg(id) from localities where geo_code = '78361'), 217803618, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Montclar', (select array_agg(id) from localities where geo_code = '04126'), 210401261, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -50,7 +54,7 @@ UPDATE public.establishments set localities_id = array_prepend((select id from l
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69389'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_remove(localities_id, (select id from localities where geo_code = '69123')) where name = 'Métropole de Lyon';
 
-update establishments set available = true where epci_id in
+update establishments set available = true where siren in
 ('200066637',
  '200066660',
  '200067205',
@@ -80,5 +84,15 @@ update establishments set available = true where epci_id in
  '200023737',
  '241500230',
  '200067254',
- '200042190'
+ '200042190',
+ '200070043',
+ '200073419',
+ '200065597',
+ '200043081',
+ '242500361',
+ '200066876',
+ '200065886',
+ '247000011',
+ '200067759',
+ '200035731'
 );

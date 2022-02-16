@@ -1,6 +1,6 @@
 insert into housing(invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification,
                     uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
-                    building_year, mutation_date, taxed, data_years, beneficiary_count)
+                    building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind)
 select
        invariant,
        ff_idlocal as local_id,
@@ -22,7 +22,10 @@ select
        to_date(anmutation, 'M/D/YY') as mutation_date,
        trim(txtlv) <> '' as taxed,
        array_agg(annee),
-       ff_ndroit
+       ff_ndroit,
+       batloc,
+       vlcad,
+       ff_ctpdl
 from _extract_zlv_
 where ff_ccthp in ('V', 'L', 'P')
 and ff_idlocal not in (select local_id from housing)

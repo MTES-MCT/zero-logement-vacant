@@ -171,10 +171,12 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
     console.log('Normalize address')
 
     const establishmentId = request.params.establishmentId;
+    const page = request.params.page ? Number(request.params.page) : 1;
+    const perPage = request.params.perPage ? Number(request.params.perPage) : 10000;
 
     const localities = await localityRepository.listByEstablishmentId(establishmentId)
 
-    const housingList = await housingRepository.listWithFilters({localities: localities.map(_ => _.geoCode)}, 1, 10000)
+    const housingList = await housingRepository.listWithFilters({localities: localities.map(_ => _.geoCode)}, page, perPage)
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.entities.map((housing: HousingApi) => ({

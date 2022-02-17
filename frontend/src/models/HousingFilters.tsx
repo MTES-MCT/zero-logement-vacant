@@ -13,9 +13,10 @@ export interface HousingFilters {
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
+    campaignIds?: string[];
     localities: string[];
     housingScopes: HousingScopes;
-    dataYears: number[];
+    dataYears?: number[];
     query: string;
 }
 
@@ -92,6 +93,12 @@ export const vacancyDurationOptions = [
 export const taxedOptions: HousingFilterOption[] = [
     {value: "true", label: "Oui", badgeLabel: "Taxé"},
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
+];
+
+export const dataYearsOptions = [
+    {value: "2019", label: "2019"},
+    {value: "2020", label: "2020"},
+    {value: "2021", label: "2021"}
 ];
 
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}

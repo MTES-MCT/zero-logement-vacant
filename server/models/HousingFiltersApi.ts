@@ -9,6 +9,7 @@ export interface HousingFiltersApi {
     housingKinds?: string[];
     housingStates?: string[];
     housingAreas?: string[];
+    roomsCounts?: string[];
     buildingPeriods?: string[];
     vacancyDurations?: string[];
     isTaxedValues?: string[];

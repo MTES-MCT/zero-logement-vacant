@@ -85,6 +85,14 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     }
                 })
             }
+            if (filters.roomsCounts?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.roomsCounts?.indexOf('gt5') !== -1) {
+                        whereBuilder.orWhereRaw('rooms_count >= 5')
+                    }
+                    whereBuilder.orWhereIn('rooms_count', filters.roomsCounts);
+                })
+            }
             if (filters.housingStates?.length) {
                 if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
                     queryBuilder.where('uncomfortable', true)
@@ -152,7 +160,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 })
             }
             if (filters.dataYears?.length) {
-                queryBuilder.whereRaw('data_years && array[?]::integer[]', filters.dataYears)
+                queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {

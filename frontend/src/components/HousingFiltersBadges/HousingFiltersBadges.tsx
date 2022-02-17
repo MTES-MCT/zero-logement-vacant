@@ -4,8 +4,9 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
-    contactsCountOptions,
+    contactsCountOptions, dataYearsOptions,
     housingAreaOptions,
+    roomsCountOptions,
     HousingFilterOption, HousingFilters,
     housingKindOptions,
     housingStateOptions,
@@ -15,6 +16,7 @@ import {
     ownerKindOptions, taxedOptions,
     vacancyDurationOptions,
 } from '../../models/HousingFilters';
+import { useCampaignList } from '../../hooks/useCampaignList';
 
 const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
     return (
@@ -39,6 +41,7 @@ const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilt
 
 const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, onChange?: (_: any) => void}) => {
 
+    const campaignList = useCampaignList();
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
 
     return (
@@ -64,6 +67,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={housingAreaOptions}
                           filters={filters.housingAreas}
                           onChange={onChange && (values => onChange({housingAreas: values}))}/>
+            <HousingFilterBadges options={roomsCountOptions}
+                          filters={filters.roomsCounts ?? []}
+                          onChange={onChange && (values => onChange({roomsCounts: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
                           filters={filters.housingStates}
                           onChange={onChange && (values => onChange({housingStates: values}))}/>
@@ -81,9 +87,17 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                           onChange={onChange && (values => onChange({localities: values}))}/>
             {establishment.housingScopes && establishment.housingScopes.scopes &&
                 <HousingFilterBadges options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                filters={filters.housingScopes.scopes}
-                onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
+                                     filters={filters.housingScopes.scopes}
+                                     onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
             }
+            {campaignList && filters.campaignIds &&
+                <HousingFilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
+                                     filters={filters.campaignIds}
+                                     onChange={onChange && (values => onChange({campaignIds: values}))}/>
+            }
+            <HousingFilterBadges options={dataYearsOptions}
+                                 filters={(filters.dataYears?? []).map(_ => String(_))}
+                                 onChange={onChange && (values => onChange({dataYears: values}))}/>
             <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
                           filters={[filters.query]}
                           onChange={onChange && (() => onChange({query: ''}))}/>

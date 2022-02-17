@@ -68,7 +68,7 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                           filters={filters.housingAreas}
                           onChange={onChange && (values => onChange({housingAreas: values}))}/>
             <HousingFilterBadges options={roomsCountOptions}
-                          filters={filters.roomsCounts}
+                          filters={filters.roomsCounts ?? []}
                           onChange={onChange && (values => onChange({roomsCounts: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
                           filters={filters.housingStates}

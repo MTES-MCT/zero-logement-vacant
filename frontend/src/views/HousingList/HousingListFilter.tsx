@@ -107,7 +107,7 @@ const HousingListFilter = () => {
                     <Col n="3">
                         <AppMultiSelect label="Nombre de pièces"
                                         options={roomsCountOptions}
-                                        initialValues={filters.roomsCounts}
+                                        initialValues={filters.roomsCounts ?? []}
                                         onChange={(values) => onChangeFilters({roomsCounts: values}, 'Nombre de pièces')}/>
                     </Col>
                     <Col n="3">

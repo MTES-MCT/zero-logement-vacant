@@ -30,7 +30,7 @@ from _extract_zlv_
 where ff_ccthp in ('V', 'L', 'P')
 and ff_idlocal not in (select local_id from housing)
 group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
-         housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, ff_ndroit;
+         housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, ff_ndroit, ff_ndroit, batloc, vlcad, ff_ctpdl;
 
 update housing h set data_years = array_prepend(annee, h.data_years)
 from _extract_zlv_ e

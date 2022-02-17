@@ -16,7 +16,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
-    const campaignList = useCampaignList();
+    const campaignList = useCampaignList(true);
 
     const { loading } = useSelector((state: ApplicationState) => state.campaign);
     const [removingModalCampaign, setRemovingModalCampaign] = useState<Campaign | undefined>();

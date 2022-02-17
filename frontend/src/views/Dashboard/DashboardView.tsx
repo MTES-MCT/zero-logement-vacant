@@ -14,7 +14,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 const DashboardView = () => {
 
     const history = useHistory();
-    const campaignList = useCampaignList();
+    const campaignList = useCampaignList(true);
 
     const { loading } = useSelector((state: ApplicationState) => state.campaign);
     const quickSearchAbortRef = useRef<() => void | null>();

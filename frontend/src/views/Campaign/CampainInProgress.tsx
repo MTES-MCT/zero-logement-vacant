@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Tab, Tabs, Text } from '@dataesr/react-dsfr';
+import { Button, Tab, Tabs, Text, Row, Col, Alert } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    changeCampaignHousingPagination,
+    changeCampaignHousingPagination, createCampaignReminder,
     listCampaignHousing,
     removeCampaignHousingList,
     updateCampaignHousingList,
@@ -22,6 +22,8 @@ import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignHousingListStatusModal
     from '../../components/modals/CampaignHousingStatusModal/CampaignHousingListStatusModal';
+import CampaignReminderCreationModal
+    from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 
 const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
@@ -30,8 +32,9 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
-    // const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
+    const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
+    const [actionAlert, setActionAlert] = useState(false);
 
     const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
@@ -45,7 +48,6 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
 
     const menuActions = [
         { title: 'Changer le statut', selectedHousing, onClick: () => setUpdatingModalSelectedHousing(selectedHousing) },
-        // { title: 'Créer une relance', selectedHousing, onClick: () => setReminderModalSelectedHousing(selectedHousing) },
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
     ] as MenuAction[]
 
@@ -106,16 +108,48 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         setUpdatingModalSelectedHousing(undefined);
     }
 
-    // const submitCampaignReminder = (startMonth: string) => {
-    //     dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
-    // }
+    const handleCampaignReminder = () => {
+        if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
+            setActionAlert(true);
+        } else {
+            setActionAlert(false);
+            setReminderModalSelectedHousing(selectedHousing)
+        }
+    }
+
+    const submitCampaignReminder = (startMonth: string) => {
+        dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
+    }
 
     return (
         <>
             {!paginatedCampaignHousing.loading && <>
                 <b>{displayCount(paginatedCampaignHousing.totalCount, 'logement')}</b>
-                {paginatedCampaignHousing.totalCount > 0 &&
-                    <AppActionsMenu actions={menuActions}/>
+
+                <Row alignItems="middle">
+                    {paginatedCampaignHousing.totalCount > 0 &&
+                        <Col>
+                            <AppActionsMenu actions={menuActions}/>
+                        </Col>
+                    }
+                    {status === CampaignHousingStatus.Waiting &&
+                        <Col>
+                            <Button title="Créer une relance"
+                                    className="float-right"
+                                    onClick={handleCampaignReminder}>
+                                Créer une campagne de relance
+                            </Button>
+                        </Col>
+                    }
+                </Row>
+                {actionAlert &&
+                    <Alert title=""
+                           description="Vous devez sélectionner au moins un logement réaliser cette action."
+                           className="fr-my-3w"
+                           type="error"
+                           onClose={() => setActionAlert(false)}
+                           data-testid="no-housing-alert"
+                           closable/>
                 }
                 <HousingList paginatedHousing={paginatedCampaignHousing}
                              onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
@@ -137,13 +171,13 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
                         onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                 }
-                {/*{reminderModalSelectedHousing &&*/}
-                {/*    <CampaignReminderCreationModal*/}
-                {/*        housingCount={selectedCount}*/}
-                {/*        initialCampaign={campaign}*/}
-                {/*        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}*/}
-                {/*        onClose={() => setUpdatingModalSelectedHousing(undefined)}/>*/}
-                {/*}*/}
+                {reminderModalSelectedHousing &&
+                    <CampaignReminderCreationModal
+                        housingCount={selectedCount}
+                        initialCampaign={campaign}
+                        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}
+                        onClose={() => setReminderModalSelectedHousing(undefined)}/>
+                }
                 {isRemovingModalOpen &&
                     <ConfirmationModal
                         onSubmit={() => {

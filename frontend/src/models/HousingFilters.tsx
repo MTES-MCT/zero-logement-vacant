@@ -10,6 +10,7 @@ export interface HousingFilters {
     housingKinds: string[];
     housingStates: string[];
     housingAreas: string[];
+    roomsCounts: string[];
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
@@ -67,6 +68,14 @@ export const housingAreaOptions: HousingFilterOption[] = [
     {value: "gt100", label: "Plus de 100 m2"},
 ];
 
+export const roomsCountOptions: HousingFilterOption[] = [
+    {value: "1", label: "1 pièce"},
+    {value: "2", label: "2 pièces"},
+    {value: "3", label: "3 pièces"},
+    {value: "4", label: "4 pièces"},
+    {value: "5", label: "5 pièces et plus"},
+];
+
 export const housingStateOptions: HousingFilterOption[] = [
     {value: "Inconfortable", label: "Inconfortable"}
 ];
@@ -112,6 +121,7 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.housingKinds.length ||
         housingFilters. housingStates.length ||
         housingFilters.housingAreas.length ||
+        housingFilters.roomsCounts.length ||
         housingFilters.buildingPeriods.length ||
         housingFilters.vacancyDurations.length ||
         housingFilters.isTaxedValues.length ||

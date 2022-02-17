@@ -7,6 +7,7 @@ import {
     beneficiaryCountOptions,
     buildingPeriodOptions, dataYearsOptions,
     housingAreaOptions,
+    roomsCountOptions,
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
@@ -102,6 +103,12 @@ const HousingListFilter = () => {
                                         options={housingAreaOptions}
                                         initialValues={filters.housingAreas}
                                         onChange={(values) => onChangeFilters({housingAreas: values}, 'Surface')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Nombre de pièces"
+                                        options={roomsCountOptions}
+                                        initialValues={filters.roomsCounts}
+                                        onChange={(values) => onChangeFilters({roomsCounts: values}, 'Nombre de pièces')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="État"

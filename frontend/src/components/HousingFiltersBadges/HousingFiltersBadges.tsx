@@ -6,6 +6,7 @@ import {
     buildingPeriodOptions,
     contactsCountOptions, dataYearsOptions,
     housingAreaOptions,
+    roomsCountOptions,
     HousingFilterOption, HousingFilters,
     housingKindOptions,
     housingStateOptions,
@@ -66,6 +67,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={housingAreaOptions}
                           filters={filters.housingAreas}
                           onChange={onChange && (values => onChange({housingAreas: values}))}/>
+            <HousingFilterBadges options={roomsCountOptions}
+                          filters={filters.roomsCounts}
+                          onChange={onChange && (values => onChange({roomsCounts: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
                           filters={filters.housingStates}
                           onChange={onChange && (values => onChange({housingStates: values}))}/>

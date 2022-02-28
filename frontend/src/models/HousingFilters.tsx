@@ -77,7 +77,9 @@ export const roomsCountOptions: HousingFilterOption[] = [
 ];
 
 export const housingStateOptions: HousingFilterOption[] = [
-    {value: "Inconfortable", label: "Inconfortable"}
+    {value: "Inconfortable", label: "Inconfortable"},
+    {value: "Confortable", label: "Confortable"},
+    {value: "VeryConfortable", label: "Très confortable"},
 ];
 
 export const buildingPeriodOptions: HousingFilterOption[] = [

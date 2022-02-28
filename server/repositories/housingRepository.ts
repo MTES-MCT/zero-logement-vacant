@@ -23,6 +23,25 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                         .whereRaw(`housing_id = ${housingTable}.id`)
                 })
             }
+            if (filters.campaignsCounts?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.campaignsCounts?.indexOf('0') !== -1) {
+                        whereBuilder.orWhereNull('campaigns.campaign_count')
+                    }
+                    if (filters.campaignsCounts?.indexOf('current') !== -1) {
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= 1')
+                    }
+                    if (filters.campaignsCounts?.indexOf('1') !== -1) {
+                        whereBuilder.orWhere('campaigns.campaign_count', 1)
+                    }
+                    if (filters.campaignsCounts?.indexOf('2') !== -1) {
+                        whereBuilder.orWhere('campaigns.campaign_count', 2)
+                    }
+                    if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3)
+                    }
+                })
+            }
             if (filters.ownerIds?.length) {
                 queryBuilder.whereIn('o.id', filters.ownerIds)
             }
@@ -194,13 +213,13 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns)) campaign_ids'),
+                db.raw('json_agg(campaigns.campaign_id) as campaign_ids'),
                 db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
+            .joinRaw(`left join lateral (select campaign_id as campaign_id , count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
@@ -218,6 +237,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .joinRaw(`left join lateral (select campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
@@ -314,7 +334,7 @@ const parseHousingApi = (result: any) => (
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
         dataYears: result.data_years,
-        campaignIds: (result.campaign_ids ?? []).map((_: any) => _?.campaign_id).filter((_: any) => _)
+        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _)
     }
 )
 

@@ -4,16 +4,19 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
-    contactsCountOptions, dataYearsOptions,
+    campaignsCountOptions,
+    dataYearsOptions,
     housingAreaOptions,
-    roomsCountOptions,
-    HousingFilterOption, HousingFilters,
+    HousingFilterOption,
+    HousingFilters,
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
     outOfScopeOption,
     ownerAgeOptions,
-    ownerKindOptions, taxedOptions,
+    ownerKindOptions,
+    roomsCountOptions,
+    taxedOptions,
     vacancyDurationOptions,
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -61,9 +64,6 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={housingKindOptions}
                           filters={filters.housingKinds}
                           onChange={onChange && (values => onChange({housingKinds: values}))}/>
-            <HousingFilterBadges options={contactsCountOptions}
-                          filters={filters.contactsCounts}
-                          onChange={onChange && (values => onChange({contactsCounts: values}))}/>
             <HousingFilterBadges options={housingAreaOptions}
                           filters={filters.housingAreas}
                           onChange={onChange && (values => onChange({housingAreas: values}))}/>
@@ -90,6 +90,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                      filters={filters.housingScopes.scopes}
                                      onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
             }
+            <HousingFilterBadges options={campaignsCountOptions}
+                                 filters={filters.campaignsCounts}
+                                 onChange={onChange && (values => onChange({campaignsCounts: values}))}/>
             {campaignList && filters.campaignIds &&
                 <HousingFilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
                                      filters={filters.campaignIds}

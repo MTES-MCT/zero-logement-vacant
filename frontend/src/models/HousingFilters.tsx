@@ -6,7 +6,6 @@ export interface HousingFilters {
     ownerAges: string[];
     multiOwners: string[];
     beneficiaryCounts: string[];
-    contactsCounts: string[];
     housingKinds: string[];
     housingStates: string[];
     housingAreas: string[];
@@ -14,6 +13,7 @@ export interface HousingFilters {
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
+    campaignsCounts: string[];
     campaignIds?: string[];
     localities: string[];
     housingScopes: HousingScopes;
@@ -39,12 +39,12 @@ export const ownerKindOptions: HousingFilterOption[] = [
     {value: "Autre", label: "Autres"}
 ];
 
-export const contactsCountOptions: HousingFilterOption[] = [
+export const campaignsCountOptions: HousingFilterOption[] = [
     {value: "0", label: "Jamais contacté"},
-    {value: "current", label: "En cours"},
-    {value: "1", label: "1 fois"},
-    {value: "2", label: "2 fois"},
-    {value: "gt3", label: "3 fois ou plus"}
+    {value: "current", label: "Dans une campagne en cours"},
+    {value: "1", label: "Déjà contacté 1 fois"},
+    {value: "2", label: "Déjà contacté 2 fois"},
+    {value: "gt3", label: "Déjà contacté 3 fois ou plus"}
 ];
 
 export const beneficiaryCountOptions: HousingFilterOption[] = [
@@ -115,18 +115,23 @@ export const dataYearsOptions = [
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
 
 export const hasFilters = (housingFilters: HousingFilters) => {
-    return Boolean(housingFilters.ownerKinds.length ||
+    return Boolean(
+        housingFilters.ownerKinds.length ||
         housingFilters.ownerAges.length ||
         housingFilters.multiOwners.length ||
         housingFilters.beneficiaryCounts.length ||
-        housingFilters.contactsCounts.length ||
         housingFilters.housingKinds.length ||
-        housingFilters. housingStates.length ||
+        housingFilters.housingStates.length ||
         housingFilters.housingAreas.length ||
         housingFilters.roomsCounts.length ||
         housingFilters.buildingPeriods.length ||
         housingFilters.vacancyDurations.length ||
         housingFilters.isTaxedValues.length ||
-        housingFilters.query.length);
+        housingFilters.campaignsCounts.length ||
+        housingFilters.campaignIds?.length ||
+        housingFilters.localities.length ||
+        housingFilters.housingScopes.scopes.length ||
+        housingFilters.dataYears?.length ||
+        housingFilters.query.length
+    );
 }
-

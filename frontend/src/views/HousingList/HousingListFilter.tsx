@@ -16,6 +16,7 @@ import {
     ownerKindOptions,
     taxedOptions,
     vacancyDurationOptions,
+    campaignsCountOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -156,6 +157,12 @@ const HousingListFilter = () => {
                     <b>Campagnes</b>
                 </Text>
                 <Row gutters>
+                    <Col n="3">
+                        <AppMultiSelect label="Prise de contact"
+                                        options={campaignsCountOptions}
+                                        initialValues={filters.campaignsCounts}
+                                        onChange={(values) => onChangeFilters({campaignsCounts: values}, 'Prise de contact')}/>
+                    </Col>
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"

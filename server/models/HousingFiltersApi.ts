@@ -12,11 +12,12 @@ export interface HousingFiltersApi {
     buildingPeriods?: string[];
     vacancyDurations?: string[];
     isTaxedValues?: string[];
+    ownershipKinds?: string[];
     campaignsCounts?: string[];
     campaignIds?: string[];
     ownerIds?: string[];
     localities?: string[];
-    localityKinds: string[];
+    localityKinds?: string[];
     housingScopes?: HousingScopesApi;
     dataYears?: number[];
     query?: string;

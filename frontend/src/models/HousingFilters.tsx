@@ -13,6 +13,7 @@ export interface HousingFilters {
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
+    ownershipKinds: string[];
     campaignsCounts: string[];
     campaignIds?: string[];
     localities: string[];
@@ -107,6 +108,12 @@ export const taxedOptions: HousingFilterOption[] = [
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
 
+export const ownershipKindsOptions: HousingFilterOption[] = [
+    {value: "single", label: "Monopropriété"},
+    {value: "co", label: "Copropriété"},
+    {value: "other", label: "Autre", badgeLabel: "Autre type de propriété"}
+];
+
 export const localityKindsOptions = [
     {value: "ACV", label: "Action Cœur de Ville"},
     {value: "PVD", label: "Petites Ville de Demain"}
@@ -133,6 +140,7 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.buildingPeriods.length ||
         housingFilters.vacancyDurations.length ||
         housingFilters.isTaxedValues.length ||
+        housingFilters.ownershipKinds.length ||
         housingFilters.campaignsCounts.length ||
         housingFilters.campaignIds?.length ||
         housingFilters.localities.length ||

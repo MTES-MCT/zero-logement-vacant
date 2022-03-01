@@ -18,7 +18,8 @@ import {
     roomsCountOptions,
     taxedOptions,
     vacancyDurationOptions,
-    localityKindsOptions
+    localityKindsOptions,
+    ownershipKindsOptions,
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 
@@ -83,6 +84,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={taxedOptions}
                                  filters={filters.isTaxedValues}
                                  onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
+            <HousingFilterBadges options={ownershipKindsOptions}
+                                 filters={filters.ownershipKinds}
+                                 onChange={onChange && (values => onChange({ownershipKinds: values}))}/>
             <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                                  filters={filters.localities}
                                  onChange={onChange && (values => onChange({localities: values}))}/>

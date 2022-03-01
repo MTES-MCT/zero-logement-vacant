@@ -17,6 +17,7 @@ import {
     taxedOptions,
     vacancyDurationOptions,
     localityKindsOptions,
+    ownershipKindsOptions,
     campaignsCountOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -135,6 +136,12 @@ const HousingListFilter = () => {
                                         options={taxedOptions}
                                         initialValues={filters.isTaxedValues}
                                         onChange={(values) => onChangeFilters({isTaxedValues: values}, 'Taxé (THLV ou TLV)')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Type de propriété"
+                                        options={ownershipKindsOptions}
+                                        initialValues={filters.ownershipKinds}
+                                        onChange={(values) => onChangeFilters({ownershipKinds: values}, 'Type de propriété')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">

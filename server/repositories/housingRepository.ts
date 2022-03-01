@@ -172,6 +172,19 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     }
                 })
             }
+            if (filters.ownershipKinds?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.ownershipKinds?.indexOf('single') !== -1) {
+                        whereBuilder.orWhere('ownership_kind', '0')
+                    }
+                    if (filters.ownershipKinds?.indexOf('co') !== -1) {
+                        whereBuilder.orWhere('ownership_kind', 'CL')
+                    }
+                    if (filters.ownershipKinds?.indexOf('other') !== -1) {
+                        whereBuilder.orWhereIn('ownership_kind', ['BND', 'CLV', 'CV', 'MP', 'TF'])
+                    }
+                })
+            }
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }

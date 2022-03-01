@@ -16,6 +16,9 @@ import {
     ownerKindOptions,
     taxedOptions,
     vacancyDurationOptions,
+    localityKindsOptions,
+    ownershipKindsOptions,
+    campaignsCountOptions, housingCountOptions, vacancyRateOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -86,7 +89,6 @@ const HousingListFilter = () => {
                     </Col>
                 </Row>
             </div>
-            {
             <div id="additional-filters" data-testid="additional-filters" className={expandFilters ? 'fr-collapse--expanded' : 'fr-collapse'}>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Logement</b>
@@ -134,6 +136,29 @@ const HousingListFilter = () => {
                                         initialValues={filters.isTaxedValues}
                                         onChange={(values) => onChangeFilters({isTaxedValues: values}, 'Taxé (THLV ou TLV)')}/>
                     </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Type de propriété"
+                                        options={ownershipKindsOptions}
+                                        initialValues={filters.ownershipKinds}
+                                        onChange={(values) => onChangeFilters({ownershipKinds: values}, 'Type de propriété')}/>
+                    </Col>
+                </Row>
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Immeuble</b>
+                </Text>
+                <Row gutters>
+                    <Col n="3">
+                        <AppMultiSelect label="Nombre de logements"
+                                        options={housingCountOptions}
+                                        initialValues={filters.housingCounts}
+                                        onChange={(values) => onChangeFilters({housingCounts: values}, 'Nombre de logements')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Taux de vacance"
+                                        options={vacancyRateOptions}
+                                        initialValues={filters.vacancyRates}
+                                        onChange={(values) => onChangeFilters({vacancyRates: values}, 'Taux de vacance')}/>
+                    </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Emplacement</b>
@@ -146,6 +171,12 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({localities: values}, 'Commune')}/>
                     </Col>
                     <Col n="3">
+                        <AppMultiSelect label="Type de commune"
+                                        options={localityKindsOptions}
+                                        initialValues={filters.localityKinds}
+                                        onChange={(values) => onChangeFilters({localityKinds: values}, 'Type de commune')}/>
+                    </Col>
+                    <Col n="3">
                         <AppMultiSelect label="Périmètre"
                                         options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                                         initialValues={filters.housingScopes.scopes}
@@ -156,6 +187,12 @@ const HousingListFilter = () => {
                     <b>Campagnes</b>
                 </Text>
                 <Row gutters>
+                    <Col n="3">
+                        <AppMultiSelect label="Prise de contact"
+                                        options={campaignsCountOptions}
+                                        initialValues={filters.campaignsCounts}
+                                        onChange={(values) => onChangeFilters({campaignsCounts: values}, 'Prise de contact')}/>
+                    </Col>
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
@@ -172,7 +209,6 @@ const HousingListFilter = () => {
                     </Col>
                 </Row>
             </div>
-            }
             <Row gutters>
                 <Col>
                     <button

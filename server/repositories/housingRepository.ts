@@ -7,8 +7,10 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingScopeGeometryTable } from './establishmentRepository';
+import { localitiesTable } from './localityRepository';
 
 export const housingTable = 'housing';
+export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
@@ -21,6 +23,25 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     whereBuilder.from(campaignsHousingTable)
                         .whereIn('campaign_id', filters.campaignIds)
                         .whereRaw(`housing_id = ${housingTable}.id`)
+                })
+            }
+            if (filters.campaignsCounts?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.campaignsCounts?.indexOf('0') !== -1) {
+                        whereBuilder.orWhereNull('campaigns.campaign_count')
+                    }
+                    if (filters.campaignsCounts?.indexOf('current') !== -1) {
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= 1')
+                    }
+                    if (filters.campaignsCounts?.indexOf('1') !== -1) {
+                        whereBuilder.orWhere('campaigns.campaign_count', 1)
+                    }
+                    if (filters.campaignsCounts?.indexOf('2') !== -1) {
+                        whereBuilder.orWhere('campaigns.campaign_count', 2)
+                    }
+                    if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3)
+                    }
                 })
             }
             if (filters.ownerIds?.length) {
@@ -94,9 +115,20 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 })
             }
             if (filters.housingStates?.length) {
-                if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
-                    queryBuilder.where('uncomfortable', true)
-                }
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
+                        whereBuilder.orWhere('uncomfortable', true)
+                    }
+                    if (filters.housingStates?.indexOf('Confortable') !== -1) {
+                        whereBuilder.orWhere(function(whereBuilder2: any) {
+                            whereBuilder2.andWhereBetween('cadastral_classification', [4, 6])
+                            whereBuilder2.andWhereNot('uncomfortable', true)
+                        })
+                    }
+                    if (filters.housingStates?.indexOf('VeryConfortable') !== -1) {
+                        whereBuilder.orWhereBetween('cadastral_classification', [1, 3])
+                    }
+                })
             }
             if (filters.buildingPeriods?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -141,8 +173,56 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     }
                 })
             }
+            if (filters.ownershipKinds?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.ownershipKinds?.indexOf('single') !== -1) {
+                        whereBuilder.orWhere('ownership_kind', '0')
+                    }
+                    if (filters.ownershipKinds?.indexOf('co') !== -1) {
+                        whereBuilder.orWhere('ownership_kind', 'CL')
+                    }
+                    if (filters.ownershipKinds?.indexOf('other') !== -1) {
+                        whereBuilder.orWhereIn('ownership_kind', ['BND', 'CLV', 'CV', 'MP', 'TF'])
+                    }
+                })
+            }
+            if (filters.housingCounts?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.housingCounts?.indexOf('lt5') !== -1) {
+                        whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4')
+                    }
+                    if (filters.housingCounts?.indexOf('5to10') !== -1) {
+                        whereBuilder.orWhereBetween('housing_count', [5, 10])
+                    }
+                    if (filters.housingCounts?.indexOf('gt10') !== -1) {
+                        whereBuilder.orWhereRaw('housing_count > 10')
+                    }
+                })
+            }
+            if (filters.vacancyRates?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.vacancyRates?.indexOf('lt20') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) < 20')
+                    }
+                    if (filters.vacancyRates?.indexOf('20to40') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 20 and 40')
+                    }
+                    if (filters.vacancyRates?.indexOf('40to60') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 40 and 60')
+                    }
+                    if (filters.vacancyRates?.indexOf('60to80') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 60 and 80')
+                    }
+                    if (filters.vacancyRates?.indexOf('gt80') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) > 80')
+                    }
+                })
+            }
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
+            }
+            if (filters.localityKinds?.length) {
+                queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
             }
             if (filters.housingScopes && filters.housingScopes.scopes.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -183,13 +263,15 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns)) campaign_ids'),
+                db.raw('json_agg(campaigns.campaign_id) as campaign_ids'),
                 db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .joinRaw(`left join lateral (select campaign_id from campaigns_housing ch where ${housingTable}.id = ch.housing_id) campaigns on true`)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
+            .joinRaw(`left join lateral (select campaign_id as campaign_id , count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
@@ -207,6 +289,9 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
+            .joinRaw(`left join lateral (select campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
@@ -303,7 +388,7 @@ const parseHousingApi = (result: any) => (
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
         dataYears: result.data_years,
-        campaignIds: (result.campaign_ids ?? []).map((_: any) => _?.campaign_id).filter((_: any) => _)
+        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _)
     }
 )
 

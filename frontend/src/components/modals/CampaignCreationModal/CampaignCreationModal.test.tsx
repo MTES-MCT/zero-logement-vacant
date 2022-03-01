@@ -5,19 +5,33 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import applicationReducer from '../../../store/reducers/applicationReducers';
 import thunk from 'redux-thunk';
+import { genAuthUser } from '../../../../test/fixtures.test';
+import config from '../../../utils/config';
+import fetchMock from 'jest-fetch-mock';
 
 describe('Campagne creation modal', () => {
 
     let store: any;
 
+    const defaultFetchMock = (request: Request) => {
+        return Promise.resolve(
+            (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                    {body: '', init: {status: 404 } }
+        )
+    }
+
     beforeEach(() => {
+        fetchMock.resetMocks();
         store = createStore(
             applicationReducer,
+            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
             applyMiddleware(thunk)
         );
     });
 
     test('should display housing count, select with next 6 months input and submit button', () => {
+
+        fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>
@@ -38,6 +52,8 @@ describe('Campagne creation modal', () => {
     });
 
     test('should require campaign start month', async() => {
+
+        fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>

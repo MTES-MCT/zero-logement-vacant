@@ -23,6 +23,8 @@ export const initialFilters = {
     vacancyDurations: [],
     isTaxedValues: [],
     ownershipKinds: [],
+    housingCounts: [],
+    vacancyRates: [],
     campaignsCounts: [],
     campaignIds: [],
     localities: [],

@@ -14,6 +14,8 @@ export interface HousingFilters {
     vacancyDurations: string[];
     isTaxedValues: string[];
     ownershipKinds: string[];
+    housingCounts: string[];
+    vacancyRates: string[];
     campaignsCounts: string[];
     campaignIds?: string[];
     localities: string[];
@@ -56,6 +58,20 @@ export const beneficiaryCountOptions: HousingFilterOption[] = [
     {value: "3", label: "3", badgeLabel: "3 bénéficiaires"},
     {value: "4", label: "4", badgeLabel: "4 bénéficiaires"},
     {value: "gt5", label: "5 ou plus", badgeLabel: "5 bénéficiaires ou plus"},
+];
+
+export const housingCountOptions: HousingFilterOption[] = [
+    {value: "lt5", label: "Moins de 5", badgeLabel: "Moins de 5 logements"},
+    {value: "5to10", label: "Entre 5 et 10", badgeLabel: "Entre 5 et 10 logements"},
+    {value: "gt10", label: "Plus de 10", badgeLabel: "Plus de 10 logements"},
+];
+
+export const vacancyRateOptions: HousingFilterOption[] = [
+    {value: "lt20", label: "Moins de 20%", badgeLabel: "Moins de 20% de vacance"},
+    {value: "20to40", label: "20% - 40%", badgeLabel: "Entre 20% et 40% de vacance"},
+    {value: "40to60", label: "40% - 60%", badgeLabel: "Entre 40% et 60% de vacance"},
+    {value: "60to80", label: "60% - 80%", badgeLabel: "Entre 60% et 80% de vacance"},
+    {value: "gt80", label: "Plus de 80%", badgeLabel: "Plus de 80% de vacance"},
 ];
 
 export const housingKindOptions: HousingFilterOption[] = [
@@ -141,6 +157,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.vacancyDurations.length ||
         housingFilters.isTaxedValues.length ||
         housingFilters.ownershipKinds.length ||
+        housingFilters.housingCounts.length ||
+        housingFilters.vacancyRates.length ||
         housingFilters.campaignsCounts.length ||
         housingFilters.campaignIds?.length ||
         housingFilters.localities.length ||

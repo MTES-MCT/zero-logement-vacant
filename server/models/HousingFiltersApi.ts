@@ -13,6 +13,8 @@ export interface HousingFiltersApi {
     vacancyDurations?: string[];
     isTaxedValues?: string[];
     ownershipKinds?: string[];
+    housingCounts?: string[];
+    vacancyRates?: string[];
     campaignsCounts?: string[];
     campaignIds?: string[];
     ownerIds?: string[];

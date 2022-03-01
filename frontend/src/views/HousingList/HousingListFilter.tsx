@@ -18,7 +18,7 @@ import {
     vacancyDurationOptions,
     localityKindsOptions,
     ownershipKindsOptions,
-    campaignsCountOptions,
+    campaignsCountOptions, housingCountOptions, vacancyRateOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -89,7 +89,6 @@ const HousingListFilter = () => {
                     </Col>
                 </Row>
             </div>
-            {
             <div id="additional-filters" data-testid="additional-filters" className={expandFilters ? 'fr-collapse--expanded' : 'fr-collapse'}>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Logement</b>
@@ -145,6 +144,23 @@ const HousingListFilter = () => {
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Immeuble</b>
+                </Text>
+                <Row gutters>
+                    <Col n="3">
+                        <AppMultiSelect label="Nombre de logements"
+                                        options={housingCountOptions}
+                                        initialValues={filters.housingCounts}
+                                        onChange={(values) => onChangeFilters({housingCounts: values}, 'Nombre de logements')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Taux de vacance"
+                                        options={vacancyRateOptions}
+                                        initialValues={filters.vacancyRates}
+                                        onChange={(values) => onChangeFilters({vacancyRates: values}, 'Taux de vacance')}/>
+                    </Col>
+                </Row>
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Emplacement</b>
                 </Text>
                 <Row gutters>
@@ -193,7 +209,6 @@ const HousingListFilter = () => {
                     </Col>
                 </Row>
             </div>
-            }
             <Row gutters>
                 <Col>
                     <button

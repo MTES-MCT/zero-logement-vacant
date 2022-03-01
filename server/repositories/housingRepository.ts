@@ -10,6 +10,7 @@ import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
 
 export const housingTable = 'housing';
+export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
@@ -185,6 +186,38 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     }
                 })
             }
+            if (filters.housingCounts?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.housingCounts?.indexOf('lt5') !== -1) {
+                        whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4')
+                    }
+                    if (filters.housingCounts?.indexOf('5to10') !== -1) {
+                        whereBuilder.orWhereBetween('housing_count', [5, 10])
+                    }
+                    if (filters.housingCounts?.indexOf('gt10') !== -1) {
+                        whereBuilder.orWhereRaw('housing_count > 10')
+                    }
+                })
+            }
+            if (filters.vacancyRates?.length) {
+                queryBuilder.where(function(whereBuilder: any) {
+                    if (filters.vacancyRates?.indexOf('lt20') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) < 20')
+                    }
+                    if (filters.vacancyRates?.indexOf('20to40') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 20 and 40')
+                    }
+                    if (filters.vacancyRates?.indexOf('40to60') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 40 and 60')
+                    }
+                    if (filters.vacancyRates?.indexOf('60to80') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 60 and 80')
+                    }
+                    if (filters.vacancyRates?.indexOf('gt80') !== -1) {
+                        whereBuilder.orWhereRaw('vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) > 80')
+                    }
+                })
+            }
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
@@ -237,6 +270,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .joinRaw(`left join lateral (select campaign_id as campaign_id , count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
@@ -256,6 +290,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .joinRaw(`left join lateral (select campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)

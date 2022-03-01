@@ -18,6 +18,7 @@ import {
     roomsCountOptions,
     taxedOptions,
     vacancyDurationOptions,
+    localityKindsOptions
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 
@@ -50,41 +51,44 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
     return (
         <>
             <HousingFilterBadges options={ownerKindOptions}
-                          filters={filters.ownerKinds}
-                          onChange={onChange && (values => onChange({ownerKinds: values}))}/>
+                                 filters={filters.ownerKinds}
+                                 onChange={onChange && (values => onChange({ownerKinds: values}))}/>
             <HousingFilterBadges options={ownerAgeOptions}
-                          filters={filters.ownerAges}
-                          onChange={onChange && (values => onChange({ownerAges: values}))}/>
+                                 filters={filters.ownerAges}
+                                 onChange={onChange && (values => onChange({ownerAges: values}))}/>
             <HousingFilterBadges options={multiOwnerOptions}
-                          filters={filters.multiOwners}
-                          onChange={onChange && (values => onChange({multiOwners: values}))}/>
+                                 filters={filters.multiOwners}
+                                 onChange={onChange && (values => onChange({multiOwners: values}))}/>
             <HousingFilterBadges options={beneficiaryCountOptions}
-                          filters={filters.beneficiaryCounts}
-                          onChange={onChange && (values => onChange({beneficiaryCounts: values}))}/>
+                                 filters={filters.beneficiaryCounts}
+                                 onChange={onChange && (values => onChange({beneficiaryCounts: values}))}/>
             <HousingFilterBadges options={housingKindOptions}
-                          filters={filters.housingKinds}
-                          onChange={onChange && (values => onChange({housingKinds: values}))}/>
+                                 filters={filters.housingKinds}
+                                 onChange={onChange && (values => onChange({housingKinds: values}))}/>
             <HousingFilterBadges options={housingAreaOptions}
-                          filters={filters.housingAreas}
-                          onChange={onChange && (values => onChange({housingAreas: values}))}/>
+                                 filters={filters.housingAreas}
+                                 onChange={onChange && (values => onChange({housingAreas: values}))}/>
             <HousingFilterBadges options={roomsCountOptions}
-                          filters={filters.roomsCounts ?? []}
-                          onChange={onChange && (values => onChange({roomsCounts: values}))}/>
+                                 filters={filters.roomsCounts ?? []}
+                                 onChange={onChange && (values => onChange({roomsCounts: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
-                          filters={filters.housingStates}
-                          onChange={onChange && (values => onChange({housingStates: values}))}/>
+                                 filters={filters.housingStates}
+                                 onChange={onChange && (values => onChange({housingStates: values}))}/>
             <HousingFilterBadges options={buildingPeriodOptions}
-                          filters={filters.buildingPeriods}
-                          onChange={onChange && (values => onChange({buildingPeriods: values}))}/>
+                                 filters={filters.buildingPeriods}
+                                 onChange={onChange && (values => onChange({buildingPeriods: values}))}/>
             <HousingFilterBadges options={vacancyDurationOptions}
-                          filters={filters.vacancyDurations}
-                          onChange={onChange && (values => onChange({vacancyDurations: values}))}/>
+                                 filters={filters.vacancyDurations}
+                                 onChange={onChange && (values => onChange({vacancyDurations: values}))}/>
             <HousingFilterBadges options={taxedOptions}
-                          filters={filters.isTaxedValues}
-                          onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
+                                 filters={filters.isTaxedValues}
+                                 onChange={onChange && (values => onChange({isTaxedValues: values}))}/>
             <HousingFilterBadges options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
-                          filters={filters.localities}
-                          onChange={onChange && (values => onChange({localities: values}))}/>
+                                 filters={filters.localities}
+                                 onChange={onChange && (values => onChange({localities: values}))}/>
+            <HousingFilterBadges options={localityKindsOptions}
+                                 filters={filters.localityKinds}
+                                 onChange={onChange && (values => onChange({localityKinds: values}))}/>
             {establishment.housingScopes && establishment.housingScopes.scopes &&
                 <HousingFilterBadges options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
                                      filters={filters.housingScopes.scopes}

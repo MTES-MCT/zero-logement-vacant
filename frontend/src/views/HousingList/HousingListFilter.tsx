@@ -16,6 +16,7 @@ import {
     ownerKindOptions,
     taxedOptions,
     vacancyDurationOptions,
+    localityKindsOptions,
     campaignsCountOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -145,6 +146,12 @@ const HousingListFilter = () => {
                                         options={establishment.localities.map(l => ({value: l.geoCode, label: l.name}))}
                                         initialValues={filters.localities}
                                         onChange={(values) => onChangeFilters({localities: values}, 'Commune')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Type de commune"
+                                        options={localityKindsOptions}
+                                        initialValues={filters.localityKinds}
+                                        onChange={(values) => onChangeFilters({localityKinds: values}, 'Type de commune')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"

@@ -7,6 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingScopeGeometryTable } from './establishmentRepository';
+import { localitiesTable } from './localityRepository';
 
 export const housingTable = 'housing';
 export const ownersHousingTable = 'owners_housing';
@@ -174,6 +175,9 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.localities?.length) {
                 queryBuilder.whereIn('insee_code', filters.localities)
             }
+            if (filters.localityKinds?.length) {
+                queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
+            }
             if (filters.housingScopes && filters.housingScopes.scopes.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     if (filters.housingScopes?.geom) {
@@ -219,6 +223,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .joinRaw(`left join lateral (select campaign_id as campaign_id , count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
@@ -237,6 +242,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .joinRaw(`left join lateral (select campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)

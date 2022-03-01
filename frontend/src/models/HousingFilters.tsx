@@ -16,6 +16,7 @@ export interface HousingFilters {
     campaignsCounts: string[];
     campaignIds?: string[];
     localities: string[];
+    localityKinds: string[];
     housingScopes: HousingScopes;
     dataYears?: number[];
     query: string;
@@ -106,6 +107,11 @@ export const taxedOptions: HousingFilterOption[] = [
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
 
+export const localityKindsOptions = [
+    {value: "ACV", label: "Action Cœur de Ville"},
+    {value: "PVD", label: "Petites Ville de Demain"}
+];
+
 export const dataYearsOptions = [
     {value: "2019", label: "2019"},
     {value: "2020", label: "2020"},
@@ -130,6 +136,7 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.campaignsCounts.length ||
         housingFilters.campaignIds?.length ||
         housingFilters.localities.length ||
+        housingFilters.localityKinds.length ||
         housingFilters.housingScopes.scopes.length ||
         housingFilters.dataYears?.length ||
         housingFilters.query.length

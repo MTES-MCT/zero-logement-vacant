@@ -25,6 +25,7 @@ export const initialFilters = {
     campaignsCounts: [],
     campaignIds: [],
     localities: [],
+    localityKinds: [],
     housingScopes: {geom: true, scopes: []},
     dataYears: [2021],
     query: ''

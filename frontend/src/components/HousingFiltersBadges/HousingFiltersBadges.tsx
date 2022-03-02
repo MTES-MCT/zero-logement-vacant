@@ -23,7 +23,7 @@ import {
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 
-const HousingFilterBadges = ({options, filters, onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
+const HousingFilterBadges = ({options, filters = [], onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
     return (
         <>
             {options.filter(o => o.value.length && filters?.indexOf(o.value) !== -1).map((option, index) =>
@@ -70,7 +70,7 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                  filters={filters.housingAreas}
                                  onChange={onChange && (values => onChange({housingAreas: values}))}/>
             <HousingFilterBadges options={roomsCountOptions}
-                                 filters={filters.roomsCounts ?? []}
+                                 filters={filters.roomsCounts}
                                  onChange={onChange && (values => onChange({roomsCounts: values}))}/>
             <HousingFilterBadges options={housingStateOptions}
                                  filters={filters.housingStates}

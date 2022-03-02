@@ -62,8 +62,9 @@ export const beneficiaryCountOptions: HousingFilterOption[] = [
 
 export const housingCountOptions: HousingFilterOption[] = [
     {value: "lt5", label: "Moins de 5", badgeLabel: "Moins de 5 logements"},
-    {value: "5to10", label: "Entre 5 et 10", badgeLabel: "Entre 5 et 10 logements"},
-    {value: "gt10", label: "Plus de 10", badgeLabel: "Plus de 10 logements"},
+    {value: "5to20", label: "Entre 5 et 20", badgeLabel: "Entre 5 et 20 logements"},
+    {value: "20to50", label: "Entre 20 et 50", badgeLabel: "Entre 20 et 50 logements"},
+    {value: "gt50", label: "Plus de 50", badgeLabel: "Plus de 50 logements"},
 ];
 
 export const vacancyRateOptions: HousingFilterOption[] = [

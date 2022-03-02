@@ -191,11 +191,14 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     if (filters.housingCounts?.indexOf('lt5') !== -1) {
                         whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4')
                     }
-                    if (filters.housingCounts?.indexOf('5to10') !== -1) {
-                        whereBuilder.orWhereBetween('housing_count', [5, 10])
+                    if (filters.housingCounts?.indexOf('5to20') !== -1) {
+                        whereBuilder.orWhereBetween('housing_count', [5, 20])
                     }
-                    if (filters.housingCounts?.indexOf('gt10') !== -1) {
-                        whereBuilder.orWhereRaw('housing_count > 10')
+                    if (filters.housingCounts?.indexOf('20to50') !== -1) {
+                        whereBuilder.orWhereBetween('housing_count', [20, 50])
+                    }
+                    if (filters.housingCounts?.indexOf('gt50') !== -1) {
+                        whereBuilder.orWhereRaw('housing_count > 50')
                     }
                 })
             }

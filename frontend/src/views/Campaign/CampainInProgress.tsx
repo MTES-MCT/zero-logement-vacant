@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Tab, Tabs, Text, Row, Col, Alert } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tab, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    changeCampaignHousingPagination, createCampaignReminder,
+    changeCampaignHousingPagination,
+    createCampaignReminder,
     listCampaignHousing,
     removeCampaignHousingList,
     updateCampaignHousingList,
@@ -108,14 +109,14 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
         setUpdatingModalSelectedHousing(undefined);
     }
 
-    const handleCampaignReminder = () => {
-        if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
-            setActionAlert(true);
-        } else {
-            setActionAlert(false);
-            setReminderModalSelectedHousing(selectedHousing)
-        }
-    }
+    // const handleCampaignReminder = () => {
+    //     if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
+    //         setActionAlert(true);
+    //     } else {
+    //         setActionAlert(false);
+    //         setReminderModalSelectedHousing(selectedHousing)
+    //     }
+    // }
 
     const submitCampaignReminder = (startMonth: string) => {
         dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
@@ -132,15 +133,15 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                             <AppActionsMenu actions={menuActions}/>
                         </Col>
                     }
-                    {status === CampaignHousingStatus.Waiting &&
-                        <Col>
-                            <Button title="Créer une relance"
-                                    className="float-right"
-                                    onClick={handleCampaignReminder}>
-                                Créer une campagne de relance
-                            </Button>
-                        </Col>
-                    }
+                    {/*{status === CampaignHousingStatus.Waiting &&*/}
+                    {/*    <Col>*/}
+                    {/*        <Button title="Créer une relance"*/}
+                    {/*                className="float-right"*/}
+                    {/*                onClick={handleCampaignReminder}>*/}
+                    {/*            Créer une campagne de relance*/}
+                    {/*        </Button>*/}
+                    {/*    </Col>*/}
+                    {/*}*/}
                 </Row>
                 {actionAlert &&
                     <Alert title=""

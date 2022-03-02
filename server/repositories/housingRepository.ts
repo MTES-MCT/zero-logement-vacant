@@ -263,7 +263,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(campaigns.campaign_id) as campaign_ids'),
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
                 db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
@@ -271,7 +271,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id group by campaign_id) campaigns on true`)
+            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
@@ -291,7 +291,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id group by campaign_id) campaigns on true`)
+            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))

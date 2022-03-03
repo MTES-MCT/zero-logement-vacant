@@ -50,7 +50,7 @@ const HousingListFilter = () => {
         const prevFilterEntry = Object.entries(filters).find(_ => _[0] === filterEntry[0])
         const filterValues = filterEntry[1] as Array<string>
         const prevFilterValues = prevFilterEntry ? prevFilterEntry[1] as Array<string> : []
-        const newValues = filterValues.filter(_ => prevFilterValues.indexOf(_) === -1)
+        const newValues = filterValues.filter ? filterValues.filter(_ => prevFilterValues.indexOf(_) === -1) : []
         if (newValues.length) {
             trackEvent({ category: 'Filtre', action: `Filtre par ${filterLabel}`, name: newValues.toString(), value: establishment.siren })
         }

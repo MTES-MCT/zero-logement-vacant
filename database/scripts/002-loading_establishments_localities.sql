@@ -94,5 +94,6 @@ update establishments set available = true where siren in
  '200065886',
  '247000011',
  '200067759',
- '200035731'
+ '200035731',
+ '243400017'
 );

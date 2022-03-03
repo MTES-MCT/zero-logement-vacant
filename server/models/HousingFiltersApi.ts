@@ -5,7 +5,6 @@ export interface HousingFiltersApi {
     ownerAges?: string[];
     multiOwners?: string[];
     beneficiaryCounts?: string[];
-    contactsCounts?: string[];
     housingKinds?: string[];
     housingStates?: string[];
     housingAreas?: string[];
@@ -13,9 +12,14 @@ export interface HousingFiltersApi {
     buildingPeriods?: string[];
     vacancyDurations?: string[];
     isTaxedValues?: string[];
+    ownershipKinds?: string[];
+    housingCounts?: string[];
+    vacancyRates?: string[];
+    campaignsCounts?: string[];
     campaignIds?: string[];
     ownerIds?: string[];
     localities?: string[];
+    localityKinds?: string[];
     housingScopes?: HousingScopesApi;
     dataYears?: number[];
     query?: string;

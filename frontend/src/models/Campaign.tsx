@@ -63,4 +63,4 @@ export const campaignStep = (campaign?: Campaign) => {
                 CampaignSteps.InProgess
 }
 
-export const returnRate = (campaign: Campaign) => Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100)
+export const returnRate = (campaign: Campaign) => (campaign.housingCount - campaign.npaiCount) !== 0 ? Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100) : 0;

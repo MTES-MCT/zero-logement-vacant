@@ -6,7 +6,6 @@ export interface HousingFilters {
     ownerAges: string[];
     multiOwners: string[];
     beneficiaryCounts: string[];
-    contactsCounts: string[];
     housingKinds: string[];
     housingStates: string[];
     housingAreas: string[];
@@ -14,8 +13,13 @@ export interface HousingFilters {
     buildingPeriods: string[];
     vacancyDurations: string[];
     isTaxedValues: string[];
+    ownershipKinds: string[];
+    housingCounts: string[];
+    vacancyRates: string[];
+    campaignsCounts: string[];
     campaignIds?: string[];
     localities: string[];
+    localityKinds: string[];
     housingScopes: HousingScopes;
     dataYears?: number[];
     query: string;
@@ -39,12 +43,12 @@ export const ownerKindOptions: HousingFilterOption[] = [
     {value: "Autre", label: "Autres"}
 ];
 
-export const contactsCountOptions: HousingFilterOption[] = [
+export const campaignsCountOptions: HousingFilterOption[] = [
     {value: "0", label: "Jamais contacté"},
-    {value: "current", label: "En cours"},
-    {value: "1", label: "1 fois"},
-    {value: "2", label: "2 fois"},
-    {value: "gt3", label: "3 fois ou plus"}
+    {value: "current", label: "Dans une campagne en cours"},
+    {value: "1", label: "Déjà contacté 1 fois"},
+    {value: "2", label: "Déjà contacté 2 fois"},
+    {value: "gt3", label: "Déjà contacté 3 fois ou plus"}
 ];
 
 export const beneficiaryCountOptions: HousingFilterOption[] = [
@@ -54,6 +58,21 @@ export const beneficiaryCountOptions: HousingFilterOption[] = [
     {value: "3", label: "3", badgeLabel: "3 bénéficiaires"},
     {value: "4", label: "4", badgeLabel: "4 bénéficiaires"},
     {value: "gt5", label: "5 ou plus", badgeLabel: "5 bénéficiaires ou plus"},
+];
+
+export const housingCountOptions: HousingFilterOption[] = [
+    {value: "lt5", label: "Moins de 5", badgeLabel: "Moins de 5 logements"},
+    {value: "5to20", label: "Entre 5 et 20", badgeLabel: "Entre 5 et 20 logements"},
+    {value: "20to50", label: "Entre 20 et 50", badgeLabel: "Entre 20 et 50 logements"},
+    {value: "gt50", label: "Plus de 50", badgeLabel: "Plus de 50 logements"},
+];
+
+export const vacancyRateOptions: HousingFilterOption[] = [
+    {value: "lt20", label: "Moins de 20%", badgeLabel: "Moins de 20% de vacance"},
+    {value: "20to40", label: "20% - 40%", badgeLabel: "Entre 20% et 40% de vacance"},
+    {value: "40to60", label: "40% - 60%", badgeLabel: "Entre 40% et 60% de vacance"},
+    {value: "60to80", label: "60% - 80%", badgeLabel: "Entre 60% et 80% de vacance"},
+    {value: "gt80", label: "Plus de 80%", badgeLabel: "Plus de 80% de vacance"},
 ];
 
 export const housingKindOptions: HousingFilterOption[] = [
@@ -77,7 +96,9 @@ export const roomsCountOptions: HousingFilterOption[] = [
 ];
 
 export const housingStateOptions: HousingFilterOption[] = [
-    {value: "Inconfortable", label: "Inconfortable"}
+    {value: "Inconfortable", label: "Inconfortable"},
+    {value: "Confortable", label: "Confortable"},
+    {value: "VeryConfortable", label: "Très confortable"},
 ];
 
 export const buildingPeriodOptions: HousingFilterOption[] = [
@@ -104,6 +125,17 @@ export const taxedOptions: HousingFilterOption[] = [
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
 
+export const ownershipKindsOptions: HousingFilterOption[] = [
+    {value: "single", label: "Monopropriété"},
+    {value: "co", label: "Copropriété"},
+    {value: "other", label: "Autre", badgeLabel: "Autre type de propriété"}
+];
+
+export const localityKindsOptions = [
+    {value: "ACV", label: "Action Cœur de Ville"},
+    {value: "PVD", label: "Petites Ville de Demain"}
+];
+
 export const dataYearsOptions = [
     {value: "2019", label: "2019"},
     {value: "2020", label: "2020"},
@@ -113,18 +145,27 @@ export const dataYearsOptions = [
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
 
 export const hasFilters = (housingFilters: HousingFilters) => {
-    return Boolean(housingFilters.ownerKinds.length ||
+    return Boolean(
+        housingFilters.ownerKinds.length ||
         housingFilters.ownerAges.length ||
         housingFilters.multiOwners.length ||
         housingFilters.beneficiaryCounts.length ||
-        housingFilters.contactsCounts.length ||
         housingFilters.housingKinds.length ||
-        housingFilters. housingStates.length ||
+        housingFilters.housingStates.length ||
         housingFilters.housingAreas.length ||
         housingFilters.roomsCounts.length ||
         housingFilters.buildingPeriods.length ||
         housingFilters.vacancyDurations.length ||
         housingFilters.isTaxedValues.length ||
-        housingFilters.query.length);
+        housingFilters.ownershipKinds.length ||
+        housingFilters.housingCounts.length ||
+        housingFilters.vacancyRates.length ||
+        housingFilters.campaignsCounts.length ||
+        housingFilters.campaignIds?.length ||
+        housingFilters.localities.length ||
+        housingFilters.localityKinds.length ||
+        housingFilters.housingScopes.scopes.length ||
+        housingFilters.dataYears?.length ||
+        housingFilters.query.length
+    );
 }
-

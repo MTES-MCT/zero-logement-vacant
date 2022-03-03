@@ -26,7 +26,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 const HousingFilterBadges = ({options, filters = [], onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
     return (
         <>
-            {options.filter(o => o.value.length && filters?.indexOf(o.value) !== -1).map((option, index) =>
+            {options.filter(o => o.value?.length && filters?.indexOf(o.value) !== -1).map((option, index) =>
                 <span className="fr-tag fr-tag-click fr-tag--sm fr-fi-icon" key={option + '-' + index}>
                     {option.badgeLabel ?? option.label}
                     {onChange &&

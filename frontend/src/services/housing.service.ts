@@ -1,11 +1,12 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
-import { Housing } from '../models/Housing';
+import { Housing, HousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
+import { HousingStatus } from '../models/HousingState';
 
 
 const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
@@ -64,6 +65,34 @@ const listByOwner = async (ownerId: string): Promise<Housing[]> => {
         .then(_ => _.map((h: any) => parseHousing(h)));
 };
 
+
+const listByCampaign = async (campaignId: string, page: number, perPage: number, status: HousingStatus): Promise<PaginatedResult<Housing>> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/campaign/${campaignId}`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            page,
+            perPage,
+            status
+        }),
+    })
+        .then(_ => _.json())
+        .then(result => ({
+            ...result,
+            entities: result.entities.map((e: any) => parseHousing(e))
+        }));
+};
+
+const updateHousingList = async (housingUpdate: HousingUpdate, allHousing: boolean, housingIds: string[]): Promise<any> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/list`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ housingUpdate, allHousing, housingIds }),
+    });
+};
+
 export const parseHousing = (h: any): Housing => ({
     ...h,
     rawAddress: h.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
@@ -73,6 +102,8 @@ export const parseHousing = (h: any): Housing => ({
 const housingService = {
     listHousing,
     listByOwner,
+    listByCampaign,
+    updateHousingList,
     quickSearchService,
     exportHousing
 };

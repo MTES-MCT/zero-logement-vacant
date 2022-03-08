@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import { HousingApi } from '../models/HousingApi';
+import { HousingApi, HousingUpdateApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
@@ -10,6 +10,8 @@ import localityRepository from '../repositories/localityRepository';
 import { RequestUser } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
+import eventRepository from '../repositories/eventRepository';
+import { EventApi, EventKinds } from '../models/EventApi';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -37,6 +39,73 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
     return housingRepository.listWithFilters({ownerIds: [ownerId]})
         .then(_ => response.status(200).json(_.entities));
 };
+
+const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignId = request.params.campaignId;
+
+    const page = request.body.page;
+    const perPage = request.body.perPage;
+    const status = request.body.status;
+
+    console.log('List housing by campaign', campaignId, page, perPage, status)
+
+    return housingRepository.listWithFilters({campaignIds: [campaignId], status: [status]}, page, perPage)
+        .then(_ => response.status(200).json(_));
+};
+
+
+const updateHousingList = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Update campaign housing list')
+
+    const userId = (<RequestUser>request.user).userId;
+    const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+    const allHousing = <boolean>request.body.allHousing;
+
+    const housingList =
+        await housingRepository.listWithFilters({campaignIds: [housingUpdateApi.campaignId], status: [housingUpdateApi.previousStatus]})
+            .then(_ => _.entities
+                .filter(housing => allHousing ? request.body.housingIds.indexOf(housing.id) === -1 : request.body.housingIds.indexOf(housing.id) !== -1)
+            );
+
+    const updatedHousingList = await housingRepository.updateList(housingList.map(_ => _.id), housingUpdateApi)
+
+    await eventRepository.insertList(housingList.map(housing => (<EventApi>{
+        housingId: housing.id,
+        ownerId: housing.owner.id,
+        kind: EventKinds.StatusChange,
+        campaignId: housingUpdateApi.campaignId,
+        contactKind: housingUpdateApi.contactKind,
+        content: [
+            getStatusLabel(housing, housingUpdateApi),
+            housingUpdateApi.comment
+        ]
+            .filter(_ => _ !== null && _ !== undefined)
+            .join('. '),
+        createdBy: userId
+    })))
+
+    return response.status(200).json(updatedHousingList);
+};
+
+const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateApi) => {
+
+    return (housingApi.status !== housingUpdateApi.status ||
+        housingApi.subStatus != housingUpdateApi.subStatus ||
+        housingApi.precision != housingUpdateApi.precision) ?
+        [
+            'Passage à ' + [
+                'En attente de retour',
+                'Suivi en cours',
+                'Non-vacant',
+                'Bloqué',
+                'Accompagnement terminé'
+            ][housingUpdateApi.status],
+            housingUpdateApi.subStatus,
+            housingUpdateApi.precision
+        ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
+}
 
 const exportHousingByCampaign = async (request: Request, response: Response): Promise<Response> => {
 
@@ -212,6 +281,8 @@ const reduceRawAddress = (rawAddress?: string[]) => {
 const housingController =  {
     list,
     listByOwner,
+    listByCampaign,
+    updateHousingList,
     exportHousingByCampaign,
     exportHousingWithFilters,
     normalizeAddresses

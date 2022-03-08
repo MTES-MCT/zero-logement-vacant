@@ -6,29 +6,18 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
-import {
-    getOwner,
-    getOwnerCampaignHousing,
-    getOwnerHousing,
-    update,
-    updateOwnerCampaignHousing,
-} from '../../store/actions/ownerAction';
+import { getOwner, getOwnerHousing, update, updateOwnerHousing } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
-import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
-import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
+import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
+import { HousingUpdate } from '../../models/Housing';
 import { getCampaign } from '../../store/actions/campaignAction';
-import {
-    getCampaignHousingPrecision,
-    getCampaignHousingState,
-    getCampaignHousingStep,
-} from '../../models/CampaignHousingState';
-import { ensure } from '../../utils/arrayUtils';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { getHousingState, getHousingStatusPrecision, getHousingSubStatus } from '../../models/HousingState';
 
 const OwnerView = () => {
 
@@ -40,13 +29,12 @@ const OwnerView = () => {
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
+    const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
     const { campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
-        dispatch(getOwnerCampaignHousing(id));
         if (campaignId && !campaign) {
             dispatch(getCampaign(campaignId))
         }
@@ -57,13 +45,10 @@ const OwnerView = () => {
         setIsModalOwnerOpen(false);
     }
 
-    const submitCampaignHousingUpdate = (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => {
-        dispatch(updateOwnerCampaignHousing(campaignHousing.campaignId, campaignHousing.id, campaignHousingUpdate))
+    const submitHousingUpdate = (housingId: string, campaignHousingUpdate: HousingUpdate) => {
+        dispatch(updateOwnerHousing(housingId, campaignHousingUpdate))
         setIsModalStatusOpen(false)
     }
-
-    const campaignHousing = (campaignId: string, housingId: string) =>
-        ensure(campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId))
 
     return (
         <>
@@ -84,10 +69,9 @@ const OwnerView = () => {
                                         Modifier le dossier
                                     </Button>
                                     {isModalStatusOpen &&
-                                        <CampaignHousingStatusModal housingList={housingList}
-                                                                    campaignHousingList={campaignHousingList}
-                                                                    onSubmit={submitCampaignHousingUpdate}
-                                                                    onClose={() => setIsModalStatusOpen(false)} />
+                                        <HousingStatusModal housingList={housingList}
+                                                            onSubmit={submitHousingUpdate}
+                                                            onClose={() => setIsModalStatusOpen(false)} />
                                     }
                                 </Col>
                             </Row>
@@ -165,14 +149,49 @@ const OwnerView = () => {
                     {housingList.map((housing, index) =>
                         <div key={housing.id} className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
                             <Row>
-                                <Col n="12">
-                                    <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
+                                <Col>
+                                    <Title as="h2" look="h3" className="fr-mb-0">
+                                        Logement {index + 1}
+                                        {housing.status !== undefined && housing.status !== null &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingState(housing.status).bgcolor})`,
+                                                color: `var(${getHousingState(housing.status).color})`,
+                                            }}
+                                                  className='status-label fr-ml-3w'>
+                                                {getHousingState(housing.status).title}
+                                            </span>
+                                        }
+                                        {housing.subStatus &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingSubStatus(housing)?.bgcolor})`,
+                                                color: `var(${getHousingSubStatus(housing)?.color})`,
+                                            }}
+                                                  className='status-label'>
+                                                {housing.subStatus}
+                                            </span>
+                                        }
+                                        {housing.subStatus && housing.precision &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingStatusPrecision(housing)?.bgcolor})`,
+                                                color: `var(${getHousingStatusPrecision(housing)?.color})`,
+                                            }}
+                                                  className='status-label'>
+                                                {housing.precision}
+                                            </span>
+                                        }
+                                    </Title>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
                                     <Text size="xs" className="fr-mb-2w">
                                         <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
                                         <br />
                                         <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
                                     </Text>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col n="4">
                                     <Text size="lg" className="fr-mb-1w">
                                         <b>Emplacement</b>
@@ -229,7 +248,7 @@ const OwnerView = () => {
                                     </Text>
                                 </Col>
                             </Row>
-                            {housing.campaignIds.length > 0 && campaignHousingList.length > 0 &&
+                            {housing.campaignIds.length > 0 &&
                                 <Row>
                                     <Col n="12">
                                         <Text size="lg" className="fr-mb-1w">
@@ -244,33 +263,6 @@ const OwnerView = () => {
                                                 <Link title="Voir la campagne" href={'/campagnes/' + campaignId} className="ds-fr--inline fr-link">
                                                     Voir la campagne<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                 </Link>
-                                                <div>
-                                                    <span style={{
-                                                        backgroundColor: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).bgcolor})`,
-                                                        color: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).color})`,
-                                                    }}
-                                                          className='status-label'>
-                                                        {getCampaignHousingState(campaignHousing(campaignId, housing.id).status).title}
-                                                    </span>
-                                                    {campaignHousing(campaignId, housing.id).step &&
-                                                        <span style={{
-                                                            backgroundColor: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.bgcolor})`,
-                                                            color: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.color})`,
-                                                        }}
-                                                              className='status-label'>
-                                                            {campaignHousing(campaignId, housing.id).step}
-                                                        </span>
-                                                    }
-                                                    {campaignHousing(campaignId, housing.id).step && campaignHousing(campaignId, housing.id).precision &&
-                                                        <span style={{
-                                                            backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.bgcolor})`,
-                                                            color: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.color})`,
-                                                        }}
-                                                              className='status-label'>
-                                                            {campaignHousing(campaignId, housing.id).precision}
-                                                        </span>
-                                                    }
-                                                </div>
                                             </div>
                                         )}
                                     </Col>

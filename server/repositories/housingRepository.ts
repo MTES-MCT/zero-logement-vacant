@@ -1,5 +1,5 @@
 import db from './db';
-import { HousingApi } from '../models/HousingApi';
+import { HousingApi, HousingUpdateApi } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
@@ -245,6 +245,9 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.dataYears?.length) {
                 queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
+            if (filters.status?.length) {
+                queryBuilder.whereIn(`${housingTable}.status`, filters.status)
+            }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     whereBuilder.orWhereRaw('upper(full_name) like ?', `%${filters.query?.toUpperCase()}%`)
@@ -336,6 +339,25 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
+const updateList = async (housingIds: string[], campaignHousingUpdateApi: HousingUpdateApi): Promise<HousingApi[]> => {
+
+    console.log('update housing list', housingIds)
+
+    try {
+        return db(housingTable)
+            .whereIn('id', housingIds)
+            .update({
+                status: campaignHousingUpdateApi.status,
+                sub_status: campaignHousingUpdateApi.subStatus ?? null,
+                precision: campaignHousingUpdateApi.precision ?? null,
+            })
+            .returning('*');
+    } catch (err) {
+        console.error('Updating campaign housing list failed', err, housingIds);
+        throw new Error('Updating campaign housing list failed');
+    }
+}
+
 const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
         const update = 'UPDATE housing as h SET ' +
@@ -391,12 +413,16 @@ const parseHousingApi = (result: any) => (
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
         dataYears: result.data_years,
-        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _)
+        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
+        status: result.status,
+        subStatus: result.sub_status,
+        precision: result.precision
     }
 )
 
 export default {
     listWithFilters,
     listByIds,
+    updateList,
     updateAddressList
 }

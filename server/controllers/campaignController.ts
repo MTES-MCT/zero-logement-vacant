@@ -7,7 +7,7 @@ import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
-import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -130,7 +130,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }))
 
     if (step === CampaignSteps.Sending) {
-        await campaignHousingRepository.listCampaignHousing(campaignId, CampaignHousingStatusApi.Waiting)
+        await housingRepository.listWithFilters({campaignIds: [campaignId], status: [HousingStatusApi.Waiting]})
             .then(results => eventRepository.insertList(
                 results.entities.map(campaignHousing => <EventApi>{
                     housingId: campaignHousing.id,
@@ -180,14 +180,34 @@ const deleteCampaign = async (request: Request, response: Response): Promise<Res
 
 }
 
+
+const removeHousingList = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Remove campaign housing list')
+
+    const campaignId = request.params.campaignId;
+    const campaignHousingStatusApi = <HousingStatusApi>request.body.status;
+    const allHousing = <boolean>request.body.allHousing;
+
+    const housingIds =
+        await housingRepository.listWithFilters({campaignIds: [campaignId], status: [campaignHousingStatusApi]})
+            .then(_ => _.entities
+                .map(_ => _.id)
+                .filter(id => allHousing ? request.body.housingIds.indexOf(id) === -1 : request.body.housingIds.indexOf(id) !== -1)
+            );
+
+    return campaignHousingRepository.deleteHousingFromCampaign(campaignId, housingIds)
+        .then(_ => response.status(200).json(_));
+};
+
 const campaignController =  {
     get,
     list,
     createCampaign,
     createReminderCampaign,
     validateStep,
-    deleteCampaign
-    // importFromAirtable
+    deleteCampaign,
+    removeHousingList
 };
 
 export default campaignController;

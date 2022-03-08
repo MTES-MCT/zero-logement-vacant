@@ -1,4 +1,4 @@
-export enum CampaignHousingStatusApi {
+export enum HousingStatusApi {
     Waiting,
     InProgress,
     NotVacant,

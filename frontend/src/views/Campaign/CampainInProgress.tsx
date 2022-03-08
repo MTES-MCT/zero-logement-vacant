@@ -10,28 +10,28 @@ import {
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { CampaignHousing, CampaignHousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
+import { Housing, HousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
-import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
+import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
 import {
-    CampaignHousingStatus,
-    getCampaignHousingState,
+    HousingStatus,
+    getHousingState,
     getPrecision,
-    getStep,
-} from '../../models/CampaignHousingState';
+    getSubStatus,
+} from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import CampaignHousingListStatusModal
-    from '../../components/modals/CampaignHousingStatusModal/CampaignHousingListStatusModal';
+import HousingListStatusModal
+    from '../../components/modals/HousingStatusModal/HousingListStatusModal';
 import CampaignReminderCreationModal
     from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 
-const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
+const TabContent = ({ status } : { status: HousingStatus }) => {
 
     const dispatch = useDispatch();
 
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
-    const [updatingModalCampaignHousing, setUpdatingModalCampaignHousing] = useState<CampaignHousing | undefined>();
+    const [updatingModalHousing, setUpdatingModalHousing] = useState<Housing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
@@ -55,12 +55,12 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const modifyColumn = {
         name: 'modify',
         headerRender: () => '',
-        render: (campaignHousing: CampaignHousing) =>
+        render: (housing: Housing) =>
             <>
                 <Button title="Mettre à jour"
                         size="sm"
                         secondary
-                        onClick={() => setUpdatingModalCampaignHousing(campaignHousing)}>
+                        onClick={() => setUpdatingModalHousing(housing)}>
                     Mettre à jour &nbsp;<span className="fr-fi-edit-fill" aria-hidden="true" />
                 </Button>
             </>
@@ -69,28 +69,30 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: ({ status, step, precision } : CampaignHousing) =>
+        render: ({ status, subStatus, precision } : Housing) =>
             <>
-                <div style={{
-                    backgroundColor: `var(${getCampaignHousingState(status).bgcolor})`,
-                    color: `var(${getCampaignHousingState(status).color})`,
-                }}
-                     className='status-label'>
-                    {getCampaignHousingState(status).title}
-                </div>
-                {step && step !== getCampaignHousingState(status).title &&
+                {status !== undefined &&
                     <div style={{
-                        backgroundColor: `var(${getStep(status, step)?.bgcolor})`,
-                        color: `var(${getStep(status, step)?.color})`,
+                        backgroundColor: `var(${getHousingState(status).bgcolor})`,
+                        color: `var(${getHousingState(status).color})`,
                     }}
                          className='status-label'>
-                        {step}
+                        {getHousingState(status).title}
                     </div>
                 }
-                {step && precision &&
+                {status !== undefined && subStatus && subStatus !== getHousingState(status).title &&
                     <div style={{
-                        backgroundColor: `var(${getPrecision(status, step, precision)?.bgcolor})`,
-                        color: `var(${getPrecision(status, step, precision)?.color})`,
+                        backgroundColor: `var(${getSubStatus(status, subStatus)?.bgcolor})`,
+                        color: `var(${getSubStatus(status, subStatus)?.color})`,
+                    }}
+                         className='status-label'>
+                        {subStatus}
+                    </div>
+                }
+                {status !== undefined && subStatus && precision &&
+                    <div style={{
+                        backgroundColor: `var(${getPrecision(status, subStatus, precision)?.bgcolor})`,
+                        color: `var(${getPrecision(status, subStatus, precision)?.color})`,
                     }}
                           className='status-label'>
                                 {precision}
@@ -99,13 +101,13 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
             </>
     };
 
-    const submitCampaignHousingUpdate = (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => {
-        dispatch(updateCampaignHousingList(campaignHousing.campaignId, campaignHousingUpdate, false, [campaignHousing.id]))
-        setUpdatingModalCampaignHousing(undefined)
+    const submitHousingUpdate = (housingId: string, housingUpdate: HousingUpdate) => {
+        dispatch(updateCampaignHousingList(housingUpdate, false, [housingId]))
+        setUpdatingModalHousing(undefined)
     }
 
-    const submitSelectedHousingUpdate = (updated: CampaignHousingUpdate) => {
-        dispatch(updateCampaignHousingList(campaign.id, updated, selectedHousing.all, selectedHousing.ids))
+    const submitSelectedHousingUpdate = (updated: HousingUpdate) => {
+        dispatch(updateCampaignHousingList({...updated, campaignId: campaign.id}, selectedHousing.all, selectedHousing.ids))
         setUpdatingModalSelectedHousing(undefined);
     }
 
@@ -158,15 +160,14 @@ const TabContent = ({ status } : { status: CampaignHousingStatus }) => {
                              onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}
                              additionalColumns={[statusColumn, modifyColumn]}
                              tableClassName="campaign"/>
-                {updatingModalCampaignHousing &&
-                    <CampaignHousingStatusModal
-                        housingList={[updatingModalCampaignHousing]}
-                        campaignHousingList={[updatingModalCampaignHousing]}
-                        onSubmit={submitCampaignHousingUpdate}
-                        onClose={() => setUpdatingModalCampaignHousing(undefined)}/>
+                {updatingModalHousing &&
+                    <HousingStatusModal
+                        housingList={[updatingModalHousing]}
+                        onSubmit={submitHousingUpdate}
+                        onClose={() => setUpdatingModalHousing(undefined)}/>
                 }
                 {updatingModalSelectedHousing &&
-                    <CampaignHousingListStatusModal
+                    <HousingListStatusModal
                         housingCount={selectedCount}
                         initialStatus={status}
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
@@ -206,34 +207,34 @@ const CampaignInProgress = () => {
 
     useEffect(() => {
         if (campaign) {
-            dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.Waiting))
-            dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.InProgress))
-            dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.NoAction))
-            dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.NotVacant))
-            dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.Exit))
+            dispatch(listCampaignHousing(campaign.id, HousingStatus.Waiting))
+            dispatch(listCampaignHousing(campaign.id, HousingStatus.InProgress))
+            dispatch(listCampaignHousing(campaign.id, HousingStatus.NoAction))
+            dispatch(listCampaignHousing(campaign.id, HousingStatus.NotVacant))
+            dispatch(listCampaignHousing(campaign.id, HousingStatus.Exit))
         }
     }, [dispatch])
 
-    const getTabLabel = (status: CampaignHousingStatus) => {
-        return `${getCampaignHousingState(status).title} (${campaignHousingByStatus[status].loading ? '...' : campaignHousingByStatus[status].totalCount})`
+    const getTabLabel = (status: HousingStatus) => {
+        return `${getHousingState(status).title} (${campaignHousingByStatus[status].loading ? '...' : campaignHousingByStatus[status].totalCount})`
     }
 
     return (
         <Tabs>
-            <Tab label={getTabLabel(CampaignHousingStatus.Waiting)}>
-                <TabContent status={CampaignHousingStatus.Waiting}/>
+            <Tab label={getTabLabel(HousingStatus.Waiting)}>
+                <TabContent status={HousingStatus.Waiting}/>
             </Tab>
-            <Tab label={getTabLabel(CampaignHousingStatus.InProgress)}>
-                <TabContent status={CampaignHousingStatus.InProgress}/>
+            <Tab label={getTabLabel(HousingStatus.InProgress)}>
+                <TabContent status={HousingStatus.InProgress}/>
             </Tab>
-            <Tab label={getTabLabel(CampaignHousingStatus.NotVacant)}>
-                <TabContent status={CampaignHousingStatus.NotVacant}/>
+            <Tab label={getTabLabel(HousingStatus.NotVacant)}>
+                <TabContent status={HousingStatus.NotVacant}/>
             </Tab>
-            <Tab label={getTabLabel(CampaignHousingStatus.NoAction)}>
-                <TabContent status={CampaignHousingStatus.NoAction}/>
+            <Tab label={getTabLabel(HousingStatus.NoAction)}>
+                <TabContent status={HousingStatus.NoAction}/>
             </Tab>
-            <Tab label={getTabLabel(CampaignHousingStatus.Exit)}>
-                <TabContent status={CampaignHousingStatus.Exit}/>
+            <Tab label={getTabLabel(HousingStatus.Exit)}>
+                <TabContent status={HousingStatus.Exit}/>
             </Tab>
         </Tabs>
     );

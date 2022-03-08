@@ -10,22 +10,20 @@ import {
     ModalTitle,
     Select,
 } from '@dataesr/react-dsfr';
-import { CampaignHousing, CampaignHousingUpdate, Housing } from '../../../models/Housing';
+import { Housing, HousingUpdate } from '../../../models/Housing';
 import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 import { useDispatch } from 'react-redux';
-import CampaignHousingStatusForm from './CampaignHousingStatusForm';
 import { useCampaignList } from '../../../hooks/useCampaignList';
+import HousingStatusForm from './HousingStatusForm';
 
-const CampaignHousingStatusModal = (
+const HousingStatusModal = (
     {
         housingList,
-        campaignHousingList,
         onSubmit,
         onClose
     }: {
         housingList: Housing[],
-        campaignHousingList: CampaignHousing[],
-        onSubmit: (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => void,
+        onSubmit: (housingId: string, campaignHousingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
 
@@ -33,9 +31,9 @@ const CampaignHousingStatusModal = (
     const statusFormRef = useRef<{validate: () => void}>();
     const campaignList = useCampaignList();
 
-    const [housingId, setHousingId] = useState<string>();
-    const [campaignHousingOptions, setCampaignHousingOptions] = useState<SelectOption[]>();
-    const [campaignHousing, setCampaignHousing] = useState<CampaignHousing>();
+    const [housing, setHousing] = useState<Housing>();
+    const [campaignId, setCampaignId] = useState<string>();
+    const [campaignOptions, setCampaignOptions] = useState<SelectOption[]>();
 
     useEffect(() => {
         if (housingList.length === 1) {
@@ -46,36 +44,34 @@ const CampaignHousingStatusModal = (
 
     const housingOptions = housingList.length === 1 ? [{value: housingList[0].id, label: housingList[0].rawAddress.join(' - ')}] : [
         DefaultOption,
-        ...housingList.map(housing => (
-            {value: housing.id, label: [`Logement ${housingList.findIndex(h => h.id === housing.id) + 1}`, ...housing.rawAddress].join(' - ')}
+        ...housingList.map((housing, index) => (
+            {value: housing.id, label: [`Logement ${index + 1}`, ...housing.rawAddress].join(' - ')}
         ))
     ];
 
     const selectHousing = (housingId: string) => {
-        setHousingId(housingId);
-        const list = campaignHousingList?.filter(_ => _.id === housingId)
-        if (list.length === 1) {
-            setCampaignHousingOptions(undefined)
-            selectCampaign(housingId, list[0].campaignId)
-        } else {
-            setCampaignHousing(undefined)
-            setCampaignHousingOptions([
-                DefaultOption,
-                ...list.map(campaignHousing => ({
-                    value: campaignHousing.campaignId,
-                    label: campaignList?.find(campaign => campaign.id === campaignHousing.campaignId)?.name ?? ''
-                }))
-            ])
+        const housing = housingList.find(_ => _.id === housingId)
+        if (housing) {
+            setHousing(housing);
+            if (housing.campaignIds.length === 1) {
+                setCampaignId(housing.campaignIds[0])
+                setCampaignOptions(undefined);
+            } else {
+                setCampaignId(undefined)
+                setCampaignOptions([
+                    DefaultOption,
+                    ...housing.campaignIds.map(campaignId => ({
+                        value: campaignId,
+                        label: campaignList?.find(campaign => campaign.id === campaignId)?.name ?? ''
+                    }))
+                ])
+            }
         }
     }
 
-    const selectCampaign = (housingId: string, campaignId: string) => {
-        setCampaignHousing(campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId));
-    }
-
-    const submit = (campaignHousingUpdate: CampaignHousingUpdate) => {
-        if (campaignHousing) {
-            onSubmit(campaignHousing, campaignHousingUpdate)
+    const submit = (housingUpdate: HousingUpdate) => {
+        if (housing) {
+            onSubmit(housing.id, {...housingUpdate, campaignId})
         }
     }
 
@@ -95,27 +91,27 @@ const CampaignHousingStatusModal = (
                         <Select
                             label="Logement concerné"
                             options={housingOptions}
-                            selected={housingId}
+                            selected={housing?.id}
                             onChange={(e: any) => selectHousing(e.target.value)}/>
                     }
-                    {campaignHousingOptions && campaignHousingOptions.length === 1 ?
+                    {campaignOptions && campaignOptions.length === 1 ?
                         <Alert title=""
                                description="Ce logement n'est pas dans une campagne, vous ne pouvez pas mettre à jour son statut."
                                className="fr-mb-3w"
                                type="error"/> : <>
-                        {campaignHousingOptions && campaignHousingOptions.length > 1 && housingId &&
+                        {campaignOptions && campaignOptions.length > 1 &&
                             <Select
                                 label="Campagne"
-                                options={campaignHousingOptions}
-                                selected={campaignHousing?.campaignId}
-                                onChange={(e: any) => selectCampaign(housingId, e.target.value)}/>
+                                options={campaignOptions}
+                                selected={campaignId}
+                                onChange={(e: any) => setCampaignId(e.target.value)}/>
                         }
-                        {campaignHousing &&
-                            <CampaignHousingStatusForm previousStatus={campaignHousing.status}
-                                                       previousStep={campaignHousing.step}
-                                                       previousPrecision={campaignHousing.precision}
-                                                       onValidate={submit}
-                                                       ref={statusFormRef}/>
+                        {housing &&
+                            <HousingStatusForm previousStatus={housing.status}
+                                               previousSubStatus={housing.subStatus}
+                                               previousPrecision={housing.precision}
+                                               onValidate={submit}
+                                               ref={statusFormRef}/>
                         }
 
                         </>}
@@ -128,7 +124,7 @@ const CampaignHousingStatusModal = (
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                {campaignHousingOptions?.length !== 1 &&
+                {campaignOptions?.length !== 1 &&
                     <Button title="Enregistrer"
                             onClick={() => statusFormRef.current?.validate()}>
                         Enregistrer
@@ -139,5 +135,5 @@ const CampaignHousingStatusModal = (
     );
 };
 
-export default CampaignHousingStatusModal;
+export default HousingStatusModal;
 

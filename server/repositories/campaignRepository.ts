@@ -3,7 +3,7 @@ import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingTable, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
-import { CampaignHousingStatusApi } from '../models/CampaignHousingStatusApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 export const campaignsTable = 'campaigns';
 
@@ -13,12 +13,12 @@ const get = async (campaignId: string): Promise<CampaignApi> => {
         return db(campaignsTable)
             .select(
                 `${campaignsTable}.*`,
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsHousingTable}.housing_id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -43,12 +43,12 @@ const list = async (establishmentId: string): Promise<CampaignApi[]> => {
         return db
             .select(
                 `${campaignsTable}.*`,
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Waiting}') as "waitingCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.InProgress}') as "inProgressCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NotVacant}') as "notVacantCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.NoAction}') as "noActionCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.status = '${CampaignHousingStatusApi.Exit}') as "exitCount"`),
-                db.raw(`count(*) filter (where campaigns_housing.step = 'NPAI') as "npaiCount"`)
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`),
+                db.raw(`count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`)
             )
             .count(`${campaignsHousingTable}.housing_id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})

@@ -1,37 +1,37 @@
 import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 'react';
 import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
-import { CampaignHousingUpdate } from '../../../models/Housing';
+import { HousingUpdate } from '../../../models/Housing';
 import {
-    CampaignHousingStates,
-    CampaignHousingStatus,
+    HousingStates,
+    HousingStatus,
     getPrecision,
-    getCampaignHousingState,
-    getStep,
-    getPrecisionOptions,
-    getStepOptions,
-} from '../../../models/CampaignHousingState';
+    getHousingState,
+    getSubStatus,
+    getStatusPrecisionOptions,
+    getSubStatusOptions,
+} from '../../../models/HousingState';
 import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 
-const CampaignHousingStatusForm = (
+const HousingStatusForm = (
     {
         previousStatus,
-        previousStep,
+        previousSubStatus,
         previousPrecision,
         onValidate,
     }: {
-        previousStatus: CampaignHousingStatus,
-        previousStep?: string,
+        previousStatus?: HousingStatus,
+        previousSubStatus?: string,
         previousPrecision?: string,
-        onValidate: (campaignHousingUpdate: CampaignHousingUpdate) => void
+        onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
-    const [status, setStatus] = useState<CampaignHousingStatus>(previousStatus);
-    const [step, setStep] = useState<string | undefined>(previousStep);
+    const [status, setStatus] = useState<HousingStatus | undefined>(previousStatus);
+    const [subStatus, setSubStatus] = useState<string | undefined>(previousSubStatus);
     const [precision, setPrecision] = useState<string | undefined>(previousPrecision);
-    const [stepOptions, setStepOptions] = useState<SelectOption[]>();
+    const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
     const [contactKind, setContactKind] = useState<string>()
     const [comment, setComment] = useState<string>()
@@ -39,27 +39,29 @@ const CampaignHousingStatusForm = (
 
 
     useEffect(() => {
-        selectStatus(previousStatus)
+        if (previousStatus) {
+            selectStatus(previousStatus)
+        }
     }, [previousStatus])
 
     const statusOptions = [
         DefaultOption,
-        ...CampaignHousingStates.map(status => (
+        ...HousingStates.map(status => (
             {value: String(status.status), label: status.title}
         ))
     ]
 
-    const selectStatus = (newStatus: CampaignHousingStatus) => {
+    const selectStatus = (newStatus: HousingStatus) => {
         setStatus(newStatus);
-        setStepOptions(getStepOptions(newStatus));
-        selectStep(getStepOptions(newStatus)?.map(_ => _.label).find(_ => _ === step));
+        setSubStatusOptions(getSubStatusOptions(newStatus));
+        selectSubStatus(getSubStatusOptions(newStatus)?.map(_ => _.label).find(_ => _ === subStatus));
     }
 
-    const selectStep = (newStep?: string) => {
-        setStep(newStep);
-        if (newStep && status) {
-            setPrecisionOptions(getPrecisionOptions(status, newStep));
-            setPrecision(getPrecisionOptions(status, newStep)?.map(_ => _.label).find(_ => _ === precision));
+    const selectSubStatus = (newSubStatus?: string) => {
+        setSubStatus(newSubStatus);
+        if (newSubStatus && status) {
+            setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
+            setPrecision(getStatusPrecisionOptions(status, newSubStatus)?.map(_ => _.label).find(_ => _ === precision));
         } else {
             setPrecision(undefined);
             setPrecisionOptions(undefined);
@@ -81,7 +83,7 @@ const CampaignHousingStatusForm = (
 
     const updatingForm = yup.object().shape({
         status: yup.string().required('Veuillez sélectionner un statut.'),
-        step: yup.string().nullable().when('hasSteps', {
+        subStatus: yup.string().nullable().when('hasSubStatus', {
             is: true,
             then: yup.string().required('Veuillez sélectionner un sous statut.')
         }),
@@ -97,17 +99,17 @@ const CampaignHousingStatusForm = (
             setFormErrors({});
             updatingForm
                 .validate({
-                    hasSteps: stepOptions !== undefined,
+                    hasSubStatus: subStatusOptions !== undefined,
                     hasPrecisions: precisionOptions !== undefined,
                     status,
-                    step,
+                    subStatus,
                     precision,
                     contactKind
                 }, { abortEarly: false })
                 .then(() => onValidate({
                     previousStatus,
-                    status: +status,
-                    step,
+                    status: +status!,
+                    subStatus: subStatus,
                     precision,
                     contactKind,
                     comment
@@ -131,26 +133,28 @@ const CampaignHousingStatusForm = (
                     <b>CHANGEMENT DE STATUT</b>
                 </Col>
                 <Col>
-                    <span style={{
-                        backgroundColor: `var(${getCampaignHousingState(previousStatus).bgcolor})`,
-                        color: `var(${getCampaignHousingState(previousStatus).color})`,
-                    }}
-                          className='status-label'>
-                        {getCampaignHousingState(previousStatus).title}
-                    </span>
-                    {previousStep &&
+                    {previousStatus !== undefined &&
                         <span style={{
-                            backgroundColor: `var(${getStep(previousStatus, previousStep)?.bgcolor})`,
-                            color: `var(${getStep(previousStatus, previousStep)?.color})`,
+                            backgroundColor: `var(${getHousingState(previousStatus).bgcolor})`,
+                            color: `var(${getHousingState(previousStatus).color})`,
                         }}
                               className='status-label'>
-                            {previousStep}
+                            {getHousingState(previousStatus).title}
                         </span>
                     }
-                    {previousStep && previousPrecision &&
+                    {previousStatus !== undefined && previousSubStatus &&
                         <span style={{
-                            backgroundColor: `var(${getPrecision(previousStatus, previousStep, previousPrecision)?.bgcolor})`,
-                            color: `var(${getPrecision(previousStatus, previousStep, previousPrecision)?.color})`,
+                            backgroundColor: `var(${getSubStatus(previousStatus, previousSubStatus)?.bgcolor})`,
+                            color: `var(${getSubStatus(previousStatus, previousSubStatus)?.color})`,
+                        }}
+                              className='status-label'>
+                            {previousSubStatus}
+                        </span>
+                    }
+                    {previousStatus !== undefined && previousSubStatus && previousPrecision &&
+                        <span style={{
+                            backgroundColor: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.bgcolor})`,
+                            color: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.color})`,
                         }}
                               className='status-label'>
                             {previousPrecision}
@@ -169,14 +173,14 @@ const CampaignHousingStatusForm = (
                         onChange={(e: any) => selectStatus(e.target.value)}/>
                 </Col>
                 <Col n="4">
-                    {stepOptions &&
+                    {subStatusOptions &&
                     <Select
                         label="Sous-statut"
-                        options={stepOptions}
-                        selected={step}
-                        messageType={formErrors['step'] ? 'error' : undefined}
-                        message={formErrors['step']}
-                        onChange={(e: any) => selectStep(e.target.value)}/>
+                        options={subStatusOptions}
+                        selected={subStatus}
+                        messageType={formErrors['subStatus'] ? 'error' : undefined}
+                        message={formErrors['subStatus']}
+                        onChange={(e: any) => selectSubStatus(e.target.value)}/>
                     }
                 </Col>
                 <Col n="4">
@@ -219,5 +223,5 @@ const CampaignHousingStatusForm = (
     );
 };
 
-export default React.forwardRef(CampaignHousingStatusForm);
+export default React.forwardRef(HousingStatusForm);
 

@@ -17,7 +17,7 @@ import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
-import { CampaignHousingStatus } from '../../models/CampaignHousingState';
+import { HousingStatus } from '../../models/HousingState';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
@@ -50,7 +50,7 @@ const CampaignToValidate = () => {
     }
 
     useEffect(() => {
-        dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.Waiting))
+        dispatch(listCampaignHousing(campaign.id, HousingStatus.Waiting))
     }, [dispatch])
 
     const currentStep = (): CampaignSteps => {
@@ -81,11 +81,11 @@ const CampaignToValidate = () => {
     }
 
     const submitCampaignHousingRemove = () => {
-        dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, CampaignHousingStatus.Waiting))
+        dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, HousingStatus.Waiting))
         setIsRemovingModalOpen(false);
     }
 
-    const selectedCount = (campaignHousingStatus: CampaignHousingStatus) => selectedHousingCount(selectedHousing, campaignHousingByStatus[campaignHousingStatus].totalCount)
+    const selectedCount = (campaignHousingStatus: HousingStatus) => selectedHousingCount(selectedHousing, campaignHousingByStatus[campaignHousingStatus].totalCount)
 
     const menuActions = [
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
@@ -125,18 +125,18 @@ const CampaignToValidate = () => {
                     </div>
                     }
                 </div>
-                {currentStep() === CampaignSteps.OwnersValidation && !campaignHousingByStatus[CampaignHousingStatus.Waiting].loading &&
+                {currentStep() === CampaignSteps.OwnersValidation && !campaignHousingByStatus[HousingStatus.Waiting].loading &&
                     <div className="fr-pt-4w">
                         <AppActionsMenu actions={menuActions}/>
-                        <HousingList paginatedHousing={campaignHousingByStatus[CampaignHousingStatus.Waiting]}
-                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, CampaignHousingStatus.Waiting))}
+                        <HousingList paginatedHousing={campaignHousingByStatus[HousingStatus.Waiting]}
+                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, HousingStatus.Waiting))}
                                      displayKind={HousingDisplayKey.Housing}
                                      onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                         {isRemovingModalOpen &&
                             <ConfirmationModal
                                 onSubmit={() => submitCampaignHousingRemove()}
                                 onClose={() => setIsRemovingModalOpen(false)}>
-                                Êtes-vous sûr de vouloir supprimer {selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements`} de cette campagne ?
+                                Êtes-vous sûr de vouloir supprimer {selectedCount(HousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(HousingStatus.Waiting)} logements`} de cette campagne ?
                             </ConfirmationModal>
                         }
                     </div>

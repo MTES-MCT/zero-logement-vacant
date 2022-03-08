@@ -131,6 +131,7 @@ button.fr-select {
   font-weight: 700;
   color: rgba(102, 103, 61, 1);
   text-wrap: none;
+  vertical-align: middle;
 
   & + div.status-label {
     margin-top: 8px;

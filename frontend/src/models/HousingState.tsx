@@ -1,28 +1,28 @@
 import { DefaultOption } from './SelectOption';
-import { CampaignHousing } from './Housing';
+import { Housing } from './Housing';
 
-export interface CampaignHousingState {
-    status: CampaignHousingStatus;
+export interface HousingState {
+    status: HousingStatus;
     title: string,
-    steps?: CampaignHousingStep[];
+    subStatusList?: HousingSubStatus[];
     color: string;
     bgcolor: string;
 }
 
-export interface CampaignHousingStep {
+export interface HousingSubStatus {
     title: string;
-    precisions?: CampaignHousingPrecision[];
+    precisions?: HousingStatusPrecision[];
     color: string;
     bgcolor: string;
 }
 
-export interface CampaignHousingPrecision {
+export interface HousingStatusPrecision {
     title: string;
     color: string;
     bgcolor: string;
 }
 
-export enum CampaignHousingStatus {
+export enum HousingStatus {
     Waiting,
     InProgress,
     NotVacant,
@@ -30,19 +30,19 @@ export enum CampaignHousingStatus {
     Exit
 }
 
-export const CampaignHousingStates: CampaignHousingState[] = [
+export const HousingStates: HousingState[] = [
     {
-        status: CampaignHousingStatus.Waiting,
+        status: HousingStatus.Waiting,
         title: 'En attente de retour',
         color: '--green-tilleul-verveine-sun-418',
         bgcolor: '--green-tilleul-verveine-975'
     },
     {
-        status: CampaignHousingStatus.InProgress,
+        status: HousingStatus.InProgress,
         title: 'Suivi en cours',
         color: '--purple-glycine-main-494',
         bgcolor: '--purple-glycine-975',
-        steps: [
+        subStatusList: [
             {
                 title: 'À recontacter',
                 color: '--green-emeraude-sun-425',
@@ -191,11 +191,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
         ]
     },
     {
-        status: CampaignHousingStatus.NotVacant,
+        status: HousingStatus.NotVacant,
         title: 'Non-vacant',
         color: '--yellow-tournesol-975',
         bgcolor: '--yellow-moutarde-sun-348-hover',
-        steps: [
+        subStatusList: [
             {
                 title: 'Déclaré non-vacant',
                 color: '--green-emeraude-sun-425',
@@ -253,11 +253,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
         ]
     },
     {
-        status: CampaignHousingStatus.NoAction,
+        status: HousingStatus.NoAction,
         title: 'Bloqué',
         color: '--blue-cumulus-975',
         bgcolor: '--blue-cumulus-main-526',
-        steps: [
+        subStatusList: [
             {
                 title: 'NPAI',
                 color: '--green-emeraude-sun-425',
@@ -408,11 +408,11 @@ export const CampaignHousingStates: CampaignHousingState[] = [
         ]
     },
     {
-        status: CampaignHousingStatus.Exit,
+        status: HousingStatus.Exit,
         title: 'Accompagnement terminé',
         color: '--blue-ecume-sun-247',
         bgcolor: '--blue-ecume-950',
-        steps: [
+        subStatusList: [
             {
                 title: 'Loué',
                 color: '--blue-ecume-975',
@@ -432,42 +432,42 @@ export const CampaignHousingStates: CampaignHousingState[] = [
     }
 ]
 
-export const getCampaignHousingState = (status: CampaignHousingStatus) => {
-    return CampaignHousingStates[status]
+export const getHousingState = (status: HousingStatus) => {
+    return HousingStates[status]
 }
 
-export const getStep = (status: CampaignHousingStatus, stepTitle: string): CampaignHousingStep | undefined => {
-    return getCampaignHousingState(status).steps?.filter(s => s.title === stepTitle)[0]
+export const getSubStatus = (status: HousingStatus, subStatusTitle: string): HousingSubStatus | undefined => {
+    return getHousingState(status).subStatusList?.filter(s => s.title === subStatusTitle)[0]
 }
 
-export const getCampaignHousingStep = (campaignHousing: CampaignHousing): CampaignHousingStep | undefined => {
-    if (campaignHousing.step) {
-        return getStep(campaignHousing.status, campaignHousing.step)
+export const getHousingSubStatus = (housing: Housing): HousingSubStatus | undefined => {
+    if (housing.status && housing.subStatus) {
+        return getSubStatus(housing.status, housing.subStatus)
     }
 }
 
-export const getPrecision = (status: CampaignHousingStatus, stepTitle: string, precisionTitle: string): CampaignHousingPrecision | undefined => {
-    return getStep(status, stepTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
+export const getPrecision = (status: HousingStatus, subStatusTitle: string, precisionTitle: string): HousingStatusPrecision | undefined => {
+    return getSubStatus(status, subStatusTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
 }
 
-export const getCampaignHousingPrecision = (campaignHousing: CampaignHousing): CampaignHousingPrecision | undefined => {
-    if (campaignHousing.step && campaignHousing.precision) {
-        return getPrecision(campaignHousing.status, campaignHousing.step, campaignHousing.precision)
+export const getHousingStatusPrecision = (housing: Housing): HousingStatusPrecision | undefined => {
+    if (housing.status && housing.subStatus && housing.precision) {
+        return getPrecision(housing.status, housing.subStatus, housing.precision)
     }
 }
 
-export const getStepOptions = (status: CampaignHousingStatus) => {
-    const campaignHousingState = getCampaignHousingState(status)
-    return campaignHousingState.steps ? [
+export const getSubStatusOptions = (status: HousingStatus) => {
+    const housingState = getHousingState(status)
+    return housingState.subStatusList ? [
         DefaultOption,
-        ...campaignHousingState.steps.map(step => ({value: step.title, label: step.title}))
+        ...housingState.subStatusList.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
     ] : undefined;
 }
 
-export const getPrecisionOptions = (status: CampaignHousingStatus, step?: string) => {
-    const campaignHousingStep = getCampaignHousingState(status).steps?.find(s => s.title === step)
-    return campaignHousingStep?.precisions ? [
+export const getStatusPrecisionOptions = (status: HousingStatus, subStatus?: string) => {
+    const housingSubStatus = getHousingState(status).subStatusList?.find(s => s.title === subStatus)
+    return housingSubStatus?.precisions ? [
         DefaultOption,
-        ...campaignHousingStep.precisions.map(step => ({value: step.title, label: step.title}))
+        ...housingSubStatus.precisions.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
     ] : undefined;
 }

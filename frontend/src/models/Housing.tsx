@@ -1,6 +1,6 @@
 import { Owner } from './Owner';
 import { Address } from './Address';
-import { CampaignHousingStatus } from './CampaignHousingState';
+import { HousingStatus } from './HousingState';
 
 export interface Housing {
     id: string;
@@ -17,6 +17,9 @@ export interface Housing {
     vacancyStartYear: number;
     dataYears: number[];
     campaignIds: string[];
+    status?: HousingStatus;
+    subStatus?: string;
+    precision?: string;
 }
 
 export interface SelectedHousing {
@@ -24,17 +27,11 @@ export interface SelectedHousing {
     ids: string[];
 }
 
-export interface CampaignHousing extends Housing {
-    campaignId: string;
-    status: CampaignHousingStatus;
-    step?: string;
-    precision?: string;
-}
-
-export interface CampaignHousingUpdate {
-    previousStatus: CampaignHousingStatus,
-    status: CampaignHousingStatus,
-    step?: string,
+export interface HousingUpdate {
+    campaignId?: string,
+    previousStatus?: HousingStatus,
+    status: HousingStatus,
+    subStatus?: string,
     precision?: string,
     contactKind?: string,
     comment?: string

@@ -3,6 +3,8 @@ import authService from './auth.service';
 import { format, parse, parseISO } from 'date-fns';
 import { Campaign, CampaignKinds, CampaignSteps, DraftCampaign, getCampaignKindLabel } from '../models/Campaign';
 import { fr } from 'date-fns/locale';
+import { HousingStatus } from '../models/HousingState';
+import { Housing } from '../models/Housing';
 
 
 const listCampaigns = async (): Promise<Campaign[]> => {
@@ -65,6 +67,16 @@ const validCampaignStep = async (campaignId: string, step: CampaignSteps, params
         .then(_ => parseCampaign(_));
 };
 
+const removeHousingList = async (campaignId: string, allHousing: boolean, housingIds: string[], status: HousingStatus): Promise<Housing> => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}/housing`, {
+        method: 'DELETE',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allHousing, housingIds, status }),
+    })
+        .then(_ => _.json());
+};
+
 const getExportURL = (campaignId: string) => {
     return `${config.apiEndpoint}/api/housing/campaign/${campaignId}/export?x-access-token=${authService.authHeader()?.['x-access-token']}`;
 };
@@ -86,6 +98,7 @@ const campaignService = {
     createCampaignReminder,
     deleteCampaign,
     validCampaignStep,
+    removeHousingList,
     getExportURL
 };
 

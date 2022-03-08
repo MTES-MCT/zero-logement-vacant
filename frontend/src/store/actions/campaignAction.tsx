@@ -167,7 +167,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
                 perPage
             });
 
-            housingService.listByCampaign(campaignId, page, perPage, status, excludedIds)
+            housingService.listByCampaign(campaignId, page, perPage, status)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({

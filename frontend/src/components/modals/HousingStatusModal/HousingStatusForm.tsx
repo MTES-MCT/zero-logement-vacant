@@ -108,7 +108,7 @@ const HousingStatusForm = (
                 }, { abortEarly: false })
                 .then(() => onValidate({
                     previousStatus,
-                    status: +status!,
+                    status: +(status ?? HousingStatus.Waiting),
                     subStatus: subStatus,
                     precision,
                     contactKind,

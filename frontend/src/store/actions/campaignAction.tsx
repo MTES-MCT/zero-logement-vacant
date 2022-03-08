@@ -149,7 +149,7 @@ export const listCampaignHousing = (campaignId: string, status: HousingStatus) =
 };
 
 
-export const changeCampaignHousingPagination = (page: number, perPage: number, status: HousingStatus, excludedIds?: string[]) => {
+export const changeCampaignHousingPagination = (page: number, perPage: number, status: HousingStatus) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 

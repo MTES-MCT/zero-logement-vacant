@@ -241,7 +241,7 @@ export const updateCampaignHousingList = (housingUpdate: HousingUpdate, allHousi
 
         const campaignId = getState().campaign.campaign?.id
 
-        if (campaignId && housingUpdate.previousStatus !== undefined) {
+        if (campaignId && housingUpdate.previousStatus) {
 
             const previousStatus = housingUpdate.previousStatus;
 

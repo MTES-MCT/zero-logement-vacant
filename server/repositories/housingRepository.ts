@@ -1,5 +1,5 @@
 import db from './db';
-import { HousingApi, HousingUpdateApi } from '../models/HousingApi';
+import { HousingApi } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
@@ -8,6 +8,7 @@ import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -245,8 +246,8 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             if (filters.dataYears?.length) {
                 queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
-            if (filters.status?.length) {
-                queryBuilder.whereIn(`${housingTable}.status`, filters.status)
+            if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
+                queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -339,7 +340,7 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
-const updateList = async (housingIds: string[], campaignHousingUpdateApi: HousingUpdateApi): Promise<HousingApi[]> => {
+const updateStatusList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string): Promise<HousingApi[]> => {
 
     console.log('update housing list', housingIds)
 
@@ -347,9 +348,9 @@ const updateList = async (housingIds: string[], campaignHousingUpdateApi: Housin
         return db(housingTable)
             .whereIn('id', housingIds)
             .update({
-                status: campaignHousingUpdateApi.status,
-                sub_status: campaignHousingUpdateApi.subStatus ?? null,
-                precision: campaignHousingUpdateApi.precision ?? null,
+                status: status,
+                sub_status: subStatus ?? null,
+                precision: precision ?? null,
             })
             .returning('*');
     } catch (err) {
@@ -423,6 +424,6 @@ const parseHousingApi = (result: any) => (
 export default {
     listWithFilters,
     listByIds,
-    updateList,
+    updateStatusList,
     updateAddressList
 }

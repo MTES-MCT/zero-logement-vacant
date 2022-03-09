@@ -5,8 +5,8 @@ export interface HousingState {
     status: HousingStatus;
     title: string,
     subStatusList?: HousingSubStatus[];
-    color: string;
-    bgcolor: string;
+    color?: string;
+    bgcolor?: string;
 }
 
 export interface HousingSubStatus {
@@ -23,6 +23,7 @@ export interface HousingStatusPrecision {
 }
 
 export enum HousingStatus {
+    NotInCampaign,
     Waiting,
     InProgress,
     NotVacant,
@@ -31,6 +32,10 @@ export enum HousingStatus {
 }
 
 export const HousingStates: HousingState[] = [
+    {
+        status: HousingStatus.NotInCampaign,
+        title: 'Pas dans une campagne'
+    },
     {
         status: HousingStatus.Waiting,
         title: 'En attente de retour',

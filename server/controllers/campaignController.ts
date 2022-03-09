@@ -130,17 +130,20 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }))
 
     if (step === CampaignSteps.Sending) {
-        await housingRepository.listWithFilters({campaignIds: [campaignId], status: [HousingStatusApi.Waiting]})
-            .then(results => eventRepository.insertList(
-                results.entities.map(campaignHousing => <EventApi>{
-                    housingId: campaignHousing.id,
-                    ownerId: campaignHousing.owner.id,
-                    campaignId,
-                    kind: EventKinds.CampaignSend,
-                    content: 'Ajout dans la campagne',
-                    createdBy: userId
-                })
-            ))
+        const housingList = await housingRepository.listWithFilters({campaignIds: [campaignId]}).then(_ => _.entities)
+
+        await housingRepository.updateStatusList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+
+        await eventRepository.insertList(
+            housingList.map(housing => <EventApi>{
+                housingId: housing.id,
+                ownerId: housing.owner.id,
+                campaignId,
+                kind: EventKinds.CampaignSend,
+                content: 'Ajout dans la campagne',
+                createdBy: userId
+            })
+        )
     }
 
     return campaignRepository.update(updatedCampaign)

@@ -133,7 +133,7 @@ const HousingStatusForm = (
                     <b>CHANGEMENT DE STATUT</b>
                 </Col>
                 <Col>
-                    {previousStatus !== undefined &&
+                    {previousStatus &&
                         <span style={{
                             backgroundColor: `var(${getHousingState(previousStatus).bgcolor})`,
                             color: `var(${getHousingState(previousStatus).color})`,
@@ -142,7 +142,7 @@ const HousingStatusForm = (
                             {getHousingState(previousStatus).title}
                         </span>
                     }
-                    {previousStatus !== undefined && previousSubStatus &&
+                    {previousStatus && previousSubStatus &&
                         <span style={{
                             backgroundColor: `var(${getSubStatus(previousStatus, previousSubStatus)?.bgcolor})`,
                             color: `var(${getSubStatus(previousStatus, previousSubStatus)?.color})`,
@@ -151,7 +151,7 @@ const HousingStatusForm = (
                             {previousSubStatus}
                         </span>
                     }
-                    {previousStatus !== undefined && previousSubStatus && previousPrecision &&
+                    {previousStatus && previousSubStatus && previousPrecision &&
                         <span style={{
                             backgroundColor: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.bgcolor})`,
                             color: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.color})`,

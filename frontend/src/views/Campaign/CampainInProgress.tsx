@@ -71,7 +71,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
         label: 'Statut',
         render: ({ status, subStatus, precision } : Housing) =>
             <>
-                {status !== undefined &&
+                {status &&
                     <div style={{
                         backgroundColor: `var(${getHousingState(status).bgcolor})`,
                         color: `var(${getHousingState(status).color})`,
@@ -80,7 +80,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         {getHousingState(status).title}
                     </div>
                 }
-                {status !== undefined && subStatus && subStatus !== getHousingState(status).title &&
+                {status && subStatus && subStatus !== getHousingState(status).title &&
                     <div style={{
                         backgroundColor: `var(${getSubStatus(status, subStatus)?.bgcolor})`,
                         color: `var(${getSubStatus(status, subStatus)?.color})`,
@@ -89,7 +89,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         {subStatus}
                     </div>
                 }
-                {status !== undefined && subStatus && precision &&
+                {status && subStatus && precision &&
                     <div style={{
                         backgroundColor: `var(${getPrecision(status, subStatus, precision)?.bgcolor})`,
                         color: `var(${getPrecision(status, subStatus, precision)?.color})`,

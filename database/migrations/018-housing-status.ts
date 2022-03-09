@@ -8,7 +8,7 @@ exports.up = function(knex) {
                 table.string('precision');
             }),
         knex.raw('update housing h\n' +
-            'set status = sub.status, sub_status = sub.step, precision = sub.precision\n' +
+            'set status = sub.status + 1, sub_status = sub.step, precision = sub.precision\n' +
             'from (\n' +
             '    select distinct on (ch.housing_id) housing_id, status, step, precision\n' +
             '    from campaigns_housing ch, campaigns c\n' +

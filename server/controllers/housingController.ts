@@ -69,7 +69,7 @@ const updateHousingList = async (request: Request, response: Response): Promise<
                 .filter(housing => allHousing ? request.body.housingIds.indexOf(housing.id) === -1 : request.body.housingIds.indexOf(housing.id) !== -1)
             );
 
-    const updatedHousingList = await housingRepository.updateList(housingList.map(_ => _.id), housingUpdateApi)
+    const updatedHousingList = await housingRepository.updateStatusList(housingList.map(_ => _.id), housingUpdateApi.status, housingUpdateApi.subStatus, housingUpdateApi.precision)
 
     await eventRepository.insertList(housingList.map(housing => (<EventApi>{
         housingId: housing.id,

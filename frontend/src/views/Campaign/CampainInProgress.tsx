@@ -111,14 +111,14 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
         setUpdatingModalSelectedHousing(undefined);
     }
 
-    // const handleCampaignReminder = () => {
-    //     if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
-    //         setActionAlert(true);
-    //     } else {
-    //         setActionAlert(false);
-    //         setReminderModalSelectedHousing(selectedHousing)
-    //     }
-    // }
+    const handleCampaignReminder = () => {
+        if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
+            setActionAlert(true);
+        } else {
+            setActionAlert(false);
+            setReminderModalSelectedHousing(selectedHousing)
+        }
+    }
 
     const submitCampaignReminder = (startMonth: string) => {
         dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
@@ -135,15 +135,15 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                             <AppActionsMenu actions={menuActions}/>
                         </Col>
                     }
-                    {/*{status === CampaignHousingStatus.Waiting &&*/}
-                    {/*    <Col>*/}
-                    {/*        <Button title="Créer une relance"*/}
-                    {/*                className="float-right"*/}
-                    {/*                onClick={handleCampaignReminder}>*/}
-                    {/*            Créer une campagne de relance*/}
-                    {/*        </Button>*/}
-                    {/*    </Col>*/}
-                    {/*}*/}
+                    {status === HousingStatus.Waiting &&
+                        <Col>
+                            <Button title="Créer une relance"
+                                    className="float-right"
+                                    onClick={handleCampaignReminder}>
+                                Créer une campagne de relance
+                            </Button>
+                        </Col>
+                    }
                 </Row>
                 {actionAlert &&
                     <Alert title=""

@@ -100,7 +100,7 @@ const createReminderCampaign = async (request: Request, response: Response): Pro
     })
 
     const housingIds = allHousing ?
-        await housingRepository.listWithFilters({campaignIds: [campaignId]})
+        await housingRepository.listWithFilters({campaignIds: [campaignId], status: [HousingStatusApi.Waiting]})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)

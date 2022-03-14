@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
     Button,
     Container,
     Modal,
@@ -53,7 +52,17 @@ const HousingStatusModal = (
         const housing = housingList.find(_ => _.id === housingId)
         if (housing) {
             setHousing(housing);
-            if (housing.campaignIds.length === 1) {
+            if (housing.campaignIds.length === 0) {
+                setCampaignId(undefined)
+                setCampaignOptions([
+                    DefaultOption,
+                    ...campaignList?.map(campaign => ({
+                        value: campaign.id,
+                        label: campaign.name
+                    })) ?? []
+                ])
+            }
+            else if (housing.campaignIds.length === 1) {
                 setCampaignId(housing.campaignIds[0])
                 setCampaignOptions(undefined);
             } else {
@@ -75,6 +84,10 @@ const HousingStatusModal = (
         }
     }
 
+    const hasCampaign = () => {
+        return housingList.filter(_ => _.campaignIds.length).length > 0;
+    }
+
     return (
         <Modal isOpen={true}
                hide={() => onClose()}
@@ -94,27 +107,26 @@ const HousingStatusModal = (
                             selected={housing?.id}
                             onChange={(e: any) => selectHousing(e.target.value)}/>
                     }
-                    {campaignOptions && campaignOptions.length === 1 ?
-                        <Alert title=""
-                               description="Ce logement n'est pas dans une campagne, vous ne pouvez pas mettre à jour son statut."
-                               className="fr-mb-3w"
-                               type="error"/> : <>
-                        {campaignOptions && campaignOptions.length > 1 &&
-                            <Select
-                                label="Campagne"
-                                options={campaignOptions}
-                                selected={campaignId}
-                                onChange={(e: any) => setCampaignId(e.target.value)}/>
+                    {campaignOptions && <>
+                        {!hasCampaign() &&
+                                <span>
+                                <b>Ce propriétaire n’est pas présent dans la liste des propriétaires suivis actuellement</b>
+                                <br/>Vous pouvez l’ajouter à une des listes suivantes :
+                            </span>
                         }
-                        {housing &&
-                            <HousingStatusForm previousStatus={housing.status}
-                                               previousSubStatus={housing.subStatus}
-                                               previousPrecision={housing.precision}
-                                               onValidate={submit}
-                                               ref={statusFormRef}/>
-                        }
-
-                        </>}
+                        <Select
+                            label={hasCampaign() ? 'Campagne' : 'Liste'}
+                            options={campaignOptions}
+                            selected={campaignId}
+                            onChange={(e: any) => setCampaignId(e.target.value)}/>
+                    </>}
+                    {housing &&
+                        <HousingStatusForm previousStatus={housing.status}
+                                           previousSubStatus={housing.subStatus}
+                                           previousPrecision={housing.precision}
+                                           onValidate={submit}
+                                           ref={statusFormRef}/>
+                    }
                 </Container>
             </ModalContent>
             <ModalFooter>

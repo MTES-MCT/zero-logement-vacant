@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { Alert, Badge, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteCampaign } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './campaign.module.scss';
 import { Link } from 'react-router-dom';
-import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
+import {
+    Campaign,
+    campaignNumberSort,
+    campaignStep,
+    CampaignSteps,
+    getCampaignKindLabel,
+    returnRate,
+} from '../../models/Campaign';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -29,21 +36,28 @@ const CampaignsListView = () => {
         <>
             <Container>
                 <AppBreadcrumb />
-                <Title as="h1" className="fr-mb-4w">Campagnes</Title>
+                <Title as="h1" className="fr-mb-4w">Propriétaires suivis</Title>
                 <Tabs>
-                    <Tab label="Campagne(s) en cours">
+                    <Tab label="En cours">
                         {!loading && <>
                             {campaignList && !campaignList.length &&
                                 <Text>Il n&acute;y a pas de campagne en cours.</Text>
                             }
                             {campaignList && campaignList.sort(campaignNumberSort).map(campaign =>
                                 <div key={campaign.id} className={styles.campaignCard}>
+                                    <Badge small
+                                           text={campaign.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaign.kind)}` : 'Hors campagne'}
+                                           icon={false}
+                                           className="fr-mb-1w"
+                                    />
                                     <Row alignItems="middle">
                                         <Col>
                                             <Title as="h2" look="h3">{campaign.name}</Title>
                                         </Col>
                                         <Col n="1">
-                                            <AppActionsMenu actions={menuActions(campaign)}/>
+                                            {campaign.campaignNumber > 0 &&
+                                                <AppActionsMenu actions={menuActions(campaign)}/>
+                                            }
                                         </Col>
                                         <Col n="1" spacing="ml-2w">
                                             <Link title="Accéder à la campagne" to={'/campagnes/' + campaign.id} className="fr-btn--md fr-btn float-right">
@@ -62,10 +76,12 @@ const CampaignsListView = () => {
                                                 <div className={styles.statTitle}>{campaign.housingCount}</div>
                                                 <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                             </div>
-                                            <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}> {returnRate(campaign)}%</div>
-                                                <span className={styles.statLabel}>retours</span>
-                                            </div>
+                                            {campaign.campaignNumber > 0 &&
+                                                <div className={styles.campaignStat}>
+                                                    <div className={styles.statTitle}> {returnRate(campaign)}%</div>
+                                                    <span className={styles.statLabel}>retours</span>
+                                                </div>
+                                            }
                                         </Col>
                                         <Col>
                                             {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
@@ -90,7 +106,7 @@ const CampaignsListView = () => {
                             )}
                         </>}
                     </Tab>
-                    <Tab label="Campagnes passées">
+                    <Tab label="Passé">
                         <>
                              <Text>Il n&acute;y a pas de campagne passée.</Text>
                         </>

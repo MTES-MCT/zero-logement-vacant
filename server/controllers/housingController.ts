@@ -12,6 +12,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
+import campaignHousingRepository from '../repositories/campaignHousingRepository';
 
 const list = async (request: Request, response: Response): Promise<Response> => {
 
@@ -62,14 +63,19 @@ const updateHousingList = async (request: Request, response: Response): Promise<
     const userId = (<RequestUser>request.user).userId;
     const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
     const allHousing = <boolean>request.body.allHousing;
+    const housingIds = request.body.housingIds;
 
-    const housingList =
+    let housingList =
         await housingRepository.listWithFilters({campaignIds: [housingUpdateApi.campaignId], status: [housingUpdateApi.previousStatus]})
             .then(_ => _.entities
-                .filter(housing => allHousing ? request.body.housingIds.indexOf(housing.id) === -1 : request.body.housingIds.indexOf(housing.id) !== -1)
+                .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
             );
 
-    const updatedHousingList = await housingRepository.updateStatusList(housingList.map(_ => _.id), housingUpdateApi.status, housingUpdateApi.subStatus, housingUpdateApi.precision)
+    if (!allHousing && housingIds.length === 1 && !housingList.length) {
+        await campaignHousingRepository.insertHousingList(housingUpdateApi.campaignId, [housingIds[0]])
+
+        housingList = await housingRepository.listByIds([housingIds[0]])
+    }
 
     await eventRepository.insertList(housingList.map(housing => (<EventApi>{
         housingId: housing.id,
@@ -86,6 +92,8 @@ const updateHousingList = async (request: Request, response: Response): Promise<
         createdBy: userId
     })))
 
+    const updatedHousingList = await housingRepository.updateStatusList(housingList.map(_ => _.id), housingUpdateApi.status, housingUpdateApi.subStatus, housingUpdateApi.precision)
+
     return response.status(200).json(updatedHousingList);
 };
 
@@ -96,6 +104,7 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
         housingApi.precision != housingUpdateApi.precision) ?
         [
             'Passage à ' + [
+                '',
                 'En attente de retour',
                 'Suivi en cours',
                 'Non-vacant',

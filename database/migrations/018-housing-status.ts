@@ -21,7 +21,21 @@ exports.up = function(knex) {
                 table.renameColumn('status', 'status_deprecated');
                 table.renameColumn('step', 'step_deprecated');
                 table.renameColumn('precision', 'precision_deprecated');
-            })
+            }),
+        knex.raw('insert into campaigns(campaign_number, start_month, filters, validated_at, exported_at, sent_at, sending_date, establishment_id, reminder_number, created_by)\n' +
+            'select\n' +
+            '         0,\n' +
+            '         \'2203\',\n' +
+            '         \'{"query": "", "dataYears": [], "ownerAges": [], "localities": [], "ownerKinds": [], "campaignIds": [], "multiOwners": [], "roomsCounts": [], "housingAreas": [], "housingKinds": [], "vacancyRates": [], "housingCounts": [], "housingScopes": {"geom": true, "scopes": []}, "housingStates": [], "isTaxedValues": [], "localityKinds": [], "ownershipKinds": [], "buildingPeriods": [], "campaignsCounts": [], "vacancyDurations": [], "beneficiaryCounts": []}\',\n' +
+            '         current_date,\n' +
+            '         current_date,\n' +
+            '         current_date,\n' +
+            '         current_date,\n' +
+            '         id,\n' +
+            '         0,\n' +
+            '        (select id from users where establishment_id is null and upper(last_name) = \'RIVALS\')\n' +
+            ' from establishments e\n' +
+            ' where not exists(select * from campaigns where establishment_id = e.id and campaign_number = 0)')
     ]);
 };
 

@@ -2,13 +2,13 @@ import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 're
 import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../../models/Housing';
 import {
+    getHousingState,
+    getPrecision,
+    getStatusPrecisionOptions,
+    getSubStatus,
+    getSubStatusOptions,
     HousingStates,
     HousingStatus,
-    getPrecision,
-    getHousingState,
-    getSubStatus,
-    getStatusPrecisionOptions,
-    getSubStatusOptions,
 } from '../../../models/HousingState';
 import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 
@@ -28,7 +28,7 @@ const HousingStatusForm = (
         onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
-    const [status, setStatus] = useState<HousingStatus | undefined>(previousStatus);
+    const [status, setStatus] = useState<HousingStatus>();
     const [subStatus, setSubStatus] = useState<string | undefined>(previousSubStatus);
     const [precision, setPrecision] = useState<string | undefined>(previousPrecision);
     const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
@@ -39,14 +39,12 @@ const HousingStatusForm = (
 
 
     useEffect(() => {
-        if (previousStatus) {
-            selectStatus(previousStatus)
-        }
+        selectStatus(previousStatus ?? HousingStatus.Waiting)
     }, [previousStatus])
 
     const statusOptions = [
         DefaultOption,
-        ...HousingStates.map(status => (
+        ...HousingStates.filter(_ => _.status).map(status => (
             {value: String(status.status), label: status.title}
         ))
     ]

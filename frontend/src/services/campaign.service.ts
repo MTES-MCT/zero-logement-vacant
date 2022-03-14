@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { format, parse, parseISO } from 'date-fns';
-import { Campaign, CampaignKinds, CampaignSteps, DraftCampaign, getCampaignKindLabel } from '../models/Campaign';
+import { Campaign, CampaignSteps, DraftCampaign } from '../models/Campaign';
 import { fr } from 'date-fns/locale';
 import { HousingStatus } from '../models/HousingState';
 import { Housing } from '../models/Housing';
@@ -83,9 +83,9 @@ const getExportURL = (campaignId: string) => {
 
 const parseCampaign = (c: any): Campaign => ({
     ...c,
-    name: `C${c.campaignNumber} - 
-        ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })} - 
-        ${getCampaignKindLabel(c.kind)}${c.kind === CampaignKinds.Remind ? ' n°' + c.reminderNumber : ''}`,
+    name: c.campaignNumber ?
+        `C${c.campaignNumber} - ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}` :
+        'Propriétaires hors campagne',
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined

@@ -67,7 +67,7 @@ const DashboardView = () => {
                         {campaignList && !campaignList.length &&
                             <Text>Il n&acute;y a pas de campagne en cours.</Text>
                         }
-                        {campaignList?.map(campaign =>
+                        {campaignList?.filter(_ => _.campaignNumber).map(campaign =>
                             <div key={campaign.id} className={styles.campaignCard}>
                                 <Row>
                                     <Col>

@@ -193,7 +193,7 @@ const HousingStatusForm = (
                 </Col>
             </Row>
             <Text className="fr-mb-2w fr-mt-4w">
-                <b>INTERACTIONS</b>
+                <b>INFORMATIONS COMPLÉMENTAIRES</b>
             </Text>
             <Row gutters>
                 <Col n="4">

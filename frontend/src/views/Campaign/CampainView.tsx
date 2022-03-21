@@ -26,7 +26,7 @@ const CampaignView = () => {
             campaignNumber: Number(campaignNumber),
             reminderNumber: Number(reminderNumber)
         }))
-    }, [campaignNumber, reminderNumber, campaignList, dispatch])
+    }, [dispatch])
 
 
     const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
@@ -58,10 +58,12 @@ const CampaignView = () => {
                                         <div className={styles.statTitle}>{campaignBundle.housingCount}</div>
                                         <span className={styles.statLabel}>{campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
-                                    <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
-                                        <span className={styles.statLabel}>retours</span>
-                                    </div>
+                                    {campaignBundle.campaignNumber > 0 &&
+                                        <div className={styles.campaignStat}>
+                                            <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
+                                            <span className={styles.statLabel}>retours</span>
+                                        </div>
+                                    }
                                 </Col>
                             </Row>
                             <Row className="fr-pb-2w">

@@ -10,9 +10,8 @@ import {
     Select,
 } from '@dataesr/react-dsfr';
 import { Housing, HousingUpdate } from '../../../models/Housing';
-import { DefaultOption, SelectOption } from '../../../models/SelectOption';
+import { DefaultOption } from '../../../models/SelectOption';
 import { useDispatch } from 'react-redux';
-import { useCampaignList } from '../../../hooks/useCampaignList';
 import HousingStatusForm from './HousingStatusForm';
 
 const HousingStatusModal = (
@@ -22,17 +21,14 @@ const HousingStatusModal = (
         onClose
     }: {
         housingList: Housing[],
-        onSubmit: (housingId: string, campaignHousingUpdate: HousingUpdate) => void,
+        onSubmit: (housing: Housing, campaignHousingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
 
     const dispatch = useDispatch();
     const statusFormRef = useRef<{validate: () => void}>();
-    const campaignList = useCampaignList();
 
     const [housing, setHousing] = useState<Housing>();
-    const [campaignId, setCampaignId] = useState<string>();
-    const [campaignOptions, setCampaignOptions] = useState<SelectOption[]>();
 
     useEffect(() => {
         if (housingList.length === 1) {
@@ -49,43 +45,17 @@ const HousingStatusModal = (
     ];
 
     const selectHousing = (housingId: string) => {
-        const housing = housingList.find(_ => _.id === housingId)
-        if (housing) {
-            setHousing(housing);
-            if (housing.campaignIds.length === 0) {
-                setCampaignId(undefined)
-                setCampaignOptions([
-                    DefaultOption,
-                    ...campaignList?.map(campaign => ({
-                        value: campaign.id,
-                        label: campaign.name
-                    })) ?? []
-                ])
-            }
-            else if (housing.campaignIds.length === 1) {
-                setCampaignId(housing.campaignIds[0])
-                setCampaignOptions(undefined);
-            } else {
-                setCampaignId(undefined)
-                setCampaignOptions([
-                    DefaultOption,
-                    ...housing.campaignIds.map(campaignId => ({
-                        value: campaignId,
-                        label: campaignList?.find(campaign => campaign.id === campaignId)?.name ?? ''
-                    }))
-                ])
-            }
-        }
+        setHousing(housingList.find(_ => _.id === housingId));
     }
 
     const submit = (housingUpdate: HousingUpdate) => {
         if (housing) {
-            onSubmit(housing.id, {...housingUpdate, campaignId})
+            onSubmit(housing, housingUpdate)
         }
     }
 
     const hasCampaign = () => {
-        return housingList.filter(_ => _.campaignIds.length).length > 0;
+        return housing && housing.campaignIds.length > 0;
     }
 
     return (
@@ -107,19 +77,11 @@ const HousingStatusModal = (
                             selected={housing?.id}
                             onChange={(e: any) => selectHousing(e.target.value)}/>
                     }
-                    {campaignOptions && <>
-                        {!hasCampaign() &&
-                                <span>
-                                <b>Ce propriétaire n’est pas présent dans la liste des propriétaires suivis actuellement</b>
-                                <br/>Vous pouvez l’ajouter à une des listes suivantes :
-                            </span>
-                        }
-                        <Select
-                            label={hasCampaign() ? 'Campagne' : 'Liste'}
-                            options={campaignOptions}
-                            selected={campaignId}
-                            onChange={(e: any) => setCampaignId(e.target.value)}/>
-                    </>}
+                    {housing && !hasCampaign() &&
+                        <div className="fr-pb-2w">
+                            <b>Ce logement n’est pas présent dans la liste des logements suivis actuellement</b>
+                        </div>
+                    }
                     {housing &&
                         <HousingStatusForm previousStatus={housing.status}
                                            previousSubStatus={housing.subStatus}
@@ -136,7 +98,7 @@ const HousingStatusModal = (
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                {campaignOptions?.length !== 1 &&
+                {
                     <Button title="Enregistrer"
                             onClick={() => statusFormRef.current?.validate()}>
                         Enregistrer

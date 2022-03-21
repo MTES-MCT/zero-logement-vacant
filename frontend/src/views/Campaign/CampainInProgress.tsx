@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Tab, Tabs, Text } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tab, Tabs } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
-    createCampaignReminder,
-    listCampaignHousing,
-    removeCampaignHousingList,
+    createCampaignBundleReminder,
+    listCampaignBundleHousing,
     updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -13,16 +12,9 @@ import HousingList, { HousingDisplayKey } from '../../components/HousingList/Hou
 import { Housing, HousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import {
-    HousingStatus,
-    getHousingState,
-    getPrecision,
-    getSubStatus,
-} from '../../models/HousingState';
+import { getHousingState, getPrecision, getSubStatus, HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
-import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import HousingListStatusModal
-    from '../../components/modals/HousingStatusModal/HousingListStatusModal';
+import HousingListStatusModal from '../../components/modals/HousingStatusModal/HousingListStatusModal';
 import CampaignReminderCreationModal
     from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 
@@ -34,22 +26,20 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     const [updatingModalHousing, setUpdatingModalHousing] = useState<Housing | undefined>();
     const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] = useState<SelectedHousing | undefined>();
     const [reminderModalSelectedHousing, setReminderModalSelectedHousing] = useState<SelectedHousing | undefined>();
-    const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
     const [actionAlert, setActionAlert] = useState(false);
 
-    const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundleHousingByStatus, campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
-    if (!campaign) {
+    if (!campaignBundle) {
         return <></>
     }
 
-    const paginatedCampaignHousing = campaignHousingByStatus[status];
+    const paginatedCampaignHousing = campaignBundleHousingByStatus[status];
 
     const selectedCount = selectedHousingCount(selectedHousing, paginatedCampaignHousing.totalCount)
 
     const menuActions = [
-        { title: 'Changer le statut', selectedHousing, onClick: () => setUpdatingModalSelectedHousing(selectedHousing) },
-        { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
+        { title: 'Changer le statut', selectedHousing, onClick: () => setUpdatingModalSelectedHousing(selectedHousing) }
     ] as MenuAction[]
 
     const modifyColumn = {
@@ -101,13 +91,13 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
             </>
     };
 
-    const submitHousingUpdate = (housingId: string, housingUpdate: HousingUpdate) => {
-        dispatch(updateCampaignHousingList(housingUpdate, false, [housingId]))
+    const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
+        dispatch(updateCampaignHousingList(housingUpdate, status, false, [housing.id]))
         setUpdatingModalHousing(undefined)
     }
 
-    const submitSelectedHousingUpdate = (updated: HousingUpdate) => {
-        dispatch(updateCampaignHousingList({...updated, campaignId: campaign.id}, selectedHousing.all, selectedHousing.ids))
+    const submitSelectedHousingUpdate = (housingUpdate: HousingUpdate) => {
+        dispatch(updateCampaignHousingList(housingUpdate, status, selectedHousing.all, selectedHousing.ids))
         setUpdatingModalSelectedHousing(undefined);
     }
 
@@ -121,7 +111,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     }
 
     const submitCampaignReminder = (startMonth: string) => {
-        dispatch(createCampaignReminder(campaign, startMonth, selectedHousing.all, selectedHousing.ids))
+        dispatch(createCampaignBundleReminder(startMonth, selectedHousing.all, selectedHousing.ids))
     }
 
     return (
@@ -135,7 +125,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                             <AppActionsMenu actions={menuActions}/>
                         </Col>
                     }
-                    {status === HousingStatus.Waiting && campaign.campaignNumber > 0 &&
+                    {status === HousingStatus.Waiting && campaignBundle.campaignNumber > 0 &&
                         <Col>
                             <Button title="Créer une relance"
                                     className="float-right"
@@ -176,21 +166,9 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                 {reminderModalSelectedHousing &&
                     <CampaignReminderCreationModal
                         housingCount={selectedCount}
-                        initialCampaign={campaign}
+                        filters={campaignBundle.filters}
                         onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}
                         onClose={() => setReminderModalSelectedHousing(undefined)}/>
-                }
-                {isRemovingModalOpen &&
-                    <ConfirmationModal
-                        onSubmit={() => {
-                            dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, status))
-                            setIsRemovingModalOpen(false);
-                        }}
-                        onClose={() => setIsRemovingModalOpen(false)}>
-                        <Text size="md" className="fr-mb-0">
-                            Êtes-vous sûr de vouloir supprimer {selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements de cette campagne`} ?
-                        </Text>
-                    </ConfirmationModal>
                 }
             </>}
         </>
@@ -203,20 +181,20 @@ const CampaignInProgress = () => {
 
     const dispatch = useDispatch();
 
-    const { campaignHousingByStatus, campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundleHousingByStatus, campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
-        if (campaign) {
-            dispatch(listCampaignHousing(campaign.id, HousingStatus.Waiting))
-            dispatch(listCampaignHousing(campaign.id, HousingStatus.InProgress))
-            dispatch(listCampaignHousing(campaign.id, HousingStatus.NoAction))
-            dispatch(listCampaignHousing(campaign.id, HousingStatus.NotVacant))
-            dispatch(listCampaignHousing(campaign.id, HousingStatus.Exit))
+        if (campaignBundle) {
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Waiting))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.InProgress))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NoAction))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Exit))
         }
     }, [dispatch])
 
     const getTabLabel = (status: HousingStatus) => {
-        return `${getHousingState(status).title} (${campaignHousingByStatus[status].loading ? '...' : campaignHousingByStatus[status].totalCount})`
+        return `${getHousingState(status).title} (${campaignBundleHousingByStatus[status].loading ? '...' : campaignBundleHousingByStatus[status].totalCount})`
     }
 
     return (

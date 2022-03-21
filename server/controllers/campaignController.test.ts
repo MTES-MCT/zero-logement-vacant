@@ -15,7 +15,7 @@ describe('Campaign controller', () => {
         })
         const { res } = getMockRes()
 
-        await campaignController.list(req, res)
+        await campaignController.listCampaigns(req, res)
 
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(
@@ -55,7 +55,10 @@ describe('Campaign controller', () => {
 
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(
-            expect.any(String)
+            expect.objectContaining({
+                startMonth: '2112',
+                reminderNumber: 0
+            })
         )
 
         await db(campaignsTable)

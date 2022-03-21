@@ -14,29 +14,30 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import { HousingUpdate } from '../../models/Housing';
-import { getCampaign } from '../../store/actions/campaignAction';
+import { Housing, HousingUpdate } from '../../models/Housing';
+import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { getHousingState, getHousingStatusPrecision, getHousingSubStatus } from '../../models/HousingState';
+import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 
 const OwnerView = () => {
 
     const dispatch = useDispatch();
     const campaignList = useCampaignList();
 
-    const { id, campaignId } = useParams<{id: string, campaignId?: string}>();
+    const { id, campaignNumber, reminderNumber } = useParams<{id: string, campaignNumber?: string, reminderNumber?: string}>();
 
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
     const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
-    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
-        if (campaignId && !campaign) {
-            dispatch(getCampaign(campaignId))
+        if (campaignNumber && !campaignBundle) {
+            dispatch(getCampaignBundle({campaignNumber: Number(campaignNumber), reminderNumber: Number(reminderNumber)}))
         }
     }, [id, dispatch])
 
@@ -45,8 +46,8 @@ const OwnerView = () => {
         setIsModalOwnerOpen(false);
     }
 
-    const submitHousingUpdate = (housingId: string, campaignHousingUpdate: HousingUpdate) => {
-        dispatch(updateOwnerHousing(housingId, campaignHousingUpdate))
+    const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
+        dispatch(updateOwnerHousing(housing, housingUpdate))
         setIsModalStatusOpen(false)
     }
 
@@ -55,7 +56,15 @@ const OwnerView = () => {
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
                     <Container>
-                        <AppBreadcrumb additionalItems={[...campaignId && campaign ? [{url: '/campagnes/' + campaignId, label: campaign.name}] : [], {url: '', label: owner.fullName}]}/>
+                        <AppBreadcrumb additionalItems={[
+                            ...(campaignNumber && campaignBundle ?
+                                [{
+                                    url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
+                                    label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)
+                                }] :
+                                []),
+                            {url: '', label: owner.fullName}
+                        ]}/>
                         {owner &&
                             <Row alignItems="middle">
                                 <Col>

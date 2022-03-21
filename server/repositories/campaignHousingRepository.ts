@@ -16,11 +16,11 @@ const insertHousingList = async (campaignId: string, housingIds: string[]): Prom
     }
 }
 
-const deleteHousingFromCampaign = async (campaignId: string, housingIds?: string[]): Promise<number> => {
+const deleteHousingFromCampaigns = async (campaignIds: string[], housingIds?: string[]): Promise<number> => {
     try {
         return db(campaignsHousingTable)
             .delete()
-            .where('campaign_id', campaignId)
+            .whereIn('campaign_id', campaignIds)
             .modify((queryBuilder: any) => {
                 if (housingIds) {
                     queryBuilder.whereIn('housing_id', housingIds)
@@ -28,12 +28,12 @@ const deleteHousingFromCampaign = async (campaignId: string, housingIds?: string
             })
 
     } catch (err) {
-        console.error('Removing housing from campaign failed', err, campaignId, housingIds);
+        console.error('Removing housing from campaign failed', err, campaignIds, housingIds);
         throw new Error('Removing housing from campaign failed');
     }
 }
 
 export default {
     insertHousingList,
-    deleteHousingFromCampaign
+    deleteHousingFromCampaigns
 }

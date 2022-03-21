@@ -1,4 +1,6 @@
 import { HousingFilters } from './HousingFilters';
+import { format, parse } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export interface DraftCampaign {
     startMonth: string;
@@ -6,18 +8,31 @@ export interface DraftCampaign {
     filters: HousingFilters;
 }
 
+export interface CampaignBundleId {
+    campaignNumber: number;
+    reminderNumber?: number;
+}
+
 export interface Campaign {
     id: string;
     campaignNumber: number;
+    reminderNumber: number;
     startMonth: string;
     kind: CampaignKinds;
-    reminderNumber: number;
     name: string;
     filters: HousingFilters;
     createdAt: Date;
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
+}
+
+export interface CampaignBundle extends CampaignBundleId{
+    campaignIds: string[];
+    startMonth: string;
+    kind: CampaignKinds;
+    name: string;
+    filters: HousingFilters;
     housingCount: number;
     waitingCount: number;
     inProgressCount: number;
@@ -56,6 +71,17 @@ export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
         c1.campaignNumber > c2.campaignNumber ? 1 : 0
 }
 
+export const getCampaignBundleId = (campaignBundle: CampaignBundle | Campaign) => {
+    return {campaignNumber: campaignBundle.campaignNumber, reminderNumber: campaignBundle.reminderNumber}
+}
+
+export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber: number, reminderNumber?: number) => {
+    return campaignNumber ?
+        `C${campaignNumber} - ${format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}
+        ${reminderNumber !== undefined ? ' - ' + getCampaignKindLabel(kind) : ''}${reminderNumber ? ' n°' + reminderNumber : ''}` :
+        'Logements hors campagne'
+}
+
 export const campaignStep = (campaign?: Campaign) => {
     return (!campaign?.validatedAt) ? CampaignSteps.OwnersValidation :
         !campaign?.exportedAt ? CampaignSteps.Export :
@@ -63,4 +89,17 @@ export const campaignStep = (campaign?: Campaign) => {
                 CampaignSteps.InProgess
 }
 
-export const returnRate = (campaign: Campaign) => (campaign.housingCount - campaign.npaiCount) !== 0 ? Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100) : 0;
+export const returnRate = (campaignBundle: CampaignBundle) => {
+    return (campaignBundle.housingCount - campaignBundle.npaiCount) !== 0 ?
+        Math.round(100 - campaignBundle.waitingCount / (campaignBundle.housingCount - campaignBundle.npaiCount) * 100) :
+        0;
+}
+
+
+export const campaignBundleIdApiFragment = (campaignBundleId: CampaignBundleId) => {
+    return `${campaignBundleId.campaignNumber}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/reminder/${campaignBundleId.reminderNumber}` : ''}`
+}
+
+export const campaignBundleIdUrlFragment = (campaignBundleId: CampaignBundleId) => {
+    return `C${campaignBundleId.campaignNumber}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}`
+}

@@ -9,24 +9,51 @@ import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const getCampaign = async (request: Request, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
 
     console.log('Get campaign', campaignId)
 
-    return campaignRepository.get(campaignId)
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    return campaignRepository.getCampaign(campaignId)
+        .then(campaign => campaign.establishmentId === establishmentId ?
+            response.status(200).json(campaign) :
+            response.sendStatus(401));
+}
+
+const getCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
+
+    const campaignNumber = Number(request.params.campaignNumber);
+    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    console.log('Get campaign bundle', establishmentId, campaignNumber, reminderNumber)
+
+    return campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
         .then(_ => response.status(200).json(_));
 
 }
 
-const list = async (request: Request, response: Response): Promise<Response> => {
+const listCampaigns = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('List campaigns')
 
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
-    return campaignRepository.list(establishmentId)
+    return campaignRepository.listCampaigns(establishmentId)
+        .then(_ => response.status(200).json(_));
+
+}
+
+const listCampaignBundles = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('List campaign bundles')
+
+    const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    return campaignRepository.listCampaignBundles(establishmentId)
         .then(_ => response.status(200).json(_));
 
 }
@@ -69,38 +96,39 @@ const createCampaign = async (request: Request, response: Response): Promise<Res
 
     await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
-    return response.status(200).json(newCampaignApi.id);
+    return response.status(200).json(newCampaignApi);
 
 }
 
 const createReminderCampaign = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignId = request.params.campaignId;
-
-    console.log('Create a reminder campaign for', campaignId)
-
+    const campaignNumber = Number(request.params.campaignNumber);
+    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
     const establishmentId = (<RequestUser>request.user).establishmentId;
+
+    console.log('Create a reminder campaign for', establishmentId, campaignNumber, reminderNumber)
+
     const userId = (<RequestUser>request.user).userId;
 
     const startMonth = request.body.startMonth;
     const allHousing = request.body.allHousing;
 
-    const campaign = await campaignRepository.get(campaignId)
-    const lastReminderNumber = await campaignRepository.lastReminderNumber(establishmentId, campaign.campaignNumber)
+    const campaignBundle = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
+    const lastReminderNumber = await campaignRepository.lastReminderNumber(establishmentId, campaignBundle.campaignNumber)
 
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
         establishmentId,
-        campaignNumber: campaign.campaignNumber,
+        campaignNumber: campaignBundle.campaignNumber,
         startMonth,
         kind: CampaignKinds.Remind,
         reminderNumber: lastReminderNumber + 1,
-        filters: campaign.filters,
+        filters: campaignBundle.filters,
         createdBy: userId,
         validatedAt: new Date()
     })
 
     const housingIds = allHousing ?
-        await housingRepository.listWithFilters({campaignIds: [campaignId], status: [HousingStatusApi.Waiting]})
+        await housingRepository.listWithFilters({campaignIds: campaignBundle.campaignIds, status: [HousingStatusApi.Waiting]})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
@@ -109,7 +137,7 @@ const createReminderCampaign = async (request: Request, response: Response): Pro
 
     await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
-    return response.status(200).json(newCampaignApi.id);
+    return response.status(200).json(newCampaignApi);
 
 }
 
@@ -121,7 +149,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     console.log('Validate campaign step', campaignId, step)
 
-    const updatedCampaign = await campaignRepository.get(campaignId).then((campaignApi: CampaignApi) => ({
+    const updatedCampaign = await campaignRepository.getCampaign(campaignId).then((campaignApi: CampaignApi) => ({
         ...campaignApi,
         validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
         exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
@@ -147,32 +175,32 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }
 
     return campaignRepository.update(updatedCampaign)
-        .then(() => campaignRepository.get(campaignId))
+        .then(() => campaignRepository.getCampaign(campaignId))
         .then(_ => response.status(200).json(_))
 }
 
 
 const deleteCampaign = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignId = request.params.campaignId;
+    const campaignNumber = Number(request.params.campaignNumber);
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
-    const campaigns = await campaignRepository.list(establishmentId)
-    const campaignToDelete = campaigns.find(_ => _.id === campaignId)
+    const campaigns = await campaignRepository.listCampaigns(establishmentId)
+    const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber)
 
-    if (!campaignToDelete) {
+    if (!campaignsToDelete.length) {
         return response.sendStatus(401)
     } else {
 
-        await campaignHousingRepository.deleteHousingFromCampaign(campaignId)
+        await campaignHousingRepository.deleteHousingFromCampaigns(campaignsToDelete.map(_ => _.id))
 
-        await eventRepository.deleteEventsFromCampaign(campaignId)
+        await eventRepository.deleteEventsFromCampaigns(campaignsToDelete.map(_ => _.id))
 
-        await campaignRepository.deleteCampaign(campaignId)
+        await campaignRepository.deleteCampaignBundle(establishmentId, campaignNumber)
 
         return Promise.all(
             campaigns
-                .filter(_ => _.campaignNumber > campaignToDelete.campaignNumber)
+                .filter(_ => _.campaignNumber > campaignNumber)
                 .map(campaign => campaignRepository.update({
                     ...campaign,
                     campaignNumber: campaign.campaignNumber - 1
@@ -199,13 +227,15 @@ const removeHousingList = async (request: Request, response: Response): Promise<
                 .filter(id => allHousing ? request.body.housingIds.indexOf(id) === -1 : request.body.housingIds.indexOf(id) !== -1)
             );
 
-    return campaignHousingRepository.deleteHousingFromCampaign(campaignId, housingIds)
+    return campaignHousingRepository.deleteHousingFromCampaigns([campaignId], housingIds)
         .then(_ => response.status(200).json(_));
 };
 
 const campaignController =  {
-    get,
-    list,
+    getCampaign,
+    getCampaignBundle,
+    listCampaigns,
+    listCampaignBundles,
     createCampaign,
     createReminderCampaign,
     validateStep,

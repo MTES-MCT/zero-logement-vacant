@@ -1,30 +1,34 @@
-import { Campaign } from '../../models/Campaign';
+import { Campaign, CampaignBundle, CampaignBundleId } from '../../models/Campaign';
 import {
     CAMPAIGN_CREATED,
-    CAMPAIGN_FETCHED,
+    CAMPAIGN_BUNDLE_FETCHED,
     CAMPAIGN_HOUSING_LIST_FETCHED,
     CAMPAIGN_LIST_FETCHED,
+    CAMPAIGN_BUNDLE_LIST_FETCHED,
     CAMPAIGN_UPDATED,
     CampaignActionTypes,
-    FETCH_CAMPAIGN,
+    FETCH_CAMPAIGN_BUNDLE,
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
+    FETCH_CAMPAIGN_BUNDLE_LIST,
 } from '../actions/campaignAction';
 import { initialPaginatedResult, PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
 
 export interface CampaignState {
-    campaignFetchingId?: string;
-    campaignHousingFetchingId?: string;
     campaignList?: Campaign[];
-    campaign?: Campaign;
-    campaignHousingByStatus: PaginatedResult<Housing>[],
+    campaignBundleList?: CampaignBundle[];
+    campaignBundle?: CampaignBundle;
+    campaignBundleFetchingId?: CampaignBundleId;
+    campaignBundleHousingByStatus: PaginatedResult<Housing>[],
+    campaignHousingFetchingIds?: string[];
     exportURL: string;
     loading: boolean;
+    campaignCreated: boolean
 }
 
 const initialState: CampaignState = {
-    campaignHousingByStatus: [
+    campaignBundleHousingByStatus: [
         initialPaginatedResult(),
         initialPaginatedResult(),
         initialPaginatedResult(),
@@ -33,7 +37,8 @@ const initialState: CampaignState = {
         initialPaginatedResult()
     ],
     exportURL: '',
-    loading: true
+    loading: true,
+    campaignCreated: false
 };
 
 const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
@@ -50,25 +55,38 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 campaignList: action.campaignList,
                 loading: false
             };
-        case FETCH_CAMPAIGN:
+        case FETCH_CAMPAIGN_BUNDLE_LIST:
             return {
                 ...state,
-                campaignFetchingId: action.campaignFetchingId,
-                campaign: action.campaignFetchingId === state.campaignFetchingId ? state.campaign : undefined,
+                campaignBundleList: [],
                 loading: true
             };
-        case CAMPAIGN_FETCHED:
+        case CAMPAIGN_BUNDLE_LIST_FETCHED:
             return {
                 ...state,
-                campaign: action.campaignFetchingId === state.campaignFetchingId ? action.campaign : state.campaign,
+                campaignBundleList: action.campaignBundleList,
+                loading: false
+            };
+        case FETCH_CAMPAIGN_BUNDLE:
+            return {
+                ...state,
+                campaignBundleFetchingId: action.campaignBundleFetchingId,
+                campaignBundle: action.campaignBundleFetchingId === state.campaignBundleFetchingId ? state.campaignBundle : undefined,
+                loading: true,
+                campaignCreated: false
+            };
+        case CAMPAIGN_BUNDLE_FETCHED:
+            return {
+                ...state,
+                campaignBundle: action.campaignBundleFetchingId === state.campaignBundleFetchingId ? action.campaignBundle : state.campaignBundle,
                 loading: false
             };
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
                 ...state,
-                campaignHousingFetchingId: action.campaignHousingFetchingId,
-                campaignHousingByStatus: [
-                    ...state.campaignHousingByStatus.filter((_, index) => index < action.status),
+                campaignHousingFetchingIds: action.campaignHousingFetchingIds,
+                campaignBundleHousingByStatus: [
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status),
                     {
                         entities: [],
                         totalCount: 0,
@@ -76,25 +94,25 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                         perPage: action.perPage,
                         loading: true
                     },
-                    ...state.campaignHousingByStatus.filter((_, index) => index > action.status),
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status),
                 ]
             };
         case CAMPAIGN_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
-                action.campaignHousingFetchingId === state.campaignHousingFetchingId &&
-                action.paginatedHousing.page === state.campaignHousingByStatus[action.status].page &&
-                action.paginatedHousing.perPage === state.campaignHousingByStatus[action.status].perPage
+                action.campaignHousingFetchingIds === state.campaignHousingFetchingIds &&
+                action.paginatedHousing.page === state.campaignBundleHousingByStatus[action.status].page &&
+                action.paginatedHousing.perPage === state.campaignBundleHousingByStatus[action.status].perPage
             return !isCurrentFetching ? state : {
                 ...state,
-                campaignHousingByStatus: [
-                    ...state.campaignHousingByStatus.filter((_, index) => index < action.status),
+                campaignBundleHousingByStatus: [
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status),
                     {
-                        ...state.campaignHousingByStatus[action.status],
+                        ...state.campaignBundleHousingByStatus[action.status],
                         entities: action.paginatedHousing.entities,
                         totalCount: action.paginatedHousing.totalCount,
                         loading: false
                     },
-                    ...state.campaignHousingByStatus.filter((_, index) => index > action.status),
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status),
                 ],
                 exportURL: action.exportURL,
             };
@@ -102,14 +120,16 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case CAMPAIGN_CREATED:
             return {
                 ...state,
-                campaignFetchingId: action.campaignId,
-                campaign: undefined,
-                campaignHousingList: []
+                campaignBundleFetchingId: action.campaignBundleFetchingId,
+                campaignBundle: undefined,
+                campaignHousingList: [],
+                campaignCreated: true
             };
         case CAMPAIGN_UPDATED:
             return {
                 ...state,
-                campaign: action.campaign
+                campaignBundleFetchingId: action.campaignBundleFetchingId,
+                false: true
             };
         default:
             return state;

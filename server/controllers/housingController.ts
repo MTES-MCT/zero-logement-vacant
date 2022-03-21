@@ -41,38 +41,33 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
         .then(_ => response.status(200).json(_.entities));
 };
 
-const listByCampaign = async (request: Request, response: Response): Promise<Response> => {
-
-    const campaignId = request.params.campaignId;
-
-    const page = request.body.page;
-    const perPage = request.body.perPage;
-    const status = request.body.status;
-
-    console.log('List housing by campaign', campaignId, page, perPage, status)
-
-    return housingRepository.listWithFilters({campaignIds: [campaignId], status: [status]}, page, perPage)
-        .then(_ => response.status(200).json(_));
-};
-
 
 const updateHousingList = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Update campaign housing list')
 
+    const establishmentId = (<RequestUser>request.user).establishmentId;
     const userId = (<RequestUser>request.user).userId;
     const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+    const campaignIds = request.body.campaignIds;
     const allHousing = <boolean>request.body.allHousing;
     const housingIds = request.body.housingIds;
+    const currentStatus = request.body.currentStatus;
 
     let housingList =
-        await housingRepository.listWithFilters({campaignIds: [housingUpdateApi.campaignId], status: [housingUpdateApi.previousStatus]})
+        await housingRepository.listWithFilters({campaignIds, status: [currentStatus]})
             .then(_ => _.entities
                 .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
             );
 
-    if (!allHousing && housingIds.length === 1 && !housingList.length) {
-        await campaignHousingRepository.insertHousingList(housingUpdateApi.campaignId, [housingIds[0]])
+    const campaignList = await campaignRepository.listCampaigns(establishmentId)
+
+    const lastCampaignId = campaignIds.length ?
+        campaignList.filter(_ => campaignIds.indexOf(_.id) !== -1).reverse()[0].id :
+        campaignList.filter(_ => _.campaignNumber === 0)[0].id
+
+    if (!allHousing && housingIds.length === 1 && !campaignIds.length) {
+        await campaignHousingRepository.insertHousingList(lastCampaignId, [housingIds[0]])
 
         housingList = await housingRepository.listByIds([housingIds[0]])
     }
@@ -81,7 +76,7 @@ const updateHousingList = async (request: Request, response: Response): Promise<
         housingId: housing.id,
         ownerId: housing.owner.id,
         kind: EventKinds.StatusChange,
-        campaignId: housingUpdateApi.campaignId,
+        campaignId: lastCampaignId,
         contactKind: housingUpdateApi.contactKind,
         content: [
             getStatusLabel(housing, housingUpdateApi),
@@ -116,14 +111,16 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
         ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
 }
 
-const exportHousingByCampaign = async (request: Request, response: Response): Promise<Response> => {
+const exportHousingByCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignId = request.params.campaignId;
+    const campaignNumber = Number(request.params.campaignNumber);
+    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const establishmentId = (<RequestUser>request.user).establishmentId;
 
-    console.log('Export housing by campaign', campaignId)
+    console.log('Export housing by campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
-    const campaignApi = await campaignRepository.get(campaignId)
-    const housingList = await housingRepository.listWithFilters({campaignIds: [campaignId]}).then(_ => _.entities)
+    const campaignApi = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
+    const housingList = await housingRepository.listWithFilters({campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
 
     const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
@@ -290,9 +287,8 @@ const reduceRawAddress = (rawAddress?: string[]) => {
 const housingController =  {
     list,
     listByOwner,
-    listByCampaign,
     updateHousingList,
-    exportHousingByCampaign,
+    exportHousingByCampaignBundle,
     exportHousingWithFilters,
     normalizeAddresses
 };

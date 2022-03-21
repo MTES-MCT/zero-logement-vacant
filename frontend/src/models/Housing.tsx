@@ -28,8 +28,6 @@ export interface SelectedHousing {
 }
 
 export interface HousingUpdate {
-    campaignId?: string,
-    previousStatus?: HousingStatus,
     status: HousingStatus,
     subStatus?: string,
     precision?: string,

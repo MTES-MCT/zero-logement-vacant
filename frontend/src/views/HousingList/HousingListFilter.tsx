@@ -179,7 +179,7 @@ const HousingListFilter = () => {
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
                                         options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                        initialValues={filters.housingScopes.scopes}
+                                        initialValues={filters.housingScopes?.scopes}
                                         onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
                     </Col>
                 </Row>

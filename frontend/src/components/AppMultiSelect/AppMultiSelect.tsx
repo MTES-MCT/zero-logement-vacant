@@ -8,7 +8,7 @@ const AppMultiSelect = (
         label,
         defaultOption,
         options,
-        initialValues,
+        initialValues = [],
         onChange,
         messageType,
         message
@@ -16,7 +16,7 @@ const AppMultiSelect = (
         label: string,
         defaultOption?: string,
         options: { label: string, value: string }[],
-        initialValues: string[],
+        initialValues: string[] | undefined ,
         onChange: (values: string[]) => void,
         messageType?: string,
         message?: string

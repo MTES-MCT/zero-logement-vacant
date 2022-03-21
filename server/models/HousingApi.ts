@@ -24,8 +24,6 @@ export interface HousingApi {
 }
 
 export interface HousingUpdateApi {
-    campaignId: string,
-    previousStatus: HousingStatusApi,
     status: HousingStatusApi,
     subStatus?: string,
     precision?: string,

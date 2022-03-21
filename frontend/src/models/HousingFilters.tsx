@@ -2,27 +2,28 @@ import { SelectOption } from './SelectOption';
 import { HousingScopes } from './Establishment';
 
 export interface HousingFilters {
-    ownerKinds: string[];
-    ownerAges: string[];
-    multiOwners: string[];
-    beneficiaryCounts: string[];
-    housingKinds: string[];
-    housingStates: string[];
-    housingAreas: string[];
-    roomsCounts: string[];
-    buildingPeriods: string[];
-    vacancyDurations: string[];
-    isTaxedValues: string[];
-    ownershipKinds: string[];
-    housingCounts: string[];
-    vacancyRates: string[];
-    campaignsCounts: string[];
+    ownerKinds?: string[];
+    ownerAges?: string[];
+    multiOwners?: string[];
+    beneficiaryCounts?: string[];
+    housingKinds?: string[];
+    housingStates?: string[];
+    housingAreas?: string[];
+    roomsCounts?: string[];
+    buildingPeriods?: string[];
+    vacancyDurations?: string[];
+    isTaxedValues?: string[];
+    ownershipKinds?: string[];
+    housingCounts?: string[];
+    vacancyRates?: string[];
+    campaignsCounts?: string[];
     campaignIds?: string[];
-    localities: string[];
-    localityKinds: string[];
-    housingScopes: HousingScopes;
+    localities?: string[];
+    localityKinds?: string[];
+    housingScopes?: HousingScopes;
     dataYears?: number[];
-    query: string;
+    status?: number[];
+    query?: string;
 }
 
 export interface HousingFilterOption extends SelectOption {
@@ -146,26 +147,26 @@ export const outOfScopeOption = {value: 'None', label: 'Hors périmètres priori
 
 export const hasFilters = (housingFilters: HousingFilters) => {
     return Boolean(
-        housingFilters.ownerKinds.length ||
-        housingFilters.ownerAges.length ||
-        housingFilters.multiOwners.length ||
-        housingFilters.beneficiaryCounts.length ||
-        housingFilters.housingKinds.length ||
-        housingFilters.housingStates.length ||
-        housingFilters.housingAreas.length ||
-        housingFilters.roomsCounts.length ||
-        housingFilters.buildingPeriods.length ||
-        housingFilters.vacancyDurations.length ||
-        housingFilters.isTaxedValues.length ||
-        housingFilters.ownershipKinds.length ||
-        housingFilters.housingCounts.length ||
-        housingFilters.vacancyRates.length ||
-        housingFilters.campaignsCounts.length ||
+        housingFilters.ownerKinds?.length ||
+        housingFilters.ownerAges?.length ||
+        housingFilters.multiOwners?.length ||
+        housingFilters.beneficiaryCounts?.length ||
+        housingFilters.housingKinds?.length ||
+        housingFilters.housingStates?.length ||
+        housingFilters.housingAreas?.length ||
+        housingFilters.roomsCounts?.length ||
+        housingFilters.buildingPeriods?.length ||
+        housingFilters.vacancyDurations?.length ||
+        housingFilters.isTaxedValues?.length ||
+        housingFilters.ownershipKinds?.length ||
+        housingFilters.housingCounts?.length ||
+        housingFilters.vacancyRates?.length ||
+        housingFilters.campaignsCounts?.length ||
         housingFilters.campaignIds?.length ||
-        housingFilters.localities.length ||
-        housingFilters.localityKinds.length ||
-        housingFilters.housingScopes.scopes.length ||
+        housingFilters.localities?.length ||
+        housingFilters.localityKinds?.length ||
+        housingFilters.housingScopes?.scopes.length ||
         housingFilters.dataYears?.length ||
-        housingFilters.query.length
+        housingFilters.query?.length
     );
 }

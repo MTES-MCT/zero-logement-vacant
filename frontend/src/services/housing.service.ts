@@ -65,31 +65,12 @@ const listByOwner = async (ownerId: string): Promise<Housing[]> => {
         .then(_ => _.map((h: any) => parseHousing(h)));
 };
 
-
-const listByCampaign = async (campaignId: string, page: number, perPage: number, status: HousingStatus): Promise<PaginatedResult<Housing>> => {
-
-    return await fetch(`${config.apiEndpoint}/api/housing/campaign/${campaignId}`, {
-        method: 'POST',
-        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            page,
-            perPage,
-            status
-        }),
-    })
-        .then(_ => _.json())
-        .then(result => ({
-            ...result,
-            entities: result.entities.map((e: any) => parseHousing(e))
-        }));
-};
-
-const updateHousingList = async (housingUpdate: HousingUpdate, allHousing: boolean, housingIds: string[]): Promise<any> => {
+const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: string[],  allHousing: boolean, housingIds: string[], currentStatus?: HousingStatus): Promise<any> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/list`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ housingUpdate, allHousing, housingIds }),
+        body: JSON.stringify({ housingUpdate, campaignIds, allHousing, housingIds, currentStatus }),
     });
 };
 
@@ -102,7 +83,6 @@ export const parseHousing = (h: any): Housing => ({
 const housingService = {
     listHousing,
     listByOwner,
-    listByCampaign,
     updateHousingList,
     quickSearchService,
     exportHousing

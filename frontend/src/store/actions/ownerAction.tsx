@@ -160,7 +160,7 @@ export const createEvent = (ownerId: string, kind: EventKinds, content: string) 
     };
 };
 
-export const updateOwnerHousing = (housingId: string, housingUpdate: HousingUpdate) => {
+export const updateOwnerHousing = (housing: Housing, housingUpdate: HousingUpdate) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -168,7 +168,7 @@ export const updateOwnerHousing = (housingId: string, housingUpdate: HousingUpda
 
         const ownerState = getState().owner;
 
-        housingService.updateHousingList(housingUpdate, false, [housingId])
+        housingService.updateHousingList(housingUpdate, housing.campaignIds, false, [housing.id], housing.status)
             .then(() => {
                 dispatch(hideLoading());
                 getOwnerHousing(ownerState.owner.id)(dispatch);

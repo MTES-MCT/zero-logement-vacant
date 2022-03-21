@@ -23,10 +23,10 @@ import {
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 
-const HousingFilterBadges = ({options, filters = [], onChange}: {options: HousingFilterOption[], filters: string[], onChange?: (_: string[]) => void}) => {
+const HousingFilterBadges = ({options, filters = [], onChange}: {options: HousingFilterOption[], filters: string[] | undefined, onChange?: (_: string[]) => void}) => {
     return (
         <>
-            {options.filter(o => o.value.length && filters?.indexOf(o.value) !== -1).map((option, index) =>
+            {options.filter(o => o.value.length && filters.indexOf(o.value) !== -1).map((option, index) =>
                 <span className="fr-tag fr-tag-click fr-tag--sm fr-fi-icon" key={option + '-' + index}>
                     {option.badgeLabel ?? option.label}
                     {onChange &&
@@ -101,7 +101,7 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                  onChange={onChange && (values => onChange({localityKinds: values}))}/>
             {establishment.housingScopes && establishment.housingScopes.scopes &&
                 <HousingFilterBadges options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                     filters={filters.housingScopes.scopes}
+                                     filters={filters.housingScopes?.scopes}
                                      onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
             }
             <HousingFilterBadges options={campaignsCountOptions}
@@ -115,8 +115,8 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={dataYearsOptions}
                                  filters={(filters.dataYears?? []).map(_ => String(_))}
                                  onChange={onChange && (values => onChange({dataYears: values}))}/>
-            <HousingFilterBadges options={[{value: filters.query, label: filters.query}]}
-                          filters={[filters.query]}
+            <HousingFilterBadges options={[{value: filters.query ?? '', label: filters.query ?? ''}]}
+                          filters={filters.query ? [filters.query] : []}
                           onChange={onChange && (() => onChange({query: ''}))}/>
         </>
     )

@@ -14,6 +14,14 @@ export interface CampaignApi {
     exportedAt?: Date;
     sentAt?: Date;
     sendingDate?: string;
+}
+
+export interface CampaignBundleApi {
+    campaignIds: string[];
+    campaignNumber: number;
+    reminderNumber: number;
+    kind: CampaignKinds;
+    filters: HousingFiltersApi;
     housingCount: number;
     waitingCount: number;
     inProgressCount: number;

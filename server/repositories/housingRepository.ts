@@ -388,6 +388,7 @@ const parseHousingApi = (result: any) => (
         id: result.id,
         invariant: result.invariant,
         cadastralReference: result.cadastral_reference,
+        buildingLocation: result.building_location,
         inseeCode: result.insee_code,
         rawAddress: result.raw_address,
         address: <AddressApi>{

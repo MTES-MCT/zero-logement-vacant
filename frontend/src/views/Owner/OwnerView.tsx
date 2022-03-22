@@ -14,7 +14,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { getHousingState, getHousingStatusPrecision, getHousingSubStatus } from '../../models/HousingState';
@@ -222,6 +222,21 @@ const OwnerView = () => {
                                             }
                                         </span>
                                     </span>
+                                    {getBuildingLocation(housing) &&
+                                        <div>
+                                            <span style={{verticalAlign: 'top'}}>
+                                                <b>Complément :&nbsp;</b>
+                                            </span>
+                                            <span style={{display: 'inline-block'}} className="capitalize">
+                                                <span  style={{display: 'block'}}>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
                                     <div className="fr-mt-2w">
                                         <Link title="Localiser dans Google Map - nouvelle fenêtre"
                                               href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}

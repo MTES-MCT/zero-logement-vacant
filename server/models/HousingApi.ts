@@ -6,6 +6,7 @@ export interface HousingApi {
     id: string;
     invariant: string,
     cadastralReference: string,
+    buildingLocation: string,
     inseeCode: string,
     rawAddress: string[];
     address: AddressApi;

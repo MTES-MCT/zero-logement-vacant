@@ -19,7 +19,7 @@ import {
     taxedOptions,
     vacancyDurationOptions,
     localityKindsOptions,
-    ownershipKindsOptions, housingCountOptions, vacancyRateOptions,
+    ownershipKindsOptions, housingCountOptions, vacancyRateOptions, statusOptions,
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 
@@ -107,6 +107,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <HousingFilterBadges options={campaignsCountOptions}
                                  filters={filters.campaignsCounts}
                                  onChange={onChange && (values => onChange({campaignsCounts: values}))}/>
+            <HousingFilterBadges options={statusOptions}
+                                 filters={filters.status?.map(_ => _.toString())}
+                                 onChange={onChange && (values => onChange({status: values}))}/>
             {campaignList && filters.campaignIds &&
                 <HousingFilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
                                      filters={filters.campaignIds}

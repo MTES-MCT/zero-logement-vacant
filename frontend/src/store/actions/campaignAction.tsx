@@ -244,13 +244,13 @@ export const createCampaignBundleReminder = (startMonth: string, allHousing: boo
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
-        const campaignBundle = getState().campaign.campaignBundle
+        const campaignBundleId = getCampaignBundleId(getState().campaign.campaignBundle)
 
-        if (campaignBundle) {
+        if (campaignBundleId) {
 
             dispatch(showLoading());
 
-            campaignService.createCampaignBundleReminder(getCampaignBundleId(campaignBundle), startMonth, allHousing, housingIds)
+            campaignService.createCampaignBundleReminder(campaignBundleId, startMonth, allHousing, housingIds)
                 .then((campaign) => {
                     dispatch(hideLoading());
                     dispatch({

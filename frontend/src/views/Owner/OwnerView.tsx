@@ -273,7 +273,7 @@ const OwnerView = () => {
                                                 <span style={{ verticalAlign: 'top' }}>
                                                     <b>{campaignList?.find(campaign => campaign.id === campaignId)?.name}</b>
                                                 </span>
-                                                <Link title="Voir la campagne" href={'/campagnes/' + campaignId} className="ds-fr--inline fr-link">
+                                                <Link title="Voir la campagne" href={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignList?.find(campaign => campaign.id === campaignId)))} className="ds-fr--inline fr-link">
                                                     Voir la campagne<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                 </Link>
                                             </div>

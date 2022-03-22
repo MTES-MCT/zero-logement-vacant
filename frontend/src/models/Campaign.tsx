@@ -71,8 +71,10 @@ export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
         c1.campaignNumber > c2.campaignNumber ? 1 : 0
 }
 
-export const getCampaignBundleId = (campaignBundle: CampaignBundle | Campaign) => {
-    return {campaignNumber: campaignBundle.campaignNumber, reminderNumber: campaignBundle.reminderNumber}
+export const getCampaignBundleId = (campaignBundle?: CampaignBundle | Campaign) => {
+    if (campaignBundle) {
+        return {campaignNumber: campaignBundle.campaignNumber, reminderNumber: campaignBundle.reminderNumber}
+    }
 }
 
 export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber?: number, reminderNumber?: number) => {
@@ -101,6 +103,6 @@ export const campaignBundleIdApiFragment = (campaignBundleId: CampaignBundleId) 
     return `number/${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/${campaignBundleId.reminderNumber}` : ''}`
 }
 
-export const campaignBundleIdUrlFragment = (campaignBundleId: CampaignBundleId) => {
-    return `C${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}`
+export const campaignBundleIdUrlFragment = (campaignBundleId?: CampaignBundleId) => {
+    return campaignBundleId ? `C${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}` : 'C'
 }

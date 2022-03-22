@@ -44,7 +44,7 @@ const HousingListStatusModal = (
                     <Text>
                         {displayCount(housingCount, 'logement concerné')}.
                     </Text>
-                    <HousingStatusForm previousStatus={initialStatus}
+                    <HousingStatusForm currentStatus={initialStatus}
                                        onValidate={onSubmit}
                                        ref={statusFormRef}/>
                 </Container>

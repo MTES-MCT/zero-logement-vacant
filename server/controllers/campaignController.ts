@@ -160,7 +160,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     if (step === CampaignSteps.Sending) {
         const housingList = await housingRepository.listWithFilters({campaignIds: [campaignId]}).then(_ => _.entities)
 
-        await housingRepository.updateStatusList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+        await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
 
         await eventRepository.insertList(
             housingList.map(housing => <EventApi>{

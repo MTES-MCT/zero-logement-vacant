@@ -340,7 +340,7 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
-const updateStatusList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string): Promise<HousingApi[]> => {
+const updateHousingList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string, vacancyReasons?: string[]): Promise<HousingApi[]> => {
 
     console.log('update housing list', housingIds)
 
@@ -351,6 +351,7 @@ const updateStatusList = async (housingIds: string[], status: HousingStatusApi, 
                 status: status,
                 sub_status: subStatus ?? null,
                 precision: precision ?? null,
+                vacancy_reasons: vacancyReasons ?? null,
             })
             .returning('*');
     } catch (err) {
@@ -413,6 +414,7 @@ const parseHousingApi = (result: any) => (
         roomsCount: result.rooms_count,
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
+        vacancyReasons: result.vacancy_reasons,
         dataYears: result.data_years,
         campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
         status: result.status,
@@ -424,6 +426,6 @@ const parseHousingApi = (result: any) => (
 export default {
     listWithFilters,
     listByIds,
-    updateStatusList,
+    updateHousingList,
     updateAddressList
 }

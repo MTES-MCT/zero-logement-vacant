@@ -16,6 +16,7 @@ export interface HousingApi {
     roomsCount: number;
     buildingYear?: number;
     vacancyStartYear: number;
+    vacancyReasons: string[];
     campaignIds: string[];
     dataYears: number[];
     status?: HousingStatusApi;
@@ -28,5 +29,6 @@ export interface HousingUpdateApi {
     subStatus?: string,
     precision?: string,
     contactKind: string,
+    vacancyReasons?: string[],
     comment: string
 }

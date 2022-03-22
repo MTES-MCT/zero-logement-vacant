@@ -83,9 +83,10 @@ const HousingStatusModal = (
                         </div>
                     }
                     {housing &&
-                        <HousingStatusForm previousStatus={housing.status}
-                                           previousSubStatus={housing.subStatus}
-                                           previousPrecision={housing.precision}
+                        <HousingStatusForm currentStatus={housing.status}
+                                           currentSubStatus={housing.subStatus}
+                                           currentPrecision={housing.precision}
+                                           currentVacancyReasons={housing.vacancyReasons}
                                            onValidate={submit}
                                            ref={statusFormRef}/>
                     }

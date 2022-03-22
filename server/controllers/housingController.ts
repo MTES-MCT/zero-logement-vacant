@@ -87,7 +87,13 @@ const updateHousingList = async (request: Request, response: Response): Promise<
         createdBy: userId
     })))
 
-    const updatedHousingList = await housingRepository.updateStatusList(housingList.map(_ => _.id), housingUpdateApi.status, housingUpdateApi.subStatus, housingUpdateApi.precision)
+    const updatedHousingList = await housingRepository.updateHousingList(
+        housingList.map(_ => _.id),
+        housingUpdateApi.status,
+        housingUpdateApi.subStatus,
+        housingUpdateApi.precision,
+        housingUpdateApi.vacancyReasons
+    )
 
     return response.status(200).json(updatedHousingList);
 };

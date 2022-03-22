@@ -259,6 +259,10 @@ const OwnerView = () => {
                                         <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
                                         {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                     </Text>
+                                    <Text>
+                                        <b>Cause(s) de la vacance :&nbsp;</b>
+                                        {housing.vacancyReasons?.join(', ')}
+                                    </Text>
                                 </Col>
                             </Row>
                             {housing.campaignIds.length > 0 &&

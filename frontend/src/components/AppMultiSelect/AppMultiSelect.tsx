@@ -8,7 +8,7 @@ const AppMultiSelect = (
         label,
         defaultOption,
         options,
-        initialValues = [],
+        initialValues,
         onChange,
         messageType,
         message
@@ -29,14 +29,14 @@ const AppMultiSelect = (
 
     const onChangeValue = (value: string, isChecked: boolean) => {
         onChange([
-            ...initialValues.filter(v => v !== value),
+            ...(initialValues ?? []).filter(v => v !== value),
             ...(isChecked ? [value] : [])
         ]);
     }
 
     const selectedOptions = () => {
         const maxLength = 28;
-        const joinedOptions = options.filter(o => initialValues.indexOf(o.value) !== -1).map(_ => _.label).join(', ')
+        const joinedOptions = options.filter(o => (initialValues ?? []).indexOf(o.value) !== -1).map(_ => _.label).join(', ')
         return joinedOptions.length ? `${joinedOptions.slice(0, maxLength)}${joinedOptions.length > maxLength ? '...' : ''}` : (defaultOption ?? 'Tous')
     }
 
@@ -60,7 +60,7 @@ const AppMultiSelect = (
                             value={option.value}
                             size="sm"
                             key={label + '-' + index}
-                            checked={initialValues.indexOf(option.value) !== -1}
+                            checked={(initialValues ?? []).indexOf(option.value) !== -1}
                         />
                     )}
                 </CheckboxGroup>

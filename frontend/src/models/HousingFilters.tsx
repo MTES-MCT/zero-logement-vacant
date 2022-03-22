@@ -152,6 +152,11 @@ export const dataYearsOptions = [
 
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
 
+export const vacancyReasonsOptions: SelectOption[] = [
+    'Mauvais état - travaux',
+    'Mauvaise expérience locative'
+].map(_ => ({ value: _, label: _}))
+
 export const hasFilters = (housingFilters: HousingFilters) => {
     return Boolean(
         housingFilters.ownerKinds?.length ||

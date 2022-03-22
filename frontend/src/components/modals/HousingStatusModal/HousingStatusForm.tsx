@@ -7,30 +7,34 @@ import {
     getStatusPrecisionOptions,
     getSubStatus,
     getSubStatusOptions,
-    HousingStates,
     HousingStatus,
 } from '../../../models/HousingState';
 import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
+import { statusOptions, vacancyReasonsOptions } from '../../../models/HousingFilters';
 
 const HousingStatusForm = (
     {
-        previousStatus,
-        previousSubStatus,
-        previousPrecision,
+        currentStatus,
+        currentSubStatus,
+        currentPrecision,
+        currentVacancyReasons,
         onValidate,
     }: {
-        previousStatus?: HousingStatus,
-        previousSubStatus?: string,
-        previousPrecision?: string,
+        currentStatus?: HousingStatus,
+        currentSubStatus?: string,
+        currentPrecision?: string,
+        currentVacancyReasons?: string[],
         onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
     const [status, setStatus] = useState<HousingStatus>();
-    const [subStatus, setSubStatus] = useState<string | undefined>(previousSubStatus);
-    const [precision, setPrecision] = useState<string | undefined>(previousPrecision);
+    const [subStatus, setSubStatus] = useState<string | undefined>(currentSubStatus);
+    const [precision, setPrecision] = useState<string | undefined>(currentPrecision);
+    const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(currentVacancyReasons);
     const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
     const [contactKind, setContactKind] = useState<string>()
@@ -38,24 +42,18 @@ const HousingStatusForm = (
     const [formErrors, setFormErrors] = useState<any>({});
 
 
-    useEffect(() => {
-        selectStatus(previousStatus ?? HousingStatus.Waiting)
-    }, [previousStatus])
-
-    const statusOptions = [
-        DefaultOption,
-        ...HousingStates.filter(_ => _.status).map(status => (
-            {value: String(status.status), label: status.title}
-        ))
-    ]
+    useEffect(() => {selectStatus(currentStatus ?? HousingStatus.Waiting)}, [currentStatus])
+    useEffect(() => {selectSubStatus(currentStatus, currentSubStatus)}, [currentStatus, currentSubStatus])
+    useEffect(() => {setPrecision(currentPrecision)}, [currentPrecision])
+    useEffect(() => {setVacancyReasons(currentVacancyReasons)}, [currentVacancyReasons])
 
     const selectStatus = (newStatus: HousingStatus) => {
         setStatus(newStatus);
         setSubStatusOptions(getSubStatusOptions(newStatus));
-        selectSubStatus(getSubStatusOptions(newStatus)?.map(_ => _.label).find(_ => _ === subStatus));
+        selectSubStatus(newStatus, getSubStatusOptions(newStatus)?.map(_ => _.label).find(_ => _ === subStatus));
     }
 
-    const selectSubStatus = (newSubStatus?: string) => {
+    const selectSubStatus = (status?: HousingStatus, newSubStatus?: string) => {
         setSubStatus(newSubStatus);
         if (newSubStatus && status) {
             setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
@@ -109,6 +107,7 @@ const HousingStatusForm = (
                     subStatus: subStatus,
                     precision,
                     contactKind,
+                    vacancyReasons,
                     comment
                 }))
                 .catch((err: any) => {
@@ -130,31 +129,31 @@ const HousingStatusForm = (
                     <b>CHANGEMENT DE STATUT</b>
                 </Col>
                 <Col>
-                    {previousStatus &&
+                    {currentStatus &&
                         <span style={{
-                            backgroundColor: `var(${getHousingState(previousStatus).bgcolor})`,
-                            color: `var(${getHousingState(previousStatus).color})`,
+                            backgroundColor: `var(${getHousingState(currentStatus).bgcolor})`,
+                            color: `var(${getHousingState(currentStatus).color})`,
                         }}
                               className='status-label'>
-                            {getHousingState(previousStatus).title}
+                            {getHousingState(currentStatus).title}
                         </span>
                     }
-                    {previousStatus && previousSubStatus &&
+                    {currentStatus && currentSubStatus &&
                         <span style={{
-                            backgroundColor: `var(${getSubStatus(previousStatus, previousSubStatus)?.bgcolor})`,
-                            color: `var(${getSubStatus(previousStatus, previousSubStatus)?.color})`,
+                            backgroundColor: `var(${getSubStatus(currentStatus, currentSubStatus)?.bgcolor})`,
+                            color: `var(${getSubStatus(currentStatus, currentSubStatus)?.color})`,
                         }}
                               className='status-label'>
-                            {previousSubStatus}
+                            {currentSubStatus}
                         </span>
                     }
-                    {previousStatus && previousSubStatus && previousPrecision &&
+                    {currentStatus && currentSubStatus && currentPrecision &&
                         <span style={{
-                            backgroundColor: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.bgcolor})`,
-                            color: `var(${getPrecision(previousStatus, previousSubStatus, previousPrecision)?.color})`,
+                            backgroundColor: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.bgcolor})`,
+                            color: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.color})`,
                         }}
                               className='status-label'>
-                            {previousPrecision}
+                            {currentPrecision}
                         </span>
                     }
                 </Col>
@@ -204,6 +203,13 @@ const HousingStatusForm = (
                         messageType={formErrors['contactKind'] ? 'error' : undefined}
                         message={formErrors['contactKind']}
                         onChange={(e: any) => setContactKind(e.target.value)}/>
+                </Col>
+                <Col n="4">
+                    <AppMultiSelect label="Cause(s) de la vacance"
+                                    defaultOption="Aucune"
+                                    options={vacancyReasonsOptions}
+                                    initialValues={vacancyReasons}
+                                    onChange={(values) => setVacancyReasons(values)}/>
                 </Col>
             </Row>
             <Row gutters>

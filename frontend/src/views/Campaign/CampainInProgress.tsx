@@ -125,7 +125,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                             <AppActionsMenu actions={menuActions}/>
                         </Col>
                     }
-                    {status === HousingStatus.Waiting && campaignBundle.campaignNumber > 0 &&
+                    {status === HousingStatus.Waiting && (campaignBundle.campaignNumber ?? 0) > 0 &&
                         <Col>
                             <Button title="Créer une relance"
                                     className="float-right"

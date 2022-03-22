@@ -66,8 +66,8 @@ function App() {
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
-                                <Route exact path="/campagnes/C:campaignNumber" component={CampaignView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber" component={CampaignView} />
+                                <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
                                 <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />

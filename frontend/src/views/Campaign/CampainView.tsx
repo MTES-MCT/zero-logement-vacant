@@ -23,8 +23,8 @@ const CampaignView = () => {
 
     useEffect(() => {
         dispatch(getCampaignBundle({
-            campaignNumber: Number(campaignNumber),
-            reminderNumber: Number(reminderNumber)
+            campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
+            reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
         }))
     }, [dispatch])
 
@@ -58,7 +58,7 @@ const CampaignView = () => {
                                         <div className={styles.statTitle}>{campaignBundle.housingCount}</div>
                                         <span className={styles.statLabel}>{campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
-                                    {campaignBundle.campaignNumber > 0 &&
+                                    {(campaignBundle.campaignNumber ?? 0) > 0 &&
                                         <div className={styles.campaignStat}>
                                             <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
                                             <span className={styles.statLabel}>retours</span>

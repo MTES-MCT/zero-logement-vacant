@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Button, Col, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -23,6 +23,7 @@ import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '
 const OwnerView = () => {
 
     const dispatch = useDispatch();
+    const location = useLocation();
     const campaignList = useCampaignList();
 
     const { id, campaignNumber, reminderNumber } = useParams<{id: string, campaignNumber?: string, reminderNumber?: string}>();
@@ -36,8 +37,11 @@ const OwnerView = () => {
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
-        if (campaignNumber && !campaignBundle) {
-            dispatch(getCampaignBundle({campaignNumber: Number(campaignNumber), reminderNumber: Number(reminderNumber)}))
+        if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle) {
+            dispatch(getCampaignBundle({
+                campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
+                reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
+            }))
         }
     }, [id, dispatch])
 
@@ -57,7 +61,7 @@ const OwnerView = () => {
                 <div className={styles.titleContainer}>
                     <Container>
                         <AppBreadcrumb additionalItems={[
-                            ...(campaignNumber && campaignBundle ?
+                            ...(location.pathname.indexOf('campagnes/C') !== -1 && campaignBundle ?
                                 [{
                                     url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
                                     label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)

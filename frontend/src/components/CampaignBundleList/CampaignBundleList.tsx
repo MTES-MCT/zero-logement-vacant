@@ -56,7 +56,7 @@ const CampaignBundleList = (
                             <Title as="h2" look="h3">{campaignBundle.name}</Title>
                         </Col>
                         <Col n="1">
-                            {campaignBundle.campaignNumber > 0 && menuActions?.length &&
+                            {(campaignBundle.campaignNumber ?? 0) > 0 && menuActions?.length &&
                                 <AppActionsMenu actions={menuActions(campaignBundle)}/>
                             }
                         </Col>
@@ -82,7 +82,7 @@ const CampaignBundleList = (
                                 <div className={styles.statTitle}>{campaignBundle.housingCount}</div>
                                 <span className={styles.statLabel}>{campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}</span>
                             </div>
-                            {campaignBundle.campaignNumber > 0 &&
+                            {(campaignBundle.campaignNumber ?? 0) > 0 &&
                                 <div className={styles.campaignStat}>
                                     <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
                                     <span className={styles.statLabel}>retours</span>
@@ -102,7 +102,7 @@ const CampaignBundleList = (
                             <hr className="fr-pb-1w fr-mt-1w"/>
                             <Row>
                                 <Col n="3">
-                                    {campaign.reminderNumber ? `Relance n°${campaign.reminderNumber}` : 'Envoi initial'} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
+                                    {campaign.reminderNumber ? `Relance n°${campaign.reminderNumber}` : getCampaignKindLabel(campaign.kind)} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
                                 </Col>
                                 <Col>
                                     {campaignStep(campaign) === CampaignSteps.OwnersValidation &&

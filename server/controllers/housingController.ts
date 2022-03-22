@@ -113,8 +113,8 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
 
 const exportHousingByCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignNumber = Number(request.params.campaignNumber);
-    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const campaignNumber = request.params.campaignNumber;
+    const reminderNumber = request.params.reminderNumber;
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
     console.log('Export housing by campaign bundle', establishmentId, campaignNumber, reminderNumber)

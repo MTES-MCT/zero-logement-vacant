@@ -9,7 +9,7 @@ export interface DraftCampaign {
 }
 
 export interface CampaignBundleId {
-    campaignNumber: number;
+    campaignNumber?: number;
     reminderNumber?: number;
 }
 
@@ -75,11 +75,12 @@ export const getCampaignBundleId = (campaignBundle: CampaignBundle | Campaign) =
     return {campaignNumber: campaignBundle.campaignNumber, reminderNumber: campaignBundle.reminderNumber}
 }
 
-export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber: number, reminderNumber?: number) => {
-    return campaignNumber ?
+export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber?: number, reminderNumber?: number) => {
+    return campaignNumber === undefined ?
+        'Tous les logements suivis' :
+        !campaignNumber ? 'Logements hors campagne' :
         `C${campaignNumber} - ${format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}
-        ${reminderNumber !== undefined ? ' - ' + getCampaignKindLabel(kind) : ''}${reminderNumber ? ' n°' + reminderNumber : ''}` :
-        'Logements hors campagne'
+        ${' - ' + getCampaignKindLabel(kind)}${(reminderNumber ?? 0) > 0 ? ' n°' + reminderNumber : ''}`
 }
 
 export const campaignStep = (campaign?: Campaign) => {
@@ -97,9 +98,9 @@ export const returnRate = (campaignBundle: CampaignBundle) => {
 
 
 export const campaignBundleIdApiFragment = (campaignBundleId: CampaignBundleId) => {
-    return `${campaignBundleId.campaignNumber}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/reminder/${campaignBundleId.reminderNumber}` : ''}`
+    return `number/${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/${campaignBundleId.reminderNumber}` : ''}`
 }
 
 export const campaignBundleIdUrlFragment = (campaignBundleId: CampaignBundleId) => {
-    return `C${campaignBundleId.campaignNumber}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}`
+    return `C${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}`
 }

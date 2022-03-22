@@ -25,8 +25,8 @@ const getCampaign = async (request: Request, response: Response): Promise<Respon
 
 const getCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignNumber = Number(request.params.campaignNumber);
-    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const campaignNumber = request.params.campaignNumber;
+    const reminderNumber = request.params.reminderNumber;
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
     console.log('Get campaign bundle', establishmentId, campaignNumber, reminderNumber)
@@ -102,8 +102,8 @@ const createCampaign = async (request: Request, response: Response): Promise<Res
 
 const createReminderCampaign = async (request: Request, response: Response): Promise<Response> => {
 
-    const campaignNumber = Number(request.params.campaignNumber);
-    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const campaignNumber = request.params.campaignNumber;
+    const reminderNumber = request.params.reminderNumber;
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
     console.log('Create a reminder campaign for', establishmentId, campaignNumber, reminderNumber)

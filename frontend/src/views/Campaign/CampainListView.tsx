@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Container, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { Alert, Container, Tab, Tabs, Text, Title, Button, Row, Col } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteCampaignBundle, listCampaignBundles } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -9,11 +9,13 @@ import { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
+import { useHistory } from 'react-router-dom';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
+    const history = useHistory();
     const campaignList = useCampaignList(true);
 
     const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
@@ -34,7 +36,24 @@ const CampaignsListView = () => {
                 <Title as="h1" className="fr-mb-4w">Logements suivis</Title>
                 <Tabs>
                     <Tab label="En cours">
-                        <CampaignBundleList campaignBundleList={campaignBundleList ?? []} menuActions={menuActions} />
+                        <Row>
+                            <Col>
+                                <Button
+                                    size="sm"
+                                    secondary
+                                    title="Voir tous les logements suivis"
+                                    className="float-right fr-mb-2w"
+                                    onClick={() => history.push('/campagnes/C')}>
+                                    <span className="ri-1x icon-left ri-eye-line ds-fr--v-middle" />
+                                    Voir tous les logements
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <CampaignBundleList campaignBundleList={campaignBundleList ?? []} menuActions={menuActions} />
+                            </Col>
+                        </Row>
                     </Tab>
                     <Tab label="Passé">
                         <>
@@ -43,10 +62,12 @@ const CampaignsListView = () => {
                     </Tab>
                 </Tabs>
             </Container>
-            {removingModalCampaign &&
+            {removingModalCampaign && removingModalCampaign.campaignNumber &&
                 <ConfirmationModal
                     onSubmit={() => {
-                        dispatch(deleteCampaignBundle(removingModalCampaign.campaignNumber))
+                        if (removingModalCampaign.campaignNumber) {
+                            dispatch(deleteCampaignBundle(removingModalCampaign.campaignNumber))
+                        }
                         setRemovingModalCampaign(undefined);
                     }}
                     onClose={() => setRemovingModalCampaign(undefined)}>

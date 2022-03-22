@@ -37,15 +37,11 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const getCampaignBundle = async (establishmentId: string, campaignNumber: number, reminderNumber?: number): Promise<CampaignBundleApi> => {
+const getCampaignBundle = async (establishmentId: string, campaignNumber?: string, reminderNumber?: string): Promise<CampaignBundleApi> => {
     try {
         return db(campaignsTable)
             .select(
                 db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
-                `${campaignsTable}.campaign_number`,
-                db.raw(`(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`),
-                db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
-                db.raw(`(array_agg(${campaignsTable}.start_month order by reminder_number asc))[1] as "start_month"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
@@ -57,13 +53,22 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber: number
             .countDistinct('o.id', {as: 'ownerCount'})
             .from(campaignsTable)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
-            .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
             .leftJoin(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .groupBy(`${campaignsTable}.campaign_number`)
             .modify((queryBuilder: any) => {
+                if (campaignNumber) {
+                    queryBuilder
+                        .select(
+                            `${campaignsTable}.campaign_number`,
+                            db.raw(`(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`),
+                            db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
+                            db.raw(`(array_agg(${campaignsTable}.start_month order by reminder_number asc))[1] as "start_month"`)
+                        )
+                        .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
+                        .groupBy(`${campaignsTable}.campaign_number`)
+                }
                 if (reminderNumber) {
                     queryBuilder.andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
                 }

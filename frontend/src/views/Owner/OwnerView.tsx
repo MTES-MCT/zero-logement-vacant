@@ -200,6 +200,8 @@ const OwnerView = () => {
                                     <Text size="xs" className="fr-mb-2w">
                                         <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
                                         <br />
+                                        <b>Référence cadastrale :&nbsp;</b>{housing.cadastralReference}
+                                        <br />
                                         <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
                                     </Text>
                                 </Col>

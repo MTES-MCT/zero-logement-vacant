@@ -5,6 +5,7 @@ import { HousingStatus } from './HousingState';
 export interface Housing {
     id: string;
     invariant: string;
+    cadastralReference: string,
     rawAddress: string[];
     address: Address;
     latitude?: number;

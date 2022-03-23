@@ -176,7 +176,7 @@ const HousingStatusForm = (
                         selected={subStatus}
                         messageType={formErrors['subStatus'] ? 'error' : undefined}
                         message={formErrors['subStatus']}
-                        onChange={(e: any) => selectSubStatus(e.target.value)}/>
+                        onChange={(e: any) => selectSubStatus(status, e.target.value)}/>
                     }
                 </Col>
                 <Col n="4">

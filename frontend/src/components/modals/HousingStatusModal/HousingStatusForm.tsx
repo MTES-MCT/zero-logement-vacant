@@ -204,7 +204,7 @@ const HousingStatusForm = (
                         message={formErrors['contactKind']}
                         onChange={(e: any) => setContactKind(e.target.value)}/>
                 </Col>
-                <Col n="4">
+                <Col n="8">
                     <AppMultiSelect label="Cause(s) de la vacance"
                                     defaultOption="Aucune"
                                     options={vacancyReasonsOptions}

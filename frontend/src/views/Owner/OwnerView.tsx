@@ -278,7 +278,9 @@ const OwnerView = () => {
                                     </Text>
                                     <Text>
                                         <b>Cause(s) de la vacance :&nbsp;</b>
-                                        {housing.vacancyReasons?.join(', ')}
+                                        {housing.vacancyReasons?.map((reason, reasonIdx) =>
+                                            <span key={`${housing.id}_${reasonIdx}`}><br />{reason}</span>
+                                        )}
                                     </Text>
                                 </Col>
                             </Row>

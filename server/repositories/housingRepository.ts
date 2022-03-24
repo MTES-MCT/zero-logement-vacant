@@ -5,11 +5,9 @@ import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
-import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { campaignsTable } from './campaignRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -21,13 +19,7 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
     try {
         const filter = (queryBuilder: any) => {
             if (filters.campaignIds?.length) {
-                queryBuilder.whereExists((whereBuilder: any) => {
-                    whereBuilder.from(campaignsHousingTable, campaignsTable)
-                        .whereIn('campaign_id', filters.campaignIds)
-                        .andWhere( `${campaignsTable}.establishment_id`, establishmentId)
-                        .andWhere(`${campaignsHousingTable}.campaign_id`, `${campaignsTable}.id`)
-                        .andWhereRaw(`housing_id = ${housingTable}.id`)
-                })
+                queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
             }
             if (filters.campaignsCounts?.length) {
                 queryBuilder.where(function(whereBuilder: any) {

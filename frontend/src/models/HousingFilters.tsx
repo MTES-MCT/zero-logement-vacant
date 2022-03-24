@@ -153,9 +153,24 @@ export const dataYearsOptions = [
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
 
 export const vacancyReasonsOptions: SelectOption[] = [
-    'Mauvais état - travaux',
-    'Mauvaise expérience locative'
-].map(_ => ({ value: _, label: _}))
+    {value: '', label:'Vacance volontaire', disabled:true},
+    {value: 'Vacance volontaire - réserve personnelle', label:'réserve personnelle'},
+    {value: 'Vacance volontaire - réserve pour une autre personne', label:'réserve pour une autre personne'},
+    {value: '', label: 'Mauvais état', disabled:true},
+    {value: 'Mauvais état - travaux trop importants', label: 'travaux trop importants'},
+    {value: 'Mauvais état - ruine / à démolir', label: 'ruine / à démolir'},
+    {value: '', label: 'Mauvaise expérience locative', disabled:true},
+    {value: 'Mauvaise expérience locative - dégradations', label: 'dégradations'},
+    {value: 'Mauvaise expérience locative - impayés de loyer', label: 'impayés de loyer'},
+    {value: '', label: 'Blocage juridique', disabled:true},
+    {value: 'Blocage juridique - succession difficile, indivision en désaccord', label: 'succession difficile, indivision en désaccord'},
+    {value: 'Blocage juridique - expertise judiciaire', label: 'expertise judiciaire'},
+    {value: 'Blocage juridique - procédure contre les entrepreneurs', label: 'procédure contre les entrepreneurs'},
+    {value: '', label: 'Liée au propriétaire', disabled:true},
+    {value: 'Liée au propriétaire - âge du propriétaire', label: 'âge du propriétaire'},
+    {value: 'Liée au propriétaire - difficultés de gestion', label: 'difficultés de gestion'},
+    {value: 'Autre', label: 'Autre (à préciser en notes)'}
+]
 
 export const hasFilters = (housingFilters: HousingFilters) => {
     return Boolean(

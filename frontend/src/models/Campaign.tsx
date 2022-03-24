@@ -66,9 +66,15 @@ export enum CampaignSteps {
     OwnersValidation, Export, Sending, InProgess
 }
 
-export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
-    return c1.campaignNumber < c2.campaignNumber ? -1 :
-        c1.campaignNumber > c2.campaignNumber ? 1 : 0
+export const CampaignNumberSort = (c1?: Campaign, c2?: Campaign) => {
+    return (c1 && c2) ?
+        c1.campaignNumber < c2.campaignNumber ? -1 :
+            c1.campaignNumber > c2.campaignNumber ? 1 :
+                c1.reminderNumber < c2.reminderNumber ? -1 :
+                    c1.reminderNumber > c2.reminderNumber ? 1 : 0 :
+        c1 ? 1 :
+            c2 ? -1 :
+                0
 }
 
 export const getCampaignBundleId = (campaignBundle?: CampaignBundle | Campaign) => {

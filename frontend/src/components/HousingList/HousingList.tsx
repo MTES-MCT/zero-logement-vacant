@@ -9,6 +9,7 @@ import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { CampaignNumberSort } from '../../models/Campaign';
 
 
 export enum HousingDisplayKey {
@@ -147,9 +148,9 @@ const HousingList = (
         render: ({ campaignIds, id } : Housing) =>
             <>
                 {campaignIds?.length ?
-                    campaignIds.map(campaignId =>
-                        <div key={id + '-campaign-' + campaignId}>
-                            {campaignList?.find(c => c.id === campaignId)?.name}
+                    campaignIds.map(campaignId => campaignList?.find(c => c.id === campaignId)).sort(CampaignNumberSort).map(campaign =>
+                        <div key={id + '-campaign-' + campaign?.id}>
+                            {campaign?.name}
                         </div>
                     ) :
                     'Jamais contacté'
@@ -171,7 +172,7 @@ const HousingList = (
             case HousingDisplayKey.Housing :
                 return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, ...additionalColumns ?? [], viewColumn];
+                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], viewColumn];
         }
     }
 

@@ -8,10 +8,6 @@ if (!process.env.API_PORT) {
 export default {
     environment: process.env.NODE_ENV || 'development',
     serverPort: process.env.API_PORT,
-    airTable: {
-        apiKey: process.env.AIRTABLE_API_KEY,
-        base: process.env.AIRTABLE_BASE
-    },
     auth: {
         secret: process.env.AUTH_SECRET || 'secret'
     },

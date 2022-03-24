@@ -48,7 +48,7 @@ export interface BuildingLocation {
 
 export const getBuildingLocation = (housing: Housing) => {
     const idx = housing.buildingLocation?.length === 11 ? 1 : housing.buildingLocation?.length === 10 ? 0 : undefined
-    if (idx !== undefined && housing.buildingLocation) {
+    if (idx !== undefined && housing.buildingLocation &&  housing.buildingLocation !== 'A010001001') {
         const level = housing.buildingLocation.substr(1 + idx, 2);
         return {
             building: 'Bâtiment ' + housing.buildingLocation.substr(0, 1 + idx),

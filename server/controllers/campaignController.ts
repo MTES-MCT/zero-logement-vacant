@@ -158,10 +158,17 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
         sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
     }))
 
+    console.log('Validate campaign step getCampaign', campaignId, step)
+
     if (step === CampaignSteps.Sending) {
+
         const housingList = await housingRepository.listWithFilters(establishmentId, {campaignIds: [campaignId]}).then(_ => _.entities)
 
+        console.log('Validate campaign step housingList', campaignId, step)
+
         await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+
+        console.log('Validate campaign step updateHousingList', campaignId, step)
 
         await eventRepository.insertList(
             housingList.map(housing => <EventApi>{
@@ -173,10 +180,14 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
                 createdBy: userId
             })
         )
+        console.log('Validate campaign step insertList', campaignId, step)
     }
 
     return campaignRepository.update(updatedCampaign)
-        .then(() => campaignRepository.getCampaign(campaignId))
+        .then(() => {
+            console.log('Validate campaign step update', campaignId, step)
+            return campaignRepository.getCampaign(campaignId)
+        })
         .then(_ => response.status(200).json(_))
 }
 

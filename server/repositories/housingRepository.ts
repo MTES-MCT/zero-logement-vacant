@@ -5,11 +5,8 @@ import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
-import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { campaignsHousingTable } from './campaignHousingRepository';
-import { campaignsTable } from './campaignRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -21,30 +18,24 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
     try {
         const filter = (queryBuilder: any) => {
             if (filters.campaignIds?.length) {
-                queryBuilder.whereExists((whereBuilder: any) => {
-                    whereBuilder.from(campaignsHousingTable)
-                        .join(campaignsTable, `${campaignsHousingTable}.campaign_id`, `${campaignsTable}.id`)
-                        .whereIn('campaign_id', filters.campaignIds)
-                        .andWhere( `${campaignsTable}.establishment_id`, establishmentId)
-                        .andWhereRaw(`housing_id = ${housingTable}.id`)
-                })
+                queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
             }
             if (filters.campaignsCounts?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     if (filters.campaignsCounts?.indexOf('0') !== -1) {
-                        whereBuilder.orWhereNull('_campaigns.campaign_count')
+                        whereBuilder.orWhereNull('campaigns.campaign_count')
                     }
                     if (filters.campaignsCounts?.indexOf('current') !== -1) {
-                        whereBuilder.orWhereRaw('_campaigns.campaign_count >= 1')
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= 1')
                     }
                     if (filters.campaignsCounts?.indexOf('1') !== -1) {
-                        whereBuilder.orWhere('_campaigns.campaign_count', 1)
+                        whereBuilder.orWhere('campaigns.campaign_count', 1)
                     }
                     if (filters.campaignsCounts?.indexOf('2') !== -1) {
-                        whereBuilder.orWhere('_campaigns.campaign_count', 2)
+                        whereBuilder.orWhere('campaigns.campaign_count', 2)
                     }
                     if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-                        whereBuilder.orWhereRaw('_campaigns.campaign_count >= ?', 3)
+                        whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3)
                     }
                 })
             }
@@ -231,21 +222,21 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
             if (filters.localityKinds?.length) {
                 queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
             }
-            if (filters.housingScopes && filters.housingScopes.scopes.length) {
-                queryBuilder.where(function(whereBuilder: any) {
-                    if (filters.housingScopes?.geom) {
-                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('hsg.type')
-                        }
-                        whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
-                    } else {
-                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('housing_scope')
-                        }
-                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
-                    }
-                })
-            }
+            // if (filters.housingScopes && filters.housingScopes.scopes.length) {
+            //     queryBuilder.where(function(whereBuilder: any) {
+            //         if (filters.housingScopes?.geom) {
+            //             if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+            //                 whereBuilder.orWhereNull('hsg.type')
+            //             }
+            //             whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+            //         } else {
+            //             if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
+            //                 whereBuilder.orWhereNull('housing_scope')
+            //             }
+            //             whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
+            //         }
+            //     })
+            // }
             if (filters.dataYears?.length) {
                 queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
@@ -273,8 +264,8 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(_campaigns.campaign_id)) as campaign_ids'),
-                db.raw('array_agg(distinct(hsg.type))')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                // db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
@@ -287,8 +278,8 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 where housing.id = ch.housing_id 
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
-            ) _campaigns on true`)
-            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+            ) campaigns on true`)
+            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 
@@ -313,7 +304,8 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 where housing.id = ch.housing_id 
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
-            ) campaigns on true`)            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+            ) campaigns on true`)
+            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

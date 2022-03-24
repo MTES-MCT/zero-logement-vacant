@@ -50,7 +50,7 @@ export enum CampaignKinds {
 export const getCampaignKindLabel = (kind: CampaignKinds) => {
     switch (kind) {
         case CampaignKinds.Initial:
-            return 'Envoi initial';
+            return 'Courrier postal';
         case CampaignKinds.Remind:
             return 'Relance';
         case CampaignKinds.Surveying:

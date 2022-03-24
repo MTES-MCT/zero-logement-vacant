@@ -44,9 +44,9 @@ const CampaignView = () => {
                                 <Col>
                                     <Title as="h1">{campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)}</Title>
                                 </Col>
-                                <Col>
-                                    {/*<AppSearchBar onSearch={(input: string) => {}} />*/}
-                                </Col>
+                                {/*<Col>*/}
+                                {/*    <AppSearchBar onSearch={(input: string) => {}} />*/}
+                                {/*</Col>*/}
                             </Row>
                             <Row>
                                 <Col spacing="my-3w">

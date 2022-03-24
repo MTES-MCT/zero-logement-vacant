@@ -348,7 +348,7 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
 
 const updateHousingList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string, vacancyReasons?: string[]): Promise<HousingApi[]> => {
 
-    console.log('update housing list', housingIds)
+    console.log('update housing list', housingIds.length)
 
     try {
         return db(housingTable)
@@ -361,7 +361,7 @@ const updateHousingList = async (housingIds: string[], status: HousingStatusApi,
             })
             .returning('*');
     } catch (err) {
-        console.error('Updating campaign housing list failed', err, housingIds);
+        console.error('Updating campaign housing list failed', err, housingIds.length);
         throw new Error('Updating campaign housing list failed');
     }
 }

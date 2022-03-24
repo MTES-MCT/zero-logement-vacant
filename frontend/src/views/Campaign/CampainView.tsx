@@ -26,7 +26,7 @@ const CampaignView = () => {
             campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
             reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
         }))
-    }, [dispatch])
+    }, [dispatch, campaignNumber, reminderNumber])
 
 
     const campaignsOfBundle = (campaignBundle: CampaignBundle) => {

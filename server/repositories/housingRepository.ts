@@ -22,29 +22,29 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
         const filter = (queryBuilder: any) => {
             if (filters.campaignIds?.length) {
                 queryBuilder.whereExists((whereBuilder: any) => {
-                    whereBuilder.from(campaignsHousingTable, campaignsTable)
+                    whereBuilder.from(campaignsHousingTable)
+                        .join(campaignsTable, `${campaignsHousingTable}.campaign_id`, `${campaignsTable}.id`)
                         .whereIn('campaign_id', filters.campaignIds)
                         .andWhere( `${campaignsTable}.establishment_id`, establishmentId)
-                        .andWhere(`${campaignsHousingTable}.campaign_id`, `${campaignsTable}.id`)
                         .andWhereRaw(`housing_id = ${housingTable}.id`)
                 })
             }
             if (filters.campaignsCounts?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
                     if (filters.campaignsCounts?.indexOf('0') !== -1) {
-                        whereBuilder.orWhereNull('campaigns.campaign_count')
+                        whereBuilder.orWhereNull('_campaigns.campaign_count')
                     }
                     if (filters.campaignsCounts?.indexOf('current') !== -1) {
-                        whereBuilder.orWhereRaw('campaigns.campaign_count >= 1')
+                        whereBuilder.orWhereRaw('_campaigns.campaign_count >= 1')
                     }
                     if (filters.campaignsCounts?.indexOf('1') !== -1) {
-                        whereBuilder.orWhere('campaigns.campaign_count', 1)
+                        whereBuilder.orWhere('_campaigns.campaign_count', 1)
                     }
                     if (filters.campaignsCounts?.indexOf('2') !== -1) {
-                        whereBuilder.orWhere('campaigns.campaign_count', 2)
+                        whereBuilder.orWhere('_campaigns.campaign_count', 2)
                     }
                     if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-                        whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3)
+                        whereBuilder.orWhereRaw('_campaigns.campaign_count >= ?', 3)
                     }
                 })
             }
@@ -273,7 +273,7 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                db.raw('json_agg(distinct(_campaigns.campaign_id)) as campaign_ids'),
                 db.raw('array_agg(distinct(hsg.type))')
             )
             .from(housingTable)
@@ -287,7 +287,7 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 where housing.id = ch.housing_id 
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
-            ) campaigns on true`)
+            ) _campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)

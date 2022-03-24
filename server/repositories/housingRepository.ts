@@ -9,21 +9,24 @@ import { campaignsHousingTable } from './campaignHousingRepository';
 import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { campaignsTable } from './campaignRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
-const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
+const listWithFilters = async (establishmentId: string, filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
         const filter = (queryBuilder: any) => {
             if (filters.campaignIds?.length) {
                 queryBuilder.whereExists((whereBuilder: any) => {
-                    whereBuilder.from(campaignsHousingTable)
+                    whereBuilder.from(campaignsHousingTable, campaignsTable)
                         .whereIn('campaign_id', filters.campaignIds)
-                        .whereRaw(`housing_id = ${housingTable}.id`)
+                        .andWhere( `${campaignsTable}.establishment_id`, establishmentId)
+                        .andWhere(`${campaignsHousingTable}.campaign_id`, `${campaignsTable}.id`)
+                        .andWhereRaw(`housing_id = ${housingTable}.id`)
                 })
             }
             if (filters.campaignsCounts?.length) {
@@ -278,7 +281,13 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
+            .joinRaw(`left join lateral (
+                select campaign_id as campaign_id, count(*) over() as campaign_count 
+                from campaigns_housing ch, campaigns c 
+                where housing.id = ch.housing_id 
+                and c.id = ch.campaign_id
+                and c.establishment_id = '${establishmentId}'
+            ) campaigns on true`)
             .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
@@ -298,8 +307,13 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
-            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+            .joinRaw(`left join lateral (
+                select campaign_id as campaign_id, count(*) over() as campaign_count 
+                from campaigns_housing ch, campaigns c 
+                where housing.id = ch.housing_id 
+                and c.id = ch.campaign_id
+                and c.establishment_id = '${establishmentId}'
+            ) campaigns on true`)            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

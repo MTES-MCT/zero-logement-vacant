@@ -27,17 +27,18 @@ const list = async (request: Request, response: Response): Promise<Response> => 
 
     const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
 
-    return housingRepository.listWithFilters({...filters, localities: filterLocalities}, page, perPage)
+    return housingRepository.listWithFilters(establishmentId,{...filters, localities: filterLocalities}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 
 const listByOwner = async (request: Request, response: Response): Promise<Response> => {
 
     const ownerId = request.params.ownerId;
+    const establishmentId = (<RequestUser>request.user).establishmentId;
 
     console.log('List housing by owner', ownerId)
 
-    return housingRepository.listWithFilters({ownerIds: [ownerId]})
+    return housingRepository.listWithFilters(establishmentId,{ownerIds: [ownerId]})
         .then(_ => response.status(200).json(_.entities));
 };
 
@@ -55,7 +56,7 @@ const updateHousingList = async (request: Request, response: Response): Promise<
     const currentStatus = request.body.currentStatus;
 
     let housingList =
-        await housingRepository.listWithFilters({campaignIds, status: [currentStatus]})
+        await housingRepository.listWithFilters(establishmentId, {campaignIds, status: [currentStatus]})
             .then(_ => _.entities
                 .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
             );
@@ -126,7 +127,7 @@ const exportHousingByCampaignBundle = async (request: Request, response: Respons
     console.log('Export housing by campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
     const campaignApi = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
-    const housingList = await housingRepository.listWithFilters({campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
+    const housingList = await housingRepository.listWithFilters(establishmentId, {campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
 
     const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
@@ -147,7 +148,7 @@ const exportHousingWithFilters = async (request: Request, response: Response): P
     const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
 
     const housingIds = allHousing ?
-        await housingRepository.listWithFilters({...filters, localities: filterLocalities})
+        await housingRepository.listWithFilters(establishmentId, {...filters, localities: filterLocalities})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
@@ -257,7 +258,7 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     const localities = await localityRepository.listByEstablishmentId(establishmentId)
 
-    const housingList = await housingRepository.listWithFilters({localities: localities.map(_ => _.geoCode)}, page, perPage)
+    const housingList = await housingRepository.listWithFilters(establishmentId, {localities: localities.map(_ => _.geoCode)}, page, perPage)
 
     const housingAdresses = await addressService.normalizeAddresses(
         housingList.entities.map((housing: HousingApi) => ({

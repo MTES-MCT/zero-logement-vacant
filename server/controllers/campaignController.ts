@@ -4,7 +4,6 @@ import campaignHousingRepository from '../repositories/campaignHousingRepository
 import { CampaignApi, CampaignKinds, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
-import { EventApi, EventKinds } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
@@ -145,8 +144,8 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
-    const userId = (<RequestUser>request.user).userId;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    // const userId = (<RequestUser>request.user).userId;
+    // const establishmentId = (<RequestUser>request.user).establishmentId;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -160,28 +159,28 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 
     console.log('Validate campaign step getCampaign', campaignId, step)
 
-    if (step === CampaignSteps.Sending) {
-
-        const housingList = await housingRepository.listWithFilters(establishmentId, {campaignIds: [campaignId]}).then(_ => _.entities)
-
-        console.log('Validate campaign step housingList', campaignId, step)
-
-        await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
-
-        console.log('Validate campaign step updateHousingList', campaignId, step)
-
-        await eventRepository.insertList(
-            housingList.map(housing => <EventApi>{
-                housingId: housing.id,
-                ownerId: housing.owner.id,
-                campaignId,
-                kind: EventKinds.CampaignSend,
-                content: 'Ajout dans la campagne',
-                createdBy: userId
-            })
-        )
-        console.log('Validate campaign step insertList', campaignId, step)
-    }
+    // if (step === CampaignSteps.Sending) {
+    //
+    //     const housingList = await housingRepository.listWithFilters(establishmentId, {campaignIds: [campaignId]}).then(_ => _.entities)
+    //
+    //     console.log('Validate campaign step housingList', campaignId, step)
+    //
+    //     await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+    //
+    //     console.log('Validate campaign step updateHousingList', campaignId, step)
+    //
+    //     await eventRepository.insertList(
+    //         housingList.map(housing => <EventApi>{
+    //             housingId: housing.id,
+    //             ownerId: housing.owner.id,
+    //             campaignId,
+    //             kind: EventKinds.CampaignSend,
+    //             content: 'Ajout dans la campagne',
+    //             createdBy: userId
+    //         })
+    //     )
+    //     console.log('Validate campaign step insertList', campaignId, step)
+    // }
 
     return campaignRepository.update(updatedCampaign)
         .then(() => {

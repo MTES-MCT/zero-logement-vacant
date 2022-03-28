@@ -7,6 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -222,21 +223,24 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
             if (filters.localityKinds?.length) {
                 queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
             }
-            // if (filters.housingScopes && filters.housingScopes.scopes.length) {
-            //     queryBuilder.where(function(whereBuilder: any) {
-            //         if (filters.housingScopes?.geom) {
-            //             if (filters.housingScopes.scopes.indexOf('None') !== -1) {
-            //                 whereBuilder.orWhereNull('hsg.type')
-            //             }
-            //             whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
-            //         } else {
-            //             if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
-            //                 whereBuilder.orWhereNull('housing_scope')
-            //             }
-            //             whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
-            //         }
-            //     })
-            // }
+            if (filters.housingScopes && filters.housingScopes.scopes.length) {
+                queryBuilder
+                    .select(db.raw('array_agg(distinct(hsg.type))'))
+                    .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+                    .where(function(whereBuilder: any) {
+                        if (filters.housingScopes?.geom) {
+                            if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+                                whereBuilder.orWhereNull('hsg.type')
+                            }
+                            whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+                        } else {
+                            if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
+                                whereBuilder.orWhereNull('housing_scope')
+                            }
+                            whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
+                        }
+                    })
+            }
             if (filters.dataYears?.length) {
                 queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
             }
@@ -264,8 +268,7 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-                // db.raw('array_agg(distinct(hsg.type))')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
@@ -279,7 +282,6 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
             ) campaigns on true`)
-            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 

@@ -1,54 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Button, Col, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
-import {
-    getOwner,
-    getOwnerCampaignHousing,
-    getOwnerHousing,
-    update,
-    updateOwnerCampaignHousing,
-} from '../../store/actions/ownerAction';
+import { getOwner, getOwnerHousing, update, updateOwnerHousing } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import OwnerEvents from './OwnerEvents';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
-import CampaignHousingStatusModal from '../../components/modals/CampaignHousingStatusModal/CampaignHousingStatusModal';
-import { CampaignHousing, CampaignHousingUpdate } from '../../models/Housing';
-import { getCampaign } from '../../store/actions/campaignAction';
-import {
-    getCampaignHousingPrecision,
-    getCampaignHousingState,
-    getCampaignHousingStep,
-} from '../../models/CampaignHousingState';
-import { ensure } from '../../utils/arrayUtils';
+import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
+import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
+import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { getHousingState, getHousingStatusPrecision, getHousingSubStatus } from '../../models/HousingState';
+import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 
 const OwnerView = () => {
 
     const dispatch = useDispatch();
+    const location = useLocation();
     const campaignList = useCampaignList();
 
-    const { id, campaignId } = useParams<{id: string, campaignId?: string}>();
+    const { id, campaignNumber, reminderNumber } = useParams<{id: string, campaignNumber?: string, reminderNumber?: string}>();
 
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList, campaignHousingList } = useSelector((state: ApplicationState) => state.owner);
-    const { campaign } = useSelector((state: ApplicationState) => state.campaign);
+    const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
+    const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
-        dispatch(getOwnerCampaignHousing(id));
-        if (campaignId && !campaign) {
-            dispatch(getCampaign(campaignId))
+        if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle) {
+            dispatch(getCampaignBundle({
+                campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
+                reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
+            }))
         }
     }, [id, dispatch])
 
@@ -57,20 +50,25 @@ const OwnerView = () => {
         setIsModalOwnerOpen(false);
     }
 
-    const submitCampaignHousingUpdate = (campaignHousing: CampaignHousing, campaignHousingUpdate: CampaignHousingUpdate) => {
-        dispatch(updateOwnerCampaignHousing(campaignHousing.campaignId, campaignHousing.id, campaignHousingUpdate))
+    const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
+        dispatch(updateOwnerHousing(housing, housingUpdate))
         setIsModalStatusOpen(false)
     }
-
-    const campaignHousing = (campaignId: string, housingId: string) =>
-        ensure(campaignHousingList.find(campaignHousing => campaignHousing.campaignId === campaignId && campaignHousing.id === housingId))
 
     return (
         <>
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
                     <Container>
-                        <AppBreadcrumb additionalItems={[...campaignId && campaign ? [{url: '/campagnes/' + campaignId, label: campaign.name}] : [], {url: '', label: owner.fullName}]}/>
+                        <AppBreadcrumb additionalItems={[
+                            ...(location.pathname.indexOf('campagnes/C') !== -1 && campaignBundle ?
+                                [{
+                                    url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
+                                    label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)
+                                }] :
+                                []),
+                            {url: '', label: owner.fullName}
+                        ]}/>
                         {owner &&
                             <Row alignItems="middle">
                                 <Col>
@@ -84,10 +82,9 @@ const OwnerView = () => {
                                         Modifier le dossier
                                     </Button>
                                     {isModalStatusOpen &&
-                                        <CampaignHousingStatusModal housingList={housingList}
-                                                                    campaignHousingList={campaignHousingList}
-                                                                    onSubmit={submitCampaignHousingUpdate}
-                                                                    onClose={() => setIsModalStatusOpen(false)} />
+                                        <HousingStatusModal housingList={housingList}
+                                                            onSubmit={submitHousingUpdate}
+                                                            onClose={() => setIsModalStatusOpen(false)} />
                                     }
                                 </Col>
                             </Row>
@@ -165,14 +162,51 @@ const OwnerView = () => {
                     {housingList.map((housing, index) =>
                         <div key={housing.id} className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
                             <Row>
-                                <Col n="12">
-                                    <Title as="h2" look="h3" className="fr-mb-0">Logement {index + 1}</Title>
+                                <Col>
+                                    <Title as="h2" look="h3" className="fr-mb-0">
+                                        Logement {index + 1}
+                                        {housing.status &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingState(housing.status).bgcolor})`,
+                                                color: `var(${getHousingState(housing.status).color})`,
+                                            }}
+                                                  className='status-label fr-ml-3w'>
+                                                {getHousingState(housing.status).title}
+                                            </span>
+                                        }
+                                        {housing.subStatus &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingSubStatus(housing)?.bgcolor})`,
+                                                color: `var(${getHousingSubStatus(housing)?.color})`,
+                                            }}
+                                                  className='status-label'>
+                                                {housing.subStatus}
+                                            </span>
+                                        }
+                                        {housing.subStatus && housing.precision &&
+                                            <span style={{
+                                                backgroundColor: `var(${getHousingStatusPrecision(housing)?.bgcolor})`,
+                                                color: `var(${getHousingStatusPrecision(housing)?.color})`,
+                                            }}
+                                                  className='status-label'>
+                                                {housing.precision}
+                                            </span>
+                                        }
+                                    </Title>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
                                     <Text size="xs" className="fr-mb-2w">
                                         <b>Invariant fiscal :&nbsp;</b>{housing.invariant}
+                                        <br />
+                                        <b>Référence cadastrale :&nbsp;</b>{housing.cadastralReference}
                                         <br />
                                         <b> {housing.dataYears.length === 1 ? 'Millésime' : 'Millésimes'} :&nbsp;</b>{housing.dataYears.join(' - ')}
                                     </Text>
                                 </Col>
+                            </Row>
+                            <Row>
                                 <Col n="4">
                                     <Text size="lg" className="fr-mb-1w">
                                         <b>Emplacement</b>
@@ -188,6 +222,21 @@ const OwnerView = () => {
                                             }
                                         </span>
                                     </span>
+                                    {getBuildingLocation(housing) &&
+                                        <div>
+                                            <span style={{verticalAlign: 'top'}}>
+                                                <b>Complément :&nbsp;</b>
+                                            </span>
+                                            <span style={{display: 'inline-block'}} className="capitalize">
+                                                <span  style={{display: 'block'}}>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
+                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    }
                                     <div className="fr-mt-2w">
                                         <Link title="Localiser dans Google Map - nouvelle fenêtre"
                                               href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
@@ -227,9 +276,15 @@ const OwnerView = () => {
                                         <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
                                         {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                     </Text>
+                                    <Text>
+                                        <b>Cause(s) de la vacance :&nbsp;</b>
+                                        {housing.vacancyReasons?.map((reason, reasonIdx) =>
+                                            <span key={`${housing.id}_${reasonIdx}`}><br />{reason}</span>
+                                        )}
+                                    </Text>
                                 </Col>
                             </Row>
-                            {housing.campaignIds.length > 0 && campaignHousingList.length > 0 &&
+                            {housing.campaignIds.length > 0 &&
                                 <Row>
                                     <Col n="12">
                                         <Text size="lg" className="fr-mb-1w">
@@ -241,36 +296,9 @@ const OwnerView = () => {
                                                 <span style={{ verticalAlign: 'top' }}>
                                                     <b>{campaignList?.find(campaign => campaign.id === campaignId)?.name}</b>
                                                 </span>
-                                                <Link title="Voir la campagne" href={'/campagnes/' + campaignId} className="ds-fr--inline fr-link">
+                                                <Link title="Voir la campagne" href={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignList?.find(campaign => campaign.id === campaignId)))} className="ds-fr--inline fr-link">
                                                     Voir la campagne<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                 </Link>
-                                                <div>
-                                                    <span style={{
-                                                        backgroundColor: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).bgcolor})`,
-                                                        color: `var(${getCampaignHousingState(campaignHousing(campaignId, housing.id).status).color})`,
-                                                    }}
-                                                          className='status-label'>
-                                                        {getCampaignHousingState(campaignHousing(campaignId, housing.id).status).title}
-                                                    </span>
-                                                    {campaignHousing(campaignId, housing.id).step &&
-                                                        <span style={{
-                                                            backgroundColor: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.bgcolor})`,
-                                                            color: `var(${getCampaignHousingStep(campaignHousing(campaignId, housing.id))?.color})`,
-                                                        }}
-                                                              className='status-label'>
-                                                            {campaignHousing(campaignId, housing.id).step}
-                                                        </span>
-                                                    }
-                                                    {campaignHousing(campaignId, housing.id).step && campaignHousing(campaignId, housing.id).precision &&
-                                                        <span style={{
-                                                            backgroundColor: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.bgcolor})`,
-                                                            color: `var(${getCampaignHousingPrecision(campaignHousing(campaignId, housing.id))?.color})`,
-                                                        }}
-                                                              className='status-label'>
-                                                            {campaignHousing(campaignId, housing.id).precision}
-                                                        </span>
-                                                    }
-                                                </div>
                                             </div>
                                         )}
                                     </Col>

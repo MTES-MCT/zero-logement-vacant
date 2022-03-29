@@ -43,7 +43,7 @@ const AppSearchBar = (
         size?: string
     }) => {
 
-    const { query } = useSelector((state: ApplicationState) => state.housing.filters);
+    const query = useSelector((state: ApplicationState) => state.housing.filters.query ?? '');
 
     const [searchInput, setSearchInput] = useState<string>(query);
     const [searchResults, setSearchResults] = useState<SearchResult[] |undefined>();

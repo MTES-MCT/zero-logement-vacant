@@ -1,23 +1,25 @@
-import React, { useRef } from 'react';
-import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import React, { useEffect, useRef } from 'react';
+import { Container, Title } from '@dataesr/react-dsfr';
 import { Link, useHistory } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import styles from '../Campaign/campaign.module.scss';
 import housingService from '../../services/housing.service';
 import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
-import { returnRate } from '../../models/Campaign';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { useCampaignList } from '../../hooks/useCampaignList';
+import { listCampaignBundles } from '../../store/actions/campaignAction';
+import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 
 
 const DashboardView = () => {
 
+    const dispatch = useDispatch();
     const history = useHistory();
-    const campaignList = useCampaignList(true);
 
-    const { loading } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
     const quickSearchAbortRef = useRef<() => void | null>();
+
+    useEffect(() => {
+        dispatch(listCampaignBundles())
+    }, [dispatch]);
 
     const quickSearch = (query: string) => {
         if (quickSearchAbortRef.current) {
@@ -63,47 +65,7 @@ const DashboardView = () => {
                     <Title as="h2">
                         Campagnes en cours
                     </Title>
-                    {!loading && <>
-                        {campaignList && !campaignList.length &&
-                            <Text>Il n&acute;y a pas de campagne en cours.</Text>
-                        }
-                        {campaignList?.map(campaign =>
-                            <div key={campaign.id} className={styles.campaignCard}>
-                                <Row>
-                                    <Col>
-                                        <Title as="h2" look="h3">{campaign.name}</Title>
-                                    </Col>
-                                    <Col n="2">
-                                        <Link title="Accéder à la campagne" to={'/campagnes/' + campaign.id} className="fr-btn--md fr-btn float-right">
-                                            Accéder
-                                        </Link>
-                                    </Col>
-                                </Row>
-                                <hr />
-                                <Row alignItems="middle">
-                                    <Col spacing="my-3w">
-                                        <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                            <span className={styles.statLabel}>{campaign.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
-                                        </div>
-                                        <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                            <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
-                                        </div>
-                                        <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}> {returnRate(campaign)}%</div>
-                                            <span className={styles.statLabel}>retours</span>
-                                        </div>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col>
-                                        <HousingFiltersBadges filters={campaign.filters}/>
-                                    </Col>
-                                </Row>
-                            </div>
-                        )}
-                    </>}
+                    <CampaignBundleList campaignBundleList={campaignBundleList?.filter(_ => _.campaignNumber) ?? []} />
                     <div className="align-center fr-pt-4w">
                         <Link title="Accéder à la base de données" to="/logements?campagne=true" className="fr-btn--md fr-btn">
                             Créer une campagne

@@ -18,7 +18,7 @@ import {
     vacancyDurationOptions,
     localityKindsOptions,
     ownershipKindsOptions,
-    campaignsCountOptions, housingCountOptions, vacancyRateOptions,
+    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -179,12 +179,12 @@ const HousingListFilter = () => {
                     <Col n="3">
                         <AppMultiSelect label="Périmètre"
                                         options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                        initialValues={filters.housingScopes.scopes}
+                                        initialValues={filters.housingScopes?.scopes}
                                         onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
-                    <b>Campagnes</b>
+                    <b>Suivi</b>
                 </Text>
                 <Row gutters>
                     <Col n="3">
@@ -192,6 +192,12 @@ const HousingListFilter = () => {
                                         options={campaignsCountOptions}
                                         initialValues={filters.campaignsCounts}
                                         onChange={(values) => onChangeFilters({campaignsCounts: values}, 'Prise de contact')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Statut"
+                                        options={statusOptions}
+                                        initialValues={filters.status?.map(_ => _.toString())}
+                                        onChange={(values) => onChangeFilters({status: values}, 'Statut')}/>
                     </Col>
                     {campaignList && filters.campaignIds &&
                         <Col n="3">

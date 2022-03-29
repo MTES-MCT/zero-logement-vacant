@@ -15,22 +15,21 @@ import {
 import { addMonths, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
-import { Campaign } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
-import { hasFilters } from '../../../models/HousingFilters';
+import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
 
 const CampaignReminderCreationModal = (
     {
         housingCount,
-        initialCampaign,
+        filters,
         onSubmit,
         onClose
     }: {
         housingCount: number,
-        initialCampaign: Campaign,
+        filters: HousingFilters,
         onSubmit: (startMonth: string) => void,
         onClose: () => void
     }) => {
@@ -100,10 +99,10 @@ const CampaignReminderCreationModal = (
                     </Row>
                     <Row className="fr-mt-4w">
                         <Col>
-                            {hasFilters(initialCampaign.filters) &&
+                            {hasFilters(filters) &&
                                 <>
                                 <div className="fr-my-1w">
-                                    <HousingFiltersBadges filters={initialCampaign.filters}/>
+                                    <HousingFiltersBadges filters={filters}/>
                                 </div>
                                 </>
                             }

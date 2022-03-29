@@ -12,7 +12,7 @@ import CampaignCreationModal from '../../components/modals/CampaignCreationModal
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { DraftCampaign } from '../../models/Campaign';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialFilters } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
@@ -23,7 +23,6 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 const HousingListView = () => {
 
     const dispatch = useDispatch();
-    const history = useHistory();
     const { search } = useLocation();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -31,7 +30,6 @@ const HousingListView = () => {
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
-    const { campaignFetchingId, campaign } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         const query = (new URLSearchParams(search)).get('q')
@@ -41,12 +39,6 @@ const HousingListView = () => {
             dispatch(changeHousingFiltering(filters))
         }
     }, [search, dispatch])
-
-    useEffect(() => {
-        if (campaignFetchingId && !campaign) {
-            history.push(`/campagnes/${campaignFetchingId}`);
-        }
-    }, [campaignFetchingId])
 
     const create = () => {
         if (!selectedHousing.all && selectedHousing?.ids.length === 0) {

@@ -3,26 +3,26 @@ import { Button, Col, Row, TextInput } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
-    listCampaignHousing,
+    listCampaignBundleHousing,
     removeCampaignHousingList,
     validCampaignStep,
 } from '../../store/actions/campaignAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { campaignStep, CampaignSteps } from '../../models/Campaign';
+import { CampaignSteps } from '../../models/Campaign';
 import styles from './campaign.module.scss';
 import classNames from 'classnames';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import CampaignExportModal from '../../components/modals/CampaignExportModal/CampaignExportModal';
 import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
-import { CampaignHousingStatus } from '../../models/CampaignHousingState';
+import { HousingStatus } from '../../models/HousingState';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import CampaignExportModal from '../../components/modals/CampaignExportModal/CampaignExportModal';
 
 
-const CampaignToValidate = () => {
+const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
 
     const dispatch = useDispatch();
 
@@ -43,18 +43,18 @@ const CampaignToValidate = () => {
             .typeError('Veuillez renseigner une date valide.')
     });
 
-    const { campaign, campaignHousingByStatus, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundle, campaignBundleHousingByStatus, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
-    if (!campaign) {
+    if (!campaignBundle) {
         return <></>
     }
 
     useEffect(() => {
-        dispatch(listCampaignHousing(campaign.id, CampaignHousingStatus.Waiting))
+        dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotInCampaign))
     }, [dispatch])
 
     const currentStep = (): CampaignSteps => {
-        return forcedStep ?? campaignStep(campaign)
+        return forcedStep ?? campaignStep
     }
 
     const validStep = (step: CampaignSteps) => {
@@ -62,7 +62,7 @@ const CampaignToValidate = () => {
             sendingForm
                 .validate({ sendingDate }, {abortEarly: false})
                 .then(() => {
-                    dispatch(validCampaignStep(campaign.id, step, {sendingDate : sendingDate.length ? parse(sendingDate, 'dd/MM/yyyy', new Date()) : undefined}))
+                    dispatch(validCampaignStep(campaignBundle.campaignIds[0], step, {sendingDate : sendingDate.length ? parse(sendingDate, 'dd/MM/yyyy', new Date()) : undefined}))
                 })
                 .catch(err => {
                     const object: any = {};
@@ -75,17 +75,16 @@ const CampaignToValidate = () => {
                 })
         }
         else {
-            dispatch(validCampaignStep(campaign.id, step))
+            dispatch(validCampaignStep(campaignBundle.campaignIds[0], step))
         }
-        setForcedStep(step + 1)
     }
 
     const submitCampaignHousingRemove = () => {
-        dispatch(removeCampaignHousingList(campaign.id, selectedHousing.all, selectedHousing.ids, CampaignHousingStatus.Waiting))
+        dispatch(removeCampaignHousingList(campaignBundle.campaignIds[0], selectedHousing.all, selectedHousing.ids, HousingStatus.NotInCampaign))
         setIsRemovingModalOpen(false);
     }
 
-    const selectedCount = (campaignHousingStatus: CampaignHousingStatus) => selectedHousingCount(selectedHousing, campaignHousingByStatus[campaignHousingStatus].totalCount)
+    const selectedCount = (campaignHousingStatus: HousingStatus) => selectedHousingCount(selectedHousing, campaignBundleHousingByStatus[campaignHousingStatus].totalCount)
 
     const menuActions = [
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
@@ -125,18 +124,18 @@ const CampaignToValidate = () => {
                     </div>
                     }
                 </div>
-                {currentStep() === CampaignSteps.OwnersValidation && !campaignHousingByStatus[CampaignHousingStatus.Waiting].loading &&
+                {currentStep() === CampaignSteps.OwnersValidation && !campaignBundleHousingByStatus[HousingStatus.NotInCampaign].loading &&
                     <div className="fr-pt-4w">
                         <AppActionsMenu actions={menuActions}/>
-                        <HousingList paginatedHousing={campaignHousingByStatus[CampaignHousingStatus.Waiting]}
-                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, CampaignHousingStatus.Waiting))}
+                        <HousingList paginatedHousing={campaignBundleHousingByStatus[HousingStatus.NotInCampaign]}
+                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, HousingStatus.NotInCampaign))}
                                      displayKind={HousingDisplayKey.Housing}
                                      onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                         {isRemovingModalOpen &&
                             <ConfirmationModal
                                 onSubmit={() => submitCampaignHousingRemove()}
                                 onClose={() => setIsRemovingModalOpen(false)}>
-                                Êtes-vous sûr de vouloir supprimer {selectedCount(CampaignHousingStatus.Waiting) === 1 ? 'ce logement' : `ces ${selectedCount(CampaignHousingStatus.Waiting)} logements`} de cette campagne ?
+                                Êtes-vous sûr de vouloir supprimer {selectedCount(HousingStatus.NotInCampaign) === 1 ? 'ce logement' : `ces ${selectedCount(HousingStatus.NotInCampaign)} logements`} de cette campagne ?
                             </ConfirmationModal>
                         }
                     </div>
@@ -174,8 +173,8 @@ const CampaignToValidate = () => {
                             Exporter
                         </Button>
                         {isModalOpen &&
-                        <CampaignExportModal housingCount={campaign.housingCount}
-                                             ownerCount={campaign.ownerCount}
+                        <CampaignExportModal housingCount={campaignBundle.housingCount}
+                                             ownerCount={campaignBundle.ownerCount}
                                              exportURL={exportURL}
                                              onSubmit={() => {
                                                  validStep(CampaignSteps.Export);

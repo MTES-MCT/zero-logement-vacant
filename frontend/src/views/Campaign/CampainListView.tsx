@@ -1,106 +1,73 @@
-import React, { useState } from 'react';
-import { Alert, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import React, { useEffect, useState } from 'react';
+import { Alert, Container, Tab, Tabs, Text, Title, Button, Row, Col } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteCampaign } from '../../store/actions/campaignAction';
+import { deleteCampaignBundle, listCampaignBundles } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import styles from './campaign.module.scss';
-import { Link } from 'react-router-dom';
-import { Campaign, campaignNumberSort, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
-import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
+import { CampaignBundle } from '../../models/Campaign';
+import { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
+import { useHistory } from 'react-router-dom';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
+    const history = useHistory();
     const campaignList = useCampaignList(true);
 
-    const { loading } = useSelector((state: ApplicationState) => state.campaign);
-    const [removingModalCampaign, setRemovingModalCampaign] = useState<Campaign | undefined>();
+    const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
+    const [removingModalCampaign, setRemovingModalCampaign] = useState<CampaignBundle | undefined>();
 
-    const menuActions = (campaign: Campaign) => [
-        { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaign)}
+    useEffect(() => {
+        dispatch(listCampaignBundles())
+    }, [dispatch]);
+
+    const menuActions = (campaignBundle: CampaignBundle) => [
+        { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaignBundle)}
     ] as MenuAction[]
 
     return (
         <>
             <Container>
                 <AppBreadcrumb />
-                <Title as="h1" className="fr-mb-4w">Campagnes</Title>
+                <Title as="h1" className="fr-mb-4w">Logements suivis</Title>
                 <Tabs>
-                    <Tab label="Campagne(s) en cours">
-                        {!loading && <>
-                            {campaignList && !campaignList.length &&
-                                <Text>Il n&acute;y a pas de campagne en cours.</Text>
-                            }
-                            {campaignList && campaignList.sort(campaignNumberSort).map(campaign =>
-                                <div key={campaign.id} className={styles.campaignCard}>
-                                    <Row alignItems="middle">
-                                        <Col>
-                                            <Title as="h2" look="h3">{campaign.name}</Title>
-                                        </Col>
-                                        <Col n="1">
-                                            <AppActionsMenu actions={menuActions(campaign)}/>
-                                        </Col>
-                                        <Col n="1" spacing="ml-2w">
-                                            <Link title="Accéder à la campagne" to={'/campagnes/' + campaign.id} className="fr-btn--md fr-btn float-right">
-                                                Accéder
-                                            </Link>
-                                        </Col>
-                                    </Row>
-                                    <hr />
-                                    <Row alignItems="middle">
-                                        <Col spacing="my-3w">
-                                            <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}>{campaign.ownerCount}</div>
-                                                <span className={styles.statLabel}>{campaign.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
-                                            </div>
-                                            <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}>{campaign.housingCount}</div>
-                                                <span className={styles.statLabel}>{campaign.housingCount <= 1 ? 'logement' : 'logements'}</span>
-                                            </div>
-                                            <div className={styles.campaignStat}>
-                                                <div className={styles.statTitle}> {returnRate(campaign)}%</div>
-                                                <span className={styles.statLabel}>retours</span>
-                                            </div>
-                                        </Col>
-                                        <Col>
-                                            {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
-                                            <Alert title="Liste des propriétaires à valider"
-                                                   description="Avant d&apos;accéder au mode publipostage, vous devez vérifier et valider la liste de propriétaires sélectionnés."
-                                                   type="error"/>
-                                            }
-                                            {campaignStep(campaign) === CampaignSteps.Export &&
-                                            <Alert title="Export des adresses des propriétaires"
-                                                   description="L’export du fichier de publipostage est disponible et est indispensable avant de passer au suivi. Vous pouvez toujours modifier la liste des propriétaires si vous le souhaitez."
-                                                   type="error"/>
-                                            }
-                                        </Col>
-                                    </Row>
-                                    <Row>
-                                        <Col>
-                                            <HousingFiltersBadges filters={campaign.filters}/>
-                                        </Col>
-                                    </Row>
-
-                                </div>
-                            )}
-                        </>}
+                    <Tab label="En cours">
+                        <Row>
+                            <Col>
+                                <Button
+                                    size="sm"
+                                    secondary
+                                    title="Voir tous les logements suivis"
+                                    className="float-right fr-mb-2w"
+                                    onClick={() => history.push('/campagnes/C')}>
+                                    <span className="ri-1x icon-left ri-eye-line ds-fr--v-middle" />
+                                    Voir tous les logements
+                                </Button>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <CampaignBundleList campaignBundleList={campaignBundleList ?? []} menuActions={menuActions} />
+                            </Col>
+                        </Row>
                     </Tab>
-                    <Tab label="Campagnes passées">
+                    <Tab label="Passé">
                         <>
                              <Text>Il n&acute;y a pas de campagne passée.</Text>
                         </>
                     </Tab>
                 </Tabs>
             </Container>
-            {removingModalCampaign &&
+            {removingModalCampaign && removingModalCampaign.campaignNumber &&
                 <ConfirmationModal
                     onSubmit={() => {
-                        dispatch(deleteCampaign(removingModalCampaign.id))
+                        if (removingModalCampaign.campaignNumber) {
+                            dispatch(deleteCampaignBundle(removingModalCampaign.campaignNumber))
+                        }
                         setRemovingModalCampaign(undefined);
                     }}
                     onClose={() => setRemovingModalCampaign(undefined)}>

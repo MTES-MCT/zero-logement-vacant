@@ -5,25 +5,21 @@ import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
-import { campaignsHousingTable } from './campaignHousingRepository';
-import { housingScopeGeometryTable } from './establishmentRepository';
 import { localitiesTable } from './localityRepository';
+import { HousingStatusApi } from '../models/HousingStatusApi';
+import { housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
-const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
+const listWithFilters = async (establishmentId: string, filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
         const filter = (queryBuilder: any) => {
             if (filters.campaignIds?.length) {
-                queryBuilder.whereExists((whereBuilder: any) => {
-                    whereBuilder.from(campaignsHousingTable)
-                        .whereIn('campaign_id', filters.campaignIds)
-                        .whereRaw(`housing_id = ${housingTable}.id`)
-                })
+                queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
             }
             if (filters.campaignsCounts?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -228,22 +224,28 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
             }
             if (filters.housingScopes && filters.housingScopes.scopes.length) {
-                queryBuilder.where(function(whereBuilder: any) {
-                    if (filters.housingScopes?.geom) {
-                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('hsg.type')
+                queryBuilder
+                    .select(db.raw('array_agg(distinct(hsg.type))'))
+                    .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+                    .where(function(whereBuilder: any) {
+                        if (filters.housingScopes?.geom) {
+                            if (filters.housingScopes.scopes.indexOf('None') !== -1) {
+                                whereBuilder.orWhereNull('hsg.type')
+                            }
+                            whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+                        } else {
+                            if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
+                                whereBuilder.orWhereNull('housing_scope')
+                            }
+                            whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
                         }
-                        whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
-                    } else {
-                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('housing_scope')
-                        }
-                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
-                    }
-                })
+                    })
             }
             if (filters.dataYears?.length) {
                 queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
+            }
+            if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
+                queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))
             }
             if (filters.query?.length) {
                 queryBuilder.where(function(whereBuilder: any) {
@@ -266,16 +268,20 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-                db.raw('array_agg(distinct(hsg.type))')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
             )
             .from(housingTable)
             .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
-            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+            .joinRaw(`left join lateral (
+                select campaign_id as campaign_id, count(*) over() as campaign_count 
+                from campaigns_housing ch, campaigns c 
+                where housing.id = ch.housing_id 
+                and c.id = ch.campaign_id
+                and c.establishment_id = '${establishmentId}'
+            ) campaigns on true`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filter)
 
@@ -294,8 +300,14 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
-            .joinRaw(`left join lateral (select campaign_id as campaign_id, count(*) over() as campaign_count from campaigns_housing ch where housing.id = ch.housing_id) campaigns on true`)
-            .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+            .joinRaw(`left join lateral (
+                select campaign_id as campaign_id, count(*) over() as campaign_count 
+                from campaigns_housing ch, campaigns c 
+                where housing.id = ch.housing_id 
+                and c.id = ch.campaign_id
+                and c.establishment_id = '${establishmentId}'
+            ) campaigns on true`)
+            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 
@@ -336,6 +348,26 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
+const updateHousingList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string, vacancyReasons?: string[]): Promise<HousingApi[]> => {
+
+    console.log('update housing list', housingIds.length)
+
+    try {
+        return db(housingTable)
+            .whereIn('id', housingIds)
+            .update({
+                status: status,
+                sub_status: subStatus ?? null,
+                precision: precision ?? null,
+                vacancy_reasons: vacancyReasons ?? null,
+            })
+            .returning('*');
+    } catch (err) {
+        console.error('Updating campaign housing list failed', err, housingIds.length);
+        throw new Error('Updating campaign housing list failed');
+    }
+}
+
 const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
         const update = 'UPDATE housing as h SET ' +
@@ -363,6 +395,8 @@ const parseHousingApi = (result: any) => (
     <HousingApi>{
         id: result.id,
         invariant: result.invariant,
+        cadastralReference: result.cadastral_reference,
+        buildingLocation: result.building_location,
         inseeCode: result.insee_code,
         rawAddress: result.raw_address,
         address: <AddressApi>{
@@ -390,13 +424,18 @@ const parseHousingApi = (result: any) => (
         roomsCount: result.rooms_count,
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
+        vacancyReasons: result.vacancy_reasons,
         dataYears: result.data_years,
-        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _)
+        campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
+        status: result.status,
+        subStatus: result.sub_status,
+        precision: result.precision
     }
 )
 
 export default {
     listWithFilters,
     listByIds,
+    updateHousingList,
     updateAddressList
 }

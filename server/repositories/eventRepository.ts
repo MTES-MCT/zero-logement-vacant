@@ -40,14 +40,14 @@ const insertList = async (events: EventApi[]): Promise<EventApi[]> => {
     }
 }
 
-const deleteEventsFromCampaign = async (campaignId: string): Promise<number> => {
+const deleteEventsFromCampaigns = async (campaignIds: string[]): Promise<number> => {
     try {
         return db(eventsTable)
             .delete()
-            .where('campaign_id', campaignId)
+            .whereIn('campaign_id', campaignIds)
 
     } catch (err) {
-        console.error('Removing events from campaign failed', err, campaignId);
+        console.error('Removing events from campaign failed', err, campaignIds);
         throw new Error('Removing events from campaign failed');
     }
 }
@@ -81,5 +81,5 @@ export default {
     insert,
     listByOwnerId,
     insertList,
-    deleteEventsFromCampaign
+    deleteEventsFromCampaigns
 }

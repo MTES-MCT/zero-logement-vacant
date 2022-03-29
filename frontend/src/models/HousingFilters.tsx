@@ -1,28 +1,30 @@
 import { SelectOption } from './SelectOption';
 import { HousingScopes } from './Establishment';
+import { HousingStates } from './HousingState';
 
 export interface HousingFilters {
-    ownerKinds: string[];
-    ownerAges: string[];
-    multiOwners: string[];
-    beneficiaryCounts: string[];
-    housingKinds: string[];
-    housingStates: string[];
-    housingAreas: string[];
-    roomsCounts: string[];
-    buildingPeriods: string[];
-    vacancyDurations: string[];
-    isTaxedValues: string[];
-    ownershipKinds: string[];
-    housingCounts: string[];
-    vacancyRates: string[];
-    campaignsCounts: string[];
+    ownerKinds?: string[];
+    ownerAges?: string[];
+    multiOwners?: string[];
+    beneficiaryCounts?: string[];
+    housingKinds?: string[];
+    housingStates?: string[];
+    housingAreas?: string[];
+    roomsCounts?: string[];
+    buildingPeriods?: string[];
+    vacancyDurations?: string[];
+    isTaxedValues?: string[];
+    ownershipKinds?: string[];
+    housingCounts?: string[];
+    vacancyRates?: string[];
+    campaignsCounts?: string[];
     campaignIds?: string[];
-    localities: string[];
-    localityKinds: string[];
-    housingScopes: HousingScopes;
+    localities?: string[];
+    localityKinds?: string[];
+    housingScopes?: HousingScopes;
     dataYears?: number[];
-    query: string;
+    status?: number[];
+    query?: string;
 }
 
 export interface HousingFilterOption extends SelectOption {
@@ -50,6 +52,12 @@ export const campaignsCountOptions: HousingFilterOption[] = [
     {value: "2", label: "Déjà contacté 2 fois"},
     {value: "gt3", label: "Déjà contacté 3 fois ou plus"}
 ];
+
+export const statusOptions = [
+    ...HousingStates.filter(_ => _.status).map(status => (
+        {value: String(status.status), label: status.title}
+    ))
+]
 
 export const beneficiaryCountOptions: HousingFilterOption[] = [
     {value: "0", label: "Aucun", badgeLabel: "Aucun bénéficiaire"},
@@ -144,28 +152,48 @@ export const dataYearsOptions = [
 
 export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
 
+export const vacancyReasonsOptions: SelectOption[] = [
+    {value: '', label:'Vacance volontaire', disabled:true},
+    {value: 'Vacance volontaire - réserve personnelle', label:'réserve personnelle'},
+    {value: 'Vacance volontaire - réserve pour une autre personne', label:'réserve pour une autre personne'},
+    {value: '', label: 'Mauvais état', disabled:true},
+    {value: 'Mauvais état - travaux trop importants', label: 'travaux trop importants'},
+    {value: 'Mauvais état - ruine / à démolir', label: 'ruine / à démolir'},
+    {value: '', label: 'Mauvaise expérience locative', disabled:true},
+    {value: 'Mauvaise expérience locative - dégradations', label: 'dégradations'},
+    {value: 'Mauvaise expérience locative - impayés de loyer', label: 'impayés de loyer'},
+    {value: '', label: 'Blocage juridique', disabled:true},
+    {value: 'Blocage juridique - succession difficile, indivision en désaccord', label: 'succession difficile, indivision en désaccord'},
+    {value: 'Blocage juridique - expertise judiciaire', label: 'expertise judiciaire'},
+    {value: 'Blocage juridique - procédure contre les entrepreneurs', label: 'procédure contre les entrepreneurs'},
+    {value: '', label: 'Liée au propriétaire', disabled:true},
+    {value: 'Liée au propriétaire - âge du propriétaire', label: 'âge du propriétaire'},
+    {value: 'Liée au propriétaire - difficultés de gestion', label: 'difficultés de gestion'},
+    {value: 'Autre', label: 'Autre (à préciser en notes)'}
+]
+
 export const hasFilters = (housingFilters: HousingFilters) => {
     return Boolean(
-        housingFilters.ownerKinds.length ||
-        housingFilters.ownerAges.length ||
-        housingFilters.multiOwners.length ||
-        housingFilters.beneficiaryCounts.length ||
-        housingFilters.housingKinds.length ||
-        housingFilters.housingStates.length ||
-        housingFilters.housingAreas.length ||
-        housingFilters.roomsCounts.length ||
-        housingFilters.buildingPeriods.length ||
-        housingFilters.vacancyDurations.length ||
-        housingFilters.isTaxedValues.length ||
-        housingFilters.ownershipKinds.length ||
-        housingFilters.housingCounts.length ||
-        housingFilters.vacancyRates.length ||
-        housingFilters.campaignsCounts.length ||
+        housingFilters.ownerKinds?.length ||
+        housingFilters.ownerAges?.length ||
+        housingFilters.multiOwners?.length ||
+        housingFilters.beneficiaryCounts?.length ||
+        housingFilters.housingKinds?.length ||
+        housingFilters.housingStates?.length ||
+        housingFilters.housingAreas?.length ||
+        housingFilters.roomsCounts?.length ||
+        housingFilters.buildingPeriods?.length ||
+        housingFilters.vacancyDurations?.length ||
+        housingFilters.isTaxedValues?.length ||
+        housingFilters.ownershipKinds?.length ||
+        housingFilters.housingCounts?.length ||
+        housingFilters.vacancyRates?.length ||
+        housingFilters.campaignsCounts?.length ||
         housingFilters.campaignIds?.length ||
-        housingFilters.localities.length ||
-        housingFilters.localityKinds.length ||
-        housingFilters.housingScopes.scopes.length ||
+        housingFilters.localities?.length ||
+        housingFilters.localityKinds?.length ||
+        housingFilters.housingScopes?.scopes.length ||
         housingFilters.dataYears?.length ||
-        housingFilters.query.length
+        housingFilters.query?.length
     );
 }

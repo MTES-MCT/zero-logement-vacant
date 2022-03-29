@@ -4,7 +4,7 @@ import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import AppFooter from './components/AppFooter/AppFooter';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -17,6 +17,7 @@ import CampaignView from './views/Campaign/CampainView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { isValidUser } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
+import { campaignBundleIdUrlFragment } from './models/Campaign';
 
 
 function AppWrapper () {
@@ -44,6 +45,7 @@ function AppWrapper () {
 function App() {
 
     const { authUser } = useSelector((state: ApplicationState) => state.authentication);
+    const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
 
@@ -55,12 +57,19 @@ function App() {
                     {isValidUser(authUser) ?
                         <div className="zlv-container">
                             <ScrollToTop />
+
+                            {campaignCreated && campaignBundleFetchingId &&
+                                <Redirect push={true} to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`} />
+                            }
+
                             <Switch>
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
-                                <Route exact path="/campagnes/:id" component={CampaignView} />
-                                <Route exact path="/campagnes/:campaignId/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
+                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
                                 <Route path="/*">
                                     <Redirect to="/accueil" />

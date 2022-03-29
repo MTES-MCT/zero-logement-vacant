@@ -92,7 +92,7 @@ const updateHousingList = async (request: Request, response: Response): Promise<
         housingList.map(_ => _.id),
         housingUpdateApi.status,
         housingUpdateApi.subStatus,
-        housingUpdateApi.precision,
+        housingUpdateApi.precisions,
         housingUpdateApi.vacancyReasons
     )
 
@@ -103,7 +103,7 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
 
     return (housingApi.status !== housingUpdateApi.status ||
         housingApi.subStatus != housingUpdateApi.subStatus ||
-        housingApi.precision != housingUpdateApi.precision) ?
+        housingApi.precisions != housingUpdateApi.precisions) ?
         [
             'Passage à ' + [
                 '',
@@ -114,7 +114,7 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
                 'Accompagnement terminé'
             ][housingUpdateApi.status],
             housingUpdateApi.subStatus,
-            housingUpdateApi.precision
+            housingUpdateApi.precisions
         ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
 }
 

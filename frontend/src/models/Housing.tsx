@@ -22,7 +22,7 @@ export interface Housing {
     campaignIds: string[];
     status?: HousingStatus;
     subStatus?: string;
-    precision?: string;
+    precisions?: string[];
 }
 
 export interface SelectedHousing {
@@ -33,7 +33,7 @@ export interface SelectedHousing {
 export interface HousingUpdate {
     status: HousingStatus,
     subStatus?: string,
-    precision?: string,
+    precisions?: string[],
     contactKind?: string,
     vacancyReasons?: string[],
     comment?: string

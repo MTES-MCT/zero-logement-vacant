@@ -17,7 +17,7 @@ import HousingStatusModal from '../../components/modals/HousingStatusModal/Housi
 import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { getHousingState, getHousingStatusPrecision, getHousingSubStatus } from '../../models/HousingState';
+import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
 import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 
 const OwnerView = () => {
@@ -183,14 +183,18 @@ const OwnerView = () => {
                                                 {housing.subStatus}
                                             </span>
                                         }
-                                        {housing.subStatus && housing.precision &&
-                                            <span style={{
-                                                backgroundColor: `var(${getHousingStatusPrecision(housing)?.bgcolor})`,
-                                                color: `var(${getHousingStatusPrecision(housing)?.color})`,
-                                            }}
-                                                  className='status-label'>
-                                                {housing.precision}
-                                            </span>
+                                        {housing.precisions && housing.precisions.map((precision, index) =>
+                                            <b key={'precision_' + index} className='status-label'>
+                                                {housing.status && housing.subStatus &&
+                                                    <span style={{
+                                                              backgroundColor: `var(${getPrecision(housing.status, housing.subStatus, precision)?.bgcolor})`,
+                                                              color: `var(${getPrecision(housing.status, housing.subStatus, precision)?.color})`,
+                                                          }}
+                                                          className='status-label'>
+                                                        {precision}
+                                                    </span>
+                                                }
+                                            </b>)
                                         }
                                     </Title>
                                 </Col>

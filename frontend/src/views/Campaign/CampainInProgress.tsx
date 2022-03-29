@@ -59,7 +59,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: ({ status, subStatus, precision } : Housing) =>
+        render: ({ status, subStatus, precisions } : Housing) =>
             <>
                 {status &&
                     <div style={{
@@ -79,15 +79,19 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         {subStatus}
                     </div>
                 }
-                {status && subStatus && precision &&
-                    <div style={{
-                        backgroundColor: `var(${getPrecision(status, subStatus, precision)?.bgcolor})`,
-                        color: `var(${getPrecision(status, subStatus, precision)?.color})`,
-                    }}
-                          className='status-label'>
+                {precisions && precisions.map((precision, index) =>
+                    <b key={'precision_' + index}>
+                        {status && subStatus &&
+                            <span style={{
+                                      backgroundColor: `var(${getPrecision(status, subStatus, precision)?.bgcolor})`,
+                                      color: `var(${getPrecision(status, subStatus, precision)?.color})`,
+                                  }}
+                                  className='status-label'>
                                 {precision}
-                            </div>
-                }
+                            </span>
+                        }
+                    </b>
+                )}
             </>
     };
 

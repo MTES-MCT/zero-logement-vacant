@@ -34,6 +34,7 @@ const initialState: CampaignState = {
         initialPaginatedResult(),
         initialPaginatedResult(),
         initialPaginatedResult(),
+        initialPaginatedResult(),
         initialPaginatedResult()
     ],
     exportURL: '',

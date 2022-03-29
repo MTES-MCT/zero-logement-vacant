@@ -190,6 +190,7 @@ const CampaignInProgress = () => {
     useEffect(() => {
         if (campaignBundle) {
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Waiting))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.FirstContact))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.InProgress))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NoAction))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant))
@@ -205,6 +206,9 @@ const CampaignInProgress = () => {
         <Tabs>
             <Tab label={getTabLabel(HousingStatus.Waiting)}>
                 <TabContent status={HousingStatus.Waiting}/>
+            </Tab>
+            <Tab label={getTabLabel(HousingStatus.FirstContact)}>
+                <TabContent status={HousingStatus.FirstContact}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.InProgress)}>
                 <TabContent status={HousingStatus.InProgress}/>

@@ -9,12 +9,12 @@ import {
     ModalTitle,
     Text,
 } from '@dataesr/react-dsfr';
-import { CampaignHousingUpdate } from '../../../models/Housing';
-import { CampaignHousingStatus } from '../../../models/CampaignHousingState';
+import { HousingUpdate } from '../../../models/Housing';
+import { HousingStatus } from '../../../models/HousingState';
 import { displayCount } from '../../../utils/stringUtils';
-import CampaignHousingStatusForm from './CampaignHousingStatusForm';
+import HousingStatusForm from './HousingStatusForm';
 
-const CampaignHousingListStatusModal = (
+const HousingListStatusModal = (
     {
         housingCount,
         initialStatus,
@@ -22,8 +22,8 @@ const CampaignHousingListStatusModal = (
         onClose
     }: {
         housingCount: number,
-        initialStatus: CampaignHousingStatus,
-        onSubmit: (campaignHousingUpdate: CampaignHousingUpdate) => void,
+        initialStatus: HousingStatus,
+        onSubmit: (housingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
 
@@ -44,9 +44,9 @@ const CampaignHousingListStatusModal = (
                     <Text>
                         {displayCount(housingCount, 'logement concerné')}.
                     </Text>
-                    <CampaignHousingStatusForm previousStatus={initialStatus}
-                                               onValidate={onSubmit}
-                                               ref={statusFormRef}/>
+                    <HousingStatusForm currentStatus={initialStatus}
+                                       onValidate={onSubmit}
+                                       ref={statusFormRef}/>
                 </Container>
             </ModalContent>
             <ModalFooter>
@@ -65,5 +65,5 @@ const CampaignHousingListStatusModal = (
     );
 };
 
-export default CampaignHousingListStatusModal;
+export default HousingListStatusModal;
 

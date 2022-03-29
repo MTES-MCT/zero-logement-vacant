@@ -15,7 +15,7 @@ describe('Campaign controller', () => {
         })
         const { res } = getMockRes()
 
-        await campaignController.list(req, res)
+        await campaignController.listCampaigns(req, res)
 
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(
@@ -55,7 +55,10 @@ describe('Campaign controller', () => {
 
         expect(res.status).toHaveBeenCalledWith(200)
         expect(res.json).toHaveBeenCalledWith(
-            expect.any(String)
+            expect.objectContaining({
+                startMonth: '2112',
+                reminderNumber: 0
+            })
         )
 
         await db(campaignsTable)
@@ -78,14 +81,12 @@ describe('Campaign controller', () => {
                 expect(result).toEqual(expect.arrayContaining([
                     expect.objectContaining(
                         {
-                            housing_id: 'c0ec7153-0e1c-4770-bc98-ad6ce1779f9a',
-                            status: 0
+                            housing_id: 'c0ec7153-0e1c-4770-bc98-ad6ce1779f9a'
                         }
                     ),
                     expect.objectContaining(
                     {
-                            housing_id: '3180bb27-1ca8-4e32-bc71-79f04e424aa8',
-                            status: 0
+                            housing_id: '3180bb27-1ca8-4e32-bc71-79f04e424aa8'
                         }
                     )
                 ]))

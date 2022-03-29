@@ -1,4 +1,6 @@
 import { HousingFilters } from './HousingFilters';
+import { format, parse } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export interface DraftCampaign {
     startMonth: string;
@@ -6,18 +8,31 @@ export interface DraftCampaign {
     filters: HousingFilters;
 }
 
+export interface CampaignBundleId {
+    campaignNumber?: number;
+    reminderNumber?: number;
+}
+
 export interface Campaign {
     id: string;
     campaignNumber: number;
+    reminderNumber: number;
     startMonth: string;
     kind: CampaignKinds;
-    reminderNumber: number;
     name: string;
     filters: HousingFilters;
     createdAt: Date;
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
+}
+
+export interface CampaignBundle extends CampaignBundleId{
+    campaignIds: string[];
+    startMonth: string;
+    kind: CampaignKinds;
+    name: string;
+    filters: HousingFilters;
     housingCount: number;
     waitingCount: number;
     inProgressCount: number;
@@ -35,7 +50,7 @@ export enum CampaignKinds {
 export const getCampaignKindLabel = (kind: CampaignKinds) => {
     switch (kind) {
         case CampaignKinds.Initial:
-            return 'Envoi initial';
+            return 'Courrier postal';
         case CampaignKinds.Remind:
             return 'Relance';
         case CampaignKinds.Surveying:
@@ -51,9 +66,29 @@ export enum CampaignSteps {
     OwnersValidation, Export, Sending, InProgess
 }
 
-export const campaignNumberSort = (c1: Campaign, c2: Campaign) => {
-    return c1.campaignNumber < c2.campaignNumber ? -1 :
-        c1.campaignNumber > c2.campaignNumber ? 1 : 0
+export const CampaignNumberSort = (c1?: Campaign, c2?: Campaign) => {
+    return (c1 && c2) ?
+        c1.campaignNumber < c2.campaignNumber ? -1 :
+            c1.campaignNumber > c2.campaignNumber ? 1 :
+                c1.reminderNumber < c2.reminderNumber ? -1 :
+                    c1.reminderNumber > c2.reminderNumber ? 1 : 0 :
+        c1 ? 1 :
+            c2 ? -1 :
+                0
+}
+
+export const getCampaignBundleId = (campaignBundle?: CampaignBundle | Campaign) => {
+    if (campaignBundle) {
+        return {campaignNumber: campaignBundle.campaignNumber, reminderNumber: campaignBundle.reminderNumber}
+    }
+}
+
+export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber?: number, reminderNumber?: number) => {
+    return campaignNumber === undefined ?
+        'Tous les logements suivis' :
+        !campaignNumber ? 'Logements hors campagne' :
+        `C${campaignNumber} - ${format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}
+        ${' - ' + getCampaignKindLabel(kind)}${(reminderNumber ?? 0) > 0 ? ' n°' + reminderNumber : ''}`
 }
 
 export const campaignStep = (campaign?: Campaign) => {
@@ -63,4 +98,17 @@ export const campaignStep = (campaign?: Campaign) => {
                 CampaignSteps.InProgess
 }
 
-export const returnRate = (campaign: Campaign) => (campaign.housingCount - campaign.npaiCount) !== 0 ? Math.round(100 - campaign.waitingCount / (campaign.housingCount - campaign.npaiCount) * 100) : 0;
+export const returnRate = (campaignBundle: CampaignBundle) => {
+    return (campaignBundle.housingCount - campaignBundle.npaiCount) !== 0 ?
+        Math.round(100 - campaignBundle.waitingCount / (campaignBundle.housingCount - campaignBundle.npaiCount) * 100) :
+        0;
+}
+
+
+export const campaignBundleIdApiFragment = (campaignBundleId: CampaignBundleId) => {
+    return `number/${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/${campaignBundleId.reminderNumber}` : ''}`
+}
+
+export const campaignBundleIdUrlFragment = (campaignBundleId?: CampaignBundleId) => {
+    return campaignBundleId ? `C${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}` : 'C'
+}

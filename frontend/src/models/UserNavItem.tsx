@@ -12,7 +12,7 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
         case UserNavItems.Dashboard:
             return {url: '/accueil', label: 'Accueil'}
         case UserNavItems.Campaign:
-            return {url: '/campagnes', label: 'Campagnes'}
+            return {url: '/campagnes', label: 'Logements suivis'}
         case UserNavItems.HousingList:
             return {url: '/logements', label: 'Base de données'}
         default:

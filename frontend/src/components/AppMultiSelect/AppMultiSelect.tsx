@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { SelectOption } from '../../models/SelectOption';
 
 const AppMultiSelect = (
     {
@@ -15,8 +16,8 @@ const AppMultiSelect = (
     }: {
         label: string,
         defaultOption?: string,
-        options: { label: string, value: string }[],
-        initialValues: string[],
+        options: SelectOption[],
+        initialValues: string[] | undefined ,
         onChange: (values: string[]) => void,
         messageType?: string,
         message?: string
@@ -29,14 +30,14 @@ const AppMultiSelect = (
 
     const onChangeValue = (value: string, isChecked: boolean) => {
         onChange([
-            ...initialValues.filter(v => v !== value),
+            ...(initialValues ?? []).filter(v => v !== value),
             ...(isChecked ? [value] : [])
         ]);
     }
 
     const selectedOptions = () => {
         const maxLength = 28;
-        const joinedOptions = options.filter(o => initialValues.indexOf(o.value) !== -1).map(_ => _.label).join(', ')
+        const joinedOptions = options.filter(o => (initialValues ?? []).indexOf(o.value) !== -1).map(_ => _.label).join(', ')
         return joinedOptions.length ? `${joinedOptions.slice(0, maxLength)}${joinedOptions.length > maxLength ? '...' : ''}` : (defaultOption ?? 'Tous')
     }
 
@@ -54,14 +55,16 @@ const AppMultiSelect = (
             <div className={classNames('select-multi-options', { 'select-multi-options__visible': showOptions })}>
                 <CheckboxGroup legend="" data-testid={`${label.toLowerCase()}-checkbox-group`}>
                     {options.map((option, index) =>
-                        <Checkbox
-                            label={option.label}
-                            onChange={(e: any) => onChangeValue(option.value, e.target.checked)}
-                            value={option.value}
-                            size="sm"
-                            key={label + '-' + index}
-                            checked={initialValues.indexOf(option.value) !== -1}
-                        />
+                        option.disabled ?
+                            <div className="fr-ml-2w fr-mt-1w" key={label + '-' + index}><b>{option.label}</b><hr className="fr-pb-1w"/></div> :
+                            <Checkbox
+                                label={option.label}
+                                onChange={(e: any) => onChangeValue(option.value, e.target.checked)}
+                                value={option.value}
+                                size="sm"
+                                key={label + '-' + index}
+                                checked={(initialValues ?? []).indexOf(option.value) !== -1}
+                            />
                     )}
                 </CheckboxGroup>
             </div>

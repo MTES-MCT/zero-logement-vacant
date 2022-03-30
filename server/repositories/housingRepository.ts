@@ -307,7 +307,6 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
             ) campaigns on true`)
-            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 

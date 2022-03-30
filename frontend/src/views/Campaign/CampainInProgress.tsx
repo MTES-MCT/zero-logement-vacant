@@ -12,7 +12,7 @@ import HousingList, { HousingDisplayKey } from '../../components/HousingList/Hou
 import { Housing, HousingUpdate, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import { getHousingState, getPrecision, getSubStatus, HousingStatus } from '../../models/HousingState';
+import { getHousingState, getSubStatus, HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
 import HousingListStatusModal from '../../components/modals/HousingStatusModal/HousingListStatusModal';
 import CampaignReminderCreationModal
@@ -59,7 +59,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     const statusColumn = {
         name: 'status',
         label: 'Statut',
-        render: ({ status, subStatus, precision } : Housing) =>
+        render: ({ status, subStatus } : Housing) =>
             <>
                 {status &&
                     <div style={{
@@ -78,15 +78,6 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                          className='status-label'>
                         {subStatus}
                     </div>
-                }
-                {status && subStatus && precision &&
-                    <div style={{
-                        backgroundColor: `var(${getPrecision(status, subStatus, precision)?.bgcolor})`,
-                        color: `var(${getPrecision(status, subStatus, precision)?.color})`,
-                    }}
-                          className='status-label'>
-                                {precision}
-                            </div>
                 }
             </>
     };
@@ -186,6 +177,7 @@ const CampaignInProgress = () => {
     useEffect(() => {
         if (campaignBundle) {
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Waiting))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.FirstContact))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.InProgress))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NoAction))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant))
@@ -201,6 +193,9 @@ const CampaignInProgress = () => {
         <Tabs>
             <Tab label={getTabLabel(HousingStatus.Waiting)}>
                 <TabContent status={HousingStatus.Waiting}/>
+            </Tab>
+            <Tab label={getTabLabel(HousingStatus.FirstContact)}>
+                <TabContent status={HousingStatus.FirstContact}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.InProgress)}>
                 <TabContent status={HousingStatus.InProgress}/>

@@ -20,20 +20,20 @@ const HousingStatusForm = (
     {
         currentStatus,
         currentSubStatus,
-        currentPrecision,
+        currentPrecisions,
         currentVacancyReasons,
         onValidate,
     }: {
         currentStatus?: HousingStatus,
         currentSubStatus?: string,
-        currentPrecision?: string,
+        currentPrecisions?: string[],
         currentVacancyReasons?: string[],
         onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
     const [status, setStatus] = useState<HousingStatus>();
     const [subStatus, setSubStatus] = useState<string | undefined>(currentSubStatus);
-    const [precision, setPrecision] = useState<string | undefined>(currentPrecision);
+    const [precisions, setPrecisions] = useState<string[] | undefined>(currentPrecisions);
     const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(currentVacancyReasons);
     const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
     const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
@@ -44,7 +44,7 @@ const HousingStatusForm = (
 
     useEffect(() => {selectStatus(currentStatus ?? HousingStatus.Waiting)}, [currentStatus])
     useEffect(() => {selectSubStatus(currentStatus, currentSubStatus)}, [currentStatus, currentSubStatus])
-    useEffect(() => {setPrecision(currentPrecision)}, [currentPrecision])
+    useEffect(() => {setPrecisions(currentPrecisions)}, [currentPrecisions])
     useEffect(() => {setVacancyReasons(currentVacancyReasons)}, [currentVacancyReasons])
 
     const selectStatus = (newStatus: HousingStatus) => {
@@ -57,9 +57,9 @@ const HousingStatusForm = (
         setSubStatus(newSubStatus);
         if (newSubStatus && status) {
             setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
-            setPrecision(getStatusPrecisionOptions(status, newSubStatus)?.map(_ => _.label).find(_ => _ === precision));
+            setPrecisions(getStatusPrecisionOptions(status, newSubStatus)?.map(_ => _.label).filter(_ => precisions && precisions.indexOf(_) !== -1));
         } else {
-            setPrecision(undefined);
+            setPrecisions(undefined);
             setPrecisionOptions(undefined);
         }
     }
@@ -83,10 +83,6 @@ const HousingStatusForm = (
             is: true,
             then: yup.string().required('Veuillez sélectionner un sous statut.')
         }),
-        precision: yup.string().nullable().when('hasPrecisions', {
-            is: true,
-            then: yup.string().required('Veuillez sélectionner une précision.')
-        }),
         contactKind: yup.string().required('Veuillez sélectionner un type d\'interaction.'),
     });
 
@@ -96,16 +92,14 @@ const HousingStatusForm = (
             updatingForm
                 .validate({
                     hasSubStatus: subStatusOptions !== undefined,
-                    hasPrecisions: precisionOptions !== undefined,
                     status,
                     subStatus,
-                    precision,
                     contactKind
                 }, { abortEarly: false })
                 .then(() => onValidate({
                     status: +(status ?? HousingStatus.Waiting),
                     subStatus: subStatus,
-                    precision,
+                    precisions,
                     contactKind,
                     vacancyReasons,
                     comment
@@ -147,14 +141,19 @@ const HousingStatusForm = (
                             {currentSubStatus}
                         </span>
                     }
-                    {currentStatus && currentSubStatus && currentPrecision &&
-                        <span style={{
-                            backgroundColor: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.bgcolor})`,
-                            color: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.color})`,
-                        }}
-                              className='status-label'>
-                            {currentPrecision}
-                        </span>
+                    {currentStatus && currentSubStatus && currentPrecisions &&
+                        <div>
+                            {currentPrecisions.map((currentPrecision, index) =>
+                                <span key={'precision_'+index}
+                                      style={{
+                                          backgroundColor: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.bgcolor})`,
+                                          color: `var(${getPrecision(currentStatus, currentSubStatus, currentPrecision)?.color})`,
+                                      }}
+                                      className='status-label'>
+                                    {currentPrecision}
+                                </span>
+                            )}
+                        </div>
                     }
                 </Col>
             </Row>
@@ -181,13 +180,11 @@ const HousingStatusForm = (
                 </Col>
                 <Col n="4">
                     {precisionOptions &&
-                    <Select
-                        label="Précision"
-                        options={precisionOptions}
-                        selected={precision}
-                        messageType={formErrors['precision'] ? 'error' : undefined}
-                        message={formErrors['precision']}
-                        onChange={(e: any) => setPrecision(e.target.value)}/>
+                        <AppMultiSelect label="Précision(s)"
+                                        defaultOption="Aucune"
+                                        options={precisionOptions}
+                                        initialValues={precisions}
+                                        onChange={(values) => setPrecisions(values)}/>
                     }
                 </Col>
             </Row>

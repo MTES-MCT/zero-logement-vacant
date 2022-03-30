@@ -114,7 +114,7 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
                 'Accompagnement terminé'
             ][housingUpdateApi.status],
             housingUpdateApi.subStatus,
-            housingUpdateApi.precisions
+            housingUpdateApi.precisions?.join(', ')
         ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
 }
 

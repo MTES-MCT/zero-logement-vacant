@@ -307,7 +307,6 @@ const listWithFilters = async (establishmentId: string, filters: HousingFiltersA
                 and c.id = ch.campaign_id
                 and c.establishment_id = '${establishmentId}'
             ) campaigns on true`)
-            // .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
             .modify(filter)
             .then(_ => Number(_[0].count))
 
@@ -348,7 +347,7 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
     }
 }
 
-const updateHousingList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precision?: string, vacancyReasons?: string[]): Promise<HousingApi[]> => {
+const updateHousingList = async (housingIds: string[], status: HousingStatusApi, subStatus? : string, precisions?: string[], vacancyReasons?: string[]): Promise<HousingApi[]> => {
 
     console.log('update housing list', housingIds.length)
 
@@ -358,7 +357,7 @@ const updateHousingList = async (housingIds: string[], status: HousingStatusApi,
             .update({
                 status: status,
                 sub_status: subStatus ?? null,
-                precision: precision ?? null,
+                precisions: precisions ?? null,
                 vacancy_reasons: vacancyReasons ?? null,
             })
             .returning('*');
@@ -429,7 +428,7 @@ const parseHousingApi = (result: any) => (
         campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
         status: result.status,
         subStatus: result.sub_status,
-        precision: result.precision
+        precisions: result.precisions
     }
 )
 

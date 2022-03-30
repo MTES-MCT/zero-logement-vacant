@@ -25,6 +25,7 @@ export interface HousingStatusPrecision {
 export enum HousingStatus {
     NotInCampaign,
     Waiting,
+    FirstContact,
     InProgress,
     NotVacant,
     NoAction,
@@ -43,8 +44,8 @@ export const HousingStates: HousingState[] = [
         bgcolor: '--green-tilleul-verveine-975'
     },
     {
-        status: HousingStatus.InProgress,
-        title: 'Suivi en cours',
+        status: HousingStatus.FirstContact,
+        title: 'Premier contact',
         color: '--purple-glycine-main-494',
         bgcolor: '--purple-glycine-975',
         subStatusList: [
@@ -59,6 +60,11 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--blue-ecume-sun-247'
                     },
                     {
+                        title: 'Informations transmises - rendez-vous à fixer',
+                        color: '--grey-1000',
+                        bgcolor: '--green-menthe-850'
+                    },
+                    {
                         title: 'Mauvais moment',
                         color: '--blue-ecume-main-400',
                         bgcolor: '--green-archipel-975'
@@ -67,6 +73,16 @@ export const HousingStates: HousingState[] = [
                         title: 'Recherche autre interlocuteur',
                         color: '--grey-1000',
                         bgcolor: '--green-menthe-850'
+                    },
+                    {
+                        title: 'Besoin de précisions',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Logement récemment vendu',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--brown-caramel-975'
                     }
                 ]
             },
@@ -75,6 +91,11 @@ export const HousingStates: HousingState[] = [
                 color: '--blue-ecume-sun-247',
                 bgcolor: '--blue-ecume-950',
                 precisions: [
+                    {
+                        title: 'Demande de pièces',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
                     {
                         title: 'Visite technique',
                         color: '--blue-ecume-975',
@@ -86,51 +107,69 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-975'
                     },
                     {
-                        title: 'Informations transmises - rendez-vous à fixer',
-                        color: '--grey-1000',
-                        bgcolor: '--green-menthe-850'
-                    },
-                    {
                         title: 'Autre',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247-active'
                     }
                 ]
-            },
+            }
+        ]
+    },
+    {
+        status: HousingStatus.InProgress,
+        title: 'Suivi en cours',
+        color: '--purple-glycine-main-494',
+        bgcolor: '--purple-glycine-975',
+        subStatusList: [
             {
                 title: 'En accompagnement',
                 color: '--green-tilleul-verveine-sun-418',
                 bgcolor: '--green-tilleul-verveine-975',
                 precisions: [
                     {
-                        title: 'Montage dossier de financement',
+                        title: 'Aides aux travaux',
                         color: '--pink-macaron-main-689',
                         bgcolor: '--pink-macaron-975'
                     },
                     {
-                        title: 'Préparation des travaux',
+                        title: 'Aides à la gestion locative',
                         color: '--purple-glycine-975',
                         bgcolor: '--purple-glycine-main-494'
                     },
                     {
-                        title: 'En travaux',
+                        title: 'Sécurisation loyer',
                         color: '--pink-tuile-975',
                         bgcolor: '--pink-tuile-main-556'
                     },
                     {
-                        title: 'Clôture dossier financement',
+                        title: 'Intermédiation Locative (IML)',
                         color: '--brown-caramel-sun-425',
                         bgcolor: '--brown-caramel-975'
                     },
                     {
-                        title: 'En vente',
+                        title: 'Conventionnement sans travaux',
                         color: '--brown-caramel-975',
                         bgcolor: '--yellow-moutarde-sun-348-hover'
                     },
                     {
-                        title: 'En recherche de locataire',
+                        title: 'Dispositifs fiscaux',
                         color: '--brown-caramel-975',
                         bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Prime locale',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Ma Prime Renov',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Accompagnement à la vente',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
                     },
                     {
                         title: 'Autre',
@@ -207,7 +246,7 @@ export const HousingStates: HousingState[] = [
                 bgcolor: '--green-emeraude-925',
                 precisions: [
                     {
-                        title: 'Occupé par le propriétaire',
+                        title: 'Occupé par le propriétaire ou proche',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247-active'
                     },
@@ -225,6 +264,21 @@ export const HousingStates: HousingState[] = [
                         title: 'Cause inconnue',
                         color: '--blue-ecume-sun-247-active',
                         bgcolor: '--purple-glycine-975'
+                    },
+                    {
+                        title: 'N\'est pas une résidence principale',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Autre que logement',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'N\'est plus un logement',
+                        color: '--grey-1000',
+                        bgcolor: '--beige-gris-galet-moon-821-hover'
                     }
                 ]
             },
@@ -234,7 +288,7 @@ export const HousingStates: HousingState[] = [
                 bgcolor: '--green-bourgeon-sun-425-active',
                 precisions: [
                     {
-                        title: 'Occupé par le propriétaire',
+                        title: 'Occupé par le propriétaire ou proche',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247-active'
                     },
@@ -252,6 +306,21 @@ export const HousingStates: HousingState[] = [
                         title: 'Cause inconnue',
                         color: '--blue-ecume-sun-247-active',
                         bgcolor: '--purple-glycine-975'
+                    },
+                    {
+                        title: 'N\'est pas une résidence principale',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Autre que logement',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'N\'est plus un logement',
+                        color: '--grey-1000',
+                        bgcolor: '--beige-gris-galet-moon-821-hover'
                     }
                 ]
             }
@@ -266,17 +335,7 @@ export const HousingStates: HousingState[] = [
             {
                 title: 'NPAI',
                 color: '--green-emeraude-sun-425',
-                bgcolor: '--green-emeraude-925'
-            },
-            {
-                title: 'Vacance organisée',
-                color: '--green-menthe-975',
-                bgcolor: '--green-menthe-sun-373'
-            },
-            {
-                title: 'Vacance volontaire ',
-                color: '--green-menthe-sun-373',
-                bgcolor: '--green-menthe-975',
+                bgcolor: '--green-emeraude-925',
                 precisions: [
                     {
                         title: 'Réserve personnelle ou pour une autre personne',
@@ -284,39 +343,10 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Autre',
-                        color: '--grey-1000',
-                        bgcolor: '--green-menthe-850'
-                    }
-                ]
-            },
-            {
-                title: 'Mauvais état',
-                color: '--blue-ecume-sun-247',
-                bgcolor: '--blue-ecume-950',
-                precisions: [
-                    {
                         title: 'Travaux trop importants',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
-                    {
-                        title: 'Ruine, à démolir',
-                        color: '--blue-ecume-main-400',
-                        bgcolor: '--green-archipel-975'
-                    },
-                    {
-                        title: 'Autre',
-                        color: '--blue-ecume-975',
-                        bgcolor: '--blue-ecume-sun-247-active'
-                    }
-                ]
-            },
-            {
-                title: 'Mauvaise expérience locative',
-                color: '--green-tilleul-verveine-sun-418',
-                bgcolor: '--green-tilleul-verveine-975',
-                precisions: [
                     {
                         title: 'Dégradations',
                         color: '--brown-caramel-975',
@@ -327,18 +357,6 @@ export const HousingStates: HousingState[] = [
                         color: '--brown-caramel-975',
                         bgcolor: '--brown-caramel-sun-425'
                     },
-                    {
-                        title: 'Autre',
-                        color: '--grey-1000',
-                        bgcolor: '--beige-gris-galet-moon-821-hover'
-                    }
-                ]
-            },
-            {
-                title: 'Blocage juridique',
-                color: '--pink-macaron-sun-406',
-                bgcolor: '--pink-macaron-950',
-                precisions: [
                     {
                         title: 'Succession difficile, indivision en désaccord',
                         color: '--pink-macaron-main-689',
@@ -355,39 +373,15 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--pink-tuile-main-556'
                     },
                     {
-                        title: 'Autre',
-                        color: '--blue-ecume-sun-247-active',
-                        bgcolor: '--purple-glycine-975'
-                    },
-                ]
-            },
-            {
-                title: 'Liée au propriétaire',
-                color: '--brown-opera-sun-395',
-                bgcolor: '--brown-opera-950',
-                precisions: [
-                    {
                         title: 'Âge du propriétaire',
                         color: '--green-emeraude-sun-425',
                         bgcolor: '--green-tilleul-verveine-950'
                     },
                     {
-                        title: 'Difficultés de gestion',
+                        title: 'Difficultés de gestion / financière',
                         color: '--green-emeraude-sun-425',
                         bgcolor: '--pink-macaron-950'
                     },
-                    {
-                        title: 'Autre',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--brown-caramel-975'
-                    }
-                ]
-            },
-            {
-                title: 'Projet qui n\'aboutit pas',
-                color: '--blue-ecume-975',
-                bgcolor: '--blue-ecume-main-400',
-                precisions: [
                     {
                         title: 'Ne répond pas aux critères du marché (prix...)',
                         color: '--pink-macaron-975',
@@ -397,41 +391,578 @@ export const HousingStates: HousingState[] = [
                         title: 'Aides non accordées',
                         color: '--green-emeraude-sun-425',
                         bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Vacance organisée',
+                color: '--green-menthe-975',
+                bgcolor: '--green-menthe-sun-373',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Autre',
-                        color: '--grey-1000',
-                        bgcolor: '--green-archipel-sun-391-active'
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Vacance volontaire ',
+                color: '--green-menthe-sun-373',
+                bgcolor: '--green-menthe-975',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Mauvais état',
+                color: '--blue-ecume-sun-247',
+                bgcolor: '--blue-ecume-950',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Mauvaise expérience locative',
+                color: '--green-tilleul-verveine-sun-418',
+                bgcolor: '--green-tilleul-verveine-975',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Blocage juridique',
+                color: '--pink-macaron-sun-406',
+                bgcolor: '--pink-macaron-950',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Liée au propriétaire',
+                color: '--brown-opera-sun-395',
+                bgcolor: '--brown-opera-950',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
+            },
+            {
+                title: 'Projet qui n\'aboutit pas',
+                color: '--blue-ecume-975',
+                bgcolor: '--blue-ecume-main-400',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
                     }
                 ]
             },
             {
                 title: 'Rejet formel de l\'accompagnement',
                 color: '--blue-ecume-200',
-                bgcolor: '--yellow-tournesol-moon-922-active'
+                bgcolor: '--yellow-tournesol-moon-922-active',
+                precisions: [
+                    {
+                        title: 'Réserve personnelle ou pour une autre personne',
+                        color: '--green-tilleul-verveine-975',
+                        bgcolor: '--green-archipel-main-557'
+                    },
+                    {
+                        title: 'Travaux trop importants',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Dégradations',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
+                    },
+                    {
+                        title: 'Impayés de loyer',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--brown-caramel-sun-425'
+                    },
+                    {
+                        title: 'Succession difficile, indivision en désaccord',
+                        color: '--pink-macaron-main-689',
+                        bgcolor: '--pink-macaron-975'
+                    },
+                    {
+                        title: 'Expertise judiciaire',
+                        color: '--purple-glycine-975',
+                        bgcolor: '--purple-glycine-main-494'
+                    },
+                    {
+                        title: 'Procédure contre les entrepreneurs',
+                        color: '--pink-tuile-975',
+                        bgcolor: '--pink-tuile-main-556'
+                    },
+                    {
+                        title: 'Âge du propriétaire',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
+                        title: 'Difficultés de gestion / financière',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--pink-macaron-950'
+                    },
+                    {
+                        title: 'Ne répond pas aux critères du marché (prix...)',
+                        color: '--pink-macaron-975',
+                        bgcolor: '--purple-glycine-sun-319'
+                    },
+                    {
+                        title: 'Aides non accordées',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-menthe-950'
+                    }
+                ]
             },
         ]
     },
     {
         status: HousingStatus.Exit,
-        title: 'Accompagnement terminé',
+        title: 'Sortie de la vacance',
         color: '--blue-ecume-sun-247',
         bgcolor: '--blue-ecume-950',
         subStatusList: [
             {
-                title: 'Loué',
-                color: '--blue-ecume-975',
-                bgcolor: '--blue-ecume-sun-247'
+                title: 'Via accompagnement',
+                color: '--green-menthe-975',
+                bgcolor: '--green-menthe-sun-373',
+                precisions: [
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Occupation personnelle ou pour un proche',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    }
+                ]
             },
             {
-                title: 'Vendu',
-                color: '--blue-ecume-main-400',
-                bgcolor: '--green-archipel-975'
+                title: 'Via intervention publique',
+                color: '--green-emeraude-sun-425',
+                bgcolor: '--green-emeraude-925',
+                precisions: [
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Occupation personnelle ou pour un proche',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    }
+                ]
             },
             {
-                title: 'Occupation personnelle ou pour un proche',
-                color: '--blue-ecume-975',
-                bgcolor: '--blue-ecume-sun-247-active'
+                title: 'Sans accompagnement',
+                color: '--green-menthe-sun-373',
+                bgcolor: '--green-menthe-975',
+                precisions: [
+                    {
+                        title: 'Loué',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247'
+                    },
+                    {
+                        title: 'Vendu',
+                        color: '--blue-ecume-main-400',
+                        bgcolor: '--green-archipel-975'
+                    },
+                    {
+                        title: 'Occupation personnelle ou pour un proche',
+                        color: '--blue-ecume-975',
+                        bgcolor: '--blue-ecume-sun-247-active'
+                    }
+                ]
             }
         ]
     }
@@ -455,12 +986,6 @@ export const getPrecision = (status: HousingStatus, subStatusTitle: string, prec
     return getSubStatus(status, subStatusTitle)?.precisions?.filter(p => p.title === precisionTitle)[0]
 }
 
-export const getHousingStatusPrecision = (housing: Housing): HousingStatusPrecision | undefined => {
-    if (housing.status && housing.subStatus && housing.precision) {
-        return getPrecision(housing.status, housing.subStatus, housing.precision)
-    }
-}
-
 export const getSubStatusOptions = (status: HousingStatus) => {
     const housingState = getHousingState(status)
     return housingState.subStatusList ? [
@@ -471,8 +996,5 @@ export const getSubStatusOptions = (status: HousingStatus) => {
 
 export const getStatusPrecisionOptions = (status: HousingStatus, subStatus?: string) => {
     const housingSubStatus = getHousingState(status).subStatusList?.find(s => s.title === subStatus)
-    return housingSubStatus?.precisions ? [
-        DefaultOption,
-        ...housingSubStatus.precisions.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
-    ] : undefined;
+    return housingSubStatus?.precisions?.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
 }

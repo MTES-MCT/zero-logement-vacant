@@ -23,13 +23,13 @@ export interface HousingApi {
     dataYears: number[];
     status?: HousingStatusApi;
     subStatus?: string;
-    precision?: string;
+    precisions?: string[];
 }
 
 export interface HousingUpdateApi {
     status: HousingStatusApi,
     subStatus?: string,
-    precision?: string,
+    precisions?: string[],
     contactKind: string,
     vacancyReasons?: string[],
     comment: string

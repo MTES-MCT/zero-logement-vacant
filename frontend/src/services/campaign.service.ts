@@ -68,7 +68,7 @@ const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, 
 
 const deleteCampaignBundle = async (campaignNumber: number): Promise<void> => {
 
-    return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignNumber}`, {
+    return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/number/${campaignNumber}`, {
         method: 'DELETE',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
     })

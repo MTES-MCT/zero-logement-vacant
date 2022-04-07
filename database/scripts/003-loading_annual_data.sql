@@ -6,16 +6,18 @@ AS $$
         housing_var record;
         housing_var_id uuid;
         owner_var record;
-        owner_var_id uuid;
+        owner_var_ids uuid[];
         owner_housing_var record;
         housing_cursor CURSOR FOR select
            invariant,
            ff_idlocal as local_id,
            ff_idbat as building_id,
            array[ltrim(trim(libvoie), '0'), trim(libcom)] as raw_address,
-           codecom as insee_code,
+           ccodep || commune as insee_code,
            ff_x_4326 as latitude,
+    --        replace(ff_x_4326, ',', '.')::double precision as latitude,
            ff_y_4326 as longitude,
+    --        replace(ff_y_4326, ',', '.')::double precision as longitude,
            ff_dcapec2 as cadastral_classification,
            (ff_dcapec2 > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0) as uncomfortable,
            debutvacance as vacancy_start_year,
@@ -35,32 +37,32 @@ AS $$
            var.administrator as administrator,
            array[nullif(trim(adresse1), ''), nullif(trim(adresse2), ''), nullif(trim(adresse3), ''), nullif(trim(adresse4), '')] as owner_raw_address,
            (case
-               when ff_jdatnss <> '0' and ff_jdatnss <> '00/00/0000' and (
-                   (var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%')) then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss, '99999') end) as birth_date,
+               when ff_jdatnss_1 <> '0' and ff_jdatnss_1 <> '00/00/0000' and (
+                   (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
+                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_1, '99999') end) as birth_date,
            (case
                when trim(groupe::text) = '' then 'Particulier'
-               when not(var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') and
-                    not(var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%') then 'Autre'
+               when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
+                    not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else 'Autre' end) as owner_kind,
            (case
                when trim(groupe::text) = '' then 'Particulier'
-               when not(var.owner like '%' || split_part(trim(nom_ff), '/', 1) || '%') and
-                    not(var.owner like '%' || split_part(split_part(trim(nom_ff), '/', 2), ' ', 1) || '%') then 'Autre'
+               when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
+                    not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail,
            array_agg(distinct(ff_idlocal)) as local_ids
-        from _extract_zlv_2022, lateral (
-                select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim("GESTRE/PPRE") end) as owner,
-                       (case when trim(proprietaire) <> '' then trim("GESTRE/PPRE") end) as administrator) var
+        from _extract_zlv_2022_1, lateral (
+                select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
+                       (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
         group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
                  housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, annee, ff_ndroit, ff_ndroit, batloc, vlcad, ff_ctpdl,
-                 owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, nom_ff, owner_kind, owner_kind_detail;
+                 owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, ff_ddenom_1, owner_kind, owner_kind_detail;
 
     BEGIN
 
@@ -109,19 +111,19 @@ AS $$
                 --------------------------------
                 -- OWNER
                 --------------------------------
-                select id into owner_var_id from owners o
+                select array_agg(id) into owner_var_ids from owners o
                 where o.full_name = upper(trim(housing_var.full_name))
                   and (o.birth_date = housing_var.birth_date OR coalesce(o.birth_date, housing_var.birth_date) IS NULL);
 
                 -- CASE NEW OWNER
-                IF owner_var_id IS NULL THEN
+                IF owner_var_ids IS NULL or array_length(owner_var_ids, 1) = 0 THEN
 
                     RAISE NOTICE 'INSERT OWNER : % - %', housing_var.full_name, housing_var.birth_date ;
 
                     insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, local_ids)
                     values(housing_var.full_name, housing_var.administrator, housing_var.raw_address, housing_var.birth_date,
                            housing_var.owner_kind, housing_var.owner_kind_detail, housing_var.local_ids)
-                           returning id INTO owner_var_id;
+                           returning ARRAY[id] INTO owner_var_ids;
 
                 END IF;
 
@@ -139,9 +141,9 @@ AS $$
 
                     RAISE NOTICE 'INSERT OWNER HOUSING : %', housing_var.local_id;
 
-                    insert into owners_housing(housing_id, owner_id) values (housing_var_id, owner_var_id);
+                    insert into owners_housing(housing_id, owner_id) values (housing_var_id, owner_var_ids[1]);
 
-                ELSIF owner_housing_var.owner_id <> owner_var_id AND owner_housing_var.max_date IS NOT NULL AND owner_housing_var.max_date::date > to_date('01/12/2021', 'DD/MM/YYYY') THEN
+                ELSIF not owner_var_ids @> ARRAY[owner_housing_var.owner_id] AND owner_housing_var.max_date IS NOT NULL AND owner_housing_var.max_date::date > to_date('01/01/2021', 'DD/MM/YYYY') THEN
 
                     RAISE NOTICE 'IGNORE NEW DATA: %', housing_var.local_id;
 
@@ -152,19 +154,19 @@ AS $$
                                 || coalesce(' - ' || to_char(housing_var.birth_date, 'DD/MM/YYYY'), '')
                                 || coalesce(' - ' || array_to_string(housing_var.owner_raw_address, ', '), '') );
 
-                ELSIF owner_housing_var.owner_id <> owner_var_id THEN
+                ELSIF not owner_var_ids @> ARRAY[owner_housing_var.owner_id] THEN
 
                     RAISE NOTICE 'UPDATE OWNER HOUSING WITH NEW DATA: %', housing_var.local_id;
 
                     select * into owner_var from owners where id = owner_housing_var.owner_id;
 
-                    update owners_housing set owner_id = owner_var_id where housing_id = housing_var_id;
+                    update owners_housing set owner_id = owner_var_ids[1] where housing_id = housing_var_id;
 
                     update owners set local_ids = array_remove(local_ids::text[], housing_var.local_id) where id = owner_housing_var.owner_id;
-                    update owners set local_ids = array_prepend(housing_var.local_id, local_ids::text[]) where id = owner_var_id;
+                    update owners set local_ids = array_prepend(housing_var.local_id, local_ids::text[]) where id = owner_var_ids[1];
 
                     insert into events(owner_id, housing_id, kind, created_at, content)
-                    values (owner_var_id, housing_var_id, 3, current_timestamp,
+                    values (owner_var_ids[1], housing_var_id, 3, current_timestamp,
                             'Propriétaire avant prise en compte du nouveau millésime : '
                                 || owner_var.full_name
                                 || coalesce(' - ' || to_char(owner_var.birth_date, 'DD/MM/YYYY'), '')
@@ -184,3 +186,6 @@ AS $$
 
     END;
 $$
+
+
+

@@ -23,6 +23,8 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
         dispatch(getOwnerEvents(ownerId));
     }, [dispatch])
 
+    const housingNumber = (housingId: string) => housingList.findIndex(h => h.id === housingId) + 1;
+
     return (
         <>
             <Row>
@@ -60,7 +62,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                         </TagGroup>
                                         {event.housingId &&
                                             <div>
-                                                <b>Logement {housingList.findIndex(h => h.id === event.housingId) + 1}</b>
+                                                <b>{housingNumber(event.housingId) ? 'Logement ' + housingNumber(event.housingId) : 'Ancien logement'}</b>
                                             </div>
                                         }
                                         <div className="fr-mb-0">

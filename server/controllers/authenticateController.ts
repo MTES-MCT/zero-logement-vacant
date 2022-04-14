@@ -76,7 +76,8 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
 
     return Promise.all([
         userRepository.updatePassword(authToken.userId, bcrypt.hashSync(password)),
-        authTokenRepository.deleteToken(tokenId)
+        authTokenRepository.deleteToken(tokenId),
+        userRepository.activate(authToken.userId)
     ])
         .then(() => response.sendStatus(200));
 };

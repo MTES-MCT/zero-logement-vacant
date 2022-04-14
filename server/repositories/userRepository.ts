@@ -59,6 +59,17 @@ const updatePassword = async (userId: string, password: string): Promise<any> =>
     }
 }
 
+const activate = async (userId: string): Promise<any> => {
+    try {
+        return db(usersTable)
+            .update({activated_at: new Date()})
+            .where('id', userId)
+    } catch (err) {
+        console.error('Updating password failed', err, userId);
+        throw new Error('Updating password failed');
+    }
+}
+
 const insert = async (userApi: UserApi): Promise<UserApi> => {
 
     console.log('Insert user with email', userApi.email)
@@ -140,5 +151,6 @@ export default {
     getByEmail,
     updatePassword,
     list,
-    insert
+    insert,
+    activate
 }

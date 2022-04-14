@@ -1,7 +1,33 @@
 import db from './db';
 import { UserApi } from '../models/UserApi';
+import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { authTokensTable } from './authTokenRepository';
 
 export const usersTable = 'users';
+
+const get = async (id: string): Promise<UserApi> => {
+    try {
+        return db(usersTable)
+            .select(
+                `${usersTable}.*`,
+                'created_at'
+            )
+            .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
+            .where(`${usersTable}.id`, id)
+            .first()
+            .then(result => {
+                if (result) {
+                    return parseUserApi(result);
+                } else {
+                    console.error('User not found', id);
+                    throw Error('User not found')
+                }
+            })
+    } catch (err) {
+        console.error('Getting user by id failed', err, id);
+        throw new Error('Getting user by id failed');
+    }
+}
 
 const getByEmail = async (email: string): Promise<UserApi> => {
     try {
@@ -10,14 +36,7 @@ const getByEmail = async (email: string): Promise<UserApi> => {
             .first()
             .then(result => {
                 if (result) {
-                    return <UserApi>{
-                        id: result.id,
-                        email: result.email,
-                        password: result.password,
-                        firstName: result.first_name,
-                        lastName: result.last_name,
-                        establishmentId: result.establishment_id
-                    }
+                    return parseUserApi(result);
                 } else {
                     console.error('User not found', email);
                     throw Error('User not found')
@@ -29,6 +48,71 @@ const getByEmail = async (email: string): Promise<UserApi> => {
     }
 }
 
+const updatePassword = async (userId: string, password: string): Promise<any> => {
+    try {
+        return db(usersTable)
+            .update({password})
+            .where('id', userId)
+    } catch (err) {
+        console.error('Updating password failed', err, userId);
+        throw new Error('Updating password failed');
+    }
+}
+
+const list = async (page?: number, perPage?: number): Promise<PaginatedResultApi<UserApi>> => {
+    try {
+
+        const query = db(usersTable)
+            .select(
+                `${usersTable}.*`,
+                'created_at'
+            )
+            .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
+
+        const housingCount: number = await db(usersTable)
+            .then(_ => Number(_[0].count))
+
+        const results = await query
+            .modify((queryBuilder: any) => {
+                queryBuilder.orderBy('last_name')
+                queryBuilder.orderBy('first_name')
+                if (page && perPage) {
+                    queryBuilder
+                        .offset((page - 1) * perPage)
+                        .limit(perPage)
+                }
+            })
+
+        return <PaginatedResultApi<UserApi>> {
+            entities: results.map((result: any) => parseUserApi(result)),
+            totalCount: housingCount,
+            page,
+            perPage
+        }
+    } catch (err) {
+        console.error('Listing users failed', err);
+        throw new Error('Listing users failed');
+    }
+}
+
+
+const parseUserApi = (result: any) => (
+    <UserApi>{
+        id: result.id,
+        email: result.email,
+        password: result.password,
+        firstName: result.first_name,
+        lastName: result.last_name,
+        establishmentId: result.establishment_id,
+        role: result.role,
+        activatedAt: result.activated_at,
+        activationSendAt: result.created_at,
+    }
+)
+
 export default {
-    getByEmail
+    get,
+    getByEmail,
+    updatePassword,
+    list
 }

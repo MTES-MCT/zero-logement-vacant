@@ -7,9 +7,18 @@ export interface AuthUser {
 }
 
 export interface User {
+    id: string,
     email: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    role: UserRoles,
+    activatedAt?: Date,
+    activationSendAt?: Date,
+    establishmentId: string
+}
+
+export enum UserRoles {
+    Usual, Admin
 }
 
 export const isValidUser = (authUser: AuthUser) => authUser && authUser.accessToken && authUser.establishment && authUser.user

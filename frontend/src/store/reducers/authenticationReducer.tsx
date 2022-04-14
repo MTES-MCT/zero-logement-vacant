@@ -1,4 +1,6 @@
 import {
+    ACCOUNT_ACTIVATED,
+    ACCOUNT_ACTIVATION_FAILED,
     AuthenticationActionTypes,
     AVAILABLE_ESTABLISHMENTS_FETCHED,
     LOGIN,
@@ -13,14 +15,19 @@ const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 export interface AuthenticationState {
     availableEstablishments?: Establishment[];
     isLoggedIn: boolean;
+    accountActivated: boolean;
     authUser: AuthUser;
-    error?: string;
+    loginError?: string;
+    activationError?: string;
 }
 
 const initialState =
-    authUser && authUser.accessToken
-        ? { isLoggedIn: true, authUser: authUser }
-        : { isLoggedIn: false, authUser: null };
+    {
+      accountActivated: false,
+      ...authUser && authUser.accessToken
+          ? { isLoggedIn: true, authUser: authUser }
+          : { isLoggedIn: false, authUser: null }
+    };
 
 const authenticationReducer = (state = initialState, action: AuthenticationActionTypes) => {
     switch (action.type) {
@@ -29,14 +36,14 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
                 ...state,
                 isLoggedIn: true,
                 authUser: action.authUser,
-                error: null
+                loginError: null
             };
         case LOGIN_FAIL:
             return {
                 ...state,
                 isLoggedIn: false,
                 authUser: null,
-                error: "Échec de l'authentification"
+                loginError: 'Échec de l\'authentification'
             };
         case LOGOUT:
             return {
@@ -49,6 +56,18 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
                 ...state,
                 availableEstablishments: action.availableEstablishments
             }
+        case ACCOUNT_ACTIVATED:
+            return {
+                ...state,
+                accountActivated: true,
+                activationError: null
+            };
+        case ACCOUNT_ACTIVATION_FAILED:
+            return {
+                ...state,
+                accountActivated: false,
+                activationError: 'Échec de l\'activation.'
+            };
         default:
             return state;
     }

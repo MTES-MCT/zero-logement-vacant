@@ -7,6 +7,7 @@ import ownerController from '../controllers/ownerController';
 import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
+import userController from '../controllers/userController';
 
 const  router = express.Router();
 
@@ -33,7 +34,6 @@ router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumb
 router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
 router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
 
-
 router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
 router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
 router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
@@ -49,5 +49,8 @@ router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerVal
 
 router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
 router.post('/api/events/creation', jwtCheck, userCheck, eventController.create);
+
+router.post('/api/users', jwtCheck, userCheck, userController.list);
+router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
 export default router;

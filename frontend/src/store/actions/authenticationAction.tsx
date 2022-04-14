@@ -9,6 +9,8 @@ export const LOGIN = 'LOGIN';
 export const LOGIN_FAIL = 'LOGIN_FAIL';
 export const LOGOUT = 'LOGOUT';
 export const AVAILABLE_ESTABLISHMENTS_FETCHED = 'AVAILABLE_ESTABLISHMENTS_FETCHED';
+export const ACCOUNT_ACTIVATED = 'ACCOUNT_ACTIVATED'
+export const ACCOUNT_ACTIVATION_FAILED = 'ACCOUNT_ACTIVATION_FAILED'
 
 export interface LoginAction {
     type: typeof LOGIN,
@@ -24,8 +26,14 @@ export interface AvailableEstablishmentsFetched {
     type: typeof AVAILABLE_ESTABLISHMENTS_FETCHED;
     availableEstablishments: Establishment[];
 }
+export interface AccountActivated {
+    type: typeof ACCOUNT_ACTIVATED;
+}
+export interface AccountActivationFailed {
+    type: typeof ACCOUNT_ACTIVATION_FAILED;
+}
 
-export type AuthenticationActionTypes = LoginAction | LoginFail | Logout | AvailableEstablishmentsFetched;
+export type AuthenticationActionTypes = LoginAction | LoginFail | Logout | AvailableEstablishmentsFetched | AccountActivated | AccountActivationFailed;
 
 export const login = (email: string, password: string, establishmentId?: string) => {
     return function (dispatch: Dispatch) {
@@ -61,6 +69,28 @@ export const logout = () => (dispatch: Dispatch) => {
     dispatch({
         type: LOGOUT,
     });
+};
+
+export const activateAccount = (email: string, tokenId: string, password: string) => {
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        authService.activateAccount(email, tokenId, password)
+            .then(() => {
+                dispatch({
+                    type: ACCOUNT_ACTIVATED
+                });
+            })
+            .catch(() => {
+                dispatch({
+                    type: ACCOUNT_ACTIVATION_FAILED,
+                });
+            })
+            .finally(() => {
+                dispatch(hideLoading());
+            });
+    };
 };
 
 

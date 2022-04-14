@@ -17,7 +17,7 @@ import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { logout } from '../../store/actions/authenticationAction';
-import { isValidUser } from '../../models/User';
+import { isValidUser, UserRoles } from '../../models/User';
 
 function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
@@ -72,6 +72,9 @@ function AppHeader() {
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
+                        {authUser.user.role === UserRoles.Admin &&
+                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
+                        }
                     </HeaderNav>
                 }
             </Header>

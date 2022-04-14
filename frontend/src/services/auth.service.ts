@@ -28,6 +28,20 @@ const logout = (): void => {
     localStorage.removeItem('authUser');
 };
 
+const activateAccount = async (email: string, tokenId: string, password: string) => {
+
+    return fetch(`${config.apiEndpoint}/api/account/activation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tokenId, password }),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Account activation failed')
+            }
+        })
+};
+
 
 const authHeader = () => {
     const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
@@ -39,6 +53,7 @@ const authHeader = () => {
 const authService = {
     login,
     logout,
+    activateAccount,
     authHeader
 };
 

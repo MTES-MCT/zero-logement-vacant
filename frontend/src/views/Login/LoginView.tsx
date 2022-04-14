@@ -20,7 +20,7 @@ const LoginView = () => {
     const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});
 
-    const { error, availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
+    const { loginError, availableEstablishments, accountActivated } = useSelector((state: ApplicationState) => state.authentication);
 
     const loginForm = yup.object().shape({
         isAdmin: yup.boolean(),
@@ -71,6 +71,11 @@ const LoginView = () => {
         <>
             <Container spacing="py-4w">
                 <form onSubmit={submitLoginForm} id="login_form">
+                    {accountActivated &&
+                        <div className="fr-my-2w">
+                            <Alert title="Compte activé" description="Votre compte a bien été activé, vous pouvez maintenant vous connecter" type="success"/>
+                        </div>
+                    }
                     <TextInput
                         value={email}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
@@ -105,9 +110,9 @@ const LoginView = () => {
                         Se connecter
                     </Button>
                 </form>
-                {error &&
+                {loginError &&
                     <div data-testid="alert-error" className="fr-my-2w">
-                        <Alert title="Erreur" description={error} type="error"/>
+                        <Alert title="Erreur" description={loginError} type="error"/>
                     </div>
                 }
             </Container>

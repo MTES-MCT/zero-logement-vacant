@@ -59,6 +59,20 @@ const updatePassword = async (userId: string, password: string): Promise<any> =>
     }
 }
 
+const insert = async (userApi: UserApi): Promise<UserApi> => {
+
+    console.log('Insert user with email', userApi.email)
+    try {
+        return db(usersTable)
+            .insert(formatUserApi(userApi))
+            .returning('*')
+            .then(_ => parseUserApi(_[0]))
+    } catch (err) {
+        console.error('Inserting user failed', err, userApi);
+        throw new Error('Inserting user failed');
+    }
+}
+
 const list = async (page?: number, perPage?: number): Promise<PaginatedResultApi<UserApi>> => {
     try {
 
@@ -110,9 +124,21 @@ const parseUserApi = (result: any) => (
     }
 )
 
+const formatUserApi = (userApi: UserApi) => ({
+    id: userApi.id,
+    email: userApi.email,
+    password: userApi.password,
+    first_name: userApi.firstName,
+    last_name: userApi.lastName,
+    establishment_id: userApi.establishmentId,
+    role: userApi.role,
+    activated_at: userApi.activatedAt ? new Date(userApi.activatedAt) : undefined,
+})
+
 export default {
     get,
     getByEmail,
     updatePassword,
-    list
+    list,
+    insert
 }

@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { PaginatedResult } from '../models/PaginatedResult';
-import { User } from '../models/User';
+import { DraftUser, User } from '../models/User';
 import { parseISO } from 'date-fns';
 
 
@@ -29,6 +29,17 @@ const sendActivationMail = async (userId: string): Promise<User> => {
         .then(result => parseUser(result));
 };
 
+const createUser = async (draftUser: DraftUser): Promise<User> => {
+
+    return await fetch(`${config.apiEndpoint}/api/users/creation`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftUser })
+    })
+        .then(_ => _.json())
+        .then(result => parseUser(result));
+};
+
 const parseUser = (u: any): User => ({
     ...u,
     activatedAt: u.activatedAt ? parseISO(u.activatedAt) : undefined,
@@ -37,7 +48,8 @@ const parseUser = (u: any): User => ({
 
 const userService = {
     listUsers,
-    sendActivationMail
+    sendActivationMail,
+    createUser
 };
 
 export default userService;

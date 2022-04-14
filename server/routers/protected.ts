@@ -51,6 +51,7 @@ router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.li
 router.post('/api/events/creation', jwtCheck, userCheck, eventController.create);
 
 router.post('/api/users', jwtCheck, userCheck, userController.list);
+router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
 router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
 export default router;

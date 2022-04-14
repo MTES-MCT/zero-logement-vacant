@@ -11,6 +11,7 @@ exports.up = function(knex) {
             .alterTable('users', (table) => {
                 table.integer('role');
                 table.timestamp('activated_at');
+                table.string('password').nullable().alter();
             }),
         knex.raw('update users set ' +
             'role = (case when (establishment_id is null) then 1 else 0 end), ' +
@@ -18,6 +19,10 @@ exports.up = function(knex) {
         knex.schema// @ts-ignore
             .alterTable('users', (table) => {
                 table.integer('role').notNullable().alter();
+            }),
+        knex.schema// @ts-ignore
+            .alterTable('housing', (table) => {
+                table.integer('cadastral_classification').nullable().alter();
             })
     ]);
 };

@@ -1,8 +1,9 @@
 import { Dispatch } from 'redux';
-import { User } from '../../models/User';
+import { DraftUser, User } from '../../models/User';
 import userService from '../../services/user.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { PaginatedResult } from '../../models/PaginatedResult';
+import { ApplicationState } from '../reducers/applicationReducers';
 
 export const FETCH_USER_LIST = 'FETCH_USER_LIST';
 export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
@@ -62,6 +63,20 @@ export const sendActivationMail = (userId: string) => {
                     type: ACTIVATION_MAIL_SENT,
                     user
                 });
+            });
+    };
+};
+
+export const createUser = (draftUser: DraftUser) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        userService.createUser(draftUser)
+            .then(() => {
+                dispatch(hideLoading());
+                changeUserPagination(getState().user.paginatedUsers.page, getState().user.paginatedUsers.perPage)(dispatch)
             });
     };
 };

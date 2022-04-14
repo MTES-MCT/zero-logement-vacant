@@ -1,23 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { Button, Container, Table, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { changeUserPagination, sendActivationMail } from '../../store/actions/userAction';
-import { User } from '../../models/User';
+import { changeUserPagination, createUser, sendActivationMail } from '../../store/actions/userAction';
+import { DraftUser, User } from '../../models/User';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { fetchAvailableEstablishments } from '../../store/actions/authenticationAction';
+import UserCreationModal from '../../components/modals/UserCreationModal/UserCreationModal';
 
 const UserListView = () => {
 
     const dispatch = useDispatch();
 
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
     const { paginatedUsers } = useSelector((state: ApplicationState) => state.user);
-
-    console.log('availableEstablishments', availableEstablishments)
 
     useEffect(() => {
         dispatch(changeUserPagination(0, 500))
@@ -25,6 +25,12 @@ const UserListView = () => {
             dispatch(fetchAvailableEstablishments())
         }
     }, [dispatch]);
+
+
+    const onSubmitDraftUser = (draftUser: DraftUser) => {
+        dispatch(createUser(draftUser))
+        setIsCreateModalOpen(false)
+    }
 
     const nameColumn = {
         name: 'name',
@@ -85,12 +91,28 @@ const UserListView = () => {
 
     const columns = () => [nameColumn, emailColumn, establishmentColumn, stateColumn, activationLinkColumn]
 
-
     return (
         <>
             <Container>
                 <AppBreadcrumb />
-                <Title as="h1" className="fr-mb-4w">Utilisateurs</Title>
+                <Row>
+                    <Col>
+                        <Title as="h1" className="fr-mb-4w">Utilisateurs</Title>
+                    </Col>
+                    <Col>
+                        <Button title="Ajouter un utilisateur"
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="float-right">
+                            Ajouter un utilisateur
+                        </Button>
+                    </Col>
+                </Row>
+                {isCreateModalOpen &&
+                    <UserCreationModal
+                        availableEstablishments={availableEstablishments ?? []}
+                        onSubmit={(draftUser: DraftUser) => onSubmitDraftUser(draftUser)}
+                        onClose={() => setIsCreateModalOpen(false)}/>}
+
                 {paginatedUsers.entities?.length > 0 &&
                     <Table
                         caption="Utilisateurs"

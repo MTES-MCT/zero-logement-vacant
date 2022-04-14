@@ -17,6 +17,15 @@ export interface User {
     establishmentId: string
 }
 
+export interface DraftUser {
+    email: string,
+    firstName: string,
+    lastName: string,
+    requestNumber: string,
+    role: UserRoles,
+    establishmentId: string
+}
+
 export enum UserRoles {
     Usual, Admin
 }

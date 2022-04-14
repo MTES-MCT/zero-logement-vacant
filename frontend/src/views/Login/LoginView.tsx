@@ -95,7 +95,7 @@ const LoginView = () => {
                     />
                     {pathname === ('/admin') && availableEstablishmentOptions &&
                         <Select
-                            label="Lancement"
+                            label="Etablissement"
                             selected={establishmentId}
                             options={availableEstablishmentOptions}
                             messageType={formErrors['establishmentId'] ? 'error' : undefined}

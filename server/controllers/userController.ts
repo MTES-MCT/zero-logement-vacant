@@ -4,6 +4,16 @@ import { RequestUser, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
 import mailService, { ActivationMail } from '../services/mailService';
 
+const createUser = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Create user')
+
+    const userApi = request.body.draftUser;
+
+    return userRepository.insert(userApi)
+        .then(_ => response.status(200).json(_));
+};
+
 const list = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('List users')
@@ -33,6 +43,7 @@ const sendActivationEmail = async (request: Request, response: Response): Promis
 };
 
 const userController =  {
+    createUser,
     list,
     sendActivationEmail
 };

@@ -19,14 +19,14 @@ AS $$
            ff_y_4326 as longitude,
     --        replace(ff_y_4326, ',', '.')::double precision as longitude,
            ff_dcapec2 as cadastral_classification,
-           (ff_dcapec2 > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0) as uncomfortable,
+           (coalesce(ff_dcapec2, 0) > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0) as uncomfortable,
            debutvacance as vacancy_start_year,
            trim(nature) as housing_kind,
            ff_npiece_p2 as rooms_count,
            ff_stoth as living_area,
            refcad as cadastral_reference,
            (case when (ff_jannath > 100) then ff_jannath end) as building_year,
-           to_date(anmutation, 'M/D/YY') as mutation_date,
+           to_date(anmutation, 'MM/DD/YY') as mutation_date,
            trim(txtlv) <> '' as taxed,
            annee as data_year,
            ff_ndroit as beneficiary_count,
@@ -39,7 +39,7 @@ AS $$
            (case
                when ff_jdatnss_1 <> '0' and ff_jdatnss_1 <> '00/00/0000' and (
                    (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_1, '99999') end) as birth_date,
+                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'MM/DD/YYYY') end) as birth_date,
            (case
                when trim(groupe::text) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
@@ -60,6 +60,7 @@ AS $$
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
+        and owner is not null
         group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
                  housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, annee, ff_ndroit, ff_ndroit, batloc, vlcad, ff_ctpdl,
                  owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, ff_ddenom_1, owner_kind, owner_kind_detail;

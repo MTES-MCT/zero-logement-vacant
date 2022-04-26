@@ -24,15 +24,15 @@ const AccountActivationView = () => {
     const activationForm = yup.object().shape({
         email: yup
             .string()
-            .required('Veuillez renseigner un email.').email('Veuillez renseigner un email valide.'),
+            .required('Veuillez renseigner votre email.').email('Veuillez renseigner un email valide.'),
         password: yup
             .string()
-            .required('Veuillez renseigner un mot de passe.')
+            .required('Veuillez renseigner votre mot de passe.')
             .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/, 'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial'),
         passwordConfirmation: yup
             .string()
-            .required('Veuillez renseigner un mot de passe.')
-            .oneOf([yup.ref('password')], 'Les mots de passes doivent être identiques.')
+            .required('Veuillez renseigner votre mot de passe.')
+            .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.')
     });
 
     useEffect(() => {
@@ -62,6 +62,11 @@ const AccountActivationView = () => {
         <>
             <Container spacing="py-4w">
                 <Title as="h1">Activation de votre compte</Title>
+                {activationError &&
+                    <div className="fr-my-2w">
+                        <Alert title="Erreur" description={activationError} type="error"/>
+                    </div>
+                }
                 <form onSubmit={submitActivationForm} id="account_activation_form">
                     <TextInput
                         value={email}
@@ -84,7 +89,6 @@ const AccountActivationView = () => {
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setPasswordConfirmation(e.target.value)}
                         messageType={formErrors['passwordConfirmation'] ? 'error' : ''}
                         message={formErrors['passwordConfirmation']}
-                        data-testid="password-confirmation-input"
                         label="Confirmation du mot de passe : "
                     />
                     <Button
@@ -94,11 +98,6 @@ const AccountActivationView = () => {
                         Valider
                     </Button>
                 </form>
-                {activationError &&
-                    <div className="fr-my-2w">
-                        <Alert title="Erreur" description={activationError} type="error"/>
-                    </div>
-                }
             </Container>
         </>
     );

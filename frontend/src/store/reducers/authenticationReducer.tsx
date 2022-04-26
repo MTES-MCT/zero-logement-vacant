@@ -5,10 +5,11 @@ import {
     AVAILABLE_ESTABLISHMENTS_FETCHED,
     LOGIN,
     LOGIN_FAIL,
-    LOGOUT,
+    LOGOUT, PASSWORD_CHANGE,
 } from '../actions/authenticationAction';
 import { AuthUser } from '../../models/User';
 import { Establishment } from '../../models/Establishment';
+import { FormState } from '../actions/FormState';
 
 const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 
@@ -19,6 +20,7 @@ export interface AuthenticationState {
     authUser: AuthUser;
     loginError?: string;
     activationError?: string;
+    passwordFormState?: FormState;
 }
 
 const initialState =
@@ -67,6 +69,11 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
                 ...state,
                 accountActivated: false,
                 activationError: 'Échec de l\'activation.'
+            };
+        case PASSWORD_CHANGE:
+            return {
+                ...state,
+                passwordFormState: action.formState
             };
         default:
             return state;

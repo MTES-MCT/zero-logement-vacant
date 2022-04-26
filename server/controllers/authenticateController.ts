@@ -71,7 +71,7 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
     const user = await userRepository.get(authToken.userId)
 
     if (user.email !== email) {
-        return response.sendStatus(403)
+        return response.sendStatus(401)
     }
 
     return Promise.all([
@@ -82,9 +82,31 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
         .then(() => response.sendStatus(200));
 };
 
+const updatePassword = async (request: Request, response: Response): Promise<Response> => {
+
+    const userId = (<RequestUser>request.user).userId;
+
+    const currentPassword = request.body.currentPassword;
+    const newPassword = request.body.newPassword;
+
+    console.log('update password for ', userId)
+
+    const user = await userRepository.get(userId)
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
+
+    if (isPasswordValid) {
+        return userRepository.updatePassword(userId, bcrypt.hashSync(newPassword))
+            .then(() => response.sendStatus(200))
+    } else {
+        return response.sendStatus(403)
+    }
+};
+
 
 export default {
     signin,
     listAvailableEstablishments,
-    activateAccount
+    activateAccount,
+    updatePassword
 };

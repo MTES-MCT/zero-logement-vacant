@@ -8,6 +8,7 @@ import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
+import authenticateController from '../controllers/authenticateController';
 
 const  router = express.Router();
 
@@ -49,6 +50,8 @@ router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerVal
 
 router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
 router.post('/api/events/creation', jwtCheck, userCheck, eventController.create);
+
+router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
 
 router.post('/api/users', jwtCheck, userCheck, userController.list);
 router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);

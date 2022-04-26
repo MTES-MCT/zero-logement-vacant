@@ -42,6 +42,20 @@ const activateAccount = async (email: string, tokenId: string, password: string)
         })
 };
 
+const changePassword = async (currentPassword: string, newPassword: string) => {
+
+    return fetch(`${config.apiEndpoint}/api/account/password`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Password change failed')
+            }
+        })
+};
+
 
 const authHeader = () => {
     const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
@@ -54,6 +68,7 @@ const authService = {
     login,
     logout,
     activateAccount,
+    changePassword,
     authHeader
 };
 

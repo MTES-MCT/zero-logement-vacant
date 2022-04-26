@@ -20,6 +20,7 @@ import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import AccountActivationView from './views/Account/AccountActivationView';
 import UserListView from './views/User/UserListView';
+import AccountPasswordView from './views/Account/AccountPasswordView';
 
 
 function AppWrapper () {
@@ -73,6 +74,7 @@ function App() {
                                 <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
                                 <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
                                 {authUser.user.role === UserRoles.Admin &&
                                     <Route exact path="/utilisateurs" component={UserListView}/>

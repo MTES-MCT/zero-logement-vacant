@@ -31,7 +31,7 @@ const AccountPasswordView = () => {
         password: yup
             .string()
             .required('Veuillez renseigner votre nouveau mot de passe.')
-            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/, 'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial'),
+            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/, 'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial'),
         passwordConfirmation: yup
             .string()
             .required('Veuillez renseigner votre mot de passe.')

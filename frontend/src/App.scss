@@ -96,6 +96,14 @@ button.fr-select {
 }
 
 
+.campaignTabs {
+  li:last-child, li:nth-last-child(2)  {
+    .fr-tabs__tab:not([aria-selected=true]) {
+      background-color:  var(--grey-925);
+    }
+  }
+}
+
 .select-multi-input {
   position: relative;
 

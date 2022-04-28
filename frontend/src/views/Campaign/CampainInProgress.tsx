@@ -190,7 +190,7 @@ const CampaignInProgress = () => {
     }
 
     return (
-        <Tabs>
+        <Tabs className="campaignTabs">
             <Tab label={getTabLabel(HousingStatus.Waiting)}>
                 <TabContent status={HousingStatus.Waiting}/>
             </Tab>
@@ -200,14 +200,14 @@ const CampaignInProgress = () => {
             <Tab label={getTabLabel(HousingStatus.InProgress)}>
                 <TabContent status={HousingStatus.InProgress}/>
             </Tab>
+            <Tab label={getTabLabel(HousingStatus.Exit)}>
+                <TabContent status={HousingStatus.Exit}/>
+            </Tab>
             <Tab label={getTabLabel(HousingStatus.NotVacant)}>
                 <TabContent status={HousingStatus.NotVacant}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.NoAction)}>
                 <TabContent status={HousingStatus.NoAction}/>
-            </Tab>
-            <Tab label={getTabLabel(HousingStatus.Exit)}>
-                <TabContent status={HousingStatus.Exit}/>
             </Tab>
         </Tabs>
     );

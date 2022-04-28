@@ -159,15 +159,17 @@ const UserListView = () => {
                         </Row>
                     }
 
-                    <Table
-                        caption="Utilisateurs"
-                        captionPosition="none"
-                        rowKey="id"
-                        data={paginatedUsers.entities.map((_, index) => ({..._, rowNumber: (paginatedUsers.page - 1) * paginatedUsers.perPage + index + 1}) )}
-                        columns={columns()}
-                        fixedLayout={true}
-                        data-testid="housing-table"
-                    />
+                    {paginatedUsers.totalCount > 0 &&
+                        < Table
+                            caption="Utilisateurs"
+                            captionPosition="none"
+                            rowKey="id"
+                            data={paginatedUsers.entities.map((_, index) => ({..._, rowNumber: (paginatedUsers.page - 1) * paginatedUsers.perPage + index + 1}) )}
+                            columns={columns()}
+                            fixedLayout={true}
+                            data-testid="housing-table"
+                        />
+                    }
 
                 </>}
             </Container>

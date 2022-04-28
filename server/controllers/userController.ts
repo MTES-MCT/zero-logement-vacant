@@ -40,7 +40,7 @@ const sendActivationEmail = async (request: Request, response: Response): Promis
 
     const user = await userRepository.get(userId)
 
-    return mailService.sendMail('Activation de votre compte', ActivationMail(authToken.id), [user.email])
+    return mailService.sendMail('ZLV - Activation de votre compte', ActivationMail(authToken.id), [user.email])
         .then(() => response.status(200).json(user));
 };
 

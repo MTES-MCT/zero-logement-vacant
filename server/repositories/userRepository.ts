@@ -2,6 +2,7 @@ import db from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { authTokensTable } from './authTokenRepository';
+import { UserFiltersApi } from '../models/UserFiltersApi';
 
 export const usersTable = 'users';
 
@@ -84,8 +85,13 @@ const insert = async (userApi: UserApi): Promise<UserApi> => {
     }
 }
 
-const list = async (page?: number, perPage?: number): Promise<PaginatedResultApi<UserApi>> => {
+const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<UserApi>> => {
     try {
+        const filter = (queryBuilder: any) => {
+            if (filters.establishmentIds?.length) {
+                queryBuilder.whereIn('establishment_id', filters.establishmentIds)
+            }
+        }
 
         const query = db(usersTable)
             .select(
@@ -94,8 +100,11 @@ const list = async (page?: number, perPage?: number): Promise<PaginatedResultApi
             )
             .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
 
-        const housingCount: number = await db(usersTable)
-            .then(_ => Number(_[0].count))
+        const housingCount: number = await
+            db(usersTable)
+                .count('id')
+                .modify(filter)
+                .then(_ => Number(_[0].count))
 
         const results = await query
             .modify((queryBuilder: any) => {
@@ -107,6 +116,7 @@ const list = async (page?: number, perPage?: number): Promise<PaginatedResultApi
                         .limit(perPage)
                 }
             })
+            .modify(filter)
 
         return <PaginatedResultApi<UserApi>> {
             entities: results.map((result: any) => parseUserApi(result)),
@@ -150,7 +160,7 @@ export default {
     get,
     getByEmail,
     updatePassword,
-    list,
+    listWithFilters,
     insert,
     activate
 }

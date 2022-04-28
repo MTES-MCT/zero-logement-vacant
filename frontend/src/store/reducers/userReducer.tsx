@@ -2,10 +2,16 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { User } from '../../models/User';
 import config from '../../utils/config';
 import { ACTIVATION_MAIL_SENT, FETCH_USER_LIST, USER_LIST_FETCHED, UserActionTypes } from '../actions/userAction';
+import { UserFilters } from '../../models/UserFilters';
 
 export interface UserState {
     paginatedUsers: PaginatedResult<User>;
+    filters: UserFilters;
 }
+
+export const initialUserFilters = {
+    establishmentIds: []
+} as UserFilters;
 
 const initialState: UserState = {
     paginatedUsers: {
@@ -15,6 +21,7 @@ const initialState: UserState = {
         totalCount: 0,
         loading: true
     },
+    filters: initialUserFilters
 };
 
 const userReducer = (state = initialState, action: UserActionTypes) => {
@@ -28,10 +35,12 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
                     page: action.page,
                     perPage: action.perPage,
                     loading: true
-                }
+                },
+                filters: action.filters
             };
         case USER_LIST_FETCHED: {
             const isCurrentFetching =
+                action.filters === state.filters &&
                 action.paginatedUsers.page === state.paginatedUsers.page &&
                 action.paginatedUsers.perPage === state.paginatedUsers.perPage
             return !isCurrentFetching ? state : {

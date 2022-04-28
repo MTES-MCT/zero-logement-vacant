@@ -10,7 +10,7 @@ import applicationReducer from '../../store/reducers/applicationReducers';
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
-import { initialFilters } from '../../store/reducers/housingReducer';
+import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import { genAuthUser, genCampaign, genHousing, genPaginatedResult } from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
@@ -32,7 +32,7 @@ describe('housing view', () => {
         fetchMock.resetMocks();
         store = createStore(
             applicationReducer,
-            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
+            {authentication: {isLoggedIn: true, authUser: genAuthUser(), accountActivated: false}},
             applyMiddleware(thunk)
         );
     });
@@ -95,7 +95,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
                 method: 'POST',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: { ...initialFilters, ownerKinds: [ownerKindOptions[0].value]}, page: 1, perPage: config.perPageDefault}),
+                body: JSON.stringify({ filters: { ...initialHousingFilters, ownerKinds: [ownerKindOptions[0].value]}, page: 1, perPage: config.perPageDefault}),
             });
     });
 
@@ -121,7 +121,7 @@ describe('housing view', () => {
             `${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: {...initialFilters, query: 'my search'}, page: 1, perPage: config.perPageDefault}),
+            body: JSON.stringify({ filters: {...initialHousingFilters, query: 'my search'}, page: 1, perPage: config.perPageDefault}),
         });
     });
 

@@ -4,7 +4,7 @@ import { HousingFilters } from '../models/HousingFilters';
 import { Housing, HousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
-import { initialFilters } from '../store/reducers/housingReducer';
+import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 
@@ -44,7 +44,7 @@ const quickSearchService = (): {abort: () => void, fetch: (query: string) => Pro
         fetch: (query: string) => fetch(`${config.apiEndpoint}/api/housing`, {
             method: 'POST',
             headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters: {...initialFilters, query}, page: 1, perPage: 20 }),
+            body: JSON.stringify({ filters: {...initialHousingFilters, query}, page: 1, perPage: 20 }),
             signal
         })
             .then(_ => _.json())

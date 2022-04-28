@@ -27,25 +27,21 @@ export interface HousingFilters {
     query?: string;
 }
 
-export interface HousingFilterOption extends SelectOption {
-    badgeLabel?: string;
-}
-
-export const ownerAgeOptions: HousingFilterOption[] = [
+export const ownerAgeOptions: SelectOption[] = [
     {value: "lt40", label: "Moins de 40 ans", badgeLabel: "Âge : moins de 40 ans"},
     {value: "40to60", label: "40 - 60 ans", badgeLabel: "Âge : 40 - 60 ans"},
     {value: "60to75", label: "60 - 75 ans", badgeLabel: "Âge : 60 - 75 ans"},
     {value: "gt75", label: "75 ans et plus", badgeLabel: "Âge : 75 ans et plus"},
 ];
 
-export const ownerKindOptions: HousingFilterOption[] = [
+export const ownerKindOptions: SelectOption[] = [
     {value: "Particulier", label: "Particulier"},
     {value: "Investisseur", label: "Investisseur"},
     {value: "SCI", label: "SCI"},
     {value: "Autre", label: "Autres"}
 ];
 
-export const campaignsCountOptions: HousingFilterOption[] = [
+export const campaignsCountOptions: SelectOption[] = [
     {value: "0", label: "Jamais contacté"},
     {value: "current", label: "Dans une campagne en cours"},
     {value: "1", label: "Déjà contacté 1 fois"},
@@ -59,7 +55,7 @@ export const statusOptions = [
     ))
 ]
 
-export const beneficiaryCountOptions: HousingFilterOption[] = [
+export const beneficiaryCountOptions: SelectOption[] = [
     {value: "0", label: "Aucun", badgeLabel: "Aucun bénéficiaire"},
     {value: "1", label: "1", badgeLabel: "1 bénéficiaire"},
     {value: "2", label: "2", badgeLabel: "2 bénéficiaires"},
@@ -68,14 +64,14 @@ export const beneficiaryCountOptions: HousingFilterOption[] = [
     {value: "gt5", label: "5 ou plus", badgeLabel: "5 bénéficiaires ou plus"},
 ];
 
-export const housingCountOptions: HousingFilterOption[] = [
+export const housingCountOptions: SelectOption[] = [
     {value: "lt5", label: "Moins de 5", badgeLabel: "Moins de 5 logements"},
     {value: "5to20", label: "Entre 5 et 20", badgeLabel: "Entre 5 et 20 logements"},
     {value: "20to50", label: "Entre 20 et 50", badgeLabel: "Entre 20 et 50 logements"},
     {value: "gt50", label: "Plus de 50", badgeLabel: "Plus de 50 logements"},
 ];
 
-export const vacancyRateOptions: HousingFilterOption[] = [
+export const vacancyRateOptions: SelectOption[] = [
     {value: "lt20", label: "Moins de 20%", badgeLabel: "Moins de 20% de vacance"},
     {value: "20to40", label: "20% - 40%", badgeLabel: "Entre 20% et 40% de vacance"},
     {value: "40to60", label: "40% - 60%", badgeLabel: "Entre 40% et 60% de vacance"},
@@ -83,19 +79,19 @@ export const vacancyRateOptions: HousingFilterOption[] = [
     {value: "gt80", label: "Plus de 80%", badgeLabel: "Plus de 80% de vacance"},
 ];
 
-export const housingKindOptions: HousingFilterOption[] = [
+export const housingKindOptions: SelectOption[] = [
     {value: "APPART", label: "Appartement"},
     {value: "MAISON", label: "Maison"}
 ];
 
-export const housingAreaOptions: HousingFilterOption[] = [
+export const housingAreaOptions: SelectOption[] = [
     {value: "lt35", label: "Moins de 35 m2"},
     {value: "35to75", label: "35 - 75 m2"},
     {value: "75to100", label: "75 - 100 m2"},
     {value: "gt100", label: "Plus de 100 m2"},
 ];
 
-export const roomsCountOptions: HousingFilterOption[] = [
+export const roomsCountOptions: SelectOption[] = [
     {value: "1", label: "1 pièce"},
     {value: "2", label: "2 pièces"},
     {value: "3", label: "3 pièces"},
@@ -103,20 +99,20 @@ export const roomsCountOptions: HousingFilterOption[] = [
     {value: "5", label: "5 pièces et plus"},
 ];
 
-export const housingStateOptions: HousingFilterOption[] = [
+export const housingStateOptions: SelectOption[] = [
     {value: "Inconfortable", label: "Inconfortable"},
     {value: "Confortable", label: "Confortable"},
     {value: "VeryConfortable", label: "Très confortable"},
 ];
 
-export const buildingPeriodOptions: HousingFilterOption[] = [
+export const buildingPeriodOptions: SelectOption[] = [
     {value: "lt1919", label: "Avant 1919"},
     {value: "1919to1945", label: "Entre 1919 et 1945"},
     {value: "1946to1990", label: "Entre 1946 et 1990"},
     {value: "gt1991", label: "1991 ou après"},
 ];
 
-export const multiOwnerOptions: HousingFilterOption[] = [
+export const multiOwnerOptions: SelectOption[] = [
     {value: "true", label: "Oui", badgeLabel: "Multi-propriétaire"},
     {value: "false", label: "Non", badgeLabel: "Mono-propriétaire"}
 ];
@@ -128,12 +124,12 @@ export const vacancyDurationOptions = [
     {value: "gt10", label: "Plus de 10 ans", badgeLabel: "Durée de vacance : plus de 10 ans"},
 ];
 
-export const taxedOptions: HousingFilterOption[] = [
+export const taxedOptions: SelectOption[] = [
     {value: "true", label: "Oui", badgeLabel: "Taxé"},
     {value: "false", label: "Non", badgeLabel: "Non taxé"}
 ];
 
-export const ownershipKindsOptions: HousingFilterOption[] = [
+export const ownershipKindsOptions: SelectOption[] = [
     {value: "single", label: "Monopropriété"},
     {value: "co", label: "Copropriété"},
     {value: "other", label: "Autre", badgeLabel: "Autre type de propriété"}

@@ -14,7 +14,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import { DraftCampaign } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
-import { initialFilters } from '../../store/reducers/housingReducer';
+import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
 import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
@@ -34,7 +34,7 @@ const HousingListView = () => {
     useEffect(() => {
         const query = (new URLSearchParams(search)).get('q')
         if (query) {
-            dispatch(changeHousingFiltering({ ...initialFilters, query }))
+            dispatch(changeHousingFiltering({ ...initialHousingFilters, query }))
         } else {
             dispatch(changeHousingFiltering(filters))
         }

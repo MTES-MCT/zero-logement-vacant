@@ -3,14 +3,15 @@ import authService from './auth.service';
 import { PaginatedResult } from '../models/PaginatedResult';
 import { DraftUser, User } from '../models/User';
 import { parseISO } from 'date-fns';
+import { UserFilters } from '../models/UserFilters';
 
 
-const listUsers = async (page: number, perPage: number): Promise<PaginatedResult<User>> => {
+const listUsers = async (filters: UserFilters, page: number, perPage: number): Promise<PaginatedResult<User>> => {
 
     return await fetch(`${config.apiEndpoint}/api/users`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page, perPage }),
+        body: JSON.stringify({ filters, page, perPage }),
     })
         .then(_ => _.json())
         .then(result => ({

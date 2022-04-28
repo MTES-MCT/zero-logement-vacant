@@ -10,7 +10,7 @@ export interface HousingState {
     filters: HousingFilters;
 }
 
-export const initialFilters = {
+export const initialHousingFilters = {
     ownerKinds: [],
     ownerAges: [],
     multiOwners: [],
@@ -42,7 +42,7 @@ const initialState = {
         totalCount: 0,
         loading: true
     },
-    filters: initialFilters,
+    filters: initialHousingFilters,
     checkedHousingIds: []
 };
 

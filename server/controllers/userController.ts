@@ -3,6 +3,7 @@ import userRepository from '../repositories/userRepository';
 import { RequestUser, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
 import mailService, { ActivationMail } from '../services/mailService';
+import { UserFiltersApi } from '../models/UserFiltersApi';
 
 const createUser = async (request: Request, response: Response): Promise<Response> => {
 
@@ -21,9 +22,10 @@ const list = async (request: Request, response: Response): Promise<Response> => 
     const page = request.body.page;
     const perPage = request.body.perPage;
     const role = (<RequestUser>request.user).role;
+    const filters = <UserFiltersApi> request.body.filters ?? {};
 
     return role === UserRoles.Admin ?
-        userRepository.list(page, perPage).then(_ => response.status(200).json(_)) :
+        userRepository.listWithFilters(filters, page, perPage).then(_ => response.status(200).json(_)) :
             response.sendStatus(401);
 };
 

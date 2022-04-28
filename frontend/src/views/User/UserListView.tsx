@@ -4,32 +4,53 @@ import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { changeUserPagination, createUser, sendActivationMail } from '../../store/actions/userAction';
+import {
+    changeUserFiltering,
+    changeUserPagination,
+    createUser,
+    sendActivationMail,
+} from '../../store/actions/userAction';
 import { DraftUser, User } from '../../models/User';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { fetchAvailableEstablishments } from '../../store/actions/authenticationAction';
 import UserCreationModal from '../../components/modals/UserCreationModal/UserCreationModal';
+import UserListFilter from './UserListFilter';
+import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
+import { SelectOption } from '../../models/SelectOption';
+import { displayCount } from '../../utils/stringUtils';
 
 const UserListView = () => {
 
     const dispatch = useDispatch();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<SelectOption[]>([]);
     const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
-    const { paginatedUsers } = useSelector((state: ApplicationState) => state.user);
+    const { paginatedUsers, filters } = useSelector((state: ApplicationState) => state.user);
 
     useEffect(() => {
         dispatch(changeUserPagination(0, 500))
         if (!availableEstablishments?.length) {
             dispatch(fetchAvailableEstablishments())
+        } else {
+            setAvailableEstablishmentOptions(availableEstablishments.map(establishment => ({
+                value: establishment.id,
+                label: establishment.name
+            })))
         }
-    }, [dispatch]);
-
+    }, [dispatch, availableEstablishments]);
 
     const onSubmitDraftUser = (draftUser: DraftUser) => {
         dispatch(createUser(draftUser))
         setIsCreateModalOpen(false)
+    }
+
+    const removeFilter = (removedFilter: any) => {
+        dispatch(changeUserFiltering({
+            ...filters,
+            ...removedFilter,
+        }));
     }
 
     const nameColumn = {
@@ -93,27 +114,51 @@ const UserListView = () => {
 
     return (
         <>
-            <Container>
-                <AppBreadcrumb />
-                <Row>
-                    <Col>
-                        <Title as="h1" className="fr-mb-4w">Utilisateurs</Title>
-                    </Col>
-                    <Col>
-                        <Button title="Ajouter un utilisateur"
-                                onClick={() => setIsCreateModalOpen(true)}
-                                className="float-right">
-                            Ajouter un utilisateur
-                        </Button>
-                    </Col>
-                </Row>
+            <div className="bg-100">
+                <Container spacing="pb-1w">
+                    <AppBreadcrumb />
+                    <Row>
+                        <Col n="8">
+                            <Title as="h1">Utilisateurs</Title>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <UserListFilter availableEstablishmentOptions={availableEstablishmentOptions}/>
+                        </Col>
+                    </Row>
+                </Container>
+            </div>
+            <Container spacing="pt-2w">
                 {isCreateModalOpen &&
                     <UserCreationModal
                         availableEstablishments={availableEstablishments ?? []}
                         onSubmit={(draftUser: DraftUser) => onSubmitDraftUser(draftUser)}
                         onClose={() => setIsCreateModalOpen(false)}/>}
 
-                {paginatedUsers.entities?.length > 0 &&
+                <Row>
+                    <FilterBadges filters={filters.establishmentIds}
+                                  options={availableEstablishmentOptions}
+                                  onChange={(values) => removeFilter({ establishmentIds: values })}/>
+                </Row>
+
+                {paginatedUsers && <>
+
+                    {!paginatedUsers.loading &&
+                        <Row alignItems="middle" className="fr-py-1w">
+                            <Col>
+                                <b>{displayCount(paginatedUsers.totalCount, 'utilisateur')}</b>
+                            </Col>
+                            <Col>
+                                <Button title="Ajouter un utilisateur"
+                                        onClick={() => setIsCreateModalOpen(true)}
+                                        className="float-right">
+                                    Ajouter un utilisateur
+                                </Button>
+                            </Col>
+                        </Row>
+                    }
+
                     <Table
                         caption="Utilisateurs"
                         captionPosition="none"
@@ -123,7 +168,8 @@ const UserListView = () => {
                         fixedLayout={true}
                         data-testid="housing-table"
                     />
-                }
+
+                </>}
             </Container>
         </>
     );

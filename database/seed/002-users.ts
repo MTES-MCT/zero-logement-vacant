@@ -7,5 +7,6 @@ exports.seed = function(knex) {
         password: '',
         first_name: 'FirsName1',
         last_name: 'LastName1',
+        role: '1'
     })
 };

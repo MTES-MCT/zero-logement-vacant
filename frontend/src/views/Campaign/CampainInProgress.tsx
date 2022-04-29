@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Tab, Tabs } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tab, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
@@ -190,24 +190,42 @@ const CampaignInProgress = () => {
     }
 
     return (
-        <Tabs>
+        <Tabs className="campaignTabs">
             <Tab label={getTabLabel(HousingStatus.Waiting)}>
+                <Text>
+                    Le propriétaire n’a pas répondu.
+                </Text>
                 <TabContent status={HousingStatus.Waiting}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.FirstContact)}>
+                <Text>
+                    Il y a eu un retour ou un échange avec le propriétaire.
+                </Text>
                 <TabContent status={HousingStatus.FirstContact}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.InProgress)}>
+                <Text>
+                    La vacance du bien est confirmée et celui-ci fait l’objet d’un projet de travaux, d’une vente en cours ou est accompagné par un partenaire pour une remise sur le marché.
+                </Text>
                 <TabContent status={HousingStatus.InProgress}/>
             </Tab>
+            <Tab label={getTabLabel(HousingStatus.Exit)}>
+                <Text>
+                    Le bien est sorti de la vacance après être passé par le statut &quot;Suivi en cours&quot;.
+                </Text>
+                <TabContent status={HousingStatus.Exit}/>
+            </Tab>
             <Tab label={getTabLabel(HousingStatus.NotVacant)}>
+                <Text>
+                    Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’est pas vacant (et celui-ci n’a jamais fait l’objet d’un suivi) ou qu’il a été vendu récemment.
+                </Text>
                 <TabContent status={HousingStatus.NotVacant}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.NoAction)}>
+                <Text>
+                    La vacance du bien est confirmée mais la situation est complexe et le propriétaire ne semble pas être dans une dynamique de sortie de vacance.
+                </Text>
                 <TabContent status={HousingStatus.NoAction}/>
-            </Tab>
-            <Tab label={getTabLabel(HousingStatus.Exit)}>
-                <TabContent status={HousingStatus.Exit}/>
             </Tab>
         </Tabs>
     );

@@ -3,7 +3,7 @@ import { Housing } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { Address } from '../src/models/Address';
 import { Campaign } from '../src/models/Campaign';
-import { initialFilters } from '../src/store/reducers/housingReducer';
+import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
 
 const randomstring = require('randomstring');
@@ -33,7 +33,8 @@ export function genAuthUser() {
             id: genNumber(10),
             name: randomstring.generate(),
             housingScopes: {geom: true, scopes: []},
-            localities: []
+            localities: [],
+            siren: genNumber(10)
         }
     } as AuthUser;
 }
@@ -85,7 +86,9 @@ export function genHousing() {
         buildingYear: genNumber(4),
         vacancyStartYear: genNumber(4),
         dataYears: [2021],
-        campaignIds: []
+        campaignIds: [],
+        cadastralReference: '',
+        vacancyReasons: []
     } as Housing;
 }
 
@@ -97,10 +100,11 @@ export function genCampaign() {
         startMonth: '2201',
         reminderNumber: 0,
         name: randomstring.generate(),
-        filters: initialFilters,
+        filters: initialHousingFilters,
         createdAt: new Date(),
         housingCount: genNumber(2),
-        ownerCount: genNumber(2)
+        ownerCount: genNumber(2),
+        kind: 1
     } as Campaign;
 }
 

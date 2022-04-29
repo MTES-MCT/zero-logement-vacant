@@ -15,9 +15,12 @@ import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampainView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import { isValidUser } from './models/User';
+import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
+import AccountActivationView from './views/Account/AccountActivationView';
+import UserListView from './views/User/UserListView';
+import AccountPasswordView from './views/Account/AccountPasswordView';
 
 
 function AppWrapper () {
@@ -44,7 +47,7 @@ function AppWrapper () {
 
 function App() {
 
-    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser, accountActivated } = useSelector((state: ApplicationState) => state.authentication);
     const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
@@ -71,6 +74,11 @@ function App() {
                                 <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
+                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
+                                {authUser.user.role === UserRoles.Admin &&
+                                    <Route exact path="/utilisateurs" component={UserListView}/>
+                                }
                                 <Route path="/*">
                                     <Redirect to="/accueil" />
                                 </Route>
@@ -79,6 +87,9 @@ function App() {
                         <Switch>
                             <Route exact path="/" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
+                            {!accountActivated &&
+                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
+                            }
                             <Route path="/*">
                                 <Redirect to="/" />
                             </Route>

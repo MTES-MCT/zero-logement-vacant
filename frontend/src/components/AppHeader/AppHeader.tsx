@@ -17,7 +17,8 @@ import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { logout } from '../../store/actions/authenticationAction';
-import { isValidUser } from '../../models/User';
+import { isValidUser, UserRoles } from '../../models/User';
+import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 
 function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
@@ -51,6 +52,11 @@ function AppHeader() {
         history.push('/accueil');
     }
 
+    const menuActions = [
+        { title: 'Modifier mon mot de passe', icon: 'ri-key-2-fill', onClick: () => history.push('/compte/mot-de-passe')},
+        { title: 'Me déconnecter', icon: 'ri-lock-line', onClick: () => logoutUser()}
+    ] as MenuAction[]
+
     return (
         <>
             <Header closeButtonLabel='Close it!' data-testid="header">
@@ -62,7 +68,13 @@ function AppHeader() {
                     {isValidUser(authUser) &&
                     <Tool>
                         <ToolItemGroup>
-                            <ToolItem icon='ri-lock-line' onClick={() => logoutUser()}>Me déconnecter</ToolItem>
+                            <ToolItem>
+                                <AppActionsMenu
+                                    actions={menuActions}
+                                    title={`${authUser.user.firstName} ${authUser.user.lastName}`}
+                                    icon="ri-account-circle-line"
+                                    iconPosition="left"/>
+                            </ToolItem>
                         </ToolItemGroup>
                     </Tool>
                     }
@@ -72,6 +84,9 @@ function AppHeader() {
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
+                        {authUser.user.role === UserRoles.Admin &&
+                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
+                        }
                     </HeaderNav>
                 }
             </Header>

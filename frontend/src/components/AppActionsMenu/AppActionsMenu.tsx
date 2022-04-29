@@ -3,14 +3,27 @@ import styles from './app-actions-menu.module.scss';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectedHousing } from '../../models/Housing';
 import { Alert } from "@dataesr/react-dsfr";
+import classNames from 'classnames';
 
 export interface MenuAction {
     title: string,
+    icon?: string,
     selectedHousing?: SelectedHousing,
     onClick: () => void
 }
 
-const AppActionsMenu = ({ actions } : { actions: MenuAction[] }) => {
+const AppActionsMenu = (
+    {
+        title,
+        icon,
+        iconPosition = 'right',
+        actions
+    } : {
+        title?: string,
+        icon?: string,
+        iconPosition?: string,
+        actions: MenuAction[]
+    }) => {
 
     const [expandActions, setExpandActions] = useState<boolean>(false);
     const [actionAlert, setActionAlert] = useState(false);
@@ -50,7 +63,13 @@ const AppActionsMenu = ({ actions } : { actions: MenuAction[] }) => {
                         aria-expanded={expandActions}
                         onClick={() => {setExpandActions(!expandActions)}}
                     >
-                        Actions<span className="ri-more-2-fill" aria-hidden="true" />
+                        {iconPosition === 'left' &&
+                            <span className={classNames('fr-mr-1w', icon ?? 'ri-more-2-fill')} aria-hidden="true" />
+                        }
+                        <span>{title ?? 'Actions'}</span>
+                        {iconPosition === 'right' &&
+                            <span className={classNames(icon ?? 'ri-more-2-fill')} aria-hidden="true" />
+                        }
                     </button>
                     {expandActions &&
                     <div className={styles.actions}>
@@ -61,6 +80,9 @@ const AppActionsMenu = ({ actions } : { actions: MenuAction[] }) => {
                                      title={action.title}
                                      onClick={() => handleAction(action)}
                             >
+                                {action.icon &&
+                                    <span className={classNames('fr-mr-1w', action.icon)} aria-hidden="true"/>
+                                }
                                 {action.title}
                             </button>
                         )}

@@ -184,10 +184,11 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 const deleteCampaign = async (request: Request, response: Response): Promise<Response> => {
 
     const campaignNumber = Number(request.params.campaignNumber);
+    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
     const campaigns = await campaignRepository.listCampaigns(establishmentId)
-    const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber)
+    const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
 
     if (!campaignsToDelete.length) {
         return response.sendStatus(401)
@@ -197,11 +198,11 @@ const deleteCampaign = async (request: Request, response: Response): Promise<Res
 
         await eventRepository.deleteEventsFromCampaigns(campaignsToDelete.map(_ => _.id))
 
-        await campaignRepository.deleteCampaignBundle(establishmentId, campaignNumber)
+        await campaignRepository.deleteCampaigns(campaignsToDelete.map(_ => _.id))
 
         return Promise.all(
             campaigns
-                .filter(_ => _.campaignNumber > campaignNumber)
+                .filter(_ => _.campaignNumber > campaignNumber && reminderNumber === undefined)
                 .map(campaign => campaignRepository.update({
                     ...campaign,
                     campaignNumber: campaign.campaignNumber - 1

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Footer, FooterBody, FooterBodyItem, Link, Logo } from '@dataesr/react-dsfr';
+import { Footer, FooterBody, FooterBodyItem, FooterBottom, FooterLink, Link, Logo } from '@dataesr/react-dsfr';
 
 function AppFooter() {
 
@@ -18,6 +18,9 @@ function AppFooter() {
                     </Link>
                 </FooterBodyItem>
             </FooterBody>
+            <FooterBottom>
+                <FooterLink href="/stats">Statistiques</FooterLink>
+            </FooterBottom>
         </Footer>
     )
 

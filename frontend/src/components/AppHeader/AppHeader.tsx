@@ -4,13 +4,14 @@ import {
     HeaderBody,
     HeaderNav,
     Logo,
+    Link,
     NavItem,
     Service,
     Tool,
     ToolItem,
     ToolItemGroup,
 } from '@dataesr/react-dsfr';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
@@ -65,18 +66,23 @@ function AppHeader() {
                     <Service
                         title="Zéro Logement Vacant"
                         description={isValidUser(authUser) ? authUser.establishment.name : ''}/>
-                    {isValidUser(authUser) &&
-                    <Tool>
-                        <ToolItemGroup>
-                            <ToolItem>
-                                <AppActionsMenu
-                                    actions={menuActions}
-                                    title={`${authUser.user.firstName} ${authUser.user.lastName}`}
-                                    icon="ri-account-circle-line"
-                                    iconPosition="left"/>
-                            </ToolItem>
-                        </ToolItemGroup>
-                    </Tool>
+                    {isValidUser(authUser) ?
+                        <Tool>
+                            <ToolItemGroup>
+                                <ToolItem>
+                                    <AppActionsMenu
+                                        actions={menuActions}
+                                        title={`${authUser.user.firstName} ${authUser.user.lastName}`}
+                                        icon="ri-account-circle-line"
+                                        iconPosition="left"/>
+                                </ToolItem>
+                            </ToolItemGroup>
+                        </Tool> :
+                        <Tool>
+                            <ToolItemGroup>
+                                <ToolItem icon="ri-user-fill" link="/connexion">Connexion</ToolItem>
+                            </ToolItemGroup>
+                        </Tool>
                     }
                 </HeaderBody>
                 {isValidUser(authUser) &&

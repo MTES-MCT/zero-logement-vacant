@@ -4,14 +4,13 @@ import {
     HeaderBody,
     HeaderNav,
     Logo,
-    Link,
     NavItem,
     Service,
     Tool,
     ToolItem,
     ToolItemGroup,
 } from '@dataesr/react-dsfr';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';

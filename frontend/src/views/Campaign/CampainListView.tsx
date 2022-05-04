@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Container, Tab, Tabs, Text, Title, Button, Row, Col } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteCampaignBundle, listCampaignBundles } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { CampaignBundle } from '../../models/Campaign';
+import { CampaignBundleId } from '../../models/Campaign';
 import { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -19,14 +19,14 @@ const CampaignsListView = () => {
     const campaignList = useCampaignList(true);
 
     const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
-    const [removingModalCampaign, setRemovingModalCampaign] = useState<CampaignBundle | undefined>();
+    const [removingModalCampaignBundleId, setRemovingModalCampaignBundleId] = useState<CampaignBundleId | undefined>();
 
     useEffect(() => {
         dispatch(listCampaignBundles())
     }, [dispatch]);
 
-    const menuActions = (campaignBundle: CampaignBundle) => [
-        { title: 'Supprimer la campagne', onClick: () => setRemovingModalCampaign(campaignBundle)}
+    const menuActions = (CampaignBundleId: CampaignBundleId) => [
+        { title: `Supprimer la ${CampaignBundleId.reminderNumber ? 'relance' : 'campagne'}`, onClick: () => setRemovingModalCampaignBundleId(CampaignBundleId)}
     ] as MenuAction[]
 
     return (
@@ -62,19 +62,19 @@ const CampaignsListView = () => {
                     </Tab>
                 </Tabs>
             </Container>
-            {removingModalCampaign && removingModalCampaign.campaignNumber &&
+            {removingModalCampaignBundleId && removingModalCampaignBundleId.campaignNumber &&
                 <ConfirmationModal
                     onSubmit={() => {
-                        if (removingModalCampaign.campaignNumber) {
-                            dispatch(deleteCampaignBundle(removingModalCampaign.campaignNumber))
+                        if (removingModalCampaignBundleId.campaignNumber) {
+                            dispatch(deleteCampaignBundle(removingModalCampaignBundleId))
                         }
-                        setRemovingModalCampaign(undefined);
+                        setRemovingModalCampaignBundleId(undefined);
                     }}
-                    onClose={() => setRemovingModalCampaign(undefined)}>
+                    onClose={() => setRemovingModalCampaignBundleId(undefined)}>
                     <Text size="md">
-                        Êtes-vous sûr de vouloir supprimer cette campagne ?
+                        Êtes-vous sûr de vouloir supprimer cette {removingModalCampaignBundleId.reminderNumber ? 'relance' : 'campagne'} ?
                     </Text>
-                    {(removingModalCampaign.campaignNumber < (campaignList ?? []).length) &&
+                    {(!removingModalCampaignBundleId.reminderNumber && removingModalCampaignBundleId.campaignNumber < (campaignList ?? []).length) &&
                         <Alert description="Les campagnes suivantes seront renumérotées"
                                type="info"/>
                     }

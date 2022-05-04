@@ -330,13 +330,13 @@ export const removeCampaignHousingList = (campaignId: string, allHousing: boolea
     }
 }
 
-export const deleteCampaignBundle = (campaignNumber: number) => {
+export const deleteCampaignBundle = (campaignBundleId: CampaignBundleId) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
-        campaignService.deleteCampaignBundle(campaignNumber)
+        campaignService.deleteCampaignBundle(campaignBundleId)
             .then(() => {
                 dispatch(hideLoading());
                 listCampaigns()(dispatch)

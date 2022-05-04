@@ -13,7 +13,7 @@ AS $$
            ff_idlocal as local_id,
            ff_idbat as building_id,
            array[ltrim(trim(libvoie), '0'), trim(libcom)] as raw_address,
-           ccodep || commune as insee_code,
+           lpad(ccodep, 2, '0') || lpad(commune, 3, '0') as insee_code,
            ff_x_4326 as latitude,
     --        replace(ff_x_4326, ',', '.')::double precision as latitude,
            ff_y_4326 as longitude,
@@ -39,7 +39,7 @@ AS $$
            (case
                when ff_jdatnss_1 <> '0' and ff_jdatnss_1 <> '00/00/0000' and (
                    (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'MM/DD/YYYY') end) as birth_date,
+                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'DD/MM/YYYY') end) as birth_date,
            (case
                when trim(groupe::text) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
@@ -55,7 +55,7 @@ AS $$
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail,
            array_agg(distinct(ff_idlocal)) as local_ids
-        from _extract_zlv_2022_1, lateral (
+        from _extract_zlv_2022_, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
@@ -68,6 +68,8 @@ AS $$
     BEGIN
 
         OPEN housing_cursor;
+
+        update _extract_zlv_2022_ set anmutation = '01/01/' || substr(anmutation, 3) where anmutation ~ '[0-9]{4}';
 
         LOOP
             FETCH housing_cursor INTO housing_var;

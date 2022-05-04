@@ -3,7 +3,7 @@ import { Alert, Badge, Col, Row, Text, Title } from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { Link } from 'react-router-dom';
 import {
-    CampaignBundle,
+    CampaignBundle, CampaignBundleId,
     campaignBundleIdUrlFragment,
     campaignStep,
     CampaignSteps,
@@ -25,7 +25,7 @@ const CampaignBundleList = (
         menuActions
     }: {
         campaignBundleList: CampaignBundle[],
-        menuActions?: (campaignBundle: CampaignBundle) => MenuAction[]
+        menuActions?: (campaignBundleId: CampaignBundleId) => MenuAction[]
     }) => {
 
     const campaignList = useCampaignList(true);
@@ -97,7 +97,7 @@ const CampaignBundleList = (
                             }
                         </Col>
                     </Row>
-                    {campaignsOfBundle(campaignBundle).length > 1 && campaignsOfBundle(campaignBundle).map(campaign =>
+                    {campaignsOfBundle(campaignBundle).length > 1 && campaignsOfBundle(campaignBundle).map((campaign, campaignIndex) =>
                         <div key={`Campaign_${campaign.id}`}>
                             <hr className="fr-pb-1w fr-mt-1w"/>
                             <Row>
@@ -116,7 +116,12 @@ const CampaignBundleList = (
                                                type="error"/>
                                     }
                                 </Col>
-                                <Col n="2">
+                                {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && menuActions?.length &&
+                                    <div className="fr-pr-2w">
+                                        <AppActionsMenu actions={menuActions(campaign as CampaignBundleId)}/>
+                                    </div>
+                                }
+                                <Col n="1">
                                     <Link title="Accéder à la campagne" to={'/campagnes/' + campaignBundleIdUrlFragment({campaignNumber: campaign.campaignNumber, reminderNumber: campaign.reminderNumber})} className="float-right ds-fr--inline fr-link">
                                         Accéder<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                     </Link>

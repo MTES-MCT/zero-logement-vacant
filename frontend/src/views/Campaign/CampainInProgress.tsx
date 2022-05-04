@@ -110,7 +110,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
             {!paginatedCampaignHousing.loading && <>
                 <b>{displayCount(paginatedCampaignHousing.totalCount, 'logement')}</b>
 
-                <Row alignItems="middle">
+                <Row alignItems="middle" className="fr-pb-2w">
                     {paginatedCampaignHousing.totalCount > 0 &&
                         <Col>
                             <AppActionsMenu actions={menuActions}/>
@@ -118,7 +118,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                     }
                     {status === HousingStatus.Waiting && (campaignBundle.campaignNumber ?? 0) > 0 &&
                         <Col>
-                            <Button title="Créer une relance"
+                            <Button title="Créer une campagne de relance"
                                     className="float-right"
                                     onClick={handleCampaignReminder}>
                                 Créer une campagne de relance

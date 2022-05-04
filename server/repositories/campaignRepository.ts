@@ -184,15 +184,14 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
     }
 }
 
-const deleteCampaignBundle = async (establishmentId: string, campaignNumber: number): Promise<number> => {
+const deleteCampaigns = async (campaignIds: string[]): Promise<number> => {
     try {
         return db(campaignsTable)
             .delete()
-            .where('establishment_id', establishmentId)
-            .andWhere('campaign_number', campaignNumber)
+            .whereIn('id', campaignIds)
     } catch (err) {
-        console.error('Deleting campaign bundle failed', err, campaignNumber);
-        throw new Error('Deleting campaign bundle failed');
+        console.error('Deleting campaigns', err, deleteCampaigns);
+        throw new Error('Deleting campaigns failed');
     }
 }
 
@@ -253,5 +252,5 @@ export default {
     lastReminderNumber,
     insert,
     update,
-    deleteCampaignBundle
+    deleteCampaigns
 }

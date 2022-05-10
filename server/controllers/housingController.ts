@@ -108,10 +108,11 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
             'Passage à ' + [
                 '',
                 'En attente de retour',
+                'Premier contact',
                 'Suivi en cours',
                 'Non-vacant',
                 'Bloqué',
-                'Accompagnement terminé'
+                'Sortie de la vacance'
             ][housingUpdateApi.status],
             housingUpdateApi.subStatus,
             housingUpdateApi.precisions?.join(', ')

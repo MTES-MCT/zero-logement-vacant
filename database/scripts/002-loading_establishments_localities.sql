@@ -42,6 +42,10 @@ INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Mantes-la-Jolie', (select array_agg(id) from localities where geo_code = '78361'), 217803618, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Montclar', (select array_agg(id) from localities where geo_code = '04126'), 210401261, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Bastia', (select array_agg(id) from localities where geo_code = '2B033'), 212000335, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('DDTM Pas-de-Calais', (select array_agg(id) from localities where geo_code like '62%'), 130010366, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -95,5 +99,22 @@ update establishments set available = true where siren in
  '247000011',
  '200067759',
  '200035731',
- '243400017'
+ '243400017',
+ '241800374',
+ '200023307',
+ '241800507',
+ '200070407',
+ '130010366',
+ '244300307',
+ '200071082',
+ '212000335',
+ '200041630',
+ '243500139',
+ '244100798',
+ '247200090',
+ '212000046',
+ '248400251',
+ '200069425',
+ '200070324',
+ '130010366'
 );

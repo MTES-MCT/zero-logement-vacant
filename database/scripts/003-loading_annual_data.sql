@@ -26,7 +26,9 @@ AS $$
            ff_stoth as living_area,
            refcad as cadastral_reference,
            (case when (ff_jannath > 100) then ff_jannath end) as building_year,
-           to_date(anmutation, 'MM/DD/YY') as mutation_date,
+           (case
+               when (anmutation like '%/%/%') then to_date(anmutation, 'MM/DD/YY')
+               else to_date('01/01/' || anmutation, 'MM/DD/YY')  end) as mutation_date,
            trim(txtlv) <> '' as taxed,
            annee as data_year,
            ff_ndroit as beneficiary_count,
@@ -37,9 +39,9 @@ AS $$
            var.administrator as administrator,
            array[nullif(trim(adresse1), ''), nullif(trim(adresse2), ''), nullif(trim(adresse3), ''), nullif(trim(adresse4), '')] as owner_raw_address,
            (case
-               when ff_jdatnss_1 <> '0' and ff_jdatnss_1 <> '00/00/0000' and (
+               when ff_jdatnss_1 <> '0' and ff_jdatnss_1 not like '00/00/%' and ff_jdatnss_1 not like '%/%/18%' and (
                    (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'DD/MM/YYYY') end) as birth_date,
+                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'MM/DD/YYYY') end) as birth_date,
            (case
                when trim(groupe::text) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
@@ -55,7 +57,7 @@ AS $$
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail,
            array_agg(distinct(ff_idlocal)) as local_ids
-        from _extract_zlv_2022_, lateral (
+        from _extract_zlv_2022_5, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
@@ -69,7 +71,7 @@ AS $$
 
         OPEN housing_cursor;
 
-        update _extract_zlv_2022_ set anmutation = '01/01/' || substr(anmutation, 3) where anmutation ~ '[0-9]{4}';
+        update _extract_zlv_2022_5 set anmutation = '01/01/' || substr(anmutation, 3) where anmutation ~ '[0-9]{4}';
 
         LOOP
             FETCH housing_cursor INTO housing_var;

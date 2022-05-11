@@ -87,7 +87,7 @@ const createCampaign = async (request: Request, response: Response): Promise<Res
     const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
 
     const housingIds = allHousing ?
-        await housingRepository.listWithFilters(establishmentId, {...filters, localities: filterLocalities})
+        await housingRepository.listWithFilters( {...filters, establishmentIds: [establishmentId], localities: filterLocalities})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
@@ -128,7 +128,7 @@ const createReminderCampaign = async (request: Request, response: Response): Pro
     })
 
     const housingIds = allHousing ?
-        await housingRepository.listWithFilters(establishmentId, {campaignIds: campaignBundle.campaignIds, status: [HousingStatusApi.Waiting]})
+        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: campaignBundle.campaignIds, status: [HousingStatusApi.Waiting]})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => request.body.housingIds.indexOf(id) === -1)
@@ -159,7 +159,7 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
     }))
 
     if (step === CampaignSteps.Sending) {
-        const housingList = await housingRepository.listWithFilters(establishmentId, {campaignIds: [campaignId]}).then(_ => _.entities)
+        const housingList = await housingRepository.listWithFilters({establishmentIds: [establishmentId], campaignIds: [campaignId]}).then(_ => _.entities)
 
         await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
 
@@ -224,7 +224,7 @@ const removeHousingList = async (request: Request, response: Response): Promise<
     const establishmentId = (<RequestUser>request.user).establishmentId;
 
     const housingIds =
-        await housingRepository.listWithFilters(establishmentId, {campaignIds: [campaignId], status: [campaignHousingStatusApi]})
+        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: [campaignHousingStatusApi]})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => allHousing ? request.body.housingIds.indexOf(id) === -1 : request.body.housingIds.indexOf(id) !== -1)

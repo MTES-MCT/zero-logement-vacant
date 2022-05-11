@@ -206,7 +206,7 @@ const HomeView = () => {
                                 Vous avez reçu un courrier alors que votre logement n’est pas vacant ?
                             </Text>
                             <Link title="Rectifier la situation"
-                                  to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }}
+                                  to={{ pathname: "https://zlv.softr.app/rectification" }}
                                   target="_blank"
                                   className="fr-btn--md fr-btn">
                                 Rectifier la situation

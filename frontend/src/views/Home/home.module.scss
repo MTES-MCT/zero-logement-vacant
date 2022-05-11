@@ -10,6 +10,11 @@
   outline: 1px solid var(--white-1000);
   outline-offset: -10px;
 
+  a {
+    color: var(--blue-france-113) !important;
+    background-color: var(--white-1000) !important;
+  }
+
   * {
     color: var(--white-1000);
   }

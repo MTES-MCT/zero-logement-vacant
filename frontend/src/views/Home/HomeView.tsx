@@ -1,14 +1,20 @@
 import React from 'react';
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
-import building from '../../assets/images/building.svg'
-import new_message from '../../assets/images/new_message.svg'
-import people_search from '../../assets/images/people_search.svg'
-import sync_files from '../../assets/images/sync_files.svg'
-import statistic_chart from '../../assets/images/statistic_chart.svg'
-import location_review from '../../assets/images/location_review.svg'
-import real_time_collaboration from '../../assets/images/real_time_collaboration.svg'
-import quote from '../../assets/images/quote.svg'
-import collaboration from '../../assets/images/collaboration.svg'
+import building from '../../assets/images/building.svg';
+import new_message from '../../assets/images/new_message.svg';
+import people_search from '../../assets/images/people_search.svg';
+import sync_files from '../../assets/images/sync_files.svg';
+import statistic_chart from '../../assets/images/statistic_chart.svg';
+import location_review from '../../assets/images/location_review.svg';
+import real_time_collaboration from '../../assets/images/real_time_collaboration.svg';
+import quote from '../../assets/images/quote.svg';
+import logo_caba from '../../assets/images/logo_caba.svg';
+import logo_roanne_agglo from '../../assets/images/logo_roanne_agglo.png';
+import logo_roubaix from '../../assets/images/logo_roubaix.png';
+import logo_saint_lo_agglo from '../../assets/images/logo_saint_lo_agglo.png';
+import logo_strasbourg from '../../assets/images/logo_strasbourg.png';
+import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
+import collaboration from '../../assets/images/collaboration.svg';
 import { Link } from 'react-router-dom';
 import styles from './home.module.scss';
 
@@ -159,8 +165,31 @@ const HomeView = () => {
                             </Text>
                         </Col>
                     </Row>
+                    <Row gutters alignItems="middle">
+                        <Col n="2">
+                            <img src={logo_caba} width="100%" alt=""/>
+                        </Col>
+                        <Col n="2">
+                            <img src={logo_roanne_agglo} width="100%" alt=""/>
+                        </Col>
+                        <Col n="2">
+                            <img src={logo_roubaix} width="100%" alt=""/>
+                        </Col>
+                        <Col n="2">
+                            <img src={logo_saint_lo_agglo} width="100%" alt=""/>
+                        </Col>
+                        <Col n="2">
+                            <img src={logo_strasbourg} width="100%" alt=""/>
+                        </Col>
+                        <Col n="2">
+                            <img src={logo_vire_normandie} width="100%" alt=""/>
+                        </Col>
+                    </Row>
                     <Row gutters justifyContent="center" className="fr-pt-2w">
-                        <Link title="Rejoindre la communauté" to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }} target="_blank" className="fr-btn--md fr-btn">
+                        <Link title="Rejoindre la communauté"
+                              to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }}
+                              target="_blank"
+                              className="fr-btn--md fr-btn">
                             Rejoindre la communauté
                         </Link>
                     </Row>
@@ -173,14 +202,22 @@ const HomeView = () => {
                     </Title>
                     <Row gutters>
                         <Col>
-                            Vous avez reçu un courrier alors que votre logement n’est pas vacant ?
+                            <Text>
+                                Vous avez reçu un courrier alors que votre logement n’est pas vacant ?
+                            </Text>
+                            <Link title="Rectifier la situation"
+                                  to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }}
+                                  target="_blank"
+                                  className="fr-btn--md fr-btn">
+                                Rectifier la situation
+                            </Link>
                         </Col>
-                        <Col>
-                            Votre logement est inoccupé et vous souhaitez connaître les aides financières disponibles ?
-                        </Col>
-                        <Col>
-                            Vous souhaitez bénéficier d’un accompagnement personnalisé pour remettre votre logement sur le marché ?
-                        </Col>
+                        {/*<Col>*/}
+                        {/*    Votre logement est inoccupé et vous souhaitez connaître les aides financières disponibles ?*/}
+                        {/*</Col>*/}
+                        {/*<Col>*/}
+                        {/*    Vous souhaitez bénéficier d’un accompagnement personnalisé pour remettre votre logement sur le marché ?*/}
+                        {/*</Col>*/}
                     </Row>
                 </Container>
             </div>

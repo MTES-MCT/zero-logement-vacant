@@ -7,7 +7,7 @@ import sync_files from '../../assets/images/sync_files.svg';
 import statistic_chart from '../../assets/images/statistic_chart.svg';
 import location_review from '../../assets/images/location_review.svg';
 import real_time_collaboration from '../../assets/images/real_time_collaboration.svg';
-import quote from '../../assets/images/quote.svg';
+import quote_author from '../../assets/images/quote_author.svg';
 import logo_caba from '../../assets/images/logo_caba.svg';
 import logo_roanne_agglo from '../../assets/images/logo_roanne_agglo.png';
 import logo_roubaix from '../../assets/images/logo_roubaix.png';
@@ -146,23 +146,60 @@ const HomeView = () => {
                         </Col>
                     </Row>
                     <Row gutters>
-                        <Col className={styles.quotation}>
-                            <img src={quote} alt=""/>
+                        <Col className={styles.quote}>
                             <Text size="lg">
-                                « Mettre témoignage avec accompagnement équipe. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim cursus at ullamcorper mauris non. Integer aliquam. »
+                                «&nbsp;Zéro Logement vacant a permis une mise en œuvre plus rapide et efficiente de notre service de lutte contre les logements vacants. Tout cela dans un environnement permettant une prise en main facile et avec une équipe à l’écoute.&nbsp;»
                             </Text>
+                            <Row>
+                                <Col n="2">
+                                    <img src={quote_author} alt=""/>
+                                </Col>
+                                <Col spacing="ml-2w">
+                                    <div>
+                                        <b>Camille Vasseur</b>
+                                    </div>
+                                    <i>
+                                        Responsable lutte contre les logements vacants
+                                        <br />
+                                        Ville de Roubaix
+                                    </i>
+                                </Col>
+                            </Row>
                         </Col>
-                        <Col className={styles.quotation}>
-                            <img src={quote} alt=""/>
+                        <Col className={styles.quote}>
                             <Text size="lg">
-                                « Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim cursus at ullamcorper mauris non. collaboration chargés mission / opérateurs »
+                                «&nbsp;Grâce au lien possible avec les OPAH, l&apos;outil me permet d&apos;apporter des solutions via la rénovation de l&apos;habitat et de remettre sur le marché ces logements vacants depuis longue date.&nbsp;»
                             </Text>
+                            <Row>
+                                <Col n="2">
+                                    <img src={quote_author} alt=""/>
+                                </Col>
+                                <Col spacing="ml-2w">
+                                    <div>
+                                        <b>Nathalie Martragny</b>
+                                    </div>
+                                    <i>
+                                        Responsable Habitat
+                                        <br />
+                                        Flers Agglo
+                                    </i>
+                                </Col>
+                            </Row>
                         </Col>
-                        <Col className={styles.quotation}>
-                            <img src={quote} alt=""/>
+                        <Col className={styles.quote}>
                             <Text size="lg">
-                                « Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim cursus at ullamcorper mauris non. Enclencher pol publique vacance avec tous acteurs concernés dont élus »
+                                «&nbsp;Grâce à l’outil, nous avons pu partager une vision commune entre communes et EPCI et collaborer plus efficacement ensemble sur la mise en oeuvre de la politique de la vacance sur notre territoire.&nbsp;»
                             </Text>
+                            <Row>
+                                <Col n="2">
+                                    <img src={quote_author} alt=""/>
+                                </Col>
+                                <Col spacing="ml-2w">
+                                    <i>
+                                        Communauté d’Agglo de Vesoul
+                                    </i>
+                                </Col>
+                            </Row>
                         </Col>
                     </Row>
                     <Row gutters alignItems="middle">

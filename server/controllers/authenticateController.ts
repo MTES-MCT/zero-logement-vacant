@@ -28,7 +28,7 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
             if (establishment) {
 
-                const housingScopes = establishment.housingScopes.scopes ? establishment.housingScopes : await localityRepository.listHousingScopes(establishment.localities.map(_ => _.geoCode))
+                const housingScopes = establishment.housingScopes.scopes ? establishment.housingScopes : await localityRepository.listHousingScopes(establishment.id)
 
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},

@@ -21,6 +21,8 @@ import { campaignBundleIdUrlFragment } from './models/Campaign';
 import AccountActivationView from './views/Account/AccountActivationView';
 import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
+import HomeView from './views/Home/HomeView';
+import StatsView from './views/Stats/StatsView';
 
 
 function AppWrapper () {
@@ -66,6 +68,7 @@ function App() {
                             }
 
                             <Switch>
+                                <Route exact path="/stats" component={StatsView} />
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/logements" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
@@ -85,7 +88,9 @@ function App() {
                             </Switch>
                         </div> :
                         <Switch>
-                            <Route exact path="/" component={LoginView} />
+                            <Route exact path="/" component={HomeView} />
+                            <Route exact path="/stats" component={StatsView} />
+                            <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
                             {!accountActivated &&
                                 <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>

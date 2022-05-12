@@ -54,14 +54,17 @@
   }
 }
 
+.bg-white {
+  background-color: var(--white-1000)
+}
 .bg-100 {
   background-color: var(--grey-975)
 }
-.bg-300 {
-  background-color: var(--grey-925)
+.bg-bf113 {
+  background-color: var(--blue-france-113)
 }
-.bg-bf200 {
-  background-color: var(--blue-france-950)
+.bg-bf975 {
+  background-color: var(--blue-france-975)
 }
 
 .capitalize {

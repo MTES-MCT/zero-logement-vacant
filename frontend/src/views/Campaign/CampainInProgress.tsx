@@ -211,13 +211,14 @@ const CampaignInProgress = () => {
             </Tab>
             <Tab label={getTabLabel(HousingStatus.Exit)}>
                 <Text>
-                    Le bien est sorti de la vacance après être passé par le statut &quot;Suivi en cours&quot;.
+                    Le bien était vacant dans les 2 dernières années et est sorti de la vacance avec ou sans accompagnement (à renseigner dans sous-statut).
                 </Text>
                 <TabContent status={HousingStatus.Exit}/>
             </Tab>
             <Tab label={getTabLabel(HousingStatus.NotVacant)}>
                 <Text>
-                    Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’est pas vacant (et celui-ci n’a jamais fait l’objet d’un suivi) ou qu’il a été vendu récemment.
+                    Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a jamais été vacant ou qu’il a été vendu ou loué il y a plus de 2 ans.
+                    <br />Retour traduisant une erreur dans la base de données.
                 </Text>
                 <TabContent status={HousingStatus.NotVacant}/>
             </Tab>

@@ -1,7 +1,6 @@
 import db from './db';
 import { LocalityApi } from '../models/EstablishmentApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
-import { housingTable } from './housingRepository';
 
 export const localitiesTable = 'localities';
 
@@ -18,11 +17,12 @@ const listByEstablishmentId = async (establishmentId: string): Promise<LocalityA
     }
 }
 
-const listHousingScopes = async (geoCodes: string[]): Promise<{geom: boolean, scopes: string[]}> => {
+const listHousingScopes = async (establishmentId: string): Promise<{geom: boolean, scopes: string[]}> => {
     try {
         return db(housingScopeGeometryTable)
-            .joinRaw(`join ${housingTable} on st_contains(geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-            .whereIn(`${housingTable}.insee_code`, geoCodes)
+            .leftJoin(establishmentsTable, 'establishment_id', `${establishmentsTable}.id`)
+            .where('establishment_id', establishmentId)
+            .orWhereNull('establishment_id')
             .distinct('type')
             .then(_ => ({
                 geom: true,

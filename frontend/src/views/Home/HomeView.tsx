@@ -7,6 +7,7 @@ import sync_files from '../../assets/images/sync_files.svg';
 import statistic_chart from '../../assets/images/statistic_chart.svg';
 import location_review from '../../assets/images/location_review.svg';
 import real_time_collaboration from '../../assets/images/real_time_collaboration.svg';
+import quote from '../../assets/images/quote.svg';
 import quote_author from '../../assets/images/quote_author.svg';
 import logo_caba from '../../assets/images/logo_caba.svg';
 import logo_roanne_agglo from '../../assets/images/logo_roanne_agglo.png';
@@ -147,12 +148,13 @@ const HomeView = () => {
                     </Row>
                     <Row gutters>
                         <Col className={styles.quote}>
+                            <img src={quote} alt=""/>
                             <Text size="lg">
                                 «&nbsp;Zéro Logement vacant a permis une mise en œuvre plus rapide et efficiente de notre service de lutte contre les logements vacants. Tout cela dans un environnement permettant une prise en main facile et avec une équipe à l’écoute.&nbsp;»
                             </Text>
                             <Row>
                                 <Col n="2">
-                                    <img src={quote_author} alt=""/>
+                                    <img src={quote_author} alt="" width="100%"/>
                                 </Col>
                                 <Col spacing="ml-2w">
                                     <div>
@@ -167,19 +169,20 @@ const HomeView = () => {
                             </Row>
                         </Col>
                         <Col className={styles.quote}>
+                            <img src={quote} alt=""/>
                             <Text size="lg">
-                                «&nbsp;Grâce au lien possible avec les OPAH, l&apos;outil me permet d&apos;apporter des solutions via la rénovation de l&apos;habitat et de remettre sur le marché ces logements vacants depuis longue date.&nbsp;»
+                                «&nbsp;L&apos;intégration de ZLV nous a permis de structurer et de lancer une action de lutte contre la vacance, qui n&apos;existait pas précédemment. Nous avons aussi amélioré nos prises de contacts avec les propriétaires grâce aux ressources et retours d&apos;expériences partagés par la communauté.&nbsp;»
                             </Text>
                             <Row>
                                 <Col n="2">
-                                    <img src={quote_author} alt=""/>
+                                    <img src={quote_author} alt="" width="100%"/>
                                 </Col>
                                 <Col spacing="ml-2w">
                                     <div>
-                                        <b>Nathalie Martragny</b>
+                                        <b>Camille Moreau</b>
                                     </div>
                                     <i>
-                                        Responsable Habitat
+                                        Cheffe de projet Habitat
                                         <br />
                                         Flers Agglo
                                     </i>
@@ -187,15 +190,21 @@ const HomeView = () => {
                             </Row>
                         </Col>
                         <Col className={styles.quote}>
+                            <img src={quote} alt=""/>
                             <Text size="lg">
                                 «&nbsp;Grâce à l’outil, nous avons pu partager une vision commune entre communes et EPCI et collaborer plus efficacement ensemble sur la mise en oeuvre de la politique de la vacance sur notre territoire.&nbsp;»
                             </Text>
                             <Row>
                                 <Col n="2">
-                                    <img src={quote_author} alt=""/>
+                                    <img src={quote_author} alt="" width="100%"/>
                                 </Col>
                                 <Col spacing="ml-2w">
+                                    <div>
+                                        <b>Eliane Aubert</b>
+                                    </div>
                                     <i>
+                                        Responsable Habitat, Urbanisme, Environnement
+                                        <br />
                                         Communauté d’Agglo de Vesoul
                                     </i>
                                 </Col>

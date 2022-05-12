@@ -60,7 +60,6 @@ const CampaignView = () => {
                                     </div>
                                     {(campaignBundle.campaignNumber ?? 0) > 0 && campaignStep(campaignsOfBundle(campaignBundle)[0]) >= CampaignSteps.InProgress &&
                                         <div className={styles.campaignStat}>
-                                            {campaignStep(campaignsOfBundle(campaignBundle)[0])}
                                             <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
                                             <span className={styles.statLabel}>retours</span>
                                         </div>

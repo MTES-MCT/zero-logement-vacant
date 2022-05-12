@@ -184,7 +184,7 @@ const HomeView = () => {
                                     <i>
                                         Cheffe de projet Habitat
                                         <br />
-                                        Flers Agglo
+                                        Bordeaux Métropole
                                     </i>
                                 </Col>
                             </Row>

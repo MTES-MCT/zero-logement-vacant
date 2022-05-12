@@ -58,7 +58,7 @@ const CampaignView = () => {
                                         <div className={styles.statTitle}>{campaignBundle.housingCount}</div>
                                         <span className={styles.statLabel}>{campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}</span>
                                     </div>
-                                    {(campaignBundle.campaignNumber ?? 0) > 0 &&
+                                    {(campaignBundle.campaignNumber ?? 0) > 0 && campaignStep(campaignsOfBundle(campaignBundle)[0]) >= CampaignSteps.InProgress &&
                                         <div className={styles.campaignStat}>
                                             <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
                                             <span className={styles.statLabel}>retours</span>
@@ -74,7 +74,7 @@ const CampaignView = () => {
                         </Container>
                     </div>
                     <Container spacing="py-4w">
-                        {campaignsOfBundle(campaignBundle).length === 1 && campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgess ?
+                        {campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
                             <CampaignToValidate campaignStep={campaignStep(campaignsOfBundle(campaignBundle)[0])}/> :
                             <CampaignInProgress />
                         }

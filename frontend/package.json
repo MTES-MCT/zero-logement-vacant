@@ -10,7 +10,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@dataesr/react-dsfr": "^1.0.2",
+    "@dataesr/react-dsfr": "^1.1.11",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",

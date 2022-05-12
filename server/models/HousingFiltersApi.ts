@@ -1,6 +1,7 @@
 import { HousingScopesApi } from './EstablishmentApi';
 
 export interface HousingFiltersApi {
+    establishmentIds?: string[]
     ownerKinds?: string[];
     ownerAges?: string[];
     multiOwners?: string[];

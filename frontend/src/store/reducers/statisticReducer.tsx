@@ -22,7 +22,6 @@ const initialState: StatisticState = {
 };
 
 const statisticReducer = (state = initialState, action: StatisticActionTypes) => {
-    console.log('reduce', action.type)
     switch (action.type) {
         case FETCH_STATISTICS:
             return {};

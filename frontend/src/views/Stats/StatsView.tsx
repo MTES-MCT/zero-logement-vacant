@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Card, CardDescription, CardTitle, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { getContactedOwnersCount } from '../../store/actions/statisticAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
+import styles from './stats.module.scss';
 
 
 const StatsView = () => {
 
     const dispatch = useDispatch();
 
-    const { contactedOwnersCount } = useSelector((state: ApplicationState) => state.statistic);
+    const { establishmentCount, contactedOwnersCount, answersCount, housingFollowedCount, housingSupportedCount, housingOutOfVacancyCount } = useSelector((state: ApplicationState) => state.statistic);
 
 
     useEffect(() => {
@@ -22,18 +23,70 @@ const StatsView = () => {
                 <Title as="h1">
                     Statistiques
                 </Title>
-                <Row>
+                <Row gutters>
+                    <Col n="4">
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de structures utilisatrices</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{establishmentCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                </Row>
+                <Row gutters>
+                    <Col n="4">
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de propriétaires contactés</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{contactedOwnersCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                    <Col n="4">
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de réponses</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{answersCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                </Row>
+                <Row gutters>
                     <Col>
-                        <Title as="h2" look="h4">
-                            Nombre de propriétaires contactés
-                            <br />
-                            {contactedOwnersCount}
-                        </Title>
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de logements suivis par les collectivités</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{housingFollowedCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
                     </Col>
                     <Col>
-                        <Title as="h2" look="h4">
-                            Situations en cours de modifications
-                        </Title>
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de logements accompagnés par les collectivités</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{housingSupportedCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                    <Col>
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de logements sortis de la vacance</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{housingOutOfVacancyCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
                     </Col>
                 </Row>
             </Container>

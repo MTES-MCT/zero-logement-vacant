@@ -63,7 +63,7 @@ export const getCampaignKindLabel = (kind: CampaignKinds) => {
 }
 
 export enum CampaignSteps {
-    OwnersValidation, Export, Sending, InProgess
+    OwnersValidation, Export, Sending, InProgress
 }
 
 export const CampaignNumberSort = (c1?: Campaign, c2?: Campaign) => {
@@ -95,7 +95,7 @@ export const campaignStep = (campaign?: Campaign) => {
     return (!campaign?.validatedAt) ? CampaignSteps.OwnersValidation :
         !campaign?.exportedAt ? CampaignSteps.Export :
             !campaign?.sentAt ? CampaignSteps.Sending :
-                CampaignSteps.InProgess
+                CampaignSteps.InProgress
 }
 
 export const returnRate = (campaignBundle: CampaignBundle) => {

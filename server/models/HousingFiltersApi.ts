@@ -21,7 +21,8 @@ export interface HousingFiltersApi {
     ownerIds?: string[];
     localities?: string[];
     localityKinds?: string[];
-    housingScopes?: HousingScopesApi;
+    housingScopesIncluded?: HousingScopesApi;
+    housingScopesExcluded?: HousingScopesApi;
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];

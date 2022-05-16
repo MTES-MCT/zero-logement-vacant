@@ -11,7 +11,6 @@ import {
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
-    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions,
     taxedOptions,
@@ -177,10 +176,16 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({localityKinds: values}, 'Type de commune')}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Périmètre"
-                                        options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                        initialValues={filters.housingScopes?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
+                        <AppMultiSelect label="Périmètre inclus"
+                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesIncluded?.scopes}
+                                        onChange={(values) => onChangeFilters({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre inclus')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Périmètre exclu"
+                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesExcluded?.scopes}
+                                        onChange={(values) => onChangeFilters({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre exclu')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">

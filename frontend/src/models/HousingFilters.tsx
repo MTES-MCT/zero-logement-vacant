@@ -21,7 +21,8 @@ export interface HousingFilters {
     campaignIds?: string[];
     localities?: string[];
     localityKinds?: string[];
-    housingScopes?: HousingScopes;
+    housingScopesIncluded?: HousingScopes;
+    housingScopesExcluded?: HousingScopes;
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];
@@ -155,8 +156,6 @@ export const dataYearsExcludedOptions = [
     {value: "2022", label: "2022", badgeLabel: "Millésime 2022 exclu"},
 ];
 
-export const outOfScopeOption = {value: 'None', label: 'Hors périmètres prioritaires'}
-
 export const vacancyReasonsOptions: SelectOption[] = [
     {value: '', label:'Vacance volontaire', disabled:true},
     {value: 'Vacance volontaire - réserve personnelle', label:'réserve personnelle'},
@@ -197,7 +196,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.campaignIds?.length ||
         housingFilters.localities?.length ||
         housingFilters.localityKinds?.length ||
-        housingFilters.housingScopes?.scopes.length ||
+        housingFilters.housingScopesIncluded?.scopes.length ||
+        housingFilters.housingScopesExcluded?.scopes.length ||
         housingFilters.dataYearsIncluded?.length ||
         housingFilters.dataYearsExcluded?.length ||
         housingFilters.query?.length

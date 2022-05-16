@@ -13,7 +13,6 @@ import {
     housingStateOptions,
     localityKindsOptions,
     multiOwnerOptions,
-    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions,
     ownershipKindsOptions,
@@ -82,9 +81,14 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                  filters={filters.localityKinds}
                                  onChange={onChange && (values => onChange({localityKinds: values}))}/>
             {establishment.housingScopes && establishment.housingScopes.scopes &&
-                <FilterBadges options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                     filters={filters.housingScopes?.scopes}
-                                     onChange={onChange && (values => onChange({housingScopes: {...establishment.housingScopes, scopes: values}}))}/>
+                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
+                                     filters={filters.housingScopesIncluded?.scopes}
+                                     onChange={onChange && (values => onChange({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}))}/>
+            }
+            {establishment.housingScopes && establishment.housingScopes.scopes &&
+                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
+                                     filters={filters.housingScopesExcluded?.scopes}
+                                     onChange={onChange && (values => onChange({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}))}/>
             }
             <FilterBadges options={campaignsCountOptions}
                                  filters={filters.campaignsCounts}

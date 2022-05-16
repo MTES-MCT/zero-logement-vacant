@@ -163,6 +163,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                     whereBuilder.orWhereRaw('taxed')
                 }
                 if (filters.isTaxedValues?.indexOf('false') !== -1) {
+                    whereBuilder.orWhereNull('taxed')
                     whereBuilder.orWhereRaw('not(taxed)')
                 }
             })

@@ -142,7 +142,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
         if (filters.vacancyDurations?.length) {
             queryBuilder.where(function (whereBuilder: any) {
-                const dataYear = 2020
+                const dataYear = 2021
                 if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
                     whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
                 }
@@ -240,8 +240,11 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                     }
                 })
         }
-        if (filters.dataYears?.length) {
-            queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
+        if (filters.dataYearsIncluded?.length) {
+            queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYearsIncluded])
+        }
+        if (filters.dataYearsExcluded?.length) {
+            queryBuilder.whereRaw('not(data_years && ?::integer[])', [filters.dataYearsExcluded])
         }
         if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
             queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))

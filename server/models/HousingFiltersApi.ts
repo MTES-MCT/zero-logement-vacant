@@ -22,7 +22,8 @@ export interface HousingFiltersApi {
     localities?: string[];
     localityKinds?: string[];
     housingScopes?: HousingScopesApi;
-    dataYears?: number[];
+    dataYearsIncluded?: number[];
+    dataYearsExcluded?: number[];
     status?: number[];
     query?: string;
 }

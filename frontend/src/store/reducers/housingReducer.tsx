@@ -30,7 +30,8 @@ export const initialHousingFilters = {
     localities: [],
     localityKinds: [],
     housingScopes: {geom: true, scopes: []},
-    dataYears: [2022],
+    dataYearsIncluded: [config.dataYear + 1],
+    dataYearsExcluded: [],
     query: ''
 } as HousingFilters;
 

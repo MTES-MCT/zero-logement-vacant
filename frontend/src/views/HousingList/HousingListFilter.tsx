@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    buildingPeriodOptions, dataYearsOptions,
+    buildingPeriodOptions, dataYearsIncludedOptions,
     housingAreaOptions,
     roomsCountOptions,
     housingKindOptions,
@@ -18,7 +18,7 @@ import {
     vacancyDurationOptions,
     localityKindsOptions,
     ownershipKindsOptions,
-    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions,
+    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions, dataYearsExcludedOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -207,11 +207,22 @@ const HousingListFilter = () => {
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>
                     }
+                </Row>
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Millésime</b>
+                </Text>
+                <Row gutters>
                     <Col n="3">
-                        <AppMultiSelect label="Millésime"
-                                        options={dataYearsOptions}
-                                        initialValues={(filters.dataYears ?? []).map(_ => String(_))}
-                                        onChange={(values) => onChangeFilters({dataYears: values}, 'Millésime')}/>
+                        <AppMultiSelect label="Millésime inclus"
+                                        options={dataYearsIncludedOptions}
+                                        initialValues={(filters.dataYearsIncluded ?? []).map(_ => String(_))}
+                                        onChange={(values) => onChangeFilters({dataYearsIncluded: values}, 'Millésime inclus')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Millésime exclu"
+                                        options={dataYearsExcludedOptions}
+                                        initialValues={(filters.dataYearsExcluded ?? []).map(_ => String(_))}
+                                        onChange={(values) => onChangeFilters({dataYearsExcluded: values}, 'Millésime exclu')}/>
                     </Col>
                 </Row>
             </div>

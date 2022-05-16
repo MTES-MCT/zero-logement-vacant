@@ -26,7 +26,7 @@ VALUES ('251503199', 'SIVU "Auze-Ouest-Cantal"', (select array_agg(id) from loca
 VALUES ('Commune de Brive-la-Gaillarde', (select array_agg(id) from localities where geo_code='19031'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 INSERT INTO public.establishments (name, localities_id, available)
-VALUES ('Département du Cher', (select array_agg(id) from localities where geo_code like '18%'), true);
+VALUES ('DDT du Cher', (select array_agg(id) from localities where geo_code like '18%'), true);
 VALUES ('Commune de Mulhouse', (select array_agg(id) from localities where geo_code='68224'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Vire Normandie', (select array_agg(id) from localities where geo_code='14762'), true);
@@ -46,6 +46,9 @@ INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Bastia', (select array_agg(id) from localities where geo_code = '2B033'), 212000335, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('DDTM Pas-de-Calais', (select array_agg(id) from localities where geo_code like '62%'), 130010366, true);
+VALUES ('Commune de Cayenne', (select array_agg(id) from localities where geo_code = '97302'), 219733029, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Thann', (select array_agg(id) from localities where geo_code = '68334'), 216803346, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -116,5 +119,10 @@ update establishments set available = true where siren in
  '248400251',
  '200069425',
  '200070324',
- '130010366'
+ '130010366',
+ '246500573',
+ '241800424',
+ '200055481',
+ '219733029',
+ '216803346'
 );

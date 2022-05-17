@@ -7,10 +7,13 @@ import config from './utils/config';
 import cors from 'cors';
 import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 const PORT = config.serverPort || 3001;
 
 const app = express();
+
+app.use(helmet());
 
 if (config.environment === 'development') {
     app.use(cors({ origin: 'http://localhost:3000' }));

@@ -18,13 +18,11 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
-            styleSrc: ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
-            imgSrc: ["'self'", 'data:'],
-            connectSrc: ["'self'", 'https://ourDomain.us.auth0.com/oauth/token', 'https://ourDomain.azure-api.net/fields/request/paths/invoke'],
-            fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'"],
+            fontSrc: ["'self'"],
             objectSrc: ["'self'"],
-            mediaSrc: ["'self'"],
-            frameSrc: ["'self'", "ourDomain.us.auth0.com"],
+            mediaSrc: ["'self'"]
         },
     }
 }));

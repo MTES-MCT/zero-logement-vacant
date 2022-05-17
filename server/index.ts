@@ -16,9 +16,9 @@ const app = express();
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
+            defaultSrc: ["'self'", 'https://stats.data.gouv.fr'],
             scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
             imgSrc: ["'self'", 'data:'],
             fontSrc: ["'self'"],
             objectSrc: ["'self'"],

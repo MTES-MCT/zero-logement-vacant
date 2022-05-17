@@ -4,6 +4,7 @@ import { RequestUser, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
 import mailService, { ActivationMail } from '../services/mailService';
 import { UserFiltersApi } from '../models/UserFiltersApi';
+import { Request as JWTRequest } from 'express-jwt';
 
 const createUser = async (request: Request, response: Response): Promise<Response> => {
 
@@ -15,13 +16,13 @@ const createUser = async (request: Request, response: Response): Promise<Respons
         .then(_ => response.status(200).json(_));
 };
 
-const list = async (request: Request, response: Response): Promise<Response> => {
+const list = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('List users')
 
     const page = request.body.page;
     const perPage = request.body.perPage;
-    const role = (<RequestUser>request.user).role;
+    const role = (<RequestUser>request.auth).role;
     const filters = <UserFiltersApi> request.body.filters ?? {};
 
     return role === UserRoles.Admin ?

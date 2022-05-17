@@ -21,7 +21,12 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
             imgSrc: ["'self'", 'data:'],
-            fontSrc: ["'self'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2', 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'],
+            fontSrc: [
+                "'self'",
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'
+            ],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"]
         },

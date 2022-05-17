@@ -8,6 +8,7 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import localityRepository from '../repositories/localityRepository';
 import authTokenRepository from '../repositories/authTokenRepository';
 import { addDays, isBefore } from 'date-fns';
+import { Request as JWTRequest } from 'express-jwt';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -82,9 +83,9 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
         .then(() => response.sendStatus(200));
 };
 
-const updatePassword = async (request: Request, response: Response): Promise<Response> => {
+const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
 
-    const userId = (<RequestUser>request.user).userId;
+    const userId = (<RequestUser>request.auth).userId;
 
     const currentPassword = request.body.currentPassword;
     const newPassword = request.body.newPassword;

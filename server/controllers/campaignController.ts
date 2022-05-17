@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignKinds, CampaignSteps } from '../models/CampaignApi';
@@ -8,14 +8,15 @@ import { EventApi, EventKinds } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { Request as JWTRequest } from 'express-jwt';
 
-const getCampaign = async (request: Request, response: Response): Promise<Response> => {
+const getCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
 
     console.log('Get campaign', campaignId)
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     return campaignRepository.getCampaign(campaignId)
         .then(campaign => campaign.establishmentId === establishmentId ?
@@ -23,11 +24,11 @@ const getCampaign = async (request: Request, response: Response): Promise<Respon
             response.sendStatus(401));
 }
 
-const getCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
+const getCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignNumber = request.params.campaignNumber;
     const reminderNumber = request.params.reminderNumber;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('Get campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
@@ -36,34 +37,34 @@ const getCampaignBundle = async (request: Request, response: Response): Promise<
 
 }
 
-const listCampaigns = async (request: Request, response: Response): Promise<Response> => {
+const listCampaigns = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('List campaigns')
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     return campaignRepository.listCampaigns(establishmentId)
         .then(_ => response.status(200).json(_));
 
 }
 
-const listCampaignBundles = async (request: Request, response: Response): Promise<Response> => {
+const listCampaignBundles = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('List campaign bundles')
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     return campaignRepository.listCampaignBundles(establishmentId)
         .then(_ => response.status(200).json(_));
 
 }
 
-const createCampaign = async (request: Request, response: Response): Promise<Response> => {
+const createCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Create campaign')
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
-    const userId = (<RequestUser>request.user).userId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const userId = (<RequestUser>request.auth).userId;
 
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
@@ -100,15 +101,15 @@ const createCampaign = async (request: Request, response: Response): Promise<Res
 
 }
 
-const createReminderCampaign = async (request: Request, response: Response): Promise<Response> => {
+const createReminderCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignNumber = request.params.campaignNumber;
     const reminderNumber = request.params.reminderNumber;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('Create a reminder campaign for', establishmentId, campaignNumber, reminderNumber)
 
-    const userId = (<RequestUser>request.user).userId;
+    const userId = (<RequestUser>request.auth).userId;
 
     const startMonth = request.body.startMonth;
     const allHousing = request.body.allHousing;
@@ -141,12 +142,12 @@ const createReminderCampaign = async (request: Request, response: Response): Pro
 
 }
 
-const validateStep = async (request: Request, response: Response): Promise<Response> => {
+const validateStep = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
-    const userId = (<RequestUser>request.user).userId;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const userId = (<RequestUser>request.auth).userId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -181,11 +182,11 @@ const validateStep = async (request: Request, response: Response): Promise<Respo
 }
 
 
-const deleteCampaign = async (request: Request, response: Response): Promise<Response> => {
+const deleteCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignNumber = Number(request.params.campaignNumber);
     const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const campaigns = await campaignRepository.listCampaigns(establishmentId)
     const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
@@ -214,14 +215,14 @@ const deleteCampaign = async (request: Request, response: Response): Promise<Res
 }
 
 
-const removeHousingList = async (request: Request, response: Response): Promise<Response> => {
+const removeHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Remove campaign housing list')
 
     const campaignId = request.params.campaignId;
     const campaignHousingStatusApi = <HousingStatusApi>request.body.status;
     const allHousing = <boolean>request.body.allHousing;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const housingIds =
         await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: [campaignHousingStatusApi]})

@@ -16,11 +16,11 @@ const app = express();
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'", 'https://stats.data.gouv.fr'],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
             imgSrc: ["'self'", 'data:'],
-            fontSrc: ["'self'"],
+            fontSrc: ["'self'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"]
         },

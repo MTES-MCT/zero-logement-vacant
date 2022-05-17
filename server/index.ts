@@ -28,7 +28,8 @@ app.use(helmet({
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'
             ],
             objectSrc: ["'self'"],
-            mediaSrc: ["'self'"]
+            mediaSrc: ["'self'"],
+            connectSrc: ["'self'", 'https://stats.data.gouv.fr']
         },
     }
 }));

@@ -19,9 +19,9 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
             imgSrc: ["'self'", 'data:'],
-            fontSrc: ["'self'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts'],
+            fontSrc: ["'self'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/*'],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"]
         },

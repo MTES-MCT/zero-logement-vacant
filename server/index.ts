@@ -18,8 +18,8 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
-            imgSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0'],
+            imgSrc: ["'self'", 'data:'],
             fontSrc: ["'self'"],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"]

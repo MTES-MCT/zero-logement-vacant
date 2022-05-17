@@ -183,6 +183,7 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre exclu"
+                                        defaultOption="Aucun"
                                         options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
                                         initialValues={filters.housingScopesExcluded?.scopes}
                                         onChange={(values) => onChangeFilters({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre exclu')}/>
@@ -225,6 +226,7 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Millésime exclu"
+                                        defaultOption="Aucun"
                                         options={dataYearsExcludedOptions}
                                         initialValues={(filters.dataYearsExcluded ?? []).map(_ => String(_))}
                                         onChange={(values) => onChangeFilters({dataYearsExcluded: values}, 'Millésime exclu')}/>

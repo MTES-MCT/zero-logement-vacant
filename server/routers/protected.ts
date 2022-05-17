@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
-import expressJWT from 'express-jwt';
+import { expressjwt } from 'express-jwt';
 
 import housingController from '../controllers/housingController';
 import config from '../utils/config';
@@ -12,10 +12,10 @@ import authenticateController from '../controllers/authenticateController';
 
 const  router = express.Router();
 
-const jwtCheck = expressJWT({
+const jwtCheck = expressjwt({
     secret: config.auth.secret,
     algorithms: ['HS256'],
-    getToken: (request: Request) => request.headers['x-access-token'] ?? request.query['x-access-token'],
+    getToken: (request: Request) => (request.headers['x-access-token'] ?? request.query['x-access-token']) as string,
 
 });
 

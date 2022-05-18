@@ -7,10 +7,32 @@ import config from './utils/config';
 import cors from 'cors';
 import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 const PORT = config.serverPort || 3001;
 
 const app = express();
+
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
+            imgSrc: ["'self'", 'data:'],
+            fontSrc: [
+                "'self'",
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'
+            ],
+            objectSrc: ["'self'"],
+            mediaSrc: ["'self'"],
+            connectSrc: ["'self'", 'https://stats.data.gouv.fr']
+        },
+    }
+}));
 
 if (config.environment === 'development') {
     app.use(cors({ origin: 'http://localhost:3000' }));

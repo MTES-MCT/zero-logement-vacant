@@ -9,7 +9,7 @@ describe('Campaign controller', () => {
     it('should list campaigns', async () => {
 
         const req = getMockReq({
-            user: {
+            auth: {
                 establishmentId: 'fb42415a-a41a-4b22-bf47-7bedfb419a63'
             }
         })
@@ -36,7 +36,7 @@ describe('Campaign controller', () => {
         const housingIds = ['c0ec7153-0e1c-4770-bc98-ad6ce1779f9a', '3180bb27-1ca8-4e32-bc71-79f04e424aa8'];
 
         const req = getMockReq({
-            user: {
+            auth: {
                 establishmentId: 'fb42415a-a41a-4b22-bf47-7bedfb419a63',
                 userId: '8da707d6-ff58-4366-a2b3-59472c600dca'
             },

@@ -13,14 +13,15 @@ import ownerRepository from '../repositories/ownerRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
+import { Request as JWTRequest } from 'express-jwt';
 
-const list = async (request: Request, response: Response): Promise<Response> => {
+const list = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('List housing')
 
     const page = request.body.page;
     const perPage = request.body.perPage;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
     const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
@@ -31,10 +32,10 @@ const list = async (request: Request, response: Response): Promise<Response> => 
         .then(_ => response.status(200).json(_));
 };
 
-const listByOwner = async (request: Request, response: Response): Promise<Response> => {
+const listByOwner = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const ownerId = request.params.ownerId;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('List housing by owner', ownerId)
 
@@ -43,12 +44,12 @@ const listByOwner = async (request: Request, response: Response): Promise<Respon
 };
 
 
-const updateHousingList = async (request: Request, response: Response): Promise<Response> => {
+const updateHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Update campaign housing list')
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
-    const userId = (<RequestUser>request.user).userId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const userId = (<RequestUser>request.auth).userId;
     const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
     const campaignIds = request.body.campaignIds;
     const allHousing = <boolean>request.body.allHousing;
@@ -119,11 +120,11 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
         ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
 }
 
-const exportHousingByCampaignBundle = async (request: Request, response: Response): Promise<Response> => {
+const exportHousingByCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignNumber = request.params.campaignNumber;
     const reminderNumber = request.params.reminderNumber;
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('Export housing by campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
@@ -136,11 +137,11 @@ const exportHousingByCampaignBundle = async (request: Request, response: Respons
 
 }
 
-const exportHousingWithFilters = async (request: Request, response: Response): Promise<Response> => {
+const exportHousingWithFilters = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Export housing with filters')
 
-    const establishmentId = (<RequestUser>request.user).establishmentId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const filters = <HousingFiltersApi> request.body.filters ?? {};
     const allHousing = request.body.allHousing;

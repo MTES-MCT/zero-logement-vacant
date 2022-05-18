@@ -5,20 +5,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    buildingPeriodOptions, dataYearsOptions,
+    buildingPeriodOptions, dataYearsIncludedOptions,
     housingAreaOptions,
     roomsCountOptions,
     housingKindOptions,
     housingStateOptions,
     multiOwnerOptions,
-    outOfScopeOption,
     ownerAgeOptions,
     ownerKindOptions,
     taxedOptions,
     vacancyDurationOptions,
     localityKindsOptions,
     ownershipKindsOptions,
-    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions,
+    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions, dataYearsExcludedOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
@@ -177,10 +176,17 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({localityKinds: values}, 'Type de commune')}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Périmètre"
-                                        options={[...establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs})), outOfScopeOption]}
-                                        initialValues={filters.housingScopes?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopes: {...establishment.housingScopes, scopes: values}}, 'Périmètre')}/>
+                        <AppMultiSelect label="Périmètre inclus"
+                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesIncluded?.scopes}
+                                        onChange={(values) => onChangeFilters({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre inclus')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Périmètre exclu"
+                                        defaultOption="Aucun"
+                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesExcluded?.scopes}
+                                        onChange={(values) => onChangeFilters({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre exclu')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
@@ -207,11 +213,23 @@ const HousingListFilter = () => {
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>
                     }
+                </Row>
+                <Text size="md" className="fr-mb-1w fr-mt-4w">
+                    <b>Millésime</b>
+                </Text>
+                <Row gutters>
                     <Col n="3">
-                        <AppMultiSelect label="Millésime"
-                                        options={dataYearsOptions}
-                                        initialValues={(filters.dataYears ?? []).map(_ => String(_))}
-                                        onChange={(values) => onChangeFilters({dataYears: values}, 'Millésime')}/>
+                        <AppMultiSelect label="Millésime inclus"
+                                        options={dataYearsIncludedOptions}
+                                        initialValues={(filters.dataYearsIncluded ?? []).map(_ => String(_))}
+                                        onChange={(values) => onChangeFilters({dataYearsIncluded: values}, 'Millésime inclus')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Millésime exclu"
+                                        defaultOption="Aucun"
+                                        options={dataYearsExcludedOptions}
+                                        initialValues={(filters.dataYearsExcluded ?? []).map(_ => String(_))}
+                                        onChange={(values) => onChangeFilters({dataYearsExcluded: values}, 'Millésime exclu')}/>
                     </Col>
                 </Row>
             </div>

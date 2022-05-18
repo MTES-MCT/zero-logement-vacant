@@ -142,7 +142,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
         if (filters.vacancyDurations?.length) {
             queryBuilder.where(function (whereBuilder: any) {
-                const dataYear = 2020
+                const dataYear = 2021
                 if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
                     whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
                 }
@@ -163,6 +163,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                     whereBuilder.orWhereRaw('taxed')
                 }
                 if (filters.isTaxedValues?.indexOf('false') !== -1) {
+                    whereBuilder.orWhereNull('taxed')
                     whereBuilder.orWhereRaw('not(taxed)')
                 }
             })
@@ -221,26 +222,29 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.localityKinds?.length) {
             queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
         }
-        if (filters.housingScopes && filters.housingScopes.scopes.length) {
+        if (filters.housingScopesIncluded && filters.housingScopesIncluded.scopes.length) {
             queryBuilder
-                .select(db.raw('array_agg(distinct(hsg.type))'))
-                .joinRaw(`left join ${housingScopeGeometryTable} as hsg on st_contains(hsg.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+                .joinRaw(`left join ${housingScopeGeometryTable} as hsg_inc on st_contains(hsg_inc.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
                 .where(function (whereBuilder: any) {
-                    if (filters.housingScopes?.geom) {
-                        if (filters.housingScopes.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('hsg.type')
-                        }
-                        whereBuilder.orWhereRaw(`array[${filters.housingScopes.scopes.map(_ => `'${_}'`).join(',')}] @> array[hsg.type]::text[]`)
+                    if (filters.housingScopesIncluded?.geom) {
+                        whereBuilder.whereRaw(`? && array[hsg_inc.type]::text[]`, [filters.housingScopesIncluded.scopes])
                     } else {
-                        if (filters.housingScopes?.scopes.indexOf('None') !== -1) {
-                            whereBuilder.orWhereNull('housing_scope')
-                        }
-                        whereBuilder.orWhereIn('housing_scope', filters.housingScopes?.scopes)
+                        whereBuilder.whereIn('housing_scope', filters.housingScopesIncluded?.scopes)
                     }
                 })
         }
-        if (filters.dataYears?.length) {
-            queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
+        if (filters.housingScopesExcluded && filters.housingScopesExcluded.scopes.length) {
+            queryBuilder.whereNotExists(function (whereBuilder: any) {
+                whereBuilder.select('*').from(housingScopeGeometryTable)
+                    .whereRaw(`st_contains(${housingScopeGeometryTable}.geom, ST_SetSRID(ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
+                    .whereIn('type', filters.housingScopesExcluded?.scopes)
+            })
+        }
+        if (filters.dataYearsIncluded?.length) {
+            queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYearsIncluded])
+        }
+        if (filters.dataYearsExcluded?.length) {
+            queryBuilder.whereRaw('not(data_years && ?::integer[])', [filters.dataYearsExcluded])
         }
         if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
             queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))

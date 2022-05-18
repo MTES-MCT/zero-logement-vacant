@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi } from '../models/EventApi';
 import { RequestUser } from '../models/UserApi';
+import { Request as JWTRequest } from 'express-jwt';
 
-const create = async (request: Request, response: Response): Promise<Response> => {
+const create = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Create event')
 
-    const userId = (<RequestUser>request.user).userId;
+    const userId = (<RequestUser>request.auth).userId;
 
     const event = request.body.event;
 

@@ -126,7 +126,7 @@ AS $$
                     RAISE NOTICE 'INSERT OWNER : % - %', housing_var.full_name, housing_var.birth_date ;
 
                     insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, local_ids)
-                    values(housing_var.full_name, housing_var.administrator, housing_var.raw_address, housing_var.birth_date,
+                    values(housing_var.full_name, housing_var.administrator, housing_var.owner_raw_address, housing_var.birth_date,
                            housing_var.owner_kind, housing_var.owner_kind_detail, housing_var.local_ids)
                            returning ARRAY[id] INTO owner_var_ids;
 

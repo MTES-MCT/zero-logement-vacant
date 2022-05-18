@@ -227,7 +227,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                 .joinRaw(`left join ${housingScopeGeometryTable} as hsg_inc on st_contains(hsg_inc.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
                 .where(function (whereBuilder: any) {
                     if (filters.housingScopesIncluded?.geom) {
-                        whereBuilder.whereRaw(`array[${filters.housingScopesIncluded.scopes.map(_ => `'${_}'`).join(',')}] && array[hsg_inc.type]::text[]`)
+                        whereBuilder.whereRaw(`? && array[hsg_inc.type]::text[]`, [filters.housingScopesIncluded.scopes])
                     } else {
                         whereBuilder.whereIn('housing_scope', filters.housingScopesIncluded?.scopes)
                     }

@@ -1,13 +1,28 @@
 import { Housing } from '../../models/Housing';
-import { FETCH_HOUSING_LIST, HOUSING_LIST_FETCHED, HousingActionTypes } from '../actions/housingAction';
+import {
+    FETCHING_HOUSING,
+    FETCHING_HOUSING_EVENTS,
+    FETCHING_HOUSING_LIST,
+    FETCHING_HOUSING_OWNERS,
+    HOUSING_EVENTS_FETCHED,
+    HOUSING_FETCHED,
+    HOUSING_LIST_FETCHED,
+    HOUSING_OWNERS_FETCHED,
+    HousingActionTypes,
+} from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
+import { Owner } from '../../models/Owner';
+import { OwnerEvent } from '../../models/OwnerEvent';
 
 
 export interface HousingState {
     paginatedHousing: PaginatedResult<Housing>;
     filters: HousingFilters;
+    housing: Housing;
+    owners: Owner[];
+    events: OwnerEvent[];
 }
 
 export const initialHousingFilters = {
@@ -50,7 +65,37 @@ const initialState = {
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
     switch (action.type) {
-        case FETCH_HOUSING_LIST:
+        case FETCHING_HOUSING:
+            return {
+                ...state,
+                housing: undefined
+            };
+        case HOUSING_FETCHED:
+            return {
+                ...state,
+                housing: action.housing
+            };
+        case FETCHING_HOUSING_OWNERS:
+            return {
+                ...state,
+                owners: []
+            };
+        case HOUSING_OWNERS_FETCHED:
+            return {
+                ...state,
+                owners: action.owners
+            };
+        case FETCHING_HOUSING_EVENTS:
+            return {
+                ...state,
+                events: []
+            };
+        case HOUSING_EVENTS_FETCHED:
+            return {
+                ...state,
+                events: action.events
+            };
+        case FETCHING_HOUSING_LIST:
             return {
                 ...state,
                 paginatedHousing: {

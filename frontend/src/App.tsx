@@ -23,6 +23,7 @@ import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import HomeView from './views/Home/HomeView';
 import StatsView from './views/Stats/StatsView';
+import HousingView from './views/Housing/HousingView';
 
 
 function AppWrapper () {
@@ -70,13 +71,16 @@ function App() {
                             <Switch>
                                 <Route exact path="/stats" component={StatsView} />
                                 <Route exact path="/accueil" component={DashboardView} />
-                                <Route exact path="/logements" component={HousingListView} />
+                                <Route exact path="/base-de-donnees" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
                                 <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
                                 <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:id" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:id" component={HousingView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:id" component={HousingView} />
+                                <Route exact path="*/logements/:id" component={HousingView} />
                                 <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
                                 <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
                                 {authUser.user.role === UserRoles.Admin &&

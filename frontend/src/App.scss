@@ -83,6 +83,14 @@
   text-align: center;
 }
 
+.align-right {
+  text-align: right;
+}
+
+.bordered {
+  border: 1px solid var(--grey-925);
+}
+
 .fr-tag-click {
   color: var(--blue-france-113) !important;
   background-color: #E5E5F4 !important;

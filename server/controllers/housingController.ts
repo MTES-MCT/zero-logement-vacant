@@ -15,6 +15,16 @@ import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { Request as JWTRequest } from 'express-jwt';
 
+const get = async (request: Request, response: Response): Promise<Response> => {
+
+    const id = request.params.id;
+
+    console.log('Get housing', id)
+
+    return housingRepository.get(id)
+        .then(_ => response.status(200).json(_));
+}
+
 const list = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('List housing')
@@ -44,6 +54,54 @@ const listByOwner = async (request: JWTRequest, response: Response): Promise<Res
 };
 
 
+const updateHousing = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const id = request.params.id;
+
+    console.log('Update housing', id)
+
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const userId = (<RequestUser>request.auth).userId;
+    const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+
+    const housing = await housingRepository.get(id);
+
+    const campaignList = await campaignRepository.listCampaigns(establishmentId)
+
+    const lastCampaignId = housing.campaignIds.length ?
+        campaignList.filter(_ => housing.campaignIds.indexOf(_.id) !== -1).reverse()[0].id :
+        campaignList.filter(_ => _.campaignNumber === 0)[0].id
+
+    if (!housing.campaignIds.length) {
+        await campaignHousingRepository.insertHousingList(lastCampaignId, [housing.id])
+    }
+
+    await eventRepository.insertList([<EventApi>{
+        housingId: housing.id,
+        ownerId: housing.owner.id,
+        kind: EventKinds.StatusChange,
+        campaignId: lastCampaignId,
+        contactKind: housingUpdateApi.contactKind,
+        content: [
+            getStatusLabel(housing, housingUpdateApi),
+            housingUpdateApi.comment
+        ]
+            .filter(_ => _ !== null && _ !== undefined)
+            .join('. '),
+        createdBy: userId
+    }])
+
+    const updatedHousingList = await housingRepository.updateHousingList(
+        [housing.id],
+        housingUpdateApi.status,
+        housingUpdateApi.subStatus,
+        housingUpdateApi.precisions,
+        housingUpdateApi.vacancyReasons
+    )
+
+    return response.status(200).json(updatedHousingList);
+};
+
 const updateHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     console.log('Update campaign housing list')
@@ -56,7 +114,7 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
     const housingIds = request.body.housingIds;
     const currentStatus = request.body.currentStatus;
 
-    let housingList =
+    const housingList =
         await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds, status: [currentStatus]})
             .then(_ => _.entities
                 .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
@@ -64,21 +122,11 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
 
     const campaignList = await campaignRepository.listCampaigns(establishmentId)
 
-    const lastCampaignId = campaignIds.length ?
-        campaignList.filter(_ => campaignIds.indexOf(_.id) !== -1).reverse()[0].id :
-        campaignList.filter(_ => _.campaignNumber === 0)[0].id
-
-    if (!allHousing && housingIds.length === 1 && !campaignIds.length) {
-        await campaignHousingRepository.insertHousingList(lastCampaignId, [housingIds[0]])
-
-        housingList = await housingRepository.listByIds([housingIds[0]])
-    }
-
     await eventRepository.insertList(housingList.map(housing => (<EventApi>{
         housingId: housing.id,
         ownerId: housing.owner.id,
         kind: EventKinds.StatusChange,
-        campaignId: lastCampaignId,
+        campaignId: campaignList.filter(_ => housing.campaignIds.indexOf(_.id) !== -1).reverse()[0].id,
         contactKind: housingUpdateApi.contactKind,
         content: [
             getStatusLabel(housing, housingUpdateApi),
@@ -294,8 +342,10 @@ const reduceRawAddress = (rawAddress?: string[]) => {
 }
 
 const housingController =  {
+    get,
     list,
     listByOwner,
+    updateHousing,
     updateHousingList,
     exportHousingByCampaignBundle,
     exportHousingWithFilters,

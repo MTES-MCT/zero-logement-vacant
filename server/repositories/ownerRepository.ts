@@ -2,6 +2,7 @@ import db from './db';
 import { OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
+import { ownersHousingTable } from './housingRepository';
 
 export const ownerTable = 'owners';
 
@@ -14,6 +15,19 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
     } catch (err) {
         console.error('Getting owner failed', err, ownerId);
         throw new Error('Getting owner failed');
+    }
+}
+
+const listByHousing = async (housingId: string): Promise<OwnerApi[]> => {
+    try {
+        return db(ownerTable)
+            .join(ownersHousingTable,`${ownerTable}.id`, `${ownersHousingTable}.owner_id`)
+            .where(`${ownersHousingTable}.housing_id`, housingId)
+            .orderBy('rank')
+            .then(_ => _.map((result: any) => parseOwnerApi(result)))
+    } catch (err) {
+        console.error('Listing owners by housing failed', err, housingId);
+        throw new Error('Listing owners by housing failed');
     }
 }
 
@@ -82,6 +96,7 @@ export const parseOwnerApi = (result: any) => <OwnerApi>{
 
 export default {
     get,
+    listByHousing,
     update,
     updateAddressList
 }

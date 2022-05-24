@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import styles from './owner.module.scss';
+import styles from './events-history.module.scss';
 import { format } from 'date-fns';
-import { getOwnerEvents } from '../../store/actions/ownerAction';
 import { fr } from 'date-fns/locale';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { OwnerEvent } from '../../models/OwnerEvent';
+import { Housing } from '../../models/Housing';
 
 
-const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
+const EventsHistory = ({ events, housingList }: { events: OwnerEvent[], housingList?: Housing[]}) => {
 
-    const dispatch = useDispatch();
     const campaignList = useCampaignList();
 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [expandEvents, setExpandEvents] = useState(false);
-    const { events, housingList } = useSelector((state: ApplicationState) => state.owner);
 
-    useEffect(() => {
-        dispatch(getOwnerEvents(ownerId));
-    }, [dispatch])
-
-    const housingNumber = (housingId: string) => housingList.findIndex(h => h.id === housingId) + 1;
+    const housingNumber = (housingId: string) => housingList ? housingList.findIndex(h => h.id === housingId) + 1 : 1;
 
     return (
         <>
@@ -31,20 +22,6 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                 <Col>
                     <Title as="h2" look="h3">Historique du dossier</Title>
                 </Col>
-                {/*<Col n="5">*/}
-                {/*    <Button title="Ajouter un événement"*/}
-                {/*            secondary*/}
-                {/*            size="sm"*/}
-                {/*            icon="fr-fi-add-line"*/}
-                {/*            className="float-right"*/}
-                {/*            onClick={() => {setIsModalOpen(true)}}>*/}
-                {/*        Ajouter un événement*/}
-                {/*    </Button>*/}
-                {/*    {isModalOpen &&*/}
-                {/*    <EventCreationModal onSubmit={() => {}}*/}
-                {/*                        onClose={() => setIsModalOpen(false)} />*/}
-                {/*    }*/}
-                {/*</Col>*/}
             </Row>
             {events &&
                 <>
@@ -60,7 +37,7 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
                                                 {format(event.createdAt, 'dd MMMM yyyy', { locale: fr })}
                                             </Tag>
                                         </TagGroup>
-                                        {event.housingId &&
+                                        {housingList && event.housingId &&
                                             <div>
                                                 <b>{housingNumber(event.housingId) ? 'Logement ' + housingNumber(event.housingId) : 'Ancien logement'}</b>
                                             </div>
@@ -89,5 +66,5 @@ const OwnerEvents = ({ ownerId }: { ownerId: string}) => {
     );
 };
 
-export default OwnerEvents;
+export default EventsHistory;
 

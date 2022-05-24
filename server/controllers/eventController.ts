@@ -28,9 +28,21 @@ const listByOwnerId = async (request: Request, response: Response): Promise<Resp
 
 }
 
+const listByHousingId = async (request: Request, response: Response): Promise<Response> => {
+
+    const housingId = request.params.housingId;
+
+    console.log('List events for housing', housingId)
+
+    return eventRepository.listByHousingId(housingId)
+        .then(_ => response.status(200).json(_));
+
+}
+
 const eventController =  {
     create,
-    listByOwnerId
+    listByOwnerId,
+    listByHousingId
 };
 
 export default eventController;

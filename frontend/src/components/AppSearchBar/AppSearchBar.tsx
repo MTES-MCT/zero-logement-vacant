@@ -68,18 +68,17 @@ const AppSearchBar = (
     }, [query])
 
     return (
-        <form role="search" data-testid="search-form" className={classNames('fr-search-bar', { 'fr-search-bar--lg': (size === 'lg'), }) } onSubmit={(e: any) => submitSearch(e)}>
+        <form role="search" data-testid="search-form" className={classNames(styles.searchContainer, 'fr-search-bar', { 'fr-search-bar--lg': (size === 'lg'), }) } onSubmit={(e: any) => submitSearch(e)}>
             <label className="fr-label">{buttonLabel ?? 'Rechercher'}</label>
-            <div className={styles.searchContainer}>
-                <input className="fr-input"
-                       placeholder={placeholder ?? "Rechercher"}
-                       type="search"
-                       data-testid="search-input"
-                       value={searchInput}
-                       onChange={(e) => setSearchInput(e.target.value)}
-                       onKeyDown={onKeyDown}
-                       onKeyUp={onKeyUp}/>
-                {searchInput.length > 0 && searchResults &&
+            <input className="fr-input"
+                   placeholder={placeholder ?? "Rechercher"}
+                   type="search"
+                   data-testid="search-input"
+                   value={searchInput}
+                   onChange={(e) => setSearchInput(e.target.value)}
+                   onKeyDown={onKeyDown}
+                   onKeyUp={onKeyUp}/>
+            {searchInput.length > 0 && searchResults &&
                 <div className={styles.searchResults}>
                     {!searchResults.length ? <div className="fr-p-1w">Aucun résultat</div> : searchResults.map((result, index) =>
                         <AppSearchResult key={'result_' + index}
@@ -87,8 +86,7 @@ const AppSearchBar = (
                                          query={searchInput}/>
                     )}
                 </div>
-                }
-            </div>
+            }
             <button type="submit"
                     className={classNames('fr-btn', { 'fr-btn--lg': (size === 'lg') })}
                     title="Bouton de recherche">

@@ -69,6 +69,7 @@ function App() {
                             }
 
                             <Switch>
+                                <Route exact path="/" component={DashboardView} />
                                 <Route exact path="/stats" component={StatsView} />
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/base-de-donnees" component={HousingListView} />

@@ -4,10 +4,11 @@ import statisticService from '../../services/statistic.service';
 
 export const FETCH_STATISTICS = 'FETCH_CONTACTED_OWNERS';
 export const ESTABLISHMENTS_COUNT_FETCHED = 'ESTABLISHMENTS_COUNT_FETCHED';
-export const CONTACTED_OWNERS_COUNT_FETCHED = 'CONTACTED_OWNERS_COUNT_FETCHED';
+export const CONTACTED_HOUSING_COUNT_FETCHED = 'CONTACTED_HOUSING_COUNT_FETCHED';
+export const WAITING_HOUSING_COUNT_FETCHED = 'WAITING_HOUSING_COUNT_FETCHED';
 export const ANSWERS_COUNT_FETCHED = 'ANSWERS_COUNT_FETCHED';
 export const HOUSING_FOLLOWED_COUNT_FETCHED = 'HOUSING_FOLLOWED_COUNT_FETCHED';
-export const HOUSING_SUPPORTED_COUNT_FETCHED = 'HOUSING_SUPPORTED_COUNT_FETCHED';
+export const HOUSING_FIRST_CONTACTED_COUNT_FETCHED = 'HOUSING_FIRST_CONTACTED_COUNT_FETCHED';
 export const HOUSING_OUT_OF_VACANCY_COUNT_FETCHED = 'HOUSING_OUT_OF_VACANCY_COUNT_FETCHED';
 
 export interface FetchStatisticsAction {
@@ -19,8 +20,13 @@ export interface EstablishmentsCountFetchedAction {
     count: number
 }
 
-export interface ContactedOwnersCountFetchedAction {
-    type: typeof CONTACTED_OWNERS_COUNT_FETCHED,
+export interface ContactedHousingCountFetchedAction {
+    type: typeof CONTACTED_HOUSING_COUNT_FETCHED,
+    count: number
+}
+
+export interface WaitingHousingCountFetchedAction {
+    type: typeof WAITING_HOUSING_COUNT_FETCHED,
     count: number
 }
 
@@ -34,8 +40,8 @@ export interface HousingFollowedCountFetchedAction {
     count: number
 }
 
-export interface HousingSupportedCountFetchedAction {
-    type: typeof HOUSING_SUPPORTED_COUNT_FETCHED,
+export interface HousingFirstContactedCountFetchedAction {
+    type: typeof HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
     count: number
 }
 
@@ -47,10 +53,11 @@ export interface HousingOutOfVacancyCountFetchedAction {
 export type StatisticActionTypes =
     FetchStatisticsAction |
     EstablishmentsCountFetchedAction |
-    ContactedOwnersCountFetchedAction |
+    ContactedHousingCountFetchedAction |
+    WaitingHousingCountFetchedAction |
     AnswersCountFetchedAction |
     HousingFollowedCountFetchedAction|
-    HousingSupportedCountFetchedAction |
+    HousingFirstContactedCountFetchedAction |
     HousingOutOfVacancyCountFetchedAction;
 
 export const getContactedOwnersCount = () => {
@@ -71,10 +78,17 @@ export const getContactedOwnersCount = () => {
                         count
                     });
                 }),
-            statisticService.getContactedOwnersCount()
+            statisticService.getContactedHousingCount()
                 .then(count => {
                     dispatch({
-                        type: CONTACTED_OWNERS_COUNT_FETCHED,
+                        type: CONTACTED_HOUSING_COUNT_FETCHED,
+                        count
+                    });
+                }),
+            statisticService.getWaitingHousingCount()
+                .then(count => {
+                    dispatch({
+                        type: WAITING_HOUSING_COUNT_FETCHED,
                         count
                     });
                 }),
@@ -92,10 +106,10 @@ export const getContactedOwnersCount = () => {
                         count
                     });
                 }),
-            statisticService.getHousingSupportedCount()
+            statisticService.getHousingFirstContactedCount()
                 .then(count => {
                     dispatch({
-                        type: HOUSING_SUPPORTED_COUNT_FETCHED,
+                        type: HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
                         count
                     });
                 }),

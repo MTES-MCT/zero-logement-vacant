@@ -1,20 +1,22 @@
 import {
     ANSWERS_COUNT_FETCHED,
-    CONTACTED_OWNERS_COUNT_FETCHED,
+    CONTACTED_HOUSING_COUNT_FETCHED,
     ESTABLISHMENTS_COUNT_FETCHED,
     FETCH_STATISTICS,
     HOUSING_FOLLOWED_COUNT_FETCHED,
     HOUSING_OUT_OF_VACANCY_COUNT_FETCHED,
-    HOUSING_SUPPORTED_COUNT_FETCHED,
+    HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
     StatisticActionTypes,
+    WAITING_HOUSING_COUNT_FETCHED,
 } from '../actions/statisticAction';
 
 export interface StatisticState {
     establishmentCount?: number
-    contactedOwnersCount?: number
+    contactedHousingCount?: number
+    waitingHousingCount?: number
     answersCount?: number
     housingFollowedCount?: number
-    housingSupportedCount?: number
+    housingFirstContactedCount?: number
     housingOutOfVacancyCount?: number
 }
 
@@ -31,10 +33,16 @@ const statisticReducer = (state = initialState, action: StatisticActionTypes) =>
                 establishmentCount: action.count
             };
         }
-        case CONTACTED_OWNERS_COUNT_FETCHED: {
+        case CONTACTED_HOUSING_COUNT_FETCHED: {
             return {
                 ...state,
-                contactedOwnersCount: action.count
+                contactedHousingCount: action.count
+            };
+        }
+        case WAITING_HOUSING_COUNT_FETCHED: {
+            return {
+                ...state,
+                waitingHousingCount: action.count
             };
         }
         case ANSWERS_COUNT_FETCHED: {
@@ -49,10 +57,10 @@ const statisticReducer = (state = initialState, action: StatisticActionTypes) =>
                 housingFollowedCount: action.count
             };
         }
-        case HOUSING_SUPPORTED_COUNT_FETCHED: {
+        case HOUSING_FIRST_CONTACTED_COUNT_FETCHED: {
             return {
                 ...state,
-                housingSupportedCount: action.count
+                housingFirstContactedCount: action.count
             };
         }
         case HOUSING_OUT_OF_VACANCY_COUNT_FETCHED: {

@@ -9,6 +9,16 @@ import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 
 
+const getHousing = async (id: string): Promise<Housing> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/${id}`, {
+        method: 'GET',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(_ => parseHousing(_))
+};
+
 const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing`, {
@@ -65,6 +75,15 @@ const listByOwner = async (ownerId: string): Promise<Housing[]> => {
         .then(_ => _.map((h: any) => parseHousing(h)));
 };
 
+const updateHousing = async (housingId: string, housingUpdate: HousingUpdate): Promise<any> => {
+
+    return await fetch(`${config.apiEndpoint}/api/housing/${housingId}`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ housingUpdate }),
+    });
+};
+
 const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: string[],  allHousing: boolean, housingIds: string[], currentStatus?: HousingStatus): Promise<any> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/list`, {
@@ -81,8 +100,10 @@ export const parseHousing = (h: any): Housing => ({
 } as Housing)
 
 const housingService = {
+    getHousing,
     listHousing,
     listByOwner,
+    updateHousing,
     updateHousingList,
     quickSearchService,
     exportHousing

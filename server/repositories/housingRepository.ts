@@ -14,6 +14,44 @@ export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
+export const ownersHousingJoinClause = (query: any) => {
+    query.on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`).andOnVal('rank', 1)
+}
+
+const get = async (housingId: string): Promise<HousingApi> => {
+    try {
+        return db
+            .select(
+                `${housingTable}.*`,
+                'o.id as owner_id',
+                'o.raw_address as owner_raw_address',
+                'o.full_name',
+                'o.administrator',
+                'o.house_number as owner_house_number',
+                'o.street as owner_street',
+                'o.postal_code as owner_postal_code',
+                'o.city as owner_city',
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
+            )
+            .from(housingTable)
+            .join(ownersHousingTable, ownersHousingJoinClause)
+            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .joinRaw(`left join lateral (
+                    select campaign_id as campaign_id, count(*) over() as campaign_count 
+                    from campaigns_housing ch, campaigns c 
+                    where housing.id = ch.housing_id 
+                    and c.id = ch.campaign_id
+                ) campaigns on true`)
+            .groupBy(`${housingTable}.id`, 'o.id')
+            .where(`${housingTable}.id`, housingId)
+            .first()
+            .then(_ => parseHousingApi(_))
+    } catch (err) {
+        console.error('Getting housing failed', err, housingId);
+        throw new Error('Getting housing failed');
+    }
+}
+
 const filteredQuery = (filters: HousingFiltersApi) => {
     return (queryBuilder: any) => {
         if (filters.campaignIds?.length) {
@@ -278,7 +316,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
             )
             .from(housingTable)
-            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
@@ -320,7 +358,7 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
     try {
         return db(housingTable)
             .countDistinct(`${housingTable}.id`)
-            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .joinRaw(`left join lateral (
@@ -354,7 +392,7 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
                 'o.city as owner_city'
             )
             .from(housingTable)
-            .join(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .whereIn(`${housingTable}.id`, ids)
             .then(_ => _.map(_ => parseHousingApi(_)))
@@ -450,6 +488,7 @@ const parseHousingApi = (result: any) => (
 )
 
 export default {
+    get,
     listWithFilters,
     countWithFilters,
     listByIds,

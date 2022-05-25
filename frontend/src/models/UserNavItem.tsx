@@ -14,7 +14,7 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
         case UserNavItems.Campaign:
             return {url: '/campagnes', label: 'Logements suivis'}
         case UserNavItems.HousingList:
-            return {url: '/logements', label: 'Base de données'}
+            return {url: '/base-de-donnees', label: 'Base de données'}
         case UserNavItems.User:
             return {url: '/utilisateurs', label: 'Utilisateurs'}
         default:

@@ -60,8 +60,8 @@ const CampaignBundleList = (
                                 <AppActionsMenu actions={menuActions(campaignBundle)}/>
                             }
                         </Col>
-                        <Col n="1" spacing="ml-2w">
-                            <Link title="Accéder à la campagne" to={'/campagnes/C' + campaignBundle.campaignNumber} className="fr-btn--md fr-btn float-right">
+                        <Col n="1" spacing="ml-2w" className="align-right">
+                            <Link title="Accéder à la campagne" to={'/campagnes/C' + campaignBundle.campaignNumber} className="fr-btn--md fr-btn">
                                 Accéder
                             </Link>
                         </Col>
@@ -121,8 +121,8 @@ const CampaignBundleList = (
                                         <AppActionsMenu actions={menuActions(campaign as CampaignBundleId)}/>
                                     </div>
                                 }
-                                <Col n="1">
-                                    <Link title="Accéder à la campagne" to={'/campagnes/' + campaignBundleIdUrlFragment({campaignNumber: campaign.campaignNumber, reminderNumber: campaign.reminderNumber})} className="float-right ds-fr--inline fr-link">
+                                <Col n="1" className="align-right">
+                                    <Link title="Accéder à la campagne" to={'/campagnes/' + campaignBundleIdUrlFragment({campaignNumber: campaign.campaignNumber, reminderNumber: campaign.reminderNumber})} className="ds-fr--inline fr-link">
                                         Accéder<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                     </Link>
                                 </Col>

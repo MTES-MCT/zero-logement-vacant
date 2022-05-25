@@ -28,6 +28,18 @@ const listByOwnerId = async (ownerId: string): Promise<EventApi[]> => {
     }
 }
 
+const listByHousingId = async (housingId: string): Promise<EventApi[]> => {
+    try {
+        return db(eventsTable)
+            .where('housing_id', housingId)
+            .orderBy('created_at', 'desc')
+            .then(_ => _.map(_ => parseEventApi(_)))
+    } catch (err) {
+        console.error('Listing events failed', err);
+        throw new Error('Listing events failed');
+    }
+}
+
 const insertList = async (events: EventApi[]): Promise<EventApi[]> => {
 
     try {
@@ -80,6 +92,7 @@ const formatEventApi = (eventApi: EventApi) => ({
 export default {
     insert,
     listByOwnerId,
+    listByHousingId,
     insertList,
     deleteEventsFromCampaigns
 }

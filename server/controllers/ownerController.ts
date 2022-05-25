@@ -13,6 +13,16 @@ const get = async (request: Request, response: Response): Promise<Response> => {
         .then(_ => response.status(200).json(_));
 }
 
+const listByHousing = async (request: Request, response: Response): Promise<Response> => {
+
+    const housingId = request.params.housingId;
+
+    console.log('List owner for housing', housingId)
+
+    return ownerRepository.listByHousing(housingId)
+        .then(_ => response.status(200).json(_));
+}
+
 const update = async (request: Request, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
@@ -45,7 +55,8 @@ const ownerValidators = [
 const ownerController =  {
     get,
     update,
-    ownerValidators
+    ownerValidators,
+    listByHousing
 };
 
 export default ownerController;

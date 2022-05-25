@@ -21,7 +21,7 @@ const HousingStatusModal = (
         onClose
     }: {
         housingList: Housing[],
-        onSubmit: (housing: Housing, campaignHousingUpdate: HousingUpdate) => void,
+        onSubmit: (housing: Housing, housingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
 

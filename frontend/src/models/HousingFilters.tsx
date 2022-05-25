@@ -139,7 +139,7 @@ export const ownershipKindsOptions: SelectOption[] = [
 
 export const localityKindsOptions = [
     {value: "ACV", label: "Action Cœur de Ville"},
-    {value: "PVD", label: "Petites Ville de Demain"}
+    {value: "PVD", label: "Petites Villes de Demain"}
 ];
 
 export const dataYearsIncludedOptions = [

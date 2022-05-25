@@ -15,6 +15,16 @@ const getOwner = async (id: string): Promise<Owner> => {
         .then(_ => parseOwner(_))
 };
 
+const listByHousing = async (housingId: string): Promise<Owner[]> => {
+
+    return await fetch(`${config.apiEndpoint}/api/owners/housing/${housingId}`, {
+        method: 'GET',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(_ => _.map((_: any) => parseOwner(_)))
+};
+
 const updateOwner = async (owner: Owner) => {
 
     return await fetch(`${config.apiEndpoint}/api/owners/${owner.id}`, {
@@ -41,6 +51,7 @@ const parseOwner = (o: any): Owner => ({
 
 const ownerService = {
     getOwner,
+    listByHousing,
     updateOwner,
     parseOwner
 };

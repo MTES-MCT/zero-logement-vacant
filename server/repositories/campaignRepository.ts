@@ -1,7 +1,7 @@
 import { CampaignApi, CampaignBundleApi, CampaignKinds } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { housingTable, ownersHousingTable } from './housingRepository';
+import { housingTable, ownersHousingJoinClause, ownersHousingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 
@@ -26,7 +26,7 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi> => {
             .where(`${campaignsTable}.id`, campaignId)
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .leftJoin(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .groupBy(`${campaignsTable}.id`)
             .first()
@@ -55,7 +55,7 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .leftJoin(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .modify((queryBuilder: any) => {
                 if (campaignNumber) {
@@ -119,7 +119,7 @@ const listCampaignBundles = async (establishmentId: string): Promise<CampaignBun
             .from(campaignsTable)
             .leftJoin(campaignsHousingTable, 'id', `${campaignsHousingTable}.campaign_id`)
             .leftJoin(housingTable, `${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .leftJoin(ownersHousingTable, `${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+            .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .where(`${campaignsTable}.establishment_id`, establishmentId)
             .orderBy('campaign_number')

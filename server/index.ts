@@ -22,7 +22,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
             imgSrc: ["'self'", 'data:'],
             fontSrc: [
-                "'self'",
+                "'self'", 'data:',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'

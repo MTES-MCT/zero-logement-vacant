@@ -168,7 +168,7 @@ export const updateOwnerHousing = (housing: Housing, housingUpdate: HousingUpdat
 
         const ownerState = getState().owner;
 
-        housingService.updateHousingList(housingUpdate, housing.campaignIds, false, [housing.id], housing.status)
+        housingService.updateHousing(housing.id, housingUpdate)
             .then(() => {
                 dispatch(hideLoading());
                 getOwnerHousing(ownerState.owner.id)(dispatch);

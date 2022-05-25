@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import { Button, Col, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
 import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
-import { getOwner, getOwnerHousing, update, updateOwnerHousing } from '../../store/actions/ownerAction';
+import { getOwner, getOwnerEvents, getOwnerHousing, update, updateOwnerHousing } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
-import OwnerEvents from './OwnerEvents';
+import EventsHistory from '../../components/EventsHistory/EventsHistory';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import config from '../../utils/config';
@@ -31,12 +31,13 @@ const OwnerView = () => {
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList } = useSelector((state: ApplicationState) => state.owner);
+    const { owner, housingList, events } = useSelector((state: ApplicationState) => state.owner);
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         dispatch(getOwner(id));
         dispatch(getOwnerHousing(id));
+        dispatch(getOwnerEvents(id));
         if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle) {
             dispatch(getCampaignBundle({
                 campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
@@ -93,7 +94,7 @@ const OwnerView = () => {
                 </div>
                 <Container spacing="py-4w">
                     <Row className="fr-grid-row--center">
-                        <Col n="6" className={classNames(styles.bordered, 'fr-py-2w', 'fr-px-3w')}>
+                        <Col n="6" className="bordered fr-py-2w fr-px-3w">
                             <Row>
                                 <Col>
                                     <Title as="h2" look="h3">Propriétaire</Title>
@@ -156,7 +157,7 @@ const OwnerView = () => {
                             </Text>
                         </Col>
                         <Col n="6" className="fr-py-2w fr-px-3w">
-                            <OwnerEvents ownerId={owner.id} />
+                            <EventsHistory events={events} housingList={housingList}/>
                         </Col>
                     </Row>
                     {housingList.map((housing, index) =>
@@ -243,7 +244,7 @@ const OwnerView = () => {
                                     }
                                     <div className="fr-mt-2w">
                                         <Link title="Localiser dans Google Map - nouvelle fenêtre"
-                                              href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                              to={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
                                               target="_blank">
                                             Localiser
                                         </Link>
@@ -300,7 +301,11 @@ const OwnerView = () => {
                                                 <span style={{ verticalAlign: 'top' }}>
                                                     <b>{campaignList?.find(campaign => campaign.id === campaignId)?.name}</b>
                                                 </span>
-                                                <Link title="Voir la campagne" href={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignList?.find(campaign => campaign.id === campaignId)))} className="ds-fr--inline fr-link">
+                                                <Link
+                                                    title="Voir la campagne"
+                                                    to={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignList?.find(campaign => campaign.id === campaignId)))}
+                                                    className="ds-fr--inline fr-link fr-ml-2w">
+
                                                     Voir la campagne<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                 </Link>
                                             </div>
@@ -308,6 +313,13 @@ const OwnerView = () => {
                                     </Col>
                                 </Row>
                             }
+                            <Row>
+                                <Col className="align-right">
+                                    <Link title="Accéder à la fiche du logement" to={location.pathname + '/logements/' + housing.id} className="ds-fr--inline fr-link">
+                                        Accéder à la fiche du logement<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                                    </Link>
+                                </Col>
+                            </Row>
                         </div>
                     )}
                 </Container>

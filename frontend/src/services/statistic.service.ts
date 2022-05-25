@@ -1,18 +1,28 @@
 import config from '../utils/config';
 
 
-const getContactedOwnersCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/owners/contacted/count`, {
+const getEstablishmentsCount = async (): Promise<number> => {
+
+    return await fetch(`${config.apiEndpoint}/api/statistics/establishments/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
         .then(_ => _.json());
 };
 
-const getEstablishmentsCount = async (): Promise<number> => {
+const getContactedHousingCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/establishments/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/contacted/count`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(_ => _.json());
+};
+
+const getWaitingHousingCount = async (): Promise<number> => {
+
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/waiting/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -37,9 +47,9 @@ const getHousingFollowedCount = async (): Promise<number> => {
         .then(_ => _.json());
 };
 
-const getHousingSupportedCount = async (): Promise<number> => {
+const getHousingFirstContactedCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/supported/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/contacted/first/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -56,11 +66,12 @@ const getHousingOutOfVacancyCount = async (): Promise<number> => {
 };
 
 const statisticService = {
-    getContactedOwnersCount,
     getEstablishmentsCount,
+    getContactedHousingCount,
+    getWaitingHousingCount,
     getAnswersCount,
+    getHousingFirstContactedCount,
     getHousingFollowedCount,
-    getHousingSupportedCount,
     getHousingOutOfVacancyCount
 };
 

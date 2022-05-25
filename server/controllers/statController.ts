@@ -16,7 +16,7 @@ const housingContactedCount = async (request: Request, response: Response): Prom
 
     console.log('Get contacted housing count')
 
-    return housingRepository.countWithFilters({campaignsCounts: ['current']})
+    return housingRepository.countWithFilters({status: [HousingStatusApi.Waiting, HousingStatusApi.FirstContact, HousingStatusApi.InProgress, HousingStatusApi.NotVacant, HousingStatusApi.NoAction, HousingStatusApi.Exit]})
         .then(_ => response.status(200).json(_));
 };
 

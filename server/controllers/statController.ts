@@ -3,13 +3,6 @@ import housingRepository from '../repositories/housingRepository';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 
-const contactedOwnersCount = async (request: Request, response: Response): Promise<Response> => {
-
-    console.log('Get contacted owners count')
-
-    return housingRepository.countWithFilters({campaignsCounts: ['1']})
-        .then(_ => response.status(200).json(_));
-};
 
 const establishmentCount = async (request: Request, response: Response): Promise<Response> => {
 
@@ -17,6 +10,22 @@ const establishmentCount = async (request: Request, response: Response): Promise
 
     return establishmentRepository.listAvailable()
         .then(_ => response.status(200).json(_.length));
+};
+
+const housingContactedCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get contacted housing count')
+
+    return housingRepository.countWithFilters({status: [HousingStatusApi.Waiting, HousingStatusApi.FirstContact, HousingStatusApi.InProgress, HousingStatusApi.NotVacant, HousingStatusApi.NoAction, HousingStatusApi.Exit]})
+        .then(_ => response.status(200).json(_));
+};
+
+const housingWaitingCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get waiting housing count')
+
+    return housingRepository.countWithFilters({status: [HousingStatusApi.Waiting]})
+        .then(_ => response.status(200).json(_));
 };
 
 const answersCount = async (request: Request, response: Response): Promise<Response> => {
@@ -27,27 +36,22 @@ const answersCount = async (request: Request, response: Response): Promise<Respo
         .then(_ => response.status(200).json(_));
 };
 
+const housingFirstContactedCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get first contacted housing count')
+
+    return housingRepository.countWithFilters({status: [HousingStatusApi.FirstContact]})
+        .then(_ => response.status(200).json(_));
+};
+
 const housingFollowedCount = async (request: Request, response: Response): Promise<Response> => {
 
     console.log('Get followed housing count')
 
-    return housingRepository.countWithFilters({status: [HousingStatusApi.FirstContact, HousingStatusApi.InProgress]})
+    return housingRepository.countWithFilters({status: [HousingStatusApi.InProgress]})
         .then(_ => response.status(200).json(_));
 };
 
-const housingSupportedCount = async (request: Request, response: Response): Promise<Response> => {
-
-    console.log('Get supported housing count')
-
-    return housingRepository.listWithFilters({status: [HousingStatusApi.FirstContact, HousingStatusApi.InProgress]})
-        .then(_ => response.status(200).json(
-            _.entities
-                .filter(housing =>
-                    housing.status === HousingStatusApi.InProgress || (housing.status === HousingStatusApi.FirstContact && housing.subStatus === 'En pré-accompagnement')
-                ).length
-            )
-        );
-};
 
 const housingOutOfVacancyCount = async (request: Request, response: Response): Promise<Response> => {
 
@@ -56,17 +60,18 @@ const housingOutOfVacancyCount = async (request: Request, response: Response): P
     return housingRepository.listWithFilters({status: [HousingStatusApi.Exit]})
         .then(_ => response.status(200).json(
             _.entities
-                .filter(housing => housing.subStatus === 'Via accompagnement' || housing.subStatus === 'Sans accompagnement').length
+                .filter(housing => housing.subStatus?.length ).length
             )
         );
 };
 
 const statController =  {
-    contactedOwnersCount,
     establishmentCount,
+    housingContactedCount,
+    housingWaitingCount,
     answersCount,
+    housingFirstContactedCount,
     housingFollowedCount,
-    housingSupportedCount,
     housingOutOfVacancyCount
 };
 

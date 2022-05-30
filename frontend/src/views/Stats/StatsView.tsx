@@ -10,7 +10,7 @@ const StatsView = () => {
 
     const dispatch = useDispatch();
 
-    const { establishmentCount, contactedOwnersCount, answersCount, housingFollowedCount, housingSupportedCount, housingOutOfVacancyCount } = useSelector((state: ApplicationState) => state.statistic);
+    const { establishmentCount, contactedHousingCount, waitingHousingCount, answersCount, housingFollowedCount, housingFirstContactedCount, housingOutOfVacancyCount } = useSelector((state: ApplicationState) => state.statistic);
 
 
     useEffect(() => {
@@ -39,10 +39,20 @@ const StatsView = () => {
                     <Col n="4">
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de propriétaires contactés</span>
+                                <span>Nombre de logements contactés</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{contactedOwnersCount ?? '...'}</span>
+                                <span>{contactedHousingCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                    <Col n="4">
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de logements en attente de retour</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{waitingHousingCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>
@@ -61,20 +71,20 @@ const StatsView = () => {
                     <Col>
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de logements suivis par les collectivités</span>
+                                <span>Nombre de premiers contacts</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{housingFollowedCount ?? '...'}</span>
+                                <span>{housingFirstContactedCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>
                     <Col>
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de logements accompagnés par les collectivités</span>
+                                <span>Nombre de logements suivis par les collectivités</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{housingSupportedCount ?? '...'}</span>
+                                <span>{housingFollowedCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>

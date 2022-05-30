@@ -56,7 +56,7 @@ const DashboardView = () => {
                               onKeySearch={quickSearch}
                               placeholder="Rechercher une adresse ou un propriétaire..."
                               size="lg"/>
-                <Link title="Accéder à la base de données" to="/logements" className="ds-fr--inline fr-link float-right fr-pr-0 fr-py-3w">
+                <Link title="Accéder à la base de données" to="/base-de-donnees" className="ds-fr--inline fr-link float-right fr-pr-0 fr-py-3w">
                     Accéder à la base de données<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                 </Link>
             </Container>

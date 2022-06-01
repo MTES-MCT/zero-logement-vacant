@@ -43,7 +43,7 @@ const DashboardView = () => {
     }
 
     const search = (query: string) => {
-        history.push('/logements?q='+query);
+        history.push('/base-de-donnees?q='+query);
     }
 
     return (

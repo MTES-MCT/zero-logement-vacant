@@ -13,16 +13,16 @@ import {
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
-import { Owner } from '../../models/Owner';
-import { OwnerEvent } from '../../models/OwnerEvent';
+import { HousingOwner } from '../../models/Owner';
+import { Event } from '../../models/Event';
 
 
 export interface HousingState {
     paginatedHousing: PaginatedResult<Housing>;
     filters: HousingFilters;
     housing: Housing;
-    owners: Owner[];
-    events: OwnerEvent[];
+    housingOwners: HousingOwner[];
+    events: Event[];
 }
 
 export const initialHousingFilters = {
@@ -78,12 +78,12 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         case FETCHING_HOUSING_OWNERS:
             return {
                 ...state,
-                owners: []
+                housingOwners: []
             };
         case HOUSING_OWNERS_FETCHED:
             return {
                 ...state,
-                owners: action.owners
+                housingOwners: action.housingOwners
             };
         case FETCHING_HOUSING_EVENTS:
             return {

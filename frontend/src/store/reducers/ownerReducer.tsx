@@ -7,14 +7,14 @@ import {
     OWNER_UPDATED,
     OwnerActionTypes,
 } from '../actions/ownerAction';
-import { OwnerEvent } from '../../models/OwnerEvent';
+import { Event } from '../../models/Event';
 import { Housing, HousingSort } from '../../models/Housing';
 
 
 export interface OwnerState {
     owner: Owner;
     housingList: Housing[];
-    events: OwnerEvent[];
+    events: Event[];
 }
 
 const initialState = { };

@@ -7,3 +7,10 @@ export interface Owner {
     email?: string;
     phone?: string;
 }
+
+export interface HousingOwner extends Owner {
+    housingId: string;
+    rank: number;
+    startDate?: Date;
+    endDate?: Date;
+}

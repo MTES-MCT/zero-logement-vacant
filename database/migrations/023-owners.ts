@@ -18,6 +18,7 @@ exports.up = function(knex) {
 // @ts-ignore
 exports.down = function(knex) {
   return Promise.all([
+      knex.raw("delete from owners_housing where rank > 1"),
       knex.schema// @ts-ignore
           .alterTable('owners_housing', (table) => {
               table.dropColumn('rank');

@@ -3,7 +3,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import housingService from '../../services/housing.service';
-import { EventKinds } from '../../models/OwnerEvent';
+import { EventKinds } from '../../models/Event';
 import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';

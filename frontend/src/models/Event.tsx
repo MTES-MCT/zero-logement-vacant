@@ -1,4 +1,4 @@
-export interface OwnerEvent {
+export interface Event {
     id: string;
     ownerId: string;
     housingId?: string;

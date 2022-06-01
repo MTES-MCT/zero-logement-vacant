@@ -5,9 +5,9 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { Owner } from '../../models/Owner';
+import { HousingOwner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { OwnerEvent } from '../../models/OwnerEvent';
+import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
 
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
@@ -34,7 +34,7 @@ export interface FetchingHousingOwnersAction {
 
 export interface HousingOwnersFetchedAction {
     type: typeof HOUSING_OWNERS_FETCHED,
-    owners: Owner[]
+    housingOwners: HousingOwner[]
 }
 
 export interface FetchingHousingEventsAction {
@@ -43,7 +43,7 @@ export interface FetchingHousingEventsAction {
 
 export interface HousingEventsFetchedAction {
     type: typeof HOUSING_EVENTS_FETCHED,
-    events: OwnerEvent[]
+    events: Event[]
 }
 
 export interface FetchHousingListAction {
@@ -157,11 +157,11 @@ export const getHousingOwners = (housingId: string) => {
         });
 
         ownerService.listByHousing(housingId)
-            .then(owners => {
+            .then(housingOwners => {
                 dispatch(hideLoading());
                 dispatch({
                     type: HOUSING_OWNERS_FETCHED,
-                    owners
+                    housingOwners
                 });
             });
     };
@@ -199,6 +199,21 @@ export const updateHousing = (housing: Housing, housingUpdate: HousingUpdate) =>
                 dispatch(hideLoading());
                 getHousing(housing.id)(dispatch);
                 getHousingEvents(housing.id)(dispatch);
+            });
+
+    }
+}
+
+export const updateHousingOwners = (housingId: string, housingOwners: HousingOwner[]) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        ownerService.updateHousingOwners(housingId, housingOwners)
+            .then(() => {
+                dispatch(hideLoading());
+                getHousingOwners(housingId)(dispatch);
             });
 
     }

@@ -4,7 +4,13 @@ import { Button, Col, Container, Link, Row, Tab, Tabs, Text, Title } from '@data
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { getHousing, getHousingEvents, getHousingOwners, updateHousing } from '../../store/actions/housingAction';
+import {
+    getHousing,
+    getHousingEvents,
+    getHousingOwners,
+    updateHousing,
+    updateHousingOwners,
+} from '../../store/actions/housingAction';
 import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 import classNames from 'classnames';
@@ -15,6 +21,8 @@ import config from '../../utils/config';
 import EventsHistory from '../../components/EventsHistory/EventsHistory';
 import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
+import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
+import { HousingOwner } from '../../models/Owner';
 
 const HousingView = () => {
 
@@ -22,10 +30,11 @@ const HousingView = () => {
 
     const { id } = useParams<{id: string}>();
 
-    const { housing, owners, events } = useSelector((state: ApplicationState) => state.housing);
+    const { housing, housingOwners, events } = useSelector((state: ApplicationState) => state.housing);
     const { owner } = useSelector((state: ApplicationState) => state.owner);
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
+    const [isModalOwnersOpen, setIsModalOwnersOpen] = useState(false);
 
     useEffect(() => {
         dispatch(getHousing(id));
@@ -37,6 +46,12 @@ const HousingView = () => {
     const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
         dispatch(updateHousing(housing, housingUpdate))
         setIsModalStatusOpen(false)
+    }
+
+    const submitHousingOwnersUpdate = (housingOwnersUpdated: HousingOwner[]) => {
+        console.log('housingOwners', housingOwnersUpdated)
+        dispatch(updateHousingOwners(housing.id, housingOwnersUpdated))
+        setIsModalOwnersOpen(false)
     }
 
     return (
@@ -120,13 +135,29 @@ const HousingView = () => {
                         <Col n="6" className="bordered fr-py-2w fr-px-3w">
                             <Row>
                                 <Col>
-                                    <Title as="h2" look="h3">{owners?.length > 1 ? 'Propriétaires' : 'Propriétaire'}</Title>
+                                    <Title as="h2" look="h3">{housingOwners?.length > 1 ? 'Propriétaires' : 'Propriétaire'}</Title>
+                                </Col>
+                                <Col>
+                                    <Button title="Modifier les propriétaires"
+                                            secondary
+                                            size="sm"
+                                            icon="fr-fi-edit-line"
+                                            className="float-right"
+                                            onClick={() => {setIsModalOwnersOpen(true)}}>
+                                        Modifier
+                                    </Button>
+                                    {isModalOwnersOpen &&
+                                        <HousingOwnersModal housingId={housing.id}
+                                                            housingOwners={housingOwners}
+                                                            onSubmit={submitHousingOwnersUpdate}
+                                                            onClose={() => setIsModalOwnersOpen(false)} />
+                                    }
                                 </Col>
                             </Row>
-                            {owners &&
+                            {housingOwners &&
                                 <Tabs>
-                                    {owners.map((owner, ownerIdx) =>
-                                        <Tab label={ownerIdx === 0 ? 'Principal' : `${ownerIdx + 1}ème`} key={owner.id}>
+                                    {housingOwners.filter(_ => _.rank).map(owner =>
+                                        <Tab label={owner.rank === 1 ? 'Principal' : `${owner.rank}ème`} key={owner.id}>
                                             <Text size="lg" className="fr-mb-1w">
                                                 <b>Identité</b>
                                             </Text>
@@ -276,6 +307,25 @@ const HousingView = () => {
                             </Col>
                         </Row>
                     </div>
+                    {housingOwners.filter(_ => !_.rank).length > 0 &&
+                        <div className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
+                            <Row>
+                                <Col>
+                                    <Title as="h2" look="h3" className="fr-mb-0">
+                                        Anciens propriétaires
+                                    </Title>
+                                </Col>
+                            </Row>
+                            {housingOwners.filter(_ => !_.rank).map(housingOwner =>
+                                <Row key={housingOwner.id}>
+                                    <Col>
+                                        {housingOwner.fullName}
+                                    </Col>
+                                </Row>
+
+                            )}
+                        </div>
+                    }
                 </Container>
             </>}
         </>

@@ -4,11 +4,11 @@ import styles from './events-history.module.scss';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { OwnerEvent } from '../../models/OwnerEvent';
+import { Event } from '../../models/Event';
 import { Housing } from '../../models/Housing';
 
 
-const EventsHistory = ({ events, housingList }: { events: OwnerEvent[], housingList?: Housing[]}) => {
+const EventsHistory = ({ events, housingList }: { events: Event[], housingList?: Housing[]}) => {
 
     const campaignList = useCampaignList();
 

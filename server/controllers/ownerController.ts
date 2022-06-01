@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { body, oneOf, validationResult } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
-import { OwnerApi } from '../models/OwnerApi';
+import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -10,6 +10,16 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     console.log('Get owner', id)
 
     return ownerRepository.get(id)
+        .then(_ => response.status(200).json(_));
+}
+
+const search = async (request: Request, response: Response): Promise<Response> => {
+
+    const query = <string>request.query.q;
+
+    console.log('Search owner', query)
+
+    return ownerRepository.searchOwners(query)
         .then(_ => response.status(200).json(_));
 }
 
@@ -40,6 +50,24 @@ const update = async (request: Request, response: Response): Promise<Response> =
         .then(ownerApi => response.status(200).json(ownerApi));
 }
 
+const updateHousingOwners = async (request: Request, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(400).json({ errors: errors.array() });
+    }
+
+    const housingId = request.params.housingId;
+
+    console.log('Update housing owners', housingId)
+
+    const housingOwnersApi = (<HousingOwnerApi[]>request.body.housingOwners).filter(_ => _.housingId === housingId);
+
+    return ownerRepository.deleteHousingOwners(housingId, housingOwnersApi.map(_ => _.id))
+        .then(_ => ownerRepository.insertHousingOwners(housingOwnersApi))
+        .then(_ => response.status(200).json(_));
+}
+
 
 const ownerValidators = [
 
@@ -54,9 +82,11 @@ const ownerValidators = [
 
 const ownerController =  {
     get,
+    search,
     update,
     ownerValidators,
-    listByHousing
+    listByHousing,
+    updateHousingOwners
 };
 
 export default ownerController;

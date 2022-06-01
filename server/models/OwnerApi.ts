@@ -10,3 +10,10 @@ export interface OwnerApi {
     email?: string;
     phone?: string;
 }
+
+export interface HousingOwnerApi extends OwnerApi {
+    housingId: string;
+    rank: number;
+    startDate?: Date;
+    endDate?: Date;
+}

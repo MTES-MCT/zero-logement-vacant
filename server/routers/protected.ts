@@ -46,9 +46,11 @@ router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jw
 router.post('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.createReminderCampaign);
 router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.deleteCampaign);
 
+router.get('/api/owners', jwtCheck, userCheck, ownerController.search);
 router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);
-router.get('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.listByHousing);
 router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerValidators, ownerController.update);
+router.get('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.listByHousing);
+router.put('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.updateHousingOwners);
 
 router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
 router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);

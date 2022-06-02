@@ -3,6 +3,7 @@ import authService from './auth.service';
 import { HousingOwner, Owner } from '../models/Owner';
 import { parseISO } from 'date-fns';
 import { toTitleCase } from '../utils/stringUtils';
+import { PaginatedResult } from '../models/PaginatedResult';
 
 
 const getOwner = async (id: string): Promise<Owner> => {
@@ -57,24 +58,19 @@ const updateHousingOwners = async (housingId: string, housingOwners: HousingOwne
         })
 };
 
+const listOwners = async (q: string, page: number, perPage: number): Promise<PaginatedResult<Owner>> => {
 
-const quickSearchService = (): {abort: () => void, fetch: (query: string) => Promise<Owner[]>} => {
-
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    return {
-        abort: () => controller.abort(),
-        fetch: (query: string) => fetch(`${config.apiEndpoint}/api/owners?q=${query}`, {
-            method: 'GET',
-            headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-            signal
-        })
-            .then(_ => _.json())
-            .then(result => result.map((o: any) => parseOwner(o)))
-    };
+    return await fetch(`${config.apiEndpoint}/api/owners`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q, page, perPage }),
+    })
+        .then(_ => _.json())
+        .then(result => ({
+            ...result,
+            entities: result.entities.map((e: any) => parseOwner(e))
+        }));
 };
-
 
 const parseOwner = (o: any): Owner => ({
     ...o,
@@ -95,7 +91,7 @@ const ownerService = {
     listByHousing,
     updateOwner,
     updateHousingOwners,
-    quickSearchService,
+    listOwners,
     parseOwner
 };
 

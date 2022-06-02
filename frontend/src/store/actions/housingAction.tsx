@@ -5,7 +5,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { HousingOwner } from '../../models/Owner';
+import { HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
@@ -16,7 +16,9 @@ export const FETCHING_HOUSING = 'FETCHING_HOUSING';
 export const HOUSING_FETCHED = 'HOUSING_FETCHED';
 export const FETCHING_HOUSING_OWNERS = 'FETCHING_HOUSING_OWNERS';
 export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
-export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_OWNERS';
+export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
+export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
+export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
 
 export interface FetchingHousingAction {
@@ -35,6 +37,19 @@ export interface FetchingHousingOwnersAction {
 export interface HousingOwnersFetchedAction {
     type: typeof HOUSING_OWNERS_FETCHED,
     housingOwners: HousingOwner[]
+}
+
+export interface FetchingAdditionalOwnersAction {
+    type: typeof FETCHING_ADDITIONAL_OWNERS
+    q: string,
+    page: number,
+    perPage: number
+}
+
+export interface AdditionalOwnersFetchedAction {
+    type: typeof ADDITIONAL_OWNERS_FETCHED,
+    paginatedOwners: PaginatedResult<Owner>,
+    q: string
 }
 
 export interface FetchingHousingEventsAction {
@@ -66,6 +81,8 @@ export type HousingActionTypes =
     HousingListFetchedAction |
     FetchingHousingOwnersAction |
     HousingOwnersFetchedAction |
+    FetchingAdditionalOwnersAction |
+    AdditionalOwnersFetchedAction |
     FetchingHousingEventsAction |
     HousingEventsFetchedAction;
 
@@ -218,3 +235,58 @@ export const updateHousingOwners = (housingId: string, housingOwners: HousingOwn
 
     }
 }
+
+export const changeAdditionalOwnersSearching = (q: string) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const page = 1
+        const perPage = getState().housing.additionalOwners?.paginatedOwners?.perPage ?? 5
+
+        dispatch({
+            type: FETCHING_ADDITIONAL_OWNERS,
+            page,
+            perPage,
+            q
+        });
+
+        ownerService.listOwners(q, page, perPage)
+            .then((result: PaginatedResult<Owner>) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNERS_FETCHED,
+                    paginatedOwners: result,
+                    q
+                });
+            });
+    };
+};
+
+export const changeAdditionalOwnersPagination = (page: number, perPage: number) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const q = getState().housing.additionalOwners?.q ?? ''
+
+        dispatch({
+            type: FETCHING_ADDITIONAL_OWNERS,
+            page: page,
+            perPage,
+            q
+        });
+
+        ownerService.listOwners(q, page, perPage)
+            .then((result: PaginatedResult<Owner>) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNERS_FETCHED,
+                    paginatedOwners: result,
+                    q
+                });
+            });
+    };
+};

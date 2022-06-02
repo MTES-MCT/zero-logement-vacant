@@ -15,11 +15,13 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 
 const search = async (request: Request, response: Response): Promise<Response> => {
 
-    const query = <string>request.query.q;
+    const q = request.body.q;
+    const page = request.body.page;
+    const perPage = request.body.perPage;
 
-    console.log('Search owner', query)
+    console.log('Search owner', q)
 
-    return ownerRepository.searchOwners(query)
+    return ownerRepository.searchOwners(q, page, perPage)
         .then(_ => response.status(200).json(_));
 }
 

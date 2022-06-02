@@ -109,7 +109,7 @@ const HousingListView = () => {
                             <Title as="h1">Base de données</Title>
                         </Col>
                         <Col n="4">
-                            <AppSearchBar onSearch={searchWithQuery} />
+                            <AppSearchBar onSearch={searchWithQuery} initialQuery={filters.query}/>
                         </Col>
                     </Row>
                     <Row>

@@ -3,6 +3,7 @@ import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
 import { ownersHousingTable } from './housingRepository';
+import { PaginatedResultApi } from '../models/PaginatedResultApi';
 
 export const ownerTable = 'owners';
 
@@ -18,13 +19,34 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
     }
 }
 
-const searchOwners = async (query: string): Promise<OwnerApi[]> => {
+const searchOwners = async (q: string, page?: number, perPage?: number): Promise<PaginatedResultApi<OwnerApi>> => {
     try {
-        return db(ownerTable)
-            .whereRaw('upper(full_name) like ?', `%${query?.toUpperCase()}%`)
-            .then(_ => _.map((result: any) => parseOwnerApi(result)))
+        const query = db(ownerTable)
+            .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+
+        const ownersCount: number = await
+            db(ownerTable)
+                .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+                .count('id')
+                .then(_ => Number(_[0].count))
+
+        const results = await query
+            .modify((queryBuilder: any) => {
+                if (page && perPage) {
+                    queryBuilder
+                        .offset((page - 1) * perPage)
+                        .limit(perPage)
+                }
+            })
+
+        return <PaginatedResultApi<OwnerApi>> {
+            entities: results.map((result: any) => parseOwnerApi(result)),
+            totalCount: ownersCount,
+            page,
+            perPage
+        }
     } catch (err) {
-        console.error('Searching owners failed', err, query);
+        console.error('Searching owners failed', err, q);
         throw new Error('Searching owner failed');
     }
 }

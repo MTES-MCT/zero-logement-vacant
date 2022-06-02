@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import classNames from 'classnames';
 import styles from './app-search-bar.module.scss';
 import { Link } from 'react-router-dom';
@@ -46,19 +44,19 @@ const AppSearchBar = (
         placeholder,
         buttonLabel,
         size,
-        maxResults
+        maxResults,
+        initialQuery
     }: {
         onSearch: (text: string) => void,
         onKeySearch?: (text: string) => Promise<SearchResult[] | void>,
         placeholder?: string,
         buttonLabel?: string,
         size?: string,
-        maxResults?: number
+        maxResults?: number,
+        initialQuery?: string
     }) => {
 
-    const query = useSelector((state: ApplicationState) => state.housing.filters.query ?? '');
-
-    const [searchInput, setSearchInput] = useState<string>(query);
+    const [searchInput, setSearchInput] = useState<string>(initialQuery ?? '');
     const [searchResults, setSearchResults] = useState<SearchResult[] |undefined>();
 
     const onKeyDown = (e: any) => (e.keyCode === 13) && submitSearch(e);
@@ -80,8 +78,10 @@ const AppSearchBar = (
     }
 
     useEffect(() => {
-        setSearchInput(query.trim())
-    }, [query])
+        if (initialQuery) {
+            setSearchInput(initialQuery.trim())
+        }
+    }, [initialQuery])
 
 
     return (

@@ -1,5 +1,7 @@
 import { Housing } from '../../models/Housing';
 import {
+    ADDITIONAL_OWNERS_FETCHED,
+    FETCHING_ADDITIONAL_OWNERS,
     FETCHING_HOUSING,
     FETCHING_HOUSING_EVENTS,
     FETCHING_HOUSING_LIST,
@@ -13,16 +15,21 @@ import {
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
-import { HousingOwner } from '../../models/Owner';
+import { HousingOwner, Owner } from '../../models/Owner';
 import { Event } from '../../models/Event';
 
 
 export interface HousingState {
     paginatedHousing: PaginatedResult<Housing>;
     filters: HousingFilters;
-    housing: Housing;
-    housingOwners: HousingOwner[];
-    events: Event[];
+    housing?: Housing;
+    housingOwners?: HousingOwner[];
+    additionalOwners?: {
+        paginatedOwners: PaginatedResult<Owner>;
+        q: string
+    }
+    events?: Event[];
+    checkedHousingIds?: string[];
 }
 
 export const initialHousingFilters = {
@@ -51,7 +58,7 @@ export const initialHousingFilters = {
     query: ''
 } as HousingFilters;
 
-const initialState = {
+const initialState: HousingState = {
     paginatedHousing: {
         entities: [],
         page: 1,
@@ -59,8 +66,7 @@ const initialState = {
         totalCount: 0,
         loading: true
     },
-    filters: initialHousingFilters,
-    checkedHousingIds: []
+    filters: initialHousingFilters
 };
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
@@ -78,13 +84,43 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         case FETCHING_HOUSING_OWNERS:
             return {
                 ...state,
-                housingOwners: []
+                housingOwners: undefined
             };
         case HOUSING_OWNERS_FETCHED:
             return {
                 ...state,
                 housingOwners: action.housingOwners
             };
+        case FETCHING_ADDITIONAL_OWNERS:
+            return {
+                ...state,
+                additionalOwners: {
+                    paginatedOwners: {
+                        page: action.page,
+                        perPage: action.perPage,
+                        loading: true
+                    },
+                    q: action.q
+                }
+            };
+        case ADDITIONAL_OWNERS_FETCHED: {
+            const isCurrentFetching =
+                action.q === state.additionalOwners?.q &&
+                action.paginatedOwners.page === state.additionalOwners?.paginatedOwners.page &&
+                action.paginatedOwners.perPage === state.additionalOwners.paginatedOwners.perPage
+            return !isCurrentFetching ? state : {
+                ...state,
+                additionalOwners: {
+                    ...state.additionalOwners,
+                    paginatedOwners: {
+                        ...state.additionalOwners?.paginatedOwners,
+                        entities: action.paginatedOwners.entities,
+                        totalCount: action.paginatedOwners.totalCount,
+                        loading: false
+                    }
+                }
+            };
+        }
         case FETCHING_HOUSING_EVENTS:
             return {
                 ...state,

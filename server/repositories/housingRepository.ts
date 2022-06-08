@@ -34,8 +34,8 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
             )
             .from(housingTable)
-            .join(ownersHousingTable, ownersHousingJoinClause)
-            .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .leftJoin(ownersHousingTable, ownersHousingJoinClause)
+            .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 

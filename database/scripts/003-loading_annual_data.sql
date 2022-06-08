@@ -37,11 +37,11 @@ AS $$
            trim(ff_ctpdl) as ownership_kind,
            upper(var.owner) as full_name,
            var.administrator as administrator,
-           array[nullif(trim(adresse1), ''), nullif(trim(adresse2), ''), nullif(trim(adresse3), ''), nullif(trim(adresse4), '')] as owner_raw_address,
+           array_remove(array[nullif(trim(adresse1), ''), nullif(trim(adresse2), ''), nullif(trim(adresse3), ''), nullif(trim(adresse4), '')], null) as owner_raw_address,
            (case
                when ff_jdatnss_1 <> '0' and ff_jdatnss_1 not like '00/00/%' and ff_jdatnss_1 not like '%/%/18%' and (
                    (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
-                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1, 'MM/DD/YYYY') end) as birth_date,
+                   (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1 || ' 20', 'MM/DD/YY CC') end) as birth_date,
            (case
                when trim(groupe::text) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
@@ -118,7 +118,7 @@ AS $$
                 --------------------------------
                 select array_agg(id) into owner_var_ids from owners o
                 where o.full_name = upper(trim(housing_var.full_name))
-                  and (o.birth_date = housing_var.birth_date OR coalesce(o.birth_date, housing_var.birth_date) IS NULL);
+                  and (o.birth_date = housing_var.birth_date OR (coalesce(o.birth_date, housing_var.birth_date) IS NULL AND o.raw_address && housing_var.owner_raw_address));
 
                 -- CASE NEW OWNER
                 IF owner_var_ids IS NULL or array_length(owner_var_ids, 1) = 0 THEN
@@ -140,13 +140,14 @@ AS $$
                 from owners_housing oh
                 left outer join events e on oh.owner_id = e.owner_id and e.kind = '0'
                 where oh.housing_id = housing_var_id
+                and rank = 1
                 group by oh.owner_id;
 
                 IF owner_housing_var.owner_id IS NULL THEN
 
                     RAISE NOTICE 'INSERT OWNER HOUSING : %', housing_var.local_id;
 
-                    insert into owners_housing(housing_id, owner_id) values (housing_var_id, owner_var_ids[1]);
+                    insert into owners_housing(housing_id, owner_id, rank) values (housing_var_id, owner_var_ids[1], 1);
 
                 ELSIF not owner_var_ids @> ARRAY[owner_housing_var.owner_id] AND owner_housing_var.max_date IS NOT NULL AND owner_housing_var.max_date::date > to_date('01/01/2021', 'DD/MM/YYYY') THEN
 
@@ -165,7 +166,7 @@ AS $$
 
                     select * into owner_var from owners where id = owner_housing_var.owner_id;
 
-                    update owners_housing set owner_id = owner_var_ids[1] where housing_id = housing_var_id;
+                    update owners_housing set owner_id = owner_var_ids[1] where housing_id = housing_var_id and rank = 1;
 
                     update owners set local_ids = array_remove(local_ids::text[], housing_var.local_id) where id = owner_housing_var.owner_id;
                     update owners set local_ids = array_prepend(housing_var.local_id, local_ids::text[]) where id = owner_var_ids[1];

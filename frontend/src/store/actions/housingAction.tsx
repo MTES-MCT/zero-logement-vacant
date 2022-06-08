@@ -5,10 +5,11 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { Owner } from '../../models/Owner';
+import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { OwnerEvent } from '../../models/OwnerEvent';
+import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
+import { FormState } from './FormState';
 
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
@@ -16,7 +17,11 @@ export const FETCHING_HOUSING = 'FETCHING_HOUSING';
 export const HOUSING_FETCHED = 'HOUSING_FETCHED';
 export const FETCHING_HOUSING_OWNERS = 'FETCHING_HOUSING_OWNERS';
 export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
-export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_OWNERS';
+export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
+export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
+export const ADDITIONAL_OWNER_CREATED = 'ADDITIONAL_OWNER_CREATED';
+export const HOUSING_OWNERS_UPDATE = 'HOUSING_OWNERS_UPDATE';
+export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
 
 export interface FetchingHousingAction {
@@ -34,7 +39,30 @@ export interface FetchingHousingOwnersAction {
 
 export interface HousingOwnersFetchedAction {
     type: typeof HOUSING_OWNERS_FETCHED,
-    owners: Owner[]
+    housingOwners: HousingOwner[]
+}
+
+export interface FetchingAdditionalOwnersAction {
+    type: typeof FETCHING_ADDITIONAL_OWNERS
+    q: string,
+    page: number,
+    perPage: number
+}
+
+export interface AdditionalOwnersFetchedAction {
+    type: typeof ADDITIONAL_OWNERS_FETCHED,
+    paginatedOwners: PaginatedResult<Owner>,
+    q: string
+}
+
+export interface AdditionalOwnerCreatedAction {
+    type: typeof ADDITIONAL_OWNER_CREATED,
+    additionalOwner: Owner
+}
+
+export interface HousingOwnersUpdateAction {
+    type: typeof HOUSING_OWNERS_UPDATE;
+    formState: typeof FormState;
 }
 
 export interface FetchingHousingEventsAction {
@@ -43,7 +71,7 @@ export interface FetchingHousingEventsAction {
 
 export interface HousingEventsFetchedAction {
     type: typeof HOUSING_EVENTS_FETCHED,
-    events: OwnerEvent[]
+    events: Event[]
 }
 
 export interface FetchHousingListAction {
@@ -66,6 +94,10 @@ export type HousingActionTypes =
     HousingListFetchedAction |
     FetchingHousingOwnersAction |
     HousingOwnersFetchedAction |
+    FetchingAdditionalOwnersAction |
+    AdditionalOwnersFetchedAction |
+    AdditionalOwnerCreatedAction |
+    HousingOwnersUpdateAction |
     FetchingHousingEventsAction |
     HousingEventsFetchedAction;
 
@@ -157,11 +189,11 @@ export const getHousingOwners = (housingId: string) => {
         });
 
         ownerService.listByHousing(housingId)
-            .then(owners => {
+            .then(housingOwners => {
                 dispatch(hideLoading());
                 dispatch({
                     type: HOUSING_OWNERS_FETCHED,
-                    owners
+                    housingOwners
                 });
             });
     };
@@ -203,3 +235,105 @@ export const updateHousing = (housing: Housing, housingUpdate: HousingUpdate) =>
 
     }
 }
+
+
+export const createAdditionalOwner = (draftOwner: DraftOwner) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        ownerService.createOwner(draftOwner)
+            .then((owner) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNER_CREATED,
+                    additionalOwner: owner
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+    };
+};
+
+export const updateHousingOwners = (housingId: string, housingOwners: HousingOwner[]) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        dispatch({
+            type: HOUSING_OWNERS_UPDATE,
+            formState: FormState.Init
+        });
+
+        ownerService.updateHousingOwners(housingId, housingOwners)
+            .then(() => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: HOUSING_OWNERS_UPDATE,
+                    formState: FormState.Succeed
+                });
+                getHousingOwners(housingId)(dispatch);
+                getHousingEvents(housingId)(dispatch);
+            });
+
+    }
+}
+
+export const changeAdditionalOwnersSearching = (q: string) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const page = 1
+        const perPage = getState().housing.additionalOwners?.paginatedOwners?.perPage ?? 5
+
+        dispatch({
+            type: FETCHING_ADDITIONAL_OWNERS,
+            page,
+            perPage,
+            q
+        });
+
+        ownerService.listOwners(q, page, perPage)
+            .then((result: PaginatedResult<Owner>) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNERS_FETCHED,
+                    paginatedOwners: result,
+                    q
+                });
+            });
+    };
+};
+
+export const changeAdditionalOwnersPagination = (page: number, perPage: number) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        dispatch(showLoading());
+
+        const q = getState().housing.additionalOwners?.q ?? ''
+
+        dispatch({
+            type: FETCHING_ADDITIONAL_OWNERS,
+            page: page,
+            perPage,
+            q
+        });
+
+        ownerService.listOwners(q, page, perPage)
+            .then((result: PaginatedResult<Owner>) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNERS_FETCHED,
+                    paginatedOwners: result,
+                    q
+                });
+            });
+    };
+};

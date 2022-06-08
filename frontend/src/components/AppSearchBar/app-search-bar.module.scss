@@ -5,7 +5,7 @@
   .searchResults {
     background-color: var(--grey-950);
     position: absolute;
-    top: 56px;
+    top: 40px;
     z-index: 10;
     width: 100%;
     max-height: 250px;
@@ -16,5 +16,9 @@
       color: var(--black-50);
     }
 
+  }
+
+  .searchResultsLg {
+    top: 56px;
   }
 }

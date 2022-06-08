@@ -14,5 +14,7 @@ export enum EventKinds {
     OwnerUpdate,
     CampaignSend,
     StatusChange,
-    Contact
+    Contact,
+    OwnerCreation,
+    HousingOwnersUpdate
 }

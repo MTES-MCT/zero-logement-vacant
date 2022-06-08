@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Button, Col, Container, Row, Tab, Tabs, Text, Title, Link as DSFRLink } from '@dataesr/react-dsfr';
+import { Link, useParams } from 'react-router-dom';
+import { Alert, Button, Col, Container, Link as DSFRLink, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -24,6 +24,7 @@ import HousingStatusModal from '../../components/modals/HousingStatusModal/Housi
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { HousingOwner } from '../../models/Owner';
 import HousingAdditionalOwners from './HousingAdditionalOwners';
+import { FormState } from '../../store/actions/FormState';
 
 const HousingView = () => {
 
@@ -31,7 +32,7 @@ const HousingView = () => {
 
     const { id } = useParams<{id: string}>();
 
-    const { housing, housingOwners, events } = useSelector((state: ApplicationState) => state.housing);
+    const { housing, housingOwners, events, housingOwnersUpdateFormState } = useSelector((state: ApplicationState) => state.housing);
     const { owner } = useSelector((state: ApplicationState) => state.owner);
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
@@ -55,6 +56,8 @@ const HousingView = () => {
             setIsModalOwnersOpen(false)
         }
     }
+
+
 
     return (
         <>
@@ -133,6 +136,11 @@ const HousingView = () => {
                     </Container>
                 </div>
                 <Container spacing="py-4w">
+                    {housingOwnersUpdateFormState === FormState.Succeed &&
+                        <div className="fr-my-2w">
+                            <Alert title="" description="La modification des propriétaires a bien été effectuée" type="success" closable/>
+                        </div>
+                    }
                     <Row className="fr-grid-row--center">
                         <Col n="6" className="bordered fr-py-2w fr-px-3w">
                             <Row>

@@ -9,6 +9,7 @@ import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
+import { FormState } from './FormState';
 
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
@@ -19,6 +20,7 @@ export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
 export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
 export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
 export const ADDITIONAL_OWNER_CREATED = 'ADDITIONAL_OWNER_CREATED';
+export const HOUSING_OWNERS_UPDATE = 'HOUSING_OWNERS_UPDATE';
 export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
 
@@ -58,6 +60,11 @@ export interface AdditionalOwnerCreatedAction {
     additionalOwner: Owner
 }
 
+export interface HousingOwnersUpdateAction {
+    type: typeof HOUSING_OWNERS_UPDATE;
+    formState: typeof FormState;
+}
+
 export interface FetchingHousingEventsAction {
     type: typeof FETCHING_HOUSING_EVENTS
 }
@@ -90,6 +97,7 @@ export type HousingActionTypes =
     FetchingAdditionalOwnersAction |
     AdditionalOwnersFetchedAction |
     AdditionalOwnerCreatedAction |
+    HousingOwnersUpdateAction |
     FetchingHousingEventsAction |
     HousingEventsFetchedAction;
 
@@ -256,9 +264,18 @@ export const updateHousingOwners = (housingId: string, housingOwners: HousingOwn
 
         dispatch(showLoading());
 
+        dispatch({
+            type: HOUSING_OWNERS_UPDATE,
+            formState: FormState.Init
+        });
+
         ownerService.updateHousingOwners(housingId, housingOwners)
             .then(() => {
                 dispatch(hideLoading());
+                dispatch({
+                    type: HOUSING_OWNERS_UPDATE,
+                    formState: FormState.Succeed
+                });
                 getHousingOwners(housingId)(dispatch);
             });
 

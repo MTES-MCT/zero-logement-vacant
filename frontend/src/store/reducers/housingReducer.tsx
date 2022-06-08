@@ -11,6 +11,7 @@ import {
     HOUSING_FETCHED,
     HOUSING_LIST_FETCHED,
     HOUSING_OWNERS_FETCHED,
+    HOUSING_OWNERS_UPDATE,
     HousingActionTypes,
 } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -18,6 +19,7 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
 import { HousingOwner, Owner } from '../../models/Owner';
 import { Event } from '../../models/Event';
+import { FormState } from '../actions/FormState';
 
 
 export interface HousingState {
@@ -32,6 +34,7 @@ export interface HousingState {
     additionalOwner?: Owner;
     events?: Event[];
     checkedHousingIds?: string[];
+    housingOwnersUpdateFormState?: FormState;
 }
 
 export const initialHousingFilters = {
@@ -132,6 +135,11 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
             return {
                 ...state,
                 events: []
+            };
+        case HOUSING_OWNERS_UPDATE:
+            return {
+                ...state,
+                housingOwnersUpdateFormState: action.formState
             };
         case HOUSING_EVENTS_FETCHED:
             return {

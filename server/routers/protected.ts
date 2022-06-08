@@ -55,7 +55,6 @@ router.put('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerControlle
 
 router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
 router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);
-router.post('/api/events/creation', jwtCheck, userCheck, eventController.create);
 
 router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
 

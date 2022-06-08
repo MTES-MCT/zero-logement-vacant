@@ -31,7 +31,7 @@ const OwnerEditionModal = (
     }) => {
 
     const [fullName, setFullName] = useState(owner?.fullName ?? '');
-    const [birthDate, setBirthDate] = useState(owner?.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : '');
+    const [birthDate, setBirthDate] = useState(owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : '');
     const [rawAddress, setRawAddress] = useState<string[]>(owner?.rawAddress ?? []);
     const [email, setEmail] = useState(owner?.email);
     const [phone, setPhone] = useState(owner?.phone);

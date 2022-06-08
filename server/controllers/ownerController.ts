@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { body, oneOf, validationResult } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
+import eventRepository from '../repositories/eventRepository';
+import { RequestUser } from '../models/UserApi';
+import { Request as JWTRequest } from 'express-jwt';
+import { EventApi, EventKinds } from '../models/EventApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -35,7 +39,7 @@ const listByHousing = async (request: Request, response: Response): Promise<Resp
         .then(_ => response.status(200).json(_));
 }
 
-const create = async (request: Request, response: Response): Promise<Response> => {
+const create = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
@@ -44,13 +48,21 @@ const create = async (request: Request, response: Response): Promise<Response> =
 
     console.log('Create owner')
 
+    const userId = (<RequestUser>request.auth).userId;
     const draftOwnerApi = <DraftOwnerApi>request.body.draftOwner;
 
-    return ownerRepository.insert(draftOwnerApi)
-        .then(ownerApi => response.status(200).json(ownerApi));
+    const createdOwnerApi =await ownerRepository.insert(draftOwnerApi)
+
+    return eventRepository.insert(<EventApi>{
+        ownerId: createdOwnerApi.id,
+        kind: EventKinds.OwnerCreation,
+        content: 'Création du propriétaire',
+        createdBy: userId
+    })
+        .then(_ => response.status(200).json(createdOwnerApi));
 }
 
-const update = async (request: Request, response: Response): Promise<Response> => {
+const update = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
@@ -61,13 +73,21 @@ const update = async (request: Request, response: Response): Promise<Response> =
 
     console.log('Update owner', ownerId)
 
+    const userId = (<RequestUser>request.auth).userId;
     const ownerApi = <OwnerApi>request.body.owner;
 
-    return ownerRepository.update(ownerApi)
-        .then(ownerApi => response.status(200).json(ownerApi));
+    const updatedOwnerApi = await ownerRepository.update(ownerApi);
+
+    return eventRepository.insert(<EventApi>{
+            ownerId: updatedOwnerApi.id,
+            kind: EventKinds.OwnerUpdate,
+            content: 'Modification des données d\'identité',
+            createdBy: userId
+        })
+        .then(_ => response.status(200).json(updatedOwnerApi));
 }
 
-const updateHousingOwners = async (request: Request, response: Response): Promise<Response> => {
+const updateHousingOwners = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
@@ -78,11 +98,26 @@ const updateHousingOwners = async (request: Request, response: Response): Promis
 
     console.log('Update housing owners', housingId)
 
+    const userId = (<RequestUser>request.auth).userId;
     const housingOwnersApi = (<HousingOwnerApi[]>request.body.housingOwners).filter(_ => _.housingId === housingId);
 
-    return ownerRepository.deleteHousingOwners(housingId, housingOwnersApi.map(_ => _.id))
-        .then(_ => ownerRepository.insertHousingOwners(housingOwnersApi))
-        .then(_ => response.status(200).json(_));
+    const prevHousingOwnersApi = await ownerRepository.listByHousing(housingId)
+
+    if (prevHousingOwnersApi.length !== housingOwnersApi.length || prevHousingOwnersApi.find(ho1 => !housingOwnersApi.find(ho2 => ho1.id === ho2.id && ho1.rank === ho2.rank))) {
+
+        return ownerRepository.deleteHousingOwners(housingId, housingOwnersApi.map(_ => _.id))
+            .then(_ => ownerRepository.insertHousingOwners(housingOwnersApi))
+            .then(_ => eventRepository.insert(<EventApi>{
+                housingId,
+                kind: EventKinds.HousingOwnersUpdate,
+                content: `Modification des propriétaires : <br/> ${prevHousingOwnersApi.map(_ => `${_.fullName} (${_.rank === 0 ? 'Ancien' : _.rank === 1 ? 'Principal' : _.rank+'ème ayant droit'})`).join('<br/>')}`,
+                createdBy: userId
+            }))
+            .then(_ => response.sendStatus(200));
+
+    } else {
+        return response.sendStatus(304)
+    }
 }
 
 

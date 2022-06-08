@@ -3,7 +3,6 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import housingService from '../../services/housing.service';
-import { EventKinds } from '../../models/Event';
 import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
@@ -132,31 +131,17 @@ export const update = (modifiedOwner: Owner) => {
 
             ownerService.updateOwner(modifiedOwner)
                 .then(() => {
-                    createEvent(modifiedOwner.id, EventKinds.OwnerUpdate, 'Modification des données d\'identité')(dispatch)
                     dispatch(hideLoading());
                     dispatch({
                         type: OWNER_UPDATED,
                         owner: modifiedOwner
                     });
+                    getOwnerEvents(modifiedOwner.id)(dispatch)
                 })
                 .catch(error => {
                     console.error(error);
                 });
         }
-    };
-};
-
-export const createEvent = (ownerId: string, kind: EventKinds, content: string) => {
-
-    return function (dispatch: Dispatch) {
-
-        dispatch(showLoading());
-
-        eventService.createEvent(ownerId, kind, content)
-            .then(() => {
-                getOwnerEvents(ownerId)(dispatch)
-                dispatch(hideLoading());
-            });
     };
 };
 

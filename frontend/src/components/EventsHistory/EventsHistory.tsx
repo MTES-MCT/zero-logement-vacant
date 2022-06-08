@@ -45,7 +45,8 @@ const EventsHistory = ({ events, housingList }: { events: Event[], housingList?:
                                         <div className="fr-mb-0">
                                             {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}"`}
                                             {event.campaignId && (event.contactKind || event.content) ? ': ' : ''}
-                                            {event.contactKind && `${event.contactKind}. `}{event.content}
+                                            {event.contactKind && `${event.contactKind}. `}
+                                            <div dangerouslySetInnerHTML={{ __html: event.content ?? '' }}/>
                                         </div>
                                     </div>
                                 </li>

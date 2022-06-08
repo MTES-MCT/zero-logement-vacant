@@ -277,6 +277,7 @@ export const updateHousingOwners = (housingId: string, housingOwners: HousingOwn
                     formState: FormState.Succeed
                 });
                 getHousingOwners(housingId)(dispatch);
+                getHousingEvents(housingId)(dispatch);
             });
 
     }

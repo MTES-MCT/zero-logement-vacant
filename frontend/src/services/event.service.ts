@@ -1,18 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { EventKinds, Event } from '../models/Event';
+import { Event } from '../models/Event';
 import { parseISO } from 'date-fns';
-
-const createEvent = async (ownerId: string, kind: EventKinds, content: string): Promise<number> => {
-
-    return await fetch(`${config.apiEndpoint}/api/events/creation`, {
-        method: 'POST',
-        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({event : { ownerId, kind, content } }),
-    })
-        .then(_ => _.json())
-        .then(_ => _.id);
-};
 
 const listByOwner = async (ownerId: string) => {
 
@@ -46,7 +35,6 @@ const parseEvent = (e: any): Event => ({
 } as Event)
 
 const eventService = {
-    createEvent,
     listByOwner,
     listByHousing
 };

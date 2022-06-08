@@ -66,8 +66,8 @@ const updateHousingOwners = async (housingId: string, housingOwners: HousingOwne
         body: JSON.stringify({ housingOwners }),
     })
         .then(response => {
-            if (response.status === 200) {
-                return response.json();
+            if (response.status === 200 || response.status === 304) {
+                return;
             } else {
                 throw Error("Invalid parameters")
             }

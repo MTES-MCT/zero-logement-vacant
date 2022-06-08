@@ -120,7 +120,7 @@ const OwnerView = () => {
                             </Text>
                             <hr />
                             <Text size="md" className="fr-mb-1w">
-                                <b>Nom :&nbsp;</b>
+                                <b>Nom prénom :&nbsp;</b>
                                 <span data-testid="fullName-text">{owner.fullName}</span>
                             </Text>
                             { owner.birthDate && isValid(owner.birthDate) &&

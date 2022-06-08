@@ -95,7 +95,7 @@ const OwnerEditionModal = (
                         <TextInput
                             value={fullName}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
-                            label="Nom"
+                            label="Nom prénom"
                             messageType={errors['fullName'] ? 'error' : ''}
                             message={errors['fullName']}
                             required

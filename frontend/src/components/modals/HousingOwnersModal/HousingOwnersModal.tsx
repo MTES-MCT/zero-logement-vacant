@@ -32,13 +32,14 @@ const HousingOwnersModal = (
     const [ownerRanks, setOwnerRanks] = useState<{ownerId: string, rank: string}[]>(housingOwners.map(_ => ({ownerId: _.id, rank: String(_.endDate ? 0 : _.rank)})));
     const [errors, setErrors] = useState<any>({});
 
-    const ownersForm = yup.object().shape({
-        ownerRanks1: yup.array().compact(ownerRank => ownerRank.rank !== String(1))
-            .min(1, 'Il doit y avoir au moins un propriétaire principal')
-            .max(1, 'Il ne peut y avoir qu\'un propriétaire principal'),
-        // ownerRanks2: yup.array().compact(ownerRank => ownerRank.rank !== String(2))
-        //     .max(1, 'Il ne peut y avoir qu\'un 2ème ayant-droit')
-    });
+    const ownersForm = yup.object().shape(Array.from(Array(housingOwners.length - 1).keys()).reduce(
+        (o, ho, ownerIndex) =>
+            ({ ...o, [`ownerRanks${ownerIndex + 2}`]: yup.array().compact(ownerRank => ownerRank.rank !== String(ownerIndex + 2))
+                    .max(1, `Il ne peut y avoir qu'un ${ownerIndex + 2}ème ayant-droit`)}), {
+            ownerRanks1: yup.array().compact(ownerRank => ownerRank.rank !== String(1))
+                .min(1, 'Il doit y avoir au moins un propriétaire principal')
+                .max(1, 'Il ne peut y avoir qu\'un propriétaire principal')
+        }));
 
     const selectRank = (ownerId: string, rank: string) => {
         setOwnerRanks(ownerRanks.map(_ => _.ownerId === ownerId ? { ownerId, rank} : _))
@@ -55,7 +56,8 @@ const HousingOwnersModal = (
     const submit = () => {
 
         ownersForm
-            .validate({ ownerRanks1: ownerRanks, ownerRanks2: ownerRanks }, {abortEarly: false})
+            .validate(Array.from(Array(housingOwners.length - 1).keys())
+                .reduce((o, ho, ownerIndex) => ({ ...o, [`ownerRanks${ownerIndex + 2}`]: ownerRanks}), { ownerRanks1: ownerRanks}), {abortEarly: false})
             .then(() => {
                 onSubmit(housingOwners.map(ho => {
                     const ownerRank = ownerRanks.find(_ => _.ownerId === ho.id)

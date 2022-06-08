@@ -116,7 +116,8 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
                                    rowKey="id"
                                    data={additionalOwners.paginatedOwners.entities.map((_, index) => ({..._, rowNumber: (additionalOwners.paginatedOwners.page - 1) * additionalOwners.paginatedOwners.perPage + index + 1}) )}
                                    columns={columns()}
-                                   fixedLayout={true}/>
+                                   fixedLayout={true}
+                                   className="no-head"/>
                             <div className="fr-react-table--pagination-center nav">
                             <Pagination onClick={(page: number) => dispatch(changeAdditionalOwnersPagination(page, additionalOwners.paginatedOwners.perPage))}
                                         currentPage={additionalOwners.paginatedOwners.page}

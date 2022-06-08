@@ -54,6 +54,10 @@
   }
 }
 
+.no-head thead {
+  display: none;
+}
+
 .bg-white {
   background-color: var(--white-1000)
 }

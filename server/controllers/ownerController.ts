@@ -127,7 +127,9 @@ const updateHousingOwners = async (request: JWTRequest, response: Response): Pro
             .then(_ => eventRepository.insert(<EventApi>{
                 housingId,
                 kind: EventKinds.HousingOwnersUpdate,
-                content: `Modification des propriétaires : <br/> ${prevHousingOwnersApi.map(_ => `${_.fullName} (${_.rank === 0 ? 'Ancien' : _.rank === 1 ? 'Principal' : _.rank+'ème ayant droit'})`).join('<br/>')}`,
+                content: `Modification des propriétaires 
+                            <br/> ${prevHousingOwnersApi.length === 1 ? ' Propriétaire précédent : ' : ' Propriétaires précédents : '} 
+                            ${prevHousingOwnersApi.map(_ => `${_.fullName} (${_.rank === 0 ? 'Ancien' : _.rank === 1 ? 'Principal' : _.rank+'ème ayant droit'})`).join(' - ')}`,
                 createdBy: userId
             }))
             .then(_ => response.sendStatus(200));

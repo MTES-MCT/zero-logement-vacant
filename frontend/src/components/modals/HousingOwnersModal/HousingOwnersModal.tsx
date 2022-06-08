@@ -61,7 +61,7 @@ const HousingOwnersModal = (
                     const ownerRank = ownerRanks.find(_ => _.ownerId === ho.id)
                     return {
                         ...ho,
-                        kind: Number(ownerRank?.rank) ?? ho.rank,
+                        rank: Number(ownerRank?.rank) ?? ho.rank,
                         endDate: ownerRank?.rank === String('0') ? ho.endDate ?? (new Date()): undefined
                     }
                 }));

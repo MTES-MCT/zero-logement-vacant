@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Button, Col, Container, Link, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { useParams, Link } from 'react-router-dom';
+import { Button, Col, Container, Row, Tab, Tabs, Text, Title, Link as DSFRLink } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -163,9 +163,18 @@ const HousingView = () => {
                                 <Tabs>
                                     {housingOwners.filter(_ => _.rank).map(owner =>
                                         <Tab label={owner.rank === 1 ? 'Principal' : `${owner.rank}ème`} key={owner.id}>
-                                            <Text size="lg" className="fr-mb-1w">
-                                                <b>Identité</b>
-                                            </Text>
+                                            <Row>
+                                                <Col>
+                                                    <Text size="lg" className="fr-mb-1w">
+                                                        <b>Identité</b>
+                                                    </Text>
+                                                </Col>
+                                                <Col className="align-right">
+                                                    <Link title="Accéder à la fiche" to={location.pathname + '../../../../../proprietaires/' + owner.id} className="ds-fr--inline fr-link">
+                                                        Accéder à la fiche<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                                                    </Link>
+                                                </Col>
+                                            </Row>
                                             <hr/>
                                             <Text size="md" className="fr-mb-1w">
                                                 <b>Nom :&nbsp;</b>
@@ -268,11 +277,11 @@ const HousingView = () => {
                                     </div>
                                 }
                                 <div className="fr-mt-2w">
-                                    <Link title="Localiser dans Google Map - nouvelle fenêtre"
+                                    <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
                                           href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
                                           target="_blank">
                                         Localiser
-                                    </Link>
+                                    </DSFRLink>
                                 </div>
                             </Col>
                             <Col n="4">
@@ -316,21 +325,51 @@ const HousingView = () => {
                         </Row>
                     </div>
                     {housingOwners && housingOwners.filter(_ => !_.rank).length > 0 &&
-                        <div className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
+                        <div className={classNames('bg-925','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
                             <Row>
                                 <Col>
-                                    <Title as="h2" look="h3" className="fr-mb-0">
-                                        Anciens propriétaires
+                                    <Title as="h2" look="h3">
+                                        {housingOwners.filter(_ => !_.rank).length === 1 ? 'Ancien propriétaire' : 'Anciens propriétaires'}
                                     </Title>
                                 </Col>
                             </Row>
                             {housingOwners.filter(_ => !_.rank).map(housingOwner =>
                                 <Row key={housingOwner.id}>
                                     <Col>
-                                        {housingOwner.fullName}
+                                        <Text size="md" className="fr-mb-1w">
+                                            <b>Nom :&nbsp;</b>
+                                            <span data-testid="fullName-text">{housingOwner.fullName}</span>
+                                        </Text>
+                                        {housingOwner.birthDate && isValid(housingOwner.birthDate) &&
+                                            <Text size="md" className="fr-mb-1w">
+                                                <b>Date de naissance :&nbsp;</b>
+                                                <span className="capitalize"
+                                                      data-testid="birthDate-text">{format(housingOwner.birthDate, 'dd/MM/yyyy')}</span>
+                                                <span> ({differenceInYears(new Date(), housingOwner.birthDate)} ans)</span>
+                                            </Text>
+                                        }
+                                    </Col>
+                                    <Col>
+                                        <Text size="md" className="fr-mb-1w">
+                                                <span style={{ verticalAlign: 'top' }}>
+                                                    <b>Adresse postale :&nbsp;</b>
+                                                </span>
+                                            <span style={{ display: 'inline-block' }}>
+                                                    <span className="capitalize">
+                                                        {housingOwner.rawAddress.map((_, i) =>
+                                                            <span style={{ display: 'block' }}
+                                                                  key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                                        }
+                                                    </span>
+                                                </span>
+                                        </Text>
+                                    </Col>
+                                    <Col className="align-right">
+                                        <Link title="Accéder à la fiche du propriétaire" to={location.pathname + '../../../../../proprietaires/' + housingOwner.id} className="ds-fr--inline fr-link">
+                                            Accéder à la fiche du propriétaire<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                                        </Link>
                                     </Col>
                                 </Row>
-
                             )}
                         </div>
                     }

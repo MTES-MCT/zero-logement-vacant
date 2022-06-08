@@ -22,7 +22,7 @@ import EventsHistory from '../../components/EventsHistory/EventsHistory';
 import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
-import { HousingOwner, Owner } from '../../models/Owner';
+import { HousingOwner } from '../../models/Owner';
 import HousingAdditionalOwners from './HousingAdditionalOwners';
 
 const HousingView = () => {
@@ -53,24 +53,6 @@ const HousingView = () => {
         if (housing) {
             dispatch(updateHousingOwners(housing.id, housingOwnersUpdated))
             setIsModalOwnersOpen(false)
-        }
-    }
-
-    const onAddingOwner = (owner: Owner, ownerRank: number) => {
-        if (housing) {
-            dispatch(updateHousingOwners(housing.id, [
-                ...(housingOwners ?? []).map(ho => ({
-                    ...ho,
-                    rank : (ownerRank && ownerRank <= ho.rank) ? ho.rank + 1 : ho.rank
-                })),
-                {
-                    ...owner,
-                    housingId: housing.id,
-                    rank: ownerRank,
-                    startDate: ownerRank ? (new Date()): undefined,
-                    endDate: !ownerRank ? (new Date()): undefined,
-                }
-            ]))
         }
     }
 
@@ -226,7 +208,7 @@ const HousingView = () => {
                                         </Tab>
                                     )}
                                     <Tab label="+ Ajouter">
-                                        <HousingAdditionalOwners housingOwners={housingOwners} onAddingOwner={onAddingOwner}/>
+                                        <HousingAdditionalOwners housingOwners={housingOwners} housingId={housing.id}/>
                                     </Tab>
                                 </Tabs>
                             }

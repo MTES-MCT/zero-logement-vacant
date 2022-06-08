@@ -10,20 +10,31 @@ import {
     ModalTitle,
     TextInput,
 } from '@dataesr/react-dsfr';
-import { Owner } from '../../../models/Owner';
+import { DraftOwner, Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { format, isDate, parse } from 'date-fns';
 import styles from './owner-edition-modal.module.scss';
 
-const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: (owner: Owner) => void, onClose: () => void}) => {
+const OwnerEditionModal = (
+    {
+        owner,
+        onClose,
+        onCreate,
+        onUpdate
+    }: {
+        owner?: Owner,
+        onCreate?: (owner: DraftOwner) => void,
+        onUpdate?: (owner: Owner) => void,
+        onClose: () => void
+    }) => {
 
-    const [fullName, setFullName] = useState(owner.fullName ?? '');
-    const [birthDate, setBirthDate] = useState(owner.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : '');
-    const [rawAddress, setRawAddress] = useState<string[]>(owner.rawAddress);
-    const [email, setEmail] = useState(owner.email);
-    const [phone, setPhone] = useState(owner.phone);
+    const [fullName, setFullName] = useState(owner?.fullName ?? '');
+    const [birthDate, setBirthDate] = useState(owner?.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : '');
+    const [rawAddress, setRawAddress] = useState<string[]>(owner?.rawAddress ?? []);
+    const [email, setEmail] = useState(owner?.email);
+    const [phone, setPhone] = useState(owner?.phone);
     const [errors, setErrors] = useState<any>({});
 
     const ownerForm = yup.object().shape({
@@ -33,7 +44,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
             .date()
             .nullable()
             .transform((curr, originalValue) => {
-                return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+                return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'yyyy-MM-dd', new Date()))
             })
             .typeError('Veuillez renseigner une date valide.')
     });
@@ -42,14 +53,24 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
         ownerForm
             .validate({ fullName, birthDate, email, phone }, {abortEarly: false})
             .then(() => {
-                onSubmit({
-                    ...owner,
-                    fullName,
-                    birthDate: birthDate.length ? parse(birthDate, 'dd/MM/yyyy', new Date()) : undefined,
-                    rawAddress,
-                    email,
-                    phone
-                });
+                if (owner && onUpdate) {
+                    onUpdate({
+                        ...owner,
+                        fullName,
+                        birthDate: birthDate.length ? parse(birthDate, 'yyyy-MM-dd', new Date()) : undefined,
+                        rawAddress,
+                        email,
+                        phone
+                    });
+                } else if (onCreate) {
+                    onCreate({
+                        fullName,
+                        birthDate: birthDate.length ? parse(birthDate, 'yyyy-MM-dd', new Date()) : undefined,
+                        rawAddress,
+                        email,
+                        phone
+                    })
+                }
             })
             .catch(err => {
                 const object: any = {};
@@ -67,7 +88,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                hide={() => onClose()}
                data-testid="campaign-creation-modal">
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
-            <ModalTitle>Modifier la rubrique &rdquo;propriétaire&rdquo;</ModalTitle>
+            <ModalTitle>{owner ? 'Modifier la rubrique "propriétaire"' : 'Créer un nouveau propriétaire'}</ModalTitle>
             <ModalContent>
                 <Accordion>
                     <AccordionItem title="Identité" initExpand={true} className={errors['fullName'] || errors['birthDate'] ? styles.itemError : undefined}>
@@ -81,6 +102,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                         />
                         <TextInput
                             value={birthDate}
+                            type="date"
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setBirthDate(e.target.value)}
                             label="Date de naissance"
                             messageType={errors['birthDate'] ? 'error' : ''}
@@ -99,7 +121,7 @@ const OwnerEditionModal = ({owner, onClose, onSubmit}: {owner: Owner, onSubmit: 
                         />
                         <TextInput
                             value={email}
-                            type="email"
+                            type="text"
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                             label="Adresse mail"
                             messageType={errors['email'] ? 'error' : ''}

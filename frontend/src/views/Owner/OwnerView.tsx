@@ -110,7 +110,7 @@ const OwnerView = () => {
                                     </Button>
                                     {isModalOwnerOpen &&
                                     <OwnerEditionModal owner={owner}
-                                                       onSubmit={(owner: Owner) => updateOwner(owner)}
+                                                       onUpdate={updateOwner}
                                                        onClose={() => setIsModalOwnerOpen(false)} />
                                     }
                                 </Col>

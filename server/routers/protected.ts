@@ -48,6 +48,7 @@ router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?',
 
 router.post('/api/owners', jwtCheck, userCheck, ownerController.search);
 router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);
+router.post('/api/owners/creation', jwtCheck, userCheck, ownerController.create);
 router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerValidators, ownerController.update);
 router.get('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.listByHousing);
 router.put('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.updateHousingOwners);

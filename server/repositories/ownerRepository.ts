@@ -1,5 +1,5 @@
 import db from './db';
-import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
+import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
 import { ownersHousingTable } from './housingRepository';
@@ -32,6 +32,7 @@ const searchOwners = async (q: string, page?: number, perPage?: number): Promise
 
         const results = await query
             .modify((queryBuilder: any) => {
+                queryBuilder.orderBy('full_name')
                 if (page && perPage) {
                     queryBuilder
                         .offset((page - 1) * perPage)
@@ -62,6 +63,27 @@ const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
     } catch (err) {
         console.error('Listing owners by housing failed', err, housingId);
         throw new Error('Listing owners by housing failed');
+    }
+}
+
+const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
+
+    console.log('Insert draftOwnerApi')
+    try {
+        return db(ownerTable)
+            .insert({
+                raw_address: draftOwnerApi.rawAddress,
+                full_name: draftOwnerApi.fullName,
+                birth_date: draftOwnerApi.birthDate ? new Date(draftOwnerApi.birthDate) : undefined,
+                email: draftOwnerApi.email,
+                phone: draftOwnerApi.phone,
+                local_ids: []
+            })
+            .returning('*')
+            .then(_ => parseOwnerApi(_[0]))
+    } catch (err) {
+        console.error('Inserting owner failed', err);
+        throw new Error('Inserting owner failed');
     }
 }
 
@@ -172,6 +194,7 @@ export default {
     get,
     searchOwners,
     listByHousing,
+    insert,
     update,
     updateAddressList,
     deleteHousingOwners,

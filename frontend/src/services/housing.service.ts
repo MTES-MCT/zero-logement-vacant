@@ -96,7 +96,7 @@ const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: stri
 export const parseHousing = (h: any): Housing => ({
     ...h,
     rawAddress: h.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
-    owner: ownerService.parseOwner(h.owner)
+    owner: h.owner?.id ? ownerService.parseOwner(h.owner) : undefined
 } as Housing)
 
 const housingService = {

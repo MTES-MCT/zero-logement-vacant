@@ -5,7 +5,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { HousingOwner, Owner } from '../../models/Owner';
+import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
@@ -18,6 +18,7 @@ export const FETCHING_HOUSING_OWNERS = 'FETCHING_HOUSING_OWNERS';
 export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
 export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
 export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
+export const ADDITIONAL_OWNER_CREATED = 'ADDITIONAL_OWNER_CREATED';
 export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
 
@@ -52,6 +53,11 @@ export interface AdditionalOwnersFetchedAction {
     q: string
 }
 
+export interface AdditionalOwnerCreatedAction {
+    type: typeof ADDITIONAL_OWNER_CREATED,
+    additionalOwner: Owner
+}
+
 export interface FetchingHousingEventsAction {
     type: typeof FETCHING_HOUSING_EVENTS
 }
@@ -83,6 +89,7 @@ export type HousingActionTypes =
     HousingOwnersFetchedAction |
     FetchingAdditionalOwnersAction |
     AdditionalOwnersFetchedAction |
+    AdditionalOwnerCreatedAction |
     FetchingHousingEventsAction |
     HousingEventsFetchedAction;
 
@@ -220,6 +227,28 @@ export const updateHousing = (housing: Housing, housingUpdate: HousingUpdate) =>
 
     }
 }
+
+
+export const createAdditionalOwner = (draftOwner: DraftOwner) => {
+
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        ownerService.createOwner(draftOwner)
+            .then((owner) => {
+                dispatch(hideLoading());
+                dispatch({
+                    type: ADDITIONAL_OWNER_CREATED,
+                    additionalOwner: owner
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+    };
+};
 
 export const updateHousingOwners = (housingId: string, housingOwners: HousingOwner[]) => {
 

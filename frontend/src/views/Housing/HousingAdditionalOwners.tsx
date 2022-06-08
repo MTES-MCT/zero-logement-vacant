@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Pagination, Row, Select, Table, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { changeAdditionalOwnersPagination, changeAdditionalOwnersSearching } from '../../store/actions/housingAction';
+import {
+    changeAdditionalOwnersPagination,
+    changeAdditionalOwnersSearching,
+    createAdditionalOwner,
+    updateHousingOwners,
+} from '../../store/actions/housingAction';
 import { format } from 'date-fns';
 import { displayCount } from '../../utils/stringUtils';
-import { HousingOwner, Owner } from '../../models/Owner';
+import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { SelectOption } from '../../models/SelectOption';
+import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 
-const HousingAdditionalOwners = ({ housingOwners, onAddingOwner } : { housingOwners: HousingOwner[], onAddingOwner: (owner: Owner, rank: number) => void }) => {
+const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: string, housingOwners: HousingOwner[] }) => {
 
     const dispatch = useDispatch();
 
-    const { additionalOwners } = useSelector((state: ApplicationState) => state.housing);
+    const { additionalOwners, additionalOwner } = useSelector((state: ApplicationState) => state.housing);
     const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('1');
+    const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
     const searchAdditionalOwners = (q: string) => {
         dispatch(changeAdditionalOwnersSearching(q))
+    }
+
+    const createDraftOwner = (draftOwner: DraftOwner) => {
+        dispatch(createAdditionalOwner(draftOwner));
+        setIsModalOwnerOpen(false);
     }
 
     const ownerRankOptions: SelectOption[] = [
@@ -27,6 +39,29 @@ const HousingAdditionalOwners = ({ housingOwners, onAddingOwner } : { housingOwn
         )),
         {value: '0', label: `Ancien propriétaire`}
     ]
+
+    const onAddingOwner = (owner: Owner) => {
+        const ownerRank = Number(additionalOwnerRank)
+        dispatch(updateHousingOwners(housingId, [
+            ...(housingOwners ?? []).map(ho => ({
+                ...ho,
+                rank : (ownerRank && ownerRank <= ho.rank) ? ho.rank + 1 : ho.rank
+            })),
+            {
+                ...owner,
+                housingId: housingId,
+                rank: ownerRank,
+                startDate: ownerRank ? (new Date()): undefined,
+                endDate: !ownerRank ? (new Date()): undefined,
+            }
+        ]))
+    }
+
+    useEffect(() => {
+        if (additionalOwner && !housingOwners.find(ho => ho.id === additionalOwner.id)) {
+            onAddingOwner(additionalOwner)
+        }
+    }, [additionalOwner])
 
     const columns = () => [{
         name: 'fullName',
@@ -39,7 +74,7 @@ const HousingAdditionalOwners = ({ housingOwners, onAddingOwner } : { housingOwn
                     className="fr-link float-right"
                     type="button"
                     title="Ajouter"
-                    onClick={() => onAddingOwner(owner, Number(additionalOwnerRank))}>
+                    onClick={() => onAddingOwner(owner)}>
                     Ajouter
                 </button>
                 <br />
@@ -91,6 +126,18 @@ const HousingAdditionalOwners = ({ housingOwners, onAddingOwner } : { housingOwn
                     }
 
                 </>}
+
+                <button
+                    className="fr-link fr-pl-0"
+                    type="button"
+                    title="Créer un nouveau propriétaire"
+                    onClick={() => setIsModalOwnerOpen(true)}>
+                    Créer un nouveau propriétaire
+                </button>
+                {isModalOwnerOpen &&
+                    <OwnerEditionModal onCreate={createDraftOwner}
+                                       onClose={() => setIsModalOwnerOpen(false)} />
+                }
             </div>
         </>
     );

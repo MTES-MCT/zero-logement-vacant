@@ -99,7 +99,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
                 phone: ownerApi.phone
             })
             .returning('*')
-            .then(_ => _[0]);
+            .then(_ => parseOwnerApi(_[0]));
     } catch (err) {
         console.error('Updating owner failed', err, ownerApi);
         throw new Error('Updating owner failed');

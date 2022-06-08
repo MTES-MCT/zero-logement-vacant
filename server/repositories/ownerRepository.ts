@@ -115,7 +115,8 @@ const insertHousingOwners = async (housingOwners: HousingOwnerApi[]): Promise<nu
                 housing_id: ho.housingId,
                 rank: ho.rank,
                 start_date: ho.startDate,
-                end_date: ho.endDate
+                end_date: ho.endDate,
+                origin: ho.origin
             })))
             .returning('*')
             .then(_ => _.length);
@@ -187,7 +188,8 @@ export const parseHousingOwnerApi = (result: any) => <HousingOwnerApi>{
     housingId: result.housing_id,
     rank: result.rank,
     startDate: result.start_date,
-    endDate: result.end_date
+    endDate: result.end_date,
+    origin: result.origin
 }
 
 export default {

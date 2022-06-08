@@ -24,4 +24,5 @@ export interface HousingOwnerApi extends OwnerApi {
     rank: number;
     startDate?: Date;
     endDate?: Date;
+    origin?: string;
 }

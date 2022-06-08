@@ -53,6 +53,7 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
                 rank: ownerRank,
                 startDate: ownerRank ? (new Date()): undefined,
                 endDate: !ownerRank ? (new Date()): undefined,
+                origin: 'ZLV'
             }
         ]))
     }

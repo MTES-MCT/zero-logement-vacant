@@ -5,7 +5,9 @@ exports.up = function(knex) {
             .alterTable('owners_housing', (table) => {
                 table.date('start_date');
                 table.date('end_date');
-            })
+                table.string('origin');
+            }),
+        knex.raw("update owners_housing set origin = 'Lovac'")
     ]);
 };
 
@@ -17,6 +19,7 @@ exports.down = function(knex) {
           .alterTable('owners_housing', (table) => {
               table.dropColumn('start_date');
               table.dropColumn('end_date');
+              table.dropColumn('origin');
           })
   ]);
 };

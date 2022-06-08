@@ -21,4 +21,5 @@ export interface HousingOwner extends Owner {
     rank: number;
     startDate?: Date;
     endDate?: Date;
+    origin?: string;
 }

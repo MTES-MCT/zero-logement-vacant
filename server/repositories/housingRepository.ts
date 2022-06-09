@@ -101,10 +101,10 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.multiOwners?.length) {
             queryBuilder.where(function (whereBuilder: any) {
                 if (filters.multiOwners?.indexOf('true') !== -1) {
-                    whereBuilder.orWhereRaw('array_length(local_ids, 1) > 1')
+                    whereBuilder.orWhereRaw(`(select count(*) from owners_housing oht where rank=1 and o.id = oht.owner_id) > 1`)
                 }
                 if (filters.multiOwners?.indexOf('false') !== -1) {
-                    whereBuilder.orWhereRaw('array_length(local_ids, 1) = 1')
+                    whereBuilder.orWhereRaw(`(select count(*) from owners_housing oht where rank=1 and o.id = oht.owner_id) = 1`)
                 }
             })
         }

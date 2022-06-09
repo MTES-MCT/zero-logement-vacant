@@ -49,6 +49,22 @@ VALUES ('DDTM Pas-de-Calais', (select array_agg(id) from localities where geo_co
 VALUES ('Commune de Cayenne', (select array_agg(id) from localities where geo_code = '97302'), 219733029, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Thann', (select array_agg(id) from localities where geo_code = '68334'), 216803346, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Craponne-sur-Arzon', (select array_agg(id) from localities where geo_code = '43080'), 214300808, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Dun-sur-Auron', (select array_agg(id) from localities where geo_code = '18087'), 211800875, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Rostrenen', (select array_agg(id) from localities where geo_code = '22266'), 212202667, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Castelnau-Magnoac', (select array_agg(id) from localities where geo_code = '65129'), 216501296, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune d’Arras', (select array_agg(id) from localities where geo_code = '62041'), 216200410, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune d’Auchel', (select array_agg(id) from localities where geo_code = '62048'), 216200485, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune du Monastier-sur-Gazeille', (select array_agg(id) from localities where geo_code = '43135'), 214301350, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Varennes-sur-Allier', (select array_agg(id) from localities where geo_code = '03298'), 210302980, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -121,8 +137,20 @@ update establishments set available = true where siren in
  '200070324',
  '130010366',
  '246500573',
- '241800424',
  '200055481',
  '219733029',
- '216803346'
+ '216803346',
+ '200027217',
+ '240300491',
+ '212202667',
+ '216501296',
+ '216200410',
+ '200069409',
+ '200072460',
+ '216200485',
+ '200000933',
+ '200068781',
+ '214301350',
+ '200071512',
+ '210302980'
 );

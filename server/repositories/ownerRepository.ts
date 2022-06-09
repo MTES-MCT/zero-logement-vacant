@@ -1,8 +1,9 @@
 import db from './db';
-import { OwnerApi } from '../models/OwnerApi';
+import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
 import { ownersHousingTable } from './housingRepository';
+import { PaginatedResultApi } from '../models/PaginatedResultApi';
 
 export const ownerTable = 'owners';
 
@@ -18,16 +19,71 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
     }
 }
 
-const listByHousing = async (housingId: string): Promise<OwnerApi[]> => {
+const searchOwners = async (q: string, page?: number, perPage?: number): Promise<PaginatedResultApi<OwnerApi>> => {
+    try {
+        const query = db(ownerTable)
+            .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+
+        const ownersCount: number = await
+            db(ownerTable)
+                .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+                .count('id')
+                .then(_ => Number(_[0].count))
+
+        const results = await query
+            .modify((queryBuilder: any) => {
+                queryBuilder.orderBy('full_name')
+                if (page && perPage) {
+                    queryBuilder
+                        .offset((page - 1) * perPage)
+                        .limit(perPage)
+                }
+            })
+
+        return <PaginatedResultApi<OwnerApi>> {
+            entities: results.map((result: any) => parseOwnerApi(result)),
+            totalCount: ownersCount,
+            page,
+            perPage
+        }
+    } catch (err) {
+        console.error('Searching owners failed', err, q);
+        throw new Error('Searching owner failed');
+    }
+}
+
+const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
     try {
         return db(ownerTable)
             .join(ownersHousingTable,`${ownerTable}.id`, `${ownersHousingTable}.owner_id`)
             .where(`${ownersHousingTable}.housing_id`, housingId)
+            .orderBy('end_date', 'desc')
             .orderBy('rank')
-            .then(_ => _.map((result: any) => parseOwnerApi(result)))
+            .then(_ => _.map((result: any) => parseHousingOwnerApi(result)))
     } catch (err) {
         console.error('Listing owners by housing failed', err, housingId);
         throw new Error('Listing owners by housing failed');
+    }
+}
+
+const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
+
+    console.log('Insert draftOwnerApi')
+    try {
+        return db(ownerTable)
+            .insert({
+                raw_address: draftOwnerApi.rawAddress,
+                full_name: draftOwnerApi.fullName,
+                birth_date: draftOwnerApi.birthDate ? new Date(draftOwnerApi.birthDate) : undefined,
+                email: draftOwnerApi.email,
+                phone: draftOwnerApi.phone,
+                local_ids: []
+            })
+            .returning('*')
+            .then(_ => parseOwnerApi(_[0]))
+    } catch (err) {
+        console.error('Inserting owner failed', err);
+        throw new Error('Inserting owner failed');
     }
 }
 
@@ -43,13 +99,46 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
                 phone: ownerApi.phone
             })
             .returning('*')
-            .then(_ => _[0]);
+            .then(_ => parseOwnerApi(_[0]));
     } catch (err) {
         console.error('Updating owner failed', err, ownerApi);
         throw new Error('Updating owner failed');
     }
 }
 
+const insertHousingOwners = async (housingOwners: HousingOwnerApi[]): Promise<number> => {
+
+    try {
+        return db(ownersHousingTable)
+            .insert(housingOwners.map(ho => ({
+                owner_id: ho.id,
+                housing_id: ho.housingId,
+                rank: ho.rank,
+                start_date: ho.startDate,
+                end_date: ho.endDate,
+                origin: ho.origin
+            })))
+            .returning('*')
+            .then(_ => _.length);
+    } catch (err) {
+        console.error('Inserting housing owners failed', err);
+        throw new Error('Inserting housing owners failed');
+    }
+}
+
+const deleteHousingOwners = async(housingId: string, ownerIds: string[]): Promise<number> => {
+
+    try {
+        return db(ownersHousingTable)
+            .delete()
+            .whereIn('owner_id', ownerIds)
+            .andWhere('housing_id', housingId)
+
+    } catch (err) {
+        console.error('Removing owners from housing failed', err, ownerIds);
+        throw new Error('Removing owners from housing failed');
+    }
+}
 
 const updateAddressList = async (ownerAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
@@ -94,9 +183,22 @@ export const parseOwnerApi = (result: any) => <OwnerApi>{
     phone: result.phone
 }
 
+export const parseHousingOwnerApi = (result: any) => <HousingOwnerApi>{
+    ...parseOwnerApi(result),
+    housingId: result.housing_id,
+    rank: result.rank,
+    startDate: result.start_date,
+    endDate: result.end_date,
+    origin: result.origin
+}
+
 export default {
     get,
+    searchOwners,
     listByHousing,
+    insert,
     update,
-    updateAddressList
+    updateAddressList,
+    deleteHousingOwners,
+    insertHousingOwners
 }

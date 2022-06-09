@@ -221,9 +221,13 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
 
     housingWorksheet.columns = [
         { header: 'Invariant', key: 'invariant' },
+        { header: 'Référence cadastrale', key: 'cadastralReference' },
         { header: 'Propriétaire', key: 'owner' },
         { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-        { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+        { header: 'Adresse BAN du propriétaire - Numéro', key: 'ownerAddressHouseNumber' },
+        { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
+        { header: 'Adresse BAN du propriétaire - Code postal', key: 'ownerAddressPostalCode' },
+        { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
         { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
         { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
@@ -231,9 +235,13 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
     housingList.map((housing: HousingApi) => {
         housingWorksheet.addRow({
             invariant: housing.invariant,
+            cadastralReference: housing.cadastralReference,
             owner: housing.owner.fullName,
             ownerRawAddress: reduceRawAddress(housing.owner.rawAddress),
-            ownerAddress: reduceAddressApi(housing.owner.address),
+            ownerAddressHouseNumber: housing.owner.address.houseNumber,
+            ownerAddressStreet: housing.owner.address.street,
+            ownerAddressPostalCode: housing.owner.address.postalCode,
+            ownerAddressCity: housing.owner.address.city,
             housingRawAddress: reduceRawAddress(housing.rawAddress),
             housingAddress: reduceAddressApi(housing.address)
         });
@@ -260,7 +268,10 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
     ownerWorksheet.columns = [
         { header: 'Propriétaire', key: 'owner' },
         { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-        { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+        { header: 'Adresse BAN du propriétaire - Numéro', key: 'ownerAddressHouseNumber' },
+        { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
+        { header: 'Adresse BAN du propriétaire - Code postal', key: 'ownerAddressPostalCode' },
+        { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
         ...[...Array(maxHousingCount).keys()].map(index => [
             { header: `Adresse LOVAC du logement ${index + 1}`, key: `housingRawAddress_${index}` },
             { header: `Adresse BAN du logement ${index + 1}`, key: `housingAddress_${index}` },
@@ -271,7 +282,10 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         const row: any = {
             owner: ownerHousing.owner.fullName,
             ownerRawAddress: reduceRawAddress(ownerHousing.owner.rawAddress),
-            ownerAddress: reduceAddressApi(ownerHousing.owner.address)
+            ownerAddressHouseNumber: ownerHousing.owner.address.houseNumber,
+            ownerAddressStreet: ownerHousing.owner.address.street,
+            ownerAddressPostalCode: ownerHousing.owner.address.postalCode,
+            ownerAddressCity: ownerHousing.owner.address.city,
         }
 
         ownerHousing.housingList.forEach((housing, index) => {

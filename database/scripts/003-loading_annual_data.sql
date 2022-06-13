@@ -56,7 +56,6 @@ AS $$
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail,
-           array_agg(distinct(ff_idlocal)) as local_ids
         from _extract_zlv_2022_5, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
@@ -125,9 +124,9 @@ AS $$
 
                     RAISE NOTICE 'INSERT OWNER : % - %', housing_var.full_name, housing_var.birth_date ;
 
-                    insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, local_ids)
+                    insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail)
                     values(housing_var.full_name, housing_var.administrator, housing_var.owner_raw_address, housing_var.birth_date,
-                           housing_var.owner_kind, housing_var.owner_kind_detail, housing_var.local_ids)
+                           housing_var.owner_kind, housing_var.owner_kind_detail)
                            returning ARRAY[id] INTO owner_var_ids;
 
                 END IF;
@@ -167,9 +166,6 @@ AS $$
                     select * into owner_var from owners where id = owner_housing_var.owner_id;
 
                     update owners_housing set owner_id = owner_var_ids[1] where housing_id = housing_var_id and rank = 1;
-
-                    update owners set local_ids = array_remove(local_ids::text[], housing_var.local_id) where id = owner_housing_var.owner_id;
-                    update owners set local_ids = array_prepend(housing_var.local_id, local_ids::text[]) where id = owner_var_ids[1];
 
                     insert into events(owner_id, housing_id, kind, created_at, content)
                     values (owner_var_ids[1], housing_var_id, 3, current_timestamp,

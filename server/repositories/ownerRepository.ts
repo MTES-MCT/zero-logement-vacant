@@ -76,8 +76,7 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
                 full_name: draftOwnerApi.fullName,
                 birth_date: draftOwnerApi.birthDate ? new Date(draftOwnerApi.birthDate) : undefined,
                 email: draftOwnerApi.email,
-                phone: draftOwnerApi.phone,
-                local_ids: []
+                phone: draftOwnerApi.phone
             })
             .returning('*')
             .then(_ => parseOwnerApi(_[0]))

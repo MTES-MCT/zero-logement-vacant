@@ -22,8 +22,8 @@ AS $$
 
                 RAISE NOTICE 'INSERT OWNER : % - %', owner_var.full_name, owner_var.birth_date ;
 
-                insert into owners(full_name, raw_address, birth_date, local_ids)
-                values(owner_var.full_name, owner_var.owner_raw_address, owner_var.birth_date, owner_var.local_ids)
+                insert into owners(full_name, raw_address, birth_date)
+                values(owner_var.full_name, owner_var.owner_raw_address, owner_var.birth_date)
                        returning ARRAY[id] INTO owner_var_ids;
 
             END IF;
@@ -63,8 +63,7 @@ AS $$
            upper(ff_ddenom_2) as full_name,
            array_remove(array[nullif(trim(ff_dlign3_2), ''), nullif(trim(ff_dlign4_2), ''), nullif(trim(ff_dlign5_2), ''), nullif(trim(ff_dlign6_2), '')], null) as owner_raw_address,
            --(case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_2, '99999') end) as birth_date,
-           (case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date(ff_jdatnss_2 || ' 20', 'MM/DD/YY CC') end) as birth_date,
-           array_agg(distinct(ff_idlocal)) as local_ids
+           (case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date(ff_jdatnss_2 || ' 20', 'MM/DD/YY CC') end) as birth_date
         from _extract_zlv_2022_owners_4
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
@@ -76,8 +75,7 @@ AS $$
            upper(ff_ddenom_3) as full_name,
            array_remove(array[nullif(trim(ff_dlign3_3), ''), nullif(trim(ff_dlign4_3), ''), nullif(trim(ff_dlign5_3), ''), nullif(trim(ff_dlign6_3), '')], null) as owner_raw_address,
            --(case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_3, '99999') end) as birth_date,
-           (case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date(ff_jdatnss_3 || ' 20', 'MM/DD/YY CC') end) as birth_date,
-           array_agg(distinct(ff_idlocal)) as local_ids
+           (case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date(ff_jdatnss_3 || ' 20', 'MM/DD/YY CC') end) as birth_date
         from _extract_zlv_2022_owners_4
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
@@ -89,8 +87,7 @@ AS $$
            upper(ff_ddenom_4) as full_name,
            array_remove(array[nullif(trim(ff_dlign3_4), ''), nullif(trim(ff_dlign4_4), ''), nullif(trim(ff_dlign5_4), ''), nullif(trim(ff_dlign6_4), '')], null) as owner_raw_address,
            --(case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_4, '99999') end) as birth_date,
-           (case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date(ff_jdatnss_4 || ' 20', 'MM/DD/YY CC') end) as birth_date,
-           array_agg(distinct(ff_idlocal)) as local_ids
+           (case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date(ff_jdatnss_4 || ' 20', 'MM/DD/YY CC') end) as birth_date
         from _extract_zlv_2022_owners_4
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
@@ -102,8 +99,7 @@ AS $$
            upper(ff_ddenom_5) as full_name,
            array_remove(array[nullif(trim(ff_dlign3_5), ''), nullif(trim(ff_dlign4_5), ''), nullif(trim(ff_dlign5_5), ''), nullif(trim(ff_dlign6_5), '')], null) as owner_raw_address,
            --(case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_5, '99999') end) as birth_date,
-           (case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date(ff_jdatnss_5 || ' 20', 'MM/DD/YY CC') end) as birth_date,
-           array_agg(distinct(ff_idlocal)) as local_ids
+           (case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date(ff_jdatnss_5 || ' 20', 'MM/DD/YY CC') end) as birth_date
         from _extract_zlv_2022_owners_4
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null
@@ -115,8 +111,7 @@ AS $$
            upper(ff_ddenom_6) as full_name,
            array_remove(array[nullif(trim(ff_dlign3_6), ''), nullif(trim(ff_dlign4_6), ''), nullif(trim(ff_dlign5_6), ''), nullif(trim(ff_dlign6_6), '')], null) as owner_raw_address,
            --(case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_6, '99999') end) as birth_date,
-           (case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date(ff_jdatnss_6 || ' 20', 'MM/DD/YY CC') end) as birth_date,
-           array_agg(distinct(ff_idlocal)) as local_ids
+           (case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date(ff_jdatnss_6 || ' 20', 'MM/DD/YY CC') end) as birth_date
         from _extract_zlv_2022_owners_4
         where ff_ccthp in ('V', 'L', 'P')
         and ff_idlocal is not null

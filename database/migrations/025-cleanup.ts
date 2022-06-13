@@ -15,7 +15,7 @@ exports.down = function(knex) {
       knex.schema// @ts-ignore
           .alterTable('owners', (table) => {
               table.integer('beneficiary_count');
-              table.specificType('local_ids', 'text[]').notNullable();
+              table.specificType('local_ids', 'text[]');
           })
   ]);
 };

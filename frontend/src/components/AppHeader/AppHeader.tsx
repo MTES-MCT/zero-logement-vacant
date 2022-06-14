@@ -59,7 +59,7 @@ function AppHeader() {
 
     return (
         <>
-            <Header closeButtonLabel='Close it!' data-testid="header">
+            <Header closeButtonLabel='Fermer' data-testid="header">
                 <HeaderBody>
                     <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                     <Service
@@ -84,7 +84,7 @@ function AppHeader() {
                         </Tool>
                     }
                 </HeaderBody>
-                {isValidUser(authUser) &&
+                {isValidUser(authUser) ?
                     <HeaderNav data-testid="header-nav">
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
@@ -92,7 +92,8 @@ function AppHeader() {
                         {authUser.user.role === UserRoles.Admin &&
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
                         }
-                    </HeaderNav>
+                    </HeaderNav> :
+                    <HeaderNav />
                 }
             </Header>
             <LoadingBar className={styles.loading} updateTime={10} maxProgress={100} progressIncrease={5}/>

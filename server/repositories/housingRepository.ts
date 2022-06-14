@@ -1,5 +1,5 @@
 import db from './db';
-import { HousingApi } from '../models/HousingApi';
+import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
@@ -31,18 +31,23 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                `${buildingTable}.housing_count`,
+                `${buildingTable}.vacant_housing_count`,
+                `${localitiesTable}.locality_kind`
             )
             .from(housingTable)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
                 ) campaigns on true`)
-            .groupBy(`${housingTable}.id`, 'o.id')
+            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
             .where(`${housingTable}.id`, housingId)
             .first()
             .then(_ => parseHousingApi(_))
@@ -208,14 +213,14 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
         if (filters.ownershipKinds?.length) {
             queryBuilder.where(function (whereBuilder: any) {
-                if (filters.ownershipKinds?.indexOf('single') !== -1) {
-                    whereBuilder.orWhere('ownership_kind', '0')
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Single) !== -1) {
+                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.Single])
                 }
-                if (filters.ownershipKinds?.indexOf('co') !== -1) {
-                    whereBuilder.orWhere('ownership_kind', 'CL')
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.CoOwnership) !== -1) {
+                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.CoOwnership])
                 }
-                if (filters.ownershipKinds?.indexOf('other') !== -1) {
-                    whereBuilder.orWhereIn('ownership_kind', ['BND', 'CLV', 'CV', 'MP', 'TF'])
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Other) !== -1) {
+                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.Other])
                 }
             })
         }
@@ -465,6 +470,7 @@ const parseHousingApi = (result: any) => (
         },
         latitude: result.latitude,
         longitude: result.longitude,
+        localityKind: result.locality_kind,
         owner: <OwnerApi>{
             id: result.owner_id,
             rawAddress: result.owner_raw_address,
@@ -483,6 +489,12 @@ const parseHousingApi = (result: any) => (
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
         vacancyReasons: result.vacancy_reasons,
+        uncomfortable: result.uncomfortable,
+        cadastralClassification : result.cadastral_classification,
+        taxed: result.taxed,
+        ownershipKind: getOwnershipKindFromValue(result.ownership_kind),
+        buildingHousingCount: result.housing_count,
+        buildingVacancyRate: result.vacant_housing_count ? Math.round(result.vacant_housing_count * 100 / (result.housing_count ?? result.vacant_housing_count)) : undefined,
         dataYears: result.data_years,
         campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
         status: result.status,

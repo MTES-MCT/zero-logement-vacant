@@ -1,6 +1,7 @@
 import { Owner } from './Owner';
 import { Address } from './Address';
 import { HousingStatus } from './HousingState';
+import { LocalityKinds } from './Establishment';
 
 export interface Housing {
     id: string;
@@ -11,6 +12,7 @@ export interface Housing {
     address: Address;
     latitude?: number;
     longitude?: number;
+    localityKind: LocalityKinds;
     owner: Owner;
     livingArea: number;
     housingKind: string;
@@ -18,6 +20,12 @@ export interface Housing {
     buildingYear?: number;
     vacancyStartYear: number;
     vacancyReasons: string[];
+    uncomfortable: boolean;
+    cadastralClassification: number;
+    taxed: boolean;
+    ownershipKind: OwnershipKinds;
+    buildingHousingCount?: number,
+    buildingVacancyRate: number,
     dataYears: number[];
     campaignIds: string[];
     status?: HousingStatus;
@@ -70,3 +78,16 @@ export const HousingSort = (h1: Housing, h2: Housing) =>
     Math.max(...h1.dataYears) === Math.max(...h2.dataYears) ?
         h1.invariant.localeCompare(h2.invariant) :
         Math.max(...h1.dataYears) - Math.max(...h2.dataYears);
+
+
+export enum OwnershipKinds {
+    Single= 'single',
+    CoOwnership = 'co',
+    Other = 'other'
+}
+
+export const OwnershipKindLabels = {
+    [OwnershipKinds.Single]: 'Monopropriété',
+    [OwnershipKinds.CoOwnership]: 'Copropriété',
+    [OwnershipKinds.Other]: 'Autre'
+}

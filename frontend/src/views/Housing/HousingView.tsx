@@ -16,7 +16,7 @@ import { capitalize } from '../../utils/stringUtils';
 import classNames from 'classnames';
 import styles from '../Owner/owner.module.scss';
 import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
-import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
+import { getBuildingLocation, Housing, HousingUpdate, OwnershipKindLabels, OwnershipKinds } from '../../models/Housing';
 import config from '../../utils/config';
 import EventsHistory from '../../components/EventsHistory/EventsHistory';
 import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
@@ -25,6 +25,7 @@ import HousingOwnersModal from '../../components/modals/HousingOwnersModal/Housi
 import { HousingOwner } from '../../models/Owner';
 import HousingAdditionalOwners from './HousingAdditionalOwners';
 import { FormState } from '../../store/actions/FormState';
+import { LocalityKindLabels } from '../../models/Establishment';
 
 const HousingView = () => {
 
@@ -260,8 +261,8 @@ const HousingView = () => {
                                 </Text>
                                 <hr />
                                 <span style={{verticalAlign: 'top'}}>
-                                        <b>Adresse :&nbsp;</b>
-                                    </span>
+                                    <b>Adresse :&nbsp;</b>
+                                </span>
                                 <span style={{display: 'inline-block'}} className="capitalize">
                                         <span  style={{display: 'block'}}>
                                             {housing.rawAddress.map((_, i) =>
@@ -291,6 +292,12 @@ const HousingView = () => {
                                         Localiser
                                     </DSFRLink>
                                 </div>
+                                {housing.localityKind &&
+                                    <Text size="md" className="fr-mt-2w fr-mb-1w">
+                                        <b>Type de commune :&nbsp;</b>
+                                        {LocalityKindLabels[housing.localityKind]}
+                                    </Text>
+                                }
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">
@@ -313,6 +320,12 @@ const HousingView = () => {
                                     <b>Construction :&nbsp;</b>
                                     {housing.buildingYear}
                                 </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>État :&nbsp;</b>
+                                    {housing.uncomfortable && 'Inconfortable'}
+                                    {!housing.uncomfortable && housing.cadastralClassification >= 4 && housing.cadastralClassification <= 6 && 'Confortable'}
+                                    {!housing.uncomfortable && housing.cadastralClassification >= 1 && housing.cadastralClassification <= 3 && 'Très confortable'}
+                                </Text>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">
@@ -323,14 +336,42 @@ const HousingView = () => {
                                     <b>Durée de vacance au 01/01/{config.dataYear} :&nbsp;</b>
                                     {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
                                 </Text>
-                                <Text>
+                                <Text size="md" className="fr-mb-1w">
                                     <b>Cause(s) de la vacance :&nbsp;</b>
                                     {housing.vacancyReasons?.map((reason, reasonIdx) =>
                                         <span key={`${housing.id}_${reasonIdx}`}><br />{reason}</span>
                                     )}
                                 </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Taxé :&nbsp;</b>
+                                   {housing.taxed ? 'Oui' : 'Non'}
+                                </Text>
+                                <Text size="md" className="fr-mb-1w">
+                                    <b>Type de propriété :&nbsp;</b>
+                                   {housing.ownershipKind === OwnershipKinds.Single && OwnershipKindLabels[OwnershipKinds.Single]}
+                                   {housing.ownershipKind === OwnershipKinds.CoOwnership && OwnershipKindLabels[OwnershipKinds.CoOwnership]}
+                                   {housing.ownershipKind === OwnershipKinds.Other && OwnershipKindLabels[OwnershipKinds.Other]}
+                                </Text>
                             </Col>
                         </Row>
+                        {housing.buildingHousingCount && housing.buildingHousingCount > 1 &&
+                            <Row spacing="pt-4w">
+                                <Col n="4">
+                                    <Text size="lg" className="fr-mb-1w">
+                                        <b>Immeuble</b>
+                                    </Text>
+                                    <hr />
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Nombre de logements :&nbsp;</b>
+                                        {housing.buildingHousingCount}
+                                    </Text>
+                                    <Text size="md" className="fr-mb-1w">
+                                        <b>Taux de vacance :&nbsp;</b>
+                                        {housing.buildingVacancyRate} %
+                                    </Text>
+                                </Col>
+                            </Row>
+                        }
                     </div>
                     {housingOwners && housingOwners.filter(_ => !_.rank).length > 0 &&
                         <div className={classNames('bg-925','fr-p-3w','fr-my-2w', styles.ownerHousing)}>

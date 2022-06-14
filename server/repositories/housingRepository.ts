@@ -293,6 +293,10 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                 whereBuilder.orWhereRaw('upper(administrator) like ?', `%${filters.query?.toUpperCase()}%`)
                 whereBuilder.orWhereRaw(`upper(array_to_string(${housingTable}.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
                 whereBuilder.orWhereRaw(`upper(array_to_string(o.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
+                whereBuilder.orWhereIn('invariant', filters.query?.split(',').map(_ => _.trim()))
+                whereBuilder.orWhereIn('invariant', filters.query?.split(' ').map(_ => _.trim()))
+                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(',').map(_ => _.trim()))
+                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(' ').map(_ => _.trim()))
             })
         }
     }

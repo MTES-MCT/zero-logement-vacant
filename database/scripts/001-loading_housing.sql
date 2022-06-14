@@ -41,7 +41,7 @@ and not(h.data_years @> ARRAY[e.annee]);
 -- update housing set data_years = ARRAY[2021];
 
 
-insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail, local_ids)
+insert into owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail)
     select
            upper(var.owner),
            var.administrator,

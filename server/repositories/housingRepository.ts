@@ -7,7 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { housingScopeGeometryTable } from './establishmentRepository';
+import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -59,6 +59,13 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
     return (queryBuilder: any) => {
+        if (filters.establishmentIds?.length) {
+            queryBuilder
+                .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
+                .where(function (whereBuilder: any) {
+                    whereBuilder.whereIn('e.id', filters.establishmentIds)
+                })
+        }
         if (filters.campaignIds?.length) {
             queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
         }

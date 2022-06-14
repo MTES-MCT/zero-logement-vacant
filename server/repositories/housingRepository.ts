@@ -346,23 +346,22 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
-        const results = await query
-            .modify((queryBuilder: any) => {
-                if (page && perPage) {
-                    queryBuilder
-                        .offset((page - 1) * perPage)
-                        .limit(perPage)
-                }
-            })
-
-        const housingCount: number = await countWithFilters(filters)
-
-        return <PaginatedResultApi<HousingApi>> {
+        return Promise.all([
+            query
+                .modify((queryBuilder: any) => {
+                    if (page && perPage) {
+                        queryBuilder
+                            .offset((page - 1) * perPage)
+                            .limit(perPage)
+                    }
+                }),
+            countWithFilters(filters)
+        ]).then(([results, housingCount]) => <PaginatedResultApi<HousingApi>> {
             entities: results.map((result: any) => parseHousingApi(result)),
             totalCount: housingCount,
             page,
             perPage
-        }
+        })
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');

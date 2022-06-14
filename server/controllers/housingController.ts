@@ -34,11 +34,7 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
-    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
-
-    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
-
-    return housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId], localities: filterLocalities}, page, perPage)
+    return housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId]}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 

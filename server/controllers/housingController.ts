@@ -45,8 +45,11 @@ const listByOwner = async (request: JWTRequest, response: Response): Promise<Res
 
     console.log('List housing by owner', ownerId)
 
-    return housingRepository.listWithFilters({establishmentIds: [establishmentId], ownerIds: [ownerId]})
-        .then(_ => response.status(200).json(_.entities));
+    return Promise.all([
+        housingRepository.listWithFilters({establishmentIds: [establishmentId], ownerIds: [ownerId]}),
+        housingRepository.countWithFilters({ownerIds: [ownerId]})
+    ])
+        .then(([list, totalCount]) => response.status(200).json({entities: list.entities, totalCount}));
 };
 
 

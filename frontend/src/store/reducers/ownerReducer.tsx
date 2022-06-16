@@ -16,6 +16,7 @@ import { Housing, HousingSort } from '../../models/Housing';
 export interface OwnerState {
     owner: Owner;
     housingList: Housing[];
+    housingTotalCount: number;
     events: Event[];
 }
 
@@ -41,7 +42,8 @@ const ownerReducer = (state = initialState, action: OwnerActionTypes) => {
         case OWNER_HOUSING_FETCHED:
             return {
                 ...state,
-                housingList: action.housingList.sort(HousingSort)
+                housingList: action.housingList.sort(HousingSort),
+                housingTotalCount: action.housingTotalCount
             };
         case OWNER_UPDATED:
             return {

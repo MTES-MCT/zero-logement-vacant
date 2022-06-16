@@ -31,7 +31,7 @@ const OwnerView = () => {
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList, events } = useSelector((state: ApplicationState) => state.owner);
+    const { owner, housingList, housingTotalCount, events } = useSelector((state: ApplicationState) => state.owner);
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
@@ -322,6 +322,30 @@ const OwnerView = () => {
                             </Row>
                         </div>
                     )}
+                    {housingTotalCount - housingList.length > 0 &&
+                        <div className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
+                            <Row>
+                                <Col>
+                                    <Title as="h2" look="h3">
+                                        {housingTotalCount - housingList.length === 1 ?
+                                            'Autre logement' :
+                                            'Autres logements'
+                                        }
+                                    </Title>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <Text>
+                                        {housingTotalCount - housingList.length === 1 ?
+                                            'Ce propriétaire possède un logement qui ne se situe pas dans votre périmètre d’action' :
+                                            'Ce propriétaire possède ' + (housingTotalCount - housingList.length) + ' logements qui ne se situent pas dans votre périmètre d’action'
+                                        }
+                                    </Text>
+                                </Col>
+                            </Row>
+                        </div>
+                    }
                 </Container>
             </>}
         </>

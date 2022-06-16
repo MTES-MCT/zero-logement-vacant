@@ -221,7 +221,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.ownershipKinds?.length) {
             queryBuilder.where(function (whereBuilder: any) {
                 if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Single) !== -1) {
-                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.Single])
+                    whereBuilder.orWhereNull('ownership_kind')
                 }
                 if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.CoOwnership) !== -1) {
                     whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.CoOwnership])

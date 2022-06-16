@@ -48,14 +48,13 @@ export enum OwnershipKindsApi {
     Other = 'other'
 }
 
-export const getOwnershipKindFromValue = (value: string) => {
-    return OwnershipKindValues[OwnershipKindsApi.Single].indexOf(value) !== -1 ? OwnershipKindsApi.Single :
+export const getOwnershipKindFromValue = (value?: string) => {
+    return !value ? OwnershipKindsApi.Single :
         OwnershipKindValues[OwnershipKindsApi.CoOwnership].indexOf(value) !== -1 ? OwnershipKindsApi.CoOwnership :
             OwnershipKindValues[OwnershipKindsApi.Other].indexOf(value) !== -1 ? OwnershipKindsApi.Other : undefined
 }
 
 export const OwnershipKindValues = {
-    [OwnershipKindsApi.Single]: ['0'],
     [OwnershipKindsApi.CoOwnership]: ['CL'],
     [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF']
 }

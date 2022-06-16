@@ -246,41 +246,51 @@ const HousingView = () => {
                                 <span style={{verticalAlign: 'top'}}>
                                     <b>Adresse :&nbsp;</b>
                                 </span>
-                                <span style={{display: 'inline-block'}} className="capitalize">
-                                        <span  style={{display: 'block'}}>
-                                            {housing.rawAddress.map((_, i) =>
-                                                <span style={{display: 'block'}} key={housingId + '_address_' + i}>{capitalize(_)}</span>)
-                                            }
-                                        </span>
+                                <span style={{display: 'inline-block'}} className="capitalize fr-mb-1w">
+                                    <span style={{display: 'block'}}>
+                                        {housing.rawAddress.map((_, i) =>
+                                            <span style={{display: 'block'}} key={housingId + '_address_' + i}>{capitalize(_)}</span>)
+                                        }
                                     </span>
+                                </span>
                                 {getBuildingLocation(housing) &&
-                                    <div>
-                                            <span style={{verticalAlign: 'top'}}>
-                                                <b>Complément :&nbsp;</b>
-                                            </span>
+                                    <div className="fr-mb-1w">
+                                        <span style={{verticalAlign: 'top'}}>
+                                            <b>Complément :&nbsp;</b>
+                                        </span>
                                         <span style={{display: 'inline-block'}} className="capitalize">
-                                                <span  style={{display: 'block'}}>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
-                                                </span>
-                                            </span>
+                                            <span style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
+                                            <span style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
+                                            <span style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
+                                            <span style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
+                                        </span>
                                     </div>
                                 }
-                                <div className="fr-mt-2w">
-                                    <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
-                                          href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
-                                          target="_blank">
-                                        Localiser
-                                    </DSFRLink>
-                                </div>
                                 {housing.localityKind &&
-                                    <Text size="md" className="fr-mt-2w fr-mb-1w">
+                                    <Text size="md" className="fr-mb-1w">
                                         <b>Type de commune :&nbsp;</b>
                                         {LocalityKindLabels[housing.localityKind]}
                                     </Text>
                                 }
+                                {housing.housingScopes &&
+                                    <div>
+                                        <span style={{verticalAlign: 'top'}}>
+                                            <b>Périmètres :&nbsp;</b>
+                                        </span>
+                                        <span style={{display: 'inline-block'}}>
+                                            {housing.housingScopes?.map((scope, scopeIdx) =>
+                                                <span style={{display: 'block'}} key={`${housing.id}_${scopeIdx}`}>{scope}</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                }
+                                <div className="fr-mt-1w">
+                                    <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
+                                              href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                              target="_blank">
+                                        Localiser
+                                    </DSFRLink>
+                                </div>
                             </Col>
                             <Col n="4">
                                 <Text size="lg" className="fr-mb-1w">

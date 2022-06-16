@@ -32,6 +32,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                db.raw('json_agg(distinct(scopes.scope_type)) as housing_scopes'),
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
                 `${localitiesTable}.locality_kind`
@@ -47,6 +48,11 @@ const get = async (housingId: string): Promise<HousingApi> => {
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
                 ) campaigns on true`)
+            .joinRaw(`left join lateral (
+                     select type as scope_type 
+                     from housing_scopes_geom hsg
+                     where st_contains(hsg.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
+                     ) scopes on true`)
             .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
             .where(`${housingTable}.id`, housingId)
             .first()
@@ -477,6 +483,7 @@ const parseHousingApi = (result: any) => (
         latitude: result.latitude,
         longitude: result.longitude,
         localityKind: result.locality_kind,
+        housingScopes: result.housing_scopes,
         owner: <OwnerApi>{
             id: result.owner_id,
             rawAddress: result.owner_raw_address,

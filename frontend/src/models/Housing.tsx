@@ -13,6 +13,7 @@ export interface Housing {
     latitude?: number;
     longitude?: number;
     localityKind: LocalityKinds;
+    housingScopes?: string[];
     owner: Owner;
     livingArea: number;
     housingKind: string;

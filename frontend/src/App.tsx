@@ -76,12 +76,18 @@ function App() {
                                 <Route exact path="/campagnes" component={CampaignsListView} />
                                 <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
                                 <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
-                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:id" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:id" component={OwnerView} />
-                                <Route exact path="*/proprietaires/:id" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:id" component={HousingView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:id" component={HousingView} />
-                                <Route exact path="*/logements/:id" component={HousingView} />
+                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView} />
+                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                                <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
+                                <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                                <Route exact path="*/logements/:housingId" component={HousingView} />
                                 <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
                                 <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
                                 {authUser.user.role === UserRoles.Admin &&

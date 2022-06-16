@@ -161,8 +161,8 @@ const HousingList = (
     const viewColumn = {
         name: 'view',
         headerRender: () => '',
-        render: ({ owner }: Housing) =>
-            <Link title="Afficher" to={location.pathname + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
+        render: ({ id }: Housing) =>
+            <Link title="Afficher" to={location.pathname + '/logements/' + id} className="ds-fr--inline fr-link">
                 Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
     }

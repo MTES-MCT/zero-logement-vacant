@@ -19,7 +19,6 @@ import { getHousingState, getHousingSubStatus, getPrecision } from '../../models
 import { getBuildingLocation, Housing, HousingUpdate, OwnershipKindLabels, OwnershipKinds } from '../../models/Housing';
 import config from '../../utils/config';
 import EventsHistory from '../../components/EventsHistory/EventsHistory';
-import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { HousingOwner } from '../../models/Owner';
@@ -31,19 +30,17 @@ const HousingView = () => {
 
     const dispatch = useDispatch();
 
-    const { id } = useParams<{id: string}>();
+    const { housingId } = useParams<{housingId: string}>();
 
     const { housing, housingOwners, events, housingOwnersUpdateFormState } = useSelector((state: ApplicationState) => state.housing);
-    const { owner } = useSelector((state: ApplicationState) => state.owner);
-    const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
     const [isModalOwnersOpen, setIsModalOwnersOpen] = useState(false);
 
     useEffect(() => {
-        dispatch(getHousing(id));
-        dispatch(getHousingOwners(id));
-        dispatch(getHousingEvents(id));
-    }, [id, dispatch])
+        dispatch(getHousing(housingId));
+        dispatch(getHousingOwners(housingId));
+        dispatch(getHousingEvents(housingId));
+    }, [housingId, dispatch])
 
 
     const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
@@ -65,21 +62,7 @@ const HousingView = () => {
             {housing && <>
                 <div className="bg-100">
                     <Container>
-                        <AppBreadcrumb additionalItems={[
-                            ...(location.pathname.indexOf('campagnes/C') !== -1 && campaignBundle ?
-                                [{
-                                    url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
-                                    label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)
-                                }] :
-                                []),
-                            ...(location.pathname.indexOf('proprietaires/') !== -1 && owner ?
-                                [{
-                                    url: '..',
-                                    label: owner.fullName
-                                }] :
-                                []),
-                            {url: '', label: housing.rawAddress.join(' - ')}
-                        ]}/>
+                        <AppBreadcrumb />
                         <Row alignItems="middle">
                             <Col>
                                 <Title as="h1" className="fr-pt-2w fr-mb-1w">
@@ -179,7 +162,7 @@ const HousingView = () => {
                                                     </Text>
                                                 </Col>
                                                 <Col className="align-right">
-                                                    <Link title="Accéder à la fiche" to={location.pathname + '../../../../../proprietaires/' + owner.id} className="ds-fr--inline fr-link">
+                                                    <Link title="Accéder à la fiche" to={(location.pathname.indexOf('proprietaires') === -1 ? location.pathname : '') + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
                                                         Accéder à la fiche<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                     </Link>
                                                 </Col>
@@ -210,7 +193,7 @@ const HousingView = () => {
                                                     <span className="capitalize">
                                                         {owner.rawAddress.map((_, i) =>
                                                             <span style={{ display: 'block' }}
-                                                                  key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                                                  key={housingId + '_address_' + i}>{capitalize(_)}</span>)
                                                         }
                                                     </span>
                                                 </span>
@@ -266,7 +249,7 @@ const HousingView = () => {
                                 <span style={{display: 'inline-block'}} className="capitalize">
                                         <span  style={{display: 'block'}}>
                                             {housing.rawAddress.map((_, i) =>
-                                                <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                                <span style={{display: 'block'}} key={housingId + '_address_' + i}>{capitalize(_)}</span>)
                                             }
                                         </span>
                                     </span>
@@ -407,14 +390,14 @@ const HousingView = () => {
                                                     <span className="capitalize">
                                                         {housingOwner.rawAddress.map((_, i) =>
                                                             <span style={{ display: 'block' }}
-                                                                  key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                                                  key={housingId + '_address_' + i}>{capitalize(_)}</span>)
                                                         }
                                                     </span>
                                                 </span>
                                         </Text>
                                     </Col>
                                     <Col className="align-right">
-                                        <Link title="Accéder à la fiche du propriétaire" to={location.pathname + '../../../../../proprietaires/' + housingOwner.id} className="ds-fr--inline fr-link">
+                                        <Link title="Accéder à la fiche du propriétaire" to={(location.pathname.indexOf('proprietaires') === -1 ? location.pathname : '') + '/proprietaires/' + housingOwner.id} className="ds-fr--inline fr-link">
                                             Accéder à la fiche du propriétaire<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                         </Link>
                                     </Col>

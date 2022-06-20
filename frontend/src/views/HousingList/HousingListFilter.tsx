@@ -75,10 +75,10 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({ownerAges: values}, 'Âge')}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="Multi-propriété"
+                        <AppMultiSelect label="Multi-propriétaire"
                                         options={multiOwnerOptions}
                                         initialValues={filters.multiOwners}
-                                        onChange={(values) => onChangeFilters({multiOwners: values}, 'Multi-propriété')}/>
+                                        onChange={(values) => onChangeFilters({multiOwners: values}, 'Multi-propriétaire')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Ayants droit"

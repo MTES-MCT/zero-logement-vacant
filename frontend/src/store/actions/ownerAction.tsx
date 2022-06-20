@@ -31,7 +31,8 @@ export interface FetchingOwnerHousingAction {
 
 export interface OwnerHousingFetchedAction {
     type: typeof OWNER_HOUSING_FETCHED,
-    housingList: Housing[]
+    housingList: Housing[],
+    housingTotalCount: number
 }
 
 export interface OwnerUpdatedAction {
@@ -89,11 +90,12 @@ export const getOwnerHousing = (ownerId: string) => {
         });
 
         housingService.listByOwner(ownerId)
-            .then(housingList => {
+            .then(result => {
                 dispatch(hideLoading());
                 dispatch({
                     type: OWNER_HOUSING_FETCHED,
-                    housingList
+                    housingList: result.entities,
+                    housingTotalCount: result.totalCount
                 });
             });
     };

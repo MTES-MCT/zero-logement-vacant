@@ -1,4 +1,5 @@
 import { HousingScopesApi } from './EstablishmentApi';
+import { OwnershipKindsApi } from './HousingApi';
 
 export interface HousingFiltersApi {
     establishmentIds?: string[]
@@ -13,7 +14,7 @@ export interface HousingFiltersApi {
     buildingPeriods?: string[];
     vacancyDurations?: string[];
     isTaxedValues?: string[];
-    ownershipKinds?: string[];
+    ownershipKinds?: OwnershipKindsApi[];
     housingCounts?: string[];
     vacancyRates?: string[];
     campaignsCounts?: string[];

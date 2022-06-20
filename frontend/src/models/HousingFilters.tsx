@@ -1,6 +1,7 @@
 import { SelectOption } from './SelectOption';
-import { HousingScopes } from './Establishment';
+import { HousingScopes, LocalityKindLabels, LocalityKinds } from './Establishment';
 import { HousingStates } from './HousingState';
+import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 
 export interface HousingFilters {
     ownerKinds?: string[];
@@ -13,7 +14,7 @@ export interface HousingFilters {
     roomsCounts?: string[];
     buildingPeriods?: string[];
     vacancyDurations?: string[];
-    isTaxedValues?: string[];
+    isTaxedValues?: OwnershipKinds[];
     ownershipKinds?: string[];
     housingCounts?: string[];
     vacancyRates?: string[];
@@ -132,14 +133,14 @@ export const taxedOptions: SelectOption[] = [
 ];
 
 export const ownershipKindsOptions: SelectOption[] = [
-    {value: "single", label: "Monopropriété"},
-    {value: "co", label: "Copropriété"},
-    {value: "other", label: "Autre", badgeLabel: "Autre type de propriété"}
+    {value: OwnershipKinds.Single, label: OwnershipKindLabels[OwnershipKinds.Single]},
+    {value: OwnershipKinds.CoOwnership, label: OwnershipKindLabels[OwnershipKinds.CoOwnership]},
+    {value: OwnershipKinds.Other, label: OwnershipKindLabels[OwnershipKinds.Other], badgeLabel: "Autre type de propriété"}
 ];
 
 export const localityKindsOptions = [
-    {value: "ACV", label: "Action Cœur de Ville"},
-    {value: "PVD", label: "Petites Villes de Demain"}
+    {value: LocalityKinds.ACV, label: LocalityKindLabels[LocalityKinds.ACV]},
+    {value: LocalityKinds.PVD, label: LocalityKindLabels[LocalityKinds.PVD]}
 ];
 
 export const dataYearsIncludedOptions = [
@@ -163,6 +164,8 @@ export const vacancyReasonsOptions: SelectOption[] = [
     {value: '', label: 'Liée au logement', disabled:true},
     {value: 'Liée au logement - pas d’accès indépendant', label: 'pas d’accès indépendant'},
     {value: 'Liée au logement - nuisances à proximité', label: 'nuisances à proximité'},
+    {value: 'Liée au logement - travaux trop importants', label: 'travaux trop importants'},
+    {value: 'Liée au logement - ruine / à démolir', label: 'ruine / à démolir'},
     {value: '', label: 'Mauvaise expérience locative', disabled:true},
     {value: 'Mauvaise expérience locative - dégradations', label: 'dégradations'},
     {value: 'Mauvaise expérience locative - impayés de loyer', label: 'impayés de loyer'},

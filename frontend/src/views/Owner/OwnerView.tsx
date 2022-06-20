@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Link as DSFRLink, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './owner.module.scss';
@@ -15,10 +15,9 @@ import classNames from 'classnames';
 import config from '../../utils/config';
 import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
 import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
-import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
-import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
+import { campaignBundleIdUrlFragment, getCampaignBundleId } from '../../models/Campaign';
 
 const OwnerView = () => {
 
@@ -26,25 +25,18 @@ const OwnerView = () => {
     const location = useLocation();
     const campaignList = useCampaignList();
 
-    const { id, campaignNumber, reminderNumber } = useParams<{id: string, campaignNumber?: string, reminderNumber?: string}>();
+    const { ownerId } = useParams<{ownerId: string}>();
 
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
     const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
 
-    const { owner, housingList, events } = useSelector((state: ApplicationState) => state.owner);
-    const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
+    const { owner, housingList, housingTotalCount, events } = useSelector((state: ApplicationState) => state.owner);
 
     useEffect(() => {
-        dispatch(getOwner(id));
-        dispatch(getOwnerHousing(id));
-        dispatch(getOwnerEvents(id));
-        if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle) {
-            dispatch(getCampaignBundle({
-                campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
-                reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
-            }))
-        }
-    }, [id, dispatch])
+        dispatch(getOwner(ownerId));
+        dispatch(getOwnerHousing(ownerId));
+        dispatch(getOwnerEvents(ownerId));
+    }, [ownerId, dispatch])
 
     const updateOwner = (owner: Owner) => {
         dispatch(update(owner));
@@ -61,15 +53,7 @@ const OwnerView = () => {
             {owner && housingList && <>
                 <div className={styles.titleContainer}>
                     <Container>
-                        <AppBreadcrumb additionalItems={[
-                            ...(location.pathname.indexOf('campagnes/C') !== -1 && campaignBundle ?
-                                [{
-                                    url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
-                                    label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)
-                                }] :
-                                []),
-                            {url: '', label: owner.fullName}
-                        ]}/>
+                        <AppBreadcrumb />
                         {owner &&
                             <Row alignItems="middle">
                                 <Col>
@@ -142,7 +126,7 @@ const OwnerView = () => {
                                 <span style={{display: 'inline-block'}}>
                                     <span className="capitalize">
                                         {owner.rawAddress.map((_, i) =>
-                                            <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                            <span style={{display: 'block'}} key={ownerId + '_address_' + i}>{capitalize(_)}</span>)
                                         }
                                     </span>
                                 </span>
@@ -220,34 +204,32 @@ const OwnerView = () => {
                                     <span style={{verticalAlign: 'top'}}>
                                         <b>Adresse :&nbsp;</b>
                                     </span>
-                                    <span style={{display: 'inline-block'}} className="capitalize">
-                                        <span  style={{display: 'block'}}>
+                                    <span style={{display: 'inline-block'}} className="capitalize fr-mb-1w">
+                                        <span style={{display: 'block'}}>
                                             {housing.rawAddress.map((_, i) =>
-                                                <span style={{display: 'block'}} key={id + '_address_' + i}>{capitalize(_)}</span>)
+                                                <span style={{display: 'block'}} key={ownerId + '_address_' + i}>{capitalize(_)}</span>)
                                             }
                                         </span>
                                     </span>
                                     {getBuildingLocation(housing) &&
-                                        <div>
+                                        <div className="fr-mb-1w">
                                             <span style={{verticalAlign: 'top'}}>
                                                 <b>Complément :&nbsp;</b>
                                             </span>
                                             <span style={{display: 'inline-block'}} className="capitalize">
-                                                <span  style={{display: 'block'}}>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
-                                                    <span  style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
-                                                </span>
+                                                <span style={{display: 'block'}}>{getBuildingLocation(housing)?.building}</span>
+                                                <span style={{display: 'block'}}>{getBuildingLocation(housing)?.entrance}</span>
+                                                <span style={{display: 'block'}}>{getBuildingLocation(housing)?.level}</span>
+                                                <span style={{display: 'block'}}>{getBuildingLocation(housing)?.local}</span>
                                             </span>
                                         </div>
                                     }
-                                    <div className="fr-mt-2w">
-                                        <Link title="Localiser dans Google Map - nouvelle fenêtre"
-                                              to={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
-                                              target="_blank">
+                                    <div className="fr-mt-1w">
+                                        <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
+                                                  href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                                  target="_blank">
                                             Localiser
-                                        </Link>
+                                        </DSFRLink>
                                     </div>
                                 </Col>
                                 <Col n="4">
@@ -315,13 +297,37 @@ const OwnerView = () => {
                             }
                             <Row>
                                 <Col className="align-right">
-                                    <Link title="Accéder à la fiche du logement" to={location.pathname + '/logements/' + housing.id} className="ds-fr--inline fr-link">
+                                    <Link title="Accéder à la fiche du logement" to={(location.pathname.indexOf('logements') === -1 ? location.pathname : '') + '/logements/' + housing.id} className="ds-fr--inline fr-link">
                                         Accéder à la fiche du logement<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                     </Link>
                                 </Col>
                             </Row>
                         </div>
                     )}
+                    {housingTotalCount - housingList.length > 0 &&
+                        <div className={classNames('bg-100','fr-p-3w','fr-my-2w', styles.ownerHousing)}>
+                            <Row>
+                                <Col>
+                                    <Title as="h2" look="h3">
+                                        {housingTotalCount - housingList.length === 1 ?
+                                            'Autre logement' :
+                                            'Autres logements'
+                                        }
+                                    </Title>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <Text>
+                                        {housingTotalCount - housingList.length === 1 ?
+                                            'Ce propriétaire possède un logement qui ne se situe pas dans votre périmètre d’action' :
+                                            'Ce propriétaire possède ' + (housingTotalCount - housingList.length) + ' logements qui ne se situent pas dans votre périmètre d’action'
+                                        }
+                                    </Text>
+                                </Col>
+                            </Row>
+                        </div>
+                    }
                 </Container>
             </>}
         </>

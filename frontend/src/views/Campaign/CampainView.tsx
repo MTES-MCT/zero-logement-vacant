@@ -39,7 +39,7 @@ const CampaignView = () => {
                 <>
                     <div className="bg-100">
                         <Container className="bg-100">
-                            <AppBreadcrumb additionalItems={[{ url: '', label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber) }]}/>
+                            <AppBreadcrumb />
                             <Row>
                                 <Col>
                                     <Title as="h1">{campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)}</Title>

@@ -65,14 +65,17 @@ const quickSearchService = (): {abort: () => void, fetch: (query: string) => Pro
     };
 };
 
-const listByOwner = async (ownerId: string): Promise<Housing[]> => {
+const listByOwner = async (ownerId: string): Promise<{entities: Housing[], totalCount: number}> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/owner/${ownerId}`, {
         method: 'GET',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
     })
         .then(_ => _.json())
-        .then(_ => _.map((h: any) => parseHousing(h)));
+        .then(result => ({
+            ...result,
+            entities: result.entities.map((e: any) => parseHousing(e))
+        }))
 };
 
 const updateHousing = async (housingId: string, housingUpdate: HousingUpdate): Promise<any> => {

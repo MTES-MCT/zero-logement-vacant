@@ -34,11 +34,7 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
-    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
-
-    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
-
-    return housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId], localities: filterLocalities}, page, perPage)
+    return housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId]}, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 
@@ -49,8 +45,11 @@ const listByOwner = async (request: JWTRequest, response: Response): Promise<Res
 
     console.log('List housing by owner', ownerId)
 
-    return housingRepository.listWithFilters({establishmentIds: [establishmentId], ownerIds: [ownerId]})
-        .then(_ => response.status(200).json(_.entities));
+    return Promise.all([
+        housingRepository.listWithFilters({establishmentIds: [establishmentId], ownerIds: [ownerId]}),
+        housingRepository.countWithFilters({ownerIds: [ownerId]})
+    ])
+        .then(([list, totalCount]) => response.status(200).json({entities: list.entities, totalCount}));
 };
 
 

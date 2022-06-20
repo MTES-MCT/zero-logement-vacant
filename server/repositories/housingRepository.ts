@@ -1,5 +1,5 @@
 import db from './db';
-import { HousingApi } from '../models/HousingApi';
+import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
@@ -7,7 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { housingScopeGeometryTable } from './establishmentRepository';
+import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -31,18 +31,29 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                db.raw('json_agg(distinct(scopes.scope_type)) as housing_scopes'),
+                `${buildingTable}.housing_count`,
+                `${buildingTable}.vacant_housing_count`,
+                `${localitiesTable}.locality_kind`
             )
             .from(housingTable)
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
+            .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
                 ) campaigns on true`)
-            .groupBy(`${housingTable}.id`, 'o.id')
+            .joinRaw(`left join lateral (
+                     select type as scope_type 
+                     from housing_scopes_geom hsg
+                     where st_contains(hsg.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
+                     ) scopes on true`)
+            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
             .where(`${housingTable}.id`, housingId)
             .first()
             .then(_ => parseHousingApi(_))
@@ -54,6 +65,13 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
     return (queryBuilder: any) => {
+        if (filters.establishmentIds?.length) {
+            queryBuilder
+                .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
+                .where(function (whereBuilder: any) {
+                    whereBuilder.whereIn('e.id', filters.establishmentIds)
+                })
+        }
         if (filters.campaignIds?.length) {
             queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
         }
@@ -208,14 +226,14 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
         if (filters.ownershipKinds?.length) {
             queryBuilder.where(function (whereBuilder: any) {
-                if (filters.ownershipKinds?.indexOf('single') !== -1) {
-                    whereBuilder.orWhere('ownership_kind', '0')
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Single) !== -1) {
+                    whereBuilder.orWhereNull('ownership_kind')
                 }
-                if (filters.ownershipKinds?.indexOf('co') !== -1) {
-                    whereBuilder.orWhere('ownership_kind', 'CL')
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.CoOwnership) !== -1) {
+                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.CoOwnership])
                 }
-                if (filters.ownershipKinds?.indexOf('other') !== -1) {
-                    whereBuilder.orWhereIn('ownership_kind', ['BND', 'CLV', 'CV', 'MP', 'TF'])
+                if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Other) !== -1) {
+                    whereBuilder.orWhereIn('ownership_kind', OwnershipKindValues[OwnershipKindsApi.Other])
                 }
             })
         }
@@ -334,23 +352,22 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
-        const results = await query
-            .modify((queryBuilder: any) => {
-                if (page && perPage) {
-                    queryBuilder
-                        .offset((page - 1) * perPage)
-                        .limit(perPage)
-                }
-            })
-
-        const housingCount: number = await countWithFilters(filters)
-
-        return <PaginatedResultApi<HousingApi>> {
+        return Promise.all([
+            query
+                .modify((queryBuilder: any) => {
+                    if (page && perPage) {
+                        queryBuilder
+                            .offset((page - 1) * perPage)
+                            .limit(perPage)
+                    }
+                }),
+            countWithFilters(filters)
+        ]).then(([results, housingCount]) => <PaginatedResultApi<HousingApi>> {
             entities: results.map((result: any) => parseHousingApi(result)),
             totalCount: housingCount,
             page,
             perPage
-        }
+        })
     } catch (err) {
         console.error('Listing housing failed', err);
         throw new Error('Listing housing failed');
@@ -465,6 +482,8 @@ const parseHousingApi = (result: any) => (
         },
         latitude: result.latitude,
         longitude: result.longitude,
+        localityKind: result.locality_kind,
+        housingScopes: result.housing_scopes,
         owner: <OwnerApi>{
             id: result.owner_id,
             rawAddress: result.owner_raw_address,
@@ -483,6 +502,12 @@ const parseHousingApi = (result: any) => (
         buildingYear: result.building_year,
         vacancyStartYear: result.vacancy_start_year,
         vacancyReasons: result.vacancy_reasons,
+        uncomfortable: result.uncomfortable,
+        cadastralClassification : result.cadastral_classification,
+        taxed: result.taxed,
+        ownershipKind: getOwnershipKindFromValue(result.ownership_kind),
+        buildingHousingCount: result.housing_count,
+        buildingVacancyRate: result.vacant_housing_count ? Math.round(result.vacant_housing_count * 100 / (result.housing_count ?? result.vacant_housing_count)) : undefined,
         dataYears: result.data_years,
         campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
         status: result.status,

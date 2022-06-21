@@ -34,9 +34,9 @@ const listCampaignBundles = async (): Promise<CampaignBundle[]> => {
         .then(_ => _.map((_: any) => parseCampaignBundle(_)))
 };
 
-const getCampaignBundle = async (campaignBundleId: CampaignBundleId): Promise<CampaignBundle> => {
+const getCampaignBundle = async (campaignBundleId: CampaignBundleId, query?: string): Promise<CampaignBundle> => {
 
-    return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}`, {
+    return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}${query ? `?q=${query}` : ''}`, {
         method: 'GET',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
     })

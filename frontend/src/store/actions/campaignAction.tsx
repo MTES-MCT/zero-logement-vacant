@@ -45,13 +45,15 @@ export interface CampaignBundleListFetchedAction {
 
 export interface FetchCampaignAction {
     type: typeof FETCH_CAMPAIGN_BUNDLE
-    campaignBundleFetchingId: CampaignBundleId
+    campaignBundleFetchingId: CampaignBundleId,
+    searchQuery?: string
 }
 
 export interface CampaignBundleFetchedAction {
     type: typeof CAMPAIGN_BUNDLE_FETCHED,
     campaignBundle: Campaign[]
-    campaignBundleFetchingId: CampaignBundleId
+    campaignBundleFetchingId: CampaignBundleId,
+    searchQuery?: string
 }
 
 export interface FetchCampaignHousingListAction {
@@ -134,7 +136,7 @@ export const listCampaignBundles = () => {
     };
 };
 
-export const getCampaignBundle = (campaignBundleId: CampaignBundleId) => {
+export const getCampaignBundle = (campaignBundleId: CampaignBundleId, searchQuery?: string) => {
 
     return function (dispatch: Dispatch) {
 
@@ -142,22 +144,24 @@ export const getCampaignBundle = (campaignBundleId: CampaignBundleId) => {
 
         dispatch({
             type: FETCH_CAMPAIGN_BUNDLE,
-            campaignBundleFetchingId: campaignBundleId
+            campaignBundleFetchingId: campaignBundleId,
+            searchQuery
         });
 
-        campaignService.getCampaignBundle(campaignBundleId)
+        campaignService.getCampaignBundle(campaignBundleId, searchQuery)
             .then(campaignBundle => {
                 dispatch(hideLoading());
                 dispatch({
                     type: CAMPAIGN_BUNDLE_FETCHED,
                     campaignBundleFetchingId: campaignBundleId,
-                    campaignBundle
+                    campaignBundle,
+                    searchQuery
                 });
             });
     };
 };
 
-export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status: HousingStatus) => {
+export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status: HousingStatus, query?: string) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -174,7 +178,7 @@ export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status
             perPage,
         });
 
-        housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status]}, page, perPage)
+        housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status], query}, page, perPage)
             .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
                 dispatch({

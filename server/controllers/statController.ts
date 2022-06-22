@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import establishmentRepository from '../repositories/establishmentRepository';
-import { HousingStatusApi } from '../models/HousingStatusApi';
+import {
+    HousingStatusApi,
+    InProgressWithoutSupportSubStatus,
+    FirstContactWithPreSupportSubStatus,
+    InProgressWithSupportSubStatus,
+    ExitWithSupportSubStatus,
+    ExitWithPublicSupportSubStatus,
+    ExitWithoutSupportSubStatus, InProgressWithPublicSupportSubStatus,
+} from '../models/HousingStatusApi';
 
 
 const establishmentCount = async (request: Request, response: Response): Promise<Response> => {
@@ -36,28 +44,46 @@ const answersCount = async (request: Request, response: Response): Promise<Respo
         .then(_ => response.status(200).json(_));
 };
 
-const housingFirstContactedCount = async (request: Request, response: Response): Promise<Response> => {
+const housingInProgressWithSupportCount = async (request: Request, response: Response): Promise<Response> => {
 
-    console.log('Get first contacted housing count')
+    console.log('Get housing in progress with support count')
 
-    return housingRepository.countWithFilters({status: [HousingStatusApi.FirstContact]})
-        .then(_ => response.status(200).json(_));
+    return Promise.all([
+        housingRepository.listWithFilters({status: [HousingStatusApi.FirstContact], subStatus: [FirstContactWithPreSupportSubStatus]}),
+        housingRepository.listWithFilters({status: [HousingStatusApi.InProgress], subStatus: [InProgressWithSupportSubStatus]}),
+        housingRepository.listWithFilters({status: [HousingStatusApi.InProgress], subStatus: [InProgressWithPublicSupportSubStatus]}),
+    ])
+        .then(([result1, result2, result3]) =>
+            response.status(200).json(result1.entities.length + result2.entities.length + result3.entities.length)
+        );
 };
 
-const housingFollowedCount = async (request: Request, response: Response): Promise<Response> => {
+const housingInProgressWithoutSupportCount = async (request: Request, response: Response): Promise<Response> => {
 
-    console.log('Get followed housing count')
+    console.log('Get housing in progress without support count')
 
-    return housingRepository.countWithFilters({status: [HousingStatusApi.InProgress]})
-        .then(_ => response.status(200).json(_));
+    return housingRepository.listWithFilters({status: [HousingStatusApi.InProgress], subStatus: [InProgressWithoutSupportSubStatus]})
+        .then(_ => response.status(200).json(_.entities.length))
 };
 
+const housingExitWithSupportCount = async (request: Request, response: Response): Promise<Response> => {
 
-const housingOutOfVacancyCount = async (request: Request, response: Response): Promise<Response> => {
+    console.log('Get housing out of vacancy with support count')
 
-    console.log('Get supported housing count')
+    return Promise.all([
+        housingRepository.listWithFilters({status: [HousingStatusApi.Exit], subStatus: [ExitWithSupportSubStatus]}),
+        housingRepository.listWithFilters({status: [HousingStatusApi.Exit], subStatus: [ExitWithPublicSupportSubStatus]}),
+    ])
+        .then(([result1, result2]) =>
+            response.status(200).json(result1.entities.length + result2.entities.length)
+        );
+};
 
-    return housingRepository.listWithFilters({status: [HousingStatusApi.Exit]})
+const housingExitWithoutSupportCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get housing out of vacancy without support count')
+
+    return housingRepository.listWithFilters({status: [HousingStatusApi.Exit], subStatus: [ExitWithoutSupportSubStatus]})
         .then(_ => response.status(200).json(
             _.entities
                 .filter(housing => housing.subStatus?.length ).length
@@ -70,9 +96,10 @@ const statController =  {
     housingContactedCount,
     housingWaitingCount,
     answersCount,
-    housingFirstContactedCount,
-    housingFollowedCount,
-    housingOutOfVacancyCount
+    housingInProgressWithSupportCount,
+    housingInProgressWithoutSupportCount,
+    housingExitWithSupportCount,
+    housingExitWithoutSupportCount
 };
 
 export default statController;

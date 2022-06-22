@@ -29,10 +29,11 @@ const getCampaignBundle = async (request: JWTRequest, response: Response): Promi
     const campaignNumber = request.params.campaignNumber;
     const reminderNumber = request.params.reminderNumber;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const query = <string> request.query.q;
 
     console.log('Get campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
-    return campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
+    return campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber, query)
         .then(_ => response.status(200).json(_));
 
 }

@@ -168,7 +168,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
 
 
 
-const CampaignInProgress = () => {
+const CampaignInProgress = ({ query } : { query?: string }) => {
 
     const dispatch = useDispatch();
 
@@ -176,14 +176,14 @@ const CampaignInProgress = () => {
 
     useEffect(() => {
         if (campaignBundle) {
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Waiting))
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.FirstContact))
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.InProgress))
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NoAction))
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant))
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Exit))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Waiting, query))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.FirstContact, query))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.InProgress, query))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NoAction, query))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant, query))
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Exit, query))
         }
-    }, [dispatch])
+    }, [dispatch, query])
 
     const getTabLabel = (status: HousingStatus) => {
         return `${getHousingState(status).title} (${campaignBundleHousingByStatus[status].loading ? '...' : campaignBundleHousingByStatus[status].totalCount})`

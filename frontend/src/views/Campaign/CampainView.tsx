@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -11,6 +11,8 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import styles from './campaign.module.scss';
+import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 
 
 const CampaignView = () => {
@@ -20,13 +22,14 @@ const CampaignView = () => {
     const { campaignNumber, reminderNumber } = useParams<{campaignNumber: string, reminderNumber: string}>();
 
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
+    const [searchQuery, setSearchQuery] = useState<string>();
 
     useEffect(() => {
         dispatch(getCampaignBundle({
             campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
             reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
-        }))
-    }, [dispatch, campaignNumber, reminderNumber])
+        }, searchQuery))
+    }, [dispatch, campaignNumber, reminderNumber, searchQuery])
 
 
     const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
@@ -44,9 +47,9 @@ const CampaignView = () => {
                                 <Col>
                                     <Title as="h1">{campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)}</Title>
                                 </Col>
-                                {/*<Col>*/}
-                                {/*    <AppSearchBar onSearch={(input: string) => {}} />*/}
-                                {/*</Col>*/}
+                                <Col n="4">
+                                    <AppSearchBar onSearch={(input: string) => {setSearchQuery(input)}} />
+                                </Col>
                             </Row>
                             <Row>
                                 <Col spacing="my-3w">
@@ -71,12 +74,21 @@ const CampaignView = () => {
                                     <HousingFiltersBadges filters={campaignBundle.filters}/>
                                 </Col>
                             </Row>
+                            {searchQuery &&
+                                <Row className="fr-pb-2w">
+                                    <Col>
+                                        <FilterBadges options={[{value: searchQuery, label: searchQuery}]}
+                                                      filters={[searchQuery]}
+                                                      onChange={() => setSearchQuery('')}/>
+                                    </Col>
+                                </Row>
+                            }
                         </Container>
                     </div>
                     <Container spacing="py-4w">
                         {campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
                             <CampaignToValidate campaignStep={campaignStep(campaignsOfBundle(campaignBundle)[0])}/> :
-                            <CampaignInProgress />
+                            <CampaignInProgress query={searchQuery}/>
                         }
                     </Container>
                 </>

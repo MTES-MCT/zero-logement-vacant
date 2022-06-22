@@ -7,9 +7,10 @@ export const ESTABLISHMENTS_COUNT_FETCHED = 'ESTABLISHMENTS_COUNT_FETCHED';
 export const CONTACTED_HOUSING_COUNT_FETCHED = 'CONTACTED_HOUSING_COUNT_FETCHED';
 export const WAITING_HOUSING_COUNT_FETCHED = 'WAITING_HOUSING_COUNT_FETCHED';
 export const ANSWERS_COUNT_FETCHED = 'ANSWERS_COUNT_FETCHED';
-export const HOUSING_FOLLOWED_COUNT_FETCHED = 'HOUSING_FOLLOWED_COUNT_FETCHED';
-export const HOUSING_FIRST_CONTACTED_COUNT_FETCHED = 'HOUSING_FIRST_CONTACTED_COUNT_FETCHED';
-export const HOUSING_OUT_OF_VACANCY_COUNT_FETCHED = 'HOUSING_OUT_OF_VACANCY_COUNT_FETCHED';
+export const HOUSING_IN_PROGRESS_WITH_SUPPORT = 'HOUSING_IN_PROGRESS_WITH_SUPPORT';
+export const HOUSING_IN_PROGRESS_WITHOUT_SUPPORT = 'HOUSING_IN_PROGRESS_WITHOUT_SUPPORT';
+export const HOUSING_EXIT_WITH_SUPPORT = 'HOUSING_EXIT_WITH_SUPPORT';
+export const HOUSING_EXIT_WITHOUT_SUPPORT = 'HOUSING_EXIT_WITHOUT_SUPPORT';
 
 export interface FetchStatisticsAction {
     type: typeof FETCH_STATISTICS
@@ -35,18 +36,23 @@ export interface AnswersCountFetchedAction {
     count: number
 }
 
-export interface HousingFollowedCountFetchedAction {
-    type: typeof HOUSING_FOLLOWED_COUNT_FETCHED,
+export interface HousingInProgressWithSupportCountFetchedAction {
+    type: typeof HOUSING_IN_PROGRESS_WITH_SUPPORT,
     count: number
 }
 
-export interface HousingFirstContactedCountFetchedAction {
-    type: typeof HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
+export interface HousingInProgressWithoutSupportCountFetchedAction {
+    type: typeof HOUSING_IN_PROGRESS_WITHOUT_SUPPORT,
     count: number
 }
 
-export interface HousingOutOfVacancyCountFetchedAction {
-    type: typeof HOUSING_OUT_OF_VACANCY_COUNT_FETCHED,
+export interface HousingExitWithSupportCountFetchedAction {
+    type: typeof HOUSING_EXIT_WITH_SUPPORT,
+    count: number
+}
+
+export interface HousingExitWithoutSupportCountFetchedAction {
+    type: typeof HOUSING_EXIT_WITHOUT_SUPPORT,
     count: number
 }
 
@@ -56,9 +62,10 @@ export type StatisticActionTypes =
     ContactedHousingCountFetchedAction |
     WaitingHousingCountFetchedAction |
     AnswersCountFetchedAction |
-    HousingFollowedCountFetchedAction|
-    HousingFirstContactedCountFetchedAction |
-    HousingOutOfVacancyCountFetchedAction;
+    HousingInProgressWithSupportCountFetchedAction|
+    HousingInProgressWithoutSupportCountFetchedAction |
+    HousingExitWithSupportCountFetchedAction |
+    HousingExitWithoutSupportCountFetchedAction;
 
 export const getContactedOwnersCount = () => {
 
@@ -99,24 +106,31 @@ export const getContactedOwnersCount = () => {
                         count
                     });
                 }),
-            statisticService.getHousingFollowedCount()
+            statisticService.getHousingInProgressWithSupportCount()
                 .then(count => {
                     dispatch({
-                        type: HOUSING_FOLLOWED_COUNT_FETCHED,
+                        type: HOUSING_IN_PROGRESS_WITH_SUPPORT,
                         count
                     });
                 }),
-            statisticService.getHousingFirstContactedCount()
+            statisticService.getHousingInProgressWithoutSupportCount()
                 .then(count => {
                     dispatch({
-                        type: HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
+                        type: HOUSING_IN_PROGRESS_WITHOUT_SUPPORT,
                         count
                     });
                 }),
-            statisticService.getHousingOutOfVacancyCount()
+            statisticService.getHousingExitWithSupportCount()
                 .then(count => {
                     dispatch({
-                        type: HOUSING_OUT_OF_VACANCY_COUNT_FETCHED,
+                        type: HOUSING_EXIT_WITH_SUPPORT,
+                        count
+                    });
+                }),
+            statisticService.getHousingExitWithoutSupportCount()
+                .then(count => {
+                    dispatch({
+                        type: HOUSING_EXIT_WITHOUT_SUPPORT,
                         count
                     });
                 })

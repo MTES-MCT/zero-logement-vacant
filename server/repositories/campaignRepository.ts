@@ -37,7 +37,7 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi> => {
     }
 }
 
-const getCampaignBundle = async (establishmentId: string, campaignNumber?: string, reminderNumber?: string): Promise<CampaignBundleApi> => {
+const getCampaignBundle = async (establishmentId: string, campaignNumber?: string, reminderNumber?: string, query?: string): Promise<CampaignBundleApi> => {
     try {
         return db(campaignsTable)
             .select(
@@ -73,6 +73,18 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                 }
                 if (reminderNumber) {
                     queryBuilder.andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
+                }
+                if (query?.length) {
+                    queryBuilder.where(function (whereBuilder: any) {
+                        whereBuilder.orWhereRaw('upper(full_name) like ?', `%${query?.toUpperCase()}%`)
+                        whereBuilder.orWhereRaw('upper(administrator) like ?', `%${query?.toUpperCase()}%`)
+                        whereBuilder.orWhereRaw(`upper(array_to_string(${housingTable}.raw_address, '%')) like ?`, `%${query?.toUpperCase()}%`)
+                        whereBuilder.orWhereRaw(`upper(array_to_string(o.raw_address, '%')) like ?`, `%${query?.toUpperCase()}%`)
+                        whereBuilder.orWhereIn('invariant', query?.split(',').map(_ => _.trim()))
+                        whereBuilder.orWhereIn('invariant', query?.split(' ').map(_ => _.trim()))
+                        whereBuilder.orWhereIn('cadastral_reference', query?.split(',').map(_ => _.trim()))
+                        whereBuilder.orWhereIn('cadastral_reference', query?.split(' ').map(_ => _.trim()))
+                    })
                 }
             })
             .first()

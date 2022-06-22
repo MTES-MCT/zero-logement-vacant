@@ -1,16 +1,16 @@
 import { Campaign, CampaignBundle, CampaignBundleId } from '../../models/Campaign';
 import {
-    CAMPAIGN_CREATED,
     CAMPAIGN_BUNDLE_FETCHED,
+    CAMPAIGN_BUNDLE_LIST_FETCHED,
+    CAMPAIGN_CREATED,
     CAMPAIGN_HOUSING_LIST_FETCHED,
     CAMPAIGN_LIST_FETCHED,
-    CAMPAIGN_BUNDLE_LIST_FETCHED,
     CAMPAIGN_UPDATED,
     CampaignActionTypes,
     FETCH_CAMPAIGN_BUNDLE,
+    FETCH_CAMPAIGN_BUNDLE_LIST,
     FETCH_CAMPAIGN_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
-    FETCH_CAMPAIGN_BUNDLE_LIST,
 } from '../actions/campaignAction';
 import { initialPaginatedResult, PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
@@ -24,7 +24,8 @@ export interface CampaignState {
     campaignHousingFetchingIds?: string[];
     exportURL: string;
     loading: boolean;
-    campaignCreated: boolean
+    campaignCreated: boolean;
+    searchQuery?: string;
 }
 
 const initialState: CampaignState = {
@@ -74,14 +75,19 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 campaignBundleFetchingId: action.campaignBundleFetchingId,
                 campaignBundle: action.campaignBundleFetchingId === state.campaignBundleFetchingId ? state.campaignBundle : undefined,
                 loading: true,
-                campaignCreated: false
+                campaignCreated: false,
+                searchQuery: action.searchQuery
             };
-        case CAMPAIGN_BUNDLE_FETCHED:
-            return {
+        case CAMPAIGN_BUNDLE_FETCHED: {
+            const isCurrentFetching =
+                action.campaignBundleFetchingId === state.campaignBundleFetchingId &&
+                action.searchQuery === state.searchQuery
+            return !isCurrentFetching ? state : {
                 ...state,
-                campaignBundle: action.campaignBundleFetchingId === state.campaignBundleFetchingId ? action.campaignBundle : state.campaignBundle,
-                loading: false
+                campaignBundle: action.campaignBundle,
+                loading: false,
             };
+        }
         case FETCH_CAMPAIGN_HOUSING_LIST:
             return {
                 ...state,

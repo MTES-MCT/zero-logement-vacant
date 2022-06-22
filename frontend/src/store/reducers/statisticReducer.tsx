@@ -3,9 +3,10 @@ import {
     CONTACTED_HOUSING_COUNT_FETCHED,
     ESTABLISHMENTS_COUNT_FETCHED,
     FETCH_STATISTICS,
-    HOUSING_FOLLOWED_COUNT_FETCHED,
-    HOUSING_OUT_OF_VACANCY_COUNT_FETCHED,
-    HOUSING_FIRST_CONTACTED_COUNT_FETCHED,
+    HOUSING_EXIT_WITH_SUPPORT,
+    HOUSING_EXIT_WITHOUT_SUPPORT,
+    HOUSING_IN_PROGRESS_WITH_SUPPORT,
+    HOUSING_IN_PROGRESS_WITHOUT_SUPPORT,
     StatisticActionTypes,
     WAITING_HOUSING_COUNT_FETCHED,
 } from '../actions/statisticAction';
@@ -15,9 +16,10 @@ export interface StatisticState {
     contactedHousingCount?: number
     waitingHousingCount?: number
     answersCount?: number
-    housingFollowedCount?: number
-    housingFirstContactedCount?: number
-    housingOutOfVacancyCount?: number
+    housingInProgressWithSupportCount?: number
+    housingInProgressWithoutSupportCount?: number
+    housingExitWithSupportCount?: number
+    housingExitWithoutSupportCount?: number
 }
 
 const initialState: StatisticState = {
@@ -51,22 +53,28 @@ const statisticReducer = (state = initialState, action: StatisticActionTypes) =>
                 answersCount: action.count
             };
         }
-        case HOUSING_FOLLOWED_COUNT_FETCHED: {
+        case HOUSING_IN_PROGRESS_WITH_SUPPORT: {
             return {
                 ...state,
-                housingFollowedCount: action.count
+                housingInProgressWithSupportCount: action.count
             };
         }
-        case HOUSING_FIRST_CONTACTED_COUNT_FETCHED: {
+        case HOUSING_IN_PROGRESS_WITHOUT_SUPPORT: {
             return {
                 ...state,
-                housingFirstContactedCount: action.count
+                housingInProgressWithoutSupportCount: action.count
             };
         }
-        case HOUSING_OUT_OF_VACANCY_COUNT_FETCHED: {
+        case HOUSING_EXIT_WITH_SUPPORT: {
             return {
                 ...state,
-                housingOutOfVacancyCount: action.count
+                housingExitWithSupportCount: action.count
+            };
+        }
+        case HOUSING_EXIT_WITHOUT_SUPPORT: {
+            return {
+                ...state,
+                housingExitWithoutSupportCount: action.count
             };
         }
         default:

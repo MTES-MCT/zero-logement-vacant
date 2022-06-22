@@ -8,7 +8,7 @@ import {
     InProgressWithSupportSubStatus,
     ExitWithSupportSubStatus,
     ExitWithPublicSupportSubStatus,
-    ExitWithoutSupportSubStatus,
+    ExitWithoutSupportSubStatus, InProgressWithPublicSupportSubStatus,
 } from '../models/HousingStatusApi';
 
 
@@ -51,9 +51,10 @@ const housingInProgressWithSupportCount = async (request: Request, response: Res
     return Promise.all([
         housingRepository.listWithFilters({status: [HousingStatusApi.FirstContact], subStatus: [FirstContactWithPreSupportSubStatus]}),
         housingRepository.listWithFilters({status: [HousingStatusApi.InProgress], subStatus: [InProgressWithSupportSubStatus]}),
+        housingRepository.listWithFilters({status: [HousingStatusApi.InProgress], subStatus: [InProgressWithPublicSupportSubStatus]}),
     ])
-        .then(([result1, result2]) =>
-            response.status(200).json(result1.entities.length + result2.entities.length)
+        .then(([result1, result2, result3]) =>
+            response.status(200).json(result1.entities.length + result2.entities.length + result3.entities.length)
         );
 };
 

@@ -1,7 +1,6 @@
 import config from '../utils/config';
 
 
-
 const getEstablishmentsCount = async (): Promise<number> => {
 
     return await fetch(`${config.apiEndpoint}/api/statistics/establishments/count`, {
@@ -38,27 +37,36 @@ const getAnswersCount = async (): Promise<number> => {
         .then(_ => _.json());
 };
 
-const getHousingFollowedCount = async (): Promise<number> => {
+const getHousingInProgressWithSupportCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/followed/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/inprogress-with-support/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
         .then(_ => _.json());
 };
 
-const getHousingFirstContactedCount = async (): Promise<number> => {
+const getHousingInProgressWithoutSupportCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/contacted/first/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/inprogress-without-support/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
         .then(_ => _.json());
 };
 
-const getHousingOutOfVacancyCount = async (): Promise<number> => {
+const getHousingExitWithSupportCount = async (): Promise<number> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/vacancy/out/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/exit-with-support/count`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(_ => _.json());
+};
+
+const getHousingExitWithoutSupportCount = async (): Promise<number> => {
+
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/exit-without-support/count`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
@@ -70,9 +78,10 @@ const statisticService = {
     getContactedHousingCount,
     getWaitingHousingCount,
     getAnswersCount,
-    getHousingFirstContactedCount,
-    getHousingFollowedCount,
-    getHousingOutOfVacancyCount
+    getHousingInProgressWithSupportCount,
+    getHousingInProgressWithoutSupportCount,
+    getHousingExitWithSupportCount,
+    getHousingExitWithoutSupportCount
 };
 
 export default statisticService;

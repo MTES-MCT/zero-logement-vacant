@@ -305,6 +305,9 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
             queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))
         }
+        if (filters.subStatus?.length) {
+            queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus)
+        }
         if (filters.query?.length) {
             queryBuilder.where(function (whereBuilder: any) {
                 whereBuilder.orWhereRaw('upper(full_name) like ?', `%${filters.query?.toUpperCase()}%`)

@@ -10,7 +10,16 @@ const StatsView = () => {
 
     const dispatch = useDispatch();
 
-    const { establishmentCount, contactedHousingCount, waitingHousingCount, answersCount, housingFollowedCount, housingFirstContactedCount, housingOutOfVacancyCount } = useSelector((state: ApplicationState) => state.statistic);
+    const {
+        establishmentCount,
+        contactedHousingCount,
+        waitingHousingCount,
+        answersCount,
+        housingInProgressWithSupportCount,
+        housingInProgressWithoutSupportCount,
+        housingExitWithSupportCount,
+        housingExitWithoutSupportCount,
+    } = useSelector((state: ApplicationState) => state.statistic);
 
 
     useEffect(() => {
@@ -68,33 +77,45 @@ const StatsView = () => {
                     </Col>
                 </Row>
                 <Row gutters>
-                    <Col>
+                    <Col n="4">
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de premiers contacts</span>
+                                <span>Nombre de logements en cours de sortie de vacance via un accompagnement public</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{housingFirstContactedCount ?? '...'}</span>
+                                <span>{housingInProgressWithSupportCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>
-                    <Col>
+                    <Col n="4">
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de logements suivis par les collectivités</span>
+                                <span>Nombre de logement en cours de sortie de vacance sans accompagnement public</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{housingFollowedCount ?? '...'}</span>
+                                <span>{housingInProgressWithoutSupportCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>
-                    <Col>
+                </Row>
+                <Row gutters>
+                    <Col n="4">
                         <Card hasArrow={false}>
                             <CardTitle>
-                                <span>Nombre de logements sortis de la vacance</span>
+                                <span>Nombre de logements sortis de vacance via un accompagnement</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
-                                <span>{housingOutOfVacancyCount ?? '...'}</span>
+                                <span>{housingExitWithSupportCount ?? '...'}</span>
+                            </CardDescription>
+                        </Card>
+                    </Col>
+                    <Col n="4">
+                        <Card hasArrow={false}>
+                            <CardTitle>
+                                <span>Nombre de logements sortis de vacance sans accompagnement</span>
+                            </CardTitle>
+                            <CardDescription className={styles.stats_value}>
+                                <span>{housingExitWithoutSupportCount ?? '...'}</span>
                             </CardDescription>
                         </Card>
                     </Col>

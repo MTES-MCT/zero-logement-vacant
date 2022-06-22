@@ -27,5 +27,6 @@ export interface HousingFiltersApi {
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];
+    subStatus?: string[];
     query?: string;
 }

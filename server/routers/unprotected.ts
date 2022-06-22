@@ -11,8 +11,9 @@ router.get('/api/statistics/establishments/count', statController.establishmentC
 router.get('/api/statistics/housing/contacted/count', statController.housingContactedCount);
 router.get('/api/statistics/housing/waiting/count', statController.housingWaitingCount);
 router.get('/api/statistics/answers/count', statController.answersCount);
-router.get('/api/statistics/housing/followed/count', statController.housingFollowedCount);
-router.get('/api/statistics/housing/contacted/first/count', statController.housingFirstContactedCount);
-router.get('/api/statistics/housing/vacancy/out/count', statController.housingOutOfVacancyCount);
+router.get('/api/statistics/housing/inprogress-with-support/count', statController.housingInProgressWithSupportCount);
+router.get('/api/statistics/housing/inprogress-without-support/count', statController.housingInProgressWithoutSupportCount);
+router.get('/api/statistics/housing/exit-with-support/count', statController.housingExitWithSupportCount);
+router.get('/api/statistics/housing/exit-without-support/count', statController.housingExitWithoutSupportCount);
 
 export default router;

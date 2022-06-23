@@ -92,6 +92,7 @@ function AppHeader() {
                         {authUser.user.role === UserRoles.Admin &&
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
                         }
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Monitoring)} />
                     </HeaderNav> :
                     <HeaderNav />
                 }

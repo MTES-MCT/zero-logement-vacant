@@ -1,12 +1,13 @@
 import express from 'express';
 import authenticateController from '../controllers/authenticateController';
 import statController from '../controllers/statController';
+import establishmentController from '../controllers/establishmentController';
 
 const router = express.Router();
 
 router.post('/api/authenticate', authenticateController.signin);
 router.post('/api/account/activation', authenticateController.activateAccount);
-router.get('/api/establishments/available', authenticateController.listAvailableEstablishments);
+router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);
 router.get('/api/statistics/establishments/count', statController.establishmentCount);
 router.get('/api/statistics/housing/contacted/count', statController.housingContactedCount);
 router.get('/api/statistics/housing/waiting/count', statController.housingWaitingCount);

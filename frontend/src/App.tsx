@@ -24,6 +24,7 @@ import AccountPasswordView from './views/Account/AccountPasswordView';
 import HomeView from './views/Home/HomeView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
+import MonitoringView from './views/Monitoring/MonitoringView';
 
 
 function AppWrapper () {
@@ -93,6 +94,7 @@ function App() {
                                 {authUser.user.role === UserRoles.Admin &&
                                     <Route exact path="/utilisateurs" component={UserListView}/>
                                 }
+                                <Route exact path="/suivi" component={MonitoringView}/>
                                 <Route path="/*">
                                     <Redirect to="/accueil" />
                                 </Route>

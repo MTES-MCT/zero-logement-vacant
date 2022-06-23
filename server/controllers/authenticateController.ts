@@ -24,6 +24,8 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
         if (isPasswordValid) {
 
+            await userRepository.updateLastAuthentication(user.id)
+
             const establishmentId = user.establishmentId ?? request.body.establishmentId;
             const establishment = await establishmentRepository.get(establishmentId)
 
@@ -45,14 +47,6 @@ const signin = async (request: Request, response: Response): Promise<Response> =
     } catch {
         return response.sendStatus(401)
     }
-};
-
-const listAvailableEstablishments = async (request: Request, response: Response): Promise<Response> => {
-
-    console.log('listAvailableEstablishments')
-
-    return establishmentRepository.listAvailable()
-             .then(_ => response.status(200).json(_));
 };
 
 const activateAccount = async (request: Request, response: Response): Promise<Response> => {
@@ -107,7 +101,6 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
 
 export default {
     signin,
-    listAvailableEstablishments,
     activateAccount,
     updatePassword
 };

@@ -1,6 +1,10 @@
 import db from './db';
 import { localitiesTable } from './localityRepository';
-import { EstablishmentApi } from '../models/EstablishmentApi';
+import { EstablishmentApi, EstablishmentDataApi } from '../models/EstablishmentApi';
+import { housingTable } from './housingRepository';
+import { usersTable } from './userRepository';
+import { eventsTable } from './eventRepository';
+import { campaignsTable } from './campaignRepository';
 
 export const establishmentsTable = 'establishments';
 export const housingScopeGeometryTable = 'housing_scopes_geom';
@@ -56,12 +60,56 @@ const listAvailable = async (): Promise<EstablishmentApi[]> => {
             )))
     } catch (err) {
         console.error('Listing available establishment failed', err);
-        throw new Error('Listing available establishment by email failed');
+        throw new Error('Listing available establishment failed');
+    }
+}
+
+const listData = async (): Promise<EstablishmentDataApi[]> => {
+    try {
+        return db(establishmentsTable)
+            .select(
+                `${establishmentsTable}.*`,
+                db.raw(`count(distinct(${housingTable}.id)) as "housing_count"`),
+                db.raw(`min(${usersTable}.activated_at) as "first_activated_at"`),
+                db.raw(`max(${usersTable}.activated_at) as "last_authenticated_at"`),
+                db.raw(`count(distinct(${eventsTable}.housing_id)) as "last_month_updates_count"`),
+                db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
+                db.raw(`count(distinct(${housingTable}.id)) filter (where ${housingTable}.status is not null) as "contacted_housing_count"`),
+                db.raw(`min(${campaignsTable}.sent_at) as "first_campaign_sent_at"`),
+                db.raw(`max(${campaignsTable}.sent_at) as "last_campaign_sent_at"`),
+            )
+            .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
+            .join(housingTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .leftJoin(campaignsTable, `${campaignsTable}.establishment_id`, `${establishmentsTable}.id`)
+            .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
+            .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`)
+            .where('available', true)
+            .andWhereRaw('data_years && ?::integer[] ', [[2022]])
+            .groupBy(`${establishmentsTable}.id`)
+            .orderBy(`${establishmentsTable}.name`)
+            .then(_ => _.map(result => (
+                <EstablishmentDataApi> {
+                    id: result.id,
+                    name: result.name,
+                    housingCount: result.housing_count,
+                    firstActivatedAt: result.first_activated_at,
+                    lastAuthenticatedAt: result.last_authenticated_at,
+                    lastMonthUpdatesCount: result.last_month_updates_count,
+                    campaignsCount: result.campaigns_count,
+                    contactedHousingCount: result.contacted_housing_count,
+                    firstCampaignSentAt: result.first_campaign_sent_at,
+                    lastCampaignSentAt: result.last_campaign_sent_at,
+                }
+            )))
+    } catch (err) {
+        console.error('Listing establishment data failed', err);
+        throw new Error('Listing establishment data failed');
     }
 }
 
 export default {
     get,
-    listAvailable
+    listAvailable,
+    listData
 }
 

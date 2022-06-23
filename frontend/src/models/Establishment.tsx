@@ -9,6 +9,19 @@ export interface Establishment {
     }[]
 }
 
+export interface EstablishmentData {
+    id: string,
+    name: string,
+    housingCount: number,
+    firstActivatedAt: Date,
+    lastAuthenticatedAt: Date,
+    lastMonthUpdatesCount: number,
+    campaignsCount: number,
+    contactedHousingCount: number,
+    firstCampaignSentAt: Date,
+    lastCampaignSentAt: Date
+}
+
 export interface HousingScopes {
     geom: boolean,
     scopes: string[]

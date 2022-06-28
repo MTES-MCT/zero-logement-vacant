@@ -1,12 +1,17 @@
 import db from './db';
-import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
+import {
+    getOwnershipKindFromValue,
+    HousingApi,
+    OwnershipKindsApi,
+    OwnershipKindValues,
+} from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import { HousingStatusApi } from '../models/HousingStatusApi';
+import { HousingStatusApi, HousingStatusCountApi } from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
@@ -465,6 +470,32 @@ const updateAddressList = async (housingAdresses: {addressId: string, addressApi
     }
 }
 
+const countByStatus = async (): Promise<HousingStatusCountApi[]> => {
+    try {
+        return db(housingTable)
+            .select(
+                'status',
+                'precisions',
+                'sub_status',
+                db.raw('count(*)')
+            )
+            .groupBy('status')
+            .groupBy('sub_status')
+            .groupBy('precisions')
+            .then(_ => _.map((result: any) => (
+                <HousingStatusCountApi> {
+                    status: result.status,
+                    subStatus: result.sub_status,
+                    precisions: result.precisions,
+                    count: result.count
+                }
+            )))
+    } catch (err) {
+        console.error('Count housing by status failed', err);
+        throw new Error('Count housing by status failed');
+    }
+}
+
 const escapeValue = (value?: string) => {
     return value ? value.replace(/'/g, '\'\'') : ''
 }
@@ -525,5 +556,6 @@ export default {
     countWithFilters,
     listByIds,
     updateHousingList,
-    updateAddressList
+    updateAddressList,
+    countByStatus
 }

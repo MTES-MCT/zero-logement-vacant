@@ -10,6 +10,7 @@ import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
 import establishmentController from '../controllers/establishmentController';
+import statController from '../controllers/statController';
 
 const  router = express.Router();
 
@@ -64,5 +65,7 @@ router.post('/api/users/creation', jwtCheck, userCheck, userController.createUse
 router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
 router.get('/api/establishments/data', jwtCheck, userCheck, establishmentController.listEstablishmentData);
+
+router.get('/api/statistics/housing/status/count', statController.housingByStatusCount);
 
 export default router;

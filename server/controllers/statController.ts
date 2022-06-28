@@ -91,6 +91,14 @@ const housingExitWithoutSupportCount = async (request: Request, response: Respon
         );
 };
 
+const housingByStatusCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get housing by status count')
+
+    return housingRepository.countByStatus()
+        .then(_ => response.status(200).json(_));
+};
+
 const statController =  {
     establishmentCount,
     housingContactedCount,
@@ -99,7 +107,8 @@ const statController =  {
     housingInProgressWithSupportCount,
     housingInProgressWithoutSupportCount,
     housingExitWithSupportCount,
-    housingExitWithoutSupportCount
+    housingExitWithoutSupportCount,
+    housingByStatusCount
 };
 
 export default statController;

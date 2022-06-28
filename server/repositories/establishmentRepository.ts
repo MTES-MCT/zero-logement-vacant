@@ -64,7 +64,7 @@ const listAvailable = async (): Promise<EstablishmentApi[]> => {
     }
 }
 
-const listData = async (): Promise<EstablishmentDataApi[]> => {
+const listData = async (establishmentId?: string): Promise<EstablishmentDataApi[]> => {
     try {
         return db(establishmentsTable)
             .select(
@@ -77,6 +77,12 @@ const listData = async (): Promise<EstablishmentDataApi[]> => {
                 db.raw(`count(distinct(${housingTable}.id)) filter (where ${housingTable}.status is not null) as "contacted_housing_count"`),
                 db.raw(`min(${campaignsTable}.sent_at) as "first_campaign_sent_at"`),
                 db.raw(`max(${campaignsTable}.sent_at) as "last_campaign_sent_at"`),
+                db.raw(`(select avg(diff.avg) from (
+                    select (sent_at - lag(sent_at) over (order by sent_at)) as "avg" from campaigns where establishment_id = ${establishmentsTable}.id) as diff
+                ) as "delay_between_campaigns"`),
+                db.raw(`(select avg(count.count) from (
+                    select count(*) from campaigns c, campaigns_housing ch where ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
+                )as "contacted_housing_per_campaign"`)
             )
             .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
             .join(housingTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
@@ -87,7 +93,12 @@ const listData = async (): Promise<EstablishmentDataApi[]> => {
             .andWhereRaw('data_years && ?::integer[] ', [[2022]])
             .groupBy(`${establishmentsTable}.id`)
             .orderBy(`${establishmentsTable}.name`)
-            .then(_ => _.map(result => (
+            .modify((queryBuilder: any) => {
+                if (establishmentId) {
+                    queryBuilder.andWhere(`${establishmentsTable}.id`, establishmentId)
+                }
+            })
+            .then(_ => _.map((result: any) => (
                 <EstablishmentDataApi> {
                     id: result.id,
                     name: result.name,
@@ -97,8 +108,10 @@ const listData = async (): Promise<EstablishmentDataApi[]> => {
                     lastMonthUpdatesCount: result.last_month_updates_count,
                     campaignsCount: result.campaigns_count,
                     contactedHousingCount: result.contacted_housing_count,
+                    contactedHousingPerCampaign: result.contacted_housing_per_campaign,
                     firstCampaignSentAt: result.first_campaign_sent_at,
                     lastCampaignSentAt: result.last_campaign_sent_at,
+                    delayBetweenCampaigns: result.delay_between_campaigns
                 }
             )))
     } catch (err) {

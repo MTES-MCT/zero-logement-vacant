@@ -15,8 +15,10 @@ export interface EstablishmentDataApi {
     lastMonthUpdatesCount: number,
     campaignsCount: number,
     contactedHousingCount: number,
+    contactedHousingPerCampaign: number,
     firstCampaignSentAt: Date,
-    lastCampaignSentAt: Date
+    lastCampaignSentAt: Date,
+    delayBetweenCampaigns: any
 }
 
 export interface HousingScopesApi {

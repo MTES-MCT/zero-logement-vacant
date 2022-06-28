@@ -22,6 +22,13 @@ export interface HousingStatusPrecision {
     bgcolor: string;
 }
 
+export interface HousingStatusCount {
+    status: HousingStatus,
+    subStatus?: string,
+    precisions?: string[],
+    count: number
+}
+
 export enum HousingStatus {
     NotInCampaign,
     Waiting,
@@ -31,6 +38,14 @@ export enum HousingStatus {
     NoAction,
     Exit
 }
+
+export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement'
+export const InProgressWithSupportSubStatus = 'En accompagnement'
+export const InProgressWithPublicSupportSubStatus = 'Intervention publique'
+export const InProgressWithoutSupportSubStatus = 'En sortie sans accompagnement'
+export const ExitWithSupportSubStatus = 'Via accompagnement'
+export const ExitWithPublicSupportSubStatus = 'Via intervention publique'
+export const ExitWithoutSupportSubStatus = 'Sans accompagnement'
 
 export const HousingStates: HousingState[] = [
     {
@@ -87,7 +102,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'En pré-accompagnement',
+                title: FirstContactWithPreSupportSubStatus,
                 color: '--blue-ecume-sun-247',
                 bgcolor: '--blue-ecume-950',
                 precisions: [
@@ -122,7 +137,7 @@ export const HousingStates: HousingState[] = [
         bgcolor: '--purple-glycine-975',
         subStatusList: [
             {
-                title: 'En accompagnement',
+                title: InProgressWithSupportSubStatus,
                 color: '--green-tilleul-verveine-sun-418',
                 bgcolor: '--green-tilleul-verveine-975',
                 precisions: [
@@ -179,7 +194,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'Intervention publique',
+                title: InProgressWithPublicSupportSubStatus,
                 color: '--pink-macaron-sun-406',
                 bgcolor: '--pink-macaron-950',
                 precisions: [
@@ -211,7 +226,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'En sortie sans accompagnement',
+                title: InProgressWithoutSupportSubStatus,
                 color: '--brown-opera-sun-395',
                 bgcolor: '--brown-opera-950',
                 precisions: [
@@ -899,7 +914,7 @@ export const HousingStates: HousingState[] = [
         bgcolor: '--blue-ecume-950',
         subStatusList: [
             {
-                title: 'Via accompagnement',
+                title: ExitWithSupportSubStatus,
                 color: '--green-menthe-975',
                 bgcolor: '--green-menthe-sun-373',
                 precisions: [
@@ -921,7 +936,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'Via intervention publique',
+                title: ExitWithPublicSupportSubStatus,
                 color: '--green-emeraude-sun-425',
                 bgcolor: '--green-emeraude-925',
                 precisions: [
@@ -943,7 +958,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'Sans accompagnement',
+                title: ExitWithoutSupportSubStatus,
                 color: '--green-menthe-sun-373',
                 bgcolor: '--green-menthe-975',
                 precisions: [

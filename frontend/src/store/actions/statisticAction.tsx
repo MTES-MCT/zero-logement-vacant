@@ -2,7 +2,7 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import statisticService from '../../services/statistic.service';
 
-export const FETCH_STATISTICS = 'FETCH_CONTACTED_OWNERS';
+export const FETCH_STATISTICS = 'FETCH_STATISTICS';
 export const ESTABLISHMENTS_COUNT_FETCHED = 'ESTABLISHMENTS_COUNT_FETCHED';
 export const CONTACTED_HOUSING_COUNT_FETCHED = 'CONTACTED_HOUSING_COUNT_FETCHED';
 export const WAITING_HOUSING_COUNT_FETCHED = 'WAITING_HOUSING_COUNT_FETCHED';
@@ -67,7 +67,7 @@ export type StatisticActionTypes =
     HousingExitWithSupportCountFetchedAction |
     HousingExitWithoutSupportCountFetchedAction;
 
-export const getContactedOwnersCount = () => {
+export const getStatistics = () => {
 
     return function (dispatch: Dispatch) {
 

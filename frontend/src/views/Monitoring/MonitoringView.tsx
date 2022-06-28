@@ -112,7 +112,9 @@ const MonitoringView = () => {
         name: 'delayBetweenCampaigns',
         label: 'Temps moyen d’envoi entre 2 campagnes',
         render: ({ delayBetweenCampaigns }: EstablishmentData) => <>
-            { formatDuration(delayBetweenCampaigns, { format: ['months', 'days'], locale: fr }) }
+            {delayBetweenCampaigns && <>
+                {formatDuration(delayBetweenCampaigns, { format: ['months', 'days'], locale: fr }) }
+            </>}
         </>
     };
 

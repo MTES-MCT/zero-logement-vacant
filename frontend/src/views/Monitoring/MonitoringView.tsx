@@ -134,8 +134,8 @@ const MonitoringView = () => {
             .reduce((count, h) => Number(h.count) + count, 0)
     }
 
-    const housingWithStatusNoPrecisionsCount = (status: HousingStatus) => {
-        return housingByStatus?.filter(_ => _.status === status)
+    const housingWithStatusNoPrecisionsCount = (status?: HousingStatus) => {
+        return housingByStatus?.filter(_ => status ? _.status === status : true)
             .filter(_ => !_.precisions?.length)
             .reduce((count, h) => Number(h.count) + count, 0)
     }
@@ -234,6 +234,10 @@ const MonitoringView = () => {
                                 {housingByStatus ? housingWithStatusNoPrecisionsCount(HousingStatus.Exit) : '...'}
                             </li>
                         </ul>
+                    </li>
+                    <li>
+                        <b>Nombre de logements sans précisions</b> :&nbsp;
+                        {housingByStatus ? housingWithStatusNoPrecisionsCount() : '...'}
                     </li>
                 </ul>
                 {establishmentData &&

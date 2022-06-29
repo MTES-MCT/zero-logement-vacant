@@ -1,5 +1,6 @@
 import config from '../utils/config';
 import { HousingStatusCount } from '../models/HousingState';
+import { MonitoringFilters } from '../models/MonitoringFilters';
 
 
 const getEstablishmentsCount = async (): Promise<number> => {
@@ -74,11 +75,12 @@ const getHousingExitWithoutSupportCount = async (): Promise<number> => {
         .then(_ => _.json());
 };
 
-const getHousingByStatusCount = async (): Promise<HousingStatusCount> => {
+const getHousingByStatusCount = async (filters: MonitoringFilters): Promise<HousingStatusCount> => {
 
     return await fetch(`${config.apiEndpoint}/api/statistics/housing/status/count`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters }),
     })
         .then(_ => _.json());
 };

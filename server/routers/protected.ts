@@ -66,6 +66,6 @@ router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
 router.get('/api/establishments/data', jwtCheck, userCheck, establishmentController.listEstablishmentData);
 
-router.get('/api/statistics/housing/status/count', statController.housingByStatusCount);
+router.post('/api/statistics/housing/status/count', statController.housingByStatusCount);
 
 export default router;

@@ -1,10 +1,5 @@
 import db from './db';
-import {
-    getOwnershipKindFromValue,
-    HousingApi,
-    OwnershipKindsApi,
-    OwnershipKindValues,
-} from '../models/HousingApi';
+import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
 import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
@@ -13,6 +8,7 @@ import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import { HousingStatusApi, HousingStatusCountApi } from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
+import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -470,8 +466,20 @@ const updateAddressList = async (housingAdresses: {addressId: string, addressApi
     }
 }
 
-const countByStatus = async (): Promise<HousingStatusCountApi[]> => {
+const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<HousingStatusCountApi[]> => {
     try {
+        const filter = (queryBuilder: any) => {
+            if (filters.establishmentIds?.length) {
+                queryBuilder
+                    .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+                    .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
+                    .whereIn('e.id', filters.establishmentIds)
+            }
+            if (filters.dataYears?.length) {
+                queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
+            }
+        }
+
         return db(housingTable)
             .select(
                 'status',
@@ -482,6 +490,7 @@ const countByStatus = async (): Promise<HousingStatusCountApi[]> => {
             .groupBy('status')
             .groupBy('sub_status')
             .groupBy('precisions')
+            .modify(filter)
             .then(_ => _.map((result: any) => (
                 <HousingStatusCountApi> {
                     status: result.status,
@@ -557,5 +566,5 @@ export default {
     listByIds,
     updateHousingList,
     updateAddressList,
-    countByStatus
+    countByStatusWithFilters
 }

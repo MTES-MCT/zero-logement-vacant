@@ -13,33 +13,32 @@ import {
 import { DraftUser, User } from '../../models/User';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { fetchAvailableEstablishments } from '../../store/actions/authenticationAction';
 import UserCreationModal from '../../components/modals/UserCreationModal/UserCreationModal';
-import UserListFilter from './UserListFilter';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
-import { SelectOption } from '../../models/SelectOption';
 import { displayCount } from '../../utils/stringUtils';
+import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
+import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
 
 const UserListView = () => {
 
     const dispatch = useDispatch();
+    const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<SelectOption[]>([]);
     const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
     const { paginatedUsers, filters } = useSelector((state: ApplicationState) => state.user);
 
     useEffect(() => {
         dispatch(changeUserPagination(0, 500))
-        if (!availableEstablishments?.length) {
-            dispatch(fetchAvailableEstablishments())
-        } else {
-            setAvailableEstablishmentOptions(availableEstablishments.map(establishment => ({
-                value: establishment.id,
-                label: establishment.name
-            })))
-        }
-    }, [dispatch, availableEstablishments]);
+    }, [dispatch])
+
+
+    const onChangeFilters = (changedFilters: any) => {
+        dispatch(changeUserFiltering({
+            ...filters,
+            ...changedFilters
+        }))
+    }
 
     const onSubmitDraftUser = (draftUser: DraftUser) => {
         dispatch(createUser(draftUser))
@@ -121,10 +120,11 @@ const UserListView = () => {
                         <Col n="8">
                             <Title as="h1">Utilisateurs</Title>
                         </Col>
-                    </Row>
-                    <Row>
                         <Col>
-                            <UserListFilter availableEstablishmentOptions={availableEstablishmentOptions}/>
+                            <AppMultiSelect label="Etablissements"
+                                            options={availableEstablishmentOptions}
+                                            initialValues={filters.establishmentIds}
+                                            onChange={(values) => onChangeFilters({establishmentIds: values})}/>
                         </Col>
                     </Row>
                 </Container>

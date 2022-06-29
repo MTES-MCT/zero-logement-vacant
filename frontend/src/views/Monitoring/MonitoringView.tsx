@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale';
 import {
     ExitWithoutSupportSubStatus,
     ExitWithPublicSupportSubStatus,
-    ExitWithSupportSubStatus,
+    ExitWithSupportSubStatus, FirstContactToContactedSubStatus, FirstContactWithPreSupportSubStatus,
     HousingStatus, InProgressWithoutSupportSubStatus,
     InProgressWithPublicSupportSubStatus,
     InProgressWithSupportSubStatus,
@@ -172,6 +172,24 @@ const MonitoringView = () => {
                     <li>
                         <b>En attente de retour</b> :&nbsp;
                         {housingByStatus ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
+                    </li>
+                    <li>
+                        <b>Premier contact</b> :&nbsp;
+                        {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact) : '...'}
+                        <ul>
+                            <li>
+                                <b>{FirstContactToContactedSubStatus}</b> :&nbsp;
+                                {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact, FirstContactToContactedSubStatus) : '...'}
+                            </li>
+                            <li>
+                                <b>{FirstContactWithPreSupportSubStatus}</b> :&nbsp;
+                                {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact, FirstContactWithPreSupportSubStatus) : '...'}
+                            </li>
+                            <li>
+                                <b>Sans précisions</b> :&nbsp;
+                                {housingByStatus ? housingWithStatusNoPrecisionsCount(HousingStatus.FirstContact) : '...'}
+                            </li>
+                        </ul>
                     </li>
                     <li>
                         <b>Suivi en cours</b> :&nbsp;

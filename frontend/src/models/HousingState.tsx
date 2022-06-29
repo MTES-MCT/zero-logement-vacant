@@ -39,6 +39,7 @@ export enum HousingStatus {
     Exit
 }
 
+export const FirstContactToContactedSubStatus = 'À recontacter'
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement'
 export const InProgressWithSupportSubStatus = 'En accompagnement'
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique'
@@ -65,7 +66,7 @@ export const HousingStates: HousingState[] = [
         bgcolor: '--purple-glycine-975',
         subStatusList: [
             {
-                title: 'À recontacter',
+                title: FirstContactToContactedSubStatus,
                 color: '--green-emeraude-sun-425',
                 bgcolor: '--green-emeraude-925',
                 precisions: [

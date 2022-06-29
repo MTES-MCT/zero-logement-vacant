@@ -92,9 +92,9 @@ const MonitoringView = () => {
 
     const contactedHousingPerCampaignColumn = {
         name: 'contactedHousingPerCampaign',
-        label: 'Nombre de logements contactés',
+        label: 'Nombre de logements contactés par campagne',
         render: ({ housingCount, contactedHousingPerCampaign }: EstablishmentData) => <>
-            {contactedHousingPerCampaign} ({Math.floor(contactedHousingPerCampaign / housingCount * 100)}%)
+            {Math.floor(contactedHousingPerCampaign)} ({Math.floor(contactedHousingPerCampaign / housingCount * 100)}%)
         </>
     };
 

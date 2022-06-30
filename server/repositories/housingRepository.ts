@@ -6,7 +6,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import { HousingStatusApi, HousingStatusCountApi } from '../models/HousingStatusApi';
+import { HousingStatusApi, HousingStatusCountApi, HousingStatusDurationApi } from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
@@ -495,28 +495,47 @@ const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<
     }
 }
 
-const countWaitingFor3Months = async (filters: MonitoringFiltersApi): Promise<number> => {
+const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<HousingStatusDurationApi[]> => {
     try {
 
-        return db.count('created_at')
+        return db.select(
+            'status',
+            db.raw('avg(current_timestamp - created_at)'),
+            db.raw(`count(created_at) filter ( where created_at < current_timestamp  - interval '3 months')`)
+        )
             .from(
                 db.from(housingTable)
                     .select(
+                        'status',
                         db.raw(`max(${eventsTable}.created_at) as created_at`)
                     )
                     .join(eventsTable, `${housingTable}.id`, 'housing_id')
                     .where(`${housingTable}.status`, 1)
-                    .andWhere(`${eventsTable}.kind`, '1')
-                    .andWhereRaw(`${eventsTable}.content  like '%Ajout dans la campagne%' `)
+                    .andWhereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
+                    .andWhereRaw(`${eventsTable}.content like 
+                        (case
+                             when status = 1 then '%Ajout dans la campagne%'
+                             when status = 2 then '%Passage%Premier contact%'
+                             when status = 3 then '%Passage%Suivi en cours%'
+                             when status = 4 then '%Passage%Non-vacant%'
+                             when status = 5 then '%Passage%Bloqué%'
+                             when status = 6 then '%Passage%Sortie de la vacance%'
+                        end) `)
                     .groupBy(`${housingTable}.id`)
                     .modify(monitoringQueryFilter(filters))
                     .as('max')
             )
-            .whereRaw(`created_at < current_timestamp  - interval '3 months'`)
-            .then(_ => Number(_[0].count))
+            .groupBy('status')
+            .then(_ => _.map((result: any) => (
+                <HousingStatusDurationApi> {
+                    status: result.status,
+                    averageDuration: result.avg,
+                    unchangedFor3MonthsCount: Number(result.count)
+                }
+            )))
     } catch (err) {
-        console.error('Count housing waiting for 3 months failed', err);
-        throw new Error('Count housing waiting for 3 months failed');
+        console.error('Duration housing by status failed', err);
+        throw new Error('Duration housing by status failed');
     }
 }
 
@@ -594,5 +613,5 @@ export default {
     updateHousingList,
     updateAddressList,
     countByStatusWithFilters,
-    countWaitingFor3Months
+    durationByStatusWithFilters
 }

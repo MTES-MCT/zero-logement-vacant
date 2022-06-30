@@ -2,22 +2,22 @@ import { EstablishmentData } from '../../models/Establishment';
 import {
     ESTABLISHMENT_DATA_FETCHED,
     FETCH_HOUSING_BY_STATUS_COUNT,
-    FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT,
+    FETCH_HOUSING_BY_STATUS_DURATION,
     FETCHING_ESTABLISHMENT_DATA,
     HOUSING_BY_STATUS_COUNT_FETCHED,
-    HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED,
+    HOUSING_BY_STATUS_DURATION_FETCHED,
     MonitoringActionTypes,
 } from '../actions/monitoringAction';
-import { HousingStatusCount } from '../../models/HousingState';
+import { HousingStatusCount, HousingStatusDuration } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 
 
 export interface MonitoringState {
-    housingByStatus?: HousingStatusCount[];
-    housingWaitingFor3MonthsCount?: number;
+    housingByStatusCount?: HousingStatusCount[];
+    housingByStatusDuration?: HousingStatusDuration[];
     establishmentData?: EstablishmentData[];
-    housingByStatusFilters: MonitoringFilters;
-    housingWaitingFor3MonthsFilters: MonitoringFilters;
+    housingByStatusCountFilters: MonitoringFilters;
+    housingByStatusDurationFilters: MonitoringFilters;
     establishmentDataFilters: MonitoringFilters;
 }
 
@@ -27,8 +27,8 @@ export const initialMonitoringFilters = {
 } as MonitoringFilters;
 
 const initialState: MonitoringState = {
-    housingByStatusFilters: initialMonitoringFilters,
-    housingWaitingFor3MonthsFilters: initialMonitoringFilters,
+    housingByStatusCountFilters: initialMonitoringFilters,
+    housingByStatusDurationFilters: initialMonitoringFilters,
     establishmentDataFilters: initialMonitoringFilters
 };
 
@@ -37,25 +37,25 @@ const monitoringReducer = (state = initialState, action: MonitoringActionTypes) 
         case FETCH_HOUSING_BY_STATUS_COUNT:
             return {
                 ...state,
-                housingByStatusFilters: action.filters
+                housingByStatusCountFilters: action.filters
             };
         case HOUSING_BY_STATUS_COUNT_FETCHED: {
-            const isCurrentFetching = action.filters === state.housingByStatusFilters;
+            const isCurrentFetching = action.filters === state.housingByStatusCountFilters;
             return !isCurrentFetching ? state : {
                 ...state,
-                housingByStatus: action.housingByStatus
+                housingByStatusCount: action.housingByStatusCount
             };
         }
-        case FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT:
+        case FETCH_HOUSING_BY_STATUS_DURATION:
             return {
                 ...state,
-                housingWaitingFor3MonthsFilters: action.filters
+                housingByStatusDurationFilters: action.filters
             };
-        case HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED: {
-            const isCurrentFetching = action.filters === state.housingWaitingFor3MonthsFilters;
+        case HOUSING_BY_STATUS_DURATION_FETCHED: {
+            const isCurrentFetching = action.filters === state.housingByStatusDurationFilters;
             return !isCurrentFetching ? state : {
                 ...state,
-                housingWaitingFor3MonthsCount: action.count
+                housingByStatusDuration: action.housingByStatusDuration
             };
         }
         case FETCHING_ESTABLISHMENT_DATA:

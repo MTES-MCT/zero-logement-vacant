@@ -1,5 +1,5 @@
 import config from '../utils/config';
-import { HousingStatusCount } from '../models/HousingState';
+import { HousingStatusCount, HousingStatusDuration } from '../models/HousingState';
 import { MonitoringFilters } from '../models/MonitoringFilters';
 
 
@@ -85,9 +85,9 @@ const getHousingByStatusCount = async (filters: MonitoringFilters): Promise<Hous
         .then(_ => _.json());
 };
 
-const getHousingWaitingFor3MonthsCount = async (filters: MonitoringFilters): Promise<HousingStatusCount> => {
+const getHousingByStatusDuration = async (filters: MonitoringFilters): Promise<HousingStatusDuration> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/waiting-for-3-months/count`, {
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/status/duration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters }),
@@ -105,7 +105,7 @@ const statisticService = {
     getHousingExitWithSupportCount,
     getHousingExitWithoutSupportCount,
     getHousingByStatusCount,
-    getHousingWaitingFor3MonthsCount
+    getHousingByStatusDuration
 };
 
 export default statisticService;

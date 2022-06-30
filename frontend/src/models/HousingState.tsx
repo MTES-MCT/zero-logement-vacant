@@ -29,6 +29,12 @@ export interface HousingStatusCount {
     count: number
 }
 
+export interface HousingStatusDuration {
+    status: HousingStatus,
+    averageDuration: any,
+    unchangedFor3MonthsCount: number
+}
+
 export enum HousingStatus {
     NotInCampaign,
     Waiting,

@@ -6,22 +6,12 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
     fetchEstablishmentData,
     fetchHousingByStatusCount,
-    fetchHousingWaitingFor3MonthsCount,
+    fetchHousingByStatusDuration,
 } from '../../store/actions/monitoringAction';
 import { EstablishmentData } from '../../models/Establishment';
 import { differenceInDays, format, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import {
-    ExitWithoutSupportSubStatus,
-    ExitWithPublicSupportSubStatus,
-    ExitWithSupportSubStatus,
-    FirstContactToContactedSubStatus,
-    FirstContactWithPreSupportSubStatus,
-    HousingStatus,
-    InProgressWithoutSupportSubStatus,
-    InProgressWithPublicSupportSubStatus,
-    InProgressWithSupportSubStatus,
-} from '../../models/HousingState';
+import { HousingStates, HousingStatus } from '../../models/HousingState';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
@@ -29,19 +19,18 @@ import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { dataYearsIncludedOptions } from '../../models/HousingFilters';
 import { percent } from '../../utils/mathUtils';
 
-
 const MonitoringView = () => {
 
     const dispatch = useDispatch();
     const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
-    const { establishmentData, housingByStatus, housingByStatusFilters, housingWaitingFor3MonthsCount } = useSelector((state: ApplicationState) => state.monitoring);
+    const { establishmentData, housingByStatusCount, housingByStatusCountFilters, housingByStatusDuration } = useSelector((state: ApplicationState) => state.monitoring);
     const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>({})
 
     useEffect(() => {
-        dispatch(fetchEstablishmentData({ ...housingByStatusFilters, ...monitoringFilters }))
-        dispatch(fetchHousingByStatusCount({ ...housingByStatusFilters, ...monitoringFilters }))
-        dispatch(fetchHousingWaitingFor3MonthsCount({ ...housingByStatusFilters, ...monitoringFilters }))
+        dispatch(fetchEstablishmentData({ ...housingByStatusCountFilters, ...monitoringFilters }))
+        dispatch(fetchHousingByStatusCount({ ...housingByStatusCountFilters, ...monitoringFilters }))
+        dispatch(fetchHousingByStatusDuration({ ...housingByStatusCountFilters, ...monitoringFilters }))
     }, [dispatch, monitoringFilters])
 
     const establishmentColumn = {
@@ -144,20 +133,29 @@ const MonitoringView = () => {
         </>
     };
 
+    const housingWithStatusDuration = (status: HousingStatus) => {
+        return housingByStatusDuration?.find(_ => _.status === status)
+    }
+
+    const housingWithStatusFormattedDuration = (status: HousingStatus) => {
+        const duration =  housingByStatusDuration?.find(_ => _.status === status)?.averageDuration
+        return duration ? formatDuration(duration, { format: ['months', 'days'], locale: fr }) : undefined
+    }
+
     const housingWithStatusCount = (status: HousingStatus, subStatus?: string) => {
-        return housingByStatus?.filter(_ => _.status === status)
+        return housingByStatusCount?.filter(_ => _.status === status)
             .filter(_ => subStatus ? _.subStatus === subStatus : true)
             .reduce((count, h) => Number(h.count) + count, 0)
     }
 
     const housingWithStatusNoPrecisionsCount = (status?: HousingStatus) => {
-        return housingByStatus?.filter(_ => status ? _.status === status : true)
+        return housingByStatusCount?.filter(_ => status ? _.status === status : true)
             .filter(_ => !_.precisions?.length)
             .reduce((count, h) => Number(h.count) + count, 0)
     }
 
     const housingWithStatusPrecisions = (status: HousingStatus, subStatus: string) => {
-        return housingByStatus?.filter(_ => _.status === status)
+        return housingByStatusCount?.filter(_ => _.status === status)
             .filter(_ => _.subStatus === subStatus)
             .reduce((acc, value) => [...acc, ...(value.precisions ?? [])
                 .filter(_ => _?.length)
@@ -172,13 +170,47 @@ const MonitoringView = () => {
                 }
                 return acc;
             }, [] as { precision: string, count: number }[])
-            .map((_, index) =>
-                <Row key={status + "_" + subStatus + "_" + index}>
-                    <Col>
-                        {_.precision} :&nbsp;{_.count}
-                    </Col>
-                </Row>
-            )
+    }
+
+    const HousingStatusStats = ({status}: {status: HousingStatus}) => {
+
+        const state = HousingStates.find(_ => _.status === status)
+
+        return (
+            <Row className="bordered-b fr-py-1w">
+                <Col n="4">
+                    <b>{state?.title}</b> :&nbsp;
+                    {housingByStatusCount ? housingWithStatusCount(status) : '...'}
+                    <br />
+                    Temps moyen dans le statut : {housingByStatusDuration ? housingWithStatusFormattedDuration(status) : '...'}
+                </Col>
+                <Col>
+                    {state?.subStatusList?.map((subStatus, index) =>
+                        <Row className="bordered-b fr-py-1w" key={subStatus + "_" + index}>
+                            <Col>
+                                <b>{subStatus.title}</b> :&nbsp;
+                                {housingByStatusCount ? housingWithStatusCount(status, subStatus.title) : '...'}
+                            </Col>
+                            <Col>
+                                {housingWithStatusPrecisions(status, subStatus.title)?.map((_, index) =>
+                                    <Row key={status + "_" + subStatus + "_" + index}>
+                                        <Col>
+                                            {_.precision} :&nbsp;{_.count}
+                                        </Col>
+                                    </Row>
+                                )}
+                            </Col>
+                        </Row>
+                    )}
+                    <Row className="fr-py-1w">
+                        <Col>
+                            <b>Sans précisions</b> :&nbsp;
+                            {housingByStatusCount ? housingWithStatusNoPrecisionsCount(status) : '...'}
+                        </Col>
+                    </Row>
+                </Col>
+            </Row>
+        )
     }
 
     const columns = () => [
@@ -208,13 +240,13 @@ const MonitoringView = () => {
                         <Col n="4">
                             <AppMultiSelect label="Etablissements"
                                             options={availableEstablishmentOptions}
-                                            initialValues={housingByStatusFilters.establishmentIds}
+                                            initialValues={housingByStatusCountFilters.establishmentIds}
                                             onChange={(values) => setMonitoringFilters({...monitoringFilters, establishmentIds: values})}/>
                         </Col>
                         <Col n="2">
                             <AppMultiSelect label="Millésimes"
                                             options={dataYearsIncludedOptions}
-                                            initialValues={(housingByStatusFilters.dataYears ?? []).map(_ => String(_))}
+                                            initialValues={(housingByStatusCountFilters.dataYears ?? []).map(_ => String(_))}
                                             onChange={(values) => setMonitoringFilters({...monitoringFilters, dataYears: values.map(_ => Number(_))})}/>
                         </Col>
                     </Row>
@@ -222,10 +254,10 @@ const MonitoringView = () => {
             </div>
             <Container spacing="pt-2w">
                 <Row className="fr-pb-2w">
-                    <FilterBadges filters={housingByStatusFilters.establishmentIds}
+                    <FilterBadges filters={housingByStatusCountFilters.establishmentIds}
                                   options={availableEstablishmentOptions}
                                   onChange={(values) => setMonitoringFilters({...monitoringFilters, establishmentIds: values})}/>
-                    <FilterBadges filters={(housingByStatusFilters.dataYears ?? []).map(_ => String(_))}
+                    <FilterBadges filters={(housingByStatusCountFilters.dataYears ?? []).map(_ => String(_))}
                                   options={dataYearsIncludedOptions}
                                   onChange={(values) => setMonitoringFilters({...monitoringFilters, dataYears: values.map(_ => Number(_))})}/>
                 </Row>
@@ -234,134 +266,25 @@ const MonitoringView = () => {
                         <Row className="bordered-b fr-py-1w">
                             <Col n="4">
                                 <b>En attente de retour</b> :&nbsp;
-                                {housingByStatus ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
+                                {housingByStatusCount ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
                             </Col>
                             <Col>
                                 <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
-                                {housingWaitingFor3MonthsCount ?? '...'}
-                                {housingByStatus && housingWaitingFor3MonthsCount ?
-                                    <> ({percent(housingWaitingFor3MonthsCount, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
+                                {housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? '...'}
+                                {housingByStatusCount && housingWithStatusDuration(HousingStatus.Waiting) ?
+                                    <> ({percent(housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? 0, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
                                 }
                             </Col>
                         </Row>
-                        <Row className="bordered-b fr-py-1w">
-                            <Col n="4">
-                                <b>Premier contact</b> :&nbsp;
-                                {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact) : '...'}
-                            </Col>
-                            <Col>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{FirstContactToContactedSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact, FirstContactToContactedSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.FirstContact, FirstContactToContactedSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{FirstContactWithPreSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.FirstContact, FirstContactWithPreSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.FirstContact, FirstContactWithPreSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="fr-py-1w">
-                                    <Col>
-                                        <b>Sans précisions</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusNoPrecisionsCount(HousingStatus.FirstContact) : '...'}
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-                        <Row className="bordered-b fr-py-1w">
-                            <Col n="4">
-                                <b>Suivi en cours</b> :&nbsp;
-                                {housingByStatus ? housingWithStatusCount(HousingStatus.InProgress) : '...'}
-                            </Col>
-                            <Col>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{InProgressWithSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.InProgress, InProgressWithSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.InProgress, InProgressWithSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{InProgressWithPublicSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.InProgress, InProgressWithPublicSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.InProgress, InProgressWithPublicSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{InProgressWithoutSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.InProgress, InProgressWithoutSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.InProgress, InProgressWithoutSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="fr-py-1w">
-                                    <Col>
-                                        <b>Sans précisions</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusNoPrecisionsCount(HousingStatus.InProgress) : '...'}
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-                        <Row className="bordered-b fr-py-1w">
-                            <Col n="4">
-                                <b>Sortie de la vacance</b> :&nbsp;
-                                {housingByStatus ? housingWithStatusCount(HousingStatus.Exit) : '...'}
-                            </Col>
-                            <Col>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{ExitWithSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.Exit, ExitWithSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.Exit, ExitWithSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{ExitWithPublicSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.Exit, ExitWithPublicSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.Exit, ExitWithPublicSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="bordered-b fr-py-1w">
-                                    <Col>
-                                        <b>{ExitWithoutSupportSubStatus}</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusCount(HousingStatus.Exit, ExitWithoutSupportSubStatus) : '...'}
-                                    </Col>
-                                    <Col>
-                                        {housingWithStatusPrecisions(HousingStatus.Exit, ExitWithoutSupportSubStatus)}
-                                    </Col>
-                                </Row>
-                                <Row className="fr-py-1w">
-                                    <Col>
-                                        <b>Sans précisions</b> :&nbsp;
-                                        {housingByStatus ? housingWithStatusNoPrecisionsCount(HousingStatus.Exit) : '...'}
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
+                        <HousingStatusStats status={HousingStatus.FirstContact} />
+                        <HousingStatusStats status={HousingStatus.InProgress} />
+                        <HousingStatusStats status={HousingStatus.Exit} />
+                        <HousingStatusStats status={HousingStatus.NotVacant} />
+                        <HousingStatusStats status={HousingStatus.NoAction} />
                         <Row className="fr-py-1w">
                             <Col n="4">
                                 <b>Nombre de logements sans précisions</b> :&nbsp;
-                                {housingByStatus ? housingWithStatusNoPrecisionsCount() : '...'}
+                                {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
                             </Col>
                         </Row>
                     </Tab>

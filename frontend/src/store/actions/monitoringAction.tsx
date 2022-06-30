@@ -3,13 +3,13 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { EstablishmentData } from '../../models/Establishment';
 import establishmentService from '../../services/establishment.service';
 import statisticService from '../../services/statistic.service';
-import { HousingStatusCount } from '../../models/HousingState';
+import { HousingStatusCount, HousingStatusDuration } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 
 export const FETCH_HOUSING_BY_STATUS_COUNT = 'FETCH_HOUSING_BY_STATUS_COUNT';
 export const HOUSING_BY_STATUS_COUNT_FETCHED = 'HOUSING_BY_STATUS_COUNT_FETCHED';
-export const FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT = 'FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT';
-export const HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED = 'HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED';
+export const FETCH_HOUSING_BY_STATUS_DURATION = 'FETCH_HOUSING_BY_STATUS_DURATION';
+export const HOUSING_BY_STATUS_DURATION_FETCHED = 'HOUSING_BY_STATUS_DURATION_FETCHED';
 export const FETCHING_ESTABLISHMENT_DATA = 'FETCHING_ESTABLISHMENT_DATA';
 export const ESTABLISHMENT_DATA_FETCHED = 'ESTABLISHMENT_DATA_FETCHED';
 
@@ -20,18 +20,18 @@ export interface FetchHousingByStatusCountAction {
 
 export interface HousingByStatusCountFetchedAction {
     type: typeof HOUSING_BY_STATUS_COUNT_FETCHED,
-    housingByStatus: HousingStatusCount[],
+    housingByStatusCount: HousingStatusCount[],
     filters: MonitoringFilters
 }
 
-export interface FetchHousingWaitingFor3MonthsCountAction {
-    type: typeof FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT,
+export interface FetchHousingByStatusDurationAction {
+    type: typeof FETCH_HOUSING_BY_STATUS_DURATION,
     filters: MonitoringFilters
 }
 
-export interface HousingWaitingFor3MonthsCountFetchedAction {
-    type: typeof HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED,
-    count: number,
+export interface HousingByStatusDurationFetchedAction {
+    type: typeof HOUSING_BY_STATUS_DURATION_FETCHED,
+    housingByStatusDuration: HousingStatusDuration[],
     filters: MonitoringFilters
 }
 
@@ -49,8 +49,8 @@ export interface EstablishmentDataFetchedAction {
 export type MonitoringActionTypes =
     FetchHousingByStatusCountAction |
     HousingByStatusCountFetchedAction |
-    FetchHousingWaitingFor3MonthsCountAction |
-    HousingWaitingFor3MonthsCountFetchedAction |
+    FetchHousingByStatusDurationAction |
+    HousingByStatusDurationFetchedAction |
     FetchingEstablishmentDataAction |
     EstablishmentDataFetchedAction;
 
@@ -92,10 +92,10 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
 
         Promise.all([
             statisticService.getHousingByStatusCount(filters)
-                .then(housingByStatus => {
+                .then(housingByStatusCount => {
                     dispatch({
                         type: HOUSING_BY_STATUS_COUNT_FETCHED,
-                        housingByStatus,
+                        housingByStatusCount,
                         filters
                     });
                 })
@@ -105,23 +105,23 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
 };
 
 
-export const fetchHousingWaitingFor3MonthsCount = (filters: MonitoringFilters) => {
+export const fetchHousingByStatusDuration = (filters: MonitoringFilters) => {
 
     return function (dispatch: Dispatch) {
 
         dispatch(showLoading());
 
         dispatch({
-            type: FETCH_HOUSING_WAITING_FOR_3_MONTHS_COUNT,
+            type: FETCH_HOUSING_BY_STATUS_DURATION,
             filters
         });
 
         Promise.all([
-            statisticService.getHousingWaitingFor3MonthsCount(filters)
-                .then(count => {
+            statisticService.getHousingByStatusDuration(filters)
+                .then(housingByStatusDuration => {
                     dispatch({
-                        type: HOUSING_WAITING_FOR_3_MONTHS_COUNT_FETCHED,
-                        count,
+                        type: HOUSING_BY_STATUS_DURATION_FETCHED,
+                        housingByStatusDuration,
                         filters
                     });
                 })

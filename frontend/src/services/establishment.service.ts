@@ -2,6 +2,7 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { Establishment, EstablishmentData } from '../models/Establishment';
 import { parseISO } from 'date-fns';
+import { MonitoringFilters } from '../models/MonitoringFilters';
 
 
 const listAvailableEstablishments = async (): Promise<Establishment[]> => {
@@ -13,11 +14,12 @@ const listAvailableEstablishments = async (): Promise<Establishment[]> => {
         .then(_ => _.json())
 };
 
-const listEstablishmentData = async (): Promise<EstablishmentData[]> => {
+const listEstablishmentData = async (filters: MonitoringFilters): Promise<EstablishmentData[]> => {
 
     return await fetch(`${config.apiEndpoint}/api/establishments/data`, {
-        method: 'GET',
-        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters })
     })
         .then(_ => _.json())
         .then(result => result.map((e: any) => <EstablishmentData> {

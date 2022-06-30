@@ -5,6 +5,7 @@ import { housingTable } from './housingRepository';
 import { usersTable } from './userRepository';
 import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
+import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 
 export const establishmentsTable = 'establishments';
 export const housingScopeGeometryTable = 'housing_scopes_geom';
@@ -64,7 +65,7 @@ const listAvailable = async (): Promise<EstablishmentApi[]> => {
     }
 }
 
-const listData = async (establishmentId?: string): Promise<EstablishmentDataApi[]> => {
+const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<EstablishmentDataApi[]> => {
     try {
         return db(establishmentsTable)
             .select(
@@ -94,8 +95,8 @@ const listData = async (establishmentId?: string): Promise<EstablishmentDataApi[
             .groupBy(`${establishmentsTable}.id`)
             .orderBy(`${establishmentsTable}.name`)
             .modify((queryBuilder: any) => {
-                if (establishmentId) {
-                    queryBuilder.andWhere(`${establishmentsTable}.id`, establishmentId)
+                if (filters.establishmentIds?.length) {
+                    queryBuilder.whereIn(`${establishmentsTable}.id`, filters.establishmentIds)
                 }
             })
             .then(_ => _.map((result: any) => (
@@ -123,6 +124,6 @@ const listData = async (establishmentId?: string): Promise<EstablishmentDataApi[
 export default {
     get,
     listAvailable,
-    listData
+    listDataWithFilters
 }
 

@@ -66,7 +66,7 @@ export const fetchEstablishmentData = (filters: MonitoringFilters) => {
             filters
         });
 
-        establishmentService.listEstablishmentData()
+        establishmentService.listEstablishmentData(filters)
             .then(establishmentData => {
                 dispatch(hideLoading());
                 dispatch({

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { RequestUser, UserRoles } from '../models/UserApi';
+import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 
 const listAvailableEstablishments = async (request: Request, response: Response): Promise<Response> => {
 
@@ -18,8 +19,9 @@ const listEstablishmentData = async (request: JWTRequest, response: Response): P
     const role = (<RequestUser>request.auth).role;
     const establishmentId = (<RequestUser>request.auth).userId;
 
+    const filters = <MonitoringFiltersApi> request.body.filters ?? {};
 
-    return establishmentRepository.listData(role === UserRoles.Admin ? undefined : establishmentId)
+    return establishmentRepository.listDataWithFilters({...filters, establishmentIds: role === UserRoles.Admin ? filters.establishmentIds : [establishmentId] })
              .then(_ => response.status(200).json(_));
 };
 

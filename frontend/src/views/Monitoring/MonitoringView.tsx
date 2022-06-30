@@ -154,7 +154,7 @@ const MonitoringView = () => {
         return housingByStatus?.filter(_ => _.status === status)
             .filter(_ => _.subStatus === subStatus)
             .reduce((acc, value) => [...acc, ...(value.precisions ?? [])
-                .filter(_ => _.length)
+                .filter(_ => _?.length)
                 .map(_ => ({ precision:_, count: value.count}))], [] as { precision: string, count: number }[]
             )
             .reduce((acc, value) => {

@@ -510,8 +510,7 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
                         db.raw(`max(${eventsTable}.created_at) as created_at`)
                     )
                     .join(eventsTable, `${housingTable}.id`, 'housing_id')
-                    .where(`${housingTable}.status`, 1)
-                    .andWhereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
+                    .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
                     .andWhereRaw(`${eventsTable}.content like 
                         (case
                              when status = 1 then '%Ajout dans la campagne%'

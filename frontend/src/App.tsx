@@ -25,6 +25,7 @@ import HomeView from './views/Home/HomeView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
+import AccessibilityView from './views/Accessibility/AccessibilityView';
 
 
 function AppWrapper () {
@@ -72,6 +73,7 @@ function App() {
                             <Switch>
                                 <Route exact path="/" component={DashboardView} />
                                 <Route exact path="/stats" component={StatsView} />
+                                <Route exact path="/accessibilite" component={AccessibilityView} />
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/base-de-donnees" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
@@ -103,6 +105,7 @@ function App() {
                         <Switch>
                             <Route exact path="/" component={HomeView} />
                             <Route exact path="/stats" component={StatsView} />
+                            <Route exact path="/accessibilite" component={AccessibilityView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
                             {!accountActivated &&

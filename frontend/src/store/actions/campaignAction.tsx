@@ -198,6 +198,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         const campaignBundle = getState().campaign.campaignBundle
+        const searchQuery = getState().campaign.searchQuery;
 
         if (campaignBundle) {
 
@@ -211,7 +212,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
                 perPage
             });
 
-            housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status]}, page, perPage)
+            housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status], query: searchQuery}, page, perPage)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({
@@ -290,7 +291,8 @@ export const updateCampaignHousingList = (housingUpdate: HousingUpdate, currentS
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
-        const campaignIds = getState().campaign.campaignBundle?.campaignIds
+        const campaignIds = getState().campaign.campaignBundle?.campaignIds;
+        const searchQuery = getState().campaign.searchQuery;
 
         if (campaignIds && currentStatus) {
 
@@ -299,13 +301,13 @@ export const updateCampaignHousingList = (housingUpdate: HousingUpdate, currentS
             const paginatedHousing = getState().campaign.campaignBundleHousingByStatus[currentStatus];
             const campaignBundleFetchingId = getState().campaign.campaignBundleFetchingId;
 
-            housingService.updateHousingList(housingUpdate, campaignIds, allHousing, housingIds, currentStatus)
+            housingService.updateHousingList(housingUpdate, campaignIds, allHousing, housingIds, currentStatus, searchQuery)
                 .then(() => {
                     dispatch(hideLoading());
                     changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, currentStatus)(dispatch, getState);
                     changeCampaignHousingPagination(paginatedHousing.page, paginatedHousing.perPage, housingUpdate.status)(dispatch, getState);
                     if (campaignBundleFetchingId) {
-                        getCampaignBundle(campaignBundleFetchingId)(dispatch);
+                        getCampaignBundle(campaignBundleFetchingId, searchQuery)(dispatch);
                     }
                 });
         }

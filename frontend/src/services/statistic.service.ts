@@ -85,6 +85,16 @@ const getHousingByStatusCount = async (filters: MonitoringFilters): Promise<Hous
         .then(_ => _.json());
 };
 
+const getHousingWaitingFor3MonthsCount = async (filters: MonitoringFilters): Promise<HousingStatusCount> => {
+
+    return await fetch(`${config.apiEndpoint}/api/statistics/housing/waiting-for-3-months/count`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters }),
+    })
+        .then(_ => _.json());
+};
+
 const statisticService = {
     getEstablishmentsCount,
     getContactedHousingCount,
@@ -94,7 +104,8 @@ const statisticService = {
     getHousingInProgressWithoutSupportCount,
     getHousingExitWithSupportCount,
     getHousingExitWithoutSupportCount,
-    getHousingByStatusCount
+    getHousingByStatusCount,
+    getHousingWaitingFor3MonthsCount
 };
 
 export default statisticService;

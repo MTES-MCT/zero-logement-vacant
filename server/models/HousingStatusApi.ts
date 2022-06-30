@@ -15,6 +15,12 @@ export interface HousingStatusCountApi {
     count: number
 }
 
+export interface HousingStatusDurationApi {
+    status: HousingStatusApi,
+    averageDuration: any,
+    unchangedFor3MonthsCount: number
+}
+
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement'
 export const InProgressWithSupportSubStatus = 'En accompagnement'
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique'

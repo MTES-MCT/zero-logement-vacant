@@ -9,6 +9,7 @@ import { localitiesTable } from './localityRepository';
 import { HousingStatusApi, HousingStatusCountApi } from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { eventsTable } from './eventRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -468,17 +469,6 @@ const updateAddressList = async (housingAdresses: {addressId: string, addressApi
 
 const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<HousingStatusCountApi[]> => {
     try {
-        const filter = (queryBuilder: any) => {
-            if (filters.establishmentIds?.length) {
-                queryBuilder
-                    .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
-                    .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
-                    .whereIn('e.id', filters.establishmentIds)
-            }
-            if (filters.dataYears?.length) {
-                queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
-            }
-        }
 
         return db(housingTable)
             .select(
@@ -490,7 +480,7 @@ const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<
             .groupBy('status')
             .groupBy('sub_status')
             .groupBy('precisions')
-            .modify(filter)
+            .modify(monitoringQueryFilter(filters))
             .then(_ => _.map((result: any) => (
                 <HousingStatusCountApi> {
                     status: result.status,
@@ -502,6 +492,43 @@ const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<
     } catch (err) {
         console.error('Count housing by status failed', err);
         throw new Error('Count housing by status failed');
+    }
+}
+
+const countWaitingFor3Months = async (filters: MonitoringFiltersApi): Promise<number> => {
+    try {
+
+        return db.count('created_at')
+            .from(
+                db.from(housingTable)
+                    .select(
+                        db.raw(`max(${eventsTable}.created_at) as created_at`)
+                    )
+                    .join(eventsTable, `${housingTable}.id`, 'housing_id')
+                    .where(`${housingTable}.status`, 1)
+                    .andWhere(`${eventsTable}.kind`, '1')
+                    .andWhereRaw(`${eventsTable}.content  like '%Ajout dans la campagne%' `)
+                    .groupBy(`${housingTable}.id`)
+                    .modify(monitoringQueryFilter(filters))
+                    .as('max')
+            )
+            .whereRaw(`created_at < current_timestamp  - interval '3 months'`)
+            .then(_ => Number(_[0].count))
+    } catch (err) {
+        console.error('Count housing waiting for 3 months failed', err);
+        throw new Error('Count housing waiting for 3 months failed');
+    }
+}
+
+const monitoringQueryFilter = (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
+    if (filters.establishmentIds?.length) {
+        queryBuilder
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
+            .whereIn('e.id', filters.establishmentIds)
+    }
+    if (filters.dataYears?.length) {
+        queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
     }
 }
 
@@ -566,5 +593,6 @@ export default {
     listByIds,
     updateHousingList,
     updateAddressList,
-    countByStatusWithFilters
+    countByStatusWithFilters,
+    countWaitingFor3Months
 }

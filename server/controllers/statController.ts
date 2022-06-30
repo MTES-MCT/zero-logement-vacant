@@ -103,6 +103,16 @@ const housingByStatusCount = async (request: Request, response: Response): Promi
         .then(_ => response.status(200).json(_));
 };
 
+const housingWaitingFor3MonthsCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get housing waiting for 3 months status count')
+
+    const filters = <MonitoringFiltersApi> request.body.filters ?? {};
+
+    return housingRepository.countWaitingFor3Months(filters)
+        .then(_ => response.status(200).json(_));
+};
+
 const statController =  {
     establishmentCount,
     housingContactedCount,
@@ -112,7 +122,8 @@ const statController =  {
     housingInProgressWithoutSupportCount,
     housingExitWithSupportCount,
     housingExitWithoutSupportCount,
-    housingByStatusCount
+    housingByStatusCount,
+    housingWaitingFor3MonthsCount
 };
 
 export default statController;

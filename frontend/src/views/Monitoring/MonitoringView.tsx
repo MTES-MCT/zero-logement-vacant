@@ -3,7 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Col, Container, Row, Tab, Table, Tabs, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { fetchEstablishmentData, fetchHousingByStatusCount } from '../../store/actions/monitoringAction';
+import {
+    fetchEstablishmentData,
+    fetchHousingByStatusCount,
+    fetchHousingWaitingFor3MonthsCount,
+} from '../../store/actions/monitoringAction';
 import { EstablishmentData } from '../../models/Establishment';
 import { differenceInDays, format, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -23,6 +27,7 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { dataYearsIncludedOptions } from '../../models/HousingFilters';
+import { percent } from '../../utils/mathUtils';
 
 
 const MonitoringView = () => {
@@ -30,12 +35,13 @@ const MonitoringView = () => {
     const dispatch = useDispatch();
     const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
-    const { establishmentData, housingByStatus, housingByStatusFilters } = useSelector((state: ApplicationState) => state.monitoring);
+    const { establishmentData, housingByStatus, housingByStatusFilters, housingWaitingFor3MonthsCount } = useSelector((state: ApplicationState) => state.monitoring);
     const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>({})
 
     useEffect(() => {
         dispatch(fetchEstablishmentData({ ...housingByStatusFilters, ...monitoringFilters }))
         dispatch(fetchHousingByStatusCount({ ...housingByStatusFilters, ...monitoringFilters }))
+        dispatch(fetchHousingWaitingFor3MonthsCount({ ...housingByStatusFilters, ...monitoringFilters }))
     }, [dispatch, monitoringFilters])
 
     const establishmentColumn = {
@@ -230,6 +236,13 @@ const MonitoringView = () => {
                                 <b>En attente de retour</b> :&nbsp;
                                 {housingByStatus ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
                             </Col>
+                            <Col>
+                                <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
+                                {housingWaitingFor3MonthsCount ?? '...'}
+                                {housingByStatus && housingWaitingFor3MonthsCount ?
+                                    <> ({percent(housingWaitingFor3MonthsCount, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
+                                }
+                            </Col>
                         </Row>
                         <Row className="bordered-b fr-py-1w">
                             <Col n="4">
@@ -353,16 +366,18 @@ const MonitoringView = () => {
                         </Row>
                     </Tab>
                     <Tab label="Suivi comparatif">
-                        {establishmentData &&
-                            <Table
-                                caption="Collectivités"
-                                captionPosition="none"
-                                rowKey="id"
-                                data={establishmentData}
-                                columns={columns()}
-                                fixedLayout={false}
-                            />
-                        }
+                        <div>
+                            {establishmentData &&
+                                <Table
+                                    caption="Collectivités"
+                                    captionPosition="none"
+                                    rowKey="id"
+                                    data={establishmentData}
+                                    columns={columns()}
+                                    fixedLayout={false}
+                                />
+                            }
+                        </div>
                     </Tab>
                 </Tabs>
             </Container>

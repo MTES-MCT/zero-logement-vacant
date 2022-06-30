@@ -112,9 +112,10 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
     const allHousing = <boolean>request.body.allHousing;
     const housingIds = request.body.housingIds;
     const currentStatus = request.body.currentStatus;
+    const query = request.body.query;
 
     const housingList =
-        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds, status: [currentStatus]})
+        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds, status: [currentStatus], query})
             .then(_ => _.entities
                 .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
             );

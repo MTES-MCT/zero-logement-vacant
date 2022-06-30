@@ -87,12 +87,12 @@ const updateHousing = async (housingId: string, housingUpdate: HousingUpdate): P
     });
 };
 
-const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: string[],  allHousing: boolean, housingIds: string[], currentStatus?: HousingStatus): Promise<any> => {
+const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: string[],  allHousing: boolean, housingIds: string[], currentStatus?: HousingStatus, query?: string): Promise<any> => {
 
     return await fetch(`${config.apiEndpoint}/api/housing/list`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ housingUpdate, campaignIds, allHousing, housingIds, currentStatus }),
+        body: JSON.stringify({ housingUpdate, campaignIds, allHousing, housingIds, currentStatus, query }),
     });
 };
 

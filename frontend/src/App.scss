@@ -54,8 +54,20 @@
   }
 }
 
-.no-head thead {
-  display: none;
+.d-none, .no-head thead {
+  display: none !important;
+}
+
+.d-lg-block {
+  @media (min-width:992px) {
+    display: block !important;
+  }
+}
+
+.d-lg-none {
+  @media (min-width:992px) {
+    display: none !important;
+  }
 }
 
 .bg-white {

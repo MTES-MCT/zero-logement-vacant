@@ -35,7 +35,7 @@ function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
         <NavItem
             current={path.indexOf(userNavItem.url) !== -1}
             title={userNavItem.label}
-            asLink={<Link to={userNavItem.url}/>}
+            asLink={<Link to={userNavItem.url} className="d-md-none"/>}
         />
     )
 }
@@ -79,7 +79,7 @@ function AppHeader() {
                         </Tool> :
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem icon="ri-user-fill" link="/connexion">Connexion</ToolItem>
+                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block">Connexion</ToolItem>
                             </ToolItemGroup>
                         </Tool>
                     }
@@ -93,7 +93,9 @@ function AppHeader() {
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
                         }
                     </HeaderNav> :
-                    <HeaderNav />
+                    <HeaderNav className="d-lg-none">
+                        <AppNavItem userNavItem={{url: '/connexion', label: 'Connexion'}} />
+                    </HeaderNav>
                 }
             </Header>
             <LoadingBar className={styles.loading} updateTime={10} maxProgress={100} progressIncrease={5}/>

@@ -24,7 +24,7 @@ describe('Campagne creation modal', () => {
         fetchMock.resetMocks();
         store = createStore(
             applicationReducer,
-            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
+            {authentication: {isLoggedIn: true, authUser: genAuthUser(), accountActivated: true}},
             applyMiddleware(thunk)
         );
     });

@@ -86,7 +86,7 @@ const LoginView = () => {
                     />
                     <TextInput
                         value={password}
-                        type='password'
+                        type="password"
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         messageType={formErrors['password'] ? 'error' : ''}
                         message={formErrors['password']}

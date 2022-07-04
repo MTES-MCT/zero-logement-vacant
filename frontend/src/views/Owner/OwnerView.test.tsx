@@ -10,7 +10,7 @@ import authService from '../../services/auth.service';
 import OwnerView from './OwnerView';
 import { createMemoryHistory } from 'history';
 import { Route, Router } from 'react-router-dom';
-import { genCampaign, genHousing, genOwner } from '../../../test/fixtures.test';
+import { genCampaign, genHousing, genOwner, genPaginatedResult } from '../../../test/fixtures.test';
 import { format } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 
@@ -44,7 +44,7 @@ describe('housing view', () => {
                         }
                     } else if (request.url === `${config.apiEndpoint}/api/housing/owner/${owner.id}`) {
                         return {
-                            body: JSON.stringify([housing1, housing2]),
+                            body: JSON.stringify(genPaginatedResult([housing1, housing2])),
                             init: { status: 200 }
                         };
                     } else if (request.url === `${config.apiEndpoint}/api/events/owner/${owner.id}`) {
@@ -67,7 +67,7 @@ describe('housing view', () => {
         render(
             <Provider store={store}>
                 <Router history={history}>
-                    <Route exact path="/proprietaires/:id" component={OwnerView} />
+                    <Route exact path="/proprietaires/:ownerId" component={OwnerView} />
                 </Router>
             </Provider>
         );

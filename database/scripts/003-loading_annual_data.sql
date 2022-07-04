@@ -55,7 +55,7 @@ AS $$
                     not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
-               else ff_catpro2txt end) as owner_kind_detail,
+               else ff_catpro2txt end) as owner_kind_detail
         from _extract_zlv_2022_5, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var

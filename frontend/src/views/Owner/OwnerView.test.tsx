@@ -47,11 +47,6 @@ describe('housing view', () => {
                             body: JSON.stringify([housing1, housing2]),
                             init: { status: 200 }
                         };
-                    } else if (request.url === `${config.apiEndpoint}/api/campaign/housing/owner/${owner.id}`) {
-                        return {
-                            body: JSON.stringify([housing1, housing2]),
-                            init: { status: 200 }
-                        };
                     } else if (request.url === `${config.apiEndpoint}/api/events/owner/${owner.id}`) {
                         return {
                             body: JSON.stringify([]),
@@ -99,7 +94,7 @@ describe('housing view', () => {
         });
 
         expect(fetchMock).toHaveBeenCalledWith(
-            `${config.apiEndpoint}/api/housing/owner/${owner.id}`, {
+            `${config.apiEndpoint}/api/owners/${owner.id}`, {
                 method: 'GET',
                 headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
             });

@@ -17,7 +17,9 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { dataYearsIncludedOptions } from '../../models/HousingFilters';
-import { percent } from '../../utils/mathUtils';
+import { numberSort, percent } from '../../utils/numberUtils';
+import { dateSort, durationSort } from '../../utils/dateUtils';
+import { Link } from 'react-router-dom';
 
 const MonitoringView = () => {
 
@@ -34,104 +36,145 @@ const MonitoringView = () => {
     }, [dispatch, monitoringFilters]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const establishmentColumn = {
-        name: 'establishment',
+        name: 'name',
         label: 'Collectivité',
         render: ({ name }: EstablishmentData) =>
             <>
                 {name}
-            </>
+            </>,
+        sortable: true
     };
 
     const housingCountColumn = {
         name: 'housingCount',
         label: 'Nombre de logements vacants',
         render: ({ housingCount }: EstablishmentData) =>
-            <>
+            <div>
                 {housingCount}
-            </>
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.housingCount, e2.housingCount)
     };
 
     const firstActivationColumn = {
-        name: 'firstActivation',
+        name: 'firstActivatedAt',
         label: 'Date de première inscription',
-        render: ({ firstActivatedAt }: EstablishmentData) => <>
-            { firstActivatedAt && <>
-                {format(firstActivatedAt, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), firstActivatedAt)} jours)
-            </> }
-        </>
+        render: ({ firstActivatedAt }: EstablishmentData) =>
+            <div>
+                { firstActivatedAt && <>
+                    {format(firstActivatedAt, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), firstActivatedAt)} jours)
+                </> }
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => dateSort(e1.firstActivatedAt, e2.firstActivatedAt)
     };
 
     const lastAuthenticationColumn = {
-        name: 'lastAuthentication',
+        name: 'lastAuthenticatedAt',
         label: 'Date de dernière connexion',
-        render: ({ lastAuthenticatedAt }: EstablishmentData) => <>
-            { lastAuthenticatedAt && <>
-                {format(lastAuthenticatedAt, 'dd/MM/yyyy')}
-            </> }
-        </>
+        render: ({ lastAuthenticatedAt }: EstablishmentData) =>
+            <div>
+                { lastAuthenticatedAt && <>
+                    {format(lastAuthenticatedAt, 'dd/MM/yyyy')}
+                </> }
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => dateSort(e1.lastAuthenticatedAt, e2.lastAuthenticatedAt)
     };
 
     const lastMonthUpdatesCountColumn = {
         name: 'lastMonthUpdatesCount',
         label: 'Nombre de dossiers mis à jour dans les 30 derniers jours',
-        render: ({ lastMonthUpdatesCount }: EstablishmentData) => <>
-            {lastMonthUpdatesCount}
-        </>
+        render: ({ lastMonthUpdatesCount }: EstablishmentData) =>
+            <div>
+                {lastMonthUpdatesCount}
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.lastMonthUpdatesCount, e2.lastMonthUpdatesCount)
     };
 
     const campaignsCountColumn = {
         name: 'campaignsCount',
         label: 'Nombre de campagnes',
-        render: ({ campaignsCount }: EstablishmentData) => <>
-            {campaignsCount}
-        </>
+        render: ({ campaignsCount }: EstablishmentData) =>
+            <div>
+                {campaignsCount}
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.campaignsCount, e2.campaignsCount)
     };
 
     const contactedHousingCountColumn = {
         name: 'contactedHousingCount',
         label: 'Nombre de logements contactés',
-        render: ({ housingCount, contactedHousingCount }: EstablishmentData) => <>
-            {contactedHousingCount} ({Math.floor(contactedHousingCount / housingCount * 100)}%)
-        </>
+        render: ({ housingCount, contactedHousingCount }: EstablishmentData) =>
+            <div>
+                {contactedHousingCount} ({percent(contactedHousingCount, housingCount)}%)
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.contactedHousingCount, e2.contactedHousingCount)
     };
 
     const contactedHousingPerCampaignColumn = {
         name: 'contactedHousingPerCampaign',
         label: 'Nombre de logements contactés par campagne',
-        render: ({ housingCount, contactedHousingPerCampaign }: EstablishmentData) => <>
-            {Math.floor(contactedHousingPerCampaign)} ({Math.floor(contactedHousingPerCampaign / housingCount * 100)}%)
-        </>
+        render: ({ housingCount, contactedHousingPerCampaign }: EstablishmentData) =>
+            <div>
+                {Math.floor(contactedHousingPerCampaign)} ({percent(contactedHousingPerCampaign, housingCount)}%)
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.contactedHousingPerCampaign, e2.contactedHousingPerCampaign)
     };
 
     const lastCampaignSentAtColumn = {
-        name: 'lastCampaign',
+        name: 'lastCampaignSentAt',
         label: 'Date d\'envoi de la dernière campagne',
-        render: ({ lastCampaignSentAt }: EstablishmentData) => <>
-            { lastCampaignSentAt && <>
-                {format(lastCampaignSentAt, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), lastCampaignSentAt)} jours)
-            </> }
-        </>
+        render: ({ lastCampaignSentAt }: EstablishmentData) =>
+            <div>
+                { lastCampaignSentAt && <>
+                    {format(lastCampaignSentAt, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), lastCampaignSentAt)} jours)
+                </> }
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => dateSort(e1.lastCampaignSentAt, e2.lastCampaignSentAt)
     };
 
     const delayBetweenCampaignsColumn = {
         name: 'delayBetweenCampaigns',
         label: 'Temps moyen d’envoi entre 2 campagnes',
-        render: ({ delayBetweenCampaigns }: EstablishmentData) => <>
-            {delayBetweenCampaigns && <>
-                {formatDuration(delayBetweenCampaigns, { format: ['months', 'days'], locale: fr }) }
-            </>}
-        </>
+        render: ({ delayBetweenCampaigns }: EstablishmentData) =>
+            <div>
+                {delayBetweenCampaigns && <>
+                    {formatDuration(delayBetweenCampaigns, { format: ['months', 'days'], locale: fr }) }
+                </>}
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => durationSort(e1.delayBetweenCampaigns, e2.delayBetweenCampaigns)
     };
 
     const firstCampaignSentAtColumn = {
         name: 'firstCampaign',
         label: 'Temps d\'envoi de la première campagne après inscription',
-        render: ({ firstCampaignSentAt, firstActivatedAt }: EstablishmentData) => <>
-            { firstActivatedAt && firstCampaignSentAt && <>
-                {differenceInDays(firstCampaignSentAt, firstActivatedAt)} jours
-            </> }
-        </>
+        render: ({ firstCampaignSentAt, firstActivatedAt }: EstablishmentData) =>
+            <div>
+                { firstActivatedAt && firstCampaignSentAt && <>
+                    {differenceInDays(firstCampaignSentAt, firstActivatedAt)} jours
+                </> }
+            </div>,
+        sortable: true,
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(
+            differenceInDays(e1.firstCampaignSentAt, e1.firstActivatedAt), differenceInDays(e2.firstCampaignSentAt, e2.firstActivatedAt)
+        )
     };
+
+    const viewColumn = {
+        name: 'view',
+        headerRender: () => '',
+        render: ({ id }: EstablishmentData) =>
+            <Link title="Afficher" to={window.location.pathname + "/etablissement/" + id} className="ds-fr--inline fr-link">
+                Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+            </Link>
+    }
 
     const housingWithStatusDuration = (status: HousingStatus) => {
         return housingByStatusDuration?.find(_ => _.status === status)
@@ -224,7 +267,8 @@ const MonitoringView = () => {
         contactedHousingPerCampaignColumn,
         lastCampaignSentAtColumn,
         delayBetweenCampaignsColumn,
-        firstCampaignSentAtColumn
+        firstCampaignSentAtColumn,
+        viewColumn
     ]
 
     return (
@@ -298,6 +342,7 @@ const MonitoringView = () => {
                                     data={establishmentData}
                                     columns={columns()}
                                     fixedLayout={false}
+                                    className="zlv-fixed-table"
                                 />
                             }
                         </div>

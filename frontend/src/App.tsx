@@ -26,6 +26,7 @@ import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
+import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 
 
 function AppWrapper () {
@@ -93,10 +94,11 @@ function App() {
                                 <Route exact path="*/logements/:housingId" component={HousingView} />
                                 <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
                                 <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
-                                {authUser.user.role === UserRoles.Admin &&
+                                {authUser.user.role === UserRoles.Admin && <>
                                     <Route exact path="/utilisateurs" component={UserListView}/>
-                                }
-                                <Route exact path="/suivi" component={MonitoringView}/>
+                                    <Route exact path="/suivi" component={MonitoringView}/>
+                                    <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
+                                </>}
                                 <Route path="/*">
                                     <Redirect to="/accueil" />
                                 </Route>

@@ -1,11 +1,9 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
-
-
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { applyMiddleware, createStore } from 'redux';
@@ -25,12 +23,9 @@ describe('login view', () => {
 
     test('should render login form', () => {
         render(<Provider store={store}><Router history={createMemoryHistory()}><LoginView/></Router></Provider>);
-        const loginInputElement = screen.getByTestId('email-input').querySelector('input');
-        const passwordInputElement = screen.getByTestId('password-input').querySelector('input');
-        const submitInputElement = screen.getByTestId('login-button');
-        expect(loginInputElement).toBeInTheDocument();
-        expect(passwordInputElement).toBeInTheDocument();
-        expect(submitInputElement).toBeInTheDocument();
+        expect(screen.getByTestId('email-input')).toBeInTheDocument();
+        expect(screen.getByTestId('password-input')).toBeInTheDocument();
+        expect(screen.getByTestId('login-button')).toBeInTheDocument();
     });
 
     test('should display error message when login failed', async() => {
@@ -39,20 +34,18 @@ describe('login view', () => {
 
         render(<Provider store={store}><Router history={createMemoryHistory()}><LoginView/></Router></Provider>);
 
-        const passwordInput = screen.getByTestId('password-input').querySelector('input');
+        const passwordInput = screen.getByTestId('password-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
         if (passwordInput) {
             fireEvent.change(passwordInput, { target: { value: 'password' } });
         }
-        const emailInput = screen.getByTestId('email-input').querySelector('input');
+        const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
         if (emailInput) {
             fireEvent.change(emailInput, { target: { value: 'email@test.com' } });
         }
 
-        act(() => {
-            fireEvent.click(screen.getByTestId('login-button'));
-        });
+        fireEvent.click(screen.getByTestId('login-button'));
 
-        await waitFor(() => screen.getByTestId('alert-error'))
+        await screen.findByTestId('alert-error')
 
         expect(fetchMock).toHaveBeenCalled();
         const errorElement = screen.getByTestId('alert-error');
@@ -67,18 +60,16 @@ describe('login view', () => {
         const history = createMemoryHistory();
         render(<Provider store={store}><Router history={history}><LoginView/></Router></Provider>);
 
-        const passwordInput = screen.getByTestId('password-input').querySelector('input');
+        const passwordInput = screen.getByTestId('password-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
         if (passwordInput) {
             fireEvent.change(passwordInput, { target: { value: 'password' } });
         }
-        const emailInput = screen.getByTestId('email-input').querySelector('input');
+        const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
         if (emailInput) {
             fireEvent.change(emailInput, { target: { value: 'email@test.com' } });
         }
 
-        act(() => {
-            fireEvent.click(screen.getByTestId('login-button'));
-        });
+        fireEvent.click(screen.getByTestId('login-button'));
 
         await waitFor(() => {
             expect(fetchMock).toHaveBeenCalled()

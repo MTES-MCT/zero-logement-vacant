@@ -12,7 +12,7 @@ export const useCampaignList = (forceReload = false) => {
         if (forceReload || !campaignList) {
             dispatch(listCampaigns())
         }
-    }, [dispatch]);
+    }, [dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
 
     return campaignList;
 }

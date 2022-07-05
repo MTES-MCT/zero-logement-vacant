@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 
 
@@ -54,7 +54,7 @@ describe('housing view', () => {
         expect(additionalFiltersElement).not.toBeVisible();
     });
 
-    test('should enable to show and hide additional filters ', () => {
+    test('should enable to show and hide additional filters', () => {
 
         fetchMock.mockResponse(defaultFetchMock);
 
@@ -87,9 +87,9 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const ownerKindCheckboxes = screen.queryAllByTestId('type-checkbox-group')[0].querySelectorAll('input');
+        const ownerKindCheckboxes = screen.queryAllByTestId('type-checkbox-group')[0].querySelectorAll('input');  //eslint-disable-line testing-library/no-node-access
 
-        act(() => { fireEvent.click(ownerKindCheckboxes[0]) } )
+        fireEvent.click(ownerKindCheckboxes[0])
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
@@ -115,7 +115,7 @@ describe('housing view', () => {
         const searchFormElement = screen.getByTestId('search-form');
         fireEvent.change(searchInputElement, {target: {value: 'my search'}});
 
-        act(() => { fireEvent.submit(searchFormElement) });
+        fireEvent.submit(searchFormElement)
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/housing`, {
@@ -179,7 +179,7 @@ describe('housing view', () => {
 
         const createCampaignButton = await screen.findByTestId('create-campaign-button');
         const housing1Element = await screen.findByTestId('housing-check-' + housing.id);
-        const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        const housing1CheckboxElement = housing1Element.querySelector('input[type="checkbox"]') as HTMLInputElement;  //eslint-disable-line testing-library/no-node-access
 
         fireEvent.click(housing1CheckboxElement);
         fireEvent.click(createCampaignButton);

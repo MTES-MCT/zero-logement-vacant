@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
@@ -47,7 +47,7 @@ describe('Campagne creation modal', () => {
         expect(housingInfosTextElement).toBeInTheDocument();
         expect(housingInfosTextElement).toContainHTML('<b>2 logements</b>');
         expect(startMonthSelectElement).toBeInTheDocument();
-        expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7)
+        expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7);  //eslint-disable-line testing-library/no-node-access
         expect(createButton).toBeInTheDocument();
     });
 
@@ -65,12 +65,10 @@ describe('Campagne creation modal', () => {
             </Provider>
         );
 
-        act(() => {
-            fireEvent.click(screen.getByTestId('create-button'));
-        })
+        fireEvent.click(screen.getByTestId('create-button'));
 
         const startMonthSelectElement = await screen.findByTestId('start-month-select');
-        expect(startMonthSelectElement.querySelector('.fr-error-text')).toBeInTheDocument();
+        expect(startMonthSelectElement.querySelector('.fr-error-text')).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
     });
 
 });

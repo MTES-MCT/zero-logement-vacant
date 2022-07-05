@@ -62,7 +62,7 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
         if (additionalOwner && !housingOwners.find(ho => ho.id === additionalOwner.id)) {
             onAddingOwner(additionalOwner)
         }
-    }, [additionalOwner])
+    }, [additionalOwner])  //eslint-disable-line react-hooks/exhaustive-deps
 
     const columns = () => [{
         name: 'fullName',

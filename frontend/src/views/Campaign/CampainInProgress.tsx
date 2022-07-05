@@ -183,7 +183,7 @@ const CampaignInProgress = ({ query } : { query?: string }) => {
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant, query))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Exit, query))
         }
-    }, [dispatch, query])
+    }, [dispatch, query, campaignBundle])
 
     const getTabLabel = (status: HousingStatus) => {
         return `${getHousingState(status).title} (${campaignBundleHousingByStatus[status].loading ? '...' : campaignBundleHousingByStatus[status].totalCount})`

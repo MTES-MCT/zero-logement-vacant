@@ -41,9 +41,8 @@ const HousingStatusForm = (
     const [comment, setComment] = useState<string>()
     const [formErrors, setFormErrors] = useState<any>({});
 
-
-    useEffect(() => {selectStatus(currentStatus ?? HousingStatus.Waiting)}, [currentStatus])
-    useEffect(() => {selectSubStatus(currentStatus, currentSubStatus)}, [currentStatus, currentSubStatus])
+    useEffect(() => {selectStatus(currentStatus ?? HousingStatus.Waiting)}, [currentStatus]) //eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {selectSubStatus(currentStatus, currentSubStatus)}, [currentStatus, currentSubStatus]) //eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {setPrecisions(currentPrecisions)}, [currentPrecisions])
     useEffect(() => {setVacancyReasons(currentVacancyReasons)}, [currentVacancyReasons])
 

@@ -81,7 +81,7 @@ const AppBreadcrumb = () => {
             })
             .filter(_ => _.label !== '')
         )
-    }, [dispatch, location, campaignBundle, owner, housing, campaignNumber, housingId, ownerId, reminderNumber, availableEstablishments])
+    }, [dispatch, location, campaignBundle, owner, housing, campaignNumber, housingId, ownerId, reminderNumber, availableEstablishments, establishmentId])
 
     return (
         <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-2w">

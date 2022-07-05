@@ -24,7 +24,7 @@ const MonitoringView = () => {
         if (!establishmentData) {
             dispatch(fetchEstablishmentData({ establishmentIds: [establishmentId] }))
         }
-    }, [dispatch])
+    }, [dispatch, establishmentData, establishmentId])
 
     useEffect(() => {
         if (establishmentData) {

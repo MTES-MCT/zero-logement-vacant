@@ -350,8 +350,8 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
-                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (${filters.establishmentIds.map(_ => `'${_}'`)})` : ''}
-                ) campaigns on true`)
+                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
+                ) campaigns on true`, filters.establishmentIds?.map(_ => `'${_}'`))
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
@@ -390,8 +390,8 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
-                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (${filters.establishmentIds.map(_ => `'${_}'`)})` : ''}
-                ) campaigns on true`)
+                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (1)` : ''}
+                ) campaigns on true`, filters.establishmentIds?.map(_ => `'${_}'`))
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .modify(filteredQuery(filters))
             .then(_ => Number(_[0].count))

@@ -31,7 +31,7 @@ const MonitoringView = () => {
         dispatch(fetchEstablishmentData({ ...housingByStatusCountFilters, ...monitoringFilters }))
         dispatch(fetchHousingByStatusCount({ ...housingByStatusCountFilters, ...monitoringFilters }))
         dispatch(fetchHousingByStatusDuration({ ...housingByStatusCountFilters, ...monitoringFilters }))
-    }, [dispatch, monitoringFilters])
+    }, [dispatch, monitoringFilters]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const establishmentColumn = {
         name: 'establishment',

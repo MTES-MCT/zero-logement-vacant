@@ -22,13 +22,13 @@ const listEstablishmentData = async (filters: MonitoringFilters): Promise<Establ
         body: JSON.stringify({ filters })
     })
         .then(_ => _.json())
-        .then(result => result.map((e: any) => <EstablishmentData> {
+        .then(result => result.map((e: any) => ({
             ...e,
             firstActivatedAt: e.firstActivatedAt ? parseISO(e.firstActivatedAt) : undefined,
             lastAuthenticatedAt: e.lastAuthenticatedAt ? parseISO(e.lastAuthenticatedAt) : undefined,
             lastCampaignSentAt: e.lastCampaignSentAt ? parseISO(e.lastCampaignSentAt) : undefined,
             firstCampaignSentAt: e.firstCampaignSentAt ? parseISO(e.firstCampaignSentAt) : undefined,
-        }))
+        } as EstablishmentData)))
 };
 
 const establishmentService = {

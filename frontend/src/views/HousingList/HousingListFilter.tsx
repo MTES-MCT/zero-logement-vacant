@@ -127,7 +127,7 @@ const HousingListFilter = () => {
                         <AppMultiSelect label={`Durée de vacance au 01/01/${config.dataYear}`}
                                         options={vacancyDurationOptions}
                                         initialValues={filters.vacancyDurations}
-                                        onChange={(values) => onChangeFilters({vacancyDurations: values}, 'Durée de vacance au 01/01/${config.dataYear}')}/>
+                                        onChange={(values) => onChangeFilters({vacancyDurations: values}, `Durée de vacance au 01/01/${config.dataYear}`)}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Taxé (THLV ou TLV)"

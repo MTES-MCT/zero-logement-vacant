@@ -36,7 +36,7 @@ const LoginView = () => {
         if (pathname === '/admin') {
             dispatch(fetchAvailableEstablishments())
         }
-    }, [dispatch])
+    }, [dispatch, pathname])
 
     useEffect(() => {
         if (availableEstablishments) {

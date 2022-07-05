@@ -86,12 +86,12 @@ describe('housing view', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('fullName-text').textContent).toBe(capitalize(owner.fullName));
-            expect(screen.getByTestId('birthDate-text').textContent).toBe(owner.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : undefined);
-            expect(screen.getByTestId('email-text').textContent).toBe(owner.email);
-            expect(screen.getByTestId('phone-text').textContent).toBe(owner.phone);
-
-            expect(screen.getAllByText(/Logement [0-9]{1}/i).length).toBe(2);
         });
+        expect(screen.getByTestId('birthDate-text').textContent).toBe(owner.birthDate ? format(owner.birthDate, 'dd/MM/yyyy') : undefined);
+        expect(screen.getByTestId('email-text').textContent).toBe(owner.email);
+        expect(screen.getByTestId('phone-text').textContent).toBe(owner.phone);
+
+        expect(screen.getAllByText(/Logement [0-9]{1}/i).length).toBe(2);
 
         expect(fetchMock).toHaveBeenCalledWith(
             `${config.apiEndpoint}/api/owners/${owner.id}`, {

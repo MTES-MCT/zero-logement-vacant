@@ -54,10 +54,10 @@
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^7.11.0",
-    "eslint-plugin-react": "^7.26.1",
+    "@typescript-eslint/eslint-plugin": "^5.30.4",
+    "@typescript-eslint/parser": "^5.30.4",
+    "eslint": "^8.19.0",
+    "eslint-plugin-react": "^7.30.1",
     "jest-fetch-mock": "^3.0.3",
     "jest-watch-typeahead": "^0.6.5",
     "randomstring": "^1.2.1"

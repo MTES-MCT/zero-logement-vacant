@@ -39,7 +39,7 @@ const AccountActivationView = () => {
         if (authUser) {
             dispatch(logout())
         }
-    }, [dispatch])
+    }, [dispatch]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const submitActivationForm = (e: FormEvent<HTMLFormElement>) => {
         setFormErrors({});

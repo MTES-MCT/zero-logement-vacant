@@ -162,7 +162,7 @@ const HousingView = () => {
                                                     </Text>
                                                 </Col>
                                                 <Col className="align-right">
-                                                    <Link title="Accéder à la fiche" to={(location.pathname.indexOf('proprietaires') === -1 ? location.pathname : '') + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
+                                                    <Link title="Accéder à la fiche" to={(window.location.pathname.indexOf('proprietaires') === -1 ? window.location.pathname : '') + '/proprietaires/' + owner.id} className="ds-fr--inline fr-link">
                                                         Accéder à la fiche<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                                     </Link>
                                                 </Col>
@@ -407,7 +407,7 @@ const HousingView = () => {
                                         </Text>
                                     </Col>
                                     <Col className="align-right">
-                                        <Link title="Accéder à la fiche du propriétaire" to={(location.pathname.indexOf('proprietaires') === -1 ? location.pathname : '') + '/proprietaires/' + housingOwner.id} className="ds-fr--inline fr-link">
+                                        <Link title="Accéder à la fiche du propriétaire" to={(window.location.pathname.indexOf('proprietaires') === -1 ? window.location.pathname : '') + '/proprietaires/' + housingOwner.id} className="ds-fr--inline fr-link">
                                             Accéder à la fiche du propriétaire<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                         </Link>
                                     </Col>

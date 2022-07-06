@@ -89,10 +89,11 @@ function AppHeader() {
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
-                        {authUser.user.role === UserRoles.Admin &&
+                        {authUser.user.role === UserRoles.Admin && <>
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
+                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Monitoring)} />
+                        </>
                         }
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Monitoring)} />
                     </HeaderNav> :
                     <HeaderNav className="d-lg-none">
                         <AppNavItem userNavItem={{url: '/connexion', label: 'Connexion'}} />

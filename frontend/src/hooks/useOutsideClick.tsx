@@ -12,5 +12,5 @@ export const useOutsideClick = (ref: any, onOutsideClick: () => void) => {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [ref]);
+    }, [ref]); //eslint-disable-line react-hooks/exhaustive-deps
 }

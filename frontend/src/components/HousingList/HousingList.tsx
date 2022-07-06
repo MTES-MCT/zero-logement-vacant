@@ -66,7 +66,7 @@ const HousingList = (
                 onSelectHousing({all: false, ids: []})
             }
         }
-    }, [filters])
+    }, [filters]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const changePerPage = (perPage: number) => {
         onChangePagination(1, perPage)

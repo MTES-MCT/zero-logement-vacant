@@ -9,6 +9,8 @@ import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
+import establishmentController from '../controllers/establishmentController';
+import statController from '../controllers/statController';
 
 const  router = express.Router();
 
@@ -61,5 +63,10 @@ router.post('/api/account/password', jwtCheck, userCheck, authenticateController
 router.post('/api/users', jwtCheck, userCheck, userController.list);
 router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
 router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+
+router.post('/api/establishments/data', jwtCheck, userCheck, establishmentController.listEstablishmentData);
+
+router.post('/api/statistics/housing/status/count', statController.housingByStatusCount);
+router.post('/api/statistics/housing/status/duration', statController.housingByStatusDuration);
 
 export default router;

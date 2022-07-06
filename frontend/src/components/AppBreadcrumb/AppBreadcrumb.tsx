@@ -14,13 +14,20 @@ const AppBreadcrumb = () => {
 
     const dispatch = useDispatch();
     const location = useLocation();
-    const { campaignNumber, reminderNumber, ownerId, housingId } = useParams<{campaignNumber: string, reminderNumber: string, ownerId: string, housingId: string}>();
+    const {
+        campaignNumber,
+        reminderNumber,
+        ownerId,
+        housingId,
+        establishmentId
+    } = useParams<{campaignNumber: string, reminderNumber: string, ownerId: string, housingId: string, establishmentId: string}>();
 
     const [items, setItems] = useState<UserNavItem[]>([getUserNavItem(UserNavItems.Dashboard)]);
 
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
     const { owner} = useSelector((state: ApplicationState) => state.owner);
     const { housing } = useSelector((state: ApplicationState) => state.housing);
+    const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
 
     useEffect(() => {
         if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle && campaignNumber) {
@@ -46,6 +53,8 @@ const AppBreadcrumb = () => {
                     return getUserNavItem(UserNavItems.Campaign)
                 } else if (value === getUserNavItem(UserNavItems.User).url.substr(1)) {
                     return getUserNavItem(UserNavItems.User)
+                } else if (value === getUserNavItem(UserNavItems.Monitoring).url.substr(1)) {
+                    return getUserNavItem(UserNavItems.Monitoring)
                 } else if (value.indexOf('C') === 0 && campaignBundle) {
                     return {
                         url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
@@ -61,13 +70,18 @@ const AppBreadcrumb = () => {
                         url: location.pathname.substr(0, location.pathname.indexOf(housingId) + housingId.length),
                         label: housing.rawAddress.join(' - ')
                     }
+                } else if (value.indexOf('etablissement') !== -1 && establishmentId && availableEstablishments) {
+                    return {
+                        url: location.pathname,
+                        label: availableEstablishments.find(_ => _.id === establishmentId)?.name ?? ''
+                    }
                 } else {
                     return {url: '', label: ''}
                 }
             })
             .filter(_ => _.label !== '')
         )
-    }, [location, campaignBundle, owner, housing])
+    }, [dispatch, location, campaignBundle, owner, housing, campaignNumber, housingId, ownerId, reminderNumber, availableEstablishments, establishmentId])
 
     return (
         <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-2w">

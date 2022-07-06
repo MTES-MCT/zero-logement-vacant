@@ -60,6 +60,17 @@ const updatePassword = async (userId: string, password: string): Promise<any> =>
     }
 }
 
+const updateLastAuthentication = async (userId: string): Promise<any> => {
+    try {
+        return db(usersTable)
+            .update({last_authenticated_at: new Date()})
+            .where('id', userId)
+    } catch (err) {
+        console.error('Updating last authentication failed', err, userId);
+        throw new Error('Updating authentication failed');
+    }
+}
+
 const activate = async (userId: string): Promise<any> => {
     try {
         return db(usersTable)
@@ -160,6 +171,7 @@ export default {
     get,
     getByEmail,
     updatePassword,
+    updateLastAuthentication,
     listWithFilters,
     insert,
     activate

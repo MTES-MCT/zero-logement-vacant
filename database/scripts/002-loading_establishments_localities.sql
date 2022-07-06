@@ -36,8 +36,8 @@ INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Département de la Meuse', (select array_agg(id) from localities where geo_code like '55%'), true);
 INSERT INTO public.establishments (name, localities_id, available)
 VALUES ('Commune de Fort de France', (select array_agg(id) from localities where geo_code='97209'), true);
-INSERT INTO public.establishments (name, localities_id, available)
-VALUES ('ADIL du Doubs', (select array_agg(id) from localities where geo_code like '25%'), true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('ADIL du Doubs', (select array_agg(id) from localities where geo_code like '25%'), '341096394', true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Mantes-la-Jolie', (select array_agg(id) from localities where geo_code = '78361'), 217803618, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
@@ -65,6 +65,12 @@ INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune du Monastier-sur-Gazeille', (select array_agg(id) from localities where geo_code = '43135'), 214301350, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Varennes-sur-Allier', (select array_agg(id) from localities where geo_code = '03298'), 210302980, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Montreuil-sur-Mer', (select array_agg(id) from localities where geo_code = '62588'), 216205880, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune d’Argelès-Gazost', (select array_agg(id) from localities where geo_code = '65025'), 216500256, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Cauterets', (select array_agg(id) from localities where geo_code = '65138'), 216501387, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -152,5 +158,22 @@ update establishments set available = true where siren in
  '200068781',
  '214301350',
  '200071512',
- '210302980'
+ '210302980',
+ '243400819',
+ '200084952'
 );
+
+insert into campaigns(campaign_number, start_month, filters, validated_at, exported_at, sent_at, sending_date, establishment_id, reminder_number, created_by)
+ select
+    0,
+    to_char(current_date, 'YYMM'),
+    '{"query": "", "dataYears": [], "ownerAges": [], "localities": [], "ownerKinds": [], "campaignIds": [], "multiOwners": [], "roomsCounts": [], "housingAreas": [], "housingKinds": [], "vacancyRates": [], "housingCounts": [], "housingScopes": {"geom": true, "scopes": []}, "housingStates": [], "isTaxedValues": [], "localityKinds": [], "ownershipKinds": [], "buildingPeriods": [], "campaignsCounts": [], "vacancyDurations": [], "beneficiaryCounts": []}',
+    current_date,
+    current_date,
+    current_date,
+    current_date,
+    id,
+    0,
+    (select id from users where establishment_id is null and upper(last_name) = 'RIVALS')
+    from establishments e
+    where not exists(select * from campaigns where establishment_id = e.id and campaign_number = 0);

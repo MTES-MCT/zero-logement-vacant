@@ -23,7 +23,7 @@ describe('AppHeader', () => {
     test('should display navbar when a user is logged', () => {
         const store = createStore(
             applicationReducer,
-            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
+            {authentication: {isLoggedIn: true, authUser: genAuthUser(), accountActivated: true}},
             applyMiddleware(thunk)
         );
 

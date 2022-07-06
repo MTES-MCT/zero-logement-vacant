@@ -38,7 +38,7 @@ const HousingListView = () => {
         } else {
             dispatch(changeHousingFiltering(filters))
         }
-    }, [search, dispatch])
+    }, [search, dispatch]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const create = () => {
         if (!selectedHousing.all && selectedHousing?.ids.length === 0) {

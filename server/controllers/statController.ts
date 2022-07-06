@@ -2,14 +2,16 @@ import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import establishmentRepository from '../repositories/establishmentRepository';
 import {
+    ExitWithoutSupportSubStatus,
+    ExitWithPublicSupportSubStatus,
+    ExitWithSupportSubStatus,
+    FirstContactWithPreSupportSubStatus,
     HousingStatusApi,
     InProgressWithoutSupportSubStatus,
-    FirstContactWithPreSupportSubStatus,
+    InProgressWithPublicSupportSubStatus,
     InProgressWithSupportSubStatus,
-    ExitWithSupportSubStatus,
-    ExitWithPublicSupportSubStatus,
-    ExitWithoutSupportSubStatus, InProgressWithPublicSupportSubStatus,
 } from '../models/HousingStatusApi';
+import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 
 
 const establishmentCount = async (request: Request, response: Response): Promise<Response> => {
@@ -91,6 +93,26 @@ const housingExitWithoutSupportCount = async (request: Request, response: Respon
         );
 };
 
+const housingByStatusCount = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get housing by status count')
+
+    const filters = <MonitoringFiltersApi> request.body.filters ?? {};
+
+    return housingRepository.countByStatusWithFilters(filters)
+        .then(_ => response.status(200).json(_));
+};
+
+const housingByStatusDuration = async (request: Request, response: Response): Promise<Response> => {
+
+    console.log('Get housing waiting for 3 months status count')
+
+    const filters = <MonitoringFiltersApi> request.body.filters ?? {};
+
+    return housingRepository.durationByStatusWithFilters(filters)
+        .then(_ => response.status(200).json(_));
+};
+
 const statController =  {
     establishmentCount,
     housingContactedCount,
@@ -99,7 +121,9 @@ const statController =  {
     housingInProgressWithSupportCount,
     housingInProgressWithoutSupportCount,
     housingExitWithSupportCount,
-    housingExitWithoutSupportCount
+    housingExitWithoutSupportCount,
+    housingByStatusCount,
+    housingByStatusDuration
 };
 
 export default statController;

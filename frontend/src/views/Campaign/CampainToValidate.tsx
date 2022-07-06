@@ -45,13 +45,15 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
 
     const { campaignBundle, campaignBundleHousingByStatus, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
+    useEffect(() => {
+        if (campaignBundle) {
+            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotInCampaign))
+        }
+    }, [dispatch, campaignBundle])
+
     if (!campaignBundle) {
         return <></>
     }
-
-    useEffect(() => {
-        dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotInCampaign))
-    }, [dispatch])
 
     const currentStep = (): CampaignSteps => {
         return forcedStep ?? campaignStep

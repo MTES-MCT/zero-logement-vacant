@@ -36,7 +36,7 @@ const LoginView = () => {
         if (pathname === '/admin') {
             dispatch(fetchAvailableEstablishments())
         }
-    }, [dispatch])
+    }, [dispatch, pathname])
 
     useEffect(() => {
         if (availableEstablishments) {
@@ -86,7 +86,7 @@ const LoginView = () => {
                     />
                     <TextInput
                         value={password}
-                        type='password'
+                        type="password"
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         messageType={formErrors['password'] ? 'error' : ''}
                         message={formErrors['password']}

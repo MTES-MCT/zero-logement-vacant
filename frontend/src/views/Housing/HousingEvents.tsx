@@ -14,14 +14,12 @@ const HousingEvents = ({ ownerId }: { ownerId: string}) => {
     const dispatch = useDispatch();
     const campaignList = useCampaignList();
 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [expandEvents, setExpandEvents] = useState(false);
     const { events, housingList } = useSelector((state: ApplicationState) => state.owner);
 
     useEffect(() => {
         dispatch(getOwnerEvents(ownerId));
-    }, [dispatch])
+    }, [dispatch, ownerId])
 
     const housingNumber = (housingId: string) => housingList.findIndex(h => h.id === housingId) + 1;
 

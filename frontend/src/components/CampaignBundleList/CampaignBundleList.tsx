@@ -48,7 +48,6 @@ const CampaignBundleList = (
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
                     <Badge small
                            text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
-                           icon={false}
                            className="fr-mb-1w"
                     />
                     <Row alignItems="middle">

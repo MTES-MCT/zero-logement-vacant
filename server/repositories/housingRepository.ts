@@ -6,8 +6,10 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import { HousingStatusApi } from '../models/HousingStatusApi';
+import { HousingStatusApi, HousingStatusCountApi, HousingStatusDurationApi } from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
+import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { eventsTable } from './eventRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -350,8 +352,8 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
-                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (${filters.establishmentIds.map(_ => `'${_}'`)})` : ''}
-                ) campaigns on true`)
+                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
+                ) campaigns on true`, filters.establishmentIds ?? [])
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
@@ -390,8 +392,8 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
-                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (${filters.establishmentIds.map(_ => `'${_}'`)})` : ''}
-                ) campaigns on true`)
+                    ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
+                ) campaigns on true`, filters.establishmentIds ?? [])
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .modify(filteredQuery(filters))
             .then(_ => Number(_[0].count))
@@ -465,6 +467,89 @@ const updateAddressList = async (housingAdresses: {addressId: string, addressApi
     }
 }
 
+const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<HousingStatusCountApi[]> => {
+    try {
+
+        return db(housingTable)
+            .select(
+                'status',
+                'precisions',
+                'sub_status',
+                db.raw('count(*)')
+            )
+            .groupBy('status')
+            .groupBy('sub_status')
+            .groupBy('precisions')
+            .modify(monitoringQueryFilter(filters))
+            .then(_ => _.map((result: any) => (
+                <HousingStatusCountApi> {
+                    status: result.status,
+                    subStatus: result.sub_status,
+                    precisions: result.precisions,
+                    count: result.count
+                }
+            )))
+    } catch (err) {
+        console.error('Count housing by status failed', err);
+        throw new Error('Count housing by status failed');
+    }
+}
+
+const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<HousingStatusDurationApi[]> => {
+    try {
+
+        return db.select(
+            'status',
+            db.raw('avg(current_timestamp - created_at)'),
+            db.raw(`count(created_at) filter ( where created_at < current_timestamp  - interval '3 months')`)
+        )
+            .from(
+                db.from(housingTable)
+                    .select(
+                        'status',
+                        db.raw(`max(${eventsTable}.created_at) as created_at`)
+                    )
+                    .join(eventsTable, `${housingTable}.id`, 'housing_id')
+                    .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
+                    .andWhereRaw(`${eventsTable}.content like 
+                        (case
+                             when status = 1 then '%Ajout dans la campagne%'
+                             when status = 2 then '%Passage%Premier contact%'
+                             when status = 3 then '%Passage%Suivi en cours%'
+                             when status = 4 then '%Passage%Non-vacant%'
+                             when status = 5 then '%Passage%Bloqué%'
+                             when status = 6 then '%Passage%Sortie de la vacance%'
+                        end) `)
+                    .groupBy(`${housingTable}.id`)
+                    .modify(monitoringQueryFilter(filters))
+                    .as('max')
+            )
+            .groupBy('status')
+            .then(_ => _.map((result: any) => (
+                <HousingStatusDurationApi> {
+                    status: result.status,
+                    averageDuration: result.avg,
+                    unchangedFor3MonthsCount: Number(result.count)
+                }
+            )))
+    } catch (err) {
+        console.error('Duration housing by status failed', err);
+        throw new Error('Duration housing by status failed');
+    }
+}
+
+const monitoringQueryFilter = (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
+    if (filters.establishmentIds?.length) {
+        queryBuilder
+            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
+            .whereIn('e.id', filters.establishmentIds)
+    }
+    if (filters.dataYears?.length) {
+        queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])
+    }
+}
+
 const escapeValue = (value?: string) => {
     return value ? value.replace(/'/g, '\'\'') : ''
 }
@@ -525,5 +610,7 @@ export default {
     countWithFilters,
     listByIds,
     updateHousingList,
-    updateAddressList
+    updateAddressList,
+    countByStatusWithFilters,
+    durationByStatusWithFilters
 }

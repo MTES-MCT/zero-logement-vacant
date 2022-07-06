@@ -34,7 +34,7 @@ const HousingStatusModal = (
         if (housingList.length === 1) {
             selectHousing(housingList[0].id)
         }
-    },[dispatch])
+    },[dispatch])  //eslint-disable-line react-hooks/exhaustive-deps
 
 
     const housingOptions = housingList.length === 1 ? [{value: housingList[0].id, label: housingList[0].rawAddress.join(' - ')}] : [

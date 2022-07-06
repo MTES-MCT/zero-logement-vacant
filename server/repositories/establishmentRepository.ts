@@ -87,7 +87,7 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
             )
             .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
             .join(housingTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
-            .leftJoin(campaignsTable, `${campaignsTable}.establishment_id`, `${establishmentsTable}.id`)
+            .joinRaw(`left join ${campaignsTable} on ${campaignsTable}.establishment_id = ${establishmentsTable}.id and ${campaignsTable}.campaign_number > 0` )
             .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`)
             .where('available', true)

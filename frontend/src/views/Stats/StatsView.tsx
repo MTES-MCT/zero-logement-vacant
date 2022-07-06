@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Card, CardDescription, CardTitle, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContactedOwnersCount } from '../../store/actions/statisticAction';
+import { getStatistics } from '../../store/actions/statisticAction';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './stats.module.scss';
 
@@ -23,7 +23,7 @@ const StatsView = () => {
 
 
     useEffect(() => {
-        dispatch(getContactedOwnersCount());
+        dispatch(getStatistics());
     }, [dispatch])
 
     return (

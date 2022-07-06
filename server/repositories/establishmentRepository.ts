@@ -91,7 +91,6 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
             .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`)
             .where('available', true)
-            .andWhere(`${campaignsTable}.campaign_number`, '>', 0)
             .andWhereRaw('data_years && ?::integer[] ', [[2022]])
             .groupBy(`${establishmentsTable}.id`)
             .orderBy(`${establishmentsTable}.name`)

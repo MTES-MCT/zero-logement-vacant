@@ -195,12 +195,12 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
 
         filtersWorksheet.addRow({
             filterName: 'Etablissements',
-            filterValue: filters.establishmentIds?.map(id => establishmentDataList.find(_ => _.id === id)?.name),
+            filterValue: filters.establishmentIds?.map(id => establishmentDataList.find(_ => _.id === id)?.name)?.join(', ')
         });
 
         filtersWorksheet.addRow({
             filterName: 'Millésimes',
-            filterValue: filters.dataYears,
+            filterValue: filters.dataYears?.join(', ')
         });
     })
 

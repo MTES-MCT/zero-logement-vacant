@@ -36,7 +36,7 @@ const HomeView = () => {
                         <Text size="lg">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Link title="S'inscrire" to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }} target="_blank" className="fr-btn--md fr-btn">
+                        <Link title="S'inscrire" to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }} target="_blank" className="fr-btn--md fr-btn">
                             S&apos;inscrire
                         </Link>
                     </Col>
@@ -233,7 +233,7 @@ const HomeView = () => {
                     </Row>
                     <Row gutters justifyContent="center" className="fr-pt-2w">
                         <Link title="Rejoindre la communauté"
-                              to={{ pathname: "https://www.demarches-simplifiees.fr/commencer/mad-donnees-lovac" }}
+                              to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
                               target="_blank"
                               className="fr-btn--md fr-btn">
                             Rejoindre la communauté

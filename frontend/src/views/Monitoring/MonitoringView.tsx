@@ -285,11 +285,6 @@ const MonitoringView = () => {
         lastCampaignSentAtColumn,
         delayBetweenCampaignsColumn,
         firstCampaignSentAtColumn,
-        firstCampaignSentAtColumn,
-        firstCampaignSentAtColumn,
-        firstCampaignSentAtColumn,
-        firstCampaignSentAtColumn,
-        firstCampaignSentAtColumn,
         viewColumn
     ]
 

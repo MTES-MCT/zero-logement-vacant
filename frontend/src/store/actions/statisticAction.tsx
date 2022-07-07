@@ -1,6 +1,6 @@
 import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import statisticService from '../../services/statistic.service';
+import monitoringService from '../../services/monitoring.service';
 
 export const FETCH_STATISTICS = 'FETCH_STATISTICS';
 export const ESTABLISHMENTS_COUNT_FETCHED = 'ESTABLISHMENTS_COUNT_FETCHED';
@@ -78,56 +78,56 @@ export const getStatistics = () => {
         });
 
         Promise.all([
-            statisticService.getEstablishmentsCount()
+            monitoringService.getEstablishmentsCount()
                 .then(count => {
                     dispatch({
                         type: ESTABLISHMENTS_COUNT_FETCHED,
                         count
                     });
                 }),
-            statisticService.getContactedHousingCount()
+            monitoringService.getContactedHousingCount()
                 .then(count => {
                     dispatch({
                         type: CONTACTED_HOUSING_COUNT_FETCHED,
                         count
                     });
                 }),
-            statisticService.getWaitingHousingCount()
+            monitoringService.getWaitingHousingCount()
                 .then(count => {
                     dispatch({
                         type: WAITING_HOUSING_COUNT_FETCHED,
                         count
                     });
                 }),
-            statisticService.getAnswersCount()
+            monitoringService.getAnswersCount()
                 .then(count => {
                     dispatch({
                         type: ANSWERS_COUNT_FETCHED,
                         count
                     });
                 }),
-            statisticService.getHousingInProgressWithSupportCount()
+            monitoringService.getHousingInProgressWithSupportCount()
                 .then(count => {
                     dispatch({
                         type: HOUSING_IN_PROGRESS_WITH_SUPPORT,
                         count
                     });
                 }),
-            statisticService.getHousingInProgressWithoutSupportCount()
+            monitoringService.getHousingInProgressWithoutSupportCount()
                 .then(count => {
                     dispatch({
                         type: HOUSING_IN_PROGRESS_WITHOUT_SUPPORT,
                         count
                     });
                 }),
-            statisticService.getHousingExitWithSupportCount()
+            monitoringService.getHousingExitWithSupportCount()
                 .then(count => {
                     dispatch({
                         type: HOUSING_EXIT_WITH_SUPPORT,
                         count
                     });
                 }),
-            statisticService.getHousingExitWithoutSupportCount()
+            monitoringService.getHousingExitWithoutSupportCount()
                 .then(count => {
                     dispatch({
                         type: HOUSING_EXIT_WITHOUT_SUPPORT,

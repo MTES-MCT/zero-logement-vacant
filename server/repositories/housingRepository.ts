@@ -6,7 +6,12 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import { HousingStatusApi, HousingStatusCountApi, HousingStatusDurationApi } from '../models/HousingStatusApi';
+import {
+    getHousingStatusApiLabel,
+    HousingStatusApi,
+    HousingStatusCountApi,
+    HousingStatusDurationApi,
+} from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
@@ -485,7 +490,7 @@ const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<
                 <HousingStatusCountApi> {
                     status: result.status,
                     subStatus: result.sub_status,
-                    precisions: result.precisions,
+                    precisions: result.precisions?.filter((_: any) => _?.length),
                     count: result.count
                 }
             )))
@@ -513,12 +518,12 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
                     .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
                     .andWhereRaw(`${eventsTable}.content like 
                         (case
-                             when status = 1 then '%Ajout dans la campagne%'
-                             when status = 2 then '%Passage%Premier contact%'
-                             when status = 3 then '%Passage%Suivi en cours%'
-                             when status = 4 then '%Passage%Non-vacant%'
-                             when status = 5 then '%Passage%Bloqué%'
-                             when status = 6 then '%Passage%Sortie de la vacance%'
+                             when status = ${HousingStatusApi.Waiting} then '%Ajout dans la campagne%'
+                             when status = ${HousingStatusApi.FirstContact} then '%${getHousingStatusApiLabel(HousingStatusApi.FirstContact)}%'
+                             when status = ${HousingStatusApi.InProgress} then '%${getHousingStatusApiLabel(HousingStatusApi.InProgress)}%'
+                             when status = ${HousingStatusApi.NotVacant} then '%${getHousingStatusApiLabel(HousingStatusApi.NotVacant)}%'
+                             when status = ${HousingStatusApi.NoAction} then '%${getHousingStatusApiLabel(HousingStatusApi.NoAction)}%'
+                             when status = ${HousingStatusApi.Exit} then '%${getHousingStatusApiLabel(HousingStatusApi.Exit)}%'
                         end) `)
                     .groupBy(`${housingTable}.id`)
                     .modify(monitoringQueryFilter(filters))

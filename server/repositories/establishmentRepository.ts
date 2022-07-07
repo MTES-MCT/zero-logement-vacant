@@ -6,6 +6,7 @@ import { usersTable } from './userRepository';
 import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { differenceInDays } from 'date-fns';
 
 export const establishmentsTable = 'establishments';
 export const housingScopeGeometryTable = 'housing_scopes_geom';
@@ -109,10 +110,11 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                     lastMonthUpdatesCount: result.last_month_updates_count,
                     campaignsCount: result.campaigns_count,
                     contactedHousingCount: result.contacted_housing_count,
-                    contactedHousingPerCampaign: result.contacted_housing_per_campaign,
+                    contactedHousingPerCampaign: result.contacted_housing_per_campaign ? Math.floor(result.contacted_housing_per_campaign) : undefined,
                     firstCampaignSentAt: result.first_campaign_sent_at,
                     lastCampaignSentAt: result.last_campaign_sent_at,
-                    delayBetweenCampaigns: result.delay_between_campaigns
+                    delayBetweenCampaigns: result.delay_between_campaigns,
+                    firstCampaignSentDelay: (result.first_campaign_sent_at && result.first_activated_at) ? differenceInDays(result.first_campaign_sent_at, result.first_activated_at) : undefined
                 }
             )))
     } catch (err) {

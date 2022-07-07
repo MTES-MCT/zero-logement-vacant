@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { Button, Col, Container, Row, Tab, Table, Tabs, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
     fetchEstablishmentData,
@@ -285,6 +285,11 @@ const MonitoringView = () => {
         lastCampaignSentAtColumn,
         delayBetweenCampaignsColumn,
         firstCampaignSentAtColumn,
+        firstCampaignSentAtColumn,
+        firstCampaignSentAtColumn,
+        firstCampaignSentAtColumn,
+        firstCampaignSentAtColumn,
+        firstCampaignSentAtColumn,
         viewColumn
     ]
 
@@ -294,6 +299,7 @@ const MonitoringView = () => {
             <div className="bg-100">
                 <Container spacing="pb-1w">
                     <AppBreadcrumb />
+
                     <Row gutters>
                         <Col n="4">
                             <Title as="h1">Suivi</Title>
@@ -332,49 +338,47 @@ const MonitoringView = () => {
                                   options={dataYearsIncludedOptions}
                                   onChange={(values) => setMonitoringFilters({...monitoringFilters, dataYears: values.map(_ => Number(_))})}/>
                 </Row>
-                <Tabs>
-                    <Tab label="Suivi général">
-                        <Row className="bordered-b fr-py-1w">
-                            <Col n="4">
-                                <b>En attente de retour</b> :&nbsp;
-                                {housingByStatusCount ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
-                            </Col>
-                            <Col>
-                                <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
-                                {housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? '...'}
-                                {housingByStatusCount && housingWithStatusDuration(HousingStatus.Waiting) ?
-                                    <> ({percent(housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? 0, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
-                                }
-                            </Col>
-                        </Row>
-                        <HousingStatusStats status={HousingStatus.FirstContact} />
-                        <HousingStatusStats status={HousingStatus.InProgress} />
-                        <HousingStatusStats status={HousingStatus.Exit} />
-                        <HousingStatusStats status={HousingStatus.NotVacant} />
-                        <HousingStatusStats status={HousingStatus.NoAction} />
-                        <Row className="fr-py-1w">
-                            <Col n="4">
-                                <b>Nombre de logements sans précisions</b> :&nbsp;
-                                {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
-                            </Col>
-                        </Row>
-                    </Tab>
-                    <Tab label="Suivi comparatif">
-                        <div>
-                            {establishmentData &&
-                                <Table
-                                    caption="Collectivités"
-                                    captionPosition="none"
-                                    rowKey="id"
-                                    data={establishmentData}
-                                    columns={columns()}
-                                    fixedLayout={false}
-                                    className="zlv-fixed-table"
-                                />
-                            }
-                        </div>
-                    </Tab>
-                </Tabs>
+            </Container>
+            <Container className="bordered fr-mb-4w">
+                <Row className="bordered-b fr-py-1w">
+                    <Col n="4">
+                        <b>En attente de retour</b> :&nbsp;
+                        {housingByStatusCount ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
+                    </Col>
+                    <Col>
+                        <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
+                        {housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? '...'}
+                        {housingByStatusCount && housingWithStatusDuration(HousingStatus.Waiting) ?
+                            <> ({percent(housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? 0, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
+                        }
+                    </Col>
+                </Row>
+                <HousingStatusStats status={HousingStatus.FirstContact} />
+                <HousingStatusStats status={HousingStatus.InProgress} />
+                <HousingStatusStats status={HousingStatus.Exit} />
+                <HousingStatusStats status={HousingStatus.NotVacant} />
+                <HousingStatusStats status={HousingStatus.NoAction} />
+                <Row className="fr-py-1w">
+                    <Col n="4">
+                        <b>Nombre de logements sans précisions</b> :&nbsp;
+                        {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
+                    </Col>
+                </Row>
+            </Container>
+            <Container fluid>
+                <div>
+                    {establishmentData &&
+                        <Table
+                            caption="Collectivités"
+                            captionPosition="none"
+                            rowKey="id"
+                            data={establishmentData}
+                            columns={columns()}
+                            fixedLayout={true}
+                            className="zlv-fixed-table"
+                        />
+                    }
+                </div>
             </Container>
         </>
     )

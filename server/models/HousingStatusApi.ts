@@ -8,6 +8,25 @@ export enum HousingStatusApi {
     Exit
 }
 
+export const getHousingStatusApiLabel = (housingStatusApi: HousingStatusApi) => {
+    switch (housingStatusApi) {
+        case HousingStatusApi.NotInCampaign:
+            return 'Hors campagne';
+        case HousingStatusApi.Waiting:
+            return 'En attente de retour';
+        case HousingStatusApi.FirstContact:
+            return 'Premier contact';
+        case HousingStatusApi.InProgress:
+            return 'Suivi en cours';
+        case HousingStatusApi.NotVacant:
+            return 'Non-vacant';
+        case HousingStatusApi.NoAction:
+            return 'Bloqué';
+        case HousingStatusApi.Exit:
+            return 'Sortie de la vacance';
+    }
+}
+
 export interface HousingStatusCountApi {
     status: HousingStatusApi,
     subStatus?: string,

@@ -1,8 +1,7 @@
 import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { EstablishmentData } from '../../models/Establishment';
-import establishmentService from '../../services/establishment.service';
-import statisticService from '../../services/statistic.service';
+import monitoringService from '../../services/monitoring.service';
 import { HousingStatusCount, HousingStatusDuration } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 
@@ -66,7 +65,7 @@ export const fetchEstablishmentData = (filters: MonitoringFilters) => {
             filters
         });
 
-        establishmentService.listEstablishmentData(filters)
+        monitoringService.listEstablishmentData(filters)
             .then(establishmentData => {
                 dispatch(hideLoading());
                 dispatch({
@@ -91,7 +90,7 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
         });
 
         Promise.all([
-            statisticService.getHousingByStatusCount(filters)
+            monitoringService.getHousingByStatusCount(filters)
                 .then(housingByStatusCount => {
                     dispatch({
                         type: HOUSING_BY_STATUS_COUNT_FETCHED,
@@ -117,7 +116,7 @@ export const fetchHousingByStatusDuration = (filters: MonitoringFilters) => {
         });
 
         Promise.all([
-            statisticService.getHousingByStatusDuration(filters)
+            monitoringService.getHousingByStatusDuration(filters)
                 .then(housingByStatusDuration => {
                     dispatch({
                         type: HOUSING_BY_STATUS_DURATION_FETCHED,

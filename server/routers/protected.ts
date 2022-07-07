@@ -9,8 +9,7 @@ import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
-import establishmentController from '../controllers/establishmentController';
-import statController from '../controllers/statController';
+import monitoringController from '../controllers/monitoringController';
 
 const  router = express.Router();
 
@@ -64,9 +63,9 @@ router.post('/api/users', jwtCheck, userCheck, userController.list);
 router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
 router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
-router.post('/api/establishments/data', jwtCheck, userCheck, establishmentController.listEstablishmentData);
-
-router.post('/api/statistics/housing/status/count', statController.housingByStatusCount);
-router.post('/api/statistics/housing/status/duration', statController.housingByStatusDuration);
+router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
+router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);
+router.post('/api/monitoring/housing/status/duration', jwtCheck, userCheck, monitoringController.housingByStatusDuration);
+router.post('/api/monitoring/export', jwtCheck, userCheck, monitoringController.exportMonitoring);
 
 export default router;

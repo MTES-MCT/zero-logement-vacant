@@ -1,6 +1,9 @@
 import config from '../utils/config';
 import { HousingStatusCount, HousingStatusDuration } from '../models/HousingState';
 import { MonitoringFilters } from '../models/MonitoringFilters';
+import authService from './auth.service';
+import { EstablishmentData } from '../models/Establishment';
+import { parseISO } from 'date-fns';
 
 
 const getEstablishmentsCount = async (): Promise<number> => {
@@ -75,11 +78,28 @@ const getHousingExitWithoutSupportCount = async (): Promise<number> => {
         .then(_ => _.json());
 };
 
+const listEstablishmentData = async (filters: MonitoringFilters): Promise<EstablishmentData[]> => {
+
+    return await fetch(`${config.apiEndpoint}/api/monitoring/establishments/data`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters })
+    })
+        .then(_ => _.json())
+        .then(result => result.map((e: any) => ({
+            ...e,
+            firstActivatedAt: e.firstActivatedAt ? parseISO(e.firstActivatedAt) : undefined,
+            lastAuthenticatedAt: e.lastAuthenticatedAt ? parseISO(e.lastAuthenticatedAt) : undefined,
+            lastCampaignSentAt: e.lastCampaignSentAt ? parseISO(e.lastCampaignSentAt) : undefined,
+            firstCampaignSentAt: e.firstCampaignSentAt ? parseISO(e.firstCampaignSentAt) : undefined,
+        } as EstablishmentData)))
+};
+
 const getHousingByStatusCount = async (filters: MonitoringFilters): Promise<HousingStatusCount> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/status/count`, {
+    return await fetch(`${config.apiEndpoint}/api/monitoring/housing/status/count`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters }),
     })
         .then(_ => _.json());
@@ -87,15 +107,26 @@ const getHousingByStatusCount = async (filters: MonitoringFilters): Promise<Hous
 
 const getHousingByStatusDuration = async (filters: MonitoringFilters): Promise<HousingStatusDuration> => {
 
-    return await fetch(`${config.apiEndpoint}/api/statistics/housing/status/duration`, {
+    return await fetch(`${config.apiEndpoint}/api/monitoring/housing/status/duration`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters }),
     })
         .then(_ => _.json());
 };
 
-const statisticService = {
+const exportMonitoring = async (filters: MonitoringFilters): Promise<Blob> => {
+
+    return await fetch(`${config.apiEndpoint}/api/monitoring/export`, {
+        method: 'POST',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters }),
+    })
+        .then(_ => _.blob())
+
+};
+
+const monitoringService = {
     getEstablishmentsCount,
     getContactedHousingCount,
     getWaitingHousingCount,
@@ -104,8 +135,10 @@ const statisticService = {
     getHousingInProgressWithoutSupportCount,
     getHousingExitWithSupportCount,
     getHousingExitWithoutSupportCount,
+    listEstablishmentData,
     getHousingByStatusCount,
-    getHousingByStatusDuration
+    getHousingByStatusDuration,
+    exportMonitoring
 };
 
-export default statisticService;
+export default monitoringService;

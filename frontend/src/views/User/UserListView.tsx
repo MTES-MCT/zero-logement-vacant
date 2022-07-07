@@ -15,9 +15,10 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import UserCreationModal from '../../components/modals/UserCreationModal/UserCreationModal';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
-import { displayCount } from '../../utils/stringUtils';
+import { displayCount, stringSort } from '../../utils/stringUtils';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { dateSort } from '../../utils/dateUtils';
 
 const UserListView = () => {
 
@@ -54,11 +55,13 @@ const UserListView = () => {
 
     const nameColumn = {
         name: 'name',
-        label: 'Nom',
+        label: 'lastName',
         render: ({ firstName, lastName }: User) =>
             <>
                 {lastName} {firstName}
-            </>
+            </>,
+        sortable: true,
+        sort: (u1: User, u2: User) => stringSort(u1.lastName + u1.firstName, u2.lastName + u2.firstName)
     };
 
     const emailColumn = {
@@ -67,7 +70,8 @@ const UserListView = () => {
         render: ({ email }: User) =>
             <>
                 {email}
-            </>
+            </>,
+        sortable: true
     };
 
     const establishmentColumn = {
@@ -76,7 +80,9 @@ const UserListView = () => {
         render: ({ establishmentId }: User) =>
             <>
                 {availableEstablishments?.find(e => e.id === establishmentId)?.name}
-            </>
+            </>,
+        sortable: true,
+        sort: (u1: User, u2: User) => stringSort(availableEstablishments?.find(e => e.id === u1.establishmentId)?.name, availableEstablishments?.find(e => e.id === u2.establishmentId)?.name)
     };
 
     const stateColumn = {
@@ -89,7 +95,17 @@ const UserListView = () => {
                     activationSendAt ? 'Mail d\'activation envoyé le ' + format(activationSendAt, 'dd MMMM yyyy', { locale: fr }) :
                         ''
                 }
-            </>
+            </>,
+        sortable: true,
+        sort: (u1: User, u2: User) => {
+            if (u1.activatedAt) {
+                return u2.activatedAt ?  dateSort(u1.activatedAt, u2.activatedAt) : 1
+            } else if (u1.activationSendAt) {
+                return u2.activatedAt ? -1 : (u2.activationSendAt ? dateSort(u1.activationSendAt, u2.activationSendAt) : 1)
+            } else {
+                return (u2.activatedAt || u2.activationSendAt) ? -1 : 0
+            }
+        }
     };
 
     const activationLinkColumn = {

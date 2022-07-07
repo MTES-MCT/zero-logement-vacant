@@ -15,3 +15,5 @@ export const displayCount = (housingCount: number, label: string) => {
         housingCount === 1 ? `Un ${label}` :
             `${housingCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
 }
+
+export const stringSort = (s1?: string, s2?: string) => s1 ? (s2 ? s1 > s2 ? 1 : -1 : 1) : (s2 ? -1 : 0)

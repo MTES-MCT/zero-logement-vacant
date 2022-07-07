@@ -87,12 +87,18 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                 )as "contacted_housing_per_campaign"`)
             )
             .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
-            .join(housingTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .modify((queryBuilder: any) => {
+                queryBuilder.leftJoin(housingTable, (joinQuery: any) => {
+                    joinQuery.on(`${housingTable}.insee_code`, '=', `${localitiesTable}.geo_code`)
+                    if (filters.dataYears?.length) {
+                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears!]))
+                    }
+                })
+            })
             .joinRaw(`left join ${campaignsTable} on ${campaignsTable}.establishment_id = ${establishmentsTable}.id and ${campaignsTable}.campaign_number > 0` )
             .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`)
             .where('available', true)
-            .andWhereRaw('data_years && ?::integer[] ', [[2022]])
             .groupBy(`${establishmentsTable}.id`)
             .orderBy(`${establishmentsTable}.name`)
             .modify((queryBuilder: any) => {

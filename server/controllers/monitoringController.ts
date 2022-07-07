@@ -146,8 +146,27 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
         { header: 'Temps d\'envoi de la première campagne après inscription', key: 'firstCampaignSentDelay' }
     ];
 
-    await establishmentRepository.listDataWithFilters(filters).then(
-        dataList => dataList.map(data => {
+    housingWorksheet.columns = [
+        { header: 'Statut', key: 'status' },
+        { header: 'Sous-statut', key: 'subStatus' },
+        { header: 'Précisions', key: 'precisions' },
+        { header: 'Nombre', key: 'count' },
+        { header: 'Temps moyen dans le statut', key: 'averageDuration' },
+        { header: 'Dans le statut depuis plus de 3 mois', key: 'unchangedFor3MonthsCount' }
+    ];
+
+    filtersWorksheet.columns = [
+        { header: 'Filtre', key: 'filterName' },
+        { header: 'Valeur', key: 'filterValue' },
+    ]
+
+    await Promise.all([
+        establishmentRepository.listDataWithFilters(filters),
+        housingRepository.countByStatusWithFilters(filters),
+        housingRepository.durationByStatusWithFilters(filters)
+    ]).then(([establishmentDataList, counts, durations]) => {
+
+        establishmentDataList.map(data => {
             establishmentWorksheet.addRow({
                 name: data.name,
                 housingCount: data.housingCount,
@@ -161,22 +180,8 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
                 delayBetweenCampaigns: data.delayBetweenCampaigns,
                 firstCampaignSentDelay: data.firstCampaignSentDelay
             });
-        })
-    )
+        });
 
-    housingWorksheet.columns = [
-        { header: 'Statut', key: 'status' },
-        { header: 'Sous-statut', key: 'subStatus' },
-        { header: 'Précisions', key: 'precisions' },
-        { header: 'Nombre', key: 'count' },
-        { header: 'Temps moyen dans le statut', key: 'averageDuration' },
-        { header: 'Dans le statut depuis plus de 3 mois', key: 'unchangedFor3MonthsCount' }
-    ];
-
-    await Promise.all([
-        housingRepository.countByStatusWithFilters(filters),
-        housingRepository.durationByStatusWithFilters(filters)
-    ]).then(([counts, durations]) => {
         counts.map((countData, countIndex)  => {
             housingWorksheet.addRow({
                 status : counts[countIndex - 1]?.status !== countData.status ? getHousingStatusApiLabel(countData.status) : '',
@@ -186,21 +191,17 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
                 averageDuration: counts[countIndex - 1]?.status !== countData.status ? durations.find(_ => _.status === countData.status)?.averageDuration : '',
                 unchangedFor3MonthsCount: counts[countIndex - 1]?.status !== countData.status ? durations.find(_ => _.status === countData.status)?.unchangedFor3MonthsCount : ''
             })
-        })
-    })
+        });
 
-    filtersWorksheet.columns = [
-        { header: 'Filtre', key: 'filterName' },
-        { header: 'Valeur', key: 'filterValue' },
-    ]
+        filtersWorksheet.addRow({
+            filterName: 'Etablissements',
+            filterValue: filters.establishmentIds?.map(id => establishmentDataList.find(_ => _.id === id)?.name),
+        });
 
-    filtersWorksheet.addRow({
-        filterName: 'Etablissements',
-        filterValue: filters.establishmentIds,
-    })
-    filtersWorksheet.addRow({
-        filterName: 'Millésimes',
-        filterValue: filters.dataYears,
+        filtersWorksheet.addRow({
+            filterName: 'Millésimes',
+            filterValue: filters.dataYears,
+        });
     })
 
     const fileName = `export_monitoring_${(new Date()).toDateString()}.xlsx`;

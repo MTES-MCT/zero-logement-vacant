@@ -73,17 +73,17 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                 `${establishmentsTable}.*`,
                 db.raw(`count(distinct(${housingTable}.id)) as "housing_count"`),
                 db.raw(`min(${usersTable}.activated_at) as "first_activated_at"`),
-                db.raw(`max(${usersTable}.activated_at) as "last_authenticated_at"`),
+                db.raw(`max(${usersTable}.last_authenticated_at) as "last_authenticated_at"`),
                 db.raw(`count(distinct(${eventsTable}.housing_id)) as "last_month_updates_count"`),
                 db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
-                db.raw(`count(distinct(${housingTable}.id)) filter (where ${housingTable}.status is not null) as "contacted_housing_count"`),
+                db.raw(`count(distinct(${housingTable}.id)) filter (where ${campaignsTable}.sent_at is not null and ${housingTable}.status is not null) as "contacted_housing_count"`),
                 db.raw(`min(${campaignsTable}.sent_at) as "first_campaign_sent_at"`),
                 db.raw(`max(${campaignsTable}.sent_at) as "last_campaign_sent_at"`),
                 db.raw(`(select avg(diff.avg) from (
                     select (sent_at - lag(sent_at) over (order by sent_at)) as "avg" from campaigns where establishment_id = ${establishmentsTable}.id) as diff
                 ) as "delay_between_campaigns"`),
                 db.raw(`(select avg(count.count) from (
-                    select count(*) from campaigns c, campaigns_housing ch where ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
+                    select count(*) from campaigns c, campaigns_housing ch where c.sent_at is not null and ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
                 )as "contacted_housing_per_campaign"`)
             )
             .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )

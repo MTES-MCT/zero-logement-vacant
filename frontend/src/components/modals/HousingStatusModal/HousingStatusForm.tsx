@@ -68,6 +68,7 @@ const HousingStatusForm = (
         {value: 'Appel entrant', label: 'Appel entrant'},
         {value: 'Appel sortant - relance', label: 'Appel sortant - relance'},
         {value: 'Courrier entrant', label: 'Courrier entrant'},
+        {value: 'Courrier sortant', label: 'Courrier sortant'},
         {value: 'Formulaire en ligne', label: 'Formulaire en ligne'},
         {value: 'Mail entrant', label: 'Mail entrant'},
         {value: 'Mail sortant', label: 'Mail sortant'},

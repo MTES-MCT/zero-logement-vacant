@@ -10,6 +10,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { CampaignNumberSort } from '../../models/Campaign';
+import { getHousingState } from '../../models/HousingState';
 
 
 export enum HousingDisplayKey {
@@ -158,6 +159,21 @@ const HousingList = (
             </>
     };
 
+    const statusColumn = {
+        name: 'status',
+        label: 'Statut',
+        render: ({ status } : Housing) =>
+            status &&
+            <span style={{
+                backgroundColor: `var(${getHousingState(status).bgcolor})`,
+                color: `var(${getHousingState(status).color})`,
+            }}
+                  className='status-label'>
+                {getHousingState(status).title}
+            </span>
+
+    };
+
     const viewColumn = {
         name: 'view',
         headerRender: () => '',
@@ -170,7 +186,7 @@ const HousingList = (
     const columns = () => {
         switch (displayKind) {
             case HousingDisplayKey.Housing :
-                return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, viewColumn];
+                return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, statusColumn, viewColumn];
             case HousingDisplayKey.Owner :
                 return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], viewColumn];
         }

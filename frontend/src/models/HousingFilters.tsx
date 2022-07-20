@@ -199,8 +199,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.campaignIds?.length ||
         housingFilters.localities?.length ||
         housingFilters.localityKinds?.length ||
-        housingFilters.housingScopesIncluded?.scopes.length ||
-        housingFilters.housingScopesExcluded?.scopes.length ||
+        housingFilters.housingScopesIncluded?.scopes?.length ||
+        housingFilters.housingScopesExcluded?.scopes?.length ||
         housingFilters.dataYearsIncluded?.length ||
         housingFilters.dataYearsExcluded?.length ||
         housingFilters.query?.length

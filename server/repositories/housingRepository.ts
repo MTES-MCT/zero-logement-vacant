@@ -25,6 +25,23 @@ export const ownersHousingJoinClause = (query: any) => {
     query.on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`).andOnVal('rank', 1)
 }
 
+export const queryOwnerHousingWhereClause = (queryBuilder: any, query?: string) => {
+    if (query?.length) {
+        queryBuilder.where(function (whereBuilder: any) {
+            whereBuilder.orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
+            whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
+            whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(o.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereIn('invariant', query?.split(',').map(_ => _.trim()))
+            whereBuilder.orWhereIn('invariant', query?.split(' ').map(_ => _.trim()))
+            whereBuilder.orWhereIn('cadastral_reference', query?.split(',').map(_ => _.trim()))
+            whereBuilder.orWhereIn('cadastral_reference', query?.split(' ').map(_ => _.trim()))
+        })
+    }
+}
+
 const get = async (housingId: string): Promise<HousingApi> => {
     try {
         return db
@@ -315,20 +332,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.subStatus?.length) {
             queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus)
         }
-        if (filters.query?.length) {
-            queryBuilder.where(function (whereBuilder: any) {
-                whereBuilder.orWhereRaw('upper(unaccent(full_name)) like upper(unaccent(?))', `%${filters.query}%`)
-                whereBuilder.orWhereRaw('upper(unaccent(full_name)) like upper(unaccent(?))', `%${filters.query?.split(' ').reverse().join(' ')}%`)
-                whereBuilder.orWhereRaw('upper(unaccent(administrator)) like upper(unaccent(?))', `%${filters.query}%`)
-                whereBuilder.orWhereRaw('upper(unaccent(administrator)) like upper(unaccent(?))', `%${filters.query?.split(' ').reverse().join(' ')}%`)
-                whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))) like upper(unaccent(?))`, `%${filters.query}%`)
-                whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(o.raw_address, '%'))) like upper(unaccent(?))`, `%${filters.query}%`)
-                whereBuilder.orWhereIn('invariant', filters.query?.split(',').map(_ => _.trim()))
-                whereBuilder.orWhereIn('invariant', filters.query?.split(' ').map(_ => _.trim()))
-                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(',').map(_ => _.trim()))
-                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(' ').map(_ => _.trim()))
-            })
-        }
+        queryOwnerHousingWhereClause(queryBuilder, filters.query);
     }
 }
 

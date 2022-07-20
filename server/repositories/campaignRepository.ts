@@ -1,7 +1,12 @@
 import { CampaignApi, CampaignBundleApi, CampaignKinds } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { housingTable, ownersHousingJoinClause, ownersHousingTable } from './housingRepository';
+import {
+    housingTable,
+    ownersHousingJoinClause,
+    ownersHousingTable,
+    queryOwnerHousingWhereClause,
+} from './housingRepository';
 import { ownerTable } from './ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 
@@ -74,18 +79,7 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                 if (reminderNumber) {
                     queryBuilder.andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
                 }
-                if (query?.length) {
-                    queryBuilder.where(function (whereBuilder: any) {
-                        whereBuilder.orWhereRaw('upper(full_name) like ?', `%${query?.toUpperCase()}%`)
-                        whereBuilder.orWhereRaw('upper(administrator) like ?', `%${query?.toUpperCase()}%`)
-                        whereBuilder.orWhereRaw(`upper(array_to_string(${housingTable}.raw_address, '%')) like ?`, `%${query?.toUpperCase()}%`)
-                        whereBuilder.orWhereRaw(`upper(array_to_string(o.raw_address, '%')) like ?`, `%${query?.toUpperCase()}%`)
-                        whereBuilder.orWhereIn('invariant', query?.split(',').map(_ => _.trim()))
-                        whereBuilder.orWhereIn('invariant', query?.split(' ').map(_ => _.trim()))
-                        whereBuilder.orWhereIn('cadastral_reference', query?.split(',').map(_ => _.trim()))
-                        whereBuilder.orWhereIn('cadastral_reference', query?.split(' ').map(_ => _.trim()))
-                    })
-                }
+                queryOwnerHousingWhereClause(queryBuilder, query);
             })
             .first()
             .then((result: any) => parseCampaignBundleApi({...result, reminder_number: reminderNumber}))

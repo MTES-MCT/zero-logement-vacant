@@ -86,7 +86,7 @@ const CampaignView = () => {
                         </Container>
                     </div>
                     <Container spacing="py-4w">
-                        {campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
+                        {(campaignBundle.campaignNumber ?? 0) > 0 && campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
                             <CampaignToValidate campaignStep={campaignStep(campaignsOfBundle(campaignBundle)[0])}/> :
                             <CampaignInProgress query={searchQuery}/>
                         }

@@ -91,7 +91,7 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                 queryBuilder.leftJoin(housingTable, (joinQuery: any) => {
                     joinQuery.on(`${housingTable}.insee_code`, '=', `${localitiesTable}.geo_code`)
                     if (filters.dataYears?.length) {
-                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears!]))
+                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears]))
                     }
                 })
             })

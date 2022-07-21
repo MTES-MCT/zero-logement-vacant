@@ -1,10 +1,11 @@
 import { Owner } from '../src/models/Owner';
-import { Housing } from '../src/models/Housing';
+import { Housing, OwnershipKinds } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { Address } from '../src/models/Address';
 import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
+import { LocalityKinds } from '../src/models/Establishment';
 
 const randomstring = require('randomstring');
 
@@ -79,6 +80,7 @@ export function genHousing() {
             randomstring.generate()
         ],
         address: genAddress(),
+        localityKind: LocalityKinds.ACV,
         owner: genOwner(),
         livingArea: genNumber(4),
         housingKind: randomstring.generate(),
@@ -88,7 +90,12 @@ export function genHousing() {
         dataYears: [2021],
         campaignIds: [],
         cadastralReference: '',
-        vacancyReasons: []
+        vacancyReasons: [],
+        uncomfortable: false,
+        cadastralClassification: genNumber(1),
+        taxed: false,
+        ownershipKind: OwnershipKinds.Single,
+        buildingVacancyRate: genNumber(2)
     } as Housing;
 }
 

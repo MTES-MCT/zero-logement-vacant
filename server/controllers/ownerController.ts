@@ -68,7 +68,7 @@ const create = async (request: JWTRequest, response: Response): Promise<Response
         content: 'Création du propriétaire',
         createdBy: userId
     })
-        .then(_ => response.status(200).json(createdOwnerApi));
+        .then(() => response.status(200).json(createdOwnerApi));
 }
 
 const update = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -101,7 +101,7 @@ const update = async (request: JWTRequest, response: Response): Promise<Response
             content: 'Modification des données d\'identité',
             createdBy: userId
         })
-        .then(_ => response.status(200).json(updatedOwnerApi));
+        .then(() => response.status(200).json(updatedOwnerApi));
 }
 
 const updateHousingOwners = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -123,8 +123,8 @@ const updateHousingOwners = async (request: JWTRequest, response: Response): Pro
     if (prevHousingOwnersApi.length !== housingOwnersApi.length || prevHousingOwnersApi.find(ho1 => !housingOwnersApi.find(ho2 => ho1.id === ho2.id && ho1.rank === ho2.rank))) {
 
         return ownerRepository.deleteHousingOwners(housingId, housingOwnersApi.map(_ => _.id))
-            .then(_ => ownerRepository.insertHousingOwners(housingOwnersApi))
-            .then(_ => eventRepository.insert(<EventApi>{
+            .then(() => ownerRepository.insertHousingOwners(housingOwnersApi))
+            .then(() => eventRepository.insert(<EventApi>{
                 housingId,
                 kind: EventKinds.HousingOwnersUpdate,
                 content: `Modification des propriétaires 
@@ -132,7 +132,7 @@ const updateHousingOwners = async (request: JWTRequest, response: Response): Pro
                             ${prevHousingOwnersApi.map(_ => `${_.fullName} (${_.rank === 0 ? 'Ancien' : _.rank === 1 ? 'Principal' : _.rank+'ème ayant droit'})`).join(' - ')}`,
                 createdBy: userId
             }))
-            .then(_ => response.sendStatus(200));
+            .then(() => response.sendStatus(200));
 
     } else {
         return response.sendStatus(304)

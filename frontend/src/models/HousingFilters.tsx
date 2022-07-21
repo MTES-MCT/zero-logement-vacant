@@ -1,5 +1,5 @@
 import { SelectOption } from './SelectOption';
-import { HousingScopes, LocalityKindLabels, LocalityKinds } from './Establishment';
+import { LocalityKindLabels, LocalityKinds } from './Establishment';
 import { HousingStates } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 
@@ -22,8 +22,8 @@ export interface HousingFilters {
     campaignIds?: string[];
     localities?: string[];
     localityKinds?: string[];
-    housingScopesIncluded?: HousingScopes;
-    housingScopesExcluded?: HousingScopes;
+    housingScopesIncluded?: string[];
+    housingScopesExcluded?: string[];
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];
@@ -199,8 +199,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.campaignIds?.length ||
         housingFilters.localities?.length ||
         housingFilters.localityKinds?.length ||
-        housingFilters.housingScopesIncluded?.scopes?.length ||
-        housingFilters.housingScopesExcluded?.scopes?.length ||
+        housingFilters.housingScopesIncluded?.length ||
+        housingFilters.housingScopesExcluded?.length ||
         housingFilters.dataYearsIncluded?.length ||
         housingFilters.dataYearsExcluded?.length ||
         housingFilters.query?.length

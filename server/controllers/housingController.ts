@@ -14,6 +14,8 @@ import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { Request as JWTRequest } from 'express-jwt';
+import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
+import exportFileService from '../services/exportFileService';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -154,18 +156,10 @@ const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateA
         housingApi.subStatus != housingUpdateApi.subStatus ||
         housingApi.precisions != housingUpdateApi.precisions) ?
         [
-            'Passage à ' + [
-                '',
-                'En attente de retour',
-                'Premier contact',
-                'Suivi en cours',
-                'Non-vacant',
-                'Bloqué',
-                'Sortie de la vacance'
-            ][housingUpdateApi.status],
+            'Passage à ' + getHousingStatusApiLabel(housingUpdateApi.status),
             housingUpdateApi.subStatus,
             housingUpdateApi.precisions?.join(', ')
-        ].filter(_ => _ !== null && _ !== undefined).join(' - ') : undefined
+        ].filter(_ => _?.length).join(' - ') : undefined
 }
 
 const exportHousingByCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -247,11 +241,6 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         });
     })
 
-    housingWorksheet.columns.forEach(column => {
-        const lengths = column.values?.filter(v => v !== undefined).map(v => (v ?? "").toString().length) ?? [10];
-        column.width = Math.max(...lengths);
-    });
-
     const housingListByOwner = housingList.reduce((ownersHousing: {owner: OwnerApi, housingList: HousingApi[]}[], housing) => [
         ...ownersHousing.filter(_ => _.owner.id !== housing.owner.id),
         {
@@ -296,19 +285,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         ownerWorksheet.addRow(row);
     })
 
-    ownerWorksheet.columns.forEach(column => {
-        const lengths = column.values?.filter(v => v !== undefined).map(v => (v ?? "").toString().length) ?? [10];
-        column.width = Math.max(...lengths);
-    });
-
-    response.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-
-    return workbook.xlsx.write(response)
-        .then(() => {
-            response.end();
-            return response;
-        })
+    return exportFileService.sendWorkbook(workbook, fileName, response);
 
 }
 

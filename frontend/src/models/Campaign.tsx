@@ -1,6 +1,7 @@
 import { HousingFilters } from './HousingFilters';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { percent } from '../utils/numberUtils';
 
 export interface DraftCampaign {
     startMonth: string;
@@ -100,7 +101,7 @@ export const campaignStep = (campaign?: Campaign) => {
 
 export const returnRate = (campaignBundle: CampaignBundle) => {
     return (campaignBundle.housingCount - campaignBundle.npaiCount) !== 0 ?
-        Math.round(100 - campaignBundle.waitingCount / (campaignBundle.housingCount - campaignBundle.npaiCount) * 100) :
+        Math.round(100 - percent(campaignBundle.waitingCount, (campaignBundle.housingCount - campaignBundle.npaiCount))) :
         0;
 }
 

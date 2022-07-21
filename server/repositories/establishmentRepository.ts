@@ -6,6 +6,7 @@ import { usersTable } from './userRepository';
 import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { differenceInDays } from 'date-fns';
 
 export const establishmentsTable = 'establishments';
 export const housingScopeGeometryTable = 'housing_scopes_geom';
@@ -72,26 +73,32 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                 `${establishmentsTable}.*`,
                 db.raw(`count(distinct(${housingTable}.id)) as "housing_count"`),
                 db.raw(`min(${usersTable}.activated_at) as "first_activated_at"`),
-                db.raw(`max(${usersTable}.activated_at) as "last_authenticated_at"`),
+                db.raw(`max(${usersTable}.last_authenticated_at) as "last_authenticated_at"`),
                 db.raw(`count(distinct(${eventsTable}.housing_id)) as "last_month_updates_count"`),
                 db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
-                db.raw(`count(distinct(${housingTable}.id)) filter (where ${housingTable}.status is not null) as "contacted_housing_count"`),
+                db.raw(`count(distinct(${housingTable}.id)) filter (where ${campaignsTable}.sent_at is not null and ${housingTable}.status is not null) as "contacted_housing_count"`),
                 db.raw(`min(${campaignsTable}.sent_at) as "first_campaign_sent_at"`),
                 db.raw(`max(${campaignsTable}.sent_at) as "last_campaign_sent_at"`),
                 db.raw(`(select avg(diff.avg) from (
                     select (sent_at - lag(sent_at) over (order by sent_at)) as "avg" from campaigns where establishment_id = ${establishmentsTable}.id) as diff
                 ) as "delay_between_campaigns"`),
                 db.raw(`(select avg(count.count) from (
-                    select count(*) from campaigns c, campaigns_housing ch where ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
+                    select count(*) from campaigns c, campaigns_housing ch where c.sent_at is not null and ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
                 )as "contacted_housing_per_campaign"`)
             )
             .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
-            .join(housingTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+            .modify((queryBuilder: any) => {
+                queryBuilder.leftJoin(housingTable, (joinQuery: any) => {
+                    joinQuery.on(`${housingTable}.insee_code`, '=', `${localitiesTable}.geo_code`)
+                    if (filters.dataYears?.length) {
+                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears!]))
+                    }
+                })
+            })
             .joinRaw(`left join ${campaignsTable} on ${campaignsTable}.establishment_id = ${establishmentsTable}.id and ${campaignsTable}.campaign_number > 0` )
             .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`)
             .where('available', true)
-            .andWhereRaw('data_years && ?::integer[] ', [[2022]])
             .groupBy(`${establishmentsTable}.id`)
             .orderBy(`${establishmentsTable}.name`)
             .modify((queryBuilder: any) => {
@@ -109,10 +116,11 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                     lastMonthUpdatesCount: result.last_month_updates_count,
                     campaignsCount: result.campaigns_count,
                     contactedHousingCount: result.contacted_housing_count,
-                    contactedHousingPerCampaign: result.contacted_housing_per_campaign,
+                    contactedHousingPerCampaign: result.contacted_housing_per_campaign ? Math.floor(result.contacted_housing_per_campaign) : undefined,
                     firstCampaignSentAt: result.first_campaign_sent_at,
                     lastCampaignSentAt: result.last_campaign_sent_at,
-                    delayBetweenCampaigns: result.delay_between_campaigns
+                    delayBetweenCampaigns: result.delay_between_campaigns,
+                    firstCampaignSentDelay: (result.first_campaign_sent_at && result.first_activated_at) ? differenceInDays(result.first_campaign_sent_at, result.first_activated_at) : undefined
                 }
             )))
     } catch (err) {

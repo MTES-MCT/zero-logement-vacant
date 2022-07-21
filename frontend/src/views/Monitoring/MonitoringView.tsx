@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { Col, Container, Row, Tab, Table, Tabs, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
     fetchEstablishmentData,
@@ -20,6 +20,8 @@ import { dataYearsIncludedOptions } from '../../models/HousingFilters';
 import { numberSort, percent } from '../../utils/numberUtils';
 import { dateSort, durationSort } from '../../utils/dateUtils';
 import { Link } from 'react-router-dom';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import monitoringService from '../../services/monitoring.service';
 
 const MonitoringView = () => {
 
@@ -27,13 +29,31 @@ const MonitoringView = () => {
     const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
     const { establishmentData, housingByStatusCount, housingByStatusCountFilters, housingByStatusDuration } = useSelector((state: ApplicationState) => state.monitoring);
-    const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>({})
+    const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>(housingByStatusCountFilters)
 
     useEffect(() => {
         dispatch(fetchEstablishmentData({ ...housingByStatusCountFilters, ...monitoringFilters }))
         dispatch(fetchHousingByStatusCount({ ...housingByStatusCountFilters, ...monitoringFilters }))
         dispatch(fetchHousingByStatusDuration({ ...housingByStatusCountFilters, ...monitoringFilters }))
     }, [dispatch, monitoringFilters]) //eslint-disable-line react-hooks/exhaustive-deps
+
+    const exportMonitoring = () => {
+        dispatch(showLoading());
+        monitoringService.exportMonitoring(monitoringFilters)
+            .then((response) => {
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(response);
+                link.download = `export_monitoring_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+
+                document.body.appendChild(link);
+
+                link.click();
+                setTimeout(function() {
+                    dispatch(hideLoading());
+                    window.URL.revokeObjectURL(link.href);
+                }, 200);
+            });
+    }
 
     const establishmentColumn = {
         name: 'name',
@@ -120,7 +140,7 @@ const MonitoringView = () => {
         label: 'Nombre de logements contactés par campagne',
         render: ({ housingCount, contactedHousingPerCampaign }: EstablishmentData) =>
             <div>
-                {Math.floor(contactedHousingPerCampaign)} ({percent(contactedHousingPerCampaign, housingCount)}%)
+                {contactedHousingPerCampaign} ({percent(contactedHousingPerCampaign, housingCount)}%)
             </div>,
         sortable: true,
         sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.contactedHousingPerCampaign, e2.contactedHousingPerCampaign)
@@ -155,16 +175,14 @@ const MonitoringView = () => {
     const firstCampaignSentAtColumn = {
         name: 'firstCampaign',
         label: 'Temps d\'envoi de la première campagne après inscription',
-        render: ({ firstCampaignSentAt, firstActivatedAt }: EstablishmentData) =>
+        render: ({ firstCampaignSentDelay }: EstablishmentData) =>
             <div>
-                { firstActivatedAt && firstCampaignSentAt && <>
-                    {differenceInDays(firstCampaignSentAt, firstActivatedAt)} jours
+                { firstCampaignSentDelay && <>
+                    {firstCampaignSentDelay} jours
                 </> }
             </div>,
         sortable: true,
-        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(
-            differenceInDays(e1.firstCampaignSentAt, e1.firstActivatedAt), differenceInDays(e2.firstCampaignSentAt, e2.firstActivatedAt)
-        )
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.firstCampaignSentDelay, e2.firstCampaignSentDelay)
     };
 
     const viewColumn = {
@@ -201,7 +219,6 @@ const MonitoringView = () => {
         return housingByStatusCount?.filter(_ => _.status === status)
             .filter(_ => _.subStatus === subStatus)
             .reduce((acc, value) => [...acc, ...(value.precisions ?? [])
-                .filter(_ => _?.length)
                 .map(_ => ({ precision:_, count: value.count}))], [] as { precision: string, count: number }[]
             )
             .reduce((acc, value) => {
@@ -277,8 +294,9 @@ const MonitoringView = () => {
             <div className="bg-100">
                 <Container spacing="pb-1w">
                     <AppBreadcrumb />
+
                     <Row gutters>
-                        <Col n="6">
+                        <Col n="4">
                             <Title as="h1">Suivi</Title>
                         </Col>
                         <Col n="4">
@@ -293,6 +311,16 @@ const MonitoringView = () => {
                                             initialValues={(housingByStatusCountFilters.dataYears ?? []).map(_ => String(_))}
                                             onChange={(values) => setMonitoringFilters({...monitoringFilters, dataYears: values.map(_ => Number(_))})}/>
                         </Col>
+                        <Col n="2">
+                            <Button title="Exporter"
+                                    secondary
+                                    onClick={() => exportMonitoring()}
+                                    data-testid="export-campaign-button"
+                                    className="float-right fr-mr-2w"
+                                    icon="fr-fi-download-line">
+                                Exporter
+                            </Button>
+                        </Col>
                     </Row>
                 </Container>
             </div>
@@ -305,49 +333,47 @@ const MonitoringView = () => {
                                   options={dataYearsIncludedOptions}
                                   onChange={(values) => setMonitoringFilters({...monitoringFilters, dataYears: values.map(_ => Number(_))})}/>
                 </Row>
-                <Tabs>
-                    <Tab label="Suivi général">
-                        <Row className="bordered-b fr-py-1w">
-                            <Col n="4">
-                                <b>En attente de retour</b> :&nbsp;
-                                {housingByStatusCount ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
-                            </Col>
-                            <Col>
-                                <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
-                                {housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? '...'}
-                                {housingByStatusCount && housingWithStatusDuration(HousingStatus.Waiting) ?
-                                    <> ({percent(housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? 0, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
-                                }
-                            </Col>
-                        </Row>
-                        <HousingStatusStats status={HousingStatus.FirstContact} />
-                        <HousingStatusStats status={HousingStatus.InProgress} />
-                        <HousingStatusStats status={HousingStatus.Exit} />
-                        <HousingStatusStats status={HousingStatus.NotVacant} />
-                        <HousingStatusStats status={HousingStatus.NoAction} />
-                        <Row className="fr-py-1w">
-                            <Col n="4">
-                                <b>Nombre de logements sans précisions</b> :&nbsp;
-                                {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
-                            </Col>
-                        </Row>
-                    </Tab>
-                    <Tab label="Suivi comparatif">
-                        <div>
-                            {establishmentData &&
-                                <Table
-                                    caption="Collectivités"
-                                    captionPosition="none"
-                                    rowKey="id"
-                                    data={establishmentData}
-                                    columns={columns()}
-                                    fixedLayout={false}
-                                    className="zlv-fixed-table"
-                                />
-                            }
-                        </div>
-                    </Tab>
-                </Tabs>
+            </Container>
+            <Container className="bordered fr-mb-4w">
+                <Row className="bordered-b fr-py-1w">
+                    <Col n="4">
+                        <b>En attente de retour</b> :&nbsp;
+                        {housingByStatusCount ? housingWithStatusCount(HousingStatus.Waiting) : '...'}
+                    </Col>
+                    <Col>
+                        <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
+                        {housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? '...'}
+                        {housingByStatusCount && housingWithStatusDuration(HousingStatus.Waiting) ?
+                            <> ({percent(housingWithStatusDuration(HousingStatus.Waiting)?.unchangedFor3MonthsCount ?? 0, housingWithStatusCount(HousingStatus.Waiting))}%) </> : ''
+                        }
+                    </Col>
+                </Row>
+                <HousingStatusStats status={HousingStatus.FirstContact} />
+                <HousingStatusStats status={HousingStatus.InProgress} />
+                <HousingStatusStats status={HousingStatus.Exit} />
+                <HousingStatusStats status={HousingStatus.NotVacant} />
+                <HousingStatusStats status={HousingStatus.NoAction} />
+                <Row className="fr-py-1w">
+                    <Col n="4">
+                        <b>Nombre de logements sans précisions</b> :&nbsp;
+                        {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
+                    </Col>
+                </Row>
+            </Container>
+            <Container fluid>
+                <div>
+                    {establishmentData &&
+                        <Table
+                            caption="Collectivités"
+                            captionPosition="none"
+                            rowKey="id"
+                            data={establishmentData}
+                            columns={columns()}
+                            fixedLayout={true}
+                            className="zlv-fixed-table"
+                        />
+                    }
+                </div>
             </Container>
         </>
     )

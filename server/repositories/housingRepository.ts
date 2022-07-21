@@ -6,7 +6,12 @@ import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import { HousingStatusApi, HousingStatusCountApi, HousingStatusDurationApi } from '../models/HousingStatusApi';
+import {
+    getHousingStatusApiLabel,
+    HousingStatusApi,
+    HousingStatusCountApi,
+    HousingStatusDurationApi,
+} from '../models/HousingStatusApi';
 import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
@@ -18,6 +23,23 @@ export const ownersHousingTable = 'owners_housing';
 
 export const ownersHousingJoinClause = (query: any) => {
     query.on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`).andOnVal('rank', 1)
+}
+
+export const queryOwnerHousingWhereClause = (queryBuilder: any, query?: string) => {
+    if (query?.length) {
+        queryBuilder.where(function (whereBuilder: any) {
+            whereBuilder.orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
+            whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
+            whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(o.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereIn('invariant', query?.split(',').map(_ => _.trim()))
+            whereBuilder.orWhereIn('invariant', query?.split(' ').map(_ => _.trim()))
+            whereBuilder.orWhereIn('cadastral_reference', query?.split(',').map(_ => _.trim()))
+            whereBuilder.orWhereIn('cadastral_reference', query?.split(' ').map(_ => _.trim()))
+        })
+    }
 }
 
 const get = async (housingId: string): Promise<HousingApi> => {
@@ -310,18 +332,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.subStatus?.length) {
             queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus)
         }
-        if (filters.query?.length) {
-            queryBuilder.where(function (whereBuilder: any) {
-                whereBuilder.orWhereRaw('upper(full_name) like ?', `%${filters.query?.toUpperCase()}%`)
-                whereBuilder.orWhereRaw('upper(administrator) like ?', `%${filters.query?.toUpperCase()}%`)
-                whereBuilder.orWhereRaw(`upper(array_to_string(${housingTable}.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
-                whereBuilder.orWhereRaw(`upper(array_to_string(o.raw_address, '%')) like ?`, `%${filters.query?.toUpperCase()}%`)
-                whereBuilder.orWhereIn('invariant', filters.query?.split(',').map(_ => _.trim()))
-                whereBuilder.orWhereIn('invariant', filters.query?.split(' ').map(_ => _.trim()))
-                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(',').map(_ => _.trim()))
-                whereBuilder.orWhereIn('cadastral_reference', filters.query?.split(' ').map(_ => _.trim()))
-            })
-        }
+        queryOwnerHousingWhereClause(queryBuilder, filters.query);
     }
 }
 
@@ -485,7 +496,7 @@ const countByStatusWithFilters = async (filters: MonitoringFiltersApi): Promise<
                 <HousingStatusCountApi> {
                     status: result.status,
                     subStatus: result.sub_status,
-                    precisions: result.precisions,
+                    precisions: result.precisions?.filter((_: any) => _?.length),
                     count: result.count
                 }
             )))
@@ -513,12 +524,12 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
                     .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
                     .andWhereRaw(`${eventsTable}.content like 
                         (case
-                             when status = 1 then '%Ajout dans la campagne%'
-                             when status = 2 then '%Passage%Premier contact%'
-                             when status = 3 then '%Passage%Suivi en cours%'
-                             when status = 4 then '%Passage%Non-vacant%'
-                             when status = 5 then '%Passage%Bloqué%'
-                             when status = 6 then '%Passage%Sortie de la vacance%'
+                             when status = ${HousingStatusApi.Waiting} then '%Ajout dans la campagne%'
+                             when status = ${HousingStatusApi.FirstContact} then '%${getHousingStatusApiLabel(HousingStatusApi.FirstContact)}%'
+                             when status = ${HousingStatusApi.InProgress} then '%${getHousingStatusApiLabel(HousingStatusApi.InProgress)}%'
+                             when status = ${HousingStatusApi.NotVacant} then '%${getHousingStatusApiLabel(HousingStatusApi.NotVacant)}%'
+                             when status = ${HousingStatusApi.NoAction} then '%${getHousingStatusApiLabel(HousingStatusApi.NoAction)}%'
+                             when status = ${HousingStatusApi.Exit} then '%${getHousingStatusApiLabel(HousingStatusApi.Exit)}%'
                         end) `)
                     .groupBy(`${housingTable}.id`)
                     .modify(monitoringQueryFilter(filters))

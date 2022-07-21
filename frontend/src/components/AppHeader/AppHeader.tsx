@@ -61,7 +61,7 @@ function AppHeader() {
         <>
             <Header closeButtonLabel='Fermer' data-testid="header">
                 <HeaderBody>
-                    <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
+                    <Logo splitCharacter={10}>Ministère de la transition écologique et de la cohésion des territoires</Logo>
                     <Service
                         title="Zéro Logement Vacant"
                         description={isValidUser(authUser) ? authUser.establishment.name : ''}/>

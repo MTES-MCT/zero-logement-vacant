@@ -22,11 +22,13 @@ const get = async (ownerId: string): Promise<OwnerApi> => {
 const searchOwners = async (q: string, page?: number, perPage?: number): Promise<PaginatedResultApi<OwnerApi>> => {
     try {
         const query = db(ownerTable)
-            .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+            .whereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, q)
+            .orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, q?.split(' ').reverse().join(' '))
 
         const ownersCount: number = await
             db(ownerTable)
-                .whereRaw('upper(full_name) like ?', `%${q?.toUpperCase()}%`)
+                .whereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, q)
+                .orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, q?.split(' ').reverse().join(' '))
                 .count('id')
                 .then(_ => Number(_[0].count))
 

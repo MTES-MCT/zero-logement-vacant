@@ -211,7 +211,11 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     startMonth: result.start_month,
     kind: result.kind,
     reminderNumber: result.reminder_number,
-    filters: {...result.filters, housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded},
+    filters: {
+        ...result.filters,
+        housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded?.scopes ?? result.filters?.housingScopes ?? [],
+        housingScopesExcluded: result.filters.housingScopesExcluded?.scopes ?? []
+    },
     createdBy: result.created_by,
     createdAt: result.created_at,
     validatedAt: result.validated_at,
@@ -244,7 +248,11 @@ const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
     startMonth: result.start_month,
     title: result.title,
     kind: result.kind,
-    filters: {...result.filters, housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded ?? result.filters?.housingScopes},
+    filters: {
+        ...result.filters,
+        housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded?.scopes ?? result.filters?.housingScopes ?? [],
+        housingScopesExcluded: result.filters.housingScopesExcluded?.scopes ?? []
+    },
     housingCount: result.housingCount,
     waitingCount: result.waitingCount,
     inProgressCount: result.inProgressCount,

@@ -71,6 +71,16 @@ INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune d’Argelès-Gazost', (select array_agg(id) from localities where geo_code = '65025'), 216500256, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Cauterets', (select array_agg(id) from localities where geo_code = '65138'), 216501387, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune d’Aubigny-sur-Nère', (select array_agg(id) from localities where geo_code = '18015'), 211800156, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Vichy', (select array_agg(id) from localities where geo_code = '03310'), 210303103, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Cusset', (select array_agg(id) from localities where geo_code = '03095'), 210300950, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Luxeuil-les-Bains', (select array_agg(id) from localities where geo_code = '70311'), 217003110, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Lannemezan', (select array_agg(id) from localities where geo_code = '65258'), 216502583, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -160,7 +170,12 @@ update establishments set available = true where siren in
  '200071512',
  '210302980',
  '243400819',
- '200084952'
+ '200084952',
+ '246200299',
+ '200067742',
+ '200083392',
+ '200041622',
+ '200069961'
 );
 
 insert into campaigns(campaign_number, start_month, filters, validated_at, exported_at, sent_at, sending_date, establishment_id, reminder_number, created_by)

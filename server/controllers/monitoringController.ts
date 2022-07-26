@@ -211,7 +211,7 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
 
 const getFiltersFromRequest = (request: JWTRequest) => {
     const role = (<RequestUser>request.auth).role;
-    const establishmentId = (<RequestUser>request.auth).userId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const filters = <MonitoringFiltersApi> request.body.filters ?? {};
 

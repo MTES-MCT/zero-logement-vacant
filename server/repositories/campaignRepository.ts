@@ -250,8 +250,8 @@ const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
     kind: result.kind,
     filters: {
         ...result.filters,
-        housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded?.scopes ?? result.filters?.housingScopes ?? [],
-        housingScopesExcluded: result.filters.housingScopesExcluded?.scopes ?? []
+        housingScopesIncluded: result.filters?.housingScopes?.scopes ?? result.filters?.housingScopesIncluded?.scopes ?? result.filters?.housingScopes ?? [],
+        housingScopesExcluded: result.filters?.housingScopesExcluded?.scopes ?? []
     },
     housingCount: result.housingCount,
     waitingCount: result.waitingCount,

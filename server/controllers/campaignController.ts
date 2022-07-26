@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi, CampaignKinds, CampaignSteps } from '../models/CampaignApi';
+import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
@@ -70,6 +70,7 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
     const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
+    const title = request.body.draftCampaign.title;
     const allHousing = request.body.allHousing;
 
     const lastNumber = await campaignRepository.lastCampaignNumber(establishmentId)
@@ -81,7 +82,8 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
         reminderNumber: 0,
         filters,
         createdBy: userId,
-        validatedAt: new Date()
+        validatedAt: new Date(),
+        title
     })
 
     const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
@@ -113,6 +115,7 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
     const userId = (<RequestUser>request.auth).userId;
 
     const startMonth = request.body.startMonth;
+    const kind = request.body.kind;
     const allHousing = request.body.allHousing;
 
     const campaignBundle = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
@@ -122,7 +125,7 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
         establishmentId,
         campaignNumber: campaignBundle.campaignNumber,
         startMonth,
-        kind: CampaignKinds.Remind,
+        kind,
         reminderNumber: lastReminderNumber + 1,
         filters: campaignBundle.filters,
         createdBy: userId,
@@ -180,6 +183,34 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
     return campaignRepository.update(updatedCampaign)
         .then(() => campaignRepository.getCampaign(campaignId))
         .then(_ => response.status(200).json(_))
+}
+
+const updateCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const campaignNumber = Number(request.params.campaignNumber);
+    const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
+
+    console.log('Update campaign bundle infos for establishment', establishmentId, campaignNumber, reminderNumber)
+
+    const title = request.body.title;
+
+    const campaigns = await campaignRepository.listCampaigns(establishmentId)
+    const campaignsToUpdate = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
+
+    if (!campaignsToUpdate.length) {
+        return response.sendStatus(401)
+    } else {
+
+        return Promise.all(
+            campaignsToUpdate
+                .map(campaign => campaignRepository.update({
+                    ...campaign,
+                    title
+                }))
+        )
+            .then(() => response.send(200))
+    }
 }
 
 
@@ -243,6 +274,7 @@ const campaignController =  {
     listCampaignBundles,
     createCampaign,
     createReminderCampaign,
+    updateCampaignBundle,
     validateStep,
     deleteCampaign,
     removeHousingList

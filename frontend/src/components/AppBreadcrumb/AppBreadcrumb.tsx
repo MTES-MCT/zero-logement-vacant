@@ -5,7 +5,7 @@ import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavI
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
-import { campaignBundleIdUrlFragment, campaignName, getCampaignBundleId } from '../../models/Campaign';
+import { campaignBundleIdUrlFragment, campaignFullName, getCampaignBundleId } from '../../models/Campaign';
 import { getOwner } from '../../store/actions/ownerAction';
 import { getHousing } from '../../store/actions/housingAction';
 
@@ -45,29 +45,29 @@ const AppBreadcrumb = () => {
 
         setItems(location.pathname.split('/')
             .map(value => {
-                if (value === getUserNavItem(UserNavItems.Dashboard).url.substr(1) || value === '') {
+                if (value === getUserNavItem(UserNavItems.Dashboard).url.substring(1) || value === '') {
                     return getUserNavItem(UserNavItems.Dashboard)
-                } else if (value === getUserNavItem(UserNavItems.HousingList).url.substr(1)) {
+                } else if (value === getUserNavItem(UserNavItems.HousingList).url.substring(1)) {
                     return getUserNavItem(UserNavItems.HousingList)
-                } else if (value === getUserNavItem(UserNavItems.Campaign).url.substr(1)) {
+                } else if (value === getUserNavItem(UserNavItems.Campaign).url.substring(1)) {
                     return getUserNavItem(UserNavItems.Campaign)
-                } else if (value === getUserNavItem(UserNavItems.User).url.substr(1)) {
+                } else if (value === getUserNavItem(UserNavItems.User).url.substring(1)) {
                     return getUserNavItem(UserNavItems.User)
-                } else if (value === getUserNavItem(UserNavItems.Monitoring).url.substr(1)) {
+                } else if (value === getUserNavItem(UserNavItems.Monitoring).url.substring(1)) {
                     return getUserNavItem(UserNavItems.Monitoring)
                 } else if (value.indexOf('C') === 0 && campaignBundle) {
                     return {
                         url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
-                        label: campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)
+                        label: campaignFullName(campaignBundle)
                     }
                 } else if (value.indexOf('proprietaires') !== -1 && owner) {
                     return {
-                        url: location.pathname.substr(0, location.pathname.indexOf(ownerId) + ownerId.length),
+                        url: location.pathname.substring(0, location.pathname.indexOf(ownerId) + ownerId.length),
                         label: owner.fullName
                     }
                 } else if (value.indexOf('logements') !== -1 && housing) {
                     return {
-                        url: location.pathname.substr(0, location.pathname.indexOf(housingId) + housingId.length),
+                        url: location.pathname.substring(0, location.pathname.indexOf(housingId) + housingId.length),
                         label: housing.rawAddress.join(' - ')
                     }
                 } else if (value.indexOf('etablissement') !== -1 && establishmentId && availableEstablishments) {

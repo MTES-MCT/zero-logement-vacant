@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
+import { Badge, Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
 import styles from './events-history.module.scss';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { Event } from '../../models/Event';
 import { Housing } from '../../models/Housing';
+import { campaignFullName, getCampaignKindLabel } from '../../models/Campaign';
 
 
 const EventsHistory = ({ events, housingList }: { events: Event[], housingList?: Housing[]}) => {
@@ -28,8 +29,9 @@ const EventsHistory = ({ events, housingList }: { events: Event[], housingList?:
                     <ul className={styles.ownerEvents}>
                         {events
                             .filter((event, index) => expandEvents || index < 3)
-                            .map(event =>
-                                <li key={event.id}>
+                            .map(event => {
+                                const eventCampaign = campaignList?.find(campaign => campaign.id === event.campaignId)
+                                return <li key={event.id}>
                                     <div className={styles.ownerEvent}>
                                         <TagGroup>
                                             <Tag as="span"
@@ -43,14 +45,22 @@ const EventsHistory = ({ events, housingList }: { events: Event[], housingList?:
                                             </div>
                                         }
                                         <div className="fr-mb-0">
-                                            {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}"`}
-                                            {event.campaignId && (event.contactKind || event.content) ? ': ' : ''}
+                                            {eventCampaign &&
+                                                <div>
+                                                    <Badge small
+                                                           text={eventCampaign.campaignNumber ? `Campagne - ${getCampaignKindLabel(eventCampaign.kind)}` : 'Hors campagne'}
+                                                           className="fr-mb-1w"
+                                                    />
+                                                    <br/>
+                                                    "{campaignFullName(eventCampaign)}"
+                                                </div>
+                                            }
                                             {event.contactKind && `${event.contactKind}. `}
                                             <div dangerouslySetInnerHTML={{ __html: event.content ?? '' }}/>
                                         </div>
                                     </div>
                                 </li>
-                            )
+                            })
                         }
                     </ul>
                     {!expandEvents && events.length > 3 &&

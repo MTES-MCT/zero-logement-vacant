@@ -24,6 +24,7 @@ import {
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
+import { campaignFullName } from '../../models/Campaign';
 
 const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, onChange?: (_: any) => void}) => {
 
@@ -97,7 +98,7 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                  filters={filters.status?.map(_ => _.toString())}
                                  onChange={onChange && (values => onChange({status: values}))}/>
             {campaignList && filters.campaignIds &&
-                <FilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
+                <FilterBadges options={campaignList.map(c => ({value: c.id, label: campaignFullName(c)}))}
                                      filters={filters.campaignIds}
                                      onChange={onChange && (values => onChange({campaignIds: values}))}/>
             }

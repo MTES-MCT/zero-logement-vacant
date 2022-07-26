@@ -24,6 +24,7 @@ import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
 import { useMatomo } from '@datapunt/matomo-tracker-react'
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { campaignFullName } from '../../models/Campaign';
 
 
 const HousingListFilter = () => {
@@ -208,7 +209,7 @@ const HousingListFilter = () => {
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
-                                            options={campaignList.map(c => ({ value: c.id, label: c.name }))}
+                                            options={campaignList.map(c => ({ value: c.id, label: campaignFullName(c) }))}
                                             initialValues={filters.campaignIds}
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>

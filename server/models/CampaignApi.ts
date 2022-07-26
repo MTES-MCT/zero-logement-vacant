@@ -8,6 +8,7 @@ export interface CampaignApi {
     kind: CampaignKinds;
     reminderNumber: number;
     filters: HousingFiltersApi;
+    title?: string;
     createdBy?: string,
     createdAt?: Date;
     validatedAt?: Date;
@@ -22,6 +23,7 @@ export interface CampaignBundleApi {
     reminderNumber: number;
     kind: CampaignKinds;
     filters: HousingFiltersApi;
+    title?: string;
     housingCount: number;
     waitingCount: number;
     inProgressCount: number;
@@ -37,5 +39,5 @@ export enum CampaignSteps {
 }
 
 export enum CampaignKinds {
-    Initial, Remind, Surveying, DoorToDoor, BeforeZlv
+    Initial, Surveying, DoorToDoor, BeforeZlv
 }

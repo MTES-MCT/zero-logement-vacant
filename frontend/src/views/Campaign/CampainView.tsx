@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Badge, Col, Container, Row, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { CampaignBundle, campaignName, campaignStep, CampaignSteps, returnRate } from '../../models/Campaign';
+import {
+    CampaignBundle,
+    campaignPartialName,
+    campaignStep,
+    CampaignSteps,
+    getCampaignKindLabel,
+    returnRate,
+} from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampainInProgress';
@@ -22,6 +29,7 @@ const CampaignView = () => {
     const { campaignNumber, reminderNumber } = useParams<{campaignNumber: string, reminderNumber: string}>();
 
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
+
     const [searchQuery, setSearchQuery] = useState<string>();
 
     useEffect(() => {
@@ -43,11 +51,19 @@ const CampaignView = () => {
                     <div className="bg-100">
                         <Container className="bg-100">
                             <AppBreadcrumb />
+                            <Badge small
+                                   text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
+                                   className="fr-mb-1w"
+                            />
                             <Row>
                                 <Col>
-                                    <Title as="h1">{campaignName(campaignBundle.kind, campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber)}</Title>
+                                    <Title as="h1" className="fr-mb-1w">
+                                        {campaignPartialName(campaignBundle.startMonth, campaignBundle.campaignNumber, campaignBundle.reminderNumber, campaignBundle.kind)}
+                                        <br />
+                                        {campaignBundle.title}
+                                    </Title>
                                 </Col>
-                                <Col n="4">
+                                <Col n="4" spacing="mt-1w">
                                     <AppSearchBar onSearch={(input: string) => {setSearchQuery(input)}} />
                                 </Col>
                             </Row>

@@ -7,11 +7,7 @@ export interface DraftCampaign {
     startMonth: string;
     kind: CampaignKinds;
     filters: HousingFilters;
-}
-
-export interface CampaignBundleId {
-    campaignNumber?: number;
-    reminderNumber?: number;
+    title?: string;
 }
 
 export interface Campaign {
@@ -22,18 +18,25 @@ export interface Campaign {
     kind: CampaignKinds;
     name: string;
     filters: HousingFilters;
+    title?: string;
     createdAt: Date;
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
 }
 
-export interface CampaignBundle extends CampaignBundleId{
+export interface CampaignBundleId {
+    campaignNumber?: number;
+    reminderNumber?: number;
+}
+
+export interface CampaignBundle extends CampaignBundleId {
     campaignIds: string[];
     startMonth: string;
     kind: CampaignKinds;
     name: string;
     filters: HousingFilters;
+    title?: string;
     housingCount: number;
     waitingCount: number;
     inProgressCount: number;
@@ -45,15 +48,13 @@ export interface CampaignBundle extends CampaignBundleId{
 }
 
 export enum CampaignKinds {
-    Initial, Remind, Surveying, DoorToDoor, BeforeZlv
+    Initial, Surveying, DoorToDoor, BeforeZlv
 }
 
 export const getCampaignKindLabel = (kind: CampaignKinds) => {
     switch (kind) {
         case CampaignKinds.Initial:
             return 'Courrier postal';
-        case CampaignKinds.Remind:
-            return 'Relance';
         case CampaignKinds.Surveying:
             return 'Arpentage';
         case CampaignKinds.DoorToDoor:
@@ -84,12 +85,24 @@ export const getCampaignBundleId = (campaignBundle?: CampaignBundle | Campaign) 
     }
 }
 
-export const campaignName = (kind: CampaignKinds, startMonth: string, campaignNumber?: number, reminderNumber?: number) => {
+export const campaignReminderName = (reminderNumber?: number | string, campaignKind?: CampaignKinds) => {
+    return reminderNumber !== undefined && campaignKind !== undefined ? (Number(reminderNumber) > 0 ? 'Relance n°' + reminderNumber : getCampaignKindLabel(campaignKind)) : ''
+}
+
+export const campaignPartialName = (startMonth: string, campaignNumber?: number | string, reminderNumber?: number | string, campaignKind?: CampaignKinds, campaignTitle?: string) => {
     return campaignNumber === undefined ?
         'Tous les logements suivis' :
         !campaignNumber ? 'Logements hors campagne' :
-        `C${campaignNumber} - ${format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}
-        ${' - ' + getCampaignKindLabel(kind)}${(reminderNumber ?? 0) > 0 ? ' n°' + reminderNumber : ''}`
+            [
+                `C${Number(campaignNumber)}`,
+                format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr }),
+                campaignTitle,
+                campaignReminderName(reminderNumber, campaignKind)
+            ].filter(_ => _?.length).join(' - ')
+}
+
+export const campaignFullName = (campaign: Campaign | CampaignBundle) => {
+    return campaignPartialName(campaign.startMonth, campaign.campaignNumber, campaign.reminderNumber, campaign.kind, campaign.title)
 }
 
 export const campaignStep = (campaign?: Campaign) => {

@@ -9,8 +9,9 @@ import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { CampaignNumberSort } from '../../models/Campaign';
+import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
 import { getHousingState } from '../../models/HousingState';
+import _ from 'lodash';
 
 
 export enum HousingDisplayKey {
@@ -149,9 +150,13 @@ const HousingList = (
         render: ({ campaignIds, id } : Housing) =>
             <>
                 {campaignIds?.length ?
-                    campaignIds.map(campaignId => campaignList?.find(c => c.id === campaignId)).sort(CampaignNumberSort).map(campaign =>
-                        <div key={id + '-campaign-' + campaign?.id}>
-                            {campaign?.name}
+                    _.uniq(campaignIds
+                        .map(campaignId => campaignList?.find(c => c.id === campaignId))
+                        .sort(CampaignNumberSort)
+                        .map(campaign => campaign ? campaignPartialName(campaign?.startMonth, campaign?.campaignNumber) : '')
+                    ).map((campaignName, campaignIdx) =>
+                        <div key={id + '-campaign-' + campaignIdx}>
+                            {campaignName}
                         </div>
                     ) :
                     'Jamais contacté'

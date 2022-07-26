@@ -302,22 +302,16 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.localityKinds?.length) {
             queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
         }
-        if (filters.housingScopesIncluded && filters.housingScopesIncluded.scopes.length) {
+        if (filters.housingScopesIncluded && filters.housingScopesIncluded.length) {
             queryBuilder
                 .joinRaw(`left join ${housingScopeGeometryTable} as hsg_inc on st_contains(hsg_inc.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                .where(function (whereBuilder: any) {
-                    if (filters.housingScopesIncluded?.geom) {
-                        whereBuilder.whereRaw(`? && array[hsg_inc.type]::text[]`, [filters.housingScopesIncluded.scopes])
-                    } else {
-                        whereBuilder.whereIn('housing_scope', filters.housingScopesIncluded?.scopes)
-                    }
-                })
+                .whereRaw(`? && array[hsg_inc.type]::text[]`, [filters.housingScopesIncluded])
         }
-        if (filters.housingScopesExcluded && filters.housingScopesExcluded.scopes.length) {
+        if (filters.housingScopesExcluded && filters.housingScopesExcluded.length) {
             queryBuilder.whereNotExists(function (whereBuilder: any) {
                 whereBuilder.select('*').from(housingScopeGeometryTable)
                     .whereRaw(`st_contains(${housingScopeGeometryTable}.geom, ST_SetSRID(ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                    .whereIn('type', filters.housingScopesExcluded?.scopes)
+                    .whereIn('type', filters.housingScopesExcluded)
             })
         }
         if (filters.dataYearsIncluded?.length) {

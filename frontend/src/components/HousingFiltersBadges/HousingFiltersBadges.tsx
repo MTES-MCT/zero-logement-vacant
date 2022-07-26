@@ -24,6 +24,7 @@ import {
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
+import { campaignFullName } from '../../models/Campaign';
 
 const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, onChange?: (_: any) => void}) => {
 
@@ -80,15 +81,15 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <FilterBadges options={localityKindsOptions}
                                  filters={filters.localityKinds}
                                  onChange={onChange && (values => onChange({localityKinds: values}))}/>
-            {establishment.housingScopes && establishment.housingScopes.scopes &&
-                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                     filters={filters.housingScopesIncluded?.scopes}
-                                     onChange={onChange && (values => onChange({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}))}/>
+            {establishment.housingScopes &&
+                <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                     filters={filters.housingScopesIncluded}
+                                     onChange={onChange && (values => onChange({housingScopesIncluded: values}))}/>
             }
-            {establishment.housingScopes && establishment.housingScopes.scopes &&
-                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
-                                     filters={filters.housingScopesExcluded?.scopes}
-                                     onChange={onChange && (values => onChange({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}))}/>
+            {establishment.housingScopes &&
+                <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
+                                     filters={filters.housingScopesExcluded}
+                                     onChange={onChange && (values => onChange({housingScopesExcluded: values}))}/>
             }
             <FilterBadges options={campaignsCountOptions}
                                  filters={filters.campaignsCounts}
@@ -97,7 +98,7 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                  filters={filters.status?.map(_ => _.toString())}
                                  onChange={onChange && (values => onChange({status: values}))}/>
             {campaignList && filters.campaignIds &&
-                <FilterBadges options={campaignList.map(c => ({value: c.id, label: c.name}))}
+                <FilterBadges options={campaignList.map(c => ({value: c.id, label: campaignFullName(c)}))}
                                      filters={filters.campaignIds}
                                      onChange={onChange && (values => onChange({campaignIds: values}))}/>
             }

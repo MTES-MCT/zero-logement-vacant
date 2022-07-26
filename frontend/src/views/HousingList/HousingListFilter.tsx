@@ -24,6 +24,7 @@ import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
 import { useMatomo } from '@datapunt/matomo-tracker-react'
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { campaignFullName } from '../../models/Campaign';
 
 
 const HousingListFilter = () => {
@@ -177,16 +178,16 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre inclus"
-                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                        initialValues={filters.housingScopesIncluded?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre inclus')}/>
+                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesIncluded}
+                                        onChange={(values) => onChangeFilters({housingScopesIncluded: values}, 'Périmètre inclus')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre exclu"
                                         defaultOption="Aucun"
-                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                        initialValues={filters.housingScopesExcluded?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre exclu')}/>
+                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesExcluded}
+                                        onChange={(values) => onChangeFilters({housingScopesExcluded: values}, 'Périmètre exclu')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
@@ -208,7 +209,7 @@ const HousingListFilter = () => {
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
-                                            options={campaignList.map(c => ({ value: c.id, label: c.name }))}
+                                            options={campaignList.map(c => ({ value: c.id, label: campaignFullName(c) }))}
                                             initialValues={filters.campaignIds}
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>

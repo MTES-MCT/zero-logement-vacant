@@ -1,4 +1,4 @@
-import { CampaignApi, CampaignBundleApi, CampaignKinds } from '../models/CampaignApi';
+import { CampaignApi, CampaignBundleApi } from '../models/CampaignApi';
 import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import {
@@ -69,7 +69,8 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                             `${campaignsTable}.campaign_number`,
                             db.raw(`(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`),
                             db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
-                            db.raw(`(array_agg(${campaignsTable}.start_month order by reminder_number asc))[1] as "start_month"`)
+                            db.raw(`(array_agg(${campaignsTable}.start_month order by reminder_number asc))[1] as "start_month"`),
+                            db.raw(`(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`),
                         )
                         .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
                         .groupBy(`${campaignsTable}.campaign_number`)
@@ -113,6 +114,7 @@ const listCampaignBundles = async (establishmentId: string): Promise<CampaignBun
                 db.raw(`(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`),
                 db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
                 db.raw(`(array_agg(${campaignsTable}.start_month order by reminder_number asc))[1] as "start_month"`),
+                db.raw(`(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
@@ -155,7 +157,6 @@ const lastReminderNumber = async (establishmentId: string, campaignNumber: numbe
         return db(campaignsTable)
             .where('establishment_id', establishmentId)
             .andWhere('campaign_number', campaignNumber)
-            .andWhere('kind', CampaignKinds.Remind)
             .max('reminder_number')
             .first()
             .then(_ => _ ? _.max : 0);
@@ -210,12 +211,13 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     startMonth: result.start_month,
     kind: result.kind,
     reminderNumber: result.reminder_number,
-    filters: {...result.filters, housingScopesIncluded: result.filters.housingScopes?.scopes ? result.filters.housingScopes : {geom: false, scopes: result.filters.housingScopes}},
+    filters: {...result.filters, housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded},
     createdBy: result.created_by,
     createdAt: result.created_at,
     validatedAt: result.validated_at,
     exportedAt: result.exported_at,
-    sentAt: result.sent_at
+    sentAt: result.sent_at,
+    title: result.title
 }
 
 const formatCampaignApi = (campaignApi: CampaignApi) => ({
@@ -226,12 +228,13 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     kind: campaignApi.kind,
     reminder_number: campaignApi.reminderNumber,
     filters: campaignApi.filters,
+    title: campaignApi.title,
     created_by: campaignApi.createdBy,
     created_at: campaignApi.createdAt,
     validated_at: campaignApi.validatedAt,
     exported_at: campaignApi.exportedAt,
     sent_at: campaignApi.sentAt,
-    sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined,
+    sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined
 })
 
 const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
@@ -239,8 +242,9 @@ const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
     campaignNumber: result.campaign_number,
     reminderNumber: result.reminder_number,
     startMonth: result.start_month,
+    title: result.title,
     kind: result.kind,
-    filters: {...result.filters, housingScopesIncluded: result.filters?.housingScopes?.scopes ? result.filters?.housingScopes : {geom: false, scopes: result.filters?.housingScopes}},
+    filters: {...result.filters, housingScopesIncluded: result.filters.housingScopes?.scopes ?? result.filters.housingScopesIncluded ?? result.filters?.housingScopes},
     housingCount: result.housingCount,
     waitingCount: result.waitingCount,
     inProgressCount: result.inProgressCount,

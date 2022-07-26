@@ -2,7 +2,7 @@ export interface EstablishmentApi {
     id: string,
     name: string,
     siren: number,
-    housingScopes: HousingScopesApi,
+    housingScopes: string[],
     localities: LocalityApi[]
 }
 
@@ -21,12 +21,6 @@ export interface EstablishmentDataApi {
     delayBetweenCampaigns: any,
     firstCampaignSentDelay: number
 }
-
-export interface HousingScopesApi {
-    geom: boolean,
-    scopes: string[]
-}
-
 
 export interface LocalityApi {
     geoCode: string,

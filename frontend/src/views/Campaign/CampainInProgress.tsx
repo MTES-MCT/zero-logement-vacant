@@ -102,7 +102,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     }
 
     const submitCampaignReminder = (startMonth: string) => {
-        dispatch(createCampaignBundleReminder(startMonth, selectedHousing.all, selectedHousing.ids))
+        dispatch(createCampaignBundleReminder(startMonth, campaignBundle.kind, selectedHousing.all, selectedHousing.ids))
     }
 
     return (

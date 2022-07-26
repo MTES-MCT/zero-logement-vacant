@@ -28,10 +28,6 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                         id: result.id,
                         name: result.name,
                         siren: result.siren,
-                        housingScopes: {
-                            geom: false,
-                            scopes: result.housing_scopes
-                        },
                         localities: result.localities
                             .map((l: { geo_code: any; name: any; }) => ({
                                 geoCode: l.geo_code,

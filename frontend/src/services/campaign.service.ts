@@ -6,7 +6,7 @@ import {
     CampaignBundle,
     CampaignBundleId,
     campaignBundleIdApiFragment,
-    campaignName,
+    CampaignKinds,
     CampaignSteps,
     DraftCampaign,
 } from '../models/Campaign';
@@ -55,12 +55,21 @@ const createCampaign = async (draftCampaign: DraftCampaign, allHousing: boolean,
         .then(_ => parseCampaign(_));
 };
 
-const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, startMonth: string,  allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
+const updateCampaignBundleTitle = async (campaignBundleId: CampaignBundleId, title?: string) => {
+
+    return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}`, {
+        method: 'PUT',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+    });
+};
+
+const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, startMonth: string, kind: CampaignKinds, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startMonth, allHousing, housingIds }),
+        body: JSON.stringify({ startMonth, kind, allHousing, housingIds }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -102,7 +111,6 @@ const getExportURL = (campaignBundleId: CampaignBundleId) => {
 
 const parseCampaign = (c: any): Campaign => ({
     ...c,
-    name: campaignName(c.kind, c.startMonth, c.campaignNumber, c.reminderNumber),
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined
@@ -122,6 +130,7 @@ const campaignService = {
     getCampaignBundle,
     createCampaign,
     createCampaignBundleReminder,
+    updateCampaignBundleTitle,
     deleteCampaignBundle,
     validCampaignStep,
     removeHousingList,

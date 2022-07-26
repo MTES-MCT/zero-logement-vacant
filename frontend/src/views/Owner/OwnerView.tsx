@@ -17,7 +17,12 @@ import HousingStatusModal from '../../components/modals/HousingStatusModal/Housi
 import { getBuildingLocation, Housing, HousingUpdate } from '../../models/Housing';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
-import { campaignBundleIdUrlFragment, getCampaignBundleId } from '../../models/Campaign';
+import {
+    campaignBundleIdUrlFragment,
+    campaignFullName,
+    CampaignNumberSort,
+    getCampaignBundleId,
+} from '../../models/Campaign';
 
 const OwnerView = () => {
 
@@ -278,18 +283,21 @@ const OwnerView = () => {
                                             <b>{housing.campaignIds.length === 1 ? 'Campagne' : 'Campagnes'}</b>
                                         </Text>
                                         <hr/>
-                                        {housing.campaignIds.map(campaignId =>
-                                            <div key={`${campaignId}_${housing.id}`} className="fr-pb-2w">
-                                                <span style={{ verticalAlign: 'top' }}>
-                                                    <b>{campaignList?.find(campaign => campaign.id === campaignId)?.name}</b>
-                                                </span>
-                                                <Link
-                                                    title="Voir la campagne"
-                                                    to={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignList?.find(campaign => campaign.id === campaignId)))}
-                                                    className="ds-fr--inline fr-link fr-ml-2w">
+                                        {housing.campaignIds.map(campaignId => campaignList?.find(campaign => campaign.id === campaignId)).sort(CampaignNumberSort).map(campaign =>
+                                            <div key={`${campaign?.id}_${housing.id}`} className="fr-pb-2w">
+                                                {campaign && <>
+                                                    <span style={{ verticalAlign: 'top' }}>
+                                                        <b>{campaignFullName(campaign)}</b>
+                                                    </span>
+                                                    <Link
+                                                        title="Voir la campagne"
+                                                        to={'/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaign))}
+                                                        className="ds-fr--inline fr-link fr-ml-2w">
 
-                                                    Voir la campagne<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
-                                                </Link>
+                                                        Voir la campagne<span
+                                                        className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle"/>
+                                                    </Link>
+                                                </>}
                                             </div>
                                         )}
                                     </Col>

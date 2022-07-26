@@ -177,16 +177,16 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre inclus"
-                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                        initialValues={filters.housingScopesIncluded?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre inclus')}/>
+                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesIncluded}
+                                        onChange={(values) => onChangeFilters({housingScopesIncluded: values}, 'Périmètre inclus')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre exclu"
                                         defaultOption="Aucun"
-                                        options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                        initialValues={filters.housingScopesExcluded?.scopes}
-                                        onChange={(values) => onChangeFilters({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}, 'Périmètre exclu')}/>
+                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        initialValues={filters.housingScopesExcluded}
+                                        onChange={(values) => onChangeFilters({housingScopesExcluded: values}, 'Périmètre exclu')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">

@@ -80,15 +80,15 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
             <FilterBadges options={localityKindsOptions}
                                  filters={filters.localityKinds}
                                  onChange={onChange && (values => onChange({localityKinds: values}))}/>
-            {establishment.housingScopes && establishment.housingScopes.scopes &&
-                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs}))}
-                                     filters={filters.housingScopesIncluded?.scopes}
-                                     onChange={onChange && (values => onChange({housingScopesIncluded: {...establishment.housingScopes, scopes: values}}))}/>
+            {establishment.housingScopes &&
+                <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                     filters={filters.housingScopesIncluded}
+                                     onChange={onChange && (values => onChange({housingScopesIncluded: values}))}/>
             }
-            {establishment.housingScopes && establishment.housingScopes.scopes &&
-                <FilterBadges options={establishment.housingScopes.scopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
-                                     filters={filters.housingScopesExcluded?.scopes}
-                                     onChange={onChange && (values => onChange({housingScopesExcluded: {...establishment.housingScopes, scopes: values}}))}/>
+            {establishment.housingScopes &&
+                <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
+                                     filters={filters.housingScopesExcluded}
+                                     onChange={onChange && (values => onChange({housingScopesExcluded: values}))}/>
             }
             <FilterBadges options={campaignsCountOptions}
                                  filters={filters.campaignsCounts}

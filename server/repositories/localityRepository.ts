@@ -17,17 +17,14 @@ const listByEstablishmentId = async (establishmentId: string): Promise<LocalityA
     }
 }
 
-const listHousingScopes = async (establishmentId: string): Promise<{geom: boolean, scopes: string[]}> => {
+const listHousingScopes = async (establishmentId: string): Promise<string[]> => {
     try {
         return db(housingScopeGeometryTable)
             .leftJoin(establishmentsTable, 'establishment_id', `${establishmentsTable}.id`)
             .where('establishment_id', establishmentId)
             .orWhereNull('establishment_id')
             .distinct('type')
-            .then(_ => ({
-                geom: true,
-                scopes: _.map(_ => _.type)
-            }))
+            .then(_ => _.map(_ => _.type))
     } catch (err) {
         console.error('Listing housing scopes failed', err);
         throw new Error('Listing housing scopes failed');

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import path from 'path';
 import protectedRouter from './routers/protected';
 import unprotectedRouter from './routers/unprotected';
@@ -49,6 +49,15 @@ app.use(rateLimiter);
 
 app.use(unprotectedRouter);
 app.use(protectedRouter);
+
+const errHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (err.name === "UnauthorizedError") {
+        res.sendStatus(401);
+    } else {
+        next(err);
+    }
+};
+app.use(errHandler)
 
 if (config.environment === 'production') {
 

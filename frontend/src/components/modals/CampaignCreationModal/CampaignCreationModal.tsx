@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import {
     Button,
     Col,
@@ -11,6 +11,7 @@ import {
     Row,
     Select,
     Text,
+    TextInput,
 } from '@dataesr/react-dsfr';
 import { addMonths, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -25,10 +26,21 @@ import { hasFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
 import { DefaultOption } from '../../../models/SelectOption';
 
-const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount: number, onSubmit: (draftCampaign: DraftCampaign) => void, onClose: () => void}) => {
+const CampaignCreationModal = (
+    {
+        housingCount,
+        onSubmit,
+        onClose
+    }: {
+        housingCount: number,
+        onSubmit: (draftCampaign: DraftCampaign) => void,
+        onClose: () => void
+    }) => {
+
 
     const [campaignStartMonth, setCampaignStartMonth] = useState('');
     const [campaignKind, setCampaignKind] = useState('');
+    const [campaignTitle, setCampaignTitle] = useState('');
     const [errors, setErrors] = useState<any>({});
 
     const campaignForm = yup.object().shape({
@@ -45,7 +57,8 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                 onSubmit({
                     startMonth: campaignStartMonth,
                     kind: parseInt(campaignKind),
-                    filters
+                    filters,
+                    title: campaignTitle
                 } as DraftCampaign);
             })
             .catch(err => {
@@ -100,6 +113,7 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                                 options={campaignStartOptions}
                                 selected={campaignStartMonth}
                                 onChange={(e: any) => setCampaignStartMonth(e.target.value)}
+                                required
                                 messageType={errors['campaignStartMonth'] ? 'error' : undefined}
                                 message={errors['campaignStartMonth']}
                                 data-testid="start-month-select"
@@ -111,8 +125,19 @@ const CampaignCreationModal = ({housingCount, onSubmit, onClose}: {housingCount:
                                 options={campaignKindOptions}
                                 selected={campaignKind}
                                 onChange={(e: any) => setCampaignKind(e.target.value)}
+                                required
                                 messageType={errors['campaignKind'] ? 'error' : undefined}
                                 message={errors['campaignKind']}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutters>
+                        <Col n="10">
+                            <TextInput
+                                value={campaignTitle}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setCampaignTitle(e.target.value)}
+                                label="Titre complémentaire (optionnel)"
+                                placeholder="Titre complémentaire"
                             />
                         </Col>
                     </Row>

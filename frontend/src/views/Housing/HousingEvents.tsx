@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
+import { Badge, Col, Row, Tag, TagGroup, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import styles from './housing.module.scss';
@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { getOwnerEvents } from '../../store/actions/ownerAction';
 import { fr } from 'date-fns/locale';
 import { useCampaignList } from '../../hooks/useCampaignList';
+import { campaignFullName, getCampaignKindLabel } from '../../models/Campaign';
 
 
 const HousingEvents = ({ ownerId }: { ownerId: string}) => {
@@ -35,27 +36,38 @@ const HousingEvents = ({ ownerId }: { ownerId: string}) => {
                     <ul className={styles.ownerEvents}>
                         {events
                             .filter((event, index) => expandEvents || index < 3)
-                            .map(event =>
-                                <li key={event.id}>
-                                    <div className={styles.ownerEvent}>
-                                        <TagGroup>
-                                            <Tag as="span"
-                                                 size="sm">
-                                                {format(event.createdAt, 'dd MMMM yyyy', { locale: fr })}
-                                            </Tag>
-                                        </TagGroup>
-                                        {event.housingId &&
-                                            <div>
-                                                <b>{housingNumber(event.housingId) ? 'Logement ' + housingNumber(event.housingId) : 'Ancien logement'}</b>
+                            .map(event => {
+                                    const eventCampaign = campaignList?.find(campaign => campaign.id === event.campaignId)
+                                    return <li key={event.id}>
+                                        <div className={styles.ownerEvent}>
+                                            <TagGroup>
+                                                <Tag as="span"
+                                                     size="sm">
+                                                    {format(event.createdAt, 'dd MMMM yyyy', { locale: fr })}
+                                                </Tag>
+                                            </TagGroup>
+                                            {event.housingId &&
+                                                <div>
+                                                    <b>{housingNumber(event.housingId) ? 'Logement ' + housingNumber(event.housingId) : 'Ancien logement'}</b>
+                                                </div>
+                                            }
+                                            <div className="fr-mb-0">
+                                                {eventCampaign &&
+                                                    <div>
+                                                        <Badge small
+                                                               text={eventCampaign.campaignNumber ? `Campagne - ${getCampaignKindLabel(eventCampaign.kind)}` : 'Hors campagne'}
+                                                               className="fr-mb-1w"
+                                                        />
+                                                        <br/>
+                                                        "{campaignFullName(eventCampaign)}"
+                                                    </div>
+                                                }
+                                                {event.contactKind && `${event.contactKind}. `}
+                                                <div dangerouslySetInnerHTML={{ __html: event.content ?? '' }}/>
                                             </div>
-                                        }
-                                        <div className="fr-mb-0">
-                                            {event.campaignId && `"${campaignList?.find(campaign => campaign.id === event.campaignId)?.name}"`}
-                                            {event.campaignId && (event.contactKind || event.content) ? ': ' : ''}
-                                            {event.contactKind && `${event.contactKind}. `}{event.content}
                                         </div>
-                                    </div>
-                                </li>
+                                    </li>
+                                }
                             )
                         }
                     </ul>

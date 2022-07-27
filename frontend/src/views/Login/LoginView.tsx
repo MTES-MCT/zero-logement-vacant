@@ -83,6 +83,7 @@ const LoginView = () => {
                         message={formErrors['email']}
                         data-testid="email-input"
                         label="Adresse email : "
+                        required
                     />
                     <TextInput
                         value={password}
@@ -92,6 +93,7 @@ const LoginView = () => {
                         message={formErrors['password']}
                         data-testid="password-input"
                         label="Mot de passe : "
+                        required
                     />
                     {pathname === ('/admin') && availableEstablishmentOptions &&
                         <Select
@@ -101,6 +103,7 @@ const LoginView = () => {
                             messageType={formErrors['establishmentId'] ? 'error' : undefined}
                             message={formErrors['establishmentId']}
                             onChange={(e: any) => setEstablishmentId(e.target.value)}
+                            required
                         />
                     }
                     <Button

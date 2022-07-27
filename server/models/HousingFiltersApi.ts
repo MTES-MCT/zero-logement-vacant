@@ -1,4 +1,3 @@
-import { HousingScopesApi } from './EstablishmentApi';
 import { OwnershipKindsApi } from './HousingApi';
 
 export interface HousingFiltersApi {
@@ -22,8 +21,8 @@ export interface HousingFiltersApi {
     ownerIds?: string[];
     localities?: string[];
     localityKinds?: string[];
-    housingScopesIncluded?: HousingScopesApi;
-    housingScopesExcluded?: HousingScopesApi;
+    housingScopesIncluded?: string[];
+    housingScopesExcluded?: string[];
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];

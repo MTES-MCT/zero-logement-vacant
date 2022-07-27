@@ -91,6 +91,7 @@ const UserCreationModal = ({availableEstablishments, onSubmit, onClose}: {availa
                                     messageType={formErrors['firstName'] ? 'error' : ''}
                                     message={formErrors['firstName']}
                                     label="Prénom : "
+                                    required
                                 />
                             </Col>
                             <Col>
@@ -100,6 +101,7 @@ const UserCreationModal = ({availableEstablishments, onSubmit, onClose}: {availa
                                     messageType={formErrors['lastName'] ? 'error' : ''}
                                     message={formErrors['lastName']}
                                     label="Nom : "
+                                    required
                                 />
                             </Col>
                         </Row>
@@ -111,6 +113,7 @@ const UserCreationModal = ({availableEstablishments, onSubmit, onClose}: {availa
                                     messageType={formErrors['email'] ? 'error' : ''}
                                     message={formErrors['email']}
                                     label="Adresse email : "
+                                    required
                                 />
                             </Col>
                         </Row>
@@ -124,6 +127,7 @@ const UserCreationModal = ({availableEstablishments, onSubmit, onClose}: {availa
                                         messageType={formErrors['establishmentId'] ? 'error' : undefined}
                                         message={formErrors['establishmentId']}
                                         onChange={(e: any) => setEstablishmentId(e.target.value)}
+                                        required
                                     />
                                 }
                             </Col>

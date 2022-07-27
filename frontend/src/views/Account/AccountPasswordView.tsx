@@ -77,6 +77,7 @@ const AccountPasswordView = () => {
                             messageType={formErrors['currentPassword'] ? 'error' : ''}
                             message={formErrors['currentPassword']}
                             label="Mot de passe actuel : "
+                            required
                         />
                         <TextInput
                             value={password}
@@ -85,6 +86,7 @@ const AccountPasswordView = () => {
                             messageType={formErrors['password'] ? 'error' : ''}
                             message={formErrors['password']}
                             label="Nouveau mot de passe : "
+                            required
                         />
                         <TextInput
                             value={passwordConfirmation}
@@ -93,6 +95,7 @@ const AccountPasswordView = () => {
                             messageType={formErrors['passwordConfirmation'] ? 'error' : ''}
                             message={formErrors['passwordConfirmation']}
                             label="Confirmation du nouveau mot de passe : "
+                            required
                         />
                         <Button
                             submit

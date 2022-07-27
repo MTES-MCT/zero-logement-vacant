@@ -28,10 +28,6 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                         id: result.id,
                         name: result.name,
                         siren: result.siren,
-                        housingScopes: {
-                            geom: false,
-                            scopes: result.housing_scopes
-                        },
                         localities: result.localities
                             .map((l: { geo_code: any; name: any; }) => ({
                                 geoCode: l.geo_code,
@@ -91,7 +87,7 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                 queryBuilder.leftJoin(housingTable, (joinQuery: any) => {
                     joinQuery.on(`${housingTable}.insee_code`, '=', `${localitiesTable}.geo_code`)
                     if (filters.dataYears?.length) {
-                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears!]))
+                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears]))
                     }
                 })
             })

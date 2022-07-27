@@ -93,6 +93,7 @@ const CampaignReminderCreationModal = (
                                 onChange={(e: any) => setCampaignStartMonth(e.target.value)}
                                 messageType={errors['campaignStartMonth'] ? 'error' : undefined}
                                 message={errors['campaignStartMonth']}
+                                required
                                 data-testid="start-month-select"
                             />
                         </Col>

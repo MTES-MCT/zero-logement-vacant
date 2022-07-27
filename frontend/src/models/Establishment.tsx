@@ -2,7 +2,7 @@ export interface Establishment {
     id: string,
     name: string,
     siren: number,
-    housingScopes: HousingScopes,
+    housingScopes: string[],
     localities: {
         geoCode: string,
         name: string
@@ -23,11 +23,6 @@ export interface EstablishmentData {
     lastCampaignSentAt: Date,
     delayBetweenCampaigns: any,
     firstCampaignSentDelay: number
-}
-
-export interface HousingScopes {
-    geom: boolean,
-    scopes: string[]
 }
 
 export enum LocalityKinds {

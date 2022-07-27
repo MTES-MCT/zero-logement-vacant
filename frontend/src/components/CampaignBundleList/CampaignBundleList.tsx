@@ -3,8 +3,11 @@ import { Alert, Badge, Col, Row, Text, Title } from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { Link } from 'react-router-dom';
 import {
-    CampaignBundle, CampaignBundleId,
+    CampaignBundle,
+    CampaignBundleId,
     campaignBundleIdUrlFragment,
+    campaignPartialName,
+    campaignReminderName,
     campaignStep,
     CampaignSteps,
     getCampaignKindLabel,
@@ -13,8 +16,6 @@ import {
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 
@@ -50,16 +51,18 @@ const CampaignBundleList = (
                            text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
                            className="fr-mb-1w"
                     />
-                    <Row alignItems="middle">
+                    <Row gutters alignItems="top">
                         <Col>
-                            <Title as="h2" look="h3">{campaignBundle.name}</Title>
+                            <Title as="h2" look="h3">
+                                {campaignPartialName(campaignBundle.startMonth, campaignBundle.campaignNumber)}
+                                <br />
+                                {campaignBundle.title}
+                            </Title>
                         </Col>
-                        <Col n="1">
+                        <Col n="3" className="align-right">
                             {(campaignBundle.campaignNumber ?? 0) > 0 && menuActions?.length &&
                                 <AppActionsMenu actions={menuActions(campaignBundle)}/>
                             }
-                        </Col>
-                        <Col n="1" spacing="ml-2w" className="align-right">
                             <Link title="Accéder à la campagne" to={'/campagnes/C' + campaignBundle.campaignNumber} className="fr-btn--md fr-btn">
                                 Accéder
                             </Link>
@@ -99,9 +102,9 @@ const CampaignBundleList = (
                     {campaignsOfBundle(campaignBundle).length > 1 && campaignsOfBundle(campaignBundle).map((campaign, campaignIndex) =>
                         <div key={`Campaign_${campaign.id}`}>
                             <hr className="fr-pb-1w fr-mt-1w"/>
-                            <Row>
+                            <Row gutters>
                                 <Col n="3">
-                                    {campaign.reminderNumber ? `Relance n°${campaign.reminderNumber}` : getCampaignKindLabel(campaign.kind)} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
+                                    {campaignReminderName(campaign.reminderNumber, campaign.kind)}
                                 </Col>
                                 <Col>
                                     {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
@@ -115,12 +118,10 @@ const CampaignBundleList = (
                                                type="error"/>
                                     }
                                 </Col>
-                                {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && menuActions?.length &&
-                                    <div className="fr-pr-2w">
+                                <Col n="3" className="align-right">
+                                    {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && menuActions?.length &&
                                         <AppActionsMenu actions={menuActions(campaign as CampaignBundleId)}/>
-                                    </div>
-                                }
-                                <Col n="1" className="align-right">
+                                    }
                                     <Link title="Accéder à la campagne" to={'/campagnes/' + campaignBundleIdUrlFragment({campaignNumber: campaign.campaignNumber, reminderNumber: campaign.reminderNumber})} className="ds-fr--inline fr-link">
                                         Accéder<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
                                     </Link>

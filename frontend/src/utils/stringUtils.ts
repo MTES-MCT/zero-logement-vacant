@@ -10,9 +10,9 @@ export const toTitleCase = (string: string) => {
         .join(' ');
 };
 
-export const displayCount = (housingCount: number, label: string) => {
-    return housingCount === 0 ? `Aucun ${label}` :
-        housingCount === 1 ? `Un ${label}` :
+export const displayCount = (housingCount: number, label: string, capitalize = true) => {
+    return housingCount === 0 ? `${capitalize ? 'Aucun' : 'aucun'} ${label}` :
+        housingCount === 1 ? `${capitalize ? 'Un' : 'un'} ${label}` :
             `${housingCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
 }
 

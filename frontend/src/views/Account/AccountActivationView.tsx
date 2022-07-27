@@ -74,6 +74,7 @@ const AccountActivationView = () => {
                         messageType={formErrors['email'] ? 'error' : ''}
                         message={formErrors['email']}
                         label="Adresse email : "
+                        required
                     />
                     <TextInput
                         value={password}
@@ -82,6 +83,7 @@ const AccountActivationView = () => {
                         messageType={formErrors['password'] ? 'error' : ''}
                         message={formErrors['password']}
                         label="Mot de passe : "
+                        required
                     />
                     <TextInput
                         value={passwordConfirmation}
@@ -90,6 +92,7 @@ const AccountActivationView = () => {
                         messageType={formErrors['passwordConfirmation'] ? 'error' : ''}
                         message={formErrors['passwordConfirmation']}
                         label="Confirmation du mot de passe : "
+                        required
                     />
                     <Button
                         submit

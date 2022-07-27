@@ -165,7 +165,8 @@ const HousingStatusForm = (
                         selected={String(status)}
                         messageType={formErrors['status'] ? 'error' : undefined}
                         message={formErrors['status']}
-                        onChange={(e: any) => selectStatus(e.target.value)}/>
+                        onChange={(e: any) => selectStatus(e.target.value)}
+                        required/>
                 </Col>
                 <Col n="4">
                     {subStatusOptions &&
@@ -175,7 +176,8 @@ const HousingStatusForm = (
                         selected={subStatus}
                         messageType={formErrors['subStatus'] ? 'error' : undefined}
                         message={formErrors['subStatus']}
-                        onChange={(e: any) => selectSubStatus(status, e.target.value)}/>
+                        onChange={(e: any) => selectSubStatus(status, e.target.value)}
+                        required/>
                     }
                 </Col>
                 <Col n="4">
@@ -199,7 +201,8 @@ const HousingStatusForm = (
                         selected={contactKind}
                         messageType={formErrors['contactKind'] ? 'error' : undefined}
                         message={formErrors['contactKind']}
-                        onChange={(e: any) => setContactKind(e.target.value)}/>
+                        onChange={(e: any) => setContactKind(e.target.value)}
+                        required/>
                 </Col>
                 <Col n="8">
                     <AppMultiSelect label="Cause(s) de la vacance"

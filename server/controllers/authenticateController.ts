@@ -36,7 +36,7 @@ const signin = async (request: Request, response: Response): Promise<Response> =
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},
                     establishment: {...establishment, housingScopes},
-                    accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: '10s' })
+                    accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: 86400 })
                 });
             }
             return response.sendStatus(401)

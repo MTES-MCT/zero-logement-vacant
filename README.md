@@ -6,9 +6,32 @@
 
 * node
 * npm 
-* serveur Postgres (sur macOS, possible d'utiliser https://postgresapp.com)
+* serveur Postgres (sur macOS, possible d'utiliser [postgresapp](https://postgresapp.com>))
+* serveur mail (par exemple [mailDev](https://github.com/maildev/maildev))
 
-### Installation
+### Base de données
+
+Créer une base de données vide pour l'application (par exemple `zlv`) et une autre pour les tests (par exemple `test_zlv`).
+
+La création des tables et autres structures SQL se fera automatiquement lors du lancement de l'application via les migrations [KnexJS](http://knexjs.org/#Migrations) contenues dans le répertoire `/database/migrations` 
+
+### Variables d'environnement
+
+Créer un fichier .env directement dans le répertoire zero-logement-vacant avec à minima les variables suivantes :
+
+```
+DATABASE_URL=postgres://user@localhost/zlv
+DATABASE_URL_TEST=postgres://user@localhost/test_zlv
+
+MAILER_HOST=localhost
+MAILER_PORT=1025
+MAILER_USER=
+MAILER_PASSWORD=
+```
+
+Il est possible également dans ce fichier .env de surcharger les valeurs par défaut des autres variables d'environnement définies dans /server/utils/config.ts
+
+### Installation de l'application
 
 ```bash
 git clone https://github.com/MTES-MCT/zero-logement-vacant.git
@@ -20,30 +43,27 @@ cd frontend
 npm i
 ```
 
-### Variables d'environnement
-
-Créer un fichier .env directement dans le répertoire zero-logement-vacant avec à minima les variables suivantes :
-
-```
-DATABASE_URL=
-DATABASE_URL_TEST=
-
-MAILER_HOST=
-MAILER_PORT=
-MAILER_USER=
-MAILER_PASSWORD=
-```
-
-Il est possible également dans ce fichier .env de surcharger les valeurs par défaut des autres variables d'environnement définies dans /server/utils/config.ts
-
-### Lancement en local
+### Lancement de l'application en local
 
 ```bash
-npm start-local
+npm run start-local
 ```
 
-Accéder au site sur <http://localhost:3000>
+L'application est accessible à l'adresse sur <http://localhost:3000>
 
+### Lancement des tests
+
+####Frontend
+
+```bash
+npm run frontend:test
+```
+
+####Backend
+
+```bash
+npm run test
+```
 
 ## Démo
 
@@ -51,4 +71,4 @@ La version de démo de l'application est accessible à l'adresse <https://zerolo
 
 ## Production
 
-L'application de production de l'application  est accessible à l'adresse <https://zerologementvacant.beta.gouv.fr>
+La version de production de l'application  est accessible à l'adresse <https://zerologementvacant.beta.gouv.fr>

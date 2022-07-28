@@ -30,7 +30,7 @@ const MonitoringView = () => {
         if (paginatedHousingToContactFilters.establishmentIds?.indexOf(establishmentId) === -1) {
             dispatch(fetchHousingToContact({ establishmentIds: [establishmentId] }))
         }
-    }, [dispatch, establishmentData, establishmentId])
+    }, [dispatch, establishmentData, establishmentId]) //eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (establishmentData) {

@@ -4,6 +4,7 @@ import { HousingStates } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 
 export interface HousingFilters {
+    establishmentIds?: string[];
     ownerKinds?: string[];
     ownerAges?: string[];
     multiOwners?: string[];
@@ -27,6 +28,7 @@ export interface HousingFilters {
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];
+    subStatus?: string[];
     query?: string;
 }
 

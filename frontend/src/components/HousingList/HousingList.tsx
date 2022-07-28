@@ -81,26 +81,18 @@ const HousingList = (
     const selectColumn = {
         name: 'select',
         headerRender: () =>
-            <>
-                {onSelectHousing &&
-                    <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
-                    checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
-                    className={checkedIds.length !== 0 ? styles.indeterminate : ''}
-                    label="">
-                    </Checkbox>
-                }
-            </>,
+            <Checkbox onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
+                      checked={(allChecked && checkedIds.length === 0) || (!allChecked && checkedIds.length === paginatedHousing.totalCount)}
+                      className={checkedIds.length !== 0 ? styles.indeterminate : ''}
+                      label="">
+            </Checkbox>,
         render: ({ id }: Housing) =>
-            <>
-                {onSelectHousing &&
-                <Checkbox value={id}
-                          onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
-                          checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
-                          data-testid={'housing-check-' + id}
-                          label="">
-                </Checkbox>
-                }
-            </>
+            <Checkbox value={id}
+                      onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
+                      checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
+                      data-testid={'housing-check-' + id}
+                      label="">
+            </Checkbox>
     };
 
     const rowNumberColumn = {
@@ -191,9 +183,9 @@ const HousingList = (
     const columns = () => {
         switch (displayKind) {
             case HousingDisplayKey.Housing :
-                return [selectColumn, rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, statusColumn, viewColumn];
+                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, statusColumn, ...additionalColumns ?? [], viewColumn];
             case HousingDisplayKey.Owner :
-                return [selectColumn, rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], viewColumn];
+                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], viewColumn];
         }
     }
 
@@ -207,7 +199,7 @@ const HousingList = (
                     data={paginatedHousing.entities.map((_, index) => ({..._, rowNumber: (paginatedHousing.page - 1) * paginatedHousing.perPage + index + 1}) )}
                     columns={columns()}
                     fixedLayout={true}
-                    className={classNames('zlv-table-with-view', tableClassName)}
+                    className={classNames('zlv-table-with-view', { 'with-select': onSelectHousing }, tableClassName)}
                     data-testid="housing-table"
                 />
                 <div className="fr-react-table--pagination-center nav">

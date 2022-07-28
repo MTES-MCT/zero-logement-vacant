@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { Alert, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import {
-    fetchEstablishmentData,
-    fetchHousingByStatusCount,
-    fetchHousingByStatusDuration,
-} from '../../store/actions/monitoringAction';
+import { fetchEstablishmentData, fetchHousingToContact } from '../../store/actions/monitoringAction';
 import { EstablishmentData } from '../../models/Establishment';
 import { differenceInDays, format, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { percent } from '../../utils/numberUtils';
 import { useParams } from 'react-router-dom';
-import { FirstContactToContactedSubStatus, HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
+import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
+import { Housing } from '../../models/Housing';
 
 const MonitoringView = () => {
 
@@ -22,7 +19,7 @@ const MonitoringView = () => {
 
     const { establishmentId } = useParams<{establishmentId: string}>();
 
-    const { establishmentData, housingByStatusCount } = useSelector((state: ApplicationState) => state.monitoring);
+    const { establishmentData, paginatedHousingToContact, paginatedHousingToContactFilters } = useSelector((state: ApplicationState) => state.monitoring);
     const [ establishmentDetailData, setEstablishmentDetailData] = useState<EstablishmentData>()
 
 
@@ -30,9 +27,10 @@ const MonitoringView = () => {
         if (!establishmentData) {
             dispatch(fetchEstablishmentData({ establishmentIds: [establishmentId] }))
         }
-        dispatch(fetchHousingByStatusCount({ establishmentIds: [establishmentId] }))
-        dispatch(fetchHousingByStatusDuration({ establishmentIds: [establishmentId] }))
-    }, [dispatch, establishmentData, establishmentId])
+        if (paginatedHousingToContactFilters.establishmentIds?.indexOf(establishmentId) === -1) {
+            dispatch(fetchHousingToContact({ establishmentIds: [establishmentId] }))
+        }
+    }, [dispatch, establishmentData, establishmentId]) //eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (establishmentData) {
@@ -40,11 +38,16 @@ const MonitoringView = () => {
         }
     }, [establishmentId, establishmentData])
 
-    const housingWithStatusCount = (status: HousingStatus, subStatus?: string) => {
-        return housingByStatusCount?.filter(_ => _.status === status)
-            .filter(_ => subStatus ? _.subStatus === subStatus : true)
-            .reduce((count, h) => Number(h.count) + count, 0)
-    }
+    const lastContactColumn = {
+        name: 'lastContact',
+        label: 'Dernier contact',
+        render: ({ lastContact } : Housing) =>
+            lastContact && <>
+                {format(lastContact, 'dd/MM/yyyy')}
+                <br />
+                ({differenceInDays(new Date(), lastContact) ? 'il y a ' + displayCount(differenceInDays(new Date(), lastContact), 'jour', false) : 'aujourd\'hui'})
+            </>
+    };
 
     return (
 
@@ -60,15 +63,6 @@ const MonitoringView = () => {
                 </Container>
             </div>
             <Container spacing="pt-2w">
-                {(housingWithStatusCount(HousingStatus.FirstContact, FirstContactToContactedSubStatus) ?? 0) > 0 &&
-                    <Alert title=""
-                           className="fr-my-3w"
-                           description={
-                               `Il y a ${displayCount(housingWithStatusCount(HousingStatus.FirstContact, FirstContactToContactedSubStatus) ?? 0, 'logement', false)} 
-                               dans le sous-statut "A recontacter"`
-                           }
-                           closable/>
-                }
                 <ul>
                     <li>
                         <b>Nombre de logements vacants :&nbsp;</b>
@@ -121,6 +115,19 @@ const MonitoringView = () => {
                         </> }
                     </li>
                 </ul>
+                {paginatedHousingToContact.totalCount > 0 &&
+                    <>
+                        <hr />
+                        <Text>
+                            <b>Il y a {displayCount(paginatedHousingToContact.totalCount, 'logement', false)} dans le sous-statut "A recontacter"</b>
+                        </Text>
+
+                        <HousingList paginatedHousing={paginatedHousingToContact}
+                                     onChangePagination={(page, perPage) => dispatch(fetchHousingToContact({ establishmentIds: [establishmentId] }, page, perPage))}
+                                     displayKind={HousingDisplayKey.Housing}
+                                     additionalColumns={[lastContactColumn]}/>
+                    </>
+                }
             </Container>
         </>
     )

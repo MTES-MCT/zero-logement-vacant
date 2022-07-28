@@ -32,6 +32,7 @@ export interface Housing {
     status?: HousingStatus;
     subStatus?: string;
     precisions?: string[];
+    lastContact?: Date;
 }
 
 export interface SelectedHousing {

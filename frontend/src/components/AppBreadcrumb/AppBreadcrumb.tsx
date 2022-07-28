@@ -8,6 +8,7 @@ import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { campaignBundleIdUrlFragment, campaignFullName, getCampaignBundleId } from '../../models/Campaign';
 import { getOwner } from '../../store/actions/ownerAction';
 import { getHousing } from '../../store/actions/housingAction';
+import { UserRoles } from '../../models/User';
 
 
 const AppBreadcrumb = () => {
@@ -27,7 +28,7 @@ const AppBreadcrumb = () => {
     const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
     const { owner} = useSelector((state: ApplicationState) => state.owner);
     const { housing } = useSelector((state: ApplicationState) => state.housing);
-    const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
+    const { availableEstablishments, authUser } = useSelector((state: ApplicationState) => state.authentication);
 
     useEffect(() => {
         if (location.pathname.indexOf('campagnes/C') !== -1 && !campaignBundle && campaignNumber) {
@@ -54,7 +55,7 @@ const AppBreadcrumb = () => {
                 } else if (value === getUserNavItem(UserNavItems.User).url.substring(1)) {
                     return getUserNavItem(UserNavItems.User)
                 } else if (value === getUserNavItem(UserNavItems.Monitoring).url.substring(1)) {
-                    return getUserNavItem(UserNavItems.Monitoring)
+                    return authUser.user.role === UserRoles.Admin ? getUserNavItem(UserNavItems.Monitoring) : getUserNavItem(UserNavItems.EstablishmentMonitoring, authUser.establishment.id)
                 } else if (value.indexOf('C') === 0 && campaignBundle) {
                     return {
                         url: '/campagnes/' + campaignBundleIdUrlFragment(getCampaignBundleId(campaignBundle)),
@@ -81,7 +82,7 @@ const AppBreadcrumb = () => {
             })
             .filter(_ => _.label !== '')
         )
-    }, [dispatch, location, campaignBundle, owner, housing, campaignNumber, housingId, ownerId, reminderNumber, availableEstablishments, establishmentId])
+    }, [dispatch, location, campaignBundle, owner, housing, campaignNumber, housingId, ownerId, reminderNumber, availableEstablishments, establishmentId, authUser])
 
     return (
         <Breadcrumb className="fr-mt-0 fr-pt-3w fr-mb-2w">

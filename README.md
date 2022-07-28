@@ -1,5 +1,7 @@
 # zero-logement-vacant
 
+[Fiche produit](https://beta.gouv.fr/startups/zero-logement-vacant.html)
+
 ## Développement
 
 ### Prérequis
@@ -17,7 +19,7 @@ La création des tables et autres structures SQL se fera automatiquement lors du
 
 ### Variables d'environnement
 
-Créer un fichier .env directement dans le répertoire zero-logement-vacant avec à minima les variables suivantes :
+Créer un fichier `.env` directement dans le répertoire `zero-logement-vacant` avec à minima les variables suivantes :
 
 ```
 DATABASE_URL=postgres://user@localhost/zlv
@@ -29,7 +31,7 @@ MAILER_USER=
 MAILER_PASSWORD=
 ```
 
-Il est possible également dans ce fichier .env de surcharger les valeurs par défaut des autres variables d'environnement définies dans /server/utils/config.ts
+Il est également possible dans ce fichier `.env` de surcharger les valeurs par défaut des autres variables d'environnement définies dans `/server/utils/config.ts`
 
 ### Installation de l'application
 
@@ -53,13 +55,13 @@ L'application est accessible à l'adresse sur <http://localhost:3000>
 
 ### Lancement des tests
 
-####Frontend
+**Frontend**
 
 ```bash
 npm run frontend:test
 ```
 
-####Backend
+**Backend**
 
 ```bash
 npm run test

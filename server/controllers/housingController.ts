@@ -7,7 +7,7 @@ import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
-import { RequestUser } from '../models/UserApi';
+import { RequestUser, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
 import eventRepository from '../repositories/eventRepository';
@@ -33,10 +33,11 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
 
     const page = request.body.page;
     const perPage = request.body.perPage;
+    const role = (<RequestUser>request.auth).role;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
-    return housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId]}, page, perPage)
+    return housingRepository.listWithFilters({...filters, establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] }, page, perPage)
         .then(_ => response.status(200).json(_));
 };
 

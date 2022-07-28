@@ -59,7 +59,8 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 db.raw('json_agg(distinct(scopes.scope_type)) as housing_scopes'),
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
-                `${localitiesTable}.locality_kind`
+                `${localitiesTable}.locality_kind`,
+                db.raw(`max(${eventsTable}.created_at) as last_contact`)
             )
             .from(housingTable)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
@@ -77,6 +78,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
                      from housing_scopes_geom hsg
                      where st_contains(hsg.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
                      ) scopes on true`)
+            .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
             .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
             .where(`${housingTable}.id`, housingId)
             .first()
@@ -345,7 +347,8 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.street as owner_street',
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
-                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
+                db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+                db.raw(`max(${eventsTable}.created_at) as last_contact`)
             )
             .from(housingTable)
             .join(ownersHousingTable, ownersHousingJoinClause)
@@ -359,6 +362,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                     and c.id = ch.campaign_id
                     ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
                 ) campaigns on true`, filters.establishmentIds ?? [])
+            .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
@@ -605,7 +609,8 @@ const parseHousingApi = (result: any) => (
         campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
         status: result.status,
         subStatus: result.sub_status,
-        precisions: result.precisions
+        precisions: result.precisions,
+        lastContact: result.last_contact
     }
 )
 

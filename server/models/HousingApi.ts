@@ -32,6 +32,7 @@ export interface HousingApi {
     status?: HousingStatusApi;
     subStatus?: string;
     precisions?: string[];
+    lastContact?: Date;
 }
 
 export interface HousingUpdateApi {

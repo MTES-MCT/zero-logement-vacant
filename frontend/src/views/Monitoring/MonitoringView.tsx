@@ -55,6 +55,11 @@ const MonitoringView = () => {
             });
     }
 
+    const rowNumberColumn = {
+        name: 'number',
+        render: ({ rowNumber }: any) => <>#{rowNumber}</>
+    }
+
     const establishmentColumn = {
         name: 'name',
         label: 'Collectivité',
@@ -274,6 +279,7 @@ const MonitoringView = () => {
     }
 
     const columns = () => [
+        rowNumberColumn,
         establishmentColumn,
         housingCountColumn,
         firstActivationColumn,
@@ -367,10 +373,10 @@ const MonitoringView = () => {
                             caption="Collectivités"
                             captionPosition="none"
                             rowKey="id"
-                            data={establishmentData}
+                            data={establishmentData.map((_, index) => ({..._, rowNumber: index + 1}))}
                             columns={columns()}
                             fixedLayout={true}
-                            className="zlv-fixed-table"
+                            className="zlv-fixed-table with-row-number"
                         />
                     }
                 </div>

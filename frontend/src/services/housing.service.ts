@@ -7,6 +7,7 @@ import ownerService from './owner.service';
 import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
+import { parseISO } from 'date-fns';
 
 
 const getHousing = async (id: string): Promise<Housing> => {
@@ -99,7 +100,8 @@ const updateHousingList = async (housingUpdate: HousingUpdate, campaignIds: stri
 export const parseHousing = (h: any): Housing => ({
     ...h,
     rawAddress: h.rawAddress.filter((_: string) => _).map((_: string) => toTitleCase(_)),
-    owner: h.owner?.id ? ownerService.parseOwner(h.owner) : undefined
+    owner: h.owner?.id ? ownerService.parseOwner(h.owner) : undefined,
+    lastContact: h.lastContact ? parseISO(h.lastContact) : undefined
 } as Housing)
 
 const housingService = {

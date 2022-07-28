@@ -45,6 +45,12 @@ cd frontend
 npm i
 ```
 
+
+### Chargement de données anonymisées
+
+TODO
+
+
 ### Lancement de l'application en local
 
 ```bash

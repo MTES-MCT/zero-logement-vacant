@@ -7,7 +7,7 @@ if (!process.env.API_PORT) {
 
 export default {
     environment: process.env.NODE_ENV || 'development',
-    serverPort: process.env.API_PORT,
+    serverPort: process.env.API_PORT || 3001,
     auth: {
         secret: process.env.AUTH_SECRET || 'secret'
     },

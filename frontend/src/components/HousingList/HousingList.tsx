@@ -199,7 +199,7 @@ const HousingList = (
                     data={paginatedHousing.entities.map((_, index) => ({..._, rowNumber: (paginatedHousing.page - 1) * paginatedHousing.perPage + index + 1}) )}
                     columns={columns()}
                     fixedLayout={true}
-                    className={classNames('zlv-table-with-view', { 'with-select': onSelectHousing }, tableClassName)}
+                    className={classNames('zlv-table-with-view', 'with-row-number', { 'with-select': onSelectHousing }, tableClassName)}
                     data-testid="housing-table"
                 />
                 <div className="fr-react-table--pagination-center nav">

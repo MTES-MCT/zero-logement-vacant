@@ -4,12 +4,7 @@
   min-height: 600px;
 }
 
-.zlv-table-with-view {
-
-  table:before {
-    display: none !important;
-  }
-
+.fr-table {
   &.with-select {
     th:first-child {
       width: 48px;
@@ -19,17 +14,28 @@
       margin-top: 0 !important;
     }
 
-    th:nth-child(2), tr > td:nth-child(2)  {
-      width: 42px;
-      padding-left: 8px;
-      padding-right: 0;
+    &.with-row-number {
+      th:nth-child(2), tr > td:nth-child(2)  {
+        width: 42px;
+        padding-left: 8px;
+        padding-right: 0;
+      }
     }
   }
 
   &:not(.with-select) {
-    th:first-child, tr > td:first-child {
-      width: 42px;
+    &.with-row-number {
+      th:first-child, tr > td:first-child {
+        width: 42px;
+      }
     }
+  }
+}
+
+.zlv-table-with-view {
+
+  table:before {
+    display: none !important;
   }
 
   th:last-child, tr > td:last-child  {

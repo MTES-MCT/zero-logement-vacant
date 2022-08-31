@@ -43,7 +43,7 @@ router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController
 router.delete('/api/campaigns/:campaignId/housing', jwtCheck, userCheck, campaignController.removeHousingList);
 
 router.get('/api/campaigns/bundles', jwtCheck, userCheck, campaignController.listCampaignBundles);
-router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.getCampaignBundle);
+router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.getCampaignBundleValidators, campaignController.getCampaignBundle);
 router.put('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.updateCampaignBundle);
 router.post('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.createReminderCampaign);
 router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.deleteCampaign);

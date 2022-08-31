@@ -54,10 +54,12 @@
     "@types/jsonwebtoken": "^8.5.5",
     "@types/node-fetch": "^2.5.12",
     "@types/nodemailer": "^6.4.4",
+    "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "eslint": "^7.32.0",
     "npm-run-all": "^4.1.5",
+    "supertest": "^6.2.4",
     "ts-jest": "^26.5.6",
     "ts-node-dev": "^1.1.8"
   },

@@ -13,7 +13,7 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 export const campaignsTable = 'campaigns';
 
 
-const getCampaign = async (campaignId: string): Promise<CampaignApi> => {
+const getCampaign = async (campaignId: string): Promise<CampaignApi | undefined> => {
     try {
         return db(campaignsTable)
             .select(
@@ -35,14 +35,14 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi> => {
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .groupBy(`${campaignsTable}.id`)
             .first()
-            .then((result: any) => parseCampaignApi(result))
+            .then((result: any) => result ? parseCampaignApi(result) : result)
     } catch (err) {
         console.error('Getting campaign failed', err, campaignId);
         throw new Error('Getting campaigns failed');
     }
 }
 
-const getCampaignBundle = async (establishmentId: string, campaignNumber?: string, reminderNumber?: string, query?: string): Promise<CampaignBundleApi> => {
+const getCampaignBundle = async (establishmentId: string, campaignNumber?: string, reminderNumber?: string, query?: string): Promise<CampaignBundleApi | undefined> => {
     try {
         return db(campaignsTable)
             .select(
@@ -83,7 +83,7 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                 queryOwnerHousingWhereClause(queryBuilder, query);
             })
             .first()
-            .then((result: any) => parseCampaignBundleApi({...result, reminder_number: reminderNumber}))
+            .then((result: any) => result ? parseCampaignBundleApi({...result, reminder_number: reminderNumber}) : result)
     } catch (err) {
         console.error('Getting campaign bundle failed', err, establishmentId, campaignNumber, reminderNumber);
         throw new Error('Getting campaign bundle failed');

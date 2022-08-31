@@ -9,22 +9,19 @@ import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
+import { param, validationResult } from 'express-validator';
 
-const getCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
-
-    const campaignId = request.params.campaignId;
-
-    console.log('Get campaign', campaignId)
-
-    const establishmentId = (<RequestUser>request.auth).establishmentId;
-
-    return campaignRepository.getCampaign(campaignId)
-        .then(campaign => campaign.establishmentId === establishmentId ?
-            response.status(200).json(campaign) :
-            response.sendStatus(401));
-}
+const getCampaignBundleValidators = [
+    param('campaignNumber').notEmpty().isNumeric(),
+    param('reminderNumber').optional({ nullable: true }).isNumeric(),
+];
 
 const getCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(400).json({ errors: errors.array() });
+    }
 
     const campaignNumber = request.params.campaignNumber;
     const reminderNumber = request.params.reminderNumber;
@@ -34,7 +31,10 @@ const getCampaignBundle = async (request: JWTRequest, response: Response): Promi
     console.log('Get campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
     return campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber, query)
-        .then(_ => response.status(200).json(_));
+        .then(campaignBundle => campaignBundle ?
+            response.status(200).json(campaignBundle):
+            response.sendStatus(404)
+        );
 
 }
 
@@ -119,6 +119,11 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
     const allHousing = request.body.allHousing;
 
     const campaignBundle = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
+
+    if (!campaignBundle) {
+        return response.sendStatus(404);
+    }
+
     const lastReminderNumber = await campaignRepository.lastReminderNumber(establishmentId, campaignBundle.campaignNumber)
 
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
@@ -155,34 +160,45 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
 
     console.log('Validate campaign step', campaignId, step)
 
-    const updatedCampaign = await campaignRepository.getCampaign(campaignId).then((campaignApi: CampaignApi) => ({
-        ...campaignApi,
-        validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
-        exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
-        sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
-        sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
-    }))
+    const campaignApi = await campaignRepository.getCampaign(campaignId)
 
-    if (step === CampaignSteps.Sending) {
-        const housingList = await housingRepository.listWithFilters({establishmentIds: [establishmentId], campaignIds: [campaignId]}).then(_ => _.entities)
-
-        await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
-
-        await eventRepository.insertList(
-            housingList.map(housing => <EventApi>{
-                housingId: housing.id,
-                ownerId: housing.owner.id,
-                campaignId,
-                kind: EventKinds.CampaignSend,
-                content: 'Ajout dans la campagne',
-                createdBy: userId
-            })
-        )
+    if (!campaignApi) {
+        return response.sendStatus(404)
     }
 
-    return campaignRepository.update(updatedCampaign)
-        .then(() => campaignRepository.getCampaign(campaignId))
-        .then(_ => response.status(200).json(_))
+    else {
+        const updatedCampaign = {
+            ...campaignApi,
+            validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
+            exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
+            sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
+            sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
+        }
+
+        if (step === CampaignSteps.Sending) {
+            const housingList = await housingRepository.listWithFilters({
+                establishmentIds: [establishmentId],
+                campaignIds: [campaignId]
+            }).then(_ => _.entities)
+
+            await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+
+            await eventRepository.insertList(
+                housingList.map(housing => <EventApi>{
+                    housingId: housing.id,
+                    ownerId: housing.owner.id,
+                    campaignId,
+                    kind: EventKinds.CampaignSend,
+                    content: 'Ajout dans la campagne',
+                    createdBy: userId
+                })
+            )
+        }
+
+        return campaignRepository.update(updatedCampaign)
+            .then(() => campaignRepository.getCampaign(campaignId))
+            .then(_ => response.status(200).json(_))
+    }
 }
 
 const updateCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -268,7 +284,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
 };
 
 const campaignController =  {
-    getCampaign,
+    getCampaignBundleValidators,
     getCampaignBundle,
     listCampaigns,
     listCampaignBundles,

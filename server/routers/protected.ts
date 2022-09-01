@@ -14,7 +14,7 @@ import monitoringController from '../controllers/monitoringController';
 const  router = express.Router();
 
 const jwtCheck = expressjwt({
-    secret: config.auth.secret,
+    secret: config.auth.secret || '',
     algorithms: ['HS256'],
     getToken: (request: Request) => (request.headers['x-access-token'] ?? request.query['x-access-token']) as string
 });

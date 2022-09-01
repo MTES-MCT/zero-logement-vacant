@@ -13,60 +13,63 @@ import monitoringController from '../controllers/monitoringController';
 
 const  router = express.Router();
 
-const jwtCheck = expressjwt({
-    secret: config.auth.secret,
-    algorithms: ['HS256'],
-    getToken: (request: Request) => (request.headers['x-access-token'] ?? request.query['x-access-token']) as string
-});
+if (config.auth.secret) {
 
-const userCheck = (req: JWTRequest, res: Response, next: NextFunction): void => {
-    if ((<RequestUser>req.auth).userId && (<RequestUser>req.auth).establishmentId) {
-        next();
-    } else {
-        res.sendStatus(401);
-    }
-};
+    const jwtCheck = expressjwt({
+        secret: config.auth.secret,
+        algorithms: ['HS256'],
+        getToken: (request: Request) => (request.headers['x-access-token'] ?? request.query['x-access-token']) as string
+    });
 
-router.get('/api/housing/:id', jwtCheck, userCheck, housingController.get);
-router.post('/api/housing', jwtCheck, userCheck, housingController.list);
-router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
-router.post('/api/housing/list', jwtCheck, userCheck, housingController.updateHousingList);
-router.post('/api/housing/:id', jwtCheck, userCheck, housingController.updateHousing);
-router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
-router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
-router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
-router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
+    const userCheck = (req: JWTRequest, res: Response, next: NextFunction): void => {
+        if ((<RequestUser>req.auth).userId && (<RequestUser>req.auth).establishmentId) {
+            next();
+        } else {
+            res.sendStatus(401);
+        }
+    };
 
-router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
-router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
-router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
-router.delete('/api/campaigns/:campaignId/housing', jwtCheck, userCheck, campaignController.removeHousingList);
+    router.get('/api/housing/:id', jwtCheck, userCheck, housingController.get);
+    router.post('/api/housing', jwtCheck, userCheck, housingController.list);
+    router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
+    router.post('/api/housing/list', jwtCheck, userCheck, housingController.updateHousingList);
+    router.post('/api/housing/:id', jwtCheck, userCheck, housingController.updateHousing);
+    router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
+    router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
+    router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
+    router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
 
-router.get('/api/campaigns/bundles', jwtCheck, userCheck, campaignController.listCampaignBundles);
-router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.getCampaignBundleValidators, campaignController.getCampaignBundle);
-router.put('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.updateCampaignBundle);
-router.post('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.createReminderCampaign);
-router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.deleteCampaign);
+    router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
+    router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
+    router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
+    router.delete('/api/campaigns/:campaignId/housing', jwtCheck, userCheck, campaignController.removeHousingList);
 
-router.post('/api/owners', jwtCheck, userCheck, ownerController.search);
-router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);
-router.post('/api/owners/creation', jwtCheck, userCheck, ownerController.create);
-router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerValidators, ownerController.update);
-router.get('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.listByHousing);
-router.put('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.updateHousingOwners);
+    router.get('/api/campaigns/bundles', jwtCheck, userCheck, campaignController.listCampaignBundles);
+    router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.getCampaignBundleValidators, campaignController.getCampaignBundle);
+    router.put('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.updateCampaignBundle);
+    router.post('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.createReminderCampaign);
+    router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.deleteCampaign);
 
-router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
-router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);
+    router.post('/api/owners', jwtCheck, userCheck, ownerController.search);
+    router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);
+    router.post('/api/owners/creation', jwtCheck, userCheck, ownerController.create);
+    router.put('/api/owners/:ownerId', jwtCheck, userCheck, ownerController.ownerValidators, ownerController.update);
+    router.get('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.listByHousing);
+    router.put('/api/owners/housing/:housingId', jwtCheck, userCheck, ownerController.updateHousingOwners);
 
-router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
+    router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
+    router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);
 
-router.post('/api/users', jwtCheck, userCheck, userController.list);
-router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
-router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+    router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
 
-router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
-router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);
-router.post('/api/monitoring/housing/status/duration', jwtCheck, userCheck, monitoringController.housingByStatusDuration);
-router.post('/api/monitoring/export', jwtCheck, userCheck, monitoringController.exportMonitoring);
+    router.post('/api/users', jwtCheck, userCheck, userController.list);
+    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
+    router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+
+    router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
+    router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);
+    router.post('/api/monitoring/housing/status/duration', jwtCheck, userCheck, monitoringController.housingByStatusDuration);
+    router.post('/api/monitoring/export', jwtCheck, userCheck, monitoringController.exportMonitoring);
+}
 
 export default router;

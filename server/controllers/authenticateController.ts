@@ -33,10 +33,14 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
                 const housingScopes = await localityRepository.listHousingScopes(establishment.id)
 
+                if (!config.auth.secret) {
+                    return response.sendStatus(500)
+                }
+
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},
                     establishment: {...establishment, housingScopes},
-                    accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: 86400 })
+                    accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
                 });
             }
             return response.sendStatus(401)

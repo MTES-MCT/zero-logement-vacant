@@ -151,17 +151,17 @@ const MonitoringView = () => {
         sort: (e1: EstablishmentData, e2: EstablishmentData) => numberSort(e1.contactedHousingPerCampaign, e2.contactedHousingPerCampaign)
     };
 
-    const lastCampaignSentAtColumn = {
-        name: 'lastCampaignSentAt',
+    const lastCampaignSendingDateColumn = {
+        name: 'lastCampaignSendingDate',
         label: 'Date d\'envoi de la dernière campagne',
-        render: ({ lastCampaignSentAt }: EstablishmentData) =>
+        render: ({ lastCampaignSendingDate }: EstablishmentData) =>
             <div>
-                { lastCampaignSentAt && <>
-                    {format(lastCampaignSentAt, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), lastCampaignSentAt)} jours)
+                { lastCampaignSendingDate && <>
+                    {format(lastCampaignSendingDate, 'dd/MM/yyyy')} <br />({differenceInDays(new Date(), lastCampaignSendingDate)} jours)
                 </> }
             </div>,
         sortable: true,
-        sort: (e1: EstablishmentData, e2: EstablishmentData) => dateSort(e1.lastCampaignSentAt, e2.lastCampaignSentAt)
+        sort: (e1: EstablishmentData, e2: EstablishmentData) => dateSort(e1.lastCampaignSendingDate, e2.lastCampaignSendingDate)
     };
 
     const delayBetweenCampaignsColumn = {
@@ -177,7 +177,7 @@ const MonitoringView = () => {
         sort: (e1: EstablishmentData, e2: EstablishmentData) => durationSort(e1.delayBetweenCampaigns, e2.delayBetweenCampaigns)
     };
 
-    const firstCampaignSentAtColumn = {
+    const firstCampaignSendingDateColumn = {
         name: 'firstCampaign',
         label: 'Temps d\'envoi de la première campagne après inscription',
         render: ({ firstCampaignSentDelay }: EstablishmentData) =>
@@ -215,7 +215,7 @@ const MonitoringView = () => {
     }
 
     const housingWithStatusNoPrecisionsCount = (status?: HousingStatus) => {
-        return housingByStatusCount?.filter(_ => status ? _.status === status : true)
+        return housingByStatusCount?.filter(_ => status ? _.status === status : _.status)
             .filter(_ => !_.precisions?.length)
             .reduce((count, h) => Number(h.count) + count, 0)
     }
@@ -288,9 +288,9 @@ const MonitoringView = () => {
         campaignsCountColumn,
         contactedHousingCountColumn,
         contactedHousingPerCampaignColumn,
-        lastCampaignSentAtColumn,
+        lastCampaignSendingDateColumn,
         delayBetweenCampaignsColumn,
-        firstCampaignSentAtColumn,
+        firstCampaignSendingDateColumn,
         viewColumn
     ]
 
@@ -360,8 +360,14 @@ const MonitoringView = () => {
                 <HousingStatusStats status={HousingStatus.NotVacant} />
                 <HousingStatusStats status={HousingStatus.NoAction} />
                 <Row className="fr-py-1w">
-                    <Col n="4">
-                        <b>Nombre de logements sans précisions</b> :&nbsp;
+                    <Col>
+                        <b>Nombre de logements total</b> :&nbsp;
+                        {housingByStatusCount ? housingByStatusCount?.map(_ => _.count).reduce((c1: number, c2) => Number(c1) + Number(c2)) : '...'}
+                    </Col>
+                </Row>
+                <Row className="fr-py-1w">
+                    <Col>
+                        <b>Nombre de logements contactés sans précisions</b> :&nbsp;
                         {housingByStatusCount ? housingWithStatusNoPrecisionsCount() : '...'}
                     </Col>
                 </Row>

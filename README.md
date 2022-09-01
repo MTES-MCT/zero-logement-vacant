@@ -25,6 +25,8 @@ Créer un fichier `.env` directement dans le répertoire `zero-logement-vacant` 
 DATABASE_URL=postgres://user@localhost/zlv
 DATABASE_URL_TEST=postgres://user@localhost/test_zlv
 
+AUTH_SECRET=secret
+
 MAILER_HOST=localhost
 MAILER_PORT=1025
 MAILER_USER=

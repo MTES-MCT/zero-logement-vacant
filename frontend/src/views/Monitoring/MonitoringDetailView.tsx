@@ -98,8 +98,8 @@ const MonitoringView = () => {
                     </li>
                     <li>
                         <b>Date d'envoi de la dernière campagne :&nbsp;</b>
-                        {establishmentDetailData?.lastCampaignSentAt && <>
-                            {format(establishmentDetailData?.lastCampaignSentAt, 'dd/MM/yyyy')} ({differenceInDays(new Date(), establishmentDetailData?.lastCampaignSentAt)} jours)
+                        {establishmentDetailData?.lastCampaignSendingDate && <>
+                            {format(establishmentDetailData?.lastCampaignSendingDate, 'dd/MM/yyyy')} ({differenceInDays(new Date(), establishmentDetailData?.lastCampaignSendingDate)} jours)
                         </>}
                     </li>
                     <li>
@@ -110,8 +110,8 @@ const MonitoringView = () => {
                     </li>
                     <li>
                         <b>Temps d'envoi de la première campagne après inscription :&nbsp;</b>
-                        { establishmentDetailData?.firstActivatedAt && establishmentDetailData?.firstCampaignSentAt && <>
-                            {differenceInDays(establishmentDetailData?.firstCampaignSentAt, establishmentDetailData?.firstActivatedAt)} jours
+                        { establishmentDetailData?.firstActivatedAt && establishmentDetailData?.firstCampaignSendingDate && <>
+                            {differenceInDays(establishmentDetailData?.firstCampaignSendingDate, establishmentDetailData?.firstActivatedAt)} jours
                         </> }
                     </li>
                 </ul>

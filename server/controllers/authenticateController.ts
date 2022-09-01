@@ -33,6 +33,10 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
                 const housingScopes = await localityRepository.listHousingScopes(establishment.id)
 
+                if (!config.auth.secret) {
+                    return response.sendStatus(500)
+                }
+
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},
                     establishment: {...establishment, housingScopes},

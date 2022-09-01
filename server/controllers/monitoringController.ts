@@ -141,7 +141,7 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
         { header: 'Nombre de campagnes', key: 'campaignsCount' },
         { header: 'Nombre de logements contactés', key: 'contactedHousingCount' },
         { header: 'Nombre de logements contactés par campagne', key: 'contactedHousingPerCampaign' },
-        { header: 'Date d\'envoi de la dernière campagne', key: 'lastCampaignSentAt' },
+        { header: 'Date d\'envoi de la dernière campagne', key: 'lastCampaignSendingDate' },
         { header: 'Temps moyen d’envoi entre 2 campagnes', key: 'delayBetweenCampaigns' },
         { header: 'Temps d\'envoi de la première campagne après inscription', key: 'firstCampaignSentDelay' }
     ];
@@ -176,7 +176,7 @@ const exportMonitoring = async (request: JWTRequest, response: Response): Promis
                 campaignsCount: data.campaignsCount,
                 contactedHousingCount: data.contactedHousingCount,
                 contactedHousingPerCampaign: data.contactedHousingPerCampaign,
-                lastCampaignSentAt: data.lastCampaignSentAt,
+                lastCampaignSentAt: data.lastCampaignSendingDate,
                 delayBetweenCampaigns: data.delayBetweenCampaigns,
                 firstCampaignSentDelay: data.firstCampaignSentDelay
             });

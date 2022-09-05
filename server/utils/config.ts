@@ -7,9 +7,10 @@ if (!process.env.API_PORT) {
 
 export default {
     environment: process.env.NODE_ENV || 'development',
-    serverPort: process.env.API_PORT,
+    serverPort: process.env.API_PORT || 3001,
     auth: {
-        secret: process.env.AUTH_SECRET || 'secret'
+        secret: process.env.AUTH_SECRET,
+        expiresIn: process.env.AUTH_EXPIRES_IN || '12 hours'
     },
     databaseUrl: process.env.DATABASE_URL,
     databaseUrlTest: process.env.DATABASE_URL_TEST,

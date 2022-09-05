@@ -172,6 +172,11 @@ const exportHousingByCampaignBundle = async (request: JWTRequest, response: Resp
     console.log('Export housing by campaign bundle', establishmentId, campaignNumber, reminderNumber)
 
     const campaignApi = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
+
+    if (!campaignApi) {
+        return response.sendStatus(404)
+    }
+
     const housingList = await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
 
     const fileName = `C${campaignApi.campaignNumber}.xlsx`;

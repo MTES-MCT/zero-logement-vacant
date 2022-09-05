@@ -3,32 +3,86 @@ import { getMockReq, getMockRes } from '@jest-mock/express';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import db from '../repositories/db';
 import { campaignsTable } from '../repositories/campaignRepository';
+import protectedRouter from '../routers/protected';
+import express from 'express';
+import request from 'supertest';
+import { withAccessToken } from '../test/testUtils';
+import { constants } from 'http2';
+
+const app = express();
+app.use(protectedRouter);
 
 describe('Campaign controller', () => {
 
-    it('should list campaigns', async () => {
+    describe('Campaign getCampaignBundle', () => {
 
-        const req = getMockReq({
-            auth: {
-                establishmentId: 'fb42415a-a41a-4b22-bf47-7bedfb419a63'
-            }
-        })
-        const { res } = getMockRes()
+        const testRoute = (campaignNumber?: any, reminderNumber?: any) =>
+            `/api/campaigns/bundles/number${campaignNumber ? '/' + campaignNumber + (reminderNumber !== undefined ? '/' + reminderNumber : '') : ''}`
 
-        await campaignController.listCampaigns(req, res)
+        it('should received a valid campaign number', async () => {
 
-        expect(res.status).toHaveBeenCalledWith(200)
-        expect(res.json).toHaveBeenCalledWith(
-            expect.arrayContaining(
-                [
-                    expect.objectContaining({
-                        campaignNumber: 1,
-                        startMonth: '2111',
-                        reminderNumber: 0,
-                    })
-                ]
+            await withAccessToken(
+                request(app).get(testRoute())
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).get(testRoute('number'))
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).get(testRoute(1, 'number'))
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+        });
+
+        it('should return an error when there is no campaign bundle with the required ids', async () => {
+
+            await withAccessToken(
+                request(app).get(testRoute(999))
+            ).expect(constants.HTTP_STATUS_NOT_FOUND)
+
+        });
+
+        it('should return the campaign bundle for the required ids', async () => {
+
+           const res = await withAccessToken(
+               request(app).get(testRoute(1, 0))
+           ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    campaignIds: ['db16f3c7-d284-4601-966e-b08534d74c1e'],
+                    campaignNumber: 1,
+                    reminderNumber: '0',
+                    startMonth: '2111',
+                })
             )
-        )
+        })
+    })
+
+
+    describe('Campaign listCampaigns', () => {
+
+        const testRoute = '/api/campaigns'
+
+        it('should list campaigns for authenticated user', async () => {
+
+            const res = await withAccessToken(
+                request(app).get(testRoute)
+            ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.arrayContaining(
+                    [
+                        expect.objectContaining({
+                            campaignNumber: 1,
+                            startMonth: '2111',
+                            reminderNumber: 0,
+                        })
+                    ]
+                )
+            )
+        })
     })
 
     it('should create a new campaign', async () => {

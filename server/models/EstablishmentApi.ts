@@ -16,8 +16,8 @@ export interface EstablishmentDataApi {
     campaignsCount: number,
     contactedHousingCount: number,
     contactedHousingPerCampaign: number,
-    firstCampaignSentAt: Date,
-    lastCampaignSentAt: Date,
+    firstCampaignSendingDate: Date,
+    lastCampaignSendingDate: Date,
     delayBetweenCampaigns: any,
     firstCampaignSentDelay: number
 }

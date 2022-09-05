@@ -81,6 +81,14 @@ INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Luxeuil-les-Bains', (select array_agg(id) from localities where geo_code = '70311'), 217003110, true);
 INSERT INTO public.establishments (name, localities_id, siren, available)
 VALUES ('Commune de Lannemezan', (select array_agg(id) from localities where geo_code = '65258'), 216502583, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Châteauneuf-sur-Cher', (select array_agg(id) from localities where geo_code = '18058'), 211800586, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Lignières', (select array_agg(id) from localities where geo_code = '18127'), 211801279, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Giromagny', (select array_agg(id) from localities where geo_code = '90052'), 219000528, true);
+INSERT INTO public.establishments (name, localities_id, siren, available)
+VALUES ('Commune de Tournay', (select array_agg(id) from localities where geo_code = '65447'), 216504472, true);
 
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69381'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69382'), localities_id) where name = 'Métropole de Lyon';
@@ -175,7 +183,13 @@ update establishments set available = true where siren in
  '200067742',
  '200083392',
  '200041622',
- '200069961'
+ '200069961',
+ '200054807',
+ '247900798',
+ '243301223',
+ '247700107',
+ '200068815',
+ '200067882'
 );
 
 insert into campaigns(campaign_number, start_month, filters, validated_at, exported_at, sent_at, sending_date, establishment_id, reminder_number, created_by)

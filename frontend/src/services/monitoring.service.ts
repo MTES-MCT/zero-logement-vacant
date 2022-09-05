@@ -90,8 +90,8 @@ const listEstablishmentData = async (filters: MonitoringFilters): Promise<Establ
             ...e,
             firstActivatedAt: e.firstActivatedAt ? parseISO(e.firstActivatedAt) : undefined,
             lastAuthenticatedAt: e.lastAuthenticatedAt ? parseISO(e.lastAuthenticatedAt) : undefined,
-            lastCampaignSentAt: e.lastCampaignSentAt ? parseISO(e.lastCampaignSentAt) : undefined,
-            firstCampaignSentAt: e.firstCampaignSentAt ? parseISO(e.firstCampaignSentAt) : undefined,
+            lastCampaignSendingDate: e.lastCampaignSendingDate ? parseISO(e.lastCampaignSendingDate) : undefined,
+            firstCampaignSendingDate: e.firstCampaignSendingDate ? parseISO(e.firstCampaignSendingDate) : undefined,
         } as EstablishmentData)))
 };
 

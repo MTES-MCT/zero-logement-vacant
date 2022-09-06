@@ -193,6 +193,21 @@ export const parseHousingOwnerApi = (result: any) => <HousingOwnerApi>{
     origin: result.origin
 }
 
+
+const formatOwnerApi = (ownerApi: OwnerApi) => ({
+    id: ownerApi.id,
+    raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
+    house_number: ownerApi.address.houseNumber,
+    street: ownerApi.address.street,
+    postal_code: ownerApi.address.postalCode,
+    city: ownerApi.address.city,
+    full_name: ownerApi.fullName,
+    administrator: ownerApi.administrator,
+    birth_date: ownerApi.birthDate,
+    email: ownerApi.email,
+    phone: ownerApi.phone
+})
+
 export default {
     get,
     searchOwners,
@@ -201,5 +216,6 @@ export default {
     update,
     updateAddressList,
     deleteHousingOwners,
-    insertHousingOwners
+    insertHousingOwners,
+    formatOwnerApi
 }

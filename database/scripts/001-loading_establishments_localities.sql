@@ -12,6 +12,24 @@ insert into localities (geo_code, name) values
     ('69388', 'Lyon 8e Arrondissement'),
     ('69389', 'Lyon 9e Arrondissement');
 
+insert into localities (geo_code, name) values
+    ('13201', 'Marseille 1er Arrondissement'),
+    ('13202', 'Marseille 2e Arrondissement'),
+    ('13203', 'Marseille 3e Arrondissement'),
+    ('13204', 'Marseille 4e Arrondissement'),
+    ('13205', 'Marseille 5e Arrondissement'),
+    ('13206', 'Marseille 6e Arrondissement'),
+    ('13207', 'Marseille 7e Arrondissement'),
+    ('13208', 'Marseille 8e Arrondissement'),
+    ('13209', 'Marseille 9e Arrondissement'),
+    ('13210', 'Marseille 10e Arrondissement'),
+    ('13211', 'Marseille 11e Arrondissement'),
+    ('13212', 'Marseille 12e Arrondissement'),
+    ('13213', 'Marseille 13e Arrondissement'),
+    ('13214', 'Marseille 14e Arrondissement'),
+    ('13215', 'Marseille 15e Arrondissement'),
+    ('13216', 'Marseille 16e Arrondissement');
+
 insert into establishments (siren, name, localities_id) (
     select distinct(epci), libepci, array_agg(l2.id)
     from _localities l1, localities l2
@@ -100,6 +118,24 @@ UPDATE public.establishments set localities_id = array_prepend((select id from l
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69388'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '69389'), localities_id) where name = 'Métropole de Lyon';
 UPDATE public.establishments set localities_id = array_remove(localities_id, (select id from localities where geo_code = '69123')) where name = 'Métropole de Lyon';
+
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13201'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13202'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13203'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13204'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13205'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13206'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13207'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13208'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13209'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13210'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13211'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13212'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13213'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13214'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13215'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_prepend((select id from localities where geo_code = '13216'), localities_id) where name = 'Métropole d''Aix-Marseille-Provence';
+UPDATE public.establishments set localities_id = array_remove(localities_id, (select id from localities where geo_code = '13055')) where name = 'Métropole d''Aix-Marseille-Provence';
 
 update establishments set available = true where siren in
 ('200066637',

@@ -174,5 +174,6 @@ export default {
     updateLastAuthentication,
     listWithFilters,
     insert,
-    activate
+    activate,
+    formatUserApi
 }

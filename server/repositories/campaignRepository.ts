@@ -272,5 +272,6 @@ export default {
     lastReminderNumber,
     insert,
     update,
-    deleteCampaigns
+    deleteCampaigns,
+    formatCampaignApi
 }

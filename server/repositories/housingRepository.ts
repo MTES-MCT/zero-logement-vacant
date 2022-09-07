@@ -614,6 +614,36 @@ const parseHousingApi = (result: any) => (
     }
 )
 
+const formatHousingApi = (housingApi: HousingApi) => ({
+        id: housingApi.id,
+        invariant: housingApi.invariant,
+        cadastral_reference: housingApi.cadastralReference,
+        building_location: housingApi.buildingLocation,
+        insee_code: housingApi.inseeCode,
+        raw_address: housingApi.rawAddress,
+        house_number: housingApi.address.houseNumber,
+        street: housingApi.address.street,
+        postal_code: housingApi.address.postalCode,
+        city: housingApi.address.city,
+        latitude: housingApi.latitude,
+        longitude: housingApi.longitude,
+        living_area: housingApi.livingArea,
+        housing_kind: housingApi.housingKind,
+        rooms_count: housingApi.roomsCount,
+        building_year: housingApi.buildingYear,
+        vacancy_start_year: housingApi.vacancyStartYear,
+        vacancy_reasons: housingApi.vacancyReasons,
+        uncomfortable: housingApi.uncomfortable,
+        cadastral_classification : housingApi.cadastralClassification,
+        taxed: housingApi.taxed,
+        ownership_kind: housingApi.ownershipKind,
+        data_years: housingApi.dataYears,
+        status: housingApi.status,
+        sub_status: housingApi.subStatus,
+        precisions: housingApi.precisions
+    }
+)
+
 export default {
     get,
     listWithFilters,
@@ -622,5 +652,6 @@ export default {
     updateHousingList,
     updateAddressList,
     countByStatusWithFilters,
-    durationByStatusWithFilters
+    durationByStatusWithFilters,
+    formatHousingApi
 }

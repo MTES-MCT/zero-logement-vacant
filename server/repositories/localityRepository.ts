@@ -24,6 +24,7 @@ const listHousingScopes = async (establishmentId: string): Promise<string[]> => 
             .where('establishment_id', establishmentId)
             .orWhereNull('establishment_id')
             .distinct('type')
+            .orderBy('type')
             .then(_ => _.map(_ => _.type))
     } catch (err) {
         console.error('Listing housing scopes failed', err);

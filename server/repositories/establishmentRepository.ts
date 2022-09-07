@@ -1,6 +1,6 @@
 import db from './db';
 import { localitiesTable } from './localityRepository';
-import { EstablishmentApi, EstablishmentDataApi } from '../models/EstablishmentApi';
+import { EstablishmentApi, EstablishmentDataApi, LocalityApi } from '../models/EstablishmentApi';
 import { housingTable } from './housingRepository';
 import { usersTable } from './userRepository';
 import { eventsTable } from './eventRepository';
@@ -125,9 +125,24 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
     }
 }
 
+const formatLocalityApi = (localityApi: LocalityApi) => ({
+    geo_code: localityApi.geoCode,
+    name: localityApi.name
+})
+
+const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
+    id: establishmentApi.id,
+    name: establishmentApi.name,
+    siren: establishmentApi.siren,
+    housing_scopes: establishmentApi.housingScopes,
+    localities_id: establishmentApi.localities.map(_ => _.id)
+})
+
 export default {
     get,
     listAvailable,
-    listDataWithFilters
+    listDataWithFilters,
+    formatLocalityApi,
+    formatEstablishmentApi
 }
 

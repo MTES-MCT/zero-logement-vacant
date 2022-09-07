@@ -5,12 +5,11 @@ import db from '../repositories/db';
 global.beforeEach(async() => {
     const db = knex(knexConfig)
     try {
-        await db.migrate.rollback()
         await db.migrate.latest()
         await db.seed.run()
     } catch (error) {
         console.log(error)
-        process.exit(1)
+        //process.exit(1)
     } finally {
         await db.destroy()
     }

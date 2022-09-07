@@ -3,7 +3,6 @@ import { EventApi } from '../models/EventApi';
 
 export const eventsTable = 'events';
 
-
 const insert = async (eventApi: EventApi): Promise<EventApi> => {
     try {
         return db(eventsTable)

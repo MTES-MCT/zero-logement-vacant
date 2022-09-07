@@ -23,6 +23,7 @@ export interface EstablishmentDataApi {
 }
 
 export interface LocalityApi {
+    id: string,
     geoCode: string,
     name: string
 }

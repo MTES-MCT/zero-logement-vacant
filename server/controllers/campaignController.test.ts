@@ -10,6 +10,7 @@ import { Establishment1 } from '../../database/seed/001-establishments';
 import bodyParser from 'body-parser';
 import { Housing1, Housing2 } from '../../database/seed/004-housing';
 import { Campaign1 } from '../../database/seed/005-campaigns';
+import { eventsTable } from '../repositories/eventRepository';
 
 const app = express();
 app.use(bodyParser.json());
@@ -189,6 +190,64 @@ describe('Campaign controller', () => {
                     ]))
                 });
         })
+    })
+
+    describe('deleteCampaignBundle', () => {
+
+        const testRoute = (campaignNumber?: any, reminderNumber?: any) =>
+            `/api/campaigns/bundles/number${campaignNumber ? '/' + campaignNumber + (reminderNumber !== undefined ? '/' + reminderNumber : '') : ''}`
+
+        it('should be forbidden for a not authenticated user', async () => {
+            await request(app).delete(testRoute(Campaign1.campaignNumber, Campaign1.reminderNumber)).expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        })
+
+        it('should received a valid campaign number', async () => {
+
+            await withAccessToken(
+                request(app).delete(testRoute())
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).delete(testRoute('number'))
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).delete(testRoute(Campaign1.campaignNumber, 'number'))
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+        });
+
+        it('should delete linked campaigns, events and campaign housing', async () => {
+
+            await withAccessToken(
+                request(app).delete(testRoute(Campaign1.campaignNumber))
+                    .set('Content-type', 'application/json')
+            ).expect(constants.HTTP_STATUS_OK);
+
+            await db(campaignsTable)
+                .where('establishment_id', Establishment1.id)
+                .andWhere('campaign_number', '1')
+                .then(result => {
+                    expect(result).toEqual([])
+                });
+
+            await db(campaignsHousingTable)
+                .join(campaignsTable, 'campaign_id', 'id')
+                .where('establishment_id', Establishment1.id)
+                .andWhere('campaign_number', '1')
+                .then(result => {
+                    expect(result).toEqual([])
+                });
+
+            await db(eventsTable)
+                .join(campaignsTable, 'campaign_id', `${campaignsTable}.id`)
+                .where('establishment_id', Establishment1.id)
+                .andWhere('campaign_number', '1')
+                .then(result => {
+                    expect(result).toEqual([])
+                });
+        })
+
     })
 
 

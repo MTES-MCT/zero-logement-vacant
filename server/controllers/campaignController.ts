@@ -11,7 +11,7 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { param, validationResult } from 'express-validator';
 
-const getCampaignBundleValidators = [
+const campaignBundleValidators = [
     param('campaignNumber').notEmpty().isNumeric(),
     param('reminderNumber').optional({ nullable: true }).isNumeric(),
 ];
@@ -230,7 +230,12 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
 }
 
 
-const deleteCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
+const deleteCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(400).json({ errors: errors.array() });
+    }
 
     const campaignNumber = Number(request.params.campaignNumber);
     const reminderNumber = request.params.reminderNumber ? Number(request.params.reminderNumber) : undefined;
@@ -284,7 +289,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
 };
 
 const campaignController =  {
-    getCampaignBundleValidators,
+    campaignBundleValidators,
     getCampaignBundle,
     listCampaigns,
     listCampaignBundles,
@@ -292,7 +297,7 @@ const campaignController =  {
     createReminderCampaign,
     updateCampaignBundle,
     validateStep,
-    deleteCampaign,
+    deleteCampaignBundle,
     removeHousingList
 };
 

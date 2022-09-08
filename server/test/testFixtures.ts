@@ -28,6 +28,7 @@ export function genNumber(length = 10) {
 
 export function genLocalityApi() {
     return <LocalityApi>{
+        id: uuidv4(),
         geoCode: randomstring.generate(),
         name: randomstring.generate()
     };
@@ -79,13 +80,14 @@ export function genOwnerApi() {
     };
 }
 
-export function genHousingApi() {
+export function genHousingApi(inseeCode: string) {
     return <HousingApi>{
         id: uuidv4(),
         invariant: randomstring.generate(),
+        localId: randomstring.generate(),
         cadastralReference: randomstring.generate(),
         buildingLocation: randomstring.generate(),
-        inseeCode: randomstring.generate(),
+        inseeCode,
         rawAddress: [
             randomstring.generate(),
             randomstring.generate()

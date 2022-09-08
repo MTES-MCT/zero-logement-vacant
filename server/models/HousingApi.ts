@@ -5,6 +5,7 @@ import { HousingStatusApi } from './HousingStatusApi';
 export interface HousingApi {
     id: string;
     invariant: string,
+    localId?: string,
     cadastralReference: string,
     buildingLocation: string,
     inseeCode: string,

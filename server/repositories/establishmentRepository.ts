@@ -126,6 +126,7 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
 }
 
 const formatLocalityApi = (localityApi: LocalityApi) => ({
+    id: localityApi.id,
     geo_code: localityApi.geoCode,
     name: localityApi.name
 })

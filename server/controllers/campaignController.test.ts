@@ -65,6 +65,7 @@ describe('Campaign controller', () => {
                     campaignNumber: Campaign1.campaignNumber,
                     reminderNumber: String(Campaign1.reminderNumber),
                     startMonth: Campaign1.startMonth,
+                    filters: expect.objectContaining(Campaign1.filters)
                 })
             )
         })

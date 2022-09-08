@@ -118,7 +118,10 @@ export function genCampaignApi(establishmentId: string, campaignNumber: number, 
         startMonth: randomstring.generate(),
         reminderNumber,
         name: randomstring.generate(),
-        filters: [],
+        filters: {
+            housingScopesIncluded: [randomstring.generate()],
+            housingScopesExcluded: [randomstring.generate()]
+        },
         housingCount: genNumber(2),
         ownerCount: genNumber(2),
         kind: 1,

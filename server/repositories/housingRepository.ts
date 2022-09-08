@@ -32,7 +32,7 @@ export const queryOwnerHousingWhereClause = (queryBuilder: any, query?: string) 
             whereBuilder.orWhereRaw(`upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
             whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query)
             whereBuilder.orWhereRaw(`upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`, query?.split(' ').reverse().join(' '))
-            whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
+            whereBuilder.orWhereRaw(`replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`, query)
             whereBuilder.orWhereRaw(`upper(unaccent(array_to_string(o.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`, query)
             whereBuilder.orWhereIn('invariant', query?.split(',').map(_ => _.trim()))
             whereBuilder.orWhereIn('invariant', query?.split(' ').map(_ => _.trim()))
@@ -617,6 +617,7 @@ const parseHousingApi = (result: any) => (
 const formatHousingApi = (housingApi: HousingApi) => ({
         id: housingApi.id,
         invariant: housingApi.invariant,
+        local_id: housingApi.localId,
         cadastral_reference: housingApi.cadastralReference,
         building_location: housingApi.buildingLocation,
         insee_code: housingApi.inseeCode,

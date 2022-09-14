@@ -45,10 +45,10 @@ if (config.auth.secret) {
     router.delete('/api/campaigns/:campaignId/housing', jwtCheck, userCheck, campaignController.removeHousingList);
 
     router.get('/api/campaigns/bundles', jwtCheck, userCheck, campaignController.listCampaignBundles);
-    router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.campaignBundleValidators, campaignController.getCampaignBundle);
+    router.get('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.getCampaignBundleValidators, campaignController.getCampaignBundle);
     router.put('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.updateCampaignBundle);
     router.post('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.createReminderCampaign);
-    router.delete('/api/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', jwtCheck, userCheck, campaignController.campaignBundleValidators, campaignController.deleteCampaignBundle);
+    router.delete('/api/campaigns/bundles/number/:campaignNumber/:reminderNumber?', jwtCheck, userCheck, campaignController.deleteCampaignBundleValidators, campaignController.deleteCampaignBundle);
 
     router.post('/api/owners', jwtCheck, userCheck, ownerController.search);
     router.get('/api/owners/:id', jwtCheck, userCheck, ownerController.get);

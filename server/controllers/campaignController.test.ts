@@ -216,7 +216,7 @@ describe('Campaign controller', () => {
 
             await withAccessToken(
                 request(app).delete(testRoute())
-            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+            ).expect(constants.HTTP_STATUS_NOT_FOUND)
 
             await withAccessToken(
                 request(app).delete(testRoute('number'))

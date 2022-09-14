@@ -32,10 +32,6 @@ describe('Campaign controller', () => {
         it('should received a valid campaign number', async () => {
 
             await withAccessToken(
-                request(app).get(testRoute())
-            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
-
-            await withAccessToken(
                 request(app).get(testRoute('number'))
             ).expect(constants.HTTP_STATUS_BAD_REQUEST)
 
@@ -66,6 +62,20 @@ describe('Campaign controller', () => {
                     reminderNumber: String(Campaign1.reminderNumber),
                     startMonth: Campaign1.startMonth,
                     filters: expect.objectContaining(Campaign1.filters)
+                })
+            )
+        })
+
+        it('should return the global campaign bundle', async () => {
+
+           const res = await withAccessToken(
+               request(app).get(testRoute())
+           ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    campaignIds: [Campaign1.id],
+                    housingCount: "1"
                 })
             )
         })

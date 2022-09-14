@@ -12,7 +12,7 @@ import { Request as JWTRequest } from 'express-jwt';
 import { param, validationResult } from 'express-validator';
 
 const campaignBundleValidators = [
-    param('campaignNumber').notEmpty().isNumeric(),
+    param('campaignNumber').optional({ nullable: true }).isNumeric(),
     param('reminderNumber').optional({ nullable: true }).isNumeric(),
 ];
 

@@ -58,6 +58,8 @@ function App() {
 
     FetchInterceptor();
 
+    console.log('isValidUser(authUser)', isValidUser(authUser))
+
     return (
         <>
             <React.Suspense fallback={<></>}>
@@ -93,7 +95,6 @@ function App() {
                                 <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
                                 <Route exact path="*/logements/:housingId" component={HousingView} />
                                 <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
-                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
                                 <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
                                 {authUser.user.role === UserRoles.Admin &&
                                     <Route exact path="/utilisateurs" component={UserListView}/>
@@ -112,8 +113,9 @@ function App() {
                             <Route exact path="/accessibilite" component={AccessibilityView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
-                            {!accountActivated &&
-                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/>
+                            {!accountActivated ?
+                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/> :
+                                <Route exact path="/compte/activation/:tokenId" component={LoginView}/>
                             }
                             <Route path="/*">
                                 <Redirect to="/" />

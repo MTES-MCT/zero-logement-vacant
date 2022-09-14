@@ -11,8 +11,8 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { param, validationResult } from 'express-validator';
 
-const campaignBundleValidators = [
-    param('campaignNumber').notEmpty().isNumeric(),
+const getCampaignBundleValidators = [
+    param('campaignNumber').optional({ nullable: true }).isNumeric(),
     param('reminderNumber').optional({ nullable: true }).isNumeric(),
 ];
 
@@ -229,6 +229,10 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
     }
 }
 
+const deleteCampaignBundleValidators = [
+    param('campaignNumber').notEmpty().isNumeric(),
+    param('reminderNumber').optional({ nullable: true }).isNumeric(),
+];
 
 const deleteCampaignBundle = async (request: JWTRequest, response: Response): Promise<Response> => {
 
@@ -289,7 +293,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
 };
 
 const campaignController =  {
-    campaignBundleValidators,
+    getCampaignBundleValidators,
     getCampaignBundle,
     listCampaigns,
     listCampaignBundles,
@@ -297,6 +301,7 @@ const campaignController =  {
     createReminderCampaign,
     updateCampaignBundle,
     validateStep,
+    deleteCampaignBundleValidators,
     deleteCampaignBundle,
     removeHousingList
 };

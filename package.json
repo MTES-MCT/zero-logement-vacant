@@ -10,13 +10,15 @@
     "frontend:test": "npm --prefix frontend test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
-    "build": "npm run migrate-latest && tsc && npm run frontend:build",
+    "build": "npm run migrate-latest && npm run seed && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
     "test": "jest",
     "lint": "eslint . --ext .js,.ts",
-    "listMigrations": "knex migrate:list --knexfile=./server/knex.ts",
+    "migrate-list": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
-    "rollback-one": "knex migrate:down --knexfile=./server/knex.ts"
+    "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",
+    "migrate-rollback-all": "knex migrate:rollback --all --knexfile=./server/knex.ts",
+    "seed": "knex seed:run --knexfile=./server/knex.ts"
   },
   "keywords": [],
   "author": "",

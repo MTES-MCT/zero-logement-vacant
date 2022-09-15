@@ -7,8 +7,8 @@ import { constants } from 'http2';
 import bodyParser from 'body-parser';
 import housingRepository, { housingTable } from '../repositories/housingRepository';
 import { genHousingApi } from '../test/testFixtures';
-import { Locality1 } from '../../database/seed/001-establishments';
-import { Owner1 } from '../../database/seed/003-owner';
+import { Locality1 } from '../../database/seed/test/001-establishments';
+import { Owner1 } from '../../database/seed/test/003-owner';
 import ownerRepository from '../repositories/ownerRepository';
 
 const app = express();

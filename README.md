@@ -53,7 +53,7 @@ npm i
 **Développement**
 
 ```bash
-npm run seed
+npm run seeds
 ```
 
 Permet le chargement de données minimales pour faire fonctionner l'application avec des données anonymisées pour les collectivités suivantes :

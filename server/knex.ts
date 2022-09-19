@@ -9,7 +9,7 @@ const developmentConfig = {
     directory: '../database/migrations'
   },
   seeds: {
-    directory: '../database/seed/development',
+    directory: '../database/seeds/development',
     extension: 'ts',
   }
 }
@@ -23,7 +23,7 @@ const testConfig = {
     directory: './database/migrations'
   },
   seeds: {
-    directory: './database/seed/test',
+    directory: '../database/seeds/test',
     extension: 'ts',
   }
 }
@@ -36,6 +36,10 @@ const productionConfig = {
     tableName: 'knex_migrations',
     directory: '../database/migrations'
   },
+  seeds: {
+    directory: '../database/seeds/production',
+    extension: 'ts',
+  }
 };
 
 export default process.env.NODE_ENV === 'production' ? productionConfig : process.env.NODE_ENV === 'test'? testConfig : developmentConfig;

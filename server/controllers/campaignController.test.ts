@@ -6,10 +6,10 @@ import express from 'express';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import { Establishment1 } from '../../database/seed/test/001-establishments';
+import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import bodyParser from 'body-parser';
-import { Housing1, Housing2 } from '../../database/seed/test/004-housing';
-import { Campaign1 } from '../../database/seed/test/005-campaigns';
+import { Housing1, Housing2 } from '../../database/seeds/test/004-housing';
+import { Campaign1 } from '../../database/seeds/test/005-campaigns';
 import { eventsTable } from '../repositories/eventRepository';
 
 const app = express();

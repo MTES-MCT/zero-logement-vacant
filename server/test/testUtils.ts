@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { RequestUser } from '../models/UserApi';
 import { Test } from 'supertest';
-import { User1 } from '../../database/seed/test/002-users';
+import { User1 } from '../../database/seeds/test/002-users';
 
 export const accessTokenTest = jwt.sign(<RequestUser>{ userId: User1.id, establishmentId: User1.establishmentId, role: User1.role }, 'secret', { expiresIn: 86400 })
 

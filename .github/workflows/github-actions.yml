@@ -28,6 +28,7 @@ jobs:
       - name : build
         run: npm run build
         env:
+          NODE_ENV: production
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
       - name: Frontend linter
         run: npm --prefix frontend run lint

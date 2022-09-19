@@ -14,6 +14,7 @@ exports.up = function(knex) {
         knex.schema.raw(fs.readFileSync(path.join(__dirname, '../procedures/002-load-housing.sql')).toString()),
         knex.schema.raw(fs.readFileSync(path.join(__dirname, '../procedures/003-load-owners.sql')).toString()),
         knex.schema.raw(fs.readFileSync(path.join(__dirname, '../procedures/004-load-data.sql')).toString()),
+        knex.schema.raw(fs.readFileSync(path.join(__dirname, '../procedures/005-load-buildings.sql')).toString()),
         knex.schema// @ts-ignore
             .alterTable('campaigns', (table) => {
                 table.uuid('created_by').nullable().alter();
@@ -28,6 +29,7 @@ exports.down = function(knex) {
       knex.schema.raw('DROP PROCEDURE load_housing()'),
       knex.schema.raw('DROP PROCEDURE load_owners()'),
       knex.schema.raw('DROP PROCEDURE load_data(text)'),
+      knex.schema.raw('DROP PROCEDURE load_buildings(text)'),
       knex.schema// @ts-ignore
           .alterTable('localities', (table) => {
               table.dropUnique(['geo_code'])

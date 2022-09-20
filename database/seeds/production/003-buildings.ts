@@ -9,15 +9,17 @@ exports.seed = function(knex: Knex) {
         .select('building_id')
         .count('building_id')
         .groupBy('building_id')
-        .then((results: any[]) =>
-            knex.table(buildingTable)
-                .insert(results.map(result => ({
-                    id: result.building_id,
-                    housing_count: result.count,
-                    vacant_housing_count: result.count,
-                })))
-                .onConflict('id')
-                .merge(['vacant_housing_count'])
-        )
+        .then((results: any[]) => {
+            if (results.length) {
+                knex.table(buildingTable)
+                    .insert(results.map(result => ({
+                        id: result.building_id,
+                        housing_count: result.count,
+                        vacant_housing_count: result.count,
+                    })))
+                    .onConflict('id')
+                    .merge(['vacant_housing_count'])
+            }
+        })
 
 };

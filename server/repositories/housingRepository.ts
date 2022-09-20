@@ -137,8 +137,11 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                 if (filters.ownerAges?.indexOf('60to75') !== -1) {
                     whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) between 60 and 75")
                 }
-                if (filters.ownerAges?.indexOf('gt75') !== -1) {
-                    whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) >= 75")
+                if (filters.ownerAges?.indexOf('75to100') !== -1) {
+                    whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) between 75 and 100")
+                }
+                if (filters.ownerAges?.indexOf('gt100') !== -1) {
+                    whereBuilder.orWhereRaw("date_part('year', current_date) - date_part('year', birth_date) >= 100")
                 }
             })
         }

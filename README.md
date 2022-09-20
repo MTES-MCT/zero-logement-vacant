@@ -70,7 +70,8 @@ et trois utilisateurs :
 Les scripts présents dans le répertoire `database/seed/production` sont éxécutés automatiquement à chaque déploiement de l'application. 
 Ils permettent de (re)charger automatiquement les données publiques (collectivités, ...)
 
-Le chargement des données privées se fait à partir de fichier de données CSV via les procédures :
+Le chargement des données se fait à partir de fichier de données CSV via les procédures :
+- load_establishment_localities(csv_path text) //fichier csv des EPCI disponible dans `/database/data/common`
 - load_data(csv_path text) 
 - load_buildings(csv_path text)
 

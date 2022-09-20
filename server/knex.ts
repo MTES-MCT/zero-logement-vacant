@@ -23,7 +23,7 @@ const testConfig = {
     directory: './database/migrations'
   },
   seeds: {
-    directory: '../database/seeds/test',
+    directory: './database/seeds/test',
     extension: 'ts',
   }
 }

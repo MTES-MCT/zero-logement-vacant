@@ -14,16 +14,14 @@ AS $$
            ff_idbat as building_id,
            array[ltrim(trim(libvoie), '0'), trim(libcom)] as raw_address,
            lpad(ccodep, 2, '0') || lpad(commune, 3, '0') as insee_code,
-           ff_x_4326 as latitude,
-    --        replace(ff_x_4326, ',', '.')::double precision as latitude,
-           ff_y_4326 as longitude,
-    --        replace(ff_y_4326, ',', '.')::double precision as longitude,
+           replace(ff_x_4326, ',', '.')::double precision as latitude,
+           replace(ff_y_4326, ',', '.')::double precision as longitude,
            ff_dcapec2 as cadastral_classification,
            (coalesce(ff_dcapec2, 0) > 6) OR (ff_dnbwc = 0) OR (ff_dnbbai + ff_dnbdou = 0) as uncomfortable,
            debutvacance as vacancy_start_year,
            trim(nature) as housing_kind,
            ff_npiece_p2 as rooms_count,
-           ff_stoth as living_area,
+           floor(replace(ff_stoth, ',', '.')::numeric) as living_area,
            refcad as cadastral_reference,
            (case when (ff_jannath > 100) then ff_jannath end) as building_year,
            (case
@@ -43,20 +41,20 @@ AS $$
                    (var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
                    (var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1 || ' 20', 'MM/DD/YY CC') end) as birth_date,
            (case
-               when trim(groupe::text) = '' then 'Particulier'
+               when trim(groupe::TEXT) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
                     not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else 'Autre' end) as owner_kind,
            (case
-               when trim(groupe::text) = '' then 'Particulier'
+               when trim(groupe::TEXT) = '' then 'Particulier'
                when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
                     not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
                when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
                when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
                else ff_catpro2txt end) as owner_kind_detail
-        from _extract_zlv_2022_5, lateral (
+        from _extract_zlv_, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
@@ -70,7 +68,7 @@ AS $$
 
         OPEN housing_cursor;
 
-        update _extract_zlv_2022_5 set anmutation = '01/01/' || substr(anmutation, 3) where anmutation ~ '[0-9]{4}';
+        update _extract_zlv_ set anmutation = '01/01/' || substr(anmutation, 3) where anmutation ~ '[0-9]{4}';
 
         LOOP
             FETCH housing_cursor INTO housing_var;
@@ -93,10 +91,10 @@ AS $$
                         building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind)
                     values (housing_var.invariant, housing_var.local_id, housing_var.building_id, housing_var.raw_address,
                             housing_var.insee_code, housing_var.latitude, housing_var.longitude, housing_var.cadastral_classification,
-                            housing_var.uncomfortable, housing_var.vacancy_start_year::integer, housing_var.housing_kind, housing_var.rooms_count,
+                            housing_var.uncomfortable, housing_var.vacancy_start_year::INTEGER, housing_var.housing_kind, housing_var.rooms_count,
                             housing_var.living_area, housing_var.cadastral_reference, housing_var.building_year, housing_var.mutation_date,
                             housing_var.taxed, ARRAY[housing_var.data_year], housing_var.beneficiary_count, housing_var.building_location,
-                            housing_var.rental_value::integer, housing_var.ownership_kind)
+                            housing_var.rental_value::INTEGER, housing_var.ownership_kind)
                     returning housing.id INTO housing_var_id;
 
 

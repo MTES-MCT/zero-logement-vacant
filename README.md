@@ -48,9 +48,32 @@ npm i
 ```
 
 
-### Chargement de données anonymisées
+### Chargement des données
 
-TODO
+**Développement**
+
+```bash
+npm run seeds
+```
+
+Permet le chargement de données minimales pour faire fonctionner l'application avec des données anonymisées pour les collectivités suivantes :
+- Eurométropole de Strasbourg
+- CA Saint-Lô Agglo
+
+et trois utilisateurs :
+- test.strasbourg@zlv.fr / test => utilisateur avec des droits pour Eurométropole de Strasbourg
+- test.saintlo@zlv.fr / test => utilisateur avec des droits pour Saint-Lô
+- test.admin@zlv.fr / test => utilisateur avec des droits d'administration
+
+**Production**
+
+Les scripts présents dans le répertoire `database/seed/production` sont éxécutés automatiquement à chaque déploiement de l'application. 
+Ils permettent de (re)charger automatiquement les données publiques (collectivités, ...)
+
+Le chargement des données se fait à partir de fichier de données CSV via les procédures :
+- load_establishment_localities(csv_path text) //fichier csv des EPCI disponible dans `/database/data/common`
+- load_data(csv_path text) 
+- load_buildings(csv_path text)
 
 
 ### Lancement de l'application en local

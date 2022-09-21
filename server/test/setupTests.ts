@@ -9,7 +9,7 @@ global.beforeEach(async() => {
         await db.seed.run()
     } catch (error) {
         console.log(error)
-        //process.exit(1)
+        process.exit(1)
     } finally {
         await db.destroy()
     }

@@ -21,6 +21,7 @@ const dummyConfig = {
 
 const testConfig = {
   ...defaultConfig,
+  connection: config.databaseUrlTest,
   migrations: {
     ...defaultConfig.migrations,
     directory: './database/migrations'

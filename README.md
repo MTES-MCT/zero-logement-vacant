@@ -9,6 +9,7 @@
 * node
 * npm 
 * serveur Postgres (sur macOS, possible d'utiliser [postgresapp](https://postgresapp.com>))
+* commande psql dans le PATH (pour le chargement des données)
 * serveur mail (par exemple [mailDev](https://github.com/maildev/maildev))
 
 ### Base de données
@@ -50,10 +51,13 @@ npm i
 
 ### Chargement des données
 
-**Développement**
+**Développement / Staging**
 
 ```bash
-npm run seeds
+cd database/scripts
+psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=../data/dummy/dummy_data.csv
+npm run seed
 ```
 
 Permet le chargement de données minimales pour faire fonctionner l'application avec des données anonymisées pour les collectivités suivantes :
@@ -67,14 +71,15 @@ et trois utilisateurs :
 
 **Production**
 
-Les scripts présents dans le répertoire `database/seed/production` sont éxécutés automatiquement à chaque déploiement de l'application. 
-Ils permettent de (re)charger automatiquement les données publiques (collectivités, ...)
+Le chargement des données se fait à partir de fichier d'extractions de données au format csv.
 
-Le chargement des données se fait à partir de fichier de données CSV via les procédures :
-- load_establishment_localities(csv_path text) //fichier csv des EPCI disponible dans `/database/data/common`
-- load_data(csv_path text) 
-- load_buildings(csv_path text)
-
+```bash
+cd database/scripts
+psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=DATA_CSV_FILE
+psql [DATABASE_URL] -f 003-load-buildings.sql -v filePath=BUILDING_CSV_FILE
+npm run seed
+```
 
 ### Lancement de l'application en local
 

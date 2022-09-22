@@ -21,6 +21,10 @@ const dummyConfig = {
 
 const testConfig = {
   ...defaultConfig,
+  migrations: {
+    ...defaultConfig.migrations,
+    directory: './database/migrations'
+  },
   seeds: {
     directory: './database/seeds/test',
     extension: 'ts',

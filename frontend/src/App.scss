@@ -30,6 +30,23 @@
       }
     }
   }
+
+  &.with-view {
+
+    th:last-child, tr > td:last-child  {
+      width: 100px;
+      padding: 0;
+    }
+
+    &.with-actions {
+
+      th:nth-last-child(2), tr > td:nth-last-child(2)  {
+        width: 100px;
+        padding: 0;
+      }
+
+    }
+  }
 }
 
 .zlv-table-with-view {

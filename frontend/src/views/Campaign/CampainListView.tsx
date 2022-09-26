@@ -56,9 +56,15 @@ const CampaignsListView = () => {
 
     return (
         <>
-            <Container>
-                <AppBreadcrumb />
-                <Title as="h1" className="fr-mb-4w">Logements suivis</Title>
+            <div className="bg-100">
+                <Container className="bg-100">
+                    <AppBreadcrumb />
+                    <Row>
+                        <Title as="h1" className="fr-mb-4w">Logements suivis</Title>
+                    </Row>
+                </Container>
+            </div>
+            <Container spacing="py-4w">
                 <Tabs>
                     <Tab label="En cours">
                         <Row>

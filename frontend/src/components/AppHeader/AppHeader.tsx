@@ -89,6 +89,7 @@ function AppHeader() {
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
                         <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingScope)} />
                         {authUser.user.role === UserRoles.Admin ? <>
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Monitoring)} />

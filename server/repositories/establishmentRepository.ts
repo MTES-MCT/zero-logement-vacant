@@ -9,7 +9,6 @@ import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
 
 export const establishmentsTable = 'establishments';
-export const housingScopeGeometryTable = 'housing_scopes_geom';
 
 const get = async (establishmentId: string): Promise<EstablishmentApi> => {
     try {

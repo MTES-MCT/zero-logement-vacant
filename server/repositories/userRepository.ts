@@ -142,19 +142,17 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
 }
 
 
-const parseUserApi = (result: any) => (
-    <UserApi>{
-        id: result.id,
-        email: result.email,
-        password: result.password,
-        firstName: result.first_name,
-        lastName: result.last_name,
-        establishmentId: result.establishment_id,
-        role: result.role,
-        activatedAt: result.activated_at,
-        activationSendAt: result.created_at,
-    }
-)
+const parseUserApi = (result: any) => <UserApi>{
+    id: result.id,
+    email: result.email,
+    password: result.password,
+    firstName: result.first_name,
+    lastName: result.last_name,
+    establishmentId: result.establishment_id,
+    role: result.role,
+    activatedAt: result.activated_at,
+    activationSendAt: result.created_at,
+}
 
 const formatUserApi = (userApi: UserApi) => ({
     id: userApi.id,

@@ -5,10 +5,10 @@ import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import localityRepository from '../repositories/localityRepository';
 import authTokenRepository from '../repositories/authTokenRepository';
 import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
+import geoRepository from '../repositories/geoRepository';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -31,7 +31,7 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
             if (establishment) {
 
-                const housingScopes = await localityRepository.listHousingScopes(establishment.id)
+                const geoPerimeterApis = await geoRepository.listGeoPerimeters(establishment.id)
 
                 if (!config.auth.secret) {
                     return response.sendStatus(500)
@@ -39,7 +39,7 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
                 return response.status(200).send({
                     user: {...user, password: undefined, establishmentId: undefined},
-                    establishment: {...establishment, housingScopes},
+                    establishment: {...establishment, housingScopes: geoPerimeterApis.map(_ => _.type).filter((value, index, self) => self.indexOf(value) === index)},
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
                 });
             }

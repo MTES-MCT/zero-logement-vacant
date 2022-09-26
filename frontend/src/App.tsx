@@ -27,6 +27,7 @@ import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
+import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 
 
 function AppWrapper () {
@@ -57,8 +58,6 @@ function App() {
     const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
-
-    console.log('isValidUser(authUser)', isValidUser(authUser))
 
     return (
         <>
@@ -94,6 +93,7 @@ function App() {
                                 <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
                                 <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
                                 <Route exact path="*/logements/:housingId" component={HousingView} />
+                                <Route exact path="*/perimetres" component={GeoPerimeterView} />
                                 <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
                                 <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
                                 {authUser.user.role === UserRoles.Admin &&

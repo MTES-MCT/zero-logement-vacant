@@ -6,6 +6,7 @@ import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
 import { formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
+import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 
 const randomstring = require('randomstring');
 
@@ -129,5 +130,14 @@ export function genCampaignApi(establishmentId: string, campaignNumber: number, 
         kind: 1,
         createdAt: new Date(),
         createdBy
+    };
+}
+
+export function genGeoPerimeterApi(establishmentId: string) {
+    return <GeoPerimeterApi>{
+        id: uuidv4(),
+        establishmentId,
+        name: randomstring.generate(),
+        type: randomstring.generate()
     };
 }

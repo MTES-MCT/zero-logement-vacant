@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { RequestUser, UserRoles } from '../models/UserApi';
+import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
 import mailService, { ActivationMail } from '../services/mailService';
 import { UserFiltersApi } from '../models/UserFiltersApi';
@@ -10,7 +10,19 @@ const createUser = async (request: Request, response: Response): Promise<Respons
 
     console.log('Create user')
 
-    const userApi = request.body.draftUser;
+    const draftUser = request.body.draftUser;
+
+    if (!draftUser || !draftUser.email || !draftUser.establishmentId) {
+        return response.sendStatus(400);
+    }
+
+    const userApi = <UserApi> {
+        email: draftUser.email,
+        firstName: draftUser.firstName,
+        lastName: draftUser.lastName,
+        role: UserRoles.Usual,
+        establishmentId: draftUser.establishmentId
+    };
 
     return userRepository.insert(userApi)
         .then(_ => response.status(200).json(_));

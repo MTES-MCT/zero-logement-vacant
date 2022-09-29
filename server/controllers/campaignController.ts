@@ -10,6 +10,7 @@ import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { param, validationResult } from 'express-validator';
+import { constants } from 'http2';
 
 const getCampaignBundleValidators = [
     param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -20,7 +21,7 @@ const getCampaignBundle = async (request: JWTRequest, response: Response): Promi
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const campaignNumber = request.params.campaignNumber;
@@ -32,8 +33,8 @@ const getCampaignBundle = async (request: JWTRequest, response: Response): Promi
 
     return campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber, query)
         .then(campaignBundle => campaignBundle ?
-            response.status(200).json(campaignBundle):
-            response.sendStatus(404)
+            response.status(constants.HTTP_STATUS_OK).json(campaignBundle):
+            response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
         );
 
 }
@@ -45,7 +46,7 @@ const listCampaigns = async (request: JWTRequest, response: Response): Promise<R
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     return campaignRepository.listCampaigns(establishmentId)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 
 }
 
@@ -56,7 +57,7 @@ const listCampaignBundles = async (request: JWTRequest, response: Response): Pro
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     return campaignRepository.listCampaignBundles(establishmentId)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 
 }
 
@@ -100,7 +101,7 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
 
     await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
-    return response.status(200).json(newCampaignApi);
+    return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 
 }
 
@@ -121,7 +122,7 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
     const campaignBundle = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
 
     if (!campaignBundle) {
-        return response.sendStatus(404);
+        return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
     }
 
     const lastReminderNumber = await campaignRepository.lastReminderNumber(establishmentId, campaignBundle.campaignNumber)
@@ -147,7 +148,7 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
     await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
 
-    return response.status(200).json(newCampaignApi);
+    return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 
 }
 
@@ -163,7 +164,7 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
     const campaignApi = await campaignRepository.getCampaign(campaignId)
 
     if (!campaignApi) {
-        return response.sendStatus(404)
+        return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
     }
 
     else {
@@ -197,7 +198,7 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
 
         return campaignRepository.update(updatedCampaign)
             .then(() => campaignRepository.getCampaign(campaignId))
-            .then(_ => response.status(200).json(_))
+            .then(_ => response.status(constants.HTTP_STATUS_OK).json(_))
     }
 }
 
@@ -215,7 +216,7 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
     const campaignsToUpdate = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
 
     if (!campaignsToUpdate.length) {
-        return response.sendStatus(401)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     } else {
 
         return Promise.all(
@@ -225,7 +226,7 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     title
                 }))
         )
-            .then(() => response.send(200))
+            .then(() => response.send(constants.HTTP_STATUS_OK))
     }
 }
 
@@ -238,7 +239,7 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const campaignNumber = Number(request.params.campaignNumber);
@@ -249,7 +250,7 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
     const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
 
     if (!campaignsToDelete.length) {
-        return response.sendStatus(401)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     } else {
 
         await campaignHousingRepository.deleteHousingFromCampaigns(campaignsToDelete.map(_ => _.id))
@@ -266,7 +267,7 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     campaignNumber: campaign.campaignNumber - 1
                 }))
         )
-            .then(() => response.send(200))
+            .then(() => response.send(constants.HTTP_STATUS_OK))
     }
 
 }
@@ -289,7 +290,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
             );
 
     return campaignHousingRepository.deleteHousingFromCampaigns([campaignId], housingIds)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
 const campaignController =  {

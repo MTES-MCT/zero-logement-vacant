@@ -7,6 +7,7 @@ import { RequestUser } from '../models/UserApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { EventApi, EventKinds } from '../models/EventApi';
 import addressService from '../services/addressService';
+import { constants } from 'http2';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -15,7 +16,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     console.log('Get owner', id)
 
     return ownerRepository.get(id)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
 const search = async (request: Request, response: Response): Promise<Response> => {
@@ -27,7 +28,7 @@ const search = async (request: Request, response: Response): Promise<Response> =
     console.log('Search owner', q)
 
     return ownerRepository.searchOwners(q, page, perPage)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
 const listByHousing = async (request: Request, response: Response): Promise<Response> => {
@@ -37,14 +38,14 @@ const listByHousing = async (request: Request, response: Response): Promise<Resp
     console.log('List owner for housing', housingId)
 
     return ownerRepository.listByHousing(housingId)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
 const create = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
 
     console.log('Create owner')
@@ -68,14 +69,14 @@ const create = async (request: JWTRequest, response: Response): Promise<Response
         content: 'Création du propriétaire',
         createdBy: userId
     })
-        .then(() => response.status(200).json(createdOwnerApi));
+        .then(() => response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi));
 }
 
 const update = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const ownerId = request.params.ownerId;
@@ -101,14 +102,14 @@ const update = async (request: JWTRequest, response: Response): Promise<Response
             content: 'Modification des données d\'identité',
             createdBy: userId
         })
-        .then(() => response.status(200).json(updatedOwnerApi));
+        .then(() => response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi));
 }
 
 const updateHousingOwners = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
-        return response.status(400).json({ errors: errors.array() });
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
 
     const housingId = request.params.housingId;
@@ -132,7 +133,7 @@ const updateHousingOwners = async (request: JWTRequest, response: Response): Pro
                             ${prevHousingOwnersApi.map(_ => `${_.fullName} (${_.rank === 0 ? 'Ancien' : _.rank === 1 ? 'Principal' : _.rank+'ème ayant droit'})`).join(' - ')}`,
                 createdBy: userId
             }))
-            .then(() => response.sendStatus(200));
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 
     } else {
         return response.sendStatus(304)

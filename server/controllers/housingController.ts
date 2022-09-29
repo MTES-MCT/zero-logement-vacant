@@ -16,6 +16,7 @@ import campaignHousingRepository from '../repositories/campaignHousingRepository
 import { Request as JWTRequest } from 'express-jwt';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import exportFileService from '../services/exportFileService';
+import { constants } from 'http2';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -24,7 +25,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     console.log('Get housing', id)
 
     return housingRepository.get(id)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
 const list = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -38,7 +39,7 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     const filters = <HousingFiltersApi> request.body.filters ?? {};
 
     return housingRepository.listWithFilters({...filters, establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] }, page, perPage)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
 const listByOwner = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -52,7 +53,7 @@ const listByOwner = async (request: JWTRequest, response: Response): Promise<Res
         housingRepository.listWithFilters({establishmentIds: [establishmentId], ownerIds: [ownerId]}),
         housingRepository.countWithFilters({ownerIds: [ownerId]})
     ])
-        .then(([list, totalCount]) => response.status(200).json({entities: list.entities, totalCount}));
+        .then(([list, totalCount]) => response.status(constants.HTTP_STATUS_OK).json({entities: list.entities, totalCount}));
 };
 
 
@@ -101,7 +102,7 @@ const updateHousing = async (request: JWTRequest, response: Response): Promise<R
         housingUpdateApi.vacancyReasons
     )
 
-    return response.status(200).json(updatedHousingList);
+    return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
 const updateHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -148,7 +149,7 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
         housingUpdateApi.vacancyReasons
     )
 
-    return response.status(200).json(updatedHousingList);
+    return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
 const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateApi) => {
@@ -174,7 +175,7 @@ const exportHousingByCampaignBundle = async (request: JWTRequest, response: Resp
     const campaignApi = await campaignRepository.getCampaignBundle(establishmentId, campaignNumber, reminderNumber)
 
     if (!campaignApi) {
-        return response.sendStatus(404)
+        return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
     }
 
     const housingList = await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
@@ -325,7 +326,7 @@ const normalizeAddresses = async (request: Request, response: Response): Promise
 
     await ownerRepository.updateAddressList(ownerAdresses)
 
-    return response.sendStatus(200)
+    return response.sendStatus(constants.HTTP_STATUS_OK)
 
 }
 

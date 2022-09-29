@@ -6,8 +6,7 @@ import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
 import { formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
-
-const randomstring = require('randomstring');
+import randomstring from 'randomstring';
 
 export function genEmail() {
     return randomstring.generate({
@@ -16,14 +15,17 @@ export function genEmail() {
     }) + '@' + randomstring.generate({
         length: 10,
         charset: 'alphabetic'
+    }) + '.' + randomstring.generate({
+        length: 2,
+        charset: 'alphabetic'
     }) ;
 }
 
 export function genNumber(length = 10) {
-    return randomstring.generate({
+    return Number(randomstring.generate({
         length,
         charset: 'numeric'
-    });
+    }));
 }
 
 export function genLocalityApi() {

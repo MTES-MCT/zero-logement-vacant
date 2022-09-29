@@ -58,8 +58,6 @@ function App() {
 
     FetchInterceptor();
 
-    console.log('isValidUser(authUser)', isValidUser(authUser))
-
     return (
         <>
             <React.Suspense fallback={<></>}>

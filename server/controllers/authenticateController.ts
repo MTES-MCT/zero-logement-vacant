@@ -9,6 +9,7 @@ import localityRepository from '../repositories/localityRepository';
 import authTokenRepository from '../repositories/authTokenRepository';
 import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
+import { constants } from 'http2';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -37,19 +38,19 @@ const signin = async (request: Request, response: Response): Promise<Response> =
                     return response.sendStatus(500)
                 }
 
-                return response.status(200).send({
+                return response.status(constants.HTTP_STATUS_OK).send({
                     user: {...user, password: undefined, establishmentId: undefined},
                     establishment: {...establishment, housingScopes},
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
                 });
             }
-            return response.sendStatus(401)
+            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
         }
         console.log('Invalid password for email', email)
-        return response.sendStatus(401)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
 
     } catch {
-        return response.sendStatus(401)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     }
 };
 
@@ -70,7 +71,7 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
     const user = await userRepository.get(authToken.userId)
 
     if (user.email !== email) {
-        return response.sendStatus(401)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     }
 
     return Promise.all([
@@ -78,7 +79,7 @@ const activateAccount = async (request: Request, response: Response): Promise<Re
         authTokenRepository.deleteToken(tokenId),
         userRepository.activate(authToken.userId)
     ])
-        .then(() => response.sendStatus(200));
+        .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 };
 
 const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -96,9 +97,9 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
 
     if (isPasswordValid) {
         return userRepository.updatePassword(userId, bcrypt.hashSync(newPassword))
-            .then(() => response.sendStatus(200))
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     } else {
-        return response.sendStatus(403)
+        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN)
     }
 };
 

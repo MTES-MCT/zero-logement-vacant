@@ -64,7 +64,7 @@ if (config.auth.secret) {
     router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
 
     router.post('/api/users', jwtCheck, userCheck, userController.list);
-    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUser);
+    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
     router.get('/api/users/:userId/activation', userController.sendActivationEmail);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);

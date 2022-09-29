@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import eventRepository from '../repositories/eventRepository';
+import { constants } from 'http2';
 
 const listByOwnerId = async (request: Request, response: Response): Promise<Response> => {
 
@@ -8,7 +9,7 @@ const listByOwnerId = async (request: Request, response: Response): Promise<Resp
     console.log('List events for owner', ownerId)
 
     return eventRepository.listByOwnerId(ownerId)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 
 }
 
@@ -19,7 +20,7 @@ const listByHousingId = async (request: Request, response: Response): Promise<Re
     console.log('List events for housing', housingId)
 
     return eventRepository.listByHousingId(housingId)
-        .then(_ => response.status(200).json(_));
+        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 
 }
 

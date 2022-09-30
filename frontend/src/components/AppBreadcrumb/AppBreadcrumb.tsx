@@ -50,8 +50,8 @@ const AppBreadcrumb = () => {
                     return getUserNavItem(UserNavItems.Dashboard)
                 } else if (value === getUserNavItem(UserNavItems.HousingList).url.substring(1)) {
                     return getUserNavItem(UserNavItems.HousingList)
-                } else if (value === getUserNavItem(UserNavItems.HousingScope).url.substring(1)) {
-                    return getUserNavItem(UserNavItems.HousingScope)
+                } else if (value === getUserNavItem(UserNavItems.GeoPerimeters).url.substring(1)) {
+                    return getUserNavItem(UserNavItems.GeoPerimeters)
                 } else if (value === getUserNavItem(UserNavItems.Campaign).url.substring(1)) {
                     return getUserNavItem(UserNavItems.Campaign)
                 } else if (value === getUserNavItem(UserNavItems.User).url.substring(1)) {

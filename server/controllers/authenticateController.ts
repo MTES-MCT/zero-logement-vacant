@@ -8,7 +8,6 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import authTokenRepository from '../repositories/authTokenRepository';
 import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
-import geoRepository from '../repositories/geoRepository';
 import { constants } from 'http2';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
@@ -32,15 +31,13 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
             if (establishment) {
 
-                const geoPerimeterApis = await geoRepository.listGeoPerimeters(establishment.id)
-
                 if (!config.auth.secret) {
                     return response.sendStatus(500)
                 }
 
                 return response.status(constants.HTTP_STATUS_OK).send({
                     user: {...user, password: undefined, establishmentId: undefined},
-                    establishment: {...establishment, housingScopes: geoPerimeterApis.map(_ => _.type).filter((value, index, self) => self.indexOf(value) === index)},
+                    establishment,
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
                 });
             }

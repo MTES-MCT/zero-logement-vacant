@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { Col, Container, File, Link, Row, Tab, Table, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { Alert, Badge, Col, Container, File, Link, Row, Tab, Table, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { deleteGeoPerimeter, fetchGeoPerimeters, updateGeoPerimeter, uploadFile } from '../../store/actions/geoAction';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,28 +10,51 @@ import { GeoPerimeter } from '../../models/GeoPerimeter';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import GeoPerimeterEditionModal from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
+import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 
 const GeoPerimeterView = () => {
 
     const dispatch = useDispatch();
+    const geoPerimeters = useGeoPerimeterList();
 
-    const { geoPerimeters, loading } = useSelector((state: ApplicationState) => state.geo);
+    const FileType = 'application/zip';
+
+    const { loading } = useSelector((state: ApplicationState) => state.geo);
     const [ updatingModalGeoPerimeterId, setUpdatingModalGeoPerimeterId ] = useState<string | undefined>();
     const [ removingModalGeoPerimeterId, setRemovingModalGeoPerimeterId ] = useState<string | undefined>();
+    const [ fileError, setFileError ] = useState<string | undefined>();
+
+    const tabsRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         dispatch(fetchGeoPerimeters())
     }, [dispatch])
 
-    const FileExtension = '.jpg';
-
     const selectFile = (event: any) => {
-        //TODO erreurs
-        if (event.target?.files) {
-            dispatch(uploadFile(event.target.files[0]))
+
+        if (event.target?.files[0]) {
+
+            const file = event.target?.files[0]
+
+            if (file.type === FileType) {
+                setFileError(undefined)
+                dispatch(uploadFile(event.target.files[0]))
+
+                const firstTabButton = tabsRef.current?.querySelector('button.fr-tabs__tab')
+                if (firstTabButton) {
+                    firstTabButton.dispatchEvent(new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true,
+                        buttons: 1
+                    }));
+                }
+            } else {
+                setFileError(`Seuls les fichier zip sont autorisés`)
+            }
 
         } else {
-            console.log('no files')
+            setFileError('Aucun fichier sélectionné')
         }
     }
 
@@ -52,6 +75,16 @@ const GeoPerimeterView = () => {
     const typeColumn = {
         name: 'type',
         label: 'Type',
+        render: ({ type }: GeoPerimeter) =>
+            <>
+                {type ?
+                    type :
+                    <Badge small
+                           text='Non renseigné'
+                           colorFamily='pink-tuile'
+                    />
+                }
+            </>,
         sortable: true
     };
 
@@ -100,7 +133,9 @@ const GeoPerimeterView = () => {
             </Link>
     }
 
-    const columns = [nameColumn, typeColumn, actionsColumn, viewColumn]
+    const columns = [typeColumn, nameColumn, actionsColumn, viewColumn]
+
+    const invalidGeoFilters = geoPerimeters?.filter(_ => !_.type?.length)
 
     return (
         <>
@@ -109,45 +144,52 @@ const GeoPerimeterView = () => {
                     <AppBreadcrumb />
                     <Row>
                         <Col n="8">
-                            <Title as="h1">Périmètres</Title>
+                            <Title as="h1">Périmètres géographiques</Title>
                         </Col>
                     </Row>
                 </Container>
             </div>
             <Container spacing="py-4w">
-                <Tabs>
-                    <Tab label="Liste">
-                        {!loading &&
-                            <>
-                                <Row>
-                                    <b>{displayCount(geoPerimeters.length, 'périmètre')}</b>
-                                </Row>
-                                {geoPerimeters.length > 0 &&
+                <div ref={tabsRef}>
+                    <Tabs>
+                        <Tab label="Liste des périmètres">
+                            {!loading && geoPerimeters &&
+                                <>
+                                    {invalidGeoFilters && invalidGeoFilters.length > 0 &&
+                                        <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le type n'est pas renseigné`}
+                                               type="warning"
+                                               className="fr-mb-2w"/>
+                                    }
                                     <Row>
-                                        <Table
-                                            caption="Périmètres"
-                                            captionPosition="none"
-                                            rowKey="id"
-                                            data={geoPerimeters}
-                                            columns={columns}
-                                            fixedLayout={true}
-                                            className='with-view with-actions'
-                                        />
+                                        <b>{displayCount(geoPerimeters.length, 'périmètre')}</b>
                                     </Row>
-                                }
-                            </>
-                        }
-                    </Tab>
-                    <Tab label="Dépôt">
+                                    {geoPerimeters.length > 0 &&
+                                        <Row>
+                                            <Table
+                                                caption="Périmètres"
+                                                captionPosition="none"
+                                                rowKey="id"
+                                                data={geoPerimeters}
+                                                columns={columns}
+                                                fixedLayout={true}
+                                                className='with-view with-actions'
+                                            />
+                                        </Row>
+                                    }
+                                </>
+                            }
+                        </Tab>
+                        <Tab label="Dépôt de fichier">
 
-                        <Row>
-                            <File onChange={(event: any)=> selectFile(event)} multiple={false} accept={FileExtension}
-                                  label="Label File"
-                                  hint="Hint"
-                                  errorMessage="Format de fichier non supporté" />
-                        </Row>
-                    </Tab>
-                </Tabs>
+                            <Row>
+                                <File onChange={(event: any)=> selectFile(event)} multiple={false}
+                                      label="Périmètre(s) géométrique(s)"
+                                      hint="Sélectionner un fichier zip uniquement qui contient un ou plusieurs périmètres"
+                                      errorMessage={fileError} />
+                            </Row>
+                        </Tab>
+                    </Tabs>
+                </div>
             </Container>
         </>
     );

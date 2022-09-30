@@ -96,6 +96,7 @@ export const uploadFile = (file: File) => {
                 dispatch({
                     type: GEO_PERIMETER_FILE_UPLOADED
                 });
+                fetchGeoPerimeters()(dispatch)
             });
     };
 };

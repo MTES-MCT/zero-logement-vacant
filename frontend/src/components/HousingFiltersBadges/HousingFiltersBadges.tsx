@@ -4,7 +4,8 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
-    campaignsCountOptions, dataYearsExcludedOptions,
+    campaignsCountOptions,
+    dataYearsExcludedOptions,
     dataYearsIncludedOptions,
     housingAreaOptions,
     housingCountOptions,
@@ -25,10 +26,13 @@ import {
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
 import { campaignFullName } from '../../models/Campaign';
+import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 
 const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, onChange?: (_: any) => void}) => {
 
     const campaignList = useCampaignList();
+    const geoPerimeters = useGeoPerimeterList();
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
 
     return (
@@ -82,13 +86,13 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                 <FilterBadges options={localityKindsOptions}
                                      filters={filters.localityKinds}
                                      onChange={onChange && (values => onChange({localityKinds: values}))}/>
-                {establishment.housingScopes &&
-                    <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                {geoPerimeters &&
+                    <FilterBadges options={geoPerimeterOptions(geoPerimeters)}
                                          filters={filters.housingScopesIncluded}
                                          onChange={onChange && (values => onChange({housingScopesIncluded: values}))}/>
                 }
-                {establishment.housingScopes &&
-                    <FilterBadges options={establishment.housingScopes.map(hs => ({value: hs, label: hs, badgeLabel: `${hs} exclu`}))}
+                {geoPerimeters &&
+                    <FilterBadges options={geoPerimeterOptions(geoPerimeters).map(option => ({...option, badgeLabel: `${option.label} exclu`}))}
                                          filters={filters.housingScopesExcluded}
                                          onChange={onChange && (values => onChange({housingScopesExcluded: values}))}/>
                 }

@@ -66,19 +66,19 @@ const GeoPerimeterEditionModal = (
                         <Row gutters>
                             <Col>
                                 <TextInput
-                                    value={name}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                                    label="Nom : "
-                                />
-                            </Col>
-                            <Col>
-                                <TextInput
                                     value={type}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setType(e.target.value)}
                                     messageType={formErrors['type'] ? 'error' : ''}
                                     message={formErrors['type']}
                                     label="Type : "
                                     required
+                                />
+                            </Col>
+                            <Col>
+                                <TextInput
+                                    value={name}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                                    label="Nom : "
                                 />
                             </Col>
                         </Row>
@@ -92,7 +92,7 @@ const GeoPerimeterEditionModal = (
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                <Button title="Ajouter"
+                <Button title="Enregistrer"
                         onClick={() => submitPerimeterForm()}>
                     Ajouter
                 </Button>

@@ -9,14 +9,13 @@ import { GeoPerimeter } from '../../models/GeoPerimeter';
 
 export interface GeoState {
     loading: boolean;
-    geoPerimeters: GeoPerimeter[];
+    geoPerimeters?: GeoPerimeter[];
     file?: File;
     filename?: string;
 }
 
 const initialState: GeoState = {
-    loading: false,
-    geoPerimeters: []
+    loading: false
 };
 
 const geoReducer = (state = initialState, action: GeoActionTypes) => {
@@ -42,7 +41,11 @@ const geoReducer = (state = initialState, action: GeoActionTypes) => {
                 filename: action.filename,
             };
         case GEO_PERIMETER_FILE_UPLOADED: {
-            return state;
+            return {
+                ...state,
+                file: undefined,
+                filename: undefined,
+            };
         }
         default:
             return state;

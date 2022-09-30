@@ -42,7 +42,6 @@ export function genEstablishmentApi(...localities: LocalityApi[]) {
         id: uuidv4(),
         name: randomstring.generate(),
         siren: genNumber(8),
-        housingScopes: [],
         localities
     };
 }

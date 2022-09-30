@@ -226,7 +226,7 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     title
                 }))
         )
-            .then(() => response.send(constants.HTTP_STATUS_OK))
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     }
 }
 
@@ -267,7 +267,7 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     campaignNumber: campaign.campaignNumber - 1
                 }))
         )
-            .then(() => response.send(constants.HTTP_STATUS_OK))
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     }
 
 }

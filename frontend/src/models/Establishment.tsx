@@ -2,7 +2,6 @@ export interface Establishment {
     id: string,
     name: string,
     siren: number,
-    housingScopes: string[],
     localities: {
         geoCode: string,
         name: string

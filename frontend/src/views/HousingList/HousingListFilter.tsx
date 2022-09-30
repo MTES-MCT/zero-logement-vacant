@@ -5,26 +5,33 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    buildingPeriodOptions, dataYearsIncludedOptions,
+    buildingPeriodOptions,
+    campaignsCountOptions,
+    dataYearsExcludedOptions,
+    dataYearsIncludedOptions,
     housingAreaOptions,
-    roomsCountOptions,
+    housingCountOptions,
     housingKindOptions,
     housingStateOptions,
+    localityKindsOptions,
     multiOwnerOptions,
     ownerAgeOptions,
     ownerKindOptions,
+    ownershipKindsOptions,
+    roomsCountOptions,
+    statusOptions,
     taxedOptions,
     vacancyDurationOptions,
-    localityKindsOptions,
-    ownershipKindsOptions,
-    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions, dataYearsExcludedOptions,
+    vacancyRateOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
-import { useMatomo } from '@datapunt/matomo-tracker-react'
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { campaignFullName } from '../../models/Campaign';
+import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 
 
 const HousingListFilter = () => {
@@ -32,6 +39,7 @@ const HousingListFilter = () => {
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
     const campaignList = useCampaignList();
+    const geoPerimeters = useGeoPerimeterList();
 
     const { establishment } = useSelector((state: ApplicationState) => state.authentication.authUser);
     const { filters } = useSelector((state: ApplicationState) => state.housing);
@@ -178,14 +186,14 @@ const HousingListFilter = () => {
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre inclus"
-                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        options={geoPerimeterOptions(geoPerimeters)}
                                         initialValues={filters.housingScopesIncluded}
                                         onChange={(values) => onChangeFilters({housingScopesIncluded: values}, 'Périmètre inclus')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre exclu"
                                         defaultOption="Aucun"
-                                        options={establishment.housingScopes.map(hs => ({value: hs, label: hs}))}
+                                        options={geoPerimeterOptions(geoPerimeters)}
                                         initialValues={filters.housingScopesExcluded}
                                         onChange={(values) => onChangeFilters({housingScopesExcluded: values}, 'Périmètre exclu')}/>
                     </Col>

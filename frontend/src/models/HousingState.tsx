@@ -194,6 +194,11 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--blue-ecume-sun-247-active'
                     },
                     {
+                        title: 'Aides locales',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
+                    },
+                    {
                         title: 'Autre',
                         color: '--grey-1000',
                         bgcolor: '--beige-gris-galet-moon-821-hover'

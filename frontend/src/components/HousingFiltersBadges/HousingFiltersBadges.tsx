@@ -88,13 +88,13 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                                      onChange={onChange && (values => onChange({localityKinds: values}))}/>
                 {geoPerimeters &&
                     <FilterBadges options={geoPerimeterOptions(geoPerimeters)}
-                                         filters={filters.housingScopesIncluded}
-                                         onChange={onChange && (values => onChange({housingScopesIncluded: values}))}/>
+                                  filters={filters.housingScopesIncluded}
+                                  onChange={onChange && (values => onChange({housingScopesIncluded: values}))}/>
                 }
                 {geoPerimeters &&
                     <FilterBadges options={geoPerimeterOptions(geoPerimeters).map(option => ({...option, badgeLabel: `${option.label} exclu`}))}
-                                         filters={filters.housingScopesExcluded}
-                                         onChange={onChange && (values => onChange({housingScopesExcluded: values}))}/>
+                                  filters={filters.housingScopesExcluded}
+                                  onChange={onChange && (values => onChange({housingScopesExcluded: values}))}/>
                 }
                 <FilterBadges options={campaignsCountOptions}
                                      filters={filters.campaignsCounts}

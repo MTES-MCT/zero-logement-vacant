@@ -153,31 +153,33 @@ const GeoPerimeterView = () => {
                 <div ref={tabsRef}>
                     <Tabs>
                         <Tab label="Liste des périmètres">
-                            {!loading && geoPerimeters &&
-                                <>
-                                    {invalidGeoFilters && invalidGeoFilters.length > 0 &&
-                                        <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le type n'est pas renseigné`}
-                                               type="warning"
-                                               className="fr-mb-2w"/>
-                                    }
-                                    <Row>
-                                        <b>{displayCount(geoPerimeters.length, 'périmètre')}</b>
-                                    </Row>
-                                    {geoPerimeters.length > 0 &&
+                            <>
+                                {!loading && geoPerimeters &&
+                                    <>
+                                        {invalidGeoFilters && invalidGeoFilters.length > 0 &&
+                                            <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le type n'est pas renseigné`}
+                                                   type="warning"
+                                                   className="fr-mb-2w"/>
+                                        }
                                         <Row>
-                                            <Table
-                                                caption="Périmètres"
-                                                captionPosition="none"
-                                                rowKey="id"
-                                                data={geoPerimeters}
-                                                columns={columns}
-                                                fixedLayout={true}
-                                                className='with-view with-actions'
-                                            />
+                                            <b>{displayCount(geoPerimeters.length, 'périmètre')}</b>
                                         </Row>
-                                    }
-                                </>
-                            }
+                                        {geoPerimeters.length > 0 &&
+                                            <Row>
+                                                <Table
+                                                    caption="Périmètres"
+                                                    captionPosition="none"
+                                                    rowKey="id"
+                                                    data={geoPerimeters}
+                                                    columns={columns}
+                                                    fixedLayout={true}
+                                                    className='with-view with-actions'
+                                                />
+                                            </Row>
+                                        }
+                                    </>
+                                }
+                            </>
                         </Tab>
                         <Tab label="Dépôt de fichier">
 

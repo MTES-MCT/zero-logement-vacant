@@ -1,19 +1,12 @@
 import { Response } from 'express';
 import { Request as JWTRequest } from 'express-jwt';
-import { GeoSystems } from '../models/GeoSystemApi';
 import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
 import { RequestUser } from '../models/UserApi';
 import geoRepository from '../repositories/geoRepository';
 import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 
-const listGeoSystems = async (request: JWTRequest, response: Response): Promise<Response> => {
 
-    console.log('List geo systems')
-
-    return Promise.resolve(response.status(constants.HTTP_STATUS_OK).json(GeoSystems));
-
-}
 const listGeoPerimeters = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
@@ -107,7 +100,6 @@ const updateGeoPerimeter = async (request: JWTRequest, response: Response): Prom
 }
 
 const geoController =  {
-    listGeoSystems,
     createGeoPerimeter,
     listGeoPerimeters,
     deleteGeoPerimeterValidators,

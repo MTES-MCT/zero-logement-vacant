@@ -72,7 +72,6 @@ if (config.auth.secret) {
     router.post('/api/monitoring/housing/status/duration', jwtCheck, userCheck, monitoringController.housingByStatusDuration);
     router.post('/api/monitoring/export', jwtCheck, userCheck, monitoringController.exportMonitoring);
 
-    router.get('/api/geo/systems', jwtCheck, userCheck, geoController.listGeoSystems);
     router.get('/api/geo/perimeters', jwtCheck, userCheck, geoController.listGeoPerimeters);
     router.post('/api/geo/perimeters', jwtCheck, userCheck, geoController.createGeoPerimeter);
     router.put('/api/geo/perimeters/:geoPerimeterId', jwtCheck, userCheck, geoController.updateGeoPerimeterValidators, geoController.updateGeoPerimeter);

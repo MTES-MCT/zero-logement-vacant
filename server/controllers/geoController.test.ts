@@ -17,35 +17,6 @@ app.use(protectedRouter);
 
 describe('Geo controller', () => {
 
-    describe('listGeoSystems', () => {
-
-        const testRoute = '/api/geo/systems'
-
-        it('should be forbidden for a not authenticated user', async () => {
-            await request(app).get(testRoute).expect(constants.HTTP_STATUS_UNAUTHORIZED);
-        })
-
-        it('should list the authorized geo systems', async () => {
-
-           const res = await withAccessToken(
-               request(app).get(testRoute)
-           ).expect(constants.HTTP_STATUS_OK);
-
-            expect(res.body).toMatchObject(
-                expect.objectContaining(
-                    {
-                        '4326' : expect.objectContaining({
-                            id: '4326',
-                            name: 'WGS84',
-                            proj4Def: '+proj=longlat +datum=WGS84 +no_defs'
-                        })
-                    }
-                )
-            )
-        })
-
-    })
-
     describe('listGeoPerimeters', () => {
 
         const testRoute = '/api/geo/perimeters'

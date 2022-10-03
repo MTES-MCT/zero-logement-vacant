@@ -27,14 +27,14 @@ const insert = async (geometry: Geometry, establishmentId: string, type: string,
 
     const rawGeom = geometry.type === 'LineString' ? 'st_multi(st_concaveHull(st_geomfromgeojson(?), 0.80))' : 'st_multi(st_geomfromgeojson(?))'
 
-    console.log('Insert housing scope', establishmentId, type, name)
+    console.log('Insert geo perimeter', establishmentId, type, name)
     try {
         return db(geoPerimetersTable)
             .insert(db.raw(`(type, name, geom, establishment_id) values (?, ?, ${rawGeom}, ?)`, [type, name, JSON.stringify(geometry), establishmentId]))
             .returning('*')
     } catch (err) {
-        console.error('Inserting housing scope failed', err, establishmentId);
-        throw new Error('Inserting housing scope failed');
+        console.error('Inserting geo perimeter failed', err, establishmentId);
+        throw new Error('Inserting geo perimeter failed');
     }
 }
 

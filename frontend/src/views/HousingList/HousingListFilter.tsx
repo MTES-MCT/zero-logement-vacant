@@ -187,15 +187,15 @@ const HousingListFilter = () => {
                     <Col n="3">
                         <AppMultiSelect label="Périmètre inclus"
                                         options={geoPerimeterOptions(geoPerimeters)}
-                                        initialValues={filters.housingScopesIncluded}
-                                        onChange={(values) => onChangeFilters({housingScopesIncluded: values}, 'Périmètre inclus')}/>
+                                        initialValues={filters.geoPerimetersIncluded}
+                                        onChange={(values) => onChangeFilters({geoPerimetersIncluded: values}, 'Périmètre inclus')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Périmètre exclu"
                                         defaultOption="Aucun"
                                         options={geoPerimeterOptions(geoPerimeters)}
-                                        initialValues={filters.housingScopesExcluded}
-                                        onChange={(values) => onChangeFilters({housingScopesExcluded: values}, 'Périmètre exclu')}/>
+                                        initialValues={filters.geoPerimetersExcluded}
+                                        onChange={(values) => onChangeFilters({geoPerimetersExcluded: values}, 'Périmètre exclu')}/>
                     </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">

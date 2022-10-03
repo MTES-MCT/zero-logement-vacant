@@ -23,8 +23,8 @@ export interface HousingFilters {
     campaignIds?: string[];
     localities?: string[];
     localityKinds?: string[];
-    housingScopesIncluded?: string[];
-    housingScopesExcluded?: string[];
+    geoPerimetersIncluded?: string[];
+    geoPerimetersExcluded?: string[];
     dataYearsIncluded?: number[];
     dataYearsExcluded?: number[];
     status?: number[];
@@ -201,8 +201,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.campaignIds?.length ||
         housingFilters.localities?.length ||
         housingFilters.localityKinds?.length ||
-        housingFilters.housingScopesIncluded?.length ||
-        housingFilters.housingScopesExcluded?.length ||
+        housingFilters.geoPerimetersIncluded?.length ||
+        housingFilters.geoPerimetersExcluded?.length ||
         housingFilters.dataYearsIncluded?.length ||
         housingFilters.dataYearsExcluded?.length ||
         housingFilters.query?.length

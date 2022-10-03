@@ -7,7 +7,9 @@ exports.up = function(knex) {
             .alterTable('geo_perimeters', (table) => {
                 table.dropColumn('gid');
                 table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-            })
+            }),
+        knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersIncluded}', filters::jsonb#>'{housingScopesIncluded}') - 'housingScopesIncluded'"),
+        knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersExcluded}', filters::jsonb#>'{housingScopesExcluded}') - 'housingScopesExcluded'")
     ]);
 };
 
@@ -20,6 +22,8 @@ exports.down = function(knex) {
           .alterTable('housing_scopes_geom', (table) => {
               table.dropColumn('id');
               table.specificType('gid', 'serial').primary();
-          })
+          }),
+      knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesIncluded}', filters::jsonb#>'{geoPerimetersIncluded}') - 'geoPerimetersIncluded'"),
+      knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesExcluded}', filters::jsonb#>'{geoPerimetersExcluded}') - 'geoPerimetersExcluded'")
   ]);
 };

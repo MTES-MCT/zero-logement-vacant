@@ -57,7 +57,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-                db.raw('json_agg(distinct(scopes.scope_type)) as housing_scopes'),
+                db.raw('json_agg(distinct(perimeters.perimeter_type)) as geo_perimeters'),
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
                 `${localitiesTable}.locality_kind`,
@@ -75,10 +75,10 @@ const get = async (housingId: string): Promise<HousingApi> => {
                     and c.id = ch.campaign_id
                 ) campaigns on true`)
             .joinRaw(`left join lateral (
-                     select type as scope_type 
+                     select type as perimeter_type 
                      from ${geoPerimetersTable} perimeter
                      where st_contains(perimeter.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
-                     ) scopes on true`)
+                     ) perimeters on true`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
             .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
             .where(`${housingTable}.id`, housingId)
@@ -305,16 +305,16 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.localityKinds?.length) {
             queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
         }
-        if (filters.housingScopesIncluded && filters.housingScopesIncluded.length) {
+        if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
             queryBuilder
                 .joinRaw(`left join ${geoPerimetersTable} as perimeter_inc on st_contains(perimeter_inc.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                .whereRaw(`? && array[perimeter_inc.type]::text[]`, [filters.housingScopesIncluded])
+                .whereRaw(`? && array[perimeter_inc.type]::text[]`, [filters.geoPerimetersIncluded])
         }
-        if (filters.housingScopesExcluded && filters.housingScopesExcluded.length) {
+        if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
             queryBuilder.whereNotExists(function (whereBuilder: any) {
                 whereBuilder.select('*').from(geoPerimetersTable)
                     .whereRaw(`st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                    .whereIn('type', filters.housingScopesExcluded)
+                    .whereIn('type', filters.geoPerimetersExcluded)
             })
         }
         if (filters.dataYearsIncluded?.length) {
@@ -580,7 +580,7 @@ const parseHousingApi = (result: any) => <HousingApi>{
     latitude: result.latitude,
     longitude: result.longitude,
     localityKind: result.locality_kind,
-    housingScopes: result.housing_scopes,
+    geoPerimeters: result.geo_perimeters,
     owner: <OwnerApi>{
         id: result.owner_id,
         rawAddress: result.owner_raw_address,

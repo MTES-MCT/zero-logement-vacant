@@ -123,8 +123,8 @@ export function genCampaignApi(establishmentId: string, campaignNumber: number, 
         reminderNumber,
         name: randomstring.generate(),
         filters: {
-            housingScopesIncluded: [randomstring.generate()],
-            housingScopesExcluded: [randomstring.generate()]
+            geoPerimetersIncluded: [randomstring.generate()],
+            geoPerimetersExcluded: [randomstring.generate()]
         },
         housingCount: genNumber(2),
         ownerCount: genNumber(2),

@@ -3,7 +3,6 @@ import { Request as JWTRequest } from 'express-jwt';
 import { GeoSystems } from '../models/GeoSystemApi';
 import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
 import { RequestUser } from '../models/UserApi';
-import housingScopesGeomRepository from '../repositories/geoRepository';
 import geoRepository from '../repositories/geoRepository';
 import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
@@ -28,13 +27,10 @@ const listGeoPerimeters = async (request: JWTRequest, response: Response): Promi
 
 const createGeoPerimeter = async (request: any, response: Response): Promise<Response> => {
 
-    console.log('Create scope')
-
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const file = request.files.geoPerimeter;
-    // const filename = file.name;
 
-    console.log('Create scope', file)
+    console.log('Create geo perimeter', establishmentId)
 
     const geojson = await shpjs(file.data)
 
@@ -43,7 +39,7 @@ const createGeoPerimeter = async (request: any, response: Response): Promise<Res
     console.log('properties', (<FeatureCollectionWithFilename>geojson).features.map(_ => _.properties))
 
     await Promise.all((<FeatureCollectionWithFilename>geojson).features.map(feature =>
-        housingScopesGeomRepository.insert(feature.geometry, establishmentId, feature.properties?.type ?? '', feature.properties?.nom ?? ''))
+        geoRepository.insert(feature.geometry, establishmentId, feature.properties?.type ?? '', feature.properties?.nom ?? ''))
     )
 
     return response.sendStatus(constants.HTTP_STATUS_OK);

@@ -45,7 +45,7 @@ export enum HousingStatus {
     Exit
 }
 
-export const FirstContactToContactedSubStatus = 'À recontacter'
+export const FirstContactToContactedSubStatus = 'Intérêt potentiel'
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement'
 export const InProgressWithSupportSubStatus = 'En accompagnement'
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique'

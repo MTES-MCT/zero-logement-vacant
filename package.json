@@ -12,7 +12,7 @@
     "start-local": "run-p frontend:start server-local",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
-    "test": "jest",
+    "test": "jest --maxWorkers=1",
     "lint": "eslint . --ext .js,.ts",
     "migrate-list": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",

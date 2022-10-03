@@ -12,7 +12,7 @@ const listGeoSystems = async (request: JWTRequest, response: Response): Promise<
 
     console.log('List geo systems')
 
-    return response.status(constants.HTTP_STATUS_OK).json(GeoSystems);
+    return Promise.resolve(response.status(constants.HTTP_STATUS_OK).json(GeoSystems));
 
 }
 const listGeoPerimeters = async (request: JWTRequest, response: Response): Promise<Response> => {

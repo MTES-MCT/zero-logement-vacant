@@ -3,7 +3,9 @@ exports.up = function(knex) {
     return Promise.all([
         knex.raw("update housing set sub_status = 'Intérêt potentiel' where sub_status = 'À recontacter'"),
         knex.raw("update housing set precisions = array_replace(precisions, 'Travaux trop importants', 'Montant travaux trop important') where precisions::text[] @> ARRAY['Travaux trop importants']"),
-        knex.raw("update housing set vacancy_reasons = array_replace(vacancy_reasons, 'Liée au logement - travaux trop importants', 'Liée au logement - montant travaux trop important') where vacancy_reasons::text[] @> ARRAY['Liée au logement - travaux trop importants']")
+        knex.raw("update housing set vacancy_reasons = array_replace(vacancy_reasons, 'Liée au logement - travaux trop importants', 'Liée au logement - montant travaux trop important') where vacancy_reasons::text[] @> ARRAY['Liée au logement - travaux trop importants']"),
+        knex.raw("update housing set sub_status = 'Vacance volontaire' where sub_status = 'Vacance volontaire '"),
+        knex.raw("update housing set sub_status = 'Vacance volontaire' where sub_status = 'Vacance organisée'")
     ]);
 };
 

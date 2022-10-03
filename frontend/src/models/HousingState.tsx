@@ -422,69 +422,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'Vacance organisée',
-                color: '--green-menthe-975',
-                bgcolor: '--green-menthe-sun-373',
-                precisions: [
-                    {
-                        title: 'Réserve personnelle ou pour une autre personne',
-                        color: '--green-tilleul-verveine-975',
-                        bgcolor: '--green-archipel-main-557'
-                    },
-                    {
-                        title: 'Montant travaux trop important',
-                        color: '--blue-ecume-975',
-                        bgcolor: '--blue-ecume-sun-247'
-                    },
-                    {
-                        title: 'Dégradations',
-                        color: '--brown-caramel-975',
-                        bgcolor: '--yellow-moutarde-sun-348-hover'
-                    },
-                    {
-                        title: 'Impayés de loyer',
-                        color: '--brown-caramel-975',
-                        bgcolor: '--brown-caramel-sun-425'
-                    },
-                    {
-                        title: 'Succession difficile, indivision en désaccord',
-                        color: '--pink-macaron-main-689',
-                        bgcolor: '--pink-macaron-975'
-                    },
-                    {
-                        title: 'Expertise judiciaire',
-                        color: '--purple-glycine-975',
-                        bgcolor: '--purple-glycine-main-494'
-                    },
-                    {
-                        title: 'Procédure contre les entrepreneurs',
-                        color: '--pink-tuile-975',
-                        bgcolor: '--pink-tuile-main-556'
-                    },
-                    {
-                        title: 'Âge du propriétaire',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--green-tilleul-verveine-950'
-                    },
-                    {
-                        title: 'Difficultés de gestion / financière',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--pink-macaron-950'
-                    },
-                    {
-                        title: 'Ne répond pas aux critères du marché (prix...)',
-                        color: '--pink-macaron-975',
-                        bgcolor: '--purple-glycine-sun-319'
-                    },
-                    {
-                        title: 'Aides non accordées',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--green-menthe-950'
-                    }
-                ]
-            },
-            {
-                title: 'Vacance volontaire ',
+                title: 'Vacance volontaire',
                 color: '--green-menthe-sun-373',
                 bgcolor: '--green-menthe-975',
                 precisions: [
@@ -542,6 +480,11 @@ export const HousingStates: HousingState[] = [
                         title: 'Aides non accordées',
                         color: '--green-emeraude-sun-425',
                         bgcolor: '--green-menthe-950'
+                    },
+                    {
+                        title: 'Stratégie de gestion',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
                     }
                 ]
             },

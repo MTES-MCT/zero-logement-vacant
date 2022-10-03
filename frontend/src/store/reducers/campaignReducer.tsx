@@ -39,7 +39,7 @@ const initialState: CampaignState = {
         initialPaginatedResult()
     ],
     exportURL: '',
-    loading: true,
+    loading: false,
     campaignCreated: false
 };
 

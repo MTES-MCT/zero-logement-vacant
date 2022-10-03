@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { Alert, Badge, Col, Container, File, Link, Row, Tab, Table, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { deleteGeoPerimeter, fetchGeoPerimeters, updateGeoPerimeter, uploadFile } from '../../store/actions/geoAction';
+import { deleteGeoPerimeter, updateGeoPerimeter, uploadFile } from '../../store/actions/geoAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { displayCount } from '../../utils/stringUtils';
@@ -25,10 +25,6 @@ const GeoPerimeterView = () => {
     const [ fileError, setFileError ] = useState<string | undefined>();
 
     const tabsRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        dispatch(fetchGeoPerimeters())
-    }, [dispatch])
 
     const selectFile = (event: any) => {
 

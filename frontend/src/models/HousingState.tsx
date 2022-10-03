@@ -370,7 +370,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -432,7 +432,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -494,7 +494,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -556,7 +556,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -618,7 +618,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -680,7 +680,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -742,7 +742,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -804,7 +804,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -866,7 +866,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },

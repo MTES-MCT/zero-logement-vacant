@@ -24,7 +24,8 @@ describe('housing view', () => {
         return Promise.resolve(
             (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(genPaginatedResult([])), init: { status: 200 }} :
                 (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
-                    {body: '', init: {status: 404 } }
+                    (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                        {body: '', init: {status: 404 } }
         )
     }
 
@@ -135,7 +136,8 @@ describe('housing view', () => {
             return Promise.resolve(
                 (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(paginated), init: { status: 200 }} :
                     (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([campaign]), init: { status: 200 }} :
-                        {body: '', init: {status: 404 } }
+                        (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                            {body: '', init: {status: 404 } }
             )
         });
 
@@ -165,7 +167,8 @@ describe('housing view', () => {
             return Promise.resolve(
                 (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(paginated), init: { status: 200 }} :
                     (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([campaign]), init: { status: 200 }} :
-                        {body: '', init: {status: 404 } }
+                        (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                            {body: '', init: {status: 404 } }
             )
         });
 

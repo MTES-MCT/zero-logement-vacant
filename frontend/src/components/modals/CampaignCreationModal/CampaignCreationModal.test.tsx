@@ -16,6 +16,7 @@ describe('Campagne creation modal', () => {
     const defaultFetchMock = (request: Request) => {
         return Promise.resolve(
             (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
                     {body: '', init: {status: 404 } }
         )
     }

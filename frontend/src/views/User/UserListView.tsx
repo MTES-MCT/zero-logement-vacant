@@ -55,7 +55,7 @@ const UserListView = () => {
 
     const nameColumn = {
         name: 'name',
-        label: 'lastName',
+        label: 'Nom',
         render: ({ firstName, lastName }: User) =>
             <>
                 {lastName} {firstName}

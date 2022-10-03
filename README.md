@@ -9,6 +9,7 @@
 * node
 * npm 
 * serveur Postgres (sur macOS, possible d'utiliser [postgresapp](https://postgresapp.com>))
+* commande psql dans le PATH (pour le chargement des données)
 * serveur mail (par exemple [mailDev](https://github.com/maildev/maildev))
 
 ### Base de données
@@ -48,10 +49,37 @@ npm i
 ```
 
 
-### Chargement de données anonymisées
+### Chargement des données
 
-TODO
+**Développement / Staging**
 
+```bash
+cd database/scripts
+psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=../data/dummy/dummy_data.csv
+npm run seed
+```
+
+Permet le chargement de données minimales pour faire fonctionner l'application avec des données anonymisées pour les collectivités suivantes :
+- Eurométropole de Strasbourg
+- CA Saint-Lô Agglo
+
+et trois utilisateurs :
+- test.strasbourg@zlv.fr / test => utilisateur avec des droits pour Eurométropole de Strasbourg
+- test.saintlo@zlv.fr / test => utilisateur avec des droits pour Saint-Lô
+- test.admin@zlv.fr / test => utilisateur avec des droits d'administration
+
+**Production**
+
+Le chargement des données se fait à partir de fichier d'extractions de données au format csv.
+
+```bash
+cd database/scripts
+psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=[DATA_CSV_FILE]
+psql [DATABASE_URL] -f 003-load-buildings.sql -v filePath=[BUILDING_CSV_FILE]
+npm run seed
+```
 
 ### Lancement de l'application en local
 

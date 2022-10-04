@@ -99,10 +99,18 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
             ):
         request.body.housingIds;
 
-    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
+    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds);
+
+    await removeHousingFromDefaultCampaign(housingIds, establishmentId);
 
     return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 
+}
+
+const removeHousingFromDefaultCampaign = (housingIds: string[], establishmentId: string) => {
+    return campaignRepository.getCampaignBundle(establishmentId, '0').then(defaultCampaign =>
+        campaignHousingRepository.deleteHousingFromCampaigns(defaultCampaign ? defaultCampaign.campaignIds : [], housingIds)
+    )
 }
 
 const createReminderCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {

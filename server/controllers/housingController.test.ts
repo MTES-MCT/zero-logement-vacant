@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 import housingRepository, { housingTable } from '../repositories/housingRepository';
 import { genHousingApi } from '../test/testFixtures';
 import { Locality1 } from '../../database/seeds/test/001-establishments';
-import { Owner1 } from '../../database/seeds/test/003-owner';
+import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
 
 const app = express();

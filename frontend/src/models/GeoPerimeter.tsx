@@ -11,6 +11,6 @@ export interface GeoPerimeter {
 export const geoPerimeterOptions = (geoPerimeters? : GeoPerimeter[]) =>
     geoPerimeters ? geoPerimeters
         .filter(_ => _.type?.length)
-        .map(geoPerimeter => geoPerimeter.type + (geoPerimeter.name && geoPerimeter.name !== geoPerimeter.type ? ` - ${geoPerimeter.name}` : ''))
-        .map(_ => ({value: _, label: _}))
-        .filter((value, index, self) => self.indexOf(value) === index) : []
+        .map(geoPerimeter => geoPerimeter.type)
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .map(_ => ({value: _, label: _})) : []

@@ -37,12 +37,14 @@ const geoReducer = (state = initialState, action: GeoActionTypes) => {
         case GEO_PERIMETER_FILE_UPLOADING:
             return {
                 ...state,
+                loading: true,
                 file: action.file,
                 filename: action.filename,
             };
         case GEO_PERIMETER_FILE_UPLOADED: {
             return {
                 ...state,
+                loading: false,
                 file: undefined,
                 filename: undefined,
             };

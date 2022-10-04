@@ -150,7 +150,8 @@ const GeoPerimeterView = () => {
                     <Tabs>
                         <Tab label="Liste des périmètres">
                             <>
-                                {!loading && geoPerimeters &&
+                                {loading || !geoPerimeters ?
+                                    <>Chargement en cours...</> :
                                     <>
                                         {invalidGeoFilters && invalidGeoFilters.length > 0 &&
                                             <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le type n'est pas renseigné`}

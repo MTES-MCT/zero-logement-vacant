@@ -12,6 +12,6 @@ exports.seed = function(knex: Knex) {
 
     return Promise.all([
         knex.table(localitiesTable).insert(establishmentRepository.formatLocalityApi(Locality1)),
-        knex.table(establishmentsTable).insert(establishmentRepository.formatEstablishmentApi(Establishment1))
+        knex.table(establishmentsTable).insert({...establishmentRepository.formatEstablishmentApi(Establishment1), available: true})
     ])
 };

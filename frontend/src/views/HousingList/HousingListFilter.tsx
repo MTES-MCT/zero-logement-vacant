@@ -32,7 +32,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import { campaignFullName } from '../../models/Campaign';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-
+import { getSubStatusList, getSubStatusListOptions } from '../../models/HousingState';
 
 const HousingListFilter = () => {
 
@@ -208,12 +208,6 @@ const HousingListFilter = () => {
                                         initialValues={filters.campaignsCounts}
                                         onChange={(values) => onChangeFilters({campaignsCounts: values}, 'Prise de contact')}/>
                     </Col>
-                    <Col n="3">
-                        <AppMultiSelect label="Statut"
-                                        options={statusOptions}
-                                        initialValues={filters.status?.map(_ => _.toString())}
-                                        onChange={(values) => onChangeFilters({status: values}, 'Statut')}/>
-                    </Col>
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
@@ -222,6 +216,21 @@ const HousingListFilter = () => {
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>
                     }
+                    <Col n="3">
+                        <AppMultiSelect label="Statut"
+                                        options={statusOptions}
+                                        initialValues={filters.status?.map(_ => _.toString())}
+                                        onChange={(values) => onChangeFilters({
+                                            status: values,
+                                            subStatus: filters.subStatus?.filter(_ => getSubStatusList(values).indexOf(_) !== -1)
+                                        }, 'Statut')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Sous-statut"
+                                        options={getSubStatusListOptions(filters.status)}
+                                        initialValues={filters.subStatus}
+                                        onChange={(values) => onChangeFilters({ subStatus: values }, 'Sous-statut')}/>
+                    </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Millésime</b>

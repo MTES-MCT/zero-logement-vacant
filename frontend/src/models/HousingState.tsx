@@ -1,4 +1,4 @@
-import { DefaultOption } from './SelectOption';
+import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
 
 export interface HousingState {
@@ -969,6 +969,28 @@ export const getSubStatusOptions = (status: HousingStatus) => {
         ...housingState.subStatusList.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
     ] : undefined;
 }
+
+export const getSubStatusList = (statusList: string[] | HousingStatus[] | undefined) =>
+    (statusList ?? [])
+        .map(_ => getHousingState(_ as HousingStatus))
+        .map(housingState => (housingState.subStatusList?? []).map(subStatus => subStatus.title))
+        .flat()
+        .filter(_ => _ !== undefined)
+
+
+export const getSubStatusListOptions = (statusList: string[] | HousingStatus[] | undefined) => (
+    (statusList ?? [])
+        .map(_ => getHousingState(_ as HousingStatus))
+        .filter(_ => _.subStatusList)
+        .map(housingState => [
+            {value: housingState.title, label: housingState.title, disabled: true},
+            ...(housingState.subStatusList?? []).map(subStatus => (
+                {value: subStatus.title, label: subStatus.title}
+            ))
+        ])
+        .flat()
+        .filter(_ => _ !== undefined)
+) as SelectOption[]
 
 export const getStatusPrecisionOptions = (status: HousingStatus, subStatus?: string) => {
     const housingSubStatus = getHousingState(status).subStatusList?.find(s => s.title === subStatus)

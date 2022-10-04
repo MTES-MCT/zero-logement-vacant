@@ -5,26 +5,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
-    buildingPeriodOptions, dataYearsIncludedOptions,
+    buildingPeriodOptions,
+    campaignsCountOptions,
+    dataYearsExcludedOptions,
+    dataYearsIncludedOptions,
     housingAreaOptions,
-    roomsCountOptions,
+    housingCountOptions,
     housingKindOptions,
     housingStateOptions,
+    localityKindsOptions,
     multiOwnerOptions,
     ownerAgeOptions,
     ownerKindOptions,
+    ownershipKindsOptions,
+    roomsCountOptions,
+    statusOptions,
     taxedOptions,
     vacancyDurationOptions,
-    localityKindsOptions,
-    ownershipKindsOptions,
-    campaignsCountOptions, housingCountOptions, vacancyRateOptions, statusOptions, dataYearsExcludedOptions,
+    vacancyRateOptions,
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import config from '../../utils/config';
-import { useMatomo } from '@datapunt/matomo-tracker-react'
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { campaignFullName } from '../../models/Campaign';
+import { getSubStatusList, getSubStatusListOptions } from '../../models/HousingState';
 
 
 const HousingListFilter = () => {
@@ -200,12 +206,6 @@ const HousingListFilter = () => {
                                         initialValues={filters.campaignsCounts}
                                         onChange={(values) => onChangeFilters({campaignsCounts: values}, 'Prise de contact')}/>
                     </Col>
-                    <Col n="3">
-                        <AppMultiSelect label="Statut"
-                                        options={statusOptions}
-                                        initialValues={filters.status?.map(_ => _.toString())}
-                                        onChange={(values) => onChangeFilters({status: values}, 'Statut')}/>
-                    </Col>
                     {campaignList && filters.campaignIds &&
                         <Col n="3">
                             <AppMultiSelect label="Campagne"
@@ -214,6 +214,21 @@ const HousingListFilter = () => {
                                             onChange={(values) => onChangeFilters({ campaignIds: values }, 'Campagne')}/>
                         </Col>
                     }
+                    <Col n="3">
+                        <AppMultiSelect label="Statut"
+                                        options={statusOptions}
+                                        initialValues={filters.status?.map(_ => _.toString())}
+                                        onChange={(values) => onChangeFilters({
+                                            status: values,
+                                            subStatus: filters.subStatus?.filter(_ => getSubStatusList(values).indexOf(_) !== -1)
+                                        }, 'Statut')}/>
+                    </Col>
+                    <Col n="3">
+                        <AppMultiSelect label="Sous-statut"
+                                        options={getSubStatusListOptions(filters.status)}
+                                        initialValues={filters.subStatus}
+                                        onChange={(values) => onChangeFilters({ subStatus: values }, 'Sous-statut')}/>
+                    </Col>
                 </Row>
                 <Text size="md" className="fr-mb-1w fr-mt-4w">
                     <b>Millésime</b>

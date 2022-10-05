@@ -272,14 +272,14 @@ const HousingView = () => {
                                         {LocalityKindLabels[housing.localityKind]}
                                     </Text>
                                 }
-                                {housing.housingScopes &&
+                                {housing.geoPerimeters &&
                                     <div>
                                         <span style={{verticalAlign: 'top'}}>
                                             <b>Périmètres :&nbsp;</b>
                                         </span>
                                         <span style={{display: 'inline-block'}}>
-                                            {housing.housingScopes?.map((scope, scopeIdx) =>
-                                                <span style={{display: 'block'}} key={`${housing.id}_${scopeIdx}`}>{scope}</span>
+                                            {housing.geoPerimeters?.map((geoPerimeter, geoPerimeterIdx) =>
+                                                <span style={{display: 'block'}} key={`${housing.id}_${geoPerimeterIdx}`}>{geoPerimeter}</span>
                                             )}
                                         </span>
                                     </div>

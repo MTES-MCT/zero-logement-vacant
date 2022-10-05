@@ -6,7 +6,8 @@ import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
 import { formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
-import randomstring from 'randomstring';
+import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
+const randomstring = require('randomstring');
 
 export function genEmail() {
     return randomstring.generate({
@@ -41,7 +42,6 @@ export function genEstablishmentApi(...localities: LocalityApi[]) {
         id: uuidv4(),
         name: randomstring.generate(),
         siren: genNumber(8),
-        housingScopes: [],
         localities
     };
 }
@@ -123,13 +123,22 @@ export function genCampaignApi(establishmentId: string, campaignNumber: number, 
         reminderNumber,
         name: randomstring.generate(),
         filters: {
-            housingScopesIncluded: [randomstring.generate()],
-            housingScopesExcluded: [randomstring.generate()]
+            geoPerimetersIncluded: [randomstring.generate()],
+            geoPerimetersExcluded: [randomstring.generate()]
         },
         housingCount: genNumber(2),
         ownerCount: genNumber(2),
         kind: 1,
         createdAt: new Date(),
         createdBy
+    };
+}
+
+export function genGeoPerimeterApi(establishmentId: string) {
+    return <GeoPerimeterApi>{
+        id: uuidv4(),
+        establishmentId,
+        name: randomstring.generate(),
+        kind: randomstring.generate()
     };
 }

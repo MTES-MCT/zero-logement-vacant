@@ -12,6 +12,7 @@ import { useParams } from 'react-router-dom';
 import { displayCount } from '../../utils/stringUtils';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { Housing } from '../../models/Housing';
+import { FirstContactToContactedSubStatus } from '../../models/HousingState';
 
 const MonitoringView = () => {
 
@@ -119,7 +120,7 @@ const MonitoringView = () => {
                     <>
                         <hr />
                         <Text>
-                            <b>Il y a {displayCount(paginatedHousingToContact.totalCount, 'logement', false)} dans le sous-statut "A recontacter"</b>
+                            <b>Il y a {displayCount(paginatedHousingToContact.totalCount, 'logement', false)} dans le sous-statut "{FirstContactToContactedSubStatus}"</b>
                         </Text>
 
                         <HousingList paginatedHousing={paginatedHousingToContact}

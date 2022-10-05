@@ -39,7 +39,7 @@ const initialState: CampaignState = {
         initialPaginatedResult()
     ],
     exportURL: '',
-    loading: true,
+    loading: false,
     campaignCreated: false
 };
 
@@ -135,8 +135,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
         case CAMPAIGN_UPDATED:
             return {
                 ...state,
-                campaignBundleFetchingId: action.campaignBundleFetchingId,
-                false: true
+                campaignBundleFetchingId: action.campaignBundleFetchingId
             };
         default:
             return state;

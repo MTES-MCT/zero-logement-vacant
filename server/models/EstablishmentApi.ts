@@ -2,7 +2,6 @@ export interface EstablishmentApi {
     id: string,
     name: string,
     siren: number,
-    housingScopes: string[],
     localities: LocalityApi[]
 }
 

@@ -56,8 +56,8 @@ export const initialHousingFilters = {
     campaignIds: [],
     localities: [],
     localityKinds: [],
-    housingScopesIncluded: [],
-    housingScopesExcluded: [],
+    geoPerimetersIncluded: [],
+    geoPerimetersExcluded: [],
     dataYearsIncluded: [config.dataYear + 1],
     dataYearsExcluded: [],
     query: ''

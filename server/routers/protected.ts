@@ -10,6 +10,7 @@ import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
 import monitoringController from '../controllers/monitoringController';
+import geoController from '../controllers/geoController';
 
 const  router = express.Router();
 
@@ -70,6 +71,11 @@ if (config.auth.secret) {
     router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);
     router.post('/api/monitoring/housing/status/duration', jwtCheck, userCheck, monitoringController.housingByStatusDuration);
     router.post('/api/monitoring/export', jwtCheck, userCheck, monitoringController.exportMonitoring);
+
+    router.get('/api/geo/perimeters', jwtCheck, userCheck, geoController.listGeoPerimeters);
+    router.post('/api/geo/perimeters', jwtCheck, userCheck, geoController.createGeoPerimeter);
+    router.put('/api/geo/perimeters/:geoPerimeterId', jwtCheck, userCheck, geoController.updateGeoPerimeterValidators, geoController.updateGeoPerimeter);
+    router.delete('/api/geo/perimeters/:geoPerimeterId', jwtCheck, userCheck, geoController.deleteGeoPerimeterValidators, geoController.deleteGeoPerimeter);
 }
 
 export default router;

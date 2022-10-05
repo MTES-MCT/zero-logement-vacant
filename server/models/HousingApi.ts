@@ -14,7 +14,7 @@ export interface HousingApi {
     latitude?: number;
     longitude?: number;
     localityKind: string;
-    housingScopes?: string[];
+    geoPerimeters?: string[];
     owner: OwnerApi;
     livingArea: number;
     housingKind: string;

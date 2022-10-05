@@ -8,8 +8,8 @@ import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import bodyParser from 'body-parser';
-import { Housing1, Housing2 } from '../../database/seeds/test/004-housing';
-import { Campaign1 } from '../../database/seeds/test/005-campaigns';
+import { Housing0, Housing1, Housing2 } from '../../database/seeds/test/005-housing';
+import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { eventsTable } from '../repositories/eventRepository';
 
 const app = express();
@@ -149,10 +149,7 @@ describe('Campaign controller', () => {
 
         it('should create a new campaign', async () => {
 
-            const res = await withAccessToken(
-                request(app).post(testRoute)
-                    .set('Content-type', 'application/json')
-            )
+            const res = await withAccessToken(request(app).post(testRoute))
                 .send({
                     draftCampaign: {
                         startMonth: '2112',
@@ -185,19 +182,34 @@ describe('Campaign controller', () => {
             await db(campaignsHousingTable)
                 .join(campaignsTable, 'campaign_id', 'id')
                 .where('establishment_id', Establishment1.id)
-                .andWhere('campaign_number', '2')
+                .andWhere('campaign_number', 2)
                 .then(result => {
                     expect(result).toEqual(expect.arrayContaining([
-                        expect.objectContaining(
-                            {
-                                housing_id: Housing1.id
-                            }
-                        ),
-                        expect.objectContaining(
-                            {
-                                housing_id: Housing2.id
-                            }
-                        )
+                        expect.objectContaining( { housing_id: Housing1.id }),
+                        expect.objectContaining( { housing_id: Housing2.id })
+                    ]))
+                });
+        })
+
+        it('should remove housing from default campaign', async () => {
+            await withAccessToken(request(app).post(testRoute))
+                .send({
+                    draftCampaign: {
+                        startMonth: '2112',
+                        reminderNumber: 0,
+                        filters: {}
+                    },
+                    housingIds: [Housing0.id]
+                })
+                .expect(constants.HTTP_STATUS_OK);
+
+            await db(campaignsHousingTable)
+                .join(campaignsTable, 'campaign_id', 'id')
+                .where('establishment_id', Establishment1.id)
+                .andWhere('campaign_number', 0)
+                .then(result => {
+                    expect(result).toEqual(expect.not.arrayContaining([
+                        expect.objectContaining({ housing_id: Housing0.id })
                     ]))
                 });
         })
@@ -232,7 +244,6 @@ describe('Campaign controller', () => {
 
             await withAccessToken(
                 request(app).delete(testRoute(Campaign1.campaignNumber))
-                    .set('Content-type', 'application/json')
             ).expect(constants.HTTP_STATUS_OK);
 
             await db(campaignsTable)

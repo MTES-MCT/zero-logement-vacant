@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import localityRepository from '../repositories/localityRepository';
 import authTokenRepository from '../repositories/authTokenRepository';
 import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
@@ -32,15 +31,13 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
             if (establishment) {
 
-                const housingScopes = await localityRepository.listHousingScopes(establishment.id)
-
                 if (!config.auth.secret) {
                     return response.sendStatus(500)
                 }
 
                 return response.status(constants.HTTP_STATUS_OK).send({
                     user: {...user, password: undefined, establishmentId: undefined},
-                    establishment: {...establishment, housingScopes},
+                    establishment,
                     accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
                 });
             }

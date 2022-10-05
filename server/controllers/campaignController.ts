@@ -99,10 +99,18 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
             ):
         request.body.housingIds;
 
-    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds)
+    await campaignHousingRepository.insertHousingList(newCampaignApi.id, housingIds);
+
+    await removeHousingFromDefaultCampaign(housingIds, establishmentId);
 
     return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 
+}
+
+const removeHousingFromDefaultCampaign = (housingIds: string[], establishmentId: string) => {
+    return campaignRepository.getCampaignBundle(establishmentId, '0').then(defaultCampaign =>
+        campaignHousingRepository.deleteHousingFromCampaigns(defaultCampaign ? defaultCampaign.campaignIds : [], housingIds)
+    )
 }
 
 const createReminderCampaign = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -226,7 +234,7 @@ const updateCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     title
                 }))
         )
-            .then(() => response.send(constants.HTTP_STATUS_OK))
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     }
 }
 
@@ -267,7 +275,7 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
                     campaignNumber: campaign.campaignNumber - 1
                 }))
         )
-            .then(() => response.send(constants.HTTP_STATUS_OK))
+            .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     }
 
 }

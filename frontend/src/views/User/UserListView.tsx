@@ -125,7 +125,7 @@ const UserListView = () => {
         </>
     }
 
-    const columns = () => [nameColumn, emailColumn, establishmentColumn, stateColumn, activationLinkColumn]
+    const columns = [nameColumn, emailColumn, establishmentColumn, stateColumn, activationLinkColumn]
 
     return (
         <>
@@ -181,7 +181,7 @@ const UserListView = () => {
                             captionPosition="none"
                             rowKey="id"
                             data={paginatedUsers.entities.map((_, index) => ({..._, rowNumber: (paginatedUsers.page - 1) * paginatedUsers.perPage + index + 1}) )}
-                            columns={columns()}
+                            columns={columns}
                             fixedLayout={true}
                         />
                     }

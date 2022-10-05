@@ -25,7 +25,6 @@ exports.down = function(knex) {
           .alterTable('housing_scopes_geom', (table) => {
               table.dropColumn('id');
               table.specificType('gid', 'serial').primary();
-              table.renameColumn('kind', 'type');
           }),
       knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesIncluded}', filters::jsonb#>'{geoPerimetersIncluded}') - 'geoPerimetersIncluded'"),
       knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesExcluded}', filters::jsonb#>'{geoPerimetersExcluded}') - 'geoPerimetersExcluded'")

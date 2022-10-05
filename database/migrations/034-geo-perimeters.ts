@@ -23,8 +23,11 @@ exports.down = function(knex) {
           .renameTable('geo_perimeters', 'housing_scopes_geom'),
       knex.schema// @ts-ignore
           .alterTable('housing_scopes_geom', (table) => {
+              table.dropColumn('created_by');
+              table.dropColumn('created_at');
               table.dropColumn('id');
               table.specificType('gid', 'serial').primary();
+              table.renameColumn('kind', 'type');
           }),
       knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesIncluded}', filters::jsonb#>'{geoPerimetersIncluded}') - 'geoPerimetersIncluded'"),
       knex.raw("update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesExcluded}', filters::jsonb#>'{geoPerimetersExcluded}') - 'geoPerimetersExcluded'")

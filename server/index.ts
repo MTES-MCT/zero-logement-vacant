@@ -8,6 +8,7 @@ import cors from 'cors';
 import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import fileUpload from 'express-fileupload';
 
 const PORT = config.serverPort || 3001;
 
@@ -38,6 +39,7 @@ if (config.environment === 'development') {
     app.use(cors({ origin: 'http://localhost:3000' }));
 }
 
+app.use(fileUpload());
 app.use(express.json());
 
 const rateLimiter = rateLimit({

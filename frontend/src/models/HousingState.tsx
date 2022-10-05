@@ -1,4 +1,4 @@
-import { DefaultOption } from './SelectOption';
+import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
 
 export interface HousingState {
@@ -45,7 +45,7 @@ export enum HousingStatus {
     Exit
 }
 
-export const FirstContactToContactedSubStatus = 'À recontacter'
+export const FirstContactToContactedSubStatus = 'Intérêt potentiel'
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement'
 export const InProgressWithSupportSubStatus = 'En accompagnement'
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique'
@@ -53,6 +53,7 @@ export const InProgressWithoutSupportSubStatus = 'En sortie sans accompagnement'
 export const ExitWithSupportSubStatus = 'Via accompagnement'
 export const ExitWithPublicSupportSubStatus = 'Via intervention publique'
 export const ExitWithoutSupportSubStatus = 'Sans accompagnement'
+export const ExitAbsentFollowingYear = 'Absent du millésime suivant'
 
 export const HousingStates: HousingState[] = [
     {
@@ -192,6 +193,11 @@ export const HousingStates: HousingState[] = [
                         title: 'Accompagnement à la vente',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247-active'
+                    },
+                    {
+                        title: 'Aides locales',
+                        color: '--green-emeraude-sun-425',
+                        bgcolor: '--green-tilleul-verveine-950'
                     },
                     {
                         title: 'Autre',
@@ -365,7 +371,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -417,69 +423,7 @@ export const HousingStates: HousingState[] = [
                 ]
             },
             {
-                title: 'Vacance organisée',
-                color: '--green-menthe-975',
-                bgcolor: '--green-menthe-sun-373',
-                precisions: [
-                    {
-                        title: 'Réserve personnelle ou pour une autre personne',
-                        color: '--green-tilleul-verveine-975',
-                        bgcolor: '--green-archipel-main-557'
-                    },
-                    {
-                        title: 'Travaux trop importants',
-                        color: '--blue-ecume-975',
-                        bgcolor: '--blue-ecume-sun-247'
-                    },
-                    {
-                        title: 'Dégradations',
-                        color: '--brown-caramel-975',
-                        bgcolor: '--yellow-moutarde-sun-348-hover'
-                    },
-                    {
-                        title: 'Impayés de loyer',
-                        color: '--brown-caramel-975',
-                        bgcolor: '--brown-caramel-sun-425'
-                    },
-                    {
-                        title: 'Succession difficile, indivision en désaccord',
-                        color: '--pink-macaron-main-689',
-                        bgcolor: '--pink-macaron-975'
-                    },
-                    {
-                        title: 'Expertise judiciaire',
-                        color: '--purple-glycine-975',
-                        bgcolor: '--purple-glycine-main-494'
-                    },
-                    {
-                        title: 'Procédure contre les entrepreneurs',
-                        color: '--pink-tuile-975',
-                        bgcolor: '--pink-tuile-main-556'
-                    },
-                    {
-                        title: 'Âge du propriétaire',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--green-tilleul-verveine-950'
-                    },
-                    {
-                        title: 'Difficultés de gestion / financière',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--pink-macaron-950'
-                    },
-                    {
-                        title: 'Ne répond pas aux critères du marché (prix...)',
-                        color: '--pink-macaron-975',
-                        bgcolor: '--purple-glycine-sun-319'
-                    },
-                    {
-                        title: 'Aides non accordées',
-                        color: '--green-emeraude-sun-425',
-                        bgcolor: '--green-menthe-950'
-                    }
-                ]
-            },
-            {
-                title: 'Vacance volontaire ',
+                title: 'Vacance volontaire',
                 color: '--green-menthe-sun-373',
                 bgcolor: '--green-menthe-975',
                 precisions: [
@@ -489,7 +433,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -537,6 +481,11 @@ export const HousingStates: HousingState[] = [
                         title: 'Aides non accordées',
                         color: '--green-emeraude-sun-425',
                         bgcolor: '--green-menthe-950'
+                    },
+                    {
+                        title: 'Stratégie de gestion',
+                        color: '--brown-caramel-975',
+                        bgcolor: '--yellow-moutarde-sun-348-hover'
                     }
                 ]
             },
@@ -551,7 +500,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -613,7 +562,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -675,7 +624,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -737,7 +686,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -799,7 +748,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -861,7 +810,7 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--green-archipel-main-557'
                     },
                     {
-                        title: 'Travaux trop importants',
+                        title: 'Montant travaux trop important',
                         color: '--blue-ecume-975',
                         bgcolor: '--blue-ecume-sun-247'
                     },
@@ -985,6 +934,11 @@ export const HousingStates: HousingState[] = [
                         bgcolor: '--blue-ecume-sun-247-active'
                     }
                 ]
+            },
+            {
+                title: ExitAbsentFollowingYear,
+                color: '--blue-ecume-200',
+                bgcolor: '--yellow-tournesol-moon-922-active'
             }
         ]
     }
@@ -1015,6 +969,28 @@ export const getSubStatusOptions = (status: HousingStatus) => {
         ...housingState.subStatusList.map(subStatus => ({value: subStatus.title, label: subStatus.title}))
     ] : undefined;
 }
+
+export const getSubStatusList = (statusList: string[] | HousingStatus[] | undefined) =>
+    (statusList ?? [])
+        .map(_ => getHousingState(_ as HousingStatus))
+        .map(housingState => (housingState.subStatusList?? []).map(subStatus => subStatus.title))
+        .flat()
+        .filter(_ => _ !== undefined)
+
+
+export const getSubStatusListOptions = (statusList: string[] | HousingStatus[] | undefined) => (
+    (statusList ?? [])
+        .map(_ => getHousingState(_ as HousingStatus))
+        .filter(_ => _.subStatusList)
+        .map(housingState => [
+            {value: housingState.title, label: housingState.title, disabled: true},
+            ...(housingState.subStatusList?? []).map(subStatus => (
+                {value: subStatus.title, label: subStatus.title}
+            ))
+        ])
+        .flat()
+        .filter(_ => _ !== undefined)
+) as SelectOption[]
 
 export const getStatusPrecisionOptions = (status: HousingStatus, subStatus?: string) => {
     const housingSubStatus = getHousingState(status).subStatusList?.find(s => s.title === subStatus)

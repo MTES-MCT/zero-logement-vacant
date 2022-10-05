@@ -7,6 +7,7 @@ import campaignReducer, { CampaignState } from './campaignReducer';
 import userReducer, { UserState } from './userReducer';
 import statisticReducer, { StatisticState } from './statisticReducer';
 import monitoringReducer, { MonitoringState } from './monitoringReducer';
+import geoReducer, { GeoState } from './geoReducer';
 
 const applicationReducer = combineReducers({
     authentication: authenticationReducer,
@@ -16,6 +17,7 @@ const applicationReducer = combineReducers({
     user: userReducer,
     statistic: statisticReducer,
     monitoring: monitoringReducer,
+    geo: geoReducer,
     loadingBar: loadingBarReducer
 });
 
@@ -26,7 +28,8 @@ export interface ApplicationState {
     owner: OwnerState,
     user: UserState,
     statistic: StatisticState,
-    monitoring: MonitoringState
+    monitoring: MonitoringState,
+    geo: GeoState
 }
 
 export default applicationReducer;

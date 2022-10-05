@@ -26,7 +26,7 @@ export interface AuthenticationState {
 const initialState =
     {
       accountActivated: false,
-      ...authUser && authUser.accessToken && authUser.establishment.housingScopes instanceof Array
+      ...authUser && authUser.accessToken
           ? { isLoggedIn: true, authUser: authUser }
           : { isLoggedIn: false, authUser: null }
     };

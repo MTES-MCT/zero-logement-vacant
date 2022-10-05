@@ -1,6 +1,6 @@
 import db from './db';
 import { LocalityApi } from '../models/EstablishmentApi';
-import { establishmentsTable, housingScopeGeometryTable } from './establishmentRepository';
+import { establishmentsTable } from './establishmentRepository';
 
 export const localitiesTable = 'localities';
 
@@ -17,21 +17,6 @@ const listByEstablishmentId = async (establishmentId: string): Promise<LocalityA
     }
 }
 
-const listHousingScopes = async (establishmentId: string): Promise<string[]> => {
-    try {
-        return db(housingScopeGeometryTable)
-            .leftJoin(establishmentsTable, 'establishment_id', `${establishmentsTable}.id`)
-            .where('establishment_id', establishmentId)
-            .orWhereNull('establishment_id')
-            .distinct('type')
-            .orderBy('type')
-            .then(_ => _.map(_ => _.type))
-    } catch (err) {
-        console.error('Listing housing scopes failed', err);
-        throw new Error('Listing housing scopes failed');
-    }
-}
-
 const parseLocalityApi = (result: any) => <LocalityApi>{
     id: result.id,
     geoCode: result.geo_code,
@@ -39,6 +24,5 @@ const parseLocalityApi = (result: any) => <LocalityApi>{
 }
 
 export default {
-    listByEstablishmentId,
-    listHousingScopes
+    listByEstablishmentId
 }

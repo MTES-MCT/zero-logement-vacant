@@ -57,7 +57,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.postal_code as owner_postal_code',
                 'o.city as owner_city',
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-                db.raw('json_agg(distinct(perimeters.perimeter_type)) as geo_perimeters'),
+                db.raw('json_agg(distinct(perimeters.perimeter_kind)) as geo_perimeters'),
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
                 `${localitiesTable}.locality_kind`,
@@ -75,7 +75,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
                     and c.id = ch.campaign_id
                 ) campaigns on true`)
             .joinRaw(`left join lateral (
-                     select type as perimeter_type 
+                     select kind as perimeter_kind 
                      from ${geoPerimetersTable} perimeter
                      where st_contains(perimeter.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
                      ) perimeters on true`)
@@ -311,13 +311,13 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
             queryBuilder
                 .joinRaw(`left join ${geoPerimetersTable} as perimeter_inc on st_contains(perimeter_inc.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                .whereRaw(`? && array[perimeter_inc.type]::text[]`, [filters.geoPerimetersIncluded])
+                .whereRaw(`? && array[perimeter_inc.kind]::text[]`, [filters.geoPerimetersIncluded])
         }
         if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
             queryBuilder.whereNotExists(function (whereBuilder: any) {
                 whereBuilder.select('*').from(geoPerimetersTable)
                     .whereRaw(`st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))`)
-                    .whereIn('type', filters.geoPerimetersExcluded)
+                    .whereIn('kind', filters.geoPerimetersExcluded)
             })
         }
         if (filters.dataYearsIncluded?.length) {

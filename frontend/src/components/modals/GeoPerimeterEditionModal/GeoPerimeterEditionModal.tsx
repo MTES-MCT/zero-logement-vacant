@@ -23,24 +23,24 @@ const GeoPerimeterEditionModal = (
         onClose
     }: {
         geoPerimeter: GeoPerimeter,
-        onSubmit: (type: string, name?: string) => void,
+        onSubmit: (kind: string, name?: string) => void,
         onClose: () => void
     }) => {
 
-    const [type, setType] = useState(geoPerimeter.type);
+    const [kind, setKind] = useState(geoPerimeter.kind);
     const [name, setName] = useState(geoPerimeter.name);
 
     const [formErrors, setFormErrors] = useState<any>({});
 
     const perimeterForm = yup.object().shape({
-        type: yup.string().required('Veuillez renseigner un type de périmètre.')
+        kind: yup.string().required('Veuillez renseigner un nom de filtre.')
     });
 
     const submitPerimeterForm = () => {
         setFormErrors({});
         perimeterForm
-            .validate({ type, name }, {abortEarly: false})
-            .then(() => onSubmit(type, name))
+            .validate({ kind, name }, {abortEarly: false})
+            .then(() => onSubmit(kind, name))
             .catch(err => {
                 const object: any = {};
                 err.inner.forEach((x: ValidationError) => {
@@ -66,11 +66,11 @@ const GeoPerimeterEditionModal = (
                         <Row gutters>
                             <Col>
                                 <TextInput
-                                    value={type}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setType(e.target.value)}
-                                    messageType={formErrors['type'] ? 'error' : ''}
-                                    message={formErrors['type']}
-                                    label="Type : "
+                                    value={kind}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setKind(e.target.value)}
+                                    messageType={formErrors['kind'] ? 'error' : ''}
+                                    message={formErrors['kind']}
+                                    label="Nom du filtre : "
                                     required
                                 />
                             </Col>

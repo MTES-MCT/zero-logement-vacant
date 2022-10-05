@@ -139,6 +139,6 @@ export function genGeoPerimeterApi(establishmentId: string) {
         id: uuidv4(),
         establishmentId,
         name: randomstring.generate(),
-        type: randomstring.generate()
+        kind: randomstring.generate()
     };
 }

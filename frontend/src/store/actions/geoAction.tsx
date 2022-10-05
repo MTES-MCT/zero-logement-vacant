@@ -54,13 +54,13 @@ export const fetchGeoPerimeters = () => {
     };
 };
 
-export const updateGeoPerimeter = (geoPerimeterId: string, type: string, name?: string) => {
+export const updateGeoPerimeter = (geoPerimeterId: string, kind: string, name?: string) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
-        geoService.updateGeoPerimeter(geoPerimeterId, type, name)
+        geoService.updateGeoPerimeter(geoPerimeterId, kind, name)
             .then(() => {
                 dispatch(hideLoading());
                 fetchGeoPerimeters()(dispatch, getState)

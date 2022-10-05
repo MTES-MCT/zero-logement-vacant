@@ -21,19 +21,16 @@ const listGeoPerimeters = async (request: JWTRequest, response: Response): Promi
 const createGeoPerimeter = async (request: any, response: Response): Promise<Response> => {
 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const userId = (<RequestUser>request.auth).userId;
     const file = request.files.geoPerimeter;
 
-    console.log('Create geo perimeter', establishmentId)
+    console.log('Create geo perimeter', establishmentId, file.name)
 
     const geojson = await shpjs(file.data)
 
-    console.log('geojson', geojson)
-    console.log('geometry', (<FeatureCollectionWithFilename>geojson).features.map(_ => _.geometry))
-    console.log('properties', (<FeatureCollectionWithFilename>geojson).features.map(_ => _.properties))
-
     await Promise.all((<FeatureCollectionWithFilename>geojson).features.map(feature =>
-        geoRepository.insert(feature.geometry, establishmentId, feature.properties?.type ?? '', feature.properties?.nom ?? ''))
-    )
+        geoRepository.insert(feature.geometry, establishmentId, feature.properties?.type ?? '', feature.properties?.nom ?? '', userId)
+    ))
 
     return response.sendStatus(constants.HTTP_STATUS_OK);
 
@@ -70,8 +67,8 @@ const deleteGeoPerimeter = async (request: JWTRequest, response: Response): Prom
 
 const updateGeoPerimeterValidators = [
     param('geoPerimeterId').notEmpty().isUUID(),
-    body('type').notEmpty().isString(),
-    body('type').optional({ nullable: true }).isString()
+    body('kind').notEmpty().isString(),
+    body('kind').optional({ nullable: true }).isString()
 ];
 
 const updateGeoPerimeter = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -83,10 +80,10 @@ const updateGeoPerimeter = async (request: JWTRequest, response: Response): Prom
 
     const geoPerimeterId = request.params.geoPerimeterId;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
-    const type = request.body.type;
+    const kind = request.body.kind;
     const name = request.body.name;
 
-    console.log('Update geo perimeter', geoPerimeterId, type, name);
+    console.log('Update geo perimeter', geoPerimeterId, kind, name);
 
     const geoPerimeter = await geoRepository.get(geoPerimeterId);
 
@@ -94,7 +91,7 @@ const updateGeoPerimeter = async (request: JWTRequest, response: Response): Prom
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     }
 
-    return geoRepository.update(geoPerimeterId, type, name)
+    return geoRepository.update(geoPerimeterId, kind, name)
         .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 
 }

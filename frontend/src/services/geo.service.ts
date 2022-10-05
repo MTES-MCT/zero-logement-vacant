@@ -10,12 +10,12 @@ const listGeoPerimeters = async (): Promise<GeoPerimeter> => {
     }).then(_ => _.json());
 };
 
-const updateGeoPerimeter = async (geoPerimeterId: string, type: string, name?: string): Promise<void> => {
+const updateGeoPerimeter = async (geoPerimeterId: string, kind: string, name?: string): Promise<void> => {
 
     return await fetch(`${config.apiEndpoint}/api/geo/perimeters/${geoPerimeterId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, name }),
+        body: JSON.stringify({ kind, name }),
     }).then(() => {});
 };
 

@@ -4,6 +4,6 @@ export interface GeoPerimeterApi {
     id: string;
     establishmentId: string;
     name: string;
-    type: string;
+    kind: string;
     geoJson?: GeoJSON;
 }

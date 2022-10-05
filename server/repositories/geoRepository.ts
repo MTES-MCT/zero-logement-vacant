@@ -23,14 +23,14 @@ const get = async (geoPerimeterId: string): Promise<GeoPerimeterApi> => {
     }
 }
 
-const insert = async (geometry: Geometry, establishmentId: string, type: string, name: string): Promise<any> => {
+const insert = async (geometry: Geometry, establishmentId: string, kind: string, name: string, createdBy?: string): Promise<any> => {
 
     const rawGeom = geometry.type === 'LineString' ? 'st_multi(st_concaveHull(st_geomfromgeojson(?), 0.80))' : 'st_multi(st_geomfromgeojson(?))'
 
-    console.log('Insert geo perimeter', establishmentId, type, name)
+    console.log('Insert geo perimeter', establishmentId, kind, name)
     try {
         return db(geoPerimetersTable)
-            .insert(db.raw(`(type, name, geom, establishment_id) values (?, ?, ${rawGeom}, ?)`, [type, name, JSON.stringify(geometry), establishmentId]))
+            .insert(db.raw(`(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`, [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? '']))
             .returning('*')
     } catch (err) {
         console.error('Inserting geo perimeter failed', err, establishmentId);
@@ -38,11 +38,11 @@ const insert = async (geometry: Geometry, establishmentId: string, type: string,
     }
 }
 
-const update = async (geoPerimeterId: string, type: string, name?: string): Promise<GeoPerimeterApi> => {
+const update = async (geoPerimeterId: string, kind: string, name?: string): Promise<GeoPerimeterApi> => {
     try {
         return db(geoPerimetersTable)
             .where('id', geoPerimeterId)
-            .update({type, name})
+            .update({ kind, name })
     } catch (err) {
         console.error('Updating geo perimeter failed', err, geoPerimeterId);
         throw new Error('Updating geo perimeter failed');
@@ -55,7 +55,7 @@ const listGeoPerimeters = async (establishmentId: string): Promise<GeoPerimeterA
             .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
             .where('establishment_id', establishmentId)
             .orWhereNull('establishment_id')
-            .orderBy('type')
+            .orderBy('kind')
             .then(_ => _.map(_ => parseGeoPerimeterApi(_)))
     } catch (err) {
         console.error('Listing geo perimeter failed', err);
@@ -78,14 +78,14 @@ const formatGeoPerimeterApi = (geoPerimeterApi: GeoPerimeterApi) => ({
     id: geoPerimeterApi.id,
     establishment_id: geoPerimeterApi.establishmentId,
     name: geoPerimeterApi.name,
-    type: geoPerimeterApi.type
+    kind: geoPerimeterApi.kind
 })
 
 const parseGeoPerimeterApi = (result: any) => <GeoPerimeterApi> {
     id: result.id,
     establishmentId: result.establishment_id,
     name: result.name,
-    type: result.type,
+    kind: result.kind,
     geoJson: result.geo_json,
 }
 

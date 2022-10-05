@@ -37,7 +37,7 @@ describe('Geo controller', () => {
                         id: GeoPerimeter1.id,
                         establishmentId: Establishment1.id,
                         name: GeoPerimeter1.name,
-                        type: GeoPerimeter1.type,
+                        type: GeoPerimeter1.kind,
                     })
                 ])
             )

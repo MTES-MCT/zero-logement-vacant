@@ -54,9 +54,9 @@ const GeoPerimeterView = () => {
         }
     }
 
-    const onSubmitUpdatingGeoPerimeter = (type: string, name?: string) => {
+    const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
         if (updatingModalGeoPerimeterId) {
-            dispatch(updateGeoPerimeter(updatingModalGeoPerimeterId, type, name))
+            dispatch(updateGeoPerimeter(updatingModalGeoPerimeterId, kind, name))
         }
         setUpdatingModalGeoPerimeterId(undefined);
     }
@@ -68,13 +68,13 @@ const GeoPerimeterView = () => {
         setRemovingModalGeoPerimeterId(undefined);
     }
 
-    const typeColumn = {
-        name: 'type',
-        label: 'Type',
-        render: ({ type }: GeoPerimeter) =>
+    const kindColumn = {
+        name: 'kind',
+        label: 'Nom du filtre',
+        render: ({ kind }: GeoPerimeter) =>
             <>
-                {type ?
-                    type :
+                {kind ?
+                    kind :
                     <Badge small
                            text='Non renseigné'
                            colorFamily='pink-tuile'
@@ -129,9 +129,9 @@ const GeoPerimeterView = () => {
             </Link>
     }
 
-    const columns = [typeColumn, nameColumn, actionsColumn, viewColumn]
+    const columns = [kindColumn, nameColumn, actionsColumn, viewColumn]
 
-    const invalidGeoFilters = geoPerimeters?.filter(_ => !_.type?.length)
+    const invalidGeoFilters = geoPerimeters?.filter(_ => !_.kind?.length)
 
     return (
         <>
@@ -154,7 +154,7 @@ const GeoPerimeterView = () => {
                                     <>Chargement en cours...</> :
                                     <>
                                         {invalidGeoFilters && invalidGeoFilters.length > 0 &&
-                                            <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le type n'est pas renseigné`}
+                                            <Alert description={`Il y a ${displayCount(invalidGeoFilters.length, 'périmètre')} qui ne sont pas valides car le nom du filtre n'est pas renseigné`}
                                                    type="warning"
                                                    className="fr-mb-2w"/>
                                         }

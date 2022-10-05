@@ -94,7 +94,7 @@ const GeoPerimeterEditionModal = (
                 </Button>
                 <Button title="Enregistrer"
                         onClick={() => submitPerimeterForm()}>
-                    Ajouter
+                    Enregistrer
                 </Button>
             </ModalFooter>
         </Modal>

@@ -86,7 +86,7 @@ const GeoPerimeterView = () => {
 
     const nameColumn = {
         name: 'name',
-        label: 'Nom',
+        label: 'Entité',
         sortable: true
     };
 

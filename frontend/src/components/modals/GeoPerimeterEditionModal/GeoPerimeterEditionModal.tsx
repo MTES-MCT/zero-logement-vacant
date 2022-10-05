@@ -78,7 +78,7 @@ const GeoPerimeterEditionModal = (
                                 <TextInput
                                     value={name}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                                    label="Nom : "
+                                    label="Entité : "
                                 />
                             </Col>
                         </Row>

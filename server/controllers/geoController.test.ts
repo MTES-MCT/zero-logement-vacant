@@ -37,7 +37,7 @@ describe('Geo controller', () => {
                         id: GeoPerimeter1.id,
                         establishmentId: Establishment1.id,
                         name: GeoPerimeter1.name,
-                        type: GeoPerimeter1.kind,
+                        kind: GeoPerimeter1.kind,
                     })
                 ])
             )
@@ -104,7 +104,7 @@ describe('Geo controller', () => {
                 request(app).put(testRoute(GeoPerimeter2.id))
             )
                 .send({
-                    type: randomstring.generate(),
+                    kind: randomstring.generate(),
                     name: randomstring.generate()
                 }).expect(constants.HTTP_STATUS_UNAUTHORIZED);
         })
@@ -130,14 +130,14 @@ describe('Geo controller', () => {
 
         it('should update the perimeter', async () => {
 
-            const newType: string = randomstring.generate();
+            const newKind: string = randomstring.generate();
             const newName: string = randomstring.generate();
 
             await withAccessToken(
                 request(app).put(testRoute(GeoPerimeter1.id))
             )
                 .send({
-                    type: newType,
+                    kind: newKind,
                     name: newName
                 })
                 .expect(constants.HTTP_STATUS_OK);
@@ -150,7 +150,7 @@ describe('Geo controller', () => {
                                 id: GeoPerimeter1.id,
                                 establishmentId: Establishment1.id,
                                 name: newName,
-                                type: newType,
+                                kind: newKind,
                             })
                         ])
                     )

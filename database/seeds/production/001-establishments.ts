@@ -4,35 +4,30 @@ import { establishmentsTable } from '../../../server/repositories/establishmentR
 import db from '../../../server/repositories/db';
 
 const addLocalityAsEstablishment = (knex: Knex, name: string, geoCode: string, siren: number) => {
-    return knex.table(localitiesTable)
-        .where('geo_code', geoCode)
-        .first()
-        .then((result: any) =>
-            knex.table(establishmentsTable)
-                .insert({siren, name, localities_id: [result.id]})
-                .onConflict('siren')
-                .ignore()
-        )
+    return knex.table(establishmentsTable)
+        .insert({siren, name, localities_geo_code: [geoCode]})
+        .onConflict('siren')
+        .ignore()
 }
 const addAreaAsEstablishment = (knex: Knex, name: string, areaCode: string, siren: number) => {
     return knex.table(localitiesTable)
-        .select(db.raw('array_agg(id) as ids'))
+        .select(db.raw('array_agg(geo_code) as geo_codes'))
         .whereRaw("geo_code like ? || '%'", areaCode)
         .first()
         .then((result: any) =>
             knex.table(establishmentsTable)
-                .insert({siren, name, localities_id: result.ids})
+                .insert({siren, name, localities_geo_code: result.geo_codes})
                 .onConflict('siren')
                 .ignore()
         )
 }
 const addEstablishmentsAsEstablishment = (knex: Knex, name: string, establishmentSirens: number[], siren: number) => {
     return knex
-        .select(db.raw('array_agg(localities_id.id) as ids from (select unnest(localities_id) id from establishments where siren = ANY(?)) as localities_id', [establishmentSirens]))
+        .select(db.raw('array_agg(localities_geo_code.geo_codes) as geo_codes from (select unnest(localities_geo_code) geo_codes from establishments where siren = ANY(?)) as localities_geo_code', [establishmentSirens]))
         .first()
         .then((result: any) =>
             knex.table(establishmentsTable)
-                .insert({ siren, name, localities_id: result.ids })
+                .insert({ siren, name, localities_geo_code: result.geo_codes })
                 .onConflict('siren')
                 .ignore()
         )
@@ -40,11 +35,11 @@ const addEstablishmentsAsEstablishment = (knex: Knex, name: string, establishmen
 
 const addLocalitiesToEstablishment = (knex: Knex, establishmentSiren: number, localityGeoCodes: string[]) => {
     return knex
-        .select(db.raw('array(select unnest(localities_id) from establishments where siren = ? union select id from localities where geo_code = ANY(?)) as ids', [establishmentSiren, localityGeoCodes]))
+        .select(db.raw('localities_geo_code as geo_codes from establishments where siren = ?', [establishmentSiren]))
         .first()
         .then((result: any) =>
             knex.table(establishmentsTable)
-                .update({ localities_id: result.ids })
+                .update({ localities_geo_code: [...result.geo_codes, ...localityGeoCodes] })
                 .where('siren', establishmentSiren)
         )
 }

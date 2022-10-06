@@ -12,10 +12,10 @@ import {
     HousingStatusCountApi,
     HousingStatusDurationApi,
 } from '../models/HousingStatusApi';
-import { establishmentsTable } from './establishmentRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
+import { establishmentsTable } from './establishmentRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -94,10 +94,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     return (queryBuilder: any) => {
         if (filters.establishmentIds?.length) {
             queryBuilder
-                .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
-                .where(function (whereBuilder: any) {
-                    whereBuilder.whereIn('e.id', filters.establishmentIds)
-                })
+                .joinRaw(`join ${establishmentsTable} e on insee_code  = any(e.localities_geo_code) and e.id in (?)`, filters.establishmentIds)
         }
         if (filters.campaignIds?.length) {
             queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds)
@@ -306,7 +303,9 @@ const filteredQuery = (filters: HousingFiltersApi) => {
             queryBuilder.whereIn('insee_code', filters.localities)
         }
         if (filters.localityKinds?.length) {
-            queryBuilder.whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
+            queryBuilder
+                .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
+                .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds)
         }
         if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
             queryBuilder
@@ -357,7 +356,6 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .from(housingTable)
             .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
@@ -399,7 +397,6 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
             .countDistinct(`${housingTable}.id`)
             .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
-            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
@@ -554,9 +551,8 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
 const monitoringQueryFilter = (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
     if (filters.establishmentIds?.length) {
         queryBuilder
-            .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
-            .joinRaw(`join ${establishmentsTable} e on ${localitiesTable}.id = any (e.localities_id)` )
             .whereIn('e.id', filters.establishmentIds)
+            .andWhereRaw('insee_code  = any (e.localities_geo_code)')
     }
     if (filters.dataYears?.length) {
         queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears])

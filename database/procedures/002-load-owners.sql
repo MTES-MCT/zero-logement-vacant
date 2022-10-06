@@ -1,164 +1,169 @@
-CREATE OR REPLACE PROCEDURE load_owner (owner_var record, rank integer)
+CREATE OR REPLACE PROCEDURE load_owners (date_format text)
 LANGUAGE plpgsql
 AS $$
 
     DECLARE
-        owner_var_ids uuid[];
-        owner_housing_var record;
 
     BEGIN
 
-        IF owner_var.local_id IS NOT NULL THEN
+        insert into owners(
+            full_name,
+            administrator,
+            raw_address,
+            birth_date,
+            owner_kind,
+            owner_kind_detail
+        ) select
+            upper(var.owner) as full_name,
+            var.administrator as administrator,
+            var.owner_raw_address as owner_raw_address,
+            var.birth_date as birth_date,
+           (case
+               when trim(groupe::TEXT) = '' then 'Particulier'
+               when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
+                    not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
+               when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
+               when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
+               else 'Autre' end) as owner_kind,
+           (case
+               when trim(groupe::TEXT) = '' then 'Particulier'
+               when not(var.owner like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') and
+                    not(var.owner like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%') then 'Autre'
+               when ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' then 'Investisseur'
+               when ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' then 'SCI'
+               else ff_catpro2txt end) as owner_kind_detail
+        from _extract_zlv_, lateral (
+            select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
+                   (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator,
+                   array_remove(array[nullif(trim(adresse1), ''), nullif(trim(adresse2), ''), nullif(trim(adresse3), ''), nullif(trim(adresse4), '')], null) as owner_raw_address,
+                   (case when ff_jdatnss_1 <> '0' and ff_jdatnss_1 not like '00/00/%' and ff_jdatnss_1 not like '%/%/18%' and (
+                       ((case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) like '%' || split_part(trim(ff_ddenom_1), '/', 1) || '%') or
+                       ((case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) like '%' || split_part(split_part(trim(ff_ddenom_1), '/', 2), ' ', 1) || '%')) then to_date(ff_jdatnss_1 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+           and ff_idlocal is not null
+           and var.owner is not null
+           and not exists (
+               select id from owners o
+               where o.full_name = upper(var.owner)
+                 and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by owner_raw_address, owner, administrator, birth_date, ff_ddenom_1, owner_kind, owner_kind_detail;
 
-            --------------------------------
-            -- OWNER
-            --------------------------------
-            select array_agg(id) into owner_var_ids from owners o
-            where o.full_name = upper(trim(owner_var.full_name))
-              and (o.birth_date = owner_var.birth_date OR (coalesce(o.birth_date, owner_var.birth_date) IS NULL AND o.raw_address && owner_var.owner_raw_address));
+        insert into owners(
+            full_name,
+            raw_address,
+            birth_date
+        ) select
+           var.owner,
+           var.owner_raw_address,
+           var.birth_date
+        from _extract_zlv_, lateral ( select
+                upper(ff_ddenom_2) as owner,
+                array_remove(array[nullif(trim(ff_dlign3_2), ''), nullif(trim(ff_dlign4_2), ''), nullif(trim(ff_dlign5_2), ''), nullif(trim(ff_dlign6_2), '')], null) as owner_raw_address,
+                (case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date(ff_jdatnss_2 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+          and ff_idlocal is not null
+          and ff_ddenom_2 is not null
+          and not exists (
+              select id from owners o
+              where o.full_name = upper(var.owner)
+                and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by var.owner, var.owner_raw_address, var.birth_date;
 
-            -- CASE NEW OWNER
-            IF owner_var_ids IS NULL or array_length(owner_var_ids, 1) = 0 THEN
+        insert into owners(
+            full_name,
+            raw_address,
+            birth_date
+        ) select
+           var.owner,
+           var.owner_raw_address,
+           var.birth_date
+        from _extract_zlv_, lateral ( select
+                upper(ff_ddenom_3) as owner,
+                array_remove(array[nullif(trim(ff_dlign3_3), ''), nullif(trim(ff_dlign4_3), ''), nullif(trim(ff_dlign5_3), ''), nullif(trim(ff_dlign6_3), '')], null) as owner_raw_address,
+                (case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date(ff_jdatnss_3 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+          and ff_idlocal is not null
+          and ff_ddenom_3 is not null
+          and not exists (
+              select id from owners o
+              where o.full_name = upper(var.owner)
+                and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by var.owner, var.owner_raw_address, var.birth_date;
 
-                RAISE NOTICE 'INSERT OWNER : % - %', owner_var.full_name, owner_var.birth_date ;
+        insert into owners(
+            full_name,
+            raw_address,
+            birth_date
+        ) select
+           var.owner,
+           var.owner_raw_address,
+           var.birth_date
+        from _extract_zlv_, lateral ( select
+                upper(ff_ddenom_4) as owner,
+                array_remove(array[nullif(trim(ff_dlign3_4), ''), nullif(trim(ff_dlign4_4), ''), nullif(trim(ff_dlign5_4), ''), nullif(trim(ff_dlign6_4), '')], null) as owner_raw_address,
+                (case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date(ff_jdatnss_4 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+          and ff_idlocal is not null
+          and ff_ddenom_4 is not null
+          and not exists (
+              select id from owners o
+              where o.full_name = upper(var.owner)
+                and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by var.owner, var.owner_raw_address, var.birth_date;
 
-                insert into owners(full_name, raw_address, birth_date)
-                values(owner_var.full_name, owner_var.owner_raw_address, owner_var.birth_date)
-                       returning ARRAY[id] INTO owner_var_ids;
+        insert into owners(
+            full_name,
+            raw_address,
+            birth_date
+        ) select
+           var.owner,
+           var.owner_raw_address,
+           var.birth_date
+        from _extract_zlv_, lateral ( select
+                upper(ff_ddenom_5) as owner,
+                array_remove(array[nullif(trim(ff_dlign3_5), ''), nullif(trim(ff_dlign4_5), ''), nullif(trim(ff_dlign5_5), ''), nullif(trim(ff_dlign6_5), '')], null) as owner_raw_address,
+                (case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date(ff_jdatnss_5 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+          and ff_idlocal is not null
+          and ff_ddenom_5 is not null
+          and not exists (
+              select id from owners o
+              where o.full_name = upper(var.owner)
+                and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by var.owner, var.owner_raw_address, var.birth_date;
 
-            END IF;
-
-            --------------------------------
-            -- OWNER HOUSING
-            --------------------------------
-            select oh.* into owner_housing_var
-            from owners_housing oh, housing h
-            where oh.housing_id = h.id
-            and h.local_id = owner_var.local_id
-            and oh.owner_id = owner_var_ids[1];
-
-            IF owner_housing_var.owner_id IS NULL THEN
-
-                RAISE NOTICE 'INSERT OWNER HOUSING : %', owner_var.local_id;
-
-                insert into owners_housing(housing_id, owner_id, rank) select id, owner_var_ids[1], rank from housing where local_id = owner_var.local_id;
-
-            END IF;
-
-        END IF;
+        insert into owners(
+            full_name,
+            raw_address,
+            birth_date
+        ) select
+           var.owner,
+           var.owner_raw_address,
+           var.birth_date
+        from _extract_zlv_, lateral ( select
+                upper(ff_ddenom_6) as owner,
+                array_remove(array[nullif(trim(ff_dlign3_6), ''), nullif(trim(ff_dlign4_6), ''), nullif(trim(ff_dlign5_6), ''), nullif(trim(ff_dlign6_6), '')], null) as owner_raw_address,
+                (case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date(ff_jdatnss_6 || ' 20', date_format) end) as birth_date
+            ) var
+        where ff_ccthp in ('V', 'L', 'P')
+          and ff_idlocal is not null
+          and ff_ddenom_6 is not null
+          and not exists (
+              select id from owners o
+              where o.full_name = upper(var.owner)
+                and (o.birth_date = var.birth_date OR (coalesce(o.birth_date, var.birth_date) IS NULL AND o.raw_address && var.owner_raw_address))
+        )
+        group by var.owner, var.owner_raw_address, var.birth_date;
 
     END;
 $$;
-
-
-CREATE OR REPLACE PROCEDURE load_owners ()
-LANGUAGE plpgsql
-AS $$
-
-    DECLARE
-        owner_var record;
-
-        owner_cursor2 CURSOR FOR select
-           ff_idlocal as local_id,
-           upper(ff_ddenom_2) as full_name,
-           array_remove(array[nullif(trim(ff_dlign3_2), ''), nullif(trim(ff_dlign4_2), ''), nullif(trim(ff_dlign5_2), ''), nullif(trim(ff_dlign6_2), '')], null) as owner_raw_address,
-           --(case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_2, '99999') end) as birth_date,
-           (case when ff_jdatnss_2 <> '0' and ff_jdatnss_2 not like '00/00/%' and ff_jdatnss_2 not like '%/%/18%' then to_date(ff_jdatnss_2 || ' 20', 'MM/DD/YY CC') end) as birth_date
-        from _extract_zlv_
-        where ff_ccthp in ('V', 'L', 'P')
-        and ff_idlocal is not null
-        and ff_ddenom_2 is not null
-        group by local_id, full_name, birth_date, owner_raw_address;
-
-        owner_cursor3 CURSOR FOR select
-           ff_idlocal as local_id,
-           upper(ff_ddenom_3) as full_name,
-           array_remove(array[nullif(trim(ff_dlign3_3), ''), nullif(trim(ff_dlign4_3), ''), nullif(trim(ff_dlign5_3), ''), nullif(trim(ff_dlign6_3), '')], null) as owner_raw_address,
-           --(case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_3, '99999') end) as birth_date,
-           (case when ff_jdatnss_3 <> '0' and ff_jdatnss_3 not like '00/00/%' and ff_jdatnss_3 not like '%/%/18%' then to_date(ff_jdatnss_3 || ' 20', 'MM/DD/YY CC') end) as birth_date
-        from _extract_zlv_
-        where ff_ccthp in ('V', 'L', 'P')
-        and ff_idlocal is not null
-        and ff_ddenom_3 is not null
-        group by local_id, full_name, birth_date, owner_raw_address;
-
-        owner_cursor4 CURSOR FOR select
-           ff_idlocal as local_id,
-           upper(ff_ddenom_4) as full_name,
-           array_remove(array[nullif(trim(ff_dlign3_4), ''), nullif(trim(ff_dlign4_4), ''), nullif(trim(ff_dlign5_4), ''), nullif(trim(ff_dlign6_4), '')], null) as owner_raw_address,
-           --(case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_4, '99999') end) as birth_date,
-           (case when ff_jdatnss_4 <> '0' and ff_jdatnss_4 not like '00/00/%' and ff_jdatnss_4 not like '%/%/18%' then to_date(ff_jdatnss_4 || ' 20', 'MM/DD/YY CC') end) as birth_date
-        from _extract_zlv_
-        where ff_ccthp in ('V', 'L', 'P')
-        and ff_idlocal is not null
-        and ff_ddenom_4 is not null
-        group by local_id, full_name, birth_date, owner_raw_address;
-
-        owner_cursor5 CURSOR FOR select
-           ff_idlocal as local_id,
-           upper(ff_ddenom_5) as full_name,
-           array_remove(array[nullif(trim(ff_dlign3_5), ''), nullif(trim(ff_dlign4_5), ''), nullif(trim(ff_dlign5_5), ''), nullif(trim(ff_dlign6_5), '')], null) as owner_raw_address,
-           --(case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_5, '99999') end) as birth_date,
-           (case when ff_jdatnss_5 <> '0' and ff_jdatnss_5 not like '00/00/%' and ff_jdatnss_5 not like '%/%/18%' then to_date(ff_jdatnss_5 || ' 20', 'MM/DD/YY CC') end) as birth_date
-        from _extract_zlv_
-        where ff_ccthp in ('V', 'L', 'P')
-        and ff_idlocal is not null
-        and ff_ddenom_5 is not null
-        group by local_id, full_name, birth_date, owner_raw_address;
-
-        owner_cursor6 CURSOR FOR select
-           ff_idlocal as local_id,
-           upper(ff_ddenom_6) as full_name,
-           array_remove(array[nullif(trim(ff_dlign3_6), ''), nullif(trim(ff_dlign4_6), ''), nullif(trim(ff_dlign5_6), ''), nullif(trim(ff_dlign6_6), '')], null) as owner_raw_address,
-           --(case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date('1899-12-30', 'YYYY-MM-DD') + interval '1 day' * to_number(ff_jdatnss_6, '99999') end) as birth_date,
-           (case when ff_jdatnss_6 <> '0' and ff_jdatnss_6 not like '00/00/%' and ff_jdatnss_6 not like '%/%/18%' then to_date(ff_jdatnss_6 || ' 20', 'MM/DD/YY CC') end) as birth_date
-        from _extract_zlv_
-        where ff_ccthp in ('V', 'L', 'P')
-        and ff_idlocal is not null
-        and ff_ddenom_6 is not null
-        group by local_id, full_name, birth_date, owner_raw_address;
-
-    BEGIN
-
-        OPEN owner_cursor2;
-        LOOP
-            FETCH owner_cursor2 INTO owner_var;
-            EXIT WHEN NOT FOUND;
-            call load_owner(owner_var, 2);
-        END LOOP;
-        CLOSE owner_cursor2;
-
-        OPEN owner_cursor3;
-        LOOP
-            FETCH owner_cursor3 INTO owner_var;
-            EXIT WHEN NOT FOUND;
-            call load_owner(owner_var, 3);
-        END LOOP;
-        CLOSE owner_cursor3;
-
-        OPEN owner_cursor4;
-        LOOP
-            FETCH owner_cursor4 INTO owner_var;
-            EXIT WHEN NOT FOUND;
-            call load_owner(owner_var, 4);
-        END LOOP;
-        CLOSE owner_cursor4;
-
-        OPEN owner_cursor5;
-        LOOP
-            FETCH owner_cursor5 INTO owner_var;
-            EXIT WHEN NOT FOUND;
-            call load_owner(owner_var, 5);
-        END LOOP;
-        CLOSE owner_cursor5;
-
-        OPEN owner_cursor6;
-        LOOP
-            FETCH owner_cursor6 INTO owner_var;
-            EXIT WHEN NOT FOUND;
-            call load_owner(owner_var, 6);
-        END LOOP;
-        CLOSE owner_cursor6;
-
-    END;
-$$

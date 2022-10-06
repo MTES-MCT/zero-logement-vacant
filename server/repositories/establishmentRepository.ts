@@ -17,7 +17,7 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                 db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name) order by l.name) as localities')
             )
             .from(establishmentsTable)
-            .joinRaw(`join ${localitiesTable} as l on (l.id = any(${establishmentsTable}.localities_id))`)
+            .joinRaw(`join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`)
             .where(`${establishmentsTable}.id`, establishmentId)
             .groupBy(`${establishmentsTable}.id`)
             .first()
@@ -81,14 +81,11 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
                     select count(*) from campaigns c, campaigns_housing ch where c.sending_date is not null and ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
                 )as "contacted_housing_per_campaign"`)
             )
-            .joinRaw(`join ${localitiesTable} on ${localitiesTable}.id = any(${establishmentsTable}.localities_id)` )
+            .joinRaw(`join ${housingTable} on insee_code  = any (${establishmentsTable}.localities_geo_code)`)
             .modify((queryBuilder: any) => {
-                queryBuilder.leftJoin(housingTable, (joinQuery: any) => {
-                    joinQuery.on(`${housingTable}.insee_code`, '=', `${localitiesTable}.geo_code`)
-                    if (filters.dataYears?.length) {
-                        joinQuery.andOn(db.raw('data_years && ?::integer[]', [filters.dataYears]))
-                    }
-                })
+                if (filters.dataYears?.length) {
+                    queryBuilder.where(db.raw('data_years && ?::integer[]', [filters.dataYears]))
+                }
             })
             .joinRaw(`left join ${campaignsTable} on ${campaignsTable}.establishment_id = ${establishmentsTable}.id and ${campaignsTable}.campaign_number > 0` )
             .leftJoin(usersTable, `${usersTable}.establishment_id`, `${establishmentsTable}.id`)
@@ -134,7 +131,7 @@ const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
     id: establishmentApi.id,
     name: establishmentApi.name,
     siren: establishmentApi.siren,
-    localities_id: establishmentApi.localities.map(_ => _.id)
+    localities_geo_code: establishmentApi.localities.map(_ => _.geoCode)
 })
 
 export default {
@@ -144,4 +141,3 @@ export default {
     formatLocalityApi,
     formatEstablishmentApi
 }
-

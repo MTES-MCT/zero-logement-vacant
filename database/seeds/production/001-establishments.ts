@@ -128,8 +128,12 @@ exports.seed = function(knex) {
                     addLocalityAsEstablishment(knex, 'Commune de Lignières', '18127', 211801279),
                     addLocalityAsEstablishment(knex, 'Commune de Giromagny', '90052', 219000528),
                     addLocalityAsEstablishment(knex, 'Commune de Tournay', '65447', 216504472),
-                    addAreaAsEstablishment(knex, 'DDT du Cher', '18', 221800014),
+                    addLocalityAsEstablishment(knex, 'Commune de La Pesse', '39413', 213904139),
+                    addLocalityAsEstablishment(knex, 'Commune de Montréjeau', '31390', 213103906),
+                    addAreaAsEstablishment(knex, 'DDT Cher', '18', 221800014),
+                    addAreaAsEstablishment(knex, 'DDT Haute-Garonne', '18', 130010747),
                     addAreaAsEstablishment(knex, 'DDTM Pas-de-Calais', '62%', 130010366),
+                    addAreaAsEstablishment(knex, 'DDTM Nord', '59%', 130009970),
                     addAreaAsEstablishment(knex, 'Département de la Meuse', '55%', 225500016),
                     addAreaAsEstablishment(knex, 'ADIL du Doubs', '25%', 341096394),
                     addEstablishmentsAsEstablishment(knex, 'PETR du Piémont des Vosges', [246700744, 200034270, 246701080], 200086197)
@@ -252,7 +256,16 @@ exports.seed = function(knex) {
                         '200054807',
                         '200067031',
                         '243301181',
-                        '200068799'
+                        '200068799',
+                        '200033025',
+                        '130009970',
+                        '213904139',
+                        '243400488',
+                        '200066645',
+                        '130010747',
+                        '200073146',
+                        '200072643',
+                        '213103906'
                     ])
                 )
         )

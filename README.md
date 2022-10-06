@@ -54,9 +54,10 @@ npm i
 **Développement / Staging**
 
 ```bash
+npm run migrate-latest
 cd database/scripts
 psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
-psql [DATABASE_URL] -f 002-load-data.sql -v filePath=../data/dummy/dummy_data.csv
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=../data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
 npm run seed
 ```
 
@@ -76,7 +77,7 @@ Le chargement des données se fait à partir de fichier d'extractions de donnée
 ```bash
 cd database/scripts
 psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
-psql [DATABASE_URL] -f 002-load-data.sql -v filePath=[DATA_CSV_FILE]
+psql [DATABASE_URL] -f 002-load-data.sql -v filePath=[DATA_CSV_FILE] -v dateFormat=[DATE_FORMAT]
 psql [DATABASE_URL] -f 003-load-buildings.sql -v filePath=[BUILDING_CSV_FILE]
 npm run seed
 ```

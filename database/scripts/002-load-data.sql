@@ -2,7 +2,7 @@ CREATE TABLE _extract_zlv_
 (
     ccodep             TEXT,
     annee              INTEGER,
-    dir                INTEGER,
+    dir                TEXT,
     sip                INTEGER,
     commune            TEXT,
     intercommunalite   TEXT,
@@ -90,12 +90,22 @@ CREATE TABLE _extract_zlv_
     ff_y_4326          TEXT
 );
 
+
+create index _extract_zlv__ff_idlocal_ff_ccthp_index
+    on _extract_zlv_ (ff_idlocal, ff_ccthp);
+
 \set copy '\\COPY _extract_zlv_ FROM ' :filePath ' DELIMITER '';'' CSV HEADER;'
 :copy
 
-CALL load_housing();
+CALL load_housing(:dateFormat || ' CC');
 
-CALL load_owners();
+REINDEX TABLE housing;
+
+CALL load_owners(:dateFormat || ' CC');
+
+REINDEX TABLE owners;
+
+CALL load_owners_housing(:dateFormat || ' CC');
 
 DROP TABLE _extract_zlv_;
 

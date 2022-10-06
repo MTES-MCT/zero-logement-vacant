@@ -8,7 +8,7 @@ const listByEstablishmentId = async (establishmentId: string): Promise<LocalityA
 
     try {
         return db(localitiesTable)
-            .joinRaw(`join ${establishmentsTable} as e on (${localitiesTable}.id = any(e.localities_id))`)
+            .joinRaw(`join ${establishmentsTable} as e on (${localitiesTable}.geo_code = any(e.localities_geo_code))`)
             .where('e.id', establishmentId)
             .then(_ => _.map(_ => parseLocalityApi(_)))
     } catch (err) {

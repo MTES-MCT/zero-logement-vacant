@@ -131,7 +131,6 @@ const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
     id: establishmentApi.id,
     name: establishmentApi.name,
     siren: establishmentApi.siren,
-    localities_id: establishmentApi.localities.map(_ => _.id),
     localities_geo_code: establishmentApi.localities.map(_ => _.geoCode)
 })
 

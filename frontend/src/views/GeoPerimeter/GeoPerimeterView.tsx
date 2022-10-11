@@ -11,10 +11,13 @@ import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppA
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import GeoPerimeterEditionModal from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const GeoPerimeterView = () => {
 
     const dispatch = useDispatch();
+    const { trackEvent } = useMatomo();
     const geoPerimeters = useGeoPerimeterList();
 
     const FileType = 'application/zip';
@@ -34,6 +37,10 @@ const GeoPerimeterView = () => {
 
             if (file.type === FileType) {
                 setFileError(undefined)
+                trackEvent({
+                    category: TrackEventCategories.GeoPerimeters,
+                    action: TrackEventActions.GeoPerimeters.Upload
+                });
                 dispatch(uploadFile(event.target.files[0]))
 
                 const firstTabButton = tabsRef.current?.querySelector('button.fr-tabs__tab')
@@ -56,6 +63,10 @@ const GeoPerimeterView = () => {
 
     const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
         if (updatingModalGeoPerimeterId) {
+            trackEvent({
+                category: TrackEventCategories.GeoPerimeters,
+                action: TrackEventActions.GeoPerimeters.Rename
+            });
             dispatch(updateGeoPerimeter(updatingModalGeoPerimeterId, kind, name))
         }
         setUpdatingModalGeoPerimeterId(undefined);
@@ -63,6 +74,10 @@ const GeoPerimeterView = () => {
 
     const onSubmitRemovingGeoPerimeter = () => {
         if (removingModalGeoPerimeterId) {
+            trackEvent({
+                category: TrackEventCategories.GeoPerimeters,
+                action: TrackEventActions.GeoPerimeters.Delete
+            });
             dispatch(deleteGeoPerimeter(removingModalGeoPerimeterId))
         }
         setRemovingModalGeoPerimeterId(undefined);

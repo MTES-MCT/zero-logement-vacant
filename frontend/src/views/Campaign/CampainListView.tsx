@@ -15,12 +15,15 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useHistory } from 'react-router-dom';
 import CampaignBundleTitleModal from '../../components/modals/CampaignTitleModal/CampaignBundleTitleModal';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
     const history = useHistory();
+    const { trackEvent } = useMatomo();
     const campaignList = useCampaignList(true);
 
     const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
@@ -41,6 +44,10 @@ const CampaignsListView = () => {
 
     const onSubmitRemovingCampaign = () => {
         if (removingModalCampaignBundleId?.campaignNumber) {
+            trackEvent({
+                category: TrackEventCategories.Campaigns,
+                action: TrackEventActions.Campaigns.Delete
+            })
             dispatch(deleteCampaignBundle(removingModalCampaignBundleId))
         }
         setRemovingModalCampaignBundleId(undefined);
@@ -49,6 +56,10 @@ const CampaignsListView = () => {
     const onSubmitCampaignTitle = (title: string) => {
         const campaignBundleId = getCampaignBundleId(titleModalCampaignBundle)
         if (campaignBundleId) {
+            trackEvent({
+                category: TrackEventCategories.Campaigns,
+                action: TrackEventActions.Campaigns.Rename
+            })
             dispatch(updateCampaignBundleTitle(campaignBundleId, title))
             setTitleModalCampaignBundle(undefined);
         }

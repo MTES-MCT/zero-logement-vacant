@@ -7,12 +7,15 @@ import housingService from '../../services/housing.service';
 import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
 import { listCampaignBundles } from '../../store/actions/campaignAction';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 
 const DashboardView = () => {
 
     const dispatch = useDispatch();
     const history = useHistory();
+    const { trackEvent } = useMatomo();
 
     const { campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
     const quickSearchAbortRef = useRef<() => void | null>();
@@ -29,6 +32,10 @@ const DashboardView = () => {
         quickSearchAbortRef.current = quickSearchService.abort;
 
         if (query.length) {
+            trackEvent({
+                category: TrackEventCategories.Dashboard,
+                action: TrackEventActions.Dashboard.QuickSearch
+            })
             return quickSearchService.fetch(query)
                 .then(_ => _.entities.map(
                     housing => ({

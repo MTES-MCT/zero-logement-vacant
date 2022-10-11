@@ -19,11 +19,14 @@ import { displayCount } from '../../utils/stringUtils';
 import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 
 const HousingListView = () => {
 
     const dispatch = useDispatch();
     const { search } = useLocation();
+    const { trackEvent } = useMatomo();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [noHousingAlert, setNoHousingAlert] = useState(false);
@@ -41,6 +44,11 @@ const HousingListView = () => {
     }, [search, dispatch]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const create = () => {
+        trackEvent({
+            category: TrackEventCategories.HousingList,
+            action: TrackEventActions.HousingList.CreateCampaign,
+            value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
+        })
         if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
             setNoHousingAlert(true)
         } else {
@@ -50,6 +58,11 @@ const HousingListView = () => {
     }
 
     const exportHousing = () => {
+        trackEvent({
+            category: TrackEventCategories.HousingList,
+            action: TrackEventActions.HousingList.Export,
+            value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
+        })
         if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
             setNoHousingAlert(true)
         } else {
@@ -73,6 +86,11 @@ const HousingListView = () => {
     }
 
     const onSubmitDraftCampaign = (draftCampaign: DraftCampaign) => {
+        trackEvent({
+            category: TrackEventCategories.HousingList,
+            action: TrackEventActions.HousingList.SaveCampaign,
+            value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
+        })
         dispatch(createCampaign(draftCampaign, selectedHousing.all, selectedHousing.ids))
     }
 
@@ -91,6 +109,10 @@ const HousingListView = () => {
     }
 
     const searchWithQuery = (query: string) => {
+        trackEvent({
+            category: TrackEventCategories.HousingList,
+            action: TrackEventActions.HousingList.Search
+        });
         dispatch(changeHousingFiltering({
             ...filters,
             query

@@ -46,6 +46,7 @@ const GeoPerimeterView = () => {
                     }));
                 }
             } else {
+                console.error('Invalid file type', file.type)
                 setFileError(`Seuls les fichier zip sont autorisés`)
             }
 

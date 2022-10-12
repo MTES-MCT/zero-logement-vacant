@@ -9,7 +9,7 @@ import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
-import { param, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 
 const getCampaignBundleValidators = [
@@ -160,12 +160,23 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
 }
 
+const validateStepValidators = [
+    param('campaignId').notEmpty().isUUID(),
+    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.InProgess]),
+    body('sendingDate').if(body('step').equals(String(CampaignSteps.Sending))).notEmpty(),
+];
+
 const validateStep = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
     const userId = (<RequestUser>request.auth).userId;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+    }
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -190,7 +201,11 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
                 campaignIds: [campaignId]
             }).then(_ => _.entities)
 
-            await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+            await housingRepository.updateHousingList(
+                housingList
+                    .filter(_ => _.status === HousingStatusApi.NotInCampaign)
+                    .map(_ => _.id), HousingStatusApi.Waiting
+            )
 
             await eventRepository.insertList(
                 housingList.map(housing => <EventApi>{
@@ -309,6 +324,7 @@ const campaignController =  {
     createCampaign,
     createReminderCampaign,
     updateCampaignBundle,
+    validateStepValidators,
     validateStep,
     deleteCampaignBundleValidators,
     deleteCampaignBundle,

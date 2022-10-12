@@ -217,6 +217,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     validatedAt: result.validated_at,
     exportedAt: result.exported_at,
     sentAt: result.sent_at,
+    sendingDate: result.sending_date,
     title: result.title
 }
 

@@ -102,7 +102,7 @@ export function genHousingApi(inseeCode: string) {
         roomsCount: genNumber(1),
         buildingYear: genNumber(4),
         vacancyStartYear: genNumber(4),
-        dataYears: [2021],
+        dataYears: [2022],
         campaignIds: [],
         vacancyReasons: [],
         uncomfortable: false,

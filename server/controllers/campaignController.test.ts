@@ -11,6 +11,12 @@ import bodyParser from 'body-parser';
 import { Housing0, Housing1, Housing2 } from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { eventsTable } from '../repositories/eventRepository';
+import randomstring from 'randomstring';
+import { v4 as uuidv4 } from 'uuid';
+import { CampaignSteps } from '../models/CampaignApi';
+import { housingTable } from '../repositories/housingRepository';
+import { HousingStatusApi } from '../models/HousingStatusApi';
+import { formatISO } from 'date-fns';
 
 const app = express();
 app.use(bodyParser.json());
@@ -213,6 +219,165 @@ describe('Campaign controller', () => {
                     ]))
                 });
         })
+    })
+
+    describe('validateStep', () => {
+
+        const testRoute = (campaignId: string) => `/api/campaigns/${campaignId}`
+
+        it('should be forbidden for a not authenticated user', async () => {
+            await request(app).put(testRoute(Campaign1.id)).expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        })
+
+        it('should received a valid campaign id', async () => {
+
+            await withAccessToken(
+                request(app).put(testRoute(randomstring.generate()))
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).put(testRoute(uuidv4()))
+                    .send({step: CampaignSteps.OwnersValidation})
+            ).expect(constants.HTTP_STATUS_NOT_FOUND)
+
+        });
+
+        it('should received a valid step', async () => {
+
+            await withAccessToken(
+                request(app).put(testRoute(Campaign1.id))
+                    .send({})
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+            await withAccessToken(
+                request(app).put(testRoute(Campaign1.id))
+                    .send({step: 15})
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+        });
+
+        it('should received a valid sending date on sending step', async () => {
+
+            await withAccessToken(
+                request(app).put(testRoute(Campaign1.id))
+                    .send({ step: CampaignSteps.Sending })
+            ).expect(constants.HTTP_STATUS_BAD_REQUEST)
+
+        });
+
+        it('should update the campaign when validating step OwnersValidation', async () => {
+
+            const res =
+                await withAccessToken(
+                    request(app).put(testRoute(Campaign1.id))
+                        .send({ step: CampaignSteps.OwnersValidation })
+                ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    id: Campaign1.id,
+                    validatedAt: expect.anything(),
+                    exportedAt: null,
+                    sentAt: null
+                })
+            )
+
+            await db(campaignsTable)
+                .where('id', Campaign1.id)
+                .first()
+                .then(result => expect(result).toMatchObject(
+                    expect.objectContaining({
+                        id: Campaign1.id,
+                        validated_at: expect.anything(),
+                        exported_at: null,
+                        sent_at: null
+                    })
+                ));
+
+        })
+
+        it('should update the campaign when validating step Export', async () => {
+
+            const res =
+                await withAccessToken(
+                    request(app).put(testRoute(Campaign1.id))
+                        .send({ step: CampaignSteps.Export })
+                ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    id: Campaign1.id,
+                    exportedAt: expect.anything(),
+                    sentAt: null
+                })
+            )
+
+            await db(campaignsTable)
+                .where('id', Campaign1.id)
+                .first()
+                .then(result => expect(result).toMatchObject(
+                    expect.objectContaining({
+                        id: Campaign1.id,
+                        exported_at: expect.anything(),
+                        sent_at: null
+                    })
+                ));
+
+        })
+
+        it('should update the campaign when validating step Sending and update housing status if needed', async () => {
+
+            await db(campaignsHousingTable).insert([
+                { campaign_id: Campaign1.id, housing_id: Housing0.id },
+                { campaign_id: Campaign1.id, housing_id: Housing2.id }
+            ])
+            await db(housingTable).update({status: HousingStatusApi.NotInCampaign}).where('id', Housing0.id)
+            await db(housingTable).update({status: HousingStatusApi.InProgress}).where('id', Housing2.id)
+
+            console.log('format ISO', formatISO(new Date()))
+
+            const res =
+                await withAccessToken(
+                    request(app).put(testRoute(Campaign1.id))
+                        .send({ step: CampaignSteps.Sending, sendingDate: formatISO(new Date()) })
+                ).expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    id: Campaign1.id,
+                    sentAt: expect.anything(),
+                    sendingDate: expect.anything()
+                })
+            )
+
+            await db(campaignsTable)
+                .where('id', Campaign1.id)
+                .first()
+                .then(result => expect(result).toMatchObject(
+                    expect.objectContaining({
+                        id: Campaign1.id,
+                        sent_at: expect.anything(),
+                        sending_date: expect.anything()
+                    })
+                ));
+
+            await db(housingTable)
+                .where('id', Housing0.id)
+                .first()
+                .then(result => expect(result.status).toBe(HousingStatusApi.Waiting));
+
+            await db(housingTable)
+                .where('id', Housing1.id)
+                .first()
+                .then(result => expect(result.status).toBe(HousingStatusApi.Waiting));
+
+            await db(housingTable)
+                .where('id', Housing2.id)
+                .first()
+                .then(result => expect(result.status).toBe(HousingStatusApi.InProgress));
+
+        })
+
     })
 
     describe('deleteCampaignBundle', () => {

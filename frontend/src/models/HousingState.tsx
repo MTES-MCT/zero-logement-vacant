@@ -36,7 +36,7 @@ export interface HousingStatusDuration {
 }
 
 export enum HousingStatus {
-    NotInCampaign,
+    NeverContacted,
     Waiting,
     FirstContact,
     InProgress,
@@ -57,8 +57,8 @@ export const ExitAbsentFollowingYear = 'Absent du millésime suivant'
 
 export const HousingStates: HousingState[] = [
     {
-        status: HousingStatus.NotInCampaign,
-        title: 'Pas dans une campagne'
+        status: HousingStatus.NeverContacted,
+        title: 'Jamais contacté'
     },
     {
         status: HousingStatus.Waiting,

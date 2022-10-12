@@ -190,7 +190,12 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
                 campaignIds: [campaignId]
             }).then(_ => _.entities)
 
-            await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+            await housingRepository.updateHousingList(
+                housingList
+                    .filter(_ => !_.status)
+                    .map(_ => _.id),
+                HousingStatusApi.Waiting
+            )
 
             await eventRepository.insertList(
                 housingList.map(housing => <EventApi>{
@@ -291,7 +296,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const housingIds =
-        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: [campaignHousingStatusApi]})
+        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: campaignHousingStatusApi ? [campaignHousingStatusApi] : []})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => allHousing ? request.body.housingIds.indexOf(id) === -1 : request.body.housingIds.indexOf(id) !== -1)

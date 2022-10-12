@@ -20,7 +20,7 @@ const GeoPerimeterView = () => {
     const { trackEvent } = useMatomo();
     const geoPerimeters = useGeoPerimeterList();
 
-    const FileType = 'application/zip';
+    const FileTypes = ['application/zip', 'application/x-zip-compressed'];
 
     const { loading } = useSelector((state: ApplicationState) => state.geo);
     const [ updatingModalGeoPerimeterId, setUpdatingModalGeoPerimeterId ] = useState<string | undefined>();
@@ -35,7 +35,7 @@ const GeoPerimeterView = () => {
 
             const file = event.target?.files[0]
 
-            if (file.type === FileType) {
+            if (FileTypes.indexOf(file.type) !== -1) {
                 setFileError(undefined)
                 trackEvent({
                     category: TrackEventCategories.GeoPerimeters,

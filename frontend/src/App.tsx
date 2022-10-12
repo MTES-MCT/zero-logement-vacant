@@ -35,7 +35,7 @@ function AppWrapper () {
     const instance = createInstance({
         urlBase: 'https://stats.data.gouv.fr/',
         siteId: 212,
-        linkTracking: false, // optional, default value: true
+        linkTracking: true, // optional, default value: true
     })
 
     const store = createStore(

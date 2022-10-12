@@ -80,8 +80,8 @@ describe('Campaign controller', () => {
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({
-                    campaignIds: [Campaign1.id],
-                    housingCount: "1"
+                    campaignIds: expect.arrayContaining([Campaign1.id]),
+                    housingCount: '2'
                 })
             )
         })
@@ -333,6 +333,8 @@ describe('Campaign controller', () => {
             ])
             await db(housingTable).update({status: HousingStatusApi.NeverContacted}).where('id', Housing1.id)
             await db(housingTable).update({status: HousingStatusApi.InProgress}).where('id', Housing2.id)
+
+            console.log('format ISO', formatISO(new Date()))
 
             const res =
                 await withAccessToken(

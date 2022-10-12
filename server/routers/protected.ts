@@ -42,7 +42,7 @@ if (config.auth.secret) {
 
     router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
     router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
-    router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStep);
+    router.put('/api/campaigns/:campaignId', jwtCheck, userCheck, campaignController.validateStepValidators, campaignController.validateStep);
     router.delete('/api/campaigns/:campaignId/housing', jwtCheck, userCheck, campaignController.removeHousingList);
 
     router.get('/api/campaigns/bundles', jwtCheck, userCheck, campaignController.listCampaignBundles);

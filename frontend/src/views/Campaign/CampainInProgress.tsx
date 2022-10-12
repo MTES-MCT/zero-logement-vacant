@@ -17,10 +17,13 @@ import { displayCount } from '../../utils/stringUtils';
 import HousingListStatusModal from '../../components/modals/HousingStatusModal/HousingListStatusModal';
 import CampaignReminderCreationModal
     from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const TabContent = ({ status } : { status: HousingStatus }) => {
 
     const dispatch = useDispatch();
+    const { trackEvent } = useMatomo();
 
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [updatingModalHousing, setUpdatingModalHousing] = useState<Housing | undefined>();
@@ -83,11 +86,21 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     };
 
     const submitHousingUpdate = (housing: Housing, housingUpdate: HousingUpdate) => {
+        trackEvent({
+            category: TrackEventCategories.Campaigns,
+            action: TrackEventActions.Campaigns.UpdateHousing,
+            value: 1
+        })
         dispatch(updateCampaignHousingList(housingUpdate, status, false, [housing.id]))
         setUpdatingModalHousing(undefined)
     }
 
     const submitSelectedHousingUpdate = (housingUpdate: HousingUpdate) => {
+        trackEvent({
+            category: TrackEventCategories.Campaigns,
+            action: TrackEventActions.Campaigns.UpdateHousing,
+            value: selectedHousingCount(selectedHousing, paginatedCampaignHousing.totalCount)
+        })
         dispatch(updateCampaignHousingList(housingUpdate, status, selectedHousing.all, selectedHousing.ids))
         setUpdatingModalSelectedHousing(undefined);
     }

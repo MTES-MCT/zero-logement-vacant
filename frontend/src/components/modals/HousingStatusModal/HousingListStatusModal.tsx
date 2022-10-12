@@ -32,7 +32,6 @@ const HousingListStatusModal = (
     return (
         <Modal isOpen={true}
                hide={() => onClose()}
-               data-testid="campaign-creation-modal"
                size="lg">
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>

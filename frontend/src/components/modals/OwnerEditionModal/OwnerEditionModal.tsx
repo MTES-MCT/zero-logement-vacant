@@ -85,8 +85,7 @@ const OwnerEditionModal = (
 
     return (
         <Modal isOpen={true}
-               hide={() => onClose()}
-               data-testid="campaign-creation-modal">
+               hide={() => onClose()}>
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>{owner ? 'Modifier la rubrique "propriétaire"' : 'Créer un nouveau propriétaire'}</ModalTitle>
             <ModalContent>

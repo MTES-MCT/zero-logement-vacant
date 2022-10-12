@@ -36,7 +36,7 @@ export const TrackEventActions = {
         Delete: 'Supprimer une campagne'
     },
     GeoPerimeters: {
-        Upload: 'Déposet un fichier',
+        Upload: 'Déposer un fichier',
         Rename: 'Renommer un périmètre',
         Delete: 'Supprimer un périmètre'
     }

@@ -12,8 +12,8 @@ exports.up = function(knex: Knex) {
             .whereNotExists(function (whereBuilder: any) {
                 whereBuilder.from('campaigns_housing')
                     .whereRaw('housing_id = housing.id')
-                    .andWhereRaw('status > 0')
             })
+            .andWhereRaw('status > 0')
     ]);
 };
 

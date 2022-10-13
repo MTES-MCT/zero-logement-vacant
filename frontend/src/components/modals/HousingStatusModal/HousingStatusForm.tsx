@@ -22,12 +22,14 @@ const HousingStatusForm = (
         currentSubStatus,
         currentPrecisions,
         currentVacancyReasons,
+        fromDefaultCampaign,
         onValidate,
     }: {
         currentStatus?: HousingStatus,
         currentSubStatus?: string,
         currentPrecisions?: string[],
         currentVacancyReasons?: string[],
+        fromDefaultCampaign?: boolean,
         onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
@@ -123,7 +125,7 @@ const HousingStatusForm = (
                     <b>CHANGEMENT DE STATUT</b>
                 </Col>
                 <Col>
-                    {currentStatus &&
+                    {currentStatus != null &&
                         <span style={{
                             backgroundColor: `var(${getHousingState(currentStatus).bgcolor})`,
                             color: `var(${getHousingState(currentStatus).color})`,
@@ -132,7 +134,7 @@ const HousingStatusForm = (
                             {getHousingState(currentStatus).title}
                         </span>
                     }
-                    {currentStatus && currentSubStatus &&
+                    {currentStatus != null && currentSubStatus &&
                         <span style={{
                             backgroundColor: `var(${getSubStatus(currentStatus, currentSubStatus)?.bgcolor})`,
                             color: `var(${getSubStatus(currentStatus, currentSubStatus)?.color})`,
@@ -141,7 +143,7 @@ const HousingStatusForm = (
                             {currentSubStatus}
                         </span>
                     }
-                    {currentStatus && currentSubStatus && currentPrecisions &&
+                    {currentStatus != null && currentSubStatus && currentPrecisions &&
                         <div>
                             {currentPrecisions.map((currentPrecision, index) =>
                                 <span key={'precision_'+index}
@@ -161,7 +163,7 @@ const HousingStatusForm = (
                 <Col n="4">
                     <Select
                         label="Nouveau statut"
-                        options={statusOptions}
+                        options={statusOptions(fromDefaultCampaign ? [] : [HousingStatus.NeverContacted])}
                         selected={String(status)}
                         messageType={formErrors['status'] ? 'error' : undefined}
                         message={formErrors['status']}

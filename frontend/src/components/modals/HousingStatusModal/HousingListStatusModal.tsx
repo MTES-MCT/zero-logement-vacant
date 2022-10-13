@@ -18,11 +18,13 @@ const HousingListStatusModal = (
     {
         housingCount,
         initialStatus,
+        fromDefaultCampaign,
         onSubmit,
         onClose
     }: {
         housingCount: number,
         initialStatus: HousingStatus,
+        fromDefaultCampaign: boolean,
         onSubmit: (housingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
@@ -44,6 +46,7 @@ const HousingListStatusModal = (
                         {displayCount(housingCount, 'logement concerné')}.
                     </Text>
                     <HousingStatusForm currentStatus={initialStatus}
+                                       fromDefaultCampaign={fromDefaultCampaign}
                                        onValidate={onSubmit}
                                        ref={statusFormRef}/>
                 </Container>

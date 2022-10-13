@@ -168,15 +168,15 @@ const validateStepValidators = [
 
 const validateStep = async (request: JWTRequest, response: Response): Promise<Response> => {
 
-    const campaignId = request.params.campaignId;
-    const step = request.body.step;
-    const userId = (<RequestUser>request.auth).userId;
-    const establishmentId = (<RequestUser>request.auth).establishmentId;
-
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
         return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
     }
+
+    const campaignId = request.params.campaignId;
+    const step = request.body.step;
+    const userId = (<RequestUser>request.auth).userId;
+    const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     console.log('Validate campaign step', campaignId, step)
 

@@ -58,7 +58,9 @@ export const ExitAbsentFollowingYear = 'Absent du millésime suivant'
 export const HousingStates: HousingState[] = [
     {
         status: HousingStatus.NeverContacted,
-        title: 'Jamais contacté'
+        title: 'Jamais contacté',
+        color: '--blue-ecume-main-400',
+        bgcolor: '--green-archipel-975'
     },
     {
         status: HousingStatus.Waiting,

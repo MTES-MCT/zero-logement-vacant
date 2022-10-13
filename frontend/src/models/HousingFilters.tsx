@@ -1,6 +1,6 @@
 import { SelectOption } from './SelectOption';
 import { LocalityKindLabels, LocalityKinds } from './Establishment';
-import { HousingStates } from './HousingState';
+import { HousingStates, HousingStatus } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 
 export interface HousingFilters {
@@ -55,8 +55,8 @@ export const campaignsCountOptions: SelectOption[] = [
     {value: "gt3", label: "Déjà contacté 3 fois ou plus"}
 ];
 
-export const statusOptions = [
-    ...HousingStates.filter(_ => _.status).map(status => (
+export const statusOptions = (statusExcuded?: HousingStatus[]) => [
+    ...HousingStates.filter(_ => (statusExcuded ?? []).indexOf(_.status) === -1).map(status => (
         {value: String(status.status), label: status.title}
     ))
 ]

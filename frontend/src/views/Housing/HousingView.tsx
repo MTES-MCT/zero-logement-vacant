@@ -70,7 +70,7 @@ const HousingView = () => {
                                 </Title>
                                 <b>Invariant fiscal :</b> {housing.invariant}
                                 <Text className="fr-pt-1w">
-                                    {housing.status &&
+                                    {housing.status != null &&
                                         <span style={{
                                             backgroundColor: `var(${getHousingState(housing.status).bgcolor})`,
                                             color: `var(${getHousingState(housing.status).color})`,

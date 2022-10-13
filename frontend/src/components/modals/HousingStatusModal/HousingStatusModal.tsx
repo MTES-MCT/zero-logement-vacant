@@ -13,6 +13,7 @@ import { Housing, HousingUpdate } from '../../../models/Housing';
 import { DefaultOption } from '../../../models/SelectOption';
 import { useDispatch } from 'react-redux';
 import HousingStatusForm from './HousingStatusForm';
+import { useCampaignList } from '../../../hooks/useCampaignList';
 
 const HousingStatusModal = (
     {
@@ -26,6 +27,7 @@ const HousingStatusModal = (
     }) => {
 
     const dispatch = useDispatch();
+    const campaignList = useCampaignList();
     const statusFormRef = useRef<{validate: () => void}>();
 
     const [housing, setHousing] = useState<Housing>();
@@ -54,9 +56,10 @@ const HousingStatusModal = (
         }
     }
 
-    const hasCampaign = () => {
-        return housing && housing.campaignIds.length > 0;
-    }
+    const hasCampaign = housing && housing.campaignIds.length > 0;
+
+    const hasOnlyDefaultCampaign =
+        housing && housing.campaignIds.length === 1 && campaignList?.find(_ => _.id === housing.campaignIds[0])?.campaignNumber === 0;
 
     return (
         <Modal isOpen={true}
@@ -76,7 +79,7 @@ const HousingStatusModal = (
                             selected={housing?.id}
                             onChange={(e: any) => selectHousing(e.target.value)}/>
                     }
-                    {housing && !hasCampaign() &&
+                    {housing && !hasCampaign &&
                         <div className="fr-pb-2w">
                             <b>Ce logement n’est pas présent dans la liste des logements suivis actuellement</b>
                         </div>
@@ -86,6 +89,7 @@ const HousingStatusModal = (
                                            currentSubStatus={housing.subStatus}
                                            currentPrecisions={housing.precisions}
                                            currentVacancyReasons={housing.vacancyReasons}
+                                           fromDefaultCampaign={hasOnlyDefaultCampaign}
                                            onValidate={submit}
                                            ref={statusFormRef}/>
                     }

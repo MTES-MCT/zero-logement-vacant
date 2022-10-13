@@ -33,8 +33,8 @@ if (config.auth.secret) {
     router.get('/api/housing/:id', jwtCheck, userCheck, housingController.get);
     router.post('/api/housing', jwtCheck, userCheck, housingController.list);
     router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
-    router.post('/api/housing/list', jwtCheck, userCheck, housingController.updateHousingList);
-    router.post('/api/housing/:id', jwtCheck, userCheck, housingController.updateHousing);
+    router.post('/api/housing/list', jwtCheck, userCheck,  housingController.updateHousingListValidators, housingController.updateHousingList);
+    router.post('/api/housing/:housingId', jwtCheck, userCheck, housingController.updateHousingValidators, housingController.updateHousing);
     router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
     router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
     router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);

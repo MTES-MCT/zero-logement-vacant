@@ -155,7 +155,7 @@ const OwnerView = () => {
                                 <Col>
                                     <Title as="h2" look="h3" className="fr-mb-0">
                                         Logement {index + 1}
-                                        {housing.status &&
+                                        {housing.status != null &&
                                             <span style={{
                                                 backgroundColor: `var(${getHousingState(housing.status).bgcolor})`,
                                                 color: `var(${getHousingState(housing.status).color})`,

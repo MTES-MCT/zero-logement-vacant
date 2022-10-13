@@ -160,7 +160,7 @@ const HousingList = (
         name: 'status',
         label: 'Statut',
         render: ({ status } : Housing) =>
-            status &&
+            status != null &&
             <span style={{
                 backgroundColor: `var(${getHousingState(status).bgcolor})`,
                 color: `var(${getHousingState(status).color})`,

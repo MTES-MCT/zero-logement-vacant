@@ -271,17 +271,22 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const campaigns = await campaignRepository.listCampaigns(establishmentId)
-    const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
 
-    if (!campaignsToDelete.length) {
+    const campaignIdsToDelete = campaigns
+        .filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
+        .map(_ => _.id)
+
+    if (!campaignIdsToDelete.length) {
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     } else {
 
-        await campaignHousingRepository.deleteHousingFromCampaigns(campaignsToDelete.map(_ => _.id))
+        await campaignHousingRepository.deleteHousingFromCampaigns(campaignIdsToDelete)
 
-        await eventRepository.deleteEventsFromCampaigns(campaignsToDelete.map(_ => _.id))
+        await eventRepository.deleteEventsFromCampaigns(campaignIdsToDelete)
 
-        await campaignRepository.deleteCampaigns(campaignsToDelete.map(_ => _.id))
+        await campaignRepository.deleteCampaigns(campaignIdsToDelete)
+
+        await resetHousingWithoutCampaigns(establishmentId)
 
         return Promise.all(
             campaigns
@@ -296,6 +301,36 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
 
 }
 
+const resetHousingWithoutCampaigns = async (establishmentId: string) => {
+    return housingRepository.listWithFilters({
+        establishmentIds: [establishmentId],
+        campaignsCounts: ['0'],
+        status: [
+            HousingStatusApi.Waiting,
+            HousingStatusApi.FirstContact,
+            HousingStatusApi.InProgress,
+            HousingStatusApi.NotVacant,
+            HousingStatusApi.NoAction,
+            HousingStatusApi.Exit,
+        ]
+    }).then(results => Promise.all([
+        resetWaitingHousingWithoutCampaigns(establishmentId, results.entities.filter(_ => _.status === HousingStatusApi.Waiting).map(_ => _.id)),
+        resetNotWaitingHousingWithoutCampaigns(establishmentId, results.entities.filter(_ => _.status !== HousingStatusApi.Waiting).map(_ => _.id))
+    ]))
+}
+
+const resetWaitingHousingWithoutCampaigns = async (establishmentId: string, housingIds: string[]) => {
+    return housingIds.length ? housingRepository.updateHousingList(housingIds, HousingStatusApi.NeverContacted) : Promise.resolve()
+}
+
+const resetNotWaitingHousingWithoutCampaigns = async (establishmentId: string, housingIds: string[]) => {
+    return housingIds.length ?  campaignRepository.getCampaignBundle(establishmentId, String(0))
+        .then(campaignBundle => {
+            if (campaignBundle?.campaignIds[0]) {
+                return campaignHousingRepository.insertHousingList(campaignBundle?.campaignIds[0], housingIds)
+            }
+        }) : Promise.resolve()
+}
 
 const removeHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
 

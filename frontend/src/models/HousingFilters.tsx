@@ -48,7 +48,7 @@ export const ownerKindOptions: SelectOption[] = [
 ];
 
 export const campaignsCountOptions: SelectOption[] = [
-    {value: "0", label: "Jamais contacté"},
+    {value: "0", label: "Dans aucune campagne en cours"},
     {value: "current", label: "Dans une campagne en cours"},
     {value: "1", label: "Déjà contacté 1 fois"},
     {value: "2", label: "Déjà contacté 2 fois"},

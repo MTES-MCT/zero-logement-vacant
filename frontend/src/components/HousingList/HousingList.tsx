@@ -141,7 +141,7 @@ const HousingList = (
         label: 'Campagne',
         render: ({ campaignIds, id } : Housing) =>
             <>
-                {campaignIds?.length ?
+                {campaignIds?.length > 0 &&
                     _.uniq(campaignIds
                         .map(campaignId => campaignList?.find(c => c.id === campaignId))
                         .sort(CampaignNumberSort)
@@ -150,8 +150,7 @@ const HousingList = (
                         <div key={id + '-campaign-' + campaignIdx}>
                             {campaignName}
                         </div>
-                    ) :
-                    'Jamais contacté'
+                    )
                 }
             </>
     };

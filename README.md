@@ -18,6 +18,26 @@ Créer une base de données vide pour l'application (par exemple `zlv`) et une a
 
 La création des tables et autres structures SQL se fera automatiquement lors du lancement de l'application via les migrations [KnexJS](http://knexjs.org/#Migrations) contenues dans le répertoire `/database/migrations` 
 
+#### Avec Docker compose
+```bash
+cd .docker
+# Crée un service db (postgres + extension postgis)
+# et un service mail (maildev)
+docker-compose up -d
+```
+
+### Installation de l'application
+
+```bash
+git clone https://github.com/MTES-MCT/zero-logement-vacant.git
+
+cd zero-logement-vacant
+npm i
+
+cd frontend
+npm i
+```
+
 ### Variables d'environnement
 
 Créer un fichier `.env` directement dans le répertoire `zero-logement-vacant` avec à minima les variables suivantes :
@@ -35,18 +55,6 @@ MAILER_PASSWORD=
 ```
 
 Il est également possible dans ce fichier `.env` de surcharger les valeurs par défaut des autres variables d'environnement définies dans `/server/utils/config.ts`
-
-### Installation de l'application
-
-```bash
-git clone https://github.com/MTES-MCT/zero-logement-vacant.git
-
-cd zero-logement-vacant
-npm i
-
-cd frontend
-npm i
-```
 
 
 ### Chargement des données

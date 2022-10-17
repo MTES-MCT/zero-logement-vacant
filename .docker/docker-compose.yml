@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  db:
+    image: postgis/postgis:14-3.3
+    container_name: zlv
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - data:/var/lib/postgresql/data
+      - ../database:/database:ro
+  adminer:
+    image: adminer
+    restart: always
+    links:
+      - db
+    ports:
+      - "8080:8080"
+  mail:
+    image: maildev/maildev:2.0.5
+    container_name: mail
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+
+volumes:
+  data:
+    driver: local
+    name: zlv-db
+

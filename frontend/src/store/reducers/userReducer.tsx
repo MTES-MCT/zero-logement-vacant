@@ -1,7 +1,13 @@
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { User } from '../../models/User';
 import config from '../../utils/config';
-import { ACTIVATION_MAIL_SENT, FETCH_USER_LIST, USER_LIST_FETCHED, UserActionTypes } from '../actions/userAction';
+import {
+    ACTIVATION_MAIL_SENT,
+    FETCH_USER_LIST,
+    USER_LIST_FETCHED,
+    USER_REMOVED,
+    UserActionTypes
+} from '../actions/userAction';
 import { UserFilters } from '../../models/UserFilters';
 
 export interface UserState {
@@ -60,6 +66,16 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
                 paginatedUsers: {
                     ...state.paginatedUsers,
                     entities: state.paginatedUsers.entities.map(u => u.id === action.user.id ? action.user : u)
+                }
+            }
+        }
+        case USER_REMOVED: {
+            return {
+                ...state,
+                paginatedUsers: {
+                    ...state.paginatedUsers,
+                    entities: state.paginatedUsers.entities.filter(user => user.id !== action.id),
+                    totalCount: state.paginatedUsers.totalCount - 1
                 }
             }
         }

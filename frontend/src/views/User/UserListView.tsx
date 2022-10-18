@@ -8,6 +8,7 @@ import {
     changeUserFiltering,
     changeUserPagination,
     createUser,
+    removeUser,
     sendActivationMail,
 } from '../../store/actions/userAction';
 import { DraftUser, User } from '../../models/User';
@@ -117,6 +118,9 @@ const UserListView = () => {
               <Button title="Exporter"
                       data-testid="remove-user-button"
                       secondary
+                      onClick={() => {
+                          dispatch(removeUser(id))
+                      }}
                       className={styles.borderless}
                       icon="fr-fi-delete-fill">
               </Button>

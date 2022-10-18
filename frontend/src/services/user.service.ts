@@ -31,7 +31,6 @@ const sendActivationMail = async (userId: string): Promise<User> => {
 };
 
 const createUser = async (draftUser: DraftUser): Promise<User> => {
-
     return await fetch(`${config.apiEndpoint}/api/users/creation`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
@@ -40,6 +39,13 @@ const createUser = async (draftUser: DraftUser): Promise<User> => {
         .then(_ => _.json())
         .then(result => parseUser(result));
 };
+
+const removeUser = async (userId: string): Promise<void> => {
+    await fetch(`${config.apiEndpoint}/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
+    })
+}
 
 const parseUser = (u: any): User => ({
     ...u,
@@ -50,7 +56,8 @@ const parseUser = (u: any): User => ({
 const userService = {
     listUsers,
     sendActivationMail,
-    createUser
+    createUser,
+    removeUser
 };
 
 export default userService;

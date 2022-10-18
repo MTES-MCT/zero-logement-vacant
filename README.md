@@ -23,7 +23,7 @@ La création des tables et autres structures SQL se fera automatiquement lors du
 cd .docker
 # Crée un service db (postgres + extension postgis)
 # et un service mail (maildev)
-docker-compose up -d
+DATABASE_URL
 ```
 
 ### Installation de l'application

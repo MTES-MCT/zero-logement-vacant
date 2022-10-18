@@ -9,6 +9,7 @@ import { UserFilters } from '../../models/UserFilters';
 export const FETCH_USER_LIST = 'FETCH_USER_LIST';
 export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
 export const ACTIVATION_MAIL_SENT = 'ACTIVATION_MAIL_SENT';
+export const USER_REMOVED = 'USER_REMOVED';
 
 export interface FetchUserListAction {
     type: typeof FETCH_USER_LIST,
@@ -28,7 +29,12 @@ export interface ActivationMailSentAction {
     user: User
 }
 
-export type UserActionTypes = FetchUserListAction | UserListFetchedAction | ActivationMailSentAction;
+export interface UserRemovedAction {
+    type: typeof USER_REMOVED,
+    id: User['id']
+}
+
+export type UserActionTypes = FetchUserListAction | UserListFetchedAction | ActivationMailSentAction | UserRemovedAction;
 
 export const changeUserFiltering = (filters: UserFilters) => {
 
@@ -99,6 +105,22 @@ export const sendActivationMail = (userId: string) => {
                     user
                 });
             });
+    };
+};
+
+export const removeUser = (userId: string) => {
+    return function (dispatch: Dispatch) {
+
+        dispatch(showLoading());
+
+        userService.removeUser(userId)
+          .then(() => {
+              dispatch(hideLoading());
+              dispatch<UserRemovedAction>({
+                  type: USER_REMOVED,
+                  id: userId
+              });
+          });
     };
 };
 

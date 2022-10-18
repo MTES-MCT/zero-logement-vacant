@@ -112,11 +112,13 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
                 'created_at'
             )
             .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
+            .where(notDeleted);
 
         const housingCount: number = await
             db(usersTable)
                 .count('id')
                 .modify(filter)
+                .where(notDeleted)
                 .then(_ => Number(_[0].count))
 
         const results = await query

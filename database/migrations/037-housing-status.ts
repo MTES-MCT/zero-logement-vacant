@@ -13,7 +13,6 @@ exports.up = function(knex: Knex) {
                 whereBuilder.from('campaigns_housing')
                     .whereRaw('housing_id = housing.id')
             })
-            .andWhereRaw('status > 0')
     ]);
 };
 

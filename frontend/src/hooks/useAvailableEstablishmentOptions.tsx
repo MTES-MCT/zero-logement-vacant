@@ -12,7 +12,7 @@ export const useAvailableEstablishmentOptions = () => {
 
 
     useEffect(() => {
-        if (!availableEstablishments?.length) {
+        if (!availableEstablishments) {
             dispatch(fetchAvailableEstablishments())
         } else {
             setAvailableEstablishmentOptions(availableEstablishments.map(establishment => ({

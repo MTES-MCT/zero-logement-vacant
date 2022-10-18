@@ -1,4 +1,4 @@
-import db from './db';
+import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { authTokensTable } from './authTokenRepository';
@@ -15,6 +15,7 @@ const get = async (id: string): Promise<UserApi> => {
             )
             .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
             .where(`${usersTable}.id`, id)
+            .andWhere(notDeleted)
             .first()
             .then(result => {
                 if (result) {
@@ -34,6 +35,7 @@ const getByEmail = async (email: string): Promise<UserApi> => {
     try {
         return db(usersTable)
             .whereRaw('upper(email) = upper(?)', email)
+            .andWhere(notDeleted)
             .first()
             .then(result => {
                 if (result) {
@@ -141,6 +143,18 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
     }
 }
 
+const remove = async (userId: string): Promise<void> => {
+
+    console.log('Remove user', userId)
+    try {
+        await db(usersTable)
+          .where('id', userId)
+          .update({ 'deleted_at': new Date() })
+    } catch (err) {
+        console.error('Removing user failed', err, userId)
+        throw new Error('Removing user failed')
+    }
+}
 
 const parseUserApi = (result: any) => <UserApi>{
     id: result.id,
@@ -173,5 +187,6 @@ export default {
     listWithFilters,
     insert,
     activate,
-    formatUserApi
+    formatUserApi,
+    remove
 }

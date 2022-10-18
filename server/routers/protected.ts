@@ -66,6 +66,7 @@ if (config.auth.secret) {
     router.post('/api/users', jwtCheck, userCheck, userController.list);
     router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
     router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+    router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
     router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);

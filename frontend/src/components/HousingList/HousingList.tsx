@@ -12,6 +12,8 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
 import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 
 export enum HousingDisplayKey {
@@ -39,6 +41,7 @@ const HousingList = (
 
     const location = useLocation();
     const campaignList = useCampaignList();
+    const { trackEvent } = useMatomo();
 
     const [checkedIds, setCheckedIds] = useState<string[]>([]);
     const [allChecked, setAllChecked] = useState<boolean>(false);
@@ -174,7 +177,10 @@ const HousingList = (
         name: 'view',
         headerRender: () => '',
         render: ({ id }: Housing) =>
-            <Link title="Afficher" to={location.pathname + '/logements/' + id} className="ds-fr--inline fr-link">
+            <Link title="Afficher"
+                  to={location.pathname + '/logements/' + id}
+                  className="ds-fr--inline fr-link"
+                  onClick={() => trackEvent({ category: TrackEventCategories.HousingList, action: TrackEventActions.HousingList.DisplayHousing })}>
                 Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
     }

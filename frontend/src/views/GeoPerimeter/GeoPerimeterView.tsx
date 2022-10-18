@@ -11,13 +11,16 @@ import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppA
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import GeoPerimeterEditionModal from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const GeoPerimeterView = () => {
 
     const dispatch = useDispatch();
+    const { trackEvent } = useMatomo();
     const geoPerimeters = useGeoPerimeterList();
 
-    const FileType = 'application/zip';
+    const FileTypes = ['application/zip', 'application/x-zip-compressed'];
 
     const { loading } = useSelector((state: ApplicationState) => state.geo);
     const [ updatingModalGeoPerimeterId, setUpdatingModalGeoPerimeterId ] = useState<string | undefined>();
@@ -32,8 +35,12 @@ const GeoPerimeterView = () => {
 
             const file = event.target?.files[0]
 
-            if (file.type === FileType) {
+            if (FileTypes.indexOf(file.type) !== -1) {
                 setFileError(undefined)
+                trackEvent({
+                    category: TrackEventCategories.GeoPerimeters,
+                    action: TrackEventActions.GeoPerimeters.Upload
+                });
                 dispatch(uploadFile(event.target.files[0]))
 
                 const firstTabButton = tabsRef.current?.querySelector('button.fr-tabs__tab')
@@ -46,6 +53,7 @@ const GeoPerimeterView = () => {
                     }));
                 }
             } else {
+                console.error('Invalid file type', file.type)
                 setFileError(`Seuls les fichier zip sont autorisés`)
             }
 
@@ -56,6 +64,10 @@ const GeoPerimeterView = () => {
 
     const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
         if (updatingModalGeoPerimeterId) {
+            trackEvent({
+                category: TrackEventCategories.GeoPerimeters,
+                action: TrackEventActions.GeoPerimeters.Rename
+            });
             dispatch(updateGeoPerimeter(updatingModalGeoPerimeterId, kind, name))
         }
         setUpdatingModalGeoPerimeterId(undefined);
@@ -63,6 +75,10 @@ const GeoPerimeterView = () => {
 
     const onSubmitRemovingGeoPerimeter = () => {
         if (removingModalGeoPerimeterId) {
+            trackEvent({
+                category: TrackEventCategories.GeoPerimeters,
+                action: TrackEventActions.GeoPerimeters.Delete
+            });
             dispatch(deleteGeoPerimeter(removingModalGeoPerimeterId))
         }
         setRemovingModalGeoPerimeterId(undefined);

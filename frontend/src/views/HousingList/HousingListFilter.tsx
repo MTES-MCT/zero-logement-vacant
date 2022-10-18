@@ -33,6 +33,7 @@ import { campaignFullName } from '../../models/Campaign';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { getSubStatusList, getSubStatusListOptions } from '../../models/HousingState';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 
 const HousingListFilter = () => {
 
@@ -60,7 +61,7 @@ const HousingListFilter = () => {
         const prevFilterValues = prevFilterEntry ? prevFilterEntry[1] as Array<string> : []
         const newValues = filterValues.filter ? filterValues.filter(_ => prevFilterValues.indexOf(_) === -1) : []
         if (newValues.length) {
-            trackEvent({ category: 'Filtre', action: `Filtre par ${filterLabel}`, name: newValues.toString(), value: establishment.siren })
+            trackEvent({ category: TrackEventCategories.Filter, action: TrackEventActions.Filter(filterLabel), name: newValues.toString(), value: establishment.siren })
         }
     }
 

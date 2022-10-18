@@ -10,7 +10,7 @@ import {
     ToolItem,
     ToolItemGroup,
 } from '@dataesr/react-dsfr';
-import { useHistory, useLocation, Link } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
@@ -19,6 +19,7 @@ import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavI
 import { logout } from '../../store/actions/authenticationAction';
 import { isValidUser, UserRoles } from '../../models/User';
 import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
@@ -42,10 +43,16 @@ function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
 
 function AppHeader() {
 
+    const location = useLocation();
     const dispatch = useDispatch();
     const history = useHistory();
+    const { trackPageView } = useMatomo();
 
     const { authUser } = useSelector((state: ApplicationState) => state.authentication);
+
+    useEffect(() => {
+        trackPageView({})
+    }, [location]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const logoutUser = () => {
         dispatch(logout())
@@ -79,7 +86,9 @@ function AppHeader() {
                         </Tool> :
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block">Connexion</ToolItem>
+                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block">
+                                    Connexion
+                                </ToolItem>
                             </ToolItemGroup>
                         </Tool>
                     }

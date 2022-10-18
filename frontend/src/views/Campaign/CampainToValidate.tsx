@@ -19,11 +19,14 @@ import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignExportModal from '../../components/modals/CampaignExportModal/CampaignExportModal';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 
 const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
 
     const dispatch = useDispatch();
+    const { trackEvent } = useMatomo();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
@@ -59,6 +62,10 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
     }
 
     const validStep = (step: CampaignSteps) => {
+        trackEvent({
+            category: TrackEventCategories.Campaigns,
+            action: TrackEventActions.Campaigns.ValidStep(step)
+        })
         if (step === CampaignSteps.Sending) {
             sendingForm
                 .validate({ sendingDate }, {abortEarly: false})

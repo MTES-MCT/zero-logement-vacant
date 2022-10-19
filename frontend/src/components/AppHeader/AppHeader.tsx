@@ -105,6 +105,7 @@ function AppHeader() {
                         </> :
                             <AppNavItem userNavItem={getUserNavItem(UserNavItems.EstablishmentMonitoring, authUser.establishment.id)} />
                         }
+                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
                     </HeaderNav> :
                     <HeaderNav className="d-lg-none">
                         <AppNavItem userNavItem={{url: '/connexion', label: 'Connexion'}} />

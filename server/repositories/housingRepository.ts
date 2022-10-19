@@ -91,7 +91,9 @@ const get = async (housingId: string): Promise<HousingApi> => {
 }
 
 const filteredQuery = (filters: HousingFiltersApi) => {
+    const dataYear = 2021
     return (queryBuilder: any) => {
+        queryBuilder.andWhereRaw('vacancy_start_year <= ?', dataYear - 2)
         if (filters.establishmentIds?.length) {
             queryBuilder
                 .joinRaw(`join ${establishmentsTable} e on insee_code  = any(e.localities_geo_code) and e.id in (?)`, filters.establishmentIds)
@@ -225,7 +227,6 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
         if (filters.vacancyDurations?.length) {
             queryBuilder.where(function (whereBuilder: any) {
-                const dataYear = 2021
                 if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
                     whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
                 }

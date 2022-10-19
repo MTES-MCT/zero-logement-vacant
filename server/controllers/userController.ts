@@ -88,10 +88,16 @@ const removeUser = async (request: JWTRequest, response: Response): Promise<Resp
 
     const { userId } = request.params
     // TODO: handle error (not found) a better way
-    const user = await userRepository.get(userId);
-    await userRepository.remove(user.id);
-
-    return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+    try {
+        const user = await userRepository.get(userId);
+        await userRepository.remove(user.id);
+        return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+    } catch (error) {
+        if (error instanceof Error && error.message === 'User not found') {
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+        }
+        throw error;
+    }
 }
 
 const userIdValidator: ValidationChain[] = [

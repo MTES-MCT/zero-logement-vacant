@@ -150,7 +150,7 @@ describe('User controller', () => {
       ).expect(constants.HTTP_STATUS_FORBIDDEN);
     });
 
-    it.skip('should be not found if the user does not exist', async () => {
+    it('should be not found if the user does not exist', async () => {
       // See relevant code
       await withAdminAccessToken(request(app).delete('/api/users/00000000-0000-0000-0000-000000000000'))
         .expect(constants.HTTP_STATUS_NOT_FOUND);

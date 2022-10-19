@@ -1,11 +1,17 @@
 import React from 'react';
 
-import { Col, Container, Link, Row, Title } from '@dataesr/react-dsfr';
+import { Alert, Col, Container, Link, Row, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { HousingStates } from '../../models/HousingState';
+import { HousingStates, HousingStatus } from '../../models/HousingState';
 import classNames from 'classnames';
 
 const ResourcesView = () => {
+
+    const housingStatesSorted = [
+        ...HousingStates.slice(0, HousingStates.findIndex(_ => _.status === HousingStatus.NotVacant)),
+        HousingStates.find(_ => _.status === HousingStatus.Exit)!,
+        ...HousingStates.slice(HousingStates.findIndex(_ => _.status === HousingStatus.NotVacant), HousingStates.findIndex(_ => _.status === HousingStatus.Exit))
+    ]
 
     return (
         <>
@@ -21,19 +27,27 @@ const ResourcesView = () => {
             </div>
             <Container spacing="pt-2w">
                 <Row className="fr-pt-2w fr-pb-5w">
-                    <Link href="https://zlv.notion.site/Backend-Centre-de-ressources-collectivit-s-fe07bd501de24094b3b7ec1128c61605" target="_blank">
+                    <Link href="https://zlv.notion.site/Centre-de-ressources-543b515794324b16bd00d261a118db06" target="_blank">
                         Centre de ressources
                     </Link>
                 </Row>
+                <hr />
+                <Title as="h2" look="h5">
+                    Arborescence de mise à jour des dossiers
+                </Title>
+                <Alert title=""
+                       description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts et précisions correspondantes."
+                       type="info"
+                       className="fr-mb-3w"/>
                 <Row className="fr-py-1w bordered-b bg-100">
                     <Col n="4"><b>Statuts</b></Col>
                     <Col n="4"><b>Sous statuts</b></Col>
                     <Col n="4"><b>Précisions</b></Col>
                 </Row>
-                { HousingStates.map((state, stateIndex) =>
-                    <Row className={classNames('fr-py-1w', {'bordered-b': stateIndex !== HousingStates.length - 1})} key={state + "_" + stateIndex}>
+                { housingStatesSorted.map((state, stateIndex) =>
+                    <Row className={classNames('fr-py-1w', {'bordered-b': stateIndex !== housingStatesSorted.length - 1})} key={state + "_" + stateIndex}>
                         <Col n="4">
-                            {state.title}
+                            <b>{state.title}</b>
                         </Col>
                         <Col>
                             {state.subStatusList?.map((subStatus, subStatusIndex) =>

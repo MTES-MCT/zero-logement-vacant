@@ -12,7 +12,11 @@ exports.up = function(knex: Knex) {
             .whereNotExists(function (whereBuilder: any) {
                 whereBuilder.from('campaigns_housing')
                     .whereRaw('housing_id = housing.id')
-            })
+            }),
+        knex.schema// @ts-ignore
+            .alterTable('housing', table => {
+                table.integer('status').defaultTo(0).alter();
+            }),
     ]);
 };
 

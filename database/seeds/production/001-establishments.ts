@@ -130,6 +130,9 @@ exports.seed = function(knex) {
                     addLocalityAsEstablishment(knex, 'Commune de Tournay', '65447', 216504472),
                     addLocalityAsEstablishment(knex, 'Commune de La Pesse', '39413', 213904139),
                     addLocalityAsEstablishment(knex, 'Commune de Montréjeau', '31390', 213103906),
+                    addLocalityAsEstablishment(knex, 'Commune de Cazères', '31135', 213101355),
+                    addLocalityAsEstablishment(knex, 'Commune de Rieumes', '31454', 213104540),
+                    addLocalityAsEstablishment(knex, 'Commune de Martres-Tolosane', '31324', 213103245),
                     addAreaAsEstablishment(knex, 'DDT Cher', '18', 221800014),
                     addAreaAsEstablishment(knex, 'DDT Haute-Garonne', '18', 130010747),
                     addAreaAsEstablishment(knex, 'DDTM Pas-de-Calais', '62%', 130010366),
@@ -265,7 +268,11 @@ exports.seed = function(knex) {
                         '130010747',
                         '200073146',
                         '200072643',
-                        '213103906'
+                        '213103906',
+                        '213101355',
+                        '213104540',
+                        '213103245',
+                        '200042372'
                     ])
                 )
         )

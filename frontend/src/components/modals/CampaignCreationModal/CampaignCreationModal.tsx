@@ -18,13 +18,12 @@ import { fr } from 'date-fns/locale';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../../store/reducers/applicationReducers';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
-import { CampaignKinds, DraftCampaign, getCampaignKindLabel } from '../../../models/Campaign';
+import { CampaignKinds, DraftCampaign } from '../../../models/Campaign';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { hasFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
-import { DefaultOption } from '../../../models/SelectOption';
 
 const CampaignCreationModal = (
     {
@@ -39,24 +38,22 @@ const CampaignCreationModal = (
 
 
     const [campaignStartMonth, setCampaignStartMonth] = useState('');
-    const [campaignKind, setCampaignKind] = useState('');
     const [campaignTitle, setCampaignTitle] = useState('');
     const [errors, setErrors] = useState<any>({});
 
     const campaignForm = yup.object().shape({
-        campaignStartMonth: yup.string().required('Veuillez sélectionner le mois de lancement de la campagne.'),
-        campaignKind: yup.string().required('Veuillez sélectionner le type de campagne.')
+        campaignStartMonth: yup.string().required('Veuillez sélectionner le mois de lancement de la campagne.')
     });
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
     const create = () => {
         campaignForm
-            .validate({ campaignStartMonth, campaignKind }, {abortEarly: false})
+            .validate({ campaignStartMonth }, {abortEarly: false})
             .then(() => {
                 onSubmit({
                     startMonth: campaignStartMonth,
-                    kind: parseInt(campaignKind),
+                    kind: CampaignKinds.Initial,
                     filters,
                     title: campaignTitle
                 } as DraftCampaign);
@@ -81,14 +78,6 @@ const CampaignCreationModal = (
             }
         })
     ];
-
-    const campaignKindOptions = [
-        DefaultOption,
-        {value: String(CampaignKinds.Initial), label: getCampaignKindLabel(CampaignKinds.Initial)},
-        {value: String(CampaignKinds.Surveying), label: getCampaignKindLabel(CampaignKinds.Surveying)},
-        {value: String(CampaignKinds.DoorToDoor), label: getCampaignKindLabel(CampaignKinds.DoorToDoor)},
-        {value: String(CampaignKinds.BeforeZlv), label: getCampaignKindLabel(CampaignKinds.BeforeZlv)}
-    ]
 
     return (
         <Modal isOpen={true}
@@ -117,17 +106,6 @@ const CampaignCreationModal = (
                                 messageType={errors['campaignStartMonth'] ? 'error' : undefined}
                                 message={errors['campaignStartMonth']}
                                 data-testid="start-month-select"
-                            />
-                        </Col>
-                        <Col n="5">
-                            <Select
-                                label="Type"
-                                options={campaignKindOptions}
-                                selected={campaignKind}
-                                onChange={(e: any) => setCampaignKind(e.target.value)}
-                                required
-                                messageType={errors['campaignKind'] ? 'error' : undefined}
-                                message={errors['campaignKind']}
                             />
                         </Col>
                     </Row>

@@ -7,7 +7,7 @@ import bodyParser from 'body-parser';
 import { GeoPerimeter1, GeoPerimeter2 } from '../../database/seeds/test/006-geo-perimeters';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import geoRepository from '../repositories/geoRepository';
-const randomstring = require('randomstring');
+import randomstring from 'randomstring';
 
 const app = express();
 app.use(bodyParser.json());

@@ -219,7 +219,7 @@ const HousingListFilter = () => {
                     }
                     <Col n="3">
                         <AppMultiSelect label="Statut"
-                                        options={statusOptions}
+                                        options={statusOptions()}
                                         initialValues={filters.status?.map(_ => _.toString())}
                                         onChange={(values) => onChangeFilters({
                                             status: values,

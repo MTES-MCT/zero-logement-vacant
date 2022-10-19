@@ -326,8 +326,8 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.dataYearsExcluded?.length) {
             queryBuilder.whereRaw('not(data_years && ?::integer[])', [filters.dataYearsExcluded])
         }
-        if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
-            queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))
+        if (filters.status?.length) {
+            queryBuilder.whereIn(`${housingTable}.status`, filters.status)
         }
         if (filters.subStatus?.length) {
             queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus)

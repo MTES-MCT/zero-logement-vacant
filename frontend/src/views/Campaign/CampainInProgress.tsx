@@ -64,7 +64,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
         label: 'Statut',
         render: ({ status, subStatus } : Housing) =>
             <>
-                {status &&
+                {status != null &&
                     <div style={{
                         backgroundColor: `var(${getHousingState(status).bgcolor})`,
                         color: `var(${getHousingState(status).color})`,
@@ -73,7 +73,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         {getHousingState(status).title}
                     </div>
                 }
-                {status && subStatus && subStatus !== getHousingState(status).title &&
+                {status != null && subStatus && subStatus !== getHousingState(status).title &&
                     <div style={{
                         backgroundColor: `var(${getSubStatus(status, subStatus)?.bgcolor})`,
                         color: `var(${getSubStatus(status, subStatus)?.color})`,
@@ -164,6 +164,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                     <HousingListStatusModal
                         housingCount={selectedCount}
                         initialStatus={status}
+                        fromDefaultCampaign={campaignBundle.campaignNumber === 0}
                         onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
                         onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                 }
@@ -196,7 +197,7 @@ const CampaignInProgress = ({ query } : { query?: string }) => {
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotVacant, query))
             dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.Exit, query))
         }
-    }, [dispatch, query, campaignBundle])
+    }, [dispatch, query]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const getTabLabel = (status: HousingStatus) => {
         return `${getHousingState(status).title} (${campaignBundleHousingByStatus[status].loading ? '...' : campaignBundleHousingByStatus[status].totalCount})`

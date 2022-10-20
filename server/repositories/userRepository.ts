@@ -3,6 +3,7 @@ import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { authTokensTable } from './authTokenRepository';
 import { UserFiltersApi } from '../models/UserFiltersApi';
+import UserNotFoundError from "../errors/user-not-found-error";
 
 export const usersTable = 'users';
 
@@ -22,7 +23,7 @@ const get = async (id: string): Promise<UserApi> => {
                     return parseUserApi(result);
                 } else {
                     console.error('User not found', id);
-                    throw Error('User not found')
+                    throw new UserNotFoundError();
                 }
             })
     } catch (err) {
@@ -42,7 +43,7 @@ const getByEmail = async (email: string): Promise<UserApi> => {
                     return parseUserApi(result);
                 } else {
                     console.error('User not found', email);
-                    throw Error('User not found')
+                    throw new UserNotFoundError();
                 }
             })
     } catch (err) {

@@ -10,8 +10,8 @@ import { genUserApi } from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
 import { usersTable } from '../repositories/userRepository';
-import { uuid4 } from '@sentry/utils';
 import { User1 } from "../../database/seeds/test/003-users";
+import { v4 as uuidv4 } from "uuid";
 
 const app = express();
 app.use(bodyParser.json());
@@ -61,7 +61,7 @@ describe('User controller', () => {
                 .send({
                     draftUser: {
                         ...draftUser,
-                        id: uuid4()
+                        id: uuidv4()
                     }
                 })
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -150,9 +150,13 @@ describe('User controller', () => {
       ).expect(constants.HTTP_STATUS_FORBIDDEN);
     });
 
+    it('should be a bad request if the id is not well formatted', async () => {
+      await withAdminAccessToken(request(app).delete('/api/users/wrongformat'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
     it('should be not found if the user does not exist', async () => {
-      // See relevant code
-      await withAdminAccessToken(request(app).delete('/api/users/00000000-0000-0000-0000-000000000000'))
+      await withAdminAccessToken(request(app).delete(`/api/users/${uuidv4()}`))
         .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 

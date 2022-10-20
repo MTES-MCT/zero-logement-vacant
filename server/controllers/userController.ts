@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
@@ -78,25 +78,22 @@ const sendActivationEmail = async (request: Request, response: Response): Promis
         .then(() => response.status(constants.HTTP_STATUS_OK).json(user));
 };
 
-const removeUser = async (request: JWTRequest, response: Response): Promise<Response> => {
-    console.log('Remove user')
-
-    const role = (<RequestUser>request.auth).role;
-    if (role !== UserRoles.Admin) {
-        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-    }
-
-    const { userId } = request.params
-    // TODO: handle error (not found) a better way
+const removeUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
     try {
+        console.log('Remove user')
+
+        const role = (<RequestUser>request.auth).role;
+        if (role !== UserRoles.Admin) {
+            return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+        }
+
+        const { userId } = request.params
         const user = await userRepository.get(userId);
         await userRepository.remove(user.id);
-        return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+
+        response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
     } catch (error) {
-        if (error instanceof Error && error.message === 'User not found') {
-            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-        }
-        throw error;
+        next(error);
     }
 }
 

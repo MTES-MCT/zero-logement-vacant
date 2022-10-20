@@ -22,12 +22,14 @@ const HousingStatusForm = (
         currentSubStatus,
         currentPrecisions,
         currentVacancyReasons,
+        fromDefaultCampaign,
         onValidate,
     }: {
         currentStatus?: HousingStatus,
         currentSubStatus?: string,
         currentPrecisions?: string[],
         currentVacancyReasons?: string[],
+        fromDefaultCampaign?: boolean,
         onValidate: (housingUpdate: HousingUpdate) => void
     }, ref: any) => {
 
@@ -47,12 +49,14 @@ const HousingStatusForm = (
     useEffect(() => {setVacancyReasons(currentVacancyReasons)}, [currentVacancyReasons])
 
     const selectStatus = (newStatus: HousingStatus) => {
-        setStatus(newStatus);
+        setFormErrors({});
+        setStatus(+newStatus);
         setSubStatusOptions(getSubStatusOptions(newStatus));
         selectSubStatus(newStatus, getSubStatusOptions(newStatus)?.map(_ => _.label).find(_ => _ === subStatus));
     }
 
     const selectSubStatus = (status?: HousingStatus, newSubStatus?: string) => {
+        setFormErrors({});
         setSubStatus(newSubStatus);
         if (newSubStatus && status) {
             setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
@@ -78,12 +82,18 @@ const HousingStatusForm = (
     ]
 
     const updatingForm = yup.object().shape({
-        status: yup.string().required('Veuillez sélectionner un statut.'),
+        status: yup.string().required('Veuillez sélectionner un statut.').when('noStatusChange', {
+            is: true,
+            then: yup.string().notOneOf(['0'], 'Veuillez sélectionner un statut différent.')
+        }),
         subStatus: yup.string().nullable().when('hasSubStatus', {
             is: true,
             then: yup.string().required('Veuillez sélectionner un sous statut.')
         }),
-        contactKind: yup.string().required('Veuillez sélectionner un type d\'interaction.'),
+        contactKind: yup.string().nullable().when('hasContactKind', {
+            is: true,
+            then: yup.string().required('Veuillez sélectionner un type d\'interaction.')
+        }),
     });
 
     useImperativeHandle(ref, () => ({
@@ -92,6 +102,8 @@ const HousingStatusForm = (
             updatingForm
                 .validate({
                     hasSubStatus: subStatusOptions !== undefined,
+                    hasContactKind: status !== HousingStatus.NeverContacted,
+                    noStatusChange: currentStatus === status,
                     status,
                     subStatus,
                     contactKind
@@ -100,7 +112,7 @@ const HousingStatusForm = (
                     status: +(status ?? HousingStatus.Waiting),
                     subStatus: subStatus,
                     precisions,
-                    contactKind,
+                    contactKind: status === HousingStatus.NeverContacted ? 'Jamais contacté' : contactKind,
                     vacancyReasons,
                     comment
                 }))
@@ -123,7 +135,7 @@ const HousingStatusForm = (
                     <b>CHANGEMENT DE STATUT</b>
                 </Col>
                 <Col>
-                    {currentStatus &&
+                    {currentStatus != null &&
                         <span style={{
                             backgroundColor: `var(${getHousingState(currentStatus).bgcolor})`,
                             color: `var(${getHousingState(currentStatus).color})`,
@@ -132,7 +144,7 @@ const HousingStatusForm = (
                             {getHousingState(currentStatus).title}
                         </span>
                     }
-                    {currentStatus && currentSubStatus &&
+                    {currentStatus != null && currentSubStatus &&
                         <span style={{
                             backgroundColor: `var(${getSubStatus(currentStatus, currentSubStatus)?.bgcolor})`,
                             color: `var(${getSubStatus(currentStatus, currentSubStatus)?.color})`,
@@ -141,7 +153,7 @@ const HousingStatusForm = (
                             {currentSubStatus}
                         </span>
                     }
-                    {currentStatus && currentSubStatus && currentPrecisions &&
+                    {currentStatus != null && currentSubStatus && currentPrecisions &&
                         <div>
                             {currentPrecisions.map((currentPrecision, index) =>
                                 <span key={'precision_'+index}
@@ -161,7 +173,7 @@ const HousingStatusForm = (
                 <Col n="4">
                     <Select
                         label="Nouveau statut"
-                        options={statusOptions}
+                        options={statusOptions(fromDefaultCampaign || !currentStatus ? [] : [HousingStatus.NeverContacted])}
                         selected={String(status)}
                         messageType={formErrors['status'] ? 'error' : undefined}
                         message={formErrors['status']}
@@ -190,38 +202,40 @@ const HousingStatusForm = (
                     }
                 </Col>
             </Row>
-            <Text className="fr-mb-2w fr-mt-4w">
-                <b>INFORMATIONS COMPLÉMENTAIRES</b>
-            </Text>
-            <Row gutters>
-                <Col n="4">
-                    <Select
-                        label="Type d'interaction"
-                        options={contactKindOptions}
-                        selected={contactKind}
-                        messageType={formErrors['contactKind'] ? 'error' : undefined}
-                        message={formErrors['contactKind']}
-                        onChange={(e: any) => setContactKind(e.target.value)}
-                        required/>
-                </Col>
-                <Col n="8">
-                    <AppMultiSelect label="Cause(s) de la vacance"
-                                    defaultOption="Aucune"
-                                    options={vacancyReasonsOptions}
-                                    initialValues={vacancyReasons}
-                                    onChange={(values) => setVacancyReasons(values)}/>
-                </Col>
-            </Row>
-            <Row gutters>
-                <Col n="12">
-                    <TextInput
-                        textarea
-                        label="Commentaire"
-                        rows="3"
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
-                    />
-                </Col>
-            </Row>
+            {status !== undefined && status !== HousingStatus.NeverContacted && <>
+                <Text className="fr-mb-2w fr-mt-4w">
+                    <b>INFORMATIONS COMPLÉMENTAIRES</b>
+                </Text>
+                <Row gutters>
+                    <Col n="4">
+                        <Select
+                            label="Type d'interaction"
+                            options={contactKindOptions}
+                            selected={contactKind}
+                            messageType={formErrors['contactKind'] ? 'error' : undefined}
+                            message={formErrors['contactKind']}
+                            onChange={(e: any) => setContactKind(e.target.value)}
+                            required/>
+                    </Col>
+                    <Col n="8">
+                        <AppMultiSelect label="Cause(s) de la vacance"
+                                        defaultOption="Aucune"
+                                        options={vacancyReasonsOptions}
+                                        initialValues={vacancyReasons}
+                                        onChange={(values) => setVacancyReasons(values)}/>
+                    </Col>
+                </Row>
+                <Row gutters>
+                    <Col n="12">
+                        <TextInput
+                            textarea
+                            label="Commentaire"
+                            rows="3"
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+                        />
+                    </Col>
+                </Row>
+            </>}
         </>
     );
 };

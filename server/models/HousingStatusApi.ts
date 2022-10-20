@@ -1,5 +1,5 @@
 export enum HousingStatusApi {
-    NotInCampaign,
+    NeverContacted,
     Waiting,
     FirstContact,
     InProgress,
@@ -10,8 +10,8 @@ export enum HousingStatusApi {
 
 export const getHousingStatusApiLabel = (housingStatusApi: HousingStatusApi) => {
     switch (housingStatusApi) {
-        case HousingStatusApi.NotInCampaign:
-            return 'Hors campagne';
+        case HousingStatusApi.NeverContacted:
+            return 'Jamais contacté';
         case HousingStatusApi.Waiting:
             return 'En attente de retour';
         case HousingStatusApi.FirstContact:

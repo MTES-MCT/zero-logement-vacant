@@ -9,7 +9,7 @@ import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { Request as JWTRequest } from 'express-jwt';
-import { param, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 
 const getCampaignBundleValidators = [
@@ -160,7 +160,18 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
 }
 
+const validateStepValidators = [
+    param('campaignId').notEmpty().isUUID(),
+    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.InProgess]),
+    body('sendingDate').if(body('step').equals(String(CampaignSteps.Sending))).notEmpty(),
+];
+
 const validateStep = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+    }
 
     const campaignId = request.params.campaignId;
     const step = request.body.step;
@@ -190,7 +201,12 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
                 campaignIds: [campaignId]
             }).then(_ => _.entities)
 
-            await housingRepository.updateHousingList(housingList.map(_ => _.id), HousingStatusApi.Waiting)
+            await housingRepository.updateHousingList(
+                housingList
+                    .filter(_ => !_.status)
+                    .map(_ => _.id),
+                HousingStatusApi.Waiting
+            )
 
             await eventRepository.insertList(
                 housingList.map(housing => <EventApi>{
@@ -255,17 +271,22 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const campaigns = await campaignRepository.listCampaigns(establishmentId)
-    const campaignsToDelete = campaigns.filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
 
-    if (!campaignsToDelete.length) {
+    const campaignIdsToDelete = campaigns
+        .filter(_ => _.campaignNumber === campaignNumber && (reminderNumber !== undefined ? _.reminderNumber === reminderNumber : true))
+        .map(_ => _.id)
+
+    if (!campaignIdsToDelete.length) {
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     } else {
 
-        await campaignHousingRepository.deleteHousingFromCampaigns(campaignsToDelete.map(_ => _.id))
+        await campaignHousingRepository.deleteHousingFromCampaigns(campaignIdsToDelete)
 
-        await eventRepository.deleteEventsFromCampaigns(campaignsToDelete.map(_ => _.id))
+        await eventRepository.deleteEventsFromCampaigns(campaignIdsToDelete)
 
-        await campaignRepository.deleteCampaigns(campaignsToDelete.map(_ => _.id))
+        await campaignRepository.deleteCampaigns(campaignIdsToDelete)
+
+        await resetHousingWithoutCampaigns(establishmentId)
 
         return Promise.all(
             campaigns
@@ -280,6 +301,36 @@ const deleteCampaignBundle = async (request: JWTRequest, response: Response): Pr
 
 }
 
+const resetHousingWithoutCampaigns = async (establishmentId: string) => {
+    return housingRepository.listWithFilters({
+        establishmentIds: [establishmentId],
+        campaignsCounts: ['0'],
+        status: [
+            HousingStatusApi.Waiting,
+            HousingStatusApi.FirstContact,
+            HousingStatusApi.InProgress,
+            HousingStatusApi.NotVacant,
+            HousingStatusApi.NoAction,
+            HousingStatusApi.Exit,
+        ]
+    }).then(results => Promise.all([
+        resetWaitingHousingWithoutCampaigns(establishmentId, results.entities.filter(_ => _.status === HousingStatusApi.Waiting).map(_ => _.id)),
+        resetNotWaitingHousingWithoutCampaigns(establishmentId, results.entities.filter(_ => _.status !== HousingStatusApi.Waiting).map(_ => _.id))
+    ]))
+}
+
+const resetWaitingHousingWithoutCampaigns = async (establishmentId: string, housingIds: string[]) => {
+    return housingIds.length ? housingRepository.updateHousingList(housingIds, HousingStatusApi.NeverContacted) : Promise.resolve()
+}
+
+const resetNotWaitingHousingWithoutCampaigns = async (establishmentId: string, housingIds: string[]) => {
+    return housingIds.length ?  campaignRepository.getCampaignBundle(establishmentId, String(0))
+        .then(campaignBundle => {
+            if (campaignBundle?.campaignIds[0]) {
+                return campaignHousingRepository.insertHousingList(campaignBundle?.campaignIds[0], housingIds)
+            }
+        }) : Promise.resolve()
+}
 
 const removeHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
 
@@ -291,7 +342,7 @@ const removeHousingList = async (request: JWTRequest, response: Response): Promi
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
     const housingIds =
-        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: [campaignHousingStatusApi]})
+        await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: [campaignId], status: campaignHousingStatusApi ? [campaignHousingStatusApi] : []})
             .then(_ => _.entities
                 .map(_ => _.id)
                 .filter(id => allHousing ? request.body.housingIds.indexOf(id) === -1 : request.body.housingIds.indexOf(id) !== -1)
@@ -309,6 +360,7 @@ const campaignController =  {
     createCampaign,
     createReminderCampaign,
     updateCampaignBundle,
+    validateStepValidators,
     validateStep,
     deleteCampaignBundleValidators,
     deleteCampaignBundle,

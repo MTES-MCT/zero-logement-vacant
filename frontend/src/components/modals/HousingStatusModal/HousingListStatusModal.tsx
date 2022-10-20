@@ -18,11 +18,13 @@ const HousingListStatusModal = (
     {
         housingCount,
         initialStatus,
+        fromDefaultCampaign,
         onSubmit,
         onClose
     }: {
         housingCount: number,
         initialStatus: HousingStatus,
+        fromDefaultCampaign: boolean,
         onSubmit: (housingUpdate: HousingUpdate) => void,
         onClose: () => void
     }) => {
@@ -32,7 +34,6 @@ const HousingListStatusModal = (
     return (
         <Modal isOpen={true}
                hide={() => onClose()}
-               data-testid="campaign-creation-modal"
                size="lg">
             <ModalClose hide={() => onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
             <ModalTitle>
@@ -45,6 +46,7 @@ const HousingListStatusModal = (
                         {displayCount(housingCount, 'logement concerné')}.
                     </Text>
                     <HousingStatusForm currentStatus={initialStatus}
+                                       fromDefaultCampaign={fromDefaultCampaign}
                                        onValidate={onSubmit}
                                        ref={statusFormRef}/>
                 </Container>

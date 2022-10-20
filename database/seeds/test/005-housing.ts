@@ -19,15 +19,18 @@ exports.seed = function(knex: Knex) {
             knex.table(ownersHousingTable).insert([
                 {
                     owner_id: Owner1.id,
-                    housing_id: Housing0.id
+                    housing_id: Housing0.id,
+                    rank: 1
                 },
                 {
                     owner_id: Owner1.id,
-                    housing_id: Housing1.id
+                    housing_id: Housing1.id,
+                    rank: 1
                 },
                 {
                     owner_id: Owner1.id,
-                    housing_id: Housing2.id
+                    housing_id: Housing2.id,
+                    rank: 1
                 }
             ])
         )

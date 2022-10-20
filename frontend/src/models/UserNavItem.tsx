@@ -1,5 +1,5 @@
 export enum UserNavItems {
-    Dashboard, Campaign, HousingList, User, Monitoring, EstablishmentMonitoring, GeoPerimeters
+    Dashboard, Campaign, HousingList, User, Monitoring, EstablishmentMonitoring, GeoPerimeters, Resources
 }
 
 export interface UserNavItem {
@@ -23,6 +23,8 @@ export const getUserNavItem = (userNavItem: UserNavItems, establishmentId?: stri
             return {url: '/suivi', label: 'Suivi'}
         case UserNavItems.EstablishmentMonitoring:
             return {url: `/suivi/etablissement/${establishmentId}`, label: 'Suivi'}
+        case UserNavItems.Resources:
+            return {url: '/ressources', label: 'Ressources'}
         default:
             return {url: '/', label: 'Accueil'}
     }

@@ -14,9 +14,11 @@ import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { Request as JWTRequest } from 'express-jwt';
-import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
+import { getHousingStatusApiLabel, HousingStatusApi } from '../models/HousingStatusApi';
 import exportFileService from '../services/exportFileService';
 import { constants } from 'http2';
+import { body, param, validationResult } from 'express-validator';
+import validator from 'validator';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -57,17 +59,29 @@ const listByOwner = async (request: JWTRequest, response: Response): Promise<Res
 };
 
 
+const updateHousingValidators = [
+    param('housingId').isUUID(),
+    body('housingUpdate').notEmpty(),
+    body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
+    body('housingUpdate.contactKind').notEmpty()
+];
+
 const updateHousing = async (request: JWTRequest, response: Response): Promise<Response> => {
 
-    const id = request.params.id;
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+    }
 
-    console.log('Update housing', id)
+    const housingId = request.params.housingId;
+
+    console.log('Update housing', housingId)
 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const userId = (<RequestUser>request.auth).userId;
     const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
 
-    const housing = await housingRepository.get(id);
+    const housing = await housingRepository.get(housingId);
 
     const campaignList = await campaignRepository.listCampaigns(establishmentId)
 
@@ -79,20 +93,11 @@ const updateHousing = async (request: JWTRequest, response: Response): Promise<R
         await campaignHousingRepository.insertHousingList(lastCampaignId, [housing.id])
     }
 
-    await eventRepository.insertList([<EventApi>{
-        housingId: housing.id,
-        ownerId: housing.owner.id,
-        kind: EventKinds.StatusChange,
-        campaignId: lastCampaignId,
-        contactKind: housingUpdateApi.contactKind,
-        content: [
-            getStatusLabel(housing, housingUpdateApi),
-            housingUpdateApi.comment
-        ]
-            .filter(_ => _ !== null && _ !== undefined)
-            .join('. '),
-        createdBy: userId
-    }])
+    await createHousingUpdateEvent([housing], housingUpdateApi, [lastCampaignId], userId)
+
+    if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
+        campaignHousingRepository.deleteHousingFromCampaigns([lastCampaignId], [housing.id])
+    }
 
     const updatedHousingList = await housingRepository.updateHousingList(
         [housing.id],
@@ -105,18 +110,36 @@ const updateHousing = async (request: JWTRequest, response: Response): Promise<R
     return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
+const updateHousingListValidators = [
+    body('housingIds').isArray().custom(value => value.every((v: any) => validator.isUUID(v))),
+    body('campaignIds').notEmpty().isArray().custom(value => value.every((v: any) => validator.isUUID(v))),
+    body('currentStatus').notEmpty().isIn(Object.values(HousingStatusApi)),
+    body('housingUpdate').notEmpty(),
+    body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
+    body('housingUpdate.contactKind').notEmpty()
+];
+
 const updateHousingList = async (request: JWTRequest, response: Response): Promise<Response> => {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+    }
 
     console.log('Update campaign housing list')
 
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const userId = (<RequestUser>request.auth).userId;
     const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
-    const campaignIds = request.body.campaignIds;
+    const reqCampaignIds = request.body.campaignIds;
     const allHousing = <boolean>request.body.allHousing;
     const housingIds = request.body.housingIds;
     const currentStatus = request.body.currentStatus;
     const query = request.body.query;
+
+    const campaignIds =
+        await campaignRepository.listCampaigns(establishmentId)
+            .then(_ => _.map(_ => _.id).filter(_ => reqCampaignIds.indexOf(_) !== -1))
 
     const housingList =
         await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds, status: [currentStatus], query})
@@ -124,22 +147,11 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
                 .filter(housing => allHousing ? housingIds.indexOf(housing.id) === -1 : housingIds.indexOf(housing.id) !== -1)
             );
 
-    const campaignList = await campaignRepository.listCampaigns(establishmentId)
+    await createHousingUpdateEvent(housingList, housingUpdateApi, campaignIds, userId)
 
-    await eventRepository.insertList(housingList.map(housing => (<EventApi>{
-        housingId: housing.id,
-        ownerId: housing.owner.id,
-        kind: EventKinds.StatusChange,
-        campaignId: campaignList.filter(_ => housing.campaignIds.indexOf(_.id) !== -1).reverse()[0].id,
-        contactKind: housingUpdateApi.contactKind,
-        content: [
-            getStatusLabel(housing, housingUpdateApi),
-            housingUpdateApi.comment
-        ]
-            .filter(_ => _ !== null && _ !== undefined)
-            .join('. '),
-        createdBy: userId
-    })))
+    if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
+        campaignHousingRepository.deleteHousingFromCampaigns(campaignIds, housingList.map(_ => _.id))
+    }
 
     const updatedHousingList = await housingRepository.updateHousingList(
         housingList.map(_ => _.id),
@@ -151,6 +163,23 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
 
     return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
+
+const createHousingUpdateEvent = async (housingList: HousingApi[], housingUpdateApi: HousingUpdateApi, campaignIds: string[], userId: string) => {
+    return eventRepository.insertList(housingList.map(housing => (<EventApi>{
+        housingId: housing.id,
+        ownerId: housing.owner.id,
+        kind: EventKinds.StatusChange,
+        campaignId: campaignIds.filter(_ => housing.campaignIds.indexOf(_) !== -1).reverse()[0],
+        contactKind: housingUpdateApi.contactKind,
+        content: [
+            getStatusLabel(housing, housingUpdateApi),
+            housingUpdateApi.comment
+        ]
+            .filter(_ => _ !== null && _ !== undefined)
+            .join('. '),
+        createdBy: userId
+    })))
+}
 
 const getStatusLabel = (housingApi: HousingApi, housingUpdateApi: HousingUpdateApi) => {
 
@@ -343,7 +372,9 @@ const housingController =  {
     get,
     list,
     listByOwner,
+    updateHousingValidators,
     updateHousing,
+    updateHousingListValidators,
     updateHousingList,
     exportHousingByCampaignBundle,
     exportHousingWithFilters,

@@ -101,7 +101,7 @@ export function genHousingApi(inseeCode: string) {
         housingKind: randomstring.generate(),
         roomsCount: genNumber(1),
         buildingYear: genNumber(4),
-        vacancyStartYear: genNumber(4),
+        vacancyStartYear: 1000 + genNumber(3),
         dataYears: [2021],
         campaignIds: [],
         vacancyReasons: [],

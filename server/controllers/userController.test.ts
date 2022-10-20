@@ -11,7 +11,7 @@ import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
 import { usersTable } from '../repositories/userRepository';
 import { User1 } from "../../database/seeds/test/003-users";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 app.use(bodyParser.json());

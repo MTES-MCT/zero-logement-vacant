@@ -38,7 +38,7 @@ AS $$
             --------------------------------
             -- OWNER HOUSING
             --------------------------------
-            INSERT INTO owners_housing(housing_id, owner_id, rank) VALUES (_housing_id, owner_var_ids[1], _rank)
+            INSERT INTO owners_housing(housing_id, owner_id, rank, origin) VALUES (_housing_id, owner_var_ids[1], _rank, 'Lovac')
             ON CONFLICT DO NOTHING;
 
         END IF;
@@ -121,7 +121,7 @@ AS $$
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
-        and groupe not in IN ('1','2','3','4','5','6','9')
+        and groupe not in ('1','2','3','4','5','6','9')
         and aff='H'
         and upper(nature) in ('APPART','MAISON')
         and ff_idlocal is not null

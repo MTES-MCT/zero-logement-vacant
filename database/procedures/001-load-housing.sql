@@ -121,6 +121,9 @@ AS $$
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
         where ff_ccthp in ('V', 'L', 'P')
+        and groupe not in IN ('1','2','3','4','5','6','9')
+        and aff='H'
+        and upper(nature) in ('APPART','MAISON')
         and ff_idlocal is not null
         and owner is not null
         group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,

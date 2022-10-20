@@ -178,11 +178,6 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
     const userId = (<RequestUser>request.auth).userId;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
 
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
-    }
-
     console.log('Validate campaign step', campaignId, step)
 
     const campaignApi = await campaignRepository.getCampaign(campaignId)

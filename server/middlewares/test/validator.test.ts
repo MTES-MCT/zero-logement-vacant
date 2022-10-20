@@ -14,7 +14,7 @@ describe('Validator middleware', () => {
     app.use(bodyParser.urlencoded({ extended: true }));
     app.post(
       '/validate/:id',
-      body('password').isString().isLength({ min: 5 }),
+      body('name').isString().isLength({ min: 5 }),
       header('Custom-Header').isString().isLowercase().optional(),
       param('id').isUUID(),
       query('establishmentId').isString().optional(),
@@ -27,7 +27,7 @@ describe('Validator middleware', () => {
     it('should validate body', () => {
       return request(app)
         .post(testRoute)
-        .send({ password: '1234' })
+        .send({ name: '1234' })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
@@ -57,11 +57,11 @@ describe('Validator middleware', () => {
       await request(app)
         .post(testRoute)
         .send({
-          password: '12345',
+          name: '12345',
           should: 'be removed'
         })
         .expect(constants.HTTP_STATUS_CREATED)
-        .expect({ password: '12345' });
+        .expect({ name: '12345' });
     });
   });
 });

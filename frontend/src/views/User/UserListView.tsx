@@ -8,6 +8,7 @@ import {
     changeUserFiltering,
     changeUserPagination,
     createUser,
+    removeUser,
     sendActivationMail,
 } from '../../store/actions/userAction';
 import { DraftUser, User } from '../../models/User';
@@ -19,6 +20,7 @@ import { displayCount, stringSort } from '../../utils/stringUtils';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
 import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
 import { dateSort } from '../../utils/dateUtils';
+import styles from "./user-list.module.scss";
 
 const UserListView = () => {
 
@@ -111,8 +113,18 @@ const UserListView = () => {
     const activationLinkColumn = {
         name: 'view',
         headerRender: () => '',
-        render: ({ id, activatedAt }: User) => <>
-            {!activatedAt &&
+        render: ({ id, activatedAt }: User) => (
+          <span className={styles.actions}>
+              <Button title="Exporter"
+                      data-testid="remove-user-button"
+                      secondary
+                      onClick={() => {
+                          dispatch(removeUser(id))
+                      }}
+                      className={styles.borderless}
+                      icon="fr-fi-delete-fill">
+              </Button>
+              {!activatedAt &&
                 <Button title="Envoyer un mail d'activation"
                         size="sm"
                         secondary
@@ -121,8 +133,9 @@ const UserListView = () => {
                         }}>
                     Envoyer un mail d&apos;activation
                 </Button>
-            }
-        </>
+              }
+          </span>
+        )
     }
 
     const columns = [nameColumn, emailColumn, establishmentColumn, stateColumn, activationLinkColumn]

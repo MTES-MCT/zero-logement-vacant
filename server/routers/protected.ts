@@ -11,6 +11,7 @@ import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
 import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
+import validator from "../middlewares/validator";
 
 const  router = express.Router();
 
@@ -66,6 +67,7 @@ if (config.auth.secret) {
     router.post('/api/users', jwtCheck, userCheck, userController.list);
     router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
     router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+    router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, validator.validate, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
     router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);

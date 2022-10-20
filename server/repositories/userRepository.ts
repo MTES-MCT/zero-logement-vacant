@@ -1,8 +1,9 @@
-import db from './db';
+import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { authTokensTable } from './authTokenRepository';
 import { UserFiltersApi } from '../models/UserFiltersApi';
+import UserNotFoundError from "../errors/user-not-found-error";
 
 export const usersTable = 'users';
 
@@ -15,13 +16,14 @@ const get = async (id: string): Promise<UserApi> => {
             )
             .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
             .where(`${usersTable}.id`, id)
+            .andWhere(notDeleted)
             .first()
             .then(result => {
                 if (result) {
                     return parseUserApi(result);
                 } else {
                     console.error('User not found', id);
-                    throw Error('User not found')
+                    throw new UserNotFoundError();
                 }
             })
     } catch (err) {
@@ -34,13 +36,14 @@ const getByEmail = async (email: string): Promise<UserApi> => {
     try {
         return db(usersTable)
             .whereRaw('upper(email) = upper(?)', email)
+            .andWhere(notDeleted)
             .first()
             .then(result => {
                 if (result) {
                     return parseUserApi(result);
                 } else {
                     console.error('User not found', email);
-                    throw Error('User not found')
+                    throw new UserNotFoundError();
                 }
             })
     } catch (err) {
@@ -110,11 +113,13 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
                 'created_at'
             )
             .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
+            .where(notDeleted);
 
         const housingCount: number = await
             db(usersTable)
                 .count('id')
                 .modify(filter)
+                .where(notDeleted)
                 .then(_ => Number(_[0].count))
 
         const results = await query
@@ -141,6 +146,18 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
     }
 }
 
+const remove = async (userId: string): Promise<void> => {
+
+    console.log('Remove user', userId)
+    try {
+        await db(usersTable)
+          .where('id', userId)
+          .update({ 'deleted_at': new Date() })
+    } catch (err) {
+        console.error('Removing user failed', err, userId)
+        throw new Error('Removing user failed')
+    }
+}
 
 const parseUserApi = (result: any) => <UserApi>{
     id: result.id,
@@ -173,5 +190,6 @@ export default {
     listWithFilters,
     insert,
     activate,
-    formatUserApi
+    formatUserApi,
+    remove
 }

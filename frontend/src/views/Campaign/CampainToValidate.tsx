@@ -16,7 +16,6 @@ import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
-import { HousingStatus } from '../../models/HousingState';
 import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignExportModal from '../../components/modals/CampaignExportModal/CampaignExportModal';
@@ -46,11 +45,11 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
             .typeError('Veuillez renseigner une date valide.')
     });
 
-    const { campaignBundle, campaignBundleHousingByStatus, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundle, campaignBundleHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         if (campaignBundle) {
-            dispatch(listCampaignBundleHousing(campaignBundle, HousingStatus.NotInCampaign))
+            dispatch(listCampaignBundleHousing(campaignBundle))
         }
     }, [dispatch, campaignBundle])
 
@@ -89,11 +88,11 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
     }
 
     const submitCampaignHousingRemove = () => {
-        dispatch(removeCampaignHousingList(campaignBundle.campaignIds[0], selectedHousing.all, selectedHousing.ids, HousingStatus.NotInCampaign))
+        dispatch(removeCampaignHousingList(campaignBundle.campaignIds[0], selectedHousing.all, selectedHousing.ids))
         setIsRemovingModalOpen(false);
     }
 
-    const selectedCount = (campaignHousingStatus: HousingStatus) => selectedHousingCount(selectedHousing, campaignBundleHousingByStatus[campaignHousingStatus].totalCount)
+    const selectedCount = selectedHousingCount(selectedHousing, campaignBundleHousing.totalCount)
 
     const menuActions = [
         { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
@@ -133,18 +132,18 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
                     </div>
                     }
                 </div>
-                {currentStep() === CampaignSteps.OwnersValidation && !campaignBundleHousingByStatus[HousingStatus.NotInCampaign].loading &&
+                {currentStep() === CampaignSteps.OwnersValidation && !campaignBundleHousing.loading &&
                     <div className="fr-pt-4w">
                         <AppActionsMenu actions={menuActions}/>
-                        <HousingList paginatedHousing={campaignBundleHousingByStatus[HousingStatus.NotInCampaign]}
-                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, HousingStatus.NotInCampaign))}
+                        <HousingList paginatedHousing={campaignBundleHousing}
+                                     onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
                                      displayKind={HousingDisplayKey.Housing}
                                      onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}/>
                         {isRemovingModalOpen &&
                             <ConfirmationModal
                                 onSubmit={() => submitCampaignHousingRemove()}
                                 onClose={() => setIsRemovingModalOpen(false)}>
-                                Êtes-vous sûr de vouloir supprimer {selectedCount(HousingStatus.NotInCampaign) === 1 ? 'ce logement' : `ces ${selectedCount(HousingStatus.NotInCampaign)} logements`} de cette campagne ?
+                                Êtes-vous sûr de vouloir supprimer {selectedCount === 1 ? 'ce logement' : `ces ${selectedCount} logements`} de cette campagne ?
                             </ConfirmationModal>
                         }
                     </div>

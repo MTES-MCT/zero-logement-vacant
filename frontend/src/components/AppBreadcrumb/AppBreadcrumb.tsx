@@ -78,6 +78,8 @@ const AppBreadcrumb = () => {
                         url: location.pathname,
                         label: availableEstablishments.find(_ => _.id === establishmentId)?.name ?? ''
                     }
+                } else if (value === getUserNavItem(UserNavItems.Resources).url.substring(1)) {
+                    return getUserNavItem(UserNavItems.Resources)
                 } else {
                     return {url: '', label: ''}
                 }

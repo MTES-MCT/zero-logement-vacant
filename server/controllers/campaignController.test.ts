@@ -11,12 +11,12 @@ import bodyParser from 'body-parser';
 import { Housing0, Housing1, Housing2 } from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { eventsTable } from '../repositories/eventRepository';
-import randomstring from 'randomstring';
-import { v4 as uuidv4 } from 'uuid';
 import { CampaignSteps } from '../models/CampaignApi';
-import { housingTable } from '../repositories/housingRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
+import { housingTable } from '../repositories/housingRepository';
+import randomstring from 'randomstring';
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 app.use(bodyParser.json());
@@ -80,8 +80,8 @@ describe('Campaign controller', () => {
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({
-                    campaignIds: [Campaign1.id],
-                    housingCount: "1"
+                    campaignIds: expect.arrayContaining([Campaign1.id]),
+                    housingCount: '2'
                 })
             )
         })
@@ -331,7 +331,7 @@ describe('Campaign controller', () => {
                 { campaign_id: Campaign1.id, housing_id: Housing0.id },
                 { campaign_id: Campaign1.id, housing_id: Housing2.id }
             ])
-            await db(housingTable).update({status: HousingStatusApi.NotInCampaign}).where('id', Housing0.id)
+            await db(housingTable).update({status: HousingStatusApi.NeverContacted}).where('id', Housing1.id)
             await db(housingTable).update({status: HousingStatusApi.InProgress}).where('id', Housing2.id)
 
             console.log('format ISO', formatISO(new Date()))
@@ -432,6 +432,58 @@ describe('Campaign controller', () => {
                 .andWhere('campaign_number', '1')
                 .then(result => {
                     expect(result).toEqual([])
+                });
+        })
+
+        it('should set status never contacted for waiting housing without anymore campaigns', async () => {
+
+            await withAccessToken(
+                request(app).delete(testRoute(Campaign1.campaignNumber))
+            ).expect(constants.HTTP_STATUS_OK);
+
+            await db(housingTable)
+                .where('id', Housing1.id)
+                .first()
+                .then(result => {
+                    expect(result).toMatchObject(
+                        expect.objectContaining({
+                            id: Housing1.id,
+                            status: HousingStatusApi.NeverContacted
+                        })
+                    )
+                });
+        })
+
+        it('should add in default campaigns non waiting housing without anymore campaigns', async () => {
+
+            await db(housingTable).update({status: HousingStatusApi.InProgress}).where('id', Housing1.id)
+
+            await withAccessToken(
+                request(app).delete(testRoute(Campaign1.campaignNumber))
+            ).expect(constants.HTTP_STATUS_OK);
+
+            await db(housingTable)
+                .where('id', Housing1.id)
+                .first()
+                .then(result => {
+                    expect(result).toMatchObject(
+                        expect.objectContaining({
+                            id: Housing1.id,
+                            status: HousingStatusApi.InProgress
+                        })
+                    )
+                });
+
+            await db(campaignsHousingTable)
+                .join(campaignsTable, 'campaign_id', 'id')
+                .where('establishment_id', Establishment1.id)
+                .andWhere('campaign_number', '0')
+                .andWhere('housing_id', Housing1.id)
+                .first()
+                .then(result => {
+                    expect(result).toMatchObject(
+                        expect.objectContaining({ housing_id: Housing1.id })
+                    )
                 });
         })
 

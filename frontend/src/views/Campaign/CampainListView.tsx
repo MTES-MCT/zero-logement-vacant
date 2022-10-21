@@ -112,9 +112,11 @@ const CampaignsListView = () => {
                         Êtes-vous sûr de vouloir supprimer cette {removingModalCampaignBundleId.reminderNumber ? 'relance' : 'campagne'} ?
                     </Text>
                     {(!removingModalCampaignBundleId.reminderNumber && removingModalCampaignBundleId.campaignNumber < (campaignList ?? []).length) &&
-                        <Alert description="Les campagnes suivantes seront renumérotées"
+                        <Alert description="Les campagnes suivantes seront renumérotées."
                                type="info"/>
                     }
+                    <Alert description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                           type="info"/>
                 </ConfirmationModal>
             }
             {titleModalCampaignBundle &&

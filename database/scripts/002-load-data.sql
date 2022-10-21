@@ -108,6 +108,3 @@ REINDEX TABLE owners;
 REINDEX TABLE owners_housing;
 
 DROP TABLE _extract_zlv_;
-
-
-

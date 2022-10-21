@@ -8,17 +8,24 @@ import {
     changeUserFiltering,
     changeUserPagination,
     createUser,
+    removeUser,
     sendActivationMail,
 } from '../../store/actions/userAction';
 import { DraftUser, User } from '../../models/User';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import UserCreationModal from '../../components/modals/UserCreationModal/UserCreationModal';
+import UserCreationModal
+    from '../../components/modals/UserCreationModal/UserCreationModal';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { displayCount, stringSort } from '../../utils/stringUtils';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import {
+    useAvailableEstablishmentOptions
+} from '../../hooks/useAvailableEstablishmentOptions';
 import { dateSort } from '../../utils/dateUtils';
+import styles from "./user-list.module.scss";
+import ConfirmationModal
+    from "../../components/modals/ConfirmationModal/ConfirmationModal";
 
 const UserListView = () => {
 
@@ -26,6 +33,7 @@ const UserListView = () => {
     const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] = useState<string>();
     const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
     const { paginatedUsers, filters } = useSelector((state: ApplicationState) => state.user);
 
@@ -51,6 +59,11 @@ const UserListView = () => {
             ...filters,
             ...removedFilter,
         }));
+    }
+
+    const onRemoveUser = (id: User['id']) => {
+        dispatch(removeUser(id));
+        setIsRemovingUserModalOpen(undefined);
     }
 
     const nameColumn = {
@@ -111,18 +124,34 @@ const UserListView = () => {
     const activationLinkColumn = {
         name: 'view',
         headerRender: () => '',
-        render: ({ id, activatedAt }: User) => <>
-            {!activatedAt &&
+        render: ({ id, activatedAt }: User) => (
+          <span className={styles.actions}>
+              <Button title="Supprimer l'utilisateur(rice)"
+                      data-testid="remove-user-button"
+                      secondary
+                      onClick={() => setIsRemovingUserModalOpen(id)}
+                      className={styles.borderless}
+                      icon="fr-fi-delete-fill"
+              />
+              {isRemovingUserModalOpen === id &&
+                <ConfirmationModal
+                  onSubmit={() => onRemoveUser(id)}
+                  onClose={() => setIsRemovingUserModalOpen(undefined)}
+                >
+                    Êtes-vous sûr de vouloir supprimer cet(te)
+                    utilisateur(rice) ?
+                </ConfirmationModal>
+              }
+              {!activatedAt &&
                 <Button title="Envoyer un mail d'activation"
                         size="sm"
                         secondary
-                        onClick={() => {
-                            dispatch(sendActivationMail(id))
-                        }}>
+                        onClick={() => dispatch(sendActivationMail(id))}>
                     Envoyer un mail d&apos;activation
                 </Button>
-            }
-        </>
+              }
+          </span>
+        )
     }
 
     const columns = [nameColumn, emailColumn, establishmentColumn, stateColumn, activationLinkColumn]

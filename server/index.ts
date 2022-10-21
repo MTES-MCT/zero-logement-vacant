@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import path from 'path';
 import protectedRouter from './routers/protected';
 import unprotectedRouter from './routers/unprotected';
@@ -9,6 +9,7 @@ import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import fileUpload from 'express-fileupload';
+import errorHandler from "./middlewares/error-handler";
 
 const PORT = config.serverPort || 3001;
 
@@ -52,14 +53,7 @@ app.use(rateLimiter);
 app.use(unprotectedRouter);
 app.use(protectedRouter);
 
-const errHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (err.name === "UnauthorizedError") {
-        res.sendStatus(401);
-    } else {
-        next(err);
-    }
-};
-app.use(errHandler)
+app.use(errorHandler());
 
 if (config.environment === 'production') {
 

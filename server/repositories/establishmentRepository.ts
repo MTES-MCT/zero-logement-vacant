@@ -1,7 +1,7 @@
 import db from './db';
 import { localitiesTable } from './localityRepository';
 import { EstablishmentApi, EstablishmentDataApi, LocalityApi } from '../models/EstablishmentApi';
-import { housingTable } from './housingRepository';
+import { housingTable, ReferenceDataYear } from './housingRepository';
 import { usersTable } from './userRepository';
 import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
@@ -83,6 +83,7 @@ const listDataWithFilters = async (filters: MonitoringFiltersApi): Promise<Estab
             )
             .joinRaw(`join ${housingTable} on insee_code  = any (${establishmentsTable}.localities_geo_code)`)
             .modify((queryBuilder: any) => {
+                queryBuilder.andWhereRaw('vacancy_start_year <= ?', ReferenceDataYear - 2)
                 if (filters.dataYears?.length) {
                     queryBuilder.where(db.raw('data_years && ?::integer[]', [filters.dataYears]))
                 }

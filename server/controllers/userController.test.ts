@@ -10,6 +10,7 @@ import { genUserApi } from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
 import { usersTable } from '../repositories/userRepository';
+import { User1 } from "../../database/seeds/test/003-users";
 import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
@@ -134,6 +135,41 @@ describe('User controller', () => {
                 });
         })
     })
+
+  describe('removeUser', () => {
+    const { id, email } = User1
+    const testRoute = `/api/users/${id}`;
+
+    it('should be forbidden for a non authenticated user', async () => {
+      await request(app).delete(testRoute).expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should be forbidden for a non admin user', async () => {
+      await withAccessToken(
+        request(app).delete(testRoute)
+      ).expect(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should be a bad request if the id is not well formatted', async () => {
+      await withAdminAccessToken(request(app).delete('/api/users/wrongformat'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should be not found if the user does not exist', async () => {
+      await withAdminAccessToken(request(app).delete(`/api/users/${uuidv4()}`))
+        .expect(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should partially remove a user if they exist', async () => {
+      await withAdminAccessToken(request(app).delete(testRoute))
+        .expect(constants.HTTP_STATUS_NO_CONTENT);
+
+      const user = await db.table(usersTable)
+        .where('email', email)
+        .first();
+      expect(user.deleted_at).toBeInstanceOf(Date);
+    });
+  });
 
 });
 

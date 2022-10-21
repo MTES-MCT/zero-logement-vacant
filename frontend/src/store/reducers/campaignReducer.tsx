@@ -3,13 +3,13 @@ import {
     CAMPAIGN_BUNDLE_FETCHED,
     CAMPAIGN_BUNDLE_LIST_FETCHED,
     CAMPAIGN_CREATED,
-    CAMPAIGN_HOUSING_LIST_FETCHED,
+    CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
     CAMPAIGN_LIST_FETCHED,
     CAMPAIGN_UPDATED,
     CampaignActionTypes,
     FETCH_CAMPAIGN_BUNDLE,
     FETCH_CAMPAIGN_BUNDLE_LIST,
-    FETCH_CAMPAIGN_HOUSING_LIST,
+    FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
     FETCH_CAMPAIGN_LIST,
 } from '../actions/campaignAction';
 import { initialPaginatedResult, PaginatedResult } from '../../models/PaginatedResult';
@@ -21,7 +21,8 @@ export interface CampaignState {
     campaignBundle?: CampaignBundle;
     campaignBundleFetchingId?: CampaignBundleId;
     campaignBundleHousingByStatus: PaginatedResult<Housing>[],
-    campaignHousingFetchingIds?: string[];
+    campaignBundleHousing: PaginatedResult<Housing>,
+    campaignIds?: string[];
     exportURL: string;
     loading: boolean;
     campaignCreated: boolean;
@@ -38,6 +39,7 @@ const initialState: CampaignState = {
         initialPaginatedResult(),
         initialPaginatedResult()
     ],
+    campaignBundleHousing: initialPaginatedResult(),
     exportURL: '',
     loading: false,
     campaignCreated: false
@@ -88,12 +90,12 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                 loading: false,
             };
         }
-        case FETCH_CAMPAIGN_HOUSING_LIST:
+        case FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST:
             return {
                 ...state,
-                campaignHousingFetchingIds: action.campaignHousingFetchingIds,
-                campaignBundleHousingByStatus: [
-                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status),
+                campaignIds: action.campaignIds,
+                campaignBundleHousingByStatus: action.status ? [
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status!),
                     {
                         entities: [],
                         totalCount: 0,
@@ -101,26 +103,39 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                         perPage: action.perPage,
                         loading: true
                     },
-                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status),
-                ]
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status!),
+                ] : state.campaignBundleHousingByStatus,
+                campaignBundleHousing: action.status ? state.campaignBundleHousing : {
+                    entities: [],
+                    totalCount: 0,
+                    page: action.page,
+                    perPage: action.perPage,
+                    loading: true
+                }
             };
-        case CAMPAIGN_HOUSING_LIST_FETCHED: {
+        case CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED: {
             const isCurrentFetching =
-                action.campaignHousingFetchingIds === state.campaignHousingFetchingIds &&
-                action.paginatedHousing.page === state.campaignBundleHousingByStatus[action.status].page &&
-                action.paginatedHousing.perPage === state.campaignBundleHousingByStatus[action.status].perPage
+                action.campaignIds === state.campaignIds &&
+                action.paginatedHousing.page === (action.status ? state.campaignBundleHousingByStatus[action.status] : state.campaignBundleHousing).page &&
+                action.paginatedHousing.perPage === (action.status ? state.campaignBundleHousingByStatus[action.status] : state.campaignBundleHousing).perPage
             return !isCurrentFetching ? state : {
                 ...state,
-                campaignBundleHousingByStatus: [
-                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status),
+                campaignBundleHousingByStatus: action.status ? [
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index < action.status!),
                     {
                         ...state.campaignBundleHousingByStatus[action.status],
                         entities: action.paginatedHousing.entities,
                         totalCount: action.paginatedHousing.totalCount,
                         loading: false
                     },
-                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status),
-                ],
+                    ...state.campaignBundleHousingByStatus.filter((_, index) => index > action.status!),
+                ] : state.campaignBundleHousingByStatus,
+                campaignBundleHousing: action.status ? state.campaignBundleHousing : {
+                    ...state.campaignBundleHousing,
+                    entities: action.paginatedHousing.entities,
+                    totalCount: action.paginatedHousing.totalCount,
+                    loading: false
+                },
                 exportURL: action.exportURL,
             };
         }

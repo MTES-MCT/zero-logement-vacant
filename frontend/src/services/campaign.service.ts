@@ -95,7 +95,7 @@ const validCampaignStep = async (campaignId: string, step: CampaignSteps, params
         .then(_ => parseCampaign(_));
 };
 
-const removeHousingList = async (campaignId: string, allHousing: boolean, housingIds: string[], status: HousingStatus): Promise<Housing> => {
+const removeHousingList = async (campaignId: string, allHousing: boolean, housingIds: string[], status?: HousingStatus): Promise<Housing> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}/housing`, {
         method: 'DELETE',

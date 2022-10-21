@@ -74,8 +74,6 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                         )
                         .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
                         .groupBy(`${campaignsTable}.campaign_number`)
-                } else {
-                    queryBuilder.andWhereNot(`${housingTable}.status`, HousingStatusApi.NotInCampaign)
                 }
                 if (reminderNumber) {
                     queryBuilder.andWhere(`${campaignsTable}.reminder_number`, reminderNumber)

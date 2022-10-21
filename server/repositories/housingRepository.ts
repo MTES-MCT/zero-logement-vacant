@@ -22,6 +22,8 @@ export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 
+export const ReferenceDataYear = 2021
+
 export const ownersHousingJoinClause = (query: any) => {
     query.on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`).andOnVal('rank', 1)
 }
@@ -91,9 +93,8 @@ const get = async (housingId: string): Promise<HousingApi> => {
 }
 
 const filteredQuery = (filters: HousingFiltersApi) => {
-    const dataYear = 2021
     return (queryBuilder: any) => {
-        queryBuilder.andWhereRaw('vacancy_start_year <= ?', dataYear - 2)
+        queryBuilder.andWhereRaw('vacancy_start_year <= ?', ReferenceDataYear - 2)
         if (filters.establishmentIds?.length) {
             queryBuilder
                 .joinRaw(`join ${establishmentsTable} e on insee_code  = any(e.localities_geo_code) and e.id in (?)`, filters.establishmentIds)
@@ -228,16 +229,16 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.vacancyDurations?.length) {
             queryBuilder.where(function (whereBuilder: any) {
                 if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
-                    whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 1, dataYear])
+                    whereBuilder.orWhereBetween('vacancy_start_year', [ReferenceDataYear - 1, ReferenceDataYear])
                 }
                 if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-                    whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 4, dataYear - 2])
+                    whereBuilder.orWhereBetween('vacancy_start_year', [ReferenceDataYear - 4, ReferenceDataYear - 2])
                 }
                 if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
-                    whereBuilder.orWhereBetween('vacancy_start_year', [dataYear - 9, dataYear - 5])
+                    whereBuilder.orWhereBetween('vacancy_start_year', [ReferenceDataYear - 9, ReferenceDataYear - 5])
                 }
                 if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-                    whereBuilder.orWhereBetween('vacancy_start_year', [0, dataYear - 10])
+                    whereBuilder.orWhereBetween('vacancy_start_year', [0, ReferenceDataYear - 10])
                 }
             })
         }
@@ -326,8 +327,8 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.dataYearsExcluded?.length) {
             queryBuilder.whereRaw('not(data_years && ?::integer[])', [filters.dataYearsExcluded])
         }
-        if (filters.status?.filter(_ => _ !== HousingStatusApi.NotInCampaign).length) {
-            queryBuilder.whereIn(`${housingTable}.status`, filters.status.filter(_ => _ !== HousingStatusApi.NotInCampaign))
+        if (filters.status?.length) {
+            queryBuilder.whereIn(`${housingTable}.status`, filters.status)
         }
         if (filters.subStatus?.length) {
             queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus)

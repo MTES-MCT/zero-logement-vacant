@@ -22,8 +22,8 @@ export const FETCH_CAMPAIGN_BUNDLE_LIST = 'FETCH_CAMPAIGN_BUNDLE_LIST';
 export const CAMPAIGN_BUNDLE_LIST_FETCHED = 'CAMPAIGN_BUNDLE_LIST_FETCHED';
 export const FETCH_CAMPAIGN_BUNDLE = 'FETCH_CAMPAIGN_BUNDLE';
 export const CAMPAIGN_BUNDLE_FETCHED = 'CAMPAIGN_BUNDLE_FETCHED';
-export const FETCH_CAMPAIGN_HOUSING_LIST = 'FETCH_CAMPAIGN_HOUSING_LIST';
-export const CAMPAIGN_HOUSING_LIST_FETCHED = 'CAMPAIGN_HOUSING_LIST_FETCHED';
+export const FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST = 'FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST';
+export const CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED = 'CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED';
 export const CAMPAIGN_CREATED = 'CAMPAIGN_CREATED';
 export const CAMPAIGN_UPDATED = 'CAMPAIGN_UPDATED';
 
@@ -57,18 +57,18 @@ export interface CampaignBundleFetchedAction {
     searchQuery?: string
 }
 
-export interface FetchCampaignHousingListAction {
-    type: typeof FETCH_CAMPAIGN_HOUSING_LIST,
-    campaignHousingFetchingIds: string[],
-    status: HousingStatus,
+export interface FetchCampaignBundleHousingListAction {
+    type: typeof FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
+    campaignIds: string[],
+    status?: HousingStatus,
     page: number,
     perPage: number
 }
 
-export interface CampaignHousingListFetchedAction {
-    type: typeof CAMPAIGN_HOUSING_LIST_FETCHED,
-    campaignHousingFetchingIds: string[],
-    status: HousingStatus,
+export interface CampaignBundleHousingListFetchedAction {
+    type: typeof CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
+    campaignIds: string[],
+    status?: HousingStatus,
     paginatedHousing: PaginatedResult<Housing>,
     exportURL: string
 }
@@ -90,8 +90,8 @@ export type CampaignActionTypes =
     | CampaignBundleListFetchedAction
     | FetchCampaignAction
     | CampaignBundleFetchedAction
-    | FetchCampaignHousingListAction
-    | CampaignHousingListFetchedAction
+    | FetchCampaignBundleHousingListAction
+    | CampaignBundleHousingListFetchedAction
     | CampaignCreatedAction
     | CampaignUpdatedAction;
 
@@ -165,29 +165,29 @@ export const getCampaignBundle = (campaignBundleId: CampaignBundleId, searchQuer
     };
 };
 
-export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status: HousingStatus, query?: string) => {
+export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status?: HousingStatus, query?: string) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
         const page = 1
-        const perPage = getState().campaign.campaignBundleHousingByStatus[status].perPage
+        const perPage = (status ? getState().campaign.campaignBundleHousingByStatus[status] : getState().campaign.campaignBundleHousing).perPage
 
         dispatch({
-            type: FETCH_CAMPAIGN_HOUSING_LIST,
-            campaignHousingFetchingIds: campaignBundle.campaignIds,
+            type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
+            campaignIds: campaignBundle.campaignIds,
             status,
             page,
             perPage,
         });
 
-        housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status], query}, page, perPage)
+        housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: status ? [status] : [], query}, page, perPage)
             .then((result: PaginatedResult<Housing>) => {
                 dispatch(hideLoading());
                 dispatch({
-                    type: CAMPAIGN_HOUSING_LIST_FETCHED,
-                    campaignHousingFetchingIds: campaignBundle.campaignIds,
+                    type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
+                    campaignIds: campaignBundle.campaignIds,
                     status,
                     paginatedHousing: result,
                     exportURL: campaignService.getExportURL(campaignBundle as CampaignBundleId)
@@ -197,7 +197,7 @@ export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status
 };
 
 
-export const changeCampaignHousingPagination = (page: number, perPage: number, status: HousingStatus) => {
+export const changeCampaignHousingPagination = (page: number, perPage: number, status?: HousingStatus) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -209,18 +209,18 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
             dispatch(showLoading());
 
             dispatch({
-                type: FETCH_CAMPAIGN_HOUSING_LIST,
+                type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
                 campaignHousingFetchingIds: campaignBundle.campaignIds,
                 status,
                 page: page,
                 perPage
             });
 
-            housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: [status], query: searchQuery}, page, perPage)
+            housingService.listHousing({campaignIds: campaignBundle.campaignIds, status: status ? [status] : [], query: searchQuery}, page, perPage)
                 .then((result: PaginatedResult<Housing>) => {
                     dispatch(hideLoading());
                     dispatch({
-                        type: CAMPAIGN_HOUSING_LIST_FETCHED,
+                        type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
                         campaignHousingFetchingIds: campaignBundle.campaignIds,
                         status,
                         paginatedHousing: result,
@@ -337,13 +337,13 @@ export const updateCampaignHousingList = (housingUpdate: HousingUpdate, currentS
     }
 }
 
-export const removeCampaignHousingList = (campaignId: string, allHousing: boolean, housingIds: string[], currentStatus: HousingStatus) => {
+export const removeCampaignHousingList = (campaignId: string, allHousing: boolean, housingIds: string[], currentStatus?: HousingStatus) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
-        const paginatedHousing = getState().campaign.campaignBundleHousingByStatus[currentStatus];
+        const paginatedHousing = currentStatus ? getState().campaign.campaignBundleHousingByStatus[currentStatus] : getState().campaign.campaignBundleHousing;
         const campaignBundleFetchingId = getState().campaign.campaignBundleFetchingId;
 
         campaignService.removeHousingList(campaignId, allHousing, housingIds, currentStatus)

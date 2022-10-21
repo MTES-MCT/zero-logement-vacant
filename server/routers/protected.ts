@@ -11,6 +11,7 @@ import userController from '../controllers/userController';
 import authenticateController from '../controllers/authenticateController';
 import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
+import validator from "../middlewares/validator";
 
 const  router = express.Router();
 
@@ -33,8 +34,8 @@ if (config.auth.secret) {
     router.get('/api/housing/:id', jwtCheck, userCheck, housingController.get);
     router.post('/api/housing', jwtCheck, userCheck, housingController.list);
     router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
-    router.post('/api/housing/list', jwtCheck, userCheck, housingController.updateHousingList);
-    router.post('/api/housing/:id', jwtCheck, userCheck, housingController.updateHousing);
+    router.post('/api/housing/list', jwtCheck, userCheck,  housingController.updateHousingListValidators, housingController.updateHousingList);
+    router.post('/api/housing/:housingId', jwtCheck, userCheck, housingController.updateHousingValidators, housingController.updateHousing);
     router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
     router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
     router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
@@ -66,6 +67,7 @@ if (config.auth.secret) {
     router.post('/api/users', jwtCheck, userCheck, userController.list);
     router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
     router.get('/api/users/:userId/activation', userController.sendActivationEmail);
+    router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, validator.validate, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);
     router.post('/api/monitoring/housing/status/count', jwtCheck, userCheck, monitoringController.housingByStatusCount);

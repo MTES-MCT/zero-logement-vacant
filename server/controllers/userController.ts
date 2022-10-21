@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import authTokenRepository from '../repositories/authTokenRepository';
@@ -6,7 +6,12 @@ import mailService, { ActivationMail } from '../services/mailService';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { body, validationResult } from 'express-validator';
+import {
+    body,
+    param,
+    ValidationChain,
+    validationResult
+} from 'express-validator';
 
 const createUserValidators = [
     body('draftUser.email').isEmail(),
@@ -35,7 +40,7 @@ const createUser = async (request: JWTRequest, response: Response): Promise<Resp
     };
 
     console.log('Create user', userApi)
-    
+
     if (role !== UserRoles.Admin) {
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
     }
@@ -73,11 +78,36 @@ const sendActivationEmail = async (request: Request, response: Response): Promis
         .then(() => response.status(constants.HTTP_STATUS_OK).json(user));
 };
 
+const removeUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
+    try {
+        console.log('Remove user')
+
+        const role = (<RequestUser>request.auth).role;
+        if (role !== UserRoles.Admin) {
+            return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+        }
+
+        const { userId } = request.params
+        const user = await userRepository.get(userId);
+        await userRepository.remove(user.id);
+
+        response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+    } catch (error) {
+        next(error);
+    }
+}
+
+const userIdValidator: ValidationChain[] = [
+  param('userId').isUUID()
+];
+
 const userController =  {
     createUserValidators,
     createUser,
     list,
-    sendActivationEmail
+    sendActivationEmail,
+    removeUser,
+    userIdValidator
 };
 
 export default userController;

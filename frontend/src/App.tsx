@@ -66,7 +66,7 @@ function App() {
                 <BrowserRouter>
                     <AppHeader />
                     {isValidUser(authUser) ?
-                        <div className="zlv-container">
+                        <div>
                             <ScrollToTop />
 
                             {campaignCreated && campaignBundleFetchingId &&

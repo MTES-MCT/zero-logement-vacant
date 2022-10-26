@@ -1,13 +1,19 @@
 import React, { useEffect, useRef } from 'react';
-import { Container, Title } from '@dataesr/react-dsfr';
-import { Link, useHistory } from 'react-router-dom';
+import { Container, Link, Title } from '@dataesr/react-dsfr';
+import { useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import housingService from '../../services/housing.service';
-import AppSearchBar, { SearchResult } from '../../components/AppSearchBar/AppSearchBar';
+import AppSearchBar, {
+    SearchResult
+} from '../../components/AppSearchBar/AppSearchBar';
 import { listCampaignBundles } from '../../store/actions/campaignAction';
-import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import CampaignBundleList
+    from '../../components/CampaignBundleList/CampaignBundleList';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 
@@ -63,18 +69,25 @@ const DashboardView = () => {
                               onKeySearch={quickSearch}
                               placeholder="Rechercher une adresse ou un propriétaire..."
                               size="lg"/>
-                <Link title="Accéder à la base de données" to="/base-de-donnees" className="ds-fr--inline fr-link float-right fr-pr-0 fr-py-3w">
-                    Accéder à la base de données<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                <Link
+                  title="Accéder à la base de données"
+                  href="/base-de-donnees"
+                  display="flex"
+                  icon="ri-arrow-right-line"
+                  iconSize="1x"
+                  className="fr-link float-right fr-my-3w"
+                >
+                    Accéder à la base de données
                 </Link>
             </Container>
             <div className="bg-100">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-4w">
                     <Title as="h2">
                         Campagnes en cours
                     </Title>
                     <CampaignBundleList campaignBundleList={campaignBundleList?.filter(_ => _.campaignNumber) ?? []} />
                     <div className="align-center fr-pt-4w">
-                        <Link title="Accéder à la base de données" to="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
+                        <Link title="Accéder à la base de données" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
                             Créer une campagne
                         </Link>
                     </div>

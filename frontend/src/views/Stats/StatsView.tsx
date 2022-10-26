@@ -35,7 +35,7 @@ const StatsView = () => {
                 <Row gutters>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de structures utilisatrices</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -47,7 +47,7 @@ const StatsView = () => {
                 <Row gutters>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logements contactés</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -57,7 +57,7 @@ const StatsView = () => {
                     </Col>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logements en attente de retour</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -67,7 +67,7 @@ const StatsView = () => {
                     </Col>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de réponses</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -79,7 +79,7 @@ const StatsView = () => {
                 <Row gutters>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logements en cours de sortie de vacance via un accompagnement public</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -89,7 +89,7 @@ const StatsView = () => {
                     </Col>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logement en cours de sortie de vacance sans accompagnement public</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -101,7 +101,7 @@ const StatsView = () => {
                 <Row gutters>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logements sortis de vacance via un accompagnement</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>
@@ -111,7 +111,7 @@ const StatsView = () => {
                     </Col>
                     <Col n="4">
                         <Card hasArrow={false}>
-                            <CardTitle>
+                            <CardTitle className={styles.card__title}>
                                 <span>Nombre de logements sortis de vacance sans accompagnement</span>
                             </CardTitle>
                             <CardDescription className={styles.stats_value}>

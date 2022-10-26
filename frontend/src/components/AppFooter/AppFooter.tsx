@@ -4,7 +4,7 @@ import { Footer, FooterBody, FooterBodyItem, FooterBottom, FooterLink, Link, Log
 function AppFooter() {
 
     return(
-        <Footer className="fr-mt-4w">
+        <Footer>
             <FooterBody description="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée.">
                 <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                 <FooterBodyItem>

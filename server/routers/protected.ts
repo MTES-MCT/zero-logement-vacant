@@ -39,7 +39,6 @@ if (config.auth.secret) {
     router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
     router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
     router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
-    router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
 
     router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
     router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
@@ -65,7 +64,7 @@ if (config.auth.secret) {
     router.post('/api/account/password', jwtCheck, userCheck, accountController.updatePassword);
 
     router.post('/api/users', jwtCheck, userCheck, userController.list);
-    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
+    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, validator.validate, userController.createUser);
     router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, validator.validate, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);

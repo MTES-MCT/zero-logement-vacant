@@ -9,7 +9,6 @@ import { AddressApi } from '../models/AddressApi';
 import localityRepository from '../repositories/localityRepository';
 import { RequestUser, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
-import ownerRepository from '../repositories/ownerRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
@@ -327,36 +326,12 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
 
 const normalizeAddresses = async (request: Request, response: Response): Promise<Response> => {
 
-    console.log('Normalize address')
-
     const establishmentId = request.params.establishmentId;
-    const page = request.params.page ? Number(request.params.page) : 1;
-    const perPage = request.params.perPage ? Number(request.params.perPage) : 10000;
 
-    const localities = await localityRepository.listByEstablishmentId(establishmentId)
+    console.log('Normalize address for establishment', establishmentId)
 
-    const housingList = await housingRepository.listWithFilters( {establishmentIds: [establishmentId], localities: localities.map(_ => _.geoCode)}, page, perPage)
-
-    const housingAdresses = await addressService.normalizeAddresses(
-        housingList.entities.map((housing: HousingApi) => ({
-            addressId: housing.id,
-            rawAddress: housing.rawAddress,
-            inseeCode: housing.inseeCode
-        }))
-    )
-    await housingRepository.updateAddressList(housingAdresses)
-
-    const ownerAdresses = await addressService.normalizeAddresses(
-        housingList.entities.map((housing: HousingApi) => ({
-            addressId: housing.owner.id,
-            rawAddress: housing.owner.rawAddress
-        }))
-    )
-
-    await ownerRepository.updateAddressList(ownerAdresses)
-
-    return response.sendStatus(constants.HTTP_STATUS_OK)
-
+    return addressService.normalizeEstablishmentAddresses(establishmentId)
+        .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
 }
 
 

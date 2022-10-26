@@ -2,6 +2,7 @@ export interface EstablishmentApi {
     id: string,
     name: string,
     siren: number,
+    available: boolean,
     localities: LocalityApi[]
 }
 

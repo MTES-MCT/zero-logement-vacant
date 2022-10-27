@@ -1,14 +1,18 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import authTokenRepository from '../repositories/authTokenRepository';
-import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { query, ValidationChain } from 'express-validator';
+import UserNotFoundError from '../errors/user-not-found-error';
+import ceremaService from '../services/ceremaService';
+import prospectRepository from '../repositories/prospectRepository';
+import authTokenRepository from '../repositories/authTokenRepository';
+import { addDays, isBefore } from 'date-fns';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -48,6 +52,37 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 
     } catch {
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+    }
+};
+
+const getAccountValidator: ValidationChain[] = [
+    query('email').notEmpty().isEmail()
+];
+
+const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
+
+    const email = <string> request.query.email;
+
+    console.log('Get account', email)
+
+    try {
+
+        await userRepository.getByEmail(email)
+        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+
+    } catch (error) {
+
+        if (error instanceof UserNotFoundError) {
+
+            const prospect = await ceremaService.consultUser(email)
+
+            await prospectRepository.upsert(prospect)
+
+            return response.status(constants.HTTP_STATUS_OK).json(prospect);
+        }
+        else {
+            next(error);
+        }
     }
 };
 
@@ -103,6 +138,8 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
 
 export default {
     signin,
+    getAccountValidator,
+    getProspectAccount,
     activateAccount,
     updatePassword
 };

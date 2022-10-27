@@ -8,7 +8,7 @@ import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
-import authenticateController from '../controllers/authenticateController';
+import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
 import validator from "../middlewares/validator";
@@ -62,7 +62,7 @@ if (config.auth.secret) {
     router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
     router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);
 
-    router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
+    router.post('/api/account/password', jwtCheck, userCheck, accountController.updatePassword);
 
     router.post('/api/users', jwtCheck, userCheck, userController.list);
     router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);

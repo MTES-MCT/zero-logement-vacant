@@ -13,7 +13,6 @@ export interface User {
     lastName: string,
     role: UserRoles,
     activatedAt?: Date,
-    activationSendAt?: Date,
     establishmentId: string
 }
 

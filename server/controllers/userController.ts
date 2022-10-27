@@ -1,17 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
-import authTokenRepository from '../repositories/authTokenRepository';
-import mailService, { ActivationMail } from '../services/mailService';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import {
-    body,
-    param,
-    ValidationChain,
-    validationResult
-} from 'express-validator';
+import { body, param, ValidationChain, validationResult } from 'express-validator';
 
 const createUserValidators = [
     body('draftUser.email').isEmail(),
@@ -63,21 +56,6 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
             response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
 };
 
-
-const sendActivationEmail = async (request: Request, response: Response): Promise<Response> => {
-
-    const userId = request.params.userId;
-
-    console.log('sendAuthToken to ', userId)
-
-    const authToken = await authTokenRepository.upsertUserToken(userId)
-
-    const user = await userRepository.get(userId)
-
-    return mailService.sendMail('ZLV - Activation de votre compte', ActivationMail(authToken.id), [user.email])
-        .then(() => response.status(constants.HTTP_STATUS_OK).json(user));
-};
-
 const removeUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
     try {
         console.log('Remove user')
@@ -105,7 +83,6 @@ const userController =  {
     createUserValidators,
     createUser,
     list,
-    sendActivationEmail,
     removeUser,
     userIdValidator
 };

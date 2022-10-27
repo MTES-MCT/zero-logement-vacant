@@ -1,7 +1,6 @@
 import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
-import { authTokensTable } from './authTokenRepository';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import UserNotFoundError from "../errors/user-not-found-error";
 
@@ -10,11 +9,6 @@ export const usersTable = 'users';
 const get = async (id: string): Promise<UserApi> => {
     try {
         return db(usersTable)
-            .select(
-                `${usersTable}.*`,
-                'created_at'
-            )
-            .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
             .where(`${usersTable}.id`, id)
             .andWhere(notDeleted)
             .first()
@@ -107,13 +101,6 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
             }
         }
 
-        const query = db(usersTable)
-            .select(
-                `${usersTable}.*`,
-                'created_at'
-            )
-            .leftJoin(authTokensTable, `${usersTable}.id`, 'user_id')
-            .where(notDeleted);
 
         const housingCount: number = await
             db(usersTable)
@@ -122,7 +109,8 @@ const listWithFilters = async (filters: UserFiltersApi, page?: number, perPage?:
                 .where(notDeleted)
                 .then(_ => Number(_[0].count))
 
-        const results = await query
+        const results = await db(usersTable)
+            .where(notDeleted)
             .modify((queryBuilder: any) => {
                 queryBuilder.orderBy('last_name')
                 queryBuilder.orderBy('first_name')
@@ -168,7 +156,6 @@ const parseUserApi = (result: any) => <UserApi>{
     establishmentId: result.establishment_id,
     role: result.role,
     activatedAt: result.activated_at,
-    activationSendAt: result.created_at,
 }
 
 const formatUserApi = (userApi: UserApi) => ({

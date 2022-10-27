@@ -7,7 +7,6 @@ import validator from '../middlewares/validator';
 const router = express.Router();
 
 router.get('/api/account/prospect', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
-router.post('/api/account/activation', accountController.activateAccount)
 router.post('/api/authenticate', accountController.signin);
 router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);
 router.get('/api/statistics/establishments/count', monitoringController.establishmentCount);

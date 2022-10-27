@@ -54,7 +54,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         size="sm"
                         secondary
                         onClick={() => setUpdatingModalHousing(housing)}>
-                    Mettre à jour &nbsp;<span className="fr-fi-edit-fill" aria-hidden="true" />
+                    Mettre à jour &nbsp;<span className="ri-edit-fill" aria-hidden="true" />
                 </Button>
             </>
     }

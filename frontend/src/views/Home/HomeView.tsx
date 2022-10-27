@@ -1,5 +1,5 @@
-import React from 'react';
-import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
@@ -24,11 +24,22 @@ import {
     TrackEventActions,
     TrackEventCategories
 } from '../../models/TrackEvent';
+import AccountCreationModal
+    from "../../components/modals/AccountCreationModal/AccountCreationModal";
 
 
 const HomeView = () => {
 
     const { trackEvent } = useMatomo();
+
+    const [isAccountCreationModalOpen, setIsAccountCreationModalOpen] = useState(false)
+    function openAccountCreationModal() {
+        setIsAccountCreationModalOpen(true)
+        trackEvent({
+            category: TrackEventCategories.Home,
+            action: TrackEventActions.Home.Connection
+        })
+    }
 
     return (
         <>
@@ -44,15 +55,15 @@ const HomeView = () => {
                         <Text size="lg">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Link
-                          title="S'inscrire"
-                          to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
-                          target="_blank"
-                          className="fr-btn--md fr-btn"
-                          onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}
+                        <Button
+                          title="Créer un compte"
+                          onClick={openAccountCreationModal}
                         >
-                            S&apos;inscrire
-                        </Link>
+                            Créer un compte
+                        </Button>
+                        {isAccountCreationModalOpen &&
+                            <AccountCreationModal onClose={() => setIsAccountCreationModalOpen(false)} />
+                        }
                     </Col>
                     <Col>
                         <img src={building} style={{maxWidth: "max-content"}} alt=""/>

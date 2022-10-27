@@ -102,7 +102,7 @@ const UserListView = () => {
                       secondary
                       onClick={() => setIsRemovingUserModalOpen(id)}
                       className={styles.borderless}
-                      icon="fr-fi-delete-fill"
+                      icon="ri-delete-fill"
               />
               {isRemovingUserModalOpen === id &&
                 <ConfirmationModal

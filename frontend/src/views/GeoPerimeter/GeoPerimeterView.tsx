@@ -164,8 +164,13 @@ const GeoPerimeterView = () => {
         render: ({ geoJson }: GeoPerimeter) =>
             <Link title="Afficher"
                   target="_blank"
-                  href={'https://geojson.io/#data=data:application/json,' + encodeURIComponent(JSON.stringify(geoJson))} className="ds-fr--inline fr-link">
-                Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                  isSimple
+                  display="inline"
+                  icon="ri-arrow-right-line"
+                  iconSize="1x"
+                  iconPosition="right"
+                  href={'https://geojson.io/#data=data:application/json,' + encodeURIComponent(JSON.stringify(geoJson))}>
+                Afficher
             </Link>
     }
 

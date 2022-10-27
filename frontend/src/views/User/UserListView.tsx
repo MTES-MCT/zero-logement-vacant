@@ -14,6 +14,8 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const UserListView = () => {
 
@@ -88,19 +90,13 @@ const UserListView = () => {
 
     const stateColumn = {
         name: 'state',
-        label: 'Statut',
+        label: 'Date d\'activation',
         render: ({ activatedAt }: User) =>
             <>
-                {activatedAt ? 'Compte activé' : ''}
+                {format(activatedAt, 'dd MMMM yyyy', { locale: fr })}
             </>,
         sortable: true,
-        sort: (u1: User, u2: User) => {
-            if (u1.activatedAt) {
-                return u2.activatedAt ?  dateSort(u1.activatedAt, u2.activatedAt) : 1
-            } else {
-                return u2.activatedAt ? -1 : 0
-            }
-        }
+        sort: (u1: User, u2: User) => dateSort(u1.activatedAt, u2.activatedAt)
     };
 
     const deletionColumn = {

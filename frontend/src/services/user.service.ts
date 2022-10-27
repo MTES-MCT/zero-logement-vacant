@@ -39,7 +39,7 @@ const removeUser = async (userId: string): Promise<void> => {
 
 const parseUser = (u: any): User => ({
     ...u,
-    activatedAt: u.activatedAt ? parseISO(u.activatedAt) : undefined
+    activatedAt: parseISO(u.activatedAt)
 } as User)
 
 const userService = {

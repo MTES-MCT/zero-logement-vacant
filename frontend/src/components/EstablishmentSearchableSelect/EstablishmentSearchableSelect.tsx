@@ -2,21 +2,20 @@ import React, { useRef, useState } from 'react';
 import { SearchableSelect } from '@dataesr/react-dsfr';
 import establishmentService from '../../services/establishment.service';
 
-const EstablishmentSearchableSelect = (
-    {
-        onChange
-    }: {
-        onChange: (establishmentId: string) => void
-    }) => {
+interface Props {
+    onChange(establishmentId: string): void
+}
+
+const EstablishmentSearchableSelect = ({ onChange }: Props) => {
 
     const [establishmentOptions, setEstablishmentOptions] = useState<{value: string, label: string}[]>([]);
     const quickSearchAbortRef = useRef<() => void | null>();
 
     const quickSearch = (query: string) => {
-        if (quickSearchAbortRef.current) {
-            quickSearchAbortRef.current()
-        }
-        const quickSearchService = establishmentService.quickSearchService()
+
+        quickSearchAbortRef.current?.();
+
+        const quickSearchService = establishmentService.quickSearchService();
         quickSearchAbortRef.current = quickSearchService.abort;
 
         if (query.length) {

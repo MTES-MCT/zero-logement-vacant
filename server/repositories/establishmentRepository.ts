@@ -46,11 +46,11 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
 }
 
 
-const update = async (establishmentApi: EstablishmentApi): Promise<any> => {
+const update = async (establishmentApi: EstablishmentApi): Promise<EstablishmentApi> => {
     try {
         return db(establishmentsTable)
-            .update(formatEstablishmentApi(establishmentApi))
             .where('id', establishmentApi.id)
+            .update(formatEstablishmentApi(establishmentApi))
     } catch (err) {
         console.error('Updating establishment failed', err, establishmentApi);
         throw new Error('Updating establishmentA failed');

@@ -2,9 +2,9 @@ import fetch from 'node-fetch';
 import config from '../utils/config';
 import { ProspectApi } from '../models/ProspectApi';
 
-const consultUser = async (email: string): Promise<any> => {
+const consultUser = async (email: string): Promise<ProspectApi> => {
 
-    return await fetch(`${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`, {
+    return fetch(`${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`, {
         method: 'GET',
         headers: { 'Authorization': `Token ${config.cerema.api.authToken}`, 'Content-Type': 'application/json' }
     })

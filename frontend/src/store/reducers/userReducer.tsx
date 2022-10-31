@@ -2,7 +2,6 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { User } from '../../models/User';
 import config from '../../utils/config';
 import {
-    ACTIVATION_MAIL_SENT,
     FETCH_USER_LIST,
     USER_LIST_FETCHED,
     USER_REMOVED,
@@ -58,16 +57,6 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
                     loading: false
                 }
             };
-        }
-        case ACTIVATION_MAIL_SENT: {
-            console.log('action.user', action.user)
-            return {
-                ...state,
-                paginatedUsers: {
-                    ...state.paginatedUsers,
-                    entities: state.paginatedUsers.entities.map(u => u.id === action.user.id ? action.user : u)
-                }
-            }
         }
         case USER_REMOVED: {
             return {

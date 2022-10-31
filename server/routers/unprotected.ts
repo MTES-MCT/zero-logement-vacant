@@ -1,12 +1,13 @@
 import express from 'express';
-import authenticateController from '../controllers/authenticateController';
+import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
 import establishmentController from '../controllers/establishmentController';
+import validator from '../middlewares/validator';
 
 const router = express.Router();
 
-router.post('/api/authenticate', authenticateController.signin);
-router.post('/api/account/activation', authenticateController.activateAccount);
+router.get('/api/account/prospect', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
+router.post('/api/authenticate', accountController.signin);
 router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);
 router.get('/api/statistics/establishments/count', monitoringController.establishmentCount);
 router.get('/api/statistics/housing/contacted/count', monitoringController.housingContactedCount);

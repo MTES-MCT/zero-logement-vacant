@@ -1,14 +1,16 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import authTokenRepository from '../repositories/authTokenRepository';
-import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { query, ValidationChain } from 'express-validator';
+import UserNotFoundError from '../errors/user-not-found-error';
+import ceremaService from '../services/ceremaService';
+import prospectRepository from '../repositories/prospectRepository';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -51,32 +53,35 @@ const signin = async (request: Request, response: Response): Promise<Response> =
     }
 };
 
-const activateAccount = async (request: Request, response: Response): Promise<Response> => {
+const getAccountValidator: ValidationChain[] = [
+    query('email').notEmpty().isEmail()
+];
 
-    const email = request.body.email;
-    const tokenId = request.body.tokenId;
-    const password = request.body.password;
+const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
 
-    console.log('activateAccount for token', tokenId)
+    const email = <string> request.query.email;
 
-    const authToken = await authTokenRepository.get(tokenId)
+    console.log('Get account', email)
 
-    if (!authToken || isBefore(authToken.createdAt, addDays(new Date(), -7))) {
-        return response.sendStatus(498)
+    try {
+
+        await userRepository.getByEmail(email)
+        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+
+    } catch (error) {
+
+        if (error instanceof UserNotFoundError) {
+
+            const prospect = await ceremaService.consultUser(email)
+
+            await prospectRepository.upsert(prospect)
+
+            return response.status(constants.HTTP_STATUS_OK).json(prospect);
+        }
+        else {
+            next(error);
+        }
     }
-
-    const user = await userRepository.get(authToken.userId)
-
-    if (user.email !== email) {
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
-    }
-
-    return Promise.all([
-        userRepository.updatePassword(authToken.userId, bcrypt.hashSync(password)),
-        authTokenRepository.deleteToken(tokenId),
-        userRepository.activate(authToken.userId)
-    ])
-        .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 };
 
 const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -103,6 +108,7 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
 
 export default {
     signin,
-    activateAccount,
+    getAccountValidator,
+    getProspectAccount,
     updatePassword
 };

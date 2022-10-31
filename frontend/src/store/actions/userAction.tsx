@@ -8,7 +8,6 @@ import { UserFilters } from '../../models/UserFilters';
 
 export const FETCH_USER_LIST = 'FETCH_USER_LIST';
 export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
-export const ACTIVATION_MAIL_SENT = 'ACTIVATION_MAIL_SENT';
 export const USER_REMOVED = 'USER_REMOVED';
 
 export interface FetchUserListAction {
@@ -24,17 +23,12 @@ export interface UserListFetchedAction {
     filters: UserFilters,
 }
 
-export interface ActivationMailSentAction {
-    type: typeof ACTIVATION_MAIL_SENT,
-    user: User
-}
-
 export interface UserRemovedAction {
     type: typeof USER_REMOVED,
     id: User['id']
 }
 
-export type UserActionTypes = FetchUserListAction | UserListFetchedAction | ActivationMailSentAction | UserRemovedAction;
+export type UserActionTypes = FetchUserListAction | UserListFetchedAction | UserRemovedAction;
 
 export const changeUserFiltering = (filters: UserFilters) => {
 
@@ -86,23 +80,6 @@ export const changeUserPagination = (page: number, perPage: number) => {
                     type: USER_LIST_FETCHED,
                     paginatedUsers: result,
                     filters
-                });
-            });
-    };
-};
-
-export const sendActivationMail = (userId: string) => {
-
-    return function (dispatch: Dispatch) {
-
-        dispatch(showLoading());
-
-        userService.sendActivationMail(userId)
-            .then(user => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: ACTIVATION_MAIL_SENT,
-                    user
                 });
             });
     };

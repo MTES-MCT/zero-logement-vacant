@@ -7,9 +7,10 @@ import { formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
+import { ProspectApi } from '../models/ProspectApi';
 const randomstring = require('randomstring');
 
-export function genEmail() {
+export const genEmail = () => {
     return randomstring.generate({
         length: 10,
         charset: 'alphabetic'
@@ -22,14 +23,18 @@ export function genEmail() {
     }) ;
 }
 
-export function genNumber(length = 10) {
+export const genNumber = (length = 10) => {
     return Number(randomstring.generate({
         length,
         charset: 'numeric'
     }));
 }
 
-export function genLocalityApi() {
+export const genBoolean = () => Math.random() < 0.5;
+
+export const genSiren = () => genNumber(9);
+
+export const genLocalityApi = () => {
     return <LocalityApi>{
         id: uuidv4(),
         geoCode: randomstring.generate(),
@@ -37,16 +42,16 @@ export function genLocalityApi() {
     };
 }
 
-export function genEstablishmentApi(...localities: LocalityApi[]) {
+export const genEstablishmentApi = (...localities: LocalityApi[]) => {
     return <EstablishmentApi>{
         id: uuidv4(),
         name: randomstring.generate(),
-        siren: genNumber(8),
+        siren: genSiren(),
         localities
     };
 }
 
-export function genUserApi(establishmentId: string) {
+export const genUserApi = (establishmentId: string) => {
     return <UserApi>{
         id: uuidv4(),
         email: genEmail(),
@@ -58,7 +63,16 @@ export function genUserApi(establishmentId: string) {
     };
 }
 
-export function genAddressApi() {
+export const genProspectApi = () => {
+    return <ProspectApi>{
+        email: genEmail(),
+        establishmentSiren: genSiren(),
+        hasAccount: genBoolean(),
+        hasCommitment: genBoolean()
+    };
+}
+
+export const genAddressApi = () => {
     return <AddressApi> {
         houseNumber: randomstring.generate(),
         street: randomstring.generate(),
@@ -67,7 +81,7 @@ export function genAddressApi() {
     }
 }
 
-export function genOwnerApi() {
+export const genOwnerApi = () => {
     return <OwnerApi>{
         id: uuidv4(),
         rawAddress: [
@@ -82,7 +96,7 @@ export function genOwnerApi() {
     };
 }
 
-export function genHousingApi(inseeCode: string) {
+export const genHousingApi = (inseeCode: string) => {
     return <HousingApi>{
         id: uuidv4(),
         invariant: randomstring.generate(),
@@ -114,7 +128,7 @@ export function genHousingApi(inseeCode: string) {
 }
 
 
-export function genCampaignApi(establishmentId: string, campaignNumber: number, reminderNumber: number, createdBy: string) {
+export const genCampaignApi = (establishmentId: string, campaignNumber: number, reminderNumber: number, createdBy: string) => {
     return <CampaignApi>{
         id: uuidv4(),
         establishmentId,
@@ -134,7 +148,7 @@ export function genCampaignApi(establishmentId: string, campaignNumber: number, 
     };
 }
 
-export function genGeoPerimeterApi(establishmentId: string) {
+export const genGeoPerimeterApi = (establishmentId: string) => {
     return <GeoPerimeterApi>{
         id: uuidv4(),
         establishmentId,

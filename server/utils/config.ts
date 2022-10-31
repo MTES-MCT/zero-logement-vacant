@@ -28,5 +28,11 @@ export default {
     },
     mail: {
         from: process.env.MAIL_FROM || 'contact@zerologementvacant.beta.gouv.fr/'
+    },
+    cerema: {
+        api: {
+            endpoint: process.env.CEREMA_API_ENDPOINT,
+            authToken: process.env.CEREMA_API_AUTH_TOKEN,
+        }
     }
 };

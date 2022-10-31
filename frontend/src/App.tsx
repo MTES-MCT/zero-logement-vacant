@@ -18,7 +18,6 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
-import AccountActivationView from './views/Account/AccountActivationView';
 import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import HomeView from './views/Home/HomeView';
@@ -55,7 +54,7 @@ function AppWrapper () {
 
 function App() {
 
-    const { authUser, accountActivated } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
     const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
@@ -115,10 +114,6 @@ function App() {
                             <Route exact path="/accessibilite" component={AccessibilityView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
-                            {!accountActivated ?
-                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/> :
-                                <Route exact path="/compte/activation/:tokenId" component={LoginView}/>
-                            }
                             <Route path="/*">
                                 <Redirect to="/" />
                             </Route>

@@ -6,8 +6,7 @@ export interface UserApi {
     lastName: string,
     establishmentId?: string,
     role: number,
-    activatedAt?: Date,
-    activationSendAt?: Date
+    activatedAt?: Date
 }
 
 
@@ -19,10 +18,4 @@ export interface RequestUser {
 
 export enum UserRoles {
     Usual, Admin
-}
-
-export interface AuthTokenApi {
-    id: string,
-    userId: string,
-    createdAt: Date
 }

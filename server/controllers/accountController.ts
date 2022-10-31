@@ -11,8 +11,6 @@ import { query, ValidationChain } from 'express-validator';
 import UserNotFoundError from '../errors/user-not-found-error';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
-import authTokenRepository from '../repositories/authTokenRepository';
-import { addDays, isBefore } from 'date-fns';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -86,34 +84,6 @@ const getProspectAccount = async (request: Request, response: Response, next: Ne
     }
 };
 
-const activateAccount = async (request: Request, response: Response): Promise<Response> => {
-
-    const email = request.body.email;
-    const tokenId = request.body.tokenId;
-    const password = request.body.password;
-
-    console.log('activateAccount for token', tokenId)
-
-    const authToken = await authTokenRepository.get(tokenId)
-
-    if (!authToken || isBefore(authToken.createdAt, addDays(new Date(), -7))) {
-        return response.sendStatus(498)
-    }
-
-    const user = await userRepository.get(authToken.userId)
-
-    if (user.email !== email) {
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
-    }
-
-    return Promise.all([
-        userRepository.updatePassword(authToken.userId, bcrypt.hashSync(password)),
-        authTokenRepository.deleteToken(tokenId),
-        userRepository.activate(authToken.userId)
-    ])
-        .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
-};
-
 const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
 
     const userId = (<RequestUser>request.auth).userId;
@@ -140,6 +110,5 @@ export default {
     signin,
     getAccountValidator,
     getProspectAccount,
-    activateAccount,
     updatePassword
 };

@@ -1,6 +1,4 @@
 import {
-    ACCOUNT_ACTIVATED,
-    ACCOUNT_ACTIVATION_FAILED,
     AuthenticationActionTypes,
     AVAILABLE_ESTABLISHMENTS_FETCHED,
     LOGIN,
@@ -16,16 +14,13 @@ const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 export interface AuthenticationState {
     availableEstablishments?: Establishment[];
     isLoggedIn: boolean;
-    accountActivated: boolean;
     authUser: AuthUser;
     loginError?: string;
-    activationError?: string;
     passwordFormState?: FormState;
 }
 
 const initialState =
     {
-      accountActivated: false,
       ...authUser && authUser.accessToken
           ? { isLoggedIn: true, authUser: authUser }
           : { isLoggedIn: false, authUser: null }
@@ -57,18 +52,6 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
             return {
                 ...state,
                 availableEstablishments: action.availableEstablishments
-            }
-        case ACCOUNT_ACTIVATED:
-            return {
-                ...state,
-                accountActivated: true,
-                activationError: null
-            };
-        case ACCOUNT_ACTIVATION_FAILED:
-            return {
-                ...state,
-                accountActivated: false,
-                activationError: 'Échec de l\'activation.'
             };
         case PASSWORD_CHANGE:
             return {

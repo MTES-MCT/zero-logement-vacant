@@ -24,7 +24,7 @@ const createUser = async (draftUser: DraftUser): Promise<User> => {
     return await fetch(`${config.apiEndpoint}/api/users/creation`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftUser })
+        body: JSON.stringify(draftUser)
     })
         .then(_ => _.json())
         .then(result => parseUser(result));

@@ -64,7 +64,6 @@ if (config.auth.secret) {
     router.post('/api/account/password', jwtCheck, userCheck, accountController.updatePassword);
 
     router.post('/api/users', jwtCheck, userCheck, userController.list);
-    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, validator.validate, userController.createUser);
     router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, validator.validate, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);

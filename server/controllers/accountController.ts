@@ -7,7 +7,7 @@ import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { query, ValidationChain } from 'express-validator';
+import { param, ValidationChain } from 'express-validator';
 import UserNotFoundError from '../errors/user-not-found-error';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
@@ -54,29 +54,27 @@ const signin = async (request: Request, response: Response): Promise<Response> =
 };
 
 const getAccountValidator: ValidationChain[] = [
-    query('email').notEmpty().isEmail()
+    param('email').notEmpty().isEmail()
 ];
 
 const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
 
-    const email = <string> request.query.email;
+    const email = request.params.email as string;
 
     console.log('Get account', email)
 
     try {
 
         await userRepository.getByEmail(email)
-        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+        response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
 
     } catch (error) {
 
         if (error instanceof UserNotFoundError) {
-
-            const prospect = await ceremaService.consultUser(email)
-
-            await prospectRepository.upsert(prospect)
-
-            return response.status(constants.HTTP_STATUS_OK).json(prospect);
+            const ceremaUser = await ceremaService.consultUser(email)
+            await prospectRepository.upsert(ceremaUser)
+            const prospect = await prospectRepository.get(email)
+            response.status(constants.HTTP_STATUS_OK).json(prospect);
         }
         else {
             next(error);
@@ -98,6 +96,8 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
 
     if (isPasswordValid) {
+        // TODO: avoid hashing password synchronously
+        // as it blocks other incoming requests
         return userRepository.updatePassword(userId, bcrypt.hashSync(newPassword))
             .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     } else {

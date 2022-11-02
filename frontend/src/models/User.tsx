@@ -18,11 +18,9 @@ export interface User {
 
 export interface DraftUser {
     email: string,
-    firstName: string,
-    lastName: string,
-    requestNumber: string,
-    role: UserRoles,
+    password: string
     establishmentId: string
+    campaignIntent?: string
 }
 
 export enum UserRoles {

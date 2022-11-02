@@ -1,6 +1,9 @@
 export interface Prospect {
   email: string
-  establishmentSiren?: number
+  establishment?: {
+    id: string
+    siren: number
+  }
   hasAccount: boolean
   hasCommitment: boolean
 }

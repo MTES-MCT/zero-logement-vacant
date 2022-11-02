@@ -1,28 +1,32 @@
 import db from '../repositories/db';
-import protectedRouter from '../routers/protected';
-import express from 'express';
 import request from 'supertest';
 import randomstring from 'randomstring';
 import { withAccessToken, withAdminAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import bodyParser from 'body-parser';
-import { genEstablishmentApi, genHousingApi, genLocalityApi, genUserApi } from '../test/testFixtures';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genLocalityApi,
+  genUserApi
+} from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
 import { usersTable } from '../repositories/userRepository';
 import { User1 } from '../../database/seeds/test/003-users';
 import { v4 as uuidv4 } from 'uuid';
-import establishmentRepository, { establishmentsTable } from '../repositories/establishmentRepository';
+import establishmentRepository, {
+  establishmentsTable
+} from '../repositories/establishmentRepository';
 import { campaignsTable } from '../repositories/campaignRepository';
 import { localitiesTable } from '../repositories/localityRepository';
-import housingRepository, { housingTable, ownersHousingTable } from '../repositories/housingRepository';
+import housingRepository, {
+  housingTable,
+  ownersHousingTable
+} from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
+import { createServer } from '../server';
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(protectedRouter);
+const { app } = createServer()
 
 describe('User controller', () => {
 
@@ -32,104 +36,59 @@ describe('User controller', () => {
 
         const draftUser = {...genUserApi(Establishment1.id), id: undefined}
 
-        it('should be forbidden for a not authenticated user', async () => {
-            await request(app).post(testRoute).expect(constants.HTTP_STATUS_UNAUTHORIZED);
-        })
-
-        it('should be forbidden for a not admin user', async () => {
-            await withAccessToken(request(app).post(testRoute))
-                .send({ draftUser })
-                .expect(constants.HTTP_STATUS_UNAUTHORIZED);
-        })
-
         it('should be not found if the user establishment does not exist', async () => {
-            await withAdminAccessToken(request(app).post(testRoute))
+            await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        establishmentId: uuidv4()
-                    }
+                    ...draftUser,
+                    establishmentId: uuidv4()
                 })
                 .expect(constants.HTTP_STATUS_NOT_FOUND);
         });
 
         it('should received a valid draft user', async () => {
 
-            await withAdminAccessToken(request(app).post(testRoute))
+            await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        email: randomstring.generate()
-                    }
+                  ...draftUser,
+                  email: randomstring.generate()
                 })
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-            await withAdminAccessToken(request(app).post(testRoute))
+            await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        email: undefined
-                    }
+                  ...draftUser,
+                  email: undefined
                 })
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-            await withAdminAccessToken(request(app).post(testRoute))
+            await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        id: uuidv4()
-                    }
+                  ...draftUser,
+                  establishmentId: randomstring.generate()
                 })
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-            await withAdminAccessToken(request(app).post(testRoute))
+            await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        establishmentId: randomstring.generate()
-                    }
+                  ...draftUser,
+                  establishmentId: undefined
                 })
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-            await withAdminAccessToken(request(app).post(testRoute))
-                .send({
-                    draftUser: {
-                        ...draftUser,
-                        establishmentId: undefined
-                    }
-                })
-                .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-            await withAdminAccessToken(request(app).post(testRoute))
-                .send({
-                    draftUser: {
-                        ...draftUser,
-                        firstName: undefined
-                    }
-                })
-                .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-            await withAdminAccessToken(request(app).post(testRoute))
-                .send({
-                    draftUser: {
-                        ...draftUser,
-                        lastName: undefined
-                    }
-                })
-                .expect(constants.HTTP_STATUS_BAD_REQUEST);
+          await request(app).post(testRoute)
+            .send({
+              ...draftUser,
+              campaignIntent: '123'
+            })
+            .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
         });
 
         it('should create a new user with Usual role', async () => {
 
-            const res = await withAdminAccessToken(request(app).post(testRoute))
-                .send({
-                    draftUser: {
-                        ...draftUser,
-                        role: UserRoles.Admin
-                    }
-                })
-                .expect(constants.HTTP_STATUS_OK);
+            const res = await request(app).post(testRoute)
+                .send({ ...draftUser, role: UserRoles.Admin })
+                .expect(constants.HTTP_STATUS_CREATED);
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({
@@ -170,14 +129,12 @@ describe('User controller', () => {
                 rank: 1
             })))
 
-            const res = await withAdminAccessToken(request(app).post(testRoute))
+            const res = await request(app).post(testRoute)
                 .send({
-                    draftUser: {
-                        ...draftUser,
-                        establishmentId: Establishment.id
-                    }
+                    ...draftUser,
+                    establishmentId: Establishment.id
                 })
-                .expect(constants.HTTP_STATUS_OK);
+                .expect(constants.HTTP_STATUS_CREATED);
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({

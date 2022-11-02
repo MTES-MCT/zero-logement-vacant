@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from "react";
+import { useHistory } from "react-router-dom";
 import * as yup from "yup";
 import {
   Button,
@@ -21,7 +22,7 @@ import {
 } from "../../../hooks/useForm";
 import { useDispatch } from "react-redux";
 import { createUser } from "../../../store/actions/userAction";
-import { DraftUser, UserRoles } from "../../../models/User";
+import { DraftUser } from "../../../models/User";
 import prospectService from "../../../services/prospect.service";
 
 interface Props {
@@ -39,25 +40,26 @@ function AccountCreationModal(props: Props) {
   const [step, setStep] = useState<keyof typeof steps>('fill-email')
 
   const dispatch = useDispatch()
+  const history = useHistory()
   const [user, setUser] = useState<DraftUser>({
     email: '',
     password: '',
     establishmentId: '',
-    role: UserRoles.Usual
   })
 
   async function onEmail(email: string): Promise<void> {
-    setUser({ ...user, email })
     try {
-      const prospect = await prospectService.get(email)
+      const { establishment, hasAccount, hasCommitment } = await prospectService.get(email)
 
-      if (prospect.hasAccount && prospect.hasCommitment) {
+      if (establishment && hasAccount && hasCommitment) {
         setStep('fill-password')
+        setUser({ ...user, email, establishmentId: establishment.id })
         return
       }
 
-      if (prospect.hasAccount && !prospect.hasCommitment) {
+      if (establishment && hasAccount && !hasCommitment) {
         setStep('awaiting-access')
+        setUser({ ...user, email, establishmentId: establishment.id })
         return
       }
 
@@ -73,11 +75,14 @@ function AccountCreationModal(props: Props) {
   }
 
   async function onCampaignIntent(campaignIntent: string): Promise<void> {
-    setUser({ ...user, campaignIntent })
-    // TODO: call API
     // Save user and remove prospect
-    await dispatch(createUser(user))
+    await dispatch(createUser({ ...user, campaignIntent }))
+    setUser({ ...user, campaignIntent })
     props.onClose()
+    history.replace({
+      pathname: 'connexion',
+      state: { email: user.email }
+    })
   }
 
   function FillEmail({ onFillEmail }: { onFillEmail(email: string): void }) {

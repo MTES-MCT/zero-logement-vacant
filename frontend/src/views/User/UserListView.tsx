@@ -4,17 +4,24 @@ import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { changeUserFiltering, changeUserPagination, removeUser } from '../../store/actions/userAction';
+import {
+    changeUserFiltering,
+    changeUserPagination,
+    removeUser
+} from '../../store/actions/userAction';
 import { User } from '../../models/User';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { displayCount, stringSort } from '../../utils/stringUtils';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import {
+    useAvailableEstablishmentOptions
+} from '../../hooks/useAvailableEstablishmentOptions';
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
-import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import ConfirmationModal
+    from '../../components/modals/ConfirmationModal/ConfirmationModal';
 
 const UserListView = () => {
 

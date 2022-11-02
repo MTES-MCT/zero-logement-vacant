@@ -11,12 +11,16 @@ import { ValidationError } from 'yup/es';
 import EstablishmentSearchableSelect
     from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
+interface LoginState {
+    email?: string
+}
+
 const LoginView = () => {
 
     const dispatch = useDispatch();
-    const { pathname } = useLocation();
+    const { state, pathname } = useLocation<LoginState | undefined>();
 
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(state?.email ?? '');
     const [password, setPassword] = useState('');
     const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});

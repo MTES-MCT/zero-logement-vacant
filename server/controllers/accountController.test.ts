@@ -43,12 +43,12 @@ describe('Account controller', () => {
 
     describe('getAccount', () => {
 
-        const testRoute = (email?: string) => `/api/account/prospect${email ? '?email=' + email : ''}`
+        const testRoute = (email: string) => `/api/prospects/${email}`
 
-        it('should received a valid email', async () => {
+        it('should receive a valid email', async () => {
 
-            await request(app).get(testRoute())
-                .expect(constants.HTTP_STATUS_BAD_REQUEST);
+            await request(app).get(testRoute(''))
+                .expect(constants.HTTP_STATUS_NOT_FOUND);
 
             await request(app).get(testRoute(randomstring.generate()))
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);

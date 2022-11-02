@@ -252,7 +252,7 @@ function AccountCreationModal(props: Props) {
           <Stepper
             steps={3}
             currentStep={3}
-            currentTitle="Créer votre mot de passe"
+            currentTitle="Vos intentions de campagne"
             nextStepTitle=""
           />
           <Title as="h5">

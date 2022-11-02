@@ -9,6 +9,8 @@ export interface AuthUser {
 export interface User {
     id: string,
     email: string,
+    // TODO: this should be string | undefined until we can retrieve first
+    // and last name
     firstName: string,
     lastName: string,
     role: UserRoles,

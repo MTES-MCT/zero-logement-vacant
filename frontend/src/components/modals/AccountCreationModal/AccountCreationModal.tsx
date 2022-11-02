@@ -24,6 +24,7 @@ import { useDispatch } from "react-redux";
 import { createUser } from "../../../store/actions/userAction";
 import { DraftUser } from "../../../models/User";
 import prospectService from "../../../services/prospect.service";
+import { login } from "../../../store/actions/authenticationAction";
 
 interface Props {
   onClose(): void
@@ -78,11 +79,8 @@ function AccountCreationModal(props: Props) {
     // Save user and remove prospect
     await dispatch(createUser({ ...user, campaignIntent }))
     setUser({ ...user, campaignIntent })
+    dispatch(login(user.email, user.password, user.establishmentId))
     props.onClose()
-    history.replace({
-      pathname: 'connexion',
-      state: { email: user.email }
-    })
   }
 
   function FillEmail({ onFillEmail }: { onFillEmail(email: string): void }) {

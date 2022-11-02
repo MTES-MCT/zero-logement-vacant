@@ -6,7 +6,8 @@ import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
 import statistic_chart from '../../assets/images/statistic_chart.svg';
 import location_review from '../../assets/images/location_review.svg';
-import real_time_collaboration from '../../assets/images/real_time_collaboration.svg';
+import real_time_collaboration
+    from '../../assets/images/real_time_collaboration.svg';
 import quote from '../../assets/images/quote.svg';
 import quote_author from '../../assets/images/quote_author.svg';
 import logo_caba from '../../assets/images/logo_caba.svg';
@@ -19,7 +20,10 @@ import collaboration from '../../assets/images/collaboration.svg';
 import { Link } from 'react-router-dom';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
 
 
 const HomeView = () => {
@@ -34,14 +38,19 @@ const HomeView = () => {
                 </Title>
                 <Row>
                     <Col>
-                        <Title as="h2">
+                        <Title as="h2" look="h1">
                             Diminuez la vacance de logements sur votre territoire
                         </Title>
                         <Text size="lg">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Link title="S'inscrire" to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }} target="_blank" className="fr-btn--md fr-btn"
-                              onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}>
+                        <Link
+                          title="S'inscrire"
+                          to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
+                          target="_blank"
+                          className="fr-btn--md fr-btn"
+                          onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}
+                        >
                             S&apos;inscrire
                         </Link>
                     </Col>
@@ -241,14 +250,15 @@ const HomeView = () => {
                               to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
                               target="_blank"
                               className="fr-btn--md fr-btn"
-                                onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}>
+                              onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                        >
                             Rejoindre la communauté
                         </Link>
                     </Row>
                 </Container>
             </div>
             <div className={styles.ownerContainer}>
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-4w">
                     <Title as="h1" look="h4">
                         Vous êtes propriétaire ?
                     </Title>
@@ -261,7 +271,8 @@ const HomeView = () => {
                                   to={{ pathname: "https://zlv.softr.app/rectification" }}
                                   target="_blank"
                                   className="fr-btn--md fr-btn"
-                                  onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Rectify })}>
+                                  onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Rectify })}
+                            >
                                 Rectifier la situation
                             </Link>
                         </Col>

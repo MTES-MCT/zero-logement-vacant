@@ -75,7 +75,7 @@ function AppHeader() {
                     {isValidUser(authUser) ?
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem>
+                                <ToolItem as="div">
                                     <AppActionsMenu
                                         actions={menuActions}
                                         title={`${authUser.user.firstName} ${authUser.user.lastName}`}
@@ -86,7 +86,7 @@ function AppHeader() {
                         </Tool> :
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block">
+                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block fr-my-0">
                                     Connexion
                                 </ToolItem>
                             </ToolItemGroup>

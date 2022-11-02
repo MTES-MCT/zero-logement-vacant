@@ -1,4 +1,5 @@
 @import "colors";
+@import "dsfr-fix";
 
 .zlv-container {
   min-height: 600px;
@@ -213,8 +214,6 @@ button.fr-select {
   }
 }
 
-
-
 .status-label {
   border-radius: 3px;
   text-transform: uppercase;
@@ -236,4 +235,6 @@ button.fr-select {
 
 }
 
-
+a.fr-btn[target=_blank]:after {
+  content: none;
+}

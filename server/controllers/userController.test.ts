@@ -6,12 +6,17 @@ import randomstring from 'randomstring';
 import { withAccessToken, withAdminAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import bodyParser from 'body-parser';
-import { genUserApi } from '../test/testFixtures';
+import { genEstablishmentApi, genHousingApi, genLocalityApi, genUserApi } from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
 import { usersTable } from '../repositories/userRepository';
-import { User1 } from "../../database/seeds/test/003-users";
+import { User1 } from '../../database/seeds/test/003-users';
 import { v4 as uuidv4 } from 'uuid';
+import establishmentRepository, { establishmentsTable } from '../repositories/establishmentRepository';
+import { campaignsTable } from '../repositories/campaignRepository';
+import { localitiesTable } from '../repositories/localityRepository';
+import housingRepository, { housingTable, ownersHousingTable } from '../repositories/housingRepository';
+import { Owner1 } from '../../database/seeds/test/004-owner';
 
 const app = express();
 app.use(bodyParser.json());
@@ -36,6 +41,17 @@ describe('User controller', () => {
                 .send({ draftUser })
                 .expect(constants.HTTP_STATUS_UNAUTHORIZED);
         })
+
+        it('should be not found if the user establishment does not exist', async () => {
+            await withAdminAccessToken(request(app).post(testRoute))
+                .send({
+                    draftUser: {
+                        ...draftUser,
+                        establishmentId: uuidv4()
+                    }
+                })
+                .expect(constants.HTTP_STATUS_NOT_FOUND);
+        });
 
         it('should received a valid draft user', async () => {
 
@@ -107,7 +123,12 @@ describe('User controller', () => {
         it('should create a new user with Usual role', async () => {
 
             const res = await withAdminAccessToken(request(app).post(testRoute))
-                .send({ draftUser, role: UserRoles.Admin })
+                .send({
+                    draftUser: {
+                        ...draftUser,
+                        role: UserRoles.Admin
+                    }
+                })
                 .expect(constants.HTTP_STATUS_OK);
 
             expect(res.body).toMatchObject(
@@ -132,6 +153,58 @@ describe('User controller', () => {
                             role: UserRoles.Usual
                         }
                     ))
+                });
+        })
+
+        it('should activate user establishment if needed', async () => {
+
+            const Locality = genLocalityApi()
+            const Establishment = genEstablishmentApi(Locality)
+            await db(localitiesTable).insert(establishmentRepository.formatLocalityApi(Locality))
+            await db(establishmentsTable).insert({...establishmentRepository.formatEstablishmentApi(Establishment), available: false})
+            const housing = (new Array(2500)).fill(0).map(_ => genHousingApi(Locality.geoCode))
+            await db(housingTable).insert(housing.map(_ => housingRepository.formatHousingApi(_)))
+            await db(ownersHousingTable).insert(housing.map(_ => ({
+                owner_id: Owner1.id,
+                housing_id: _.id,
+                rank: 1
+            })))
+
+            const res = await withAdminAccessToken(request(app).post(testRoute))
+                .send({
+                    draftUser: {
+                        ...draftUser,
+                        establishmentId: Establishment.id
+                    }
+                })
+                .expect(constants.HTTP_STATUS_OK);
+
+            expect(res.body).toMatchObject(
+                expect.objectContaining({
+                    email: draftUser.email,
+                    firstName: draftUser.firstName,
+                    lastName: draftUser.lastName,
+                    establishmentId: Establishment.id,
+                    role: UserRoles.Usual
+                })
+            )
+
+            await db(establishmentsTable)
+                .where('id', Establishment.id)
+                .then(result => {
+                    expect(result[0]).toEqual(expect.objectContaining({
+                        id: Establishment.id,
+                        available: true
+                    }))
+                });
+
+            await db(campaignsTable)
+                .where('establishment_id', Establishment.id)
+                .then(result => {
+                    expect(result[0]).toEqual(expect.objectContaining({
+                        establishment_id: Establishment.id,
+                        campaign_number: 0
+                    }))
                 });
         })
     })

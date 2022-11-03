@@ -4,7 +4,9 @@ import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { body, param, ValidationChain, validationResult } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
+import establishmentRepository from '../repositories/establishmentRepository';
+import establishmentService from '../services/establishmentService';
 
 const createUserValidators = [
     body('draftUser.email').isEmail(),
@@ -14,32 +16,42 @@ const createUserValidators = [
     body('draftUser.lastName').isString(),
 ];
 
-const createUser = async (request: JWTRequest, response: Response): Promise<Response> => {
+const createUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
+    try {
+        const draftUser = request.body.draftUser;
+        const role = (<RequestUser>request.auth).role;
 
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+        const userApi = <UserApi> {
+            email: draftUser.email,
+            firstName: draftUser.firstName,
+            lastName: draftUser.lastName,
+            role: UserRoles.Usual,
+            establishmentId: draftUser.establishmentId
+        };
+
+        console.log('Create user', userApi)
+
+        if (role !== UserRoles.Admin) {
+            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+        }
+
+        const userEstablishment = await establishmentRepository.get(draftUser.establishmentId)
+
+        if (!userEstablishment) {
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
+        }
+
+        const createdUser = await userRepository.insert(userApi);
+
+        if (!userEstablishment.available) {
+            await establishmentService.makeEstablishmentAvailable(userEstablishment)
+        }
+
+        return response.status(constants.HTTP_STATUS_OK).json(createdUser);
+
+    } catch (error) {
+        next(error);
     }
-
-    const draftUser = request.body.draftUser;
-    const role = (<RequestUser>request.auth).role;
-
-    const userApi = <UserApi> {
-        email: draftUser.email,
-        firstName: draftUser.firstName,
-        lastName: draftUser.lastName,
-        role: UserRoles.Usual,
-        establishmentId: draftUser.establishmentId
-    };
-
-    console.log('Create user', userApi)
-
-    if (role !== UserRoles.Admin) {
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
-    }
-
-    return userRepository.insert(userApi)
-        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
 const list = async (request: JWTRequest, response: Response): Promise<Response> => {

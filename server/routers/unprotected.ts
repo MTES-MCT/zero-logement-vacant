@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get('/api/account/prospect', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
 router.post('/api/authenticate', accountController.signin);
+router.get('/api/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
 router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);
 router.get('/api/statistics/establishments/count', monitoringController.establishmentCount);
 router.get('/api/statistics/housing/contacted/count', monitoringController.housingContactedCount);

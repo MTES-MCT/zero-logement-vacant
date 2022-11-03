@@ -1,4 +1,4 @@
-import db from './db';
+import db, { likeUnaccent } from './db';
 import { localitiesTable } from './localityRepository';
 import { EstablishmentApi, EstablishmentDataApi, LocalityApi } from '../models/EstablishmentApi';
 import { housingTable, ReferenceDataYear } from './housingRepository';
@@ -7,6 +7,7 @@ import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
+import EstablishmentNotFoundError from '../errors/establishmentNotFoundError';
 
 export const establishmentsTable = 'establishments';
 
@@ -35,12 +36,24 @@ const get = async (establishmentId: string): Promise<EstablishmentApi> => {
                     }
                 } else {
                     console.error('Establishment not found', establishmentId);
-                    throw Error('Establishment not found')
+                    throw new EstablishmentNotFoundError()
                 }
             })
     } catch (err) {
         console.error('Getting establishment failed', err, establishmentId);
         throw new Error('Getting establishment by email failed');
+    }
+}
+
+
+const update = async (establishmentApi: EstablishmentApi): Promise<EstablishmentApi> => {
+    try {
+        return db(establishmentsTable)
+            .where('id', establishmentApi.id)
+            .update(formatEstablishmentApi(establishmentApi))
+    } catch (err) {
+        console.error('Updating establishment failed', err, establishmentApi);
+        throw new Error('Updating establishmentA failed');
     }
 }
 
@@ -58,6 +71,23 @@ const listAvailable = async (): Promise<EstablishmentApi[]> => {
     } catch (err) {
         console.error('Listing available establishment failed', err);
         throw new Error('Listing available establishment failed');
+    }
+}
+
+const search = async (searchQuery: string): Promise<EstablishmentApi[]> => {
+    try {
+        return db(establishmentsTable)
+            .whereRaw(likeUnaccent('name', searchQuery))
+            .orderBy('name')
+            .then(_ => _.map((result: any) => (
+                    <EstablishmentApi> {
+                    id: result.id,
+                    name: result.name
+                }
+            )))
+    } catch (err) {
+        console.error('Search available establishment failed', err, searchQuery);
+        throw new Error('Search available establishment failed');
     }
 }
 
@@ -132,11 +162,14 @@ const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
     id: establishmentApi.id,
     name: establishmentApi.name,
     siren: establishmentApi.siren,
+    available: establishmentApi.available,
     localities_geo_code: establishmentApi.localities.map(_ => _.geoCode)
 })
 
 export default {
     get,
+    update,
+    search,
     listAvailable,
     listDataWithFilters,
     formatLocalityApi,

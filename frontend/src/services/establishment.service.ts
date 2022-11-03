@@ -12,8 +12,24 @@ const listAvailableEstablishments = async (): Promise<Establishment[]> => {
         .then(_ => _.json())
 };
 
+const quickSearchService = (): {abort: () => void, fetch: (query: string) => Promise<Establishment[]>} => {
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    return {
+        abort: () => controller.abort(),
+        fetch: (query: string) => fetch(`${config.apiEndpoint}/api/establishments${query ? `?q=${query}` : ''}`, {
+            method: 'GET',
+            signal
+        })
+            .then(_ => _.json())
+    };
+};
+
 const establishmentService = {
-    listAvailableEstablishments
+    listAvailableEstablishments,
+    quickSearchService
 }
 
 export default establishmentService;

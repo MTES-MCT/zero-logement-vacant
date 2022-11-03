@@ -2,9 +2,7 @@
 import { establishmentsTable, housingScopeGeometryTable } from '../../../server/repositories/establishmentRepository';
 import { Knex } from 'knex';
 import campaignRepository, { campaignsTable } from '../../../server/repositories/campaignRepository';
-import { CampaignApi } from '../../../server/models/CampaignApi';
-import { v4 as uuidv4 } from 'uuid';
-import { format, formatISO } from 'date-fns';
+import { CampaignApi, DefaultCampaign } from '../../../server/models/CampaignApi';
 
 exports.seed = function(knex: Knex) {
     return knex
@@ -20,16 +18,8 @@ exports.seed = function(knex: Knex) {
             if (results.length) {
                 return knex.table(campaignsTable)
                     .insert(results.map(result => campaignRepository.formatCampaignApi(<CampaignApi>{
-                        id: uuidv4(),
-                        establishmentId: result.id,
-                        campaignNumber: 0,
-                        startMonth: format(new Date(), 'yyMM'),
-                        filters: {},
-                        createdAt: new Date(),
-                        validatedAt: new Date(),
-                        exportedAt: new Date(),
-                        sentAt: new Date(),
-                        sendingDate: formatISO(new Date())
+                        ...DefaultCampaign,
+                        establishmentId: result.id
                     })))
             }
         }

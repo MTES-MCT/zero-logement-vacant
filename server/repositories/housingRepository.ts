@@ -462,6 +462,9 @@ const updateHousingList = async (housingIds: string[], status: HousingStatusApi,
 
 const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
+        if (!housingAdresses.length) {
+            return []
+        }
         const update = 'UPDATE housing as h SET ' +
             'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
             'FROM (values' +

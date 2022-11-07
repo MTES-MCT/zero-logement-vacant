@@ -19,14 +19,21 @@ const consultUser = async (email: string): Promise<ProspectApi> => {
                     hasAccount: true,
                     hasCommitment: users[0].lovac_ok
                 }
-            } else {
-                return <ProspectApi>{
-                    email,
-                    hasAccount: false,
-                    hasCommitment: false
-                }
             }
-        });
+            return defaultUser(email)
+        })
+      .catch(error => {
+          console.error(error)
+          return defaultUser(email)
+      });
+}
+
+function defaultUser(email: string): ProspectApi {
+    return {
+        email,
+        hasAccount: false,
+        hasCommitment: false
+    }
 }
 
 export default {

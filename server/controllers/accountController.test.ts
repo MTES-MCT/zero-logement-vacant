@@ -40,6 +40,14 @@ const mockCeremaConsultUser = (email: string, user: JsonObject | undefined) => {
     });
 }
 
+const mockCeremaFail = () => {
+    fetchMock.mockResponse(() => {
+        return Promise.resolve({
+            status: 404
+        })
+    })
+}
+
 describe('Account controller', () => {
 
     describe('getAccount', () => {
@@ -61,6 +69,21 @@ describe('Account controller', () => {
             await request(app).get(testRoute(User1.email))
                 .expect(constants.HTTP_STATUS_FORBIDDEN);
 
+        });
+
+        it('should fail if the user does not exist in Cerema', async () => {
+            const email = genEmail()
+            mockCeremaFail()
+
+            const { body, status } = await request(app).get(testRoute(email))
+
+            expect(status).toBe(constants.HTTP_STATUS_OK)
+            expect(body).toMatchObject({
+                email,
+                hasAccount: false,
+                hasCommitment: false
+            })
+            expect(fetchMock).toHaveBeenCalled()
         });
 
         it('should consult Cerema for a new prospect, then insert an return the result when user unknown from Cerema', async () => {

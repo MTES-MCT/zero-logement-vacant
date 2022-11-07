@@ -69,6 +69,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
         validate()
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, Object.values(input))
 
   return {

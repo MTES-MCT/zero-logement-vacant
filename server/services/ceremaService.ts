@@ -13,7 +13,9 @@ const consultUser = async (email: string): Promise<ProspectApi> => {
             if (users.length) {
                 return <ProspectApi>{
                     email: users[0].email,
-                    establishmentSiren: users[0].siret.substring(0, 9),
+                    establishment: {
+                        siren: users[0].siret.substring(0, 9),
+                    },
                     hasAccount: true,
                     hasCommitment: users[0].lovac_ok
                 }

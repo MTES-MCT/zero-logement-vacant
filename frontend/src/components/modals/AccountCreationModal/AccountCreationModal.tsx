@@ -1,5 +1,4 @@
 import { ChangeEvent, useState } from "react";
-import { useHistory } from "react-router-dom";
 import * as yup from "yup";
 import {
   Button,
@@ -41,7 +40,6 @@ function AccountCreationModal(props: Props) {
   const [step, setStep] = useState<keyof typeof steps>('fill-email')
 
   const dispatch = useDispatch()
-  const history = useHistory()
   const [user, setUser] = useState<DraftUser>({
     email: '',
     password: '',

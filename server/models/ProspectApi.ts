@@ -1,9 +1,9 @@
-import { EstablishmentApi } from "./EstablishmentApi";
-
 export interface ProspectApi {
-    email: string,
-    establishment?: Pick<EstablishmentApi, 'id' | 'siren'>
-    establishmentSiren?: number,
-    hasAccount: boolean,
+    email: string
+    establishment?: {
+        id: string
+        siren: number
+    }
+    hasAccount: boolean
     hasCommitment: boolean
 }

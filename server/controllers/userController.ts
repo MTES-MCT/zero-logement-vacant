@@ -4,55 +4,60 @@ import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { INTENTS } from '../models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import establishmentService from '../services/establishmentService';
+import prospectRepository from '../repositories/prospectRepository';
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs";
+
+const SALT = 10
 
 const createUserValidators = [
-    body('draftUser.email').isEmail(),
-    body('draftUser.id').isEmpty(),
-    body('draftUser.establishmentId').isUUID(),
-    body('draftUser.firstName').isString(),
-    body('draftUser.lastName').isString(),
+    body('email').isEmail(),
+    body('password').isStrongPassword({
+        minLength: 8,
+        minNumbers: 1,
+        minUppercase: 1,
+        minSymbols: 0,
+        minLowercase: 1
+    }),
+    body('campaignIntent').isString().isIn(INTENTS).optional(),
+    body('establishmentId').isUUID(),
+    body('firstName').isString().optional(),
+    body('lastName').isString().optional(),
 ];
 
 const createUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
     try {
-        const draftUser = request.body.draftUser;
-        const role = (<RequestUser>request.auth).role;
-
-        const userApi = <UserApi> {
+        const draftUser = request.body;
+        const userApi: UserApi = {
+            id: uuidv4(),
             email: draftUser.email,
-            firstName: draftUser.firstName,
-            lastName: draftUser.lastName,
+            password: await bcrypt.hash(draftUser.password, SALT),
+            firstName: draftUser.firstName ?? '',
+            lastName: draftUser.lastName ?? '',
             role: UserRoles.Usual,
             establishmentId: draftUser.establishmentId
         };
 
         console.log('Create user', userApi)
 
-        if (role !== UserRoles.Admin) {
-            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
-        }
-
         const userEstablishment = await establishmentRepository.get(draftUser.establishmentId)
-
-        if (!userEstablishment) {
-            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
-        }
-
         const createdUser = await userRepository.insert(userApi);
 
         if (!userEstablishment.available) {
             await establishmentService.makeEstablishmentAvailable(userEstablishment)
         }
+        // Remove associated prospect
+        await prospectRepository.remove(draftUser.email)
 
-        return response.status(constants.HTTP_STATUS_OK).json(createdUser);
-
+        response.status(constants.HTTP_STATUS_CREATED).json(createdUser)
     } catch (error) {
         next(error);
     }
-};
+}
 
 const list = async (request: JWTRequest, response: Response): Promise<Response> => {
 
@@ -91,7 +96,7 @@ const userIdValidator: ValidationChain[] = [
   param('userId').isUUID()
 ];
 
-const userController =  {
+const userController = {
     createUserValidators,
     createUser,
     list,

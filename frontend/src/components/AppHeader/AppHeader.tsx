@@ -59,6 +59,12 @@ function AppHeader() {
         history.push('/accueil');
     }
 
+    function displayName(): string {
+        return authUser.user.firstName && authUser.user.lastName
+          ? `${authUser.user.firstName} ${authUser.user.lastName}`
+          : authUser.user.email
+    }
+
     const menuActions = [
         { title: 'Modifier mon mot de passe', icon: 'ri-key-2-fill', onClick: () => history.push('/compte/mot-de-passe')},
         { title: 'Me déconnecter', icon: 'ri-lock-line', onClick: () => logoutUser()}
@@ -78,7 +84,7 @@ function AppHeader() {
                                 <ToolItem as="div">
                                     <AppActionsMenu
                                         actions={menuActions}
-                                        title={`${authUser.user.firstName} ${authUser.user.lastName}`}
+                                        title={displayName()}
                                         icon="ri-account-circle-line"
                                         iconPosition="left"/>
                                 </ToolItem>

@@ -3,10 +3,12 @@ import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
 import establishmentController from '../controllers/establishmentController';
 import validator from '../middlewares/validator';
+import userController from "../controllers/userController";
 
 const router = express.Router();
 
-router.get('/api/account/prospect', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
+router.get('/api/prospects/:email', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
+router.post('/api/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
 router.post('/api/authenticate', accountController.signin);
 router.get('/api/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
 router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);

@@ -4,7 +4,12 @@ export interface EstablishmentApi {
     siren: number,
     available: boolean,
     localities: LocalityApi[]
+    campaignIntent?: CampaignIntent
 }
+
+export type CampaignIntent = '0-2' | '2-4' | '4+'
+
+export const INTENTS: CampaignIntent[] = ['0-2', '2-4', '4+']
 
 export interface EstablishmentDataApi {
     id: string,

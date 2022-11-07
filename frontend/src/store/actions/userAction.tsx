@@ -5,7 +5,6 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { UserFilters } from '../../models/UserFilters';
-import { fetchAvailableEstablishments } from './authenticationAction';
 
 export const FETCH_USER_LIST = 'FETCH_USER_LIST';
 export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
@@ -103,21 +102,9 @@ export const removeUser = (userId: string) => {
 };
 
 export const createUser = (draftUser: DraftUser) => {
-
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
+    return async function (dispatch: Dispatch) {
         dispatch(showLoading());
-
-        userService.createUser(draftUser)
-            .then(() => {
-                dispatch(hideLoading());
-                changeUserPagination(getState().user.paginatedUsers.page, getState().user.paginatedUsers.perPage)(dispatch, getState)
-                if (getState().authentication.availableEstablishments?.map(_ => _.id).indexOf(draftUser.establishmentId) === -1) {
-                    fetchAvailableEstablishments()(dispatch)
-                }
-            });
+        await userService.createUser(draftUser)
+        dispatch(hideLoading());
     };
 };
-
-
-

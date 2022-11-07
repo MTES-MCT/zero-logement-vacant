@@ -66,7 +66,10 @@ export const genUserApi = (establishmentId: string) => {
 export const genProspectApi = () => {
     return <ProspectApi>{
         email: genEmail(),
-        establishmentSiren: genSiren(),
+        establishment: {
+            id: uuidv4(),
+            siren: genSiren()
+        },
         hasAccount: genBoolean(),
         hasCommitment: genBoolean()
     };

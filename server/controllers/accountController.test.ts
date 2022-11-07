@@ -13,6 +13,7 @@ import db from '../repositories/db';
 import { prospectsTable } from '../repositories/prospectRepository';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
 import { JsonObject } from 'type-fest';
+import { Establishment1 } from "../../database/seeds/test/001-establishments";
 
 const app = express();
 app.use(bodyParser.json());
@@ -43,12 +44,12 @@ describe('Account controller', () => {
 
     describe('getAccount', () => {
 
-        const testRoute = (email?: string) => `/api/account/prospect${email ? '?email=' + email : ''}`
+        const testRoute = (email: string) => `/api/prospects/${email}`
 
-        it('should received a valid email', async () => {
+        it('should receive a valid email', async () => {
 
-            await request(app).get(testRoute())
-                .expect(constants.HTTP_STATUS_BAD_REQUEST);
+            await request(app).get(testRoute(''))
+                .expect(constants.HTTP_STATUS_NOT_FOUND);
 
             await request(app).get(testRoute(randomstring.generate()))
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -96,7 +97,7 @@ describe('Account controller', () => {
 
             const email = genEmail()
             const hasCommitment = genBoolean()
-            const siren = genNumber(9)
+            const siren = Establishment1.siren
 
             mockCeremaConsultUser(email, {
                 siret: String(siren) + String(genNumber(5)),
@@ -111,7 +112,10 @@ describe('Account controller', () => {
                 email,
                 hasAccount: true,
                 hasCommitment,
-                establishmentSiren: String(siren)
+                establishment: {
+                    id: Establishment1.id,
+                    siren: siren
+                }
             })
 
             expect(fetchMock).toHaveBeenCalled();
@@ -133,7 +137,7 @@ describe('Account controller', () => {
         it('should consult Cerema for an existing prospect, then update an return the result when user known from Cerema', async () => {
 
             const hasCommitment = genBoolean()
-            const siren = genNumber(9)
+            const siren = Establishment1.siren
 
             mockCeremaConsultUser(Prospect1.email, {
                 siret: String(siren) + String(genNumber(5)),
@@ -148,7 +152,10 @@ describe('Account controller', () => {
                 email: Prospect1.email,
                 hasAccount: true,
                 hasCommitment,
-                establishmentSiren: String(siren)
+                establishment: {
+                    id: Establishment1.id,
+                    siren: siren
+                }
             })
 
             expect(fetchMock).toHaveBeenCalled();

@@ -1,6 +1,9 @@
 export interface ProspectApi {
-    email: string,
-    establishmentSiren?: number,
-    hasAccount: boolean,
+    email: string
+    establishment?: {
+        id: string
+        siren: number
+    }
+    hasAccount: boolean
     hasCommitment: boolean
 }

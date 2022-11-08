@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SearchableSelect } from '@dataesr/react-dsfr';
 import establishmentService from '../../services/establishment.service';
+import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
 
 interface Props {
     onChange(establishmentId: string): void
@@ -8,8 +9,13 @@ interface Props {
 
 const EstablishmentSearchableSelect = ({ onChange }: Props) => {
 
+    const availableEstablishmentOptions = useAvailableEstablishmentOptions();
     const [establishmentOptions, setEstablishmentOptions] = useState<{value: string, label: string}[]>([]);
     const quickSearchAbortRef = useRef<() => void | null>();
+
+    useEffect(() => {
+        setEstablishmentOptions(availableEstablishmentOptions);
+    }, [availableEstablishmentOptions])
 
     const quickSearch = (query: string) => {
 
@@ -19,7 +25,7 @@ const EstablishmentSearchableSelect = ({ onChange }: Props) => {
         quickSearchAbortRef.current = quickSearchService.abort;
 
         if (query.length) {
-            return quickSearchService.fetch(query)
+             quickSearchService.fetch(query)
                 .then(_ => setEstablishmentOptions(_.map(
                     establishment => ({
                         value: establishment.id,
@@ -28,7 +34,7 @@ const EstablishmentSearchableSelect = ({ onChange }: Props) => {
                 ))
                 .catch(err => console.log('error', err))
         } else {
-            return Promise.resolve([])
+            setEstablishmentOptions(availableEstablishmentOptions)
         }
     }
 
@@ -37,6 +43,8 @@ const EstablishmentSearchableSelect = ({ onChange }: Props) => {
             options={establishmentOptions}
             label="Etablissement : "
             onChange={onChange}
+            placeholder="Rechercher un établissement"
+            required={true}
             onTextChange={(q: string) => quickSearch(q)}
         />
     );

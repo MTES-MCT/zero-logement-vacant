@@ -4,6 +4,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
+    cadastralClassificationOptions,
     campaignsCountOptions,
     dataYearsExcludedOptions,
     dataYearsIncludedOptions,
@@ -11,7 +12,6 @@ import {
     housingCountOptions,
     HousingFilters,
     housingKindOptions,
-    housingStateOptions,
     localityKindsOptions,
     multiOwnerOptions,
     ownerAgeOptions,
@@ -60,9 +60,9 @@ const HousingFiltersBadges = ({ filters, onChange }: { filters: HousingFilters, 
                 <FilterBadges options={roomsCountOptions}
                               filters={filters.roomsCounts}
                               onChange={onChange && (values => onChange({roomsCounts: values}))}/>
-                <FilterBadges options={housingStateOptions}
-                              filters={filters.housingStates}
-                              onChange={onChange && (values => onChange({housingStates: values}))}/>
+                <FilterBadges options={cadastralClassificationOptions}
+                              filters={filters.cadastralClassifications}
+                              onChange={onChange && (values => onChange({cadastralClassifications: values}))}/>
                 <FilterBadges options={buildingPeriodOptions}
                               filters={filters.buildingPeriods}
                               onChange={onChange && (values => onChange({buildingPeriods: values}))}/>

@@ -7,7 +7,7 @@ export interface HousingFiltersApi {
     multiOwners?: string[];
     beneficiaryCounts?: string[];
     housingKinds?: string[];
-    housingStates?: string[];
+    cadastralClassifications?: string[];
     housingAreas?: string[];
     roomsCounts?: string[];
     buildingPeriods?: string[];

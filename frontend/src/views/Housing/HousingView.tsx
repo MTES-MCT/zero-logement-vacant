@@ -48,6 +48,7 @@ import { HousingOwner } from '../../models/Owner';
 import HousingAdditionalOwners from './HousingAdditionalOwners';
 import { FormState } from '../../store/actions/FormState';
 import { LocalityKindLabels } from '../../models/Establishment';
+import { cadastralClassificationOptions } from '../../models/HousingFilters';
 
 const HousingView = () => {
 
@@ -337,10 +338,8 @@ const HousingView = () => {
                                     {housing.buildingYear}
                                 </Text>
                                 <Text size="md" className="fr-mb-1w">
-                                    <b>État :&nbsp;</b>
-                                    {housing.uncomfortable && 'Inconfortable'}
-                                    {!housing.uncomfortable && housing.cadastralClassification >= 4 && housing.cadastralClassification <= 6 && 'Confortable'}
-                                    {!housing.uncomfortable && housing.cadastralClassification >= 1 && housing.cadastralClassification <= 3 && 'Très confortable'}
+                                    <b>Classement cadastral :&nbsp;</b>
+                                    {cadastralClassificationOptions.find(_ => _.value === String(housing.cadastralClassification))?.label}
                                 </Text>
                             </Col>
                             <Col n="4">

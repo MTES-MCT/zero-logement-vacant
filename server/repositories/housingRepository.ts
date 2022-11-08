@@ -194,21 +194,8 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                 whereBuilder.orWhereIn('rooms_count', filters.roomsCounts);
             })
         }
-        if (filters.housingStates?.length) {
-            queryBuilder.where(function (whereBuilder: any) {
-                if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
-                    whereBuilder.orWhere('uncomfortable', true)
-                }
-                if (filters.housingStates?.indexOf('Confortable') !== -1) {
-                    whereBuilder.orWhere(function (whereBuilder2: any) {
-                        whereBuilder2.andWhereBetween('cadastral_classification', [4, 6])
-                        whereBuilder2.andWhereNot('uncomfortable', true)
-                    })
-                }
-                if (filters.housingStates?.indexOf('VeryConfortable') !== -1) {
-                    whereBuilder.orWhereBetween('cadastral_classification', [1, 3])
-                }
-            })
+        if (filters.cadastralClassifications?.length) {
+            queryBuilder.whereIn('cadastral_classification', filters.cadastralClassifications)
         }
         if (filters.buildingPeriods?.length) {
             queryBuilder.where(function (whereBuilder: any) {

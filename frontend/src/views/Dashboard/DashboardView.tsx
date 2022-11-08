@@ -1,5 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { Container, Link, Title } from '@dataesr/react-dsfr';
+import {
+  Callout,
+  CalloutText,
+  CalloutTitle,
+  Container,
+  Link,
+  Text,
+  Title
+} from '@dataesr/react-dsfr';
 import { useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -15,6 +23,8 @@ import {
     TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+
+import styles from './dashboard-view.module.scss'
 
 
 const DashboardView = () => {
@@ -59,40 +69,76 @@ const DashboardView = () => {
         history.push('/base-de-donnees?q='+query);
     }
 
+    const hasCampaign = (): boolean => !!campaignBundleList?.length
+
+    function NoCampaign() {
+        return (
+          <>
+              <Title as="h2">Vous n’avez pas de campagne en cours.</Title>
+              <Callout hasInfoIcon={false}>
+                <CalloutTitle as="h3" size="xxl">
+                  Qu’est ce qu’une campagne ?
+                </CalloutTitle>
+                <CalloutText as="p">
+                  On appelle "campagne" un envoi de courriers postaux auprès
+                  d’un public cible de propriétaires de logements vacants.
+                  Pour lancer une campagne, il suffit : (1) de <strong>créer un échantillon </strong>
+                  de logements à mobiliser en filtrant la base de données, (2) d’<strong>exporter le fichier </strong>
+                  adapté à vos outils de publipostages, (3) de <strong>suivre ensuite les retours</strong> des propriétaires.
+                </CalloutText>
+                <Link title="Accéder à la base de données" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
+                  Créer votre première campagne
+                </Link>
+              </Callout>
+          </>
+        )
+    }
+
     return (
         <>
-            <Container spacing="py-4w mb-4w">
-                <Title as="h1" className="fr-py-3w">
-                    Bienvenue sur Zéro Logement Vacant
-                </Title>
-                <AppSearchBar onSearch={search}
-                              onKeySearch={quickSearch}
-                              placeholder="Rechercher une adresse ou un propriétaire..."
-                              size="lg"/>
-                <Link
-                  title="Accéder à la base de données"
-                  href="/base-de-donnees"
-                  display="flex"
-                  icon="ri-arrow-right-line"
-                  iconSize="1x"
-                  className="fr-link float-right fr-my-3w"
-                >
-                    Accéder à la base de données
-                </Link>
-            </Container>
-            <div className="bg-100">
-                <Container spacing="py-4w">
-                    <Title as="h2">
-                        Campagnes en cours
+            <div className="bg-100 fr-pt-8w fr-pb-12w">
+                <Container>
+                    <Title as="h1">
+                        Bienvenue sur Zéro Logement Vacant
                     </Title>
-                    <CampaignBundleList campaignBundleList={campaignBundleList?.filter(_ => _.campaignNumber) ?? []} />
-                    <div className="align-center fr-pt-4w">
-                        <Link title="Accéder à la base de données" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
-                            Créer une campagne
-                        </Link>
-                    </div>
+                    <Text size="lead" spacing="pb-3w" className={styles.subtitle}>
+                      Zéro logement Vacant vous aide à mobiliser les
+                      propriétaires de logements vacants de longue<br /> durée de
+                      votre territoire et à suivre l’avancée de leur dossier
+                      jusqu’à la sortie de vacance.
+                    </Text>
+                    <AppSearchBar onSearch={search}
+                                  onKeySearch={quickSearch}
+                                  placeholder="Rechercher une adresse ou un propriétaire..."
+                                  size="lg"/>
+                    <Link
+                      title="Accéder à la base de données"
+                      href="/base-de-donnees"
+                      display="flex"
+                      icon="ri-arrow-right-line"
+                      iconSize="1x"
+                      className="fr-link float-right fr-my-2w"
+                    >
+                        Accéder à la base de données
+                    </Link>
                 </Container>
             </div>
+            <Container spacing="py-4w">
+                {hasCampaign() && <NoCampaign />}
+                {!hasCampaign() &&
+                  <>
+                      <Title as="h2">
+                          Campagnes en cours
+                      </Title>
+                      <CampaignBundleList campaignBundleList={campaignBundleList?.filter(_ => _.campaignNumber) ?? []} />
+                      <div className="align-center fr-pt-4w">
+                          <Link title="Accéder à la base de données" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
+                              Créer une campagne
+                          </Link>
+                      </div>
+                  </>
+                }
+            </Container>
         </>
     );
 };

@@ -29,7 +29,7 @@ function AppFooter() {
                 </FooterBodyItem>
             </FooterBody>
             <FooterBottom>
-                <FooterLink href="https://beta.gouv.fr" target="_blank">Les startups d&apos;Etat</FooterLink>
+                <FooterLink href="https://beta.gouv.fr" target="_blank">Les startups d’Etat</FooterLink>
                 <FooterLink href="mailto:contact@zerologementvacant.beta.gouv.fr">Nous écrire</FooterLink>
                 <FooterLink href="/accessibilite">Accessibilité: non conforme</FooterLink>
                 <FooterLink href="https://github.com/MTES-MCT/zero-logement-vacant" target="_blank">Code source</FooterLink>

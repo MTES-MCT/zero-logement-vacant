@@ -196,7 +196,7 @@ const HomeView = () => {
                         <Col className={styles.quote}>
                             <img src={quote} alt=""/>
                             <Text size="lg">
-                                «&nbsp;L&apos;intégration de ZLV nous a permis de structurer et de lancer une action de lutte contre la vacance, qui n&apos;existait pas précédemment. Nous avons aussi amélioré nos prises de contacts avec les propriétaires grâce aux ressources et retours d&apos;expériences partagés par la communauté.&nbsp;»
+                                «&nbsp;L’intégration de ZLV nous a permis de structurer et de lancer une action de lutte contre la vacance, qui n’existait pas précédemment. Nous avons aussi amélioré nos prises de contacts avec les propriétaires grâce aux ressources et retours d’expériences partagés par la communauté.&nbsp;»
                             </Text>
                             <Row>
                                 <Col n="2">

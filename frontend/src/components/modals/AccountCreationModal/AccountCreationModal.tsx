@@ -130,16 +130,16 @@ function AccountCreationModal(props: Props) {
           Fermer
         </ModalClose>
         <ModalTitle>
-          Votre demande d&apos;accès aux données LOVAC n&apos;a pas encore été validée
+          Votre demande d’accès aux données LOVAC n’a pas encore été validée
         </ModalTitle>
         <ModalContent>
           <Text>
-            Vous avez déjà signé et transmis l&apos;acte d&apos;engagement
-            permettant d&apos;accéder aux données LOVAC via la plateforme
+            Vous avez déjà signé et transmis l’acte d’engagement
+            permettant d’accéder aux données LOVAC via la plateforme
             Démarches Simplifiées.
           </Text>
           <Text>
-            Cependant, votre demande n&apos;a pas encore
+            Cependant, votre demande n’a pas encore
             été validée. Nous reviendrons très prochainement vers vous
             pour finaliser la création de votre compte.
           </Text>
@@ -219,21 +219,21 @@ function AccountCreationModal(props: Props) {
           Fermer
         </ModalClose>
         <ModalTitle>
-          Vous n&apos;avez pas signé et transmis l&apos;acte d&apos;engagement
-          permettant d&apos;accéder aux données LOVAC
+          Vous n’avez pas signé et transmis l’acte d’engagement
+          permettant d’accéder aux données LOVAC
         </ModalTitle>
         <ModalContent>
           <Text>
-            Vous n&apos;avez pas l&apos;autorisation d&apos;accéder aux données
-            LOVAC. Veuillez signer et transmettre l&apos;acte d&apos;engagement
-            permettant d&apos;accéder à ces données en suivant la procédure
+            Vous n’avez pas l’autorisation d’accéder aux données
+            LOVAC. Veuillez signer et transmettre l’acte d’engagement
+            permettant d’accéder à ces données en suivant la procédure
             indiquée sur le site du Cerema.
           </Text>
           <Text>
-            Vous avez peut être signé et transmis l&apos;acte d&apos;engagement
-            permettant d&apos;accéder aux données LOVAC via une adresse mail
+            Vous avez peut être signé et transmis l’acte d’engagement
+            permettant d’accéder aux données LOVAC via une adresse mail
             différente. Dans ce cas, <Link title="Modifier l'adresse email" href="#" isSimple onClick={back}>
-              réessayez avec l&apos;adresse mail utilisée sur Démarches Simplifiées.
+              réessayez avec l’adresse mail utilisée sur Démarches Simplifiées.
             </Link>
           </Text>
         </ModalContent>

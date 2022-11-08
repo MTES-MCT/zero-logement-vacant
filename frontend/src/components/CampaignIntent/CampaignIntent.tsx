@@ -8,9 +8,9 @@ interface Props {
 
 const CampaignIntent = (props: Props) => {
   const values = [
-    { label: 'Dans les 2 prochains mois', value: '0-2' },
-    { label: 'Dans 2 à 4 mois', value: '2-4' },
-    { label: 'Dans plus de 4 mois', value: '4+' }
+    { label: <strong>Dans les 2 prochains mois</strong>, value: '0-2' },
+    { label: <span>Dans <strong>2 à 4 mois</strong></span>, value: '2-4' },
+    { label: <span>Dans <strong>plus de 4 mois</strong></span>, value: '4+' }
   ]
 
   return (

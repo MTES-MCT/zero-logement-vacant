@@ -112,10 +112,11 @@ function AccountCreationModal(props: Props) {
             messageType={messageType('email')}
             message={message('email')}
             label="Adresse email"
+            hint="Veuillez renseigner l’adresse utilisée sur Démarches Simplifiées pour transmettre l’acte d'engagement."
             required
           />
         </ModalContent>
-        <ModalFooter>
+        <ModalFooter className="fr-grid-row--right">
           <Button title="Continuer" disabled={!isValid()} onClick={next}>Continuer</Button>
         </ModalFooter>
       </Modal>
@@ -166,7 +167,7 @@ function AccountCreationModal(props: Props) {
     }
 
     return (
-      <Modal isOpen={true} hide={props.onClose}>
+      <Modal isOpen={true} hide={props.onClose} size="lg">
         <ModalClose hide={props.onClose} title="Fermer la fenêtre">
           Fermer
         </ModalClose>
@@ -198,7 +199,7 @@ function AccountCreationModal(props: Props) {
             required
           />
         </ModalContent>
-        <ModalFooter>
+        <ModalFooter  className="fr-grid-row--right">
           <Button title="Continuer" disabled={!isValid()} onClick={next}>
             Continuer
           </Button>
@@ -213,7 +214,7 @@ function AccountCreationModal(props: Props) {
     }
 
     return (
-      <Modal isOpen={true} hide={props.onClose}>
+      <Modal isOpen={true} hide={props.onClose} size="lg">
         <ModalClose hide={props.onClose} title="Fermer la fenêtre">
           Fermer
         </ModalClose>
@@ -256,7 +257,7 @@ function AccountCreationModal(props: Props) {
     }
 
     return (
-      <Modal isOpen={true} hide={props.onClose}>
+      <Modal isOpen={true} hide={props.onClose} size="lg">
         <ModalClose hide={props.onClose} title="Fermer la fenêtre">
           Fermer
         </ModalClose>
@@ -276,7 +277,7 @@ function AccountCreationModal(props: Props) {
             onChange={setCampaignIntent}
           />
         </ModalContent>
-        <ModalFooter>
+        <ModalFooter className="fr-grid-row--right">
           <Button title="Créer votre compte" disabled={!isValid()} onClick={createAccount}>
             Créer votre compte
           </Button>

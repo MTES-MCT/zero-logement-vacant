@@ -56,7 +56,6 @@ function AppHeader() {
 
     const logoutUser = () => {
         dispatch(logout())
-        history.push('/accueil');
     }
 
     function displayName(): string {

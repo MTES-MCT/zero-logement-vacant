@@ -21,7 +21,7 @@ const LoginView = () => {
     const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});
 
-    const { loginError } = useSelector((state: ApplicationState) => state.authentication);
+    const { loginError, isLoggedOut } = useSelector((state: ApplicationState) => state.authentication);
 
     const loginForm = yup.object().shape({
         isAdmin: yup.boolean(),
@@ -59,6 +59,13 @@ const LoginView = () => {
     return (
         <>
             <Container spacing="py-4w">
+                {isLoggedOut &&
+                    <Alert title="Déconnexion"
+                           description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
+                           className="fr-my-3w"
+                           type="warning"
+                           closable/>
+                }
                 <form onSubmit={submitLoginForm} id="login_form">
                     <TextInput
                         value={email}

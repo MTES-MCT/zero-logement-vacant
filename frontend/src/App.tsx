@@ -54,7 +54,7 @@ function AppWrapper () {
 
 function App() {
 
-    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser, isLoggedOut } = useSelector((state: ApplicationState) => state.authentication);
     const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
@@ -115,7 +115,7 @@ function App() {
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
                             <Route path="/*">
-                                <Redirect to="/" />
+                                { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
                             </Route>
                         </Switch>
                     }

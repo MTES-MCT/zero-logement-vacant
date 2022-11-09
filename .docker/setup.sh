@@ -28,7 +28,9 @@ echo "Migrated."
 
 docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/001-load-establishments-localities.sql -v filePath=data/common/epci.csv
 echo "Establishments loaded."
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/002-load-data.sql -v filePath=data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
+docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/002-load-municipalities-localities.sql -v filePath=data/common/commune.csv
+echo "Establishments loaded."
+docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/003-load-data.sql -v filePath=data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
 echo "Housings loaded."
 
 npm run seed

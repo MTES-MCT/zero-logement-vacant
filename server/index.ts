@@ -22,7 +22,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr', 'https://client.crisp.chat'],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css', 'https://client.crisp.chat/static/stylesheets/client_default.css'],
-            imgSrc: ["'self'", 'data:'],
+            imgSrc: ["'self'", 'data:', 'https://image.crisp.chat'],
             fontSrc: [
                 "'self'", 'data:',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',

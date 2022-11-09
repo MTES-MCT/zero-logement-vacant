@@ -3,8 +3,8 @@ import config from '../utils/config';
 
 const transporter = nodemailer.createTransport({
     host: config.mailer.host,
-    port: Number(config.mailer.port),
-    secure: Boolean(config.mailer.secure),
+    port: config.mailer.port,
+    secure: config.mailer.secure,
     auth: {
         user: config.mailer.user,
         pass: config.mailer.password

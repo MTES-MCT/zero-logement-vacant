@@ -18,6 +18,9 @@ interface Config {
     }
     databaseUrl: string
     databaseUrlTest: string
+    features: {
+        enableTestAccounts: boolean
+    }
     sentryDNS: string | null
     maxRate: number
     application: {
@@ -74,6 +77,13 @@ const config = convict<Config>({
         env: 'DATABASE_URL_TEST',
         format: String,
         default: null
+    },
+    features: {
+        enableTestAccounts: {
+            env: 'ENABLE_TEST_ACCOUNTS',
+            format: 'strict-boolean',
+            default: process.env.NODE_ENV !== 'production'
+        }
     },
     sentryDNS: {
         env: 'SENTRY_DNS',

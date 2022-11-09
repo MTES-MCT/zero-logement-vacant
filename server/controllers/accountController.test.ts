@@ -14,6 +14,7 @@ import { prospectsTable } from '../repositories/prospectRepository';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
 import { JsonObject } from 'type-fest';
 import { Establishment1 } from "../../database/seeds/test/001-establishments";
+import { TEST_ACCOUNTS } from "../models/ProspectApi";
 
 const app = express();
 app.use(bodyParser.json());
@@ -62,6 +63,18 @@ describe('Account controller', () => {
             await request(app).get(testRoute(randomstring.generate()))
                 .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
+        });
+
+        it('should bypass user validation in case of a reserved account', async () => {
+            const emails = TEST_ACCOUNTS.map(account => account.email)
+            const responses = await Promise.all(
+              emails.map(email => request(app).get(testRoute(email)))
+            )
+
+            responses.forEach((response, i) => {
+                expect(response.status).toBe(200)
+                expect(response.body).toStrictEqual(TEST_ACCOUNTS[i])
+            })
         });
 
         it('should return forbidden when a user already exist', async () => {

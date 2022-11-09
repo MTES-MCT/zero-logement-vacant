@@ -22,13 +22,14 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr', 'https://client.crisp.chat'],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css', 'https://client.crisp.chat/static/stylesheets/client_default.css'],
-            imgSrc: ["'self'", 'data:', 'https://image.crisp.chat'],
+            imgSrc: ["'self'", 'https://image.crisp.chat', 'data:'],
             fontSrc: [
                 "'self'", 'data:',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
-                'https://client.crisp.chat/static/fonts/noto_sans/0020-007F/noto_sans_regular.woff2'
+                'https://client.crisp.chat/static/fonts/noto_sans/0020-007F/noto_sans_regular.woff2',
+                'https://client.crisp.chat/static/fonts/noto_sans/0020-007F/noto_sans_bold.woff2'
             ],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"],

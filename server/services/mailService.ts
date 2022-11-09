@@ -2,12 +2,12 @@ import nodemailer from 'nodemailer';
 import config from '../utils/config';
 
 const transporter = nodemailer.createTransport({
-    host: config.mailer.host,
-    port: config.mailer.port,
-    secure: config.mailer.secure,
+    host: config.mailer.host ?? undefined,
+    port: config.mailer.port ?? undefined,
+    secure: config.mailer.secure ?? undefined,
     auth: {
-        user: config.mailer.user,
-        pass: config.mailer.password
+        user: config.mailer.user ?? undefined,
+        pass: config.mailer.password ?? undefined
     },
 });
 

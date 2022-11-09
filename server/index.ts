@@ -20,7 +20,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
+            scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr', 'https://client.crisp.chat'],
             styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
             imgSrc: ["'self'", 'data:'],
             fontSrc: [

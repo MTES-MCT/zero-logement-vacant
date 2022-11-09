@@ -20,9 +20,24 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr', 'https://client.crisp.chat'],
-            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css', 'https://client.crisp.chat/static/stylesheets/client_default.css'],
-            imgSrc: ["'self'", 'https://image.crisp.chat', 'data:'],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                'https://stats.data.gouv.fr',
+                'https://client.crisp.chat'
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
+                'https://client.crisp.chat/static/stylesheets/client_default.css'
+            ],
+            imgSrc: [
+                "'self'",
+                'https://image.crisp.chat',
+                'https://client.crisp.chat',
+                'data:'
+            ],
             fontSrc: [
                 "'self'",
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
@@ -33,7 +48,12 @@ app.use(helmet({
             ],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"],
-            connectSrc: ["'self'", 'https://stats.data.gouv.fr', 'wss://client.relay.crisp.chat', 'https://client.crisp.chat']
+            connectSrc: [
+                "'self'",
+                'https://stats.data.gouv.fr',
+                'wss://client.relay.crisp.chat',
+                'https://client.crisp.chat'
+            ]
         },
     }
 }));

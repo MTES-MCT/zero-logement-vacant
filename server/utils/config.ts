@@ -19,7 +19,7 @@ interface Config {
     databaseUrl: string
     databaseUrlTest: string
     sentryDNS: string | null
-    maxRate: string
+    maxRate: number
     application: {
         host: string
     }
@@ -83,8 +83,8 @@ const config = convict<Config>({
     },
     maxRate: {
         env: 'MAX_RATE',
-        format: String,
-        default: '10000'
+        format: 'int',
+        default: 10000
     },
     application: {
         host: {

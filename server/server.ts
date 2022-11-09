@@ -51,7 +51,7 @@ export function createServer(): Server {
 
   const rateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes window
-    max: parseInt(config.maxRate ?? '10000'), // start blocking after X requests for windowMs time
+    max: config.maxRate, // start blocking after X requests for windowMs time
     message: 'Too many request from this address, try again later please.',
   });
   app.use(rateLimiter);

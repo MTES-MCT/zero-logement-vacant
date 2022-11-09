@@ -27,11 +27,12 @@ app.use(helmet({
                 "'self'", 'data:',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
                 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
-                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'
+                'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
+                'https://client.crisp.chat/static/fonts/noto_sans/0020-007F/noto_sans_regular.woff2'
             ],
             objectSrc: ["'self'"],
             mediaSrc: ["'self'"],
-            connectSrc: ["'self'", 'https://stats.data.gouv.fr']
+            connectSrc: ["'self'", 'https://stats.data.gouv.fr', 'wss://client.relay.crisp.chat']
         },
     }
 }));

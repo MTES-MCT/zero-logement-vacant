@@ -40,3 +40,11 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         hasCommitment: false
     }
 ]
+
+export function isTestAccount(email: string): boolean {
+    return TEST_ACCOUNTS.map(account => account.email).includes(email)
+}
+
+export function isValid(prospect: ProspectApi): boolean {
+   return prospect.hasAccount && prospect.hasCommitment
+}

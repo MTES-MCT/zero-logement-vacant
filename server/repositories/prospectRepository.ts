@@ -4,10 +4,10 @@ import { establishmentsTable } from "./establishmentRepository";
 
 export const prospectsTable = 'prospects';
 
-const get = async (email: string): Promise<ProspectApi> => {
+const get = async (email: string): Promise<ProspectApi | null> => {
     console.log('Get prospect by email', email)
 
-    return db(prospectsTable)
+    const prospect = await db(prospectsTable)
         .select(
           `${prospectsTable}.*`,
           'e.id as establishment_id',
@@ -18,7 +18,8 @@ const get = async (email: string): Promise<ProspectApi> => {
         // but still more performant than listing all the establishments
         .leftJoin({ e: establishmentsTable }, 'e.siren', `${prospectsTable}.establishment_siren`)
         .first()
-        .then(parseProspectApi)
+
+    return prospect ? parseProspectApi(prospect) : null
 }
 
 const upsert = async (prospectApi: ProspectApi): Promise<ProspectApi> => {

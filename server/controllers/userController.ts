@@ -65,7 +65,11 @@ const createUser = async (request: JWTRequest, response: Response, next: NextFun
             establishmentId: body.establishmentId
         };
 
-        console.log('Create user', userApi)
+        console.log('Create user', {
+            id: userApi.id,
+            email: userApi.email,
+            establishmentId: userApi.establishmentId
+        })
 
         const userEstablishment = await establishmentRepository.get(body.establishmentId)
         const createdUser = await userRepository.insert(userApi);

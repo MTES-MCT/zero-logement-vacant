@@ -3,14 +3,14 @@ import { Express } from 'express';
 import config from './config';
 import * as sentryIntegrations from '@sentry/integrations';
 
-const initCaptureConsole = (): void => {
+const initCaptureConsole = (dsn: string): void => {
 
   const logLevel = ['error'];
 
   console.log(`Initializing Sentry for log level "${logLevel}" and config: ${config.sentryDNS}`);
 
   Sentry.init({
-    dsn: config.sentryDNS,
+    dsn,
     integrations: [
       new sentryIntegrations.CaptureConsole({ levels: logLevel }),
     ],
@@ -19,7 +19,7 @@ const initCaptureConsole = (): void => {
 
 const initCaptureConsoleWithHandler = (app: Express): void => {
   if (config.sentryDNS) {
-    initCaptureConsole();
+    initCaptureConsole(config.sentryDNS);
 
     // RequestHandler creates a separate execution context using domains, so that every
     // transaction/span/breadcrumb is attached to its own Hub instance

@@ -86,7 +86,7 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
     return (
         <>
             <Text size="lg" className="fr-mb-1w">
-                <b>Ajout d&apos;un propriétaire</b>
+                <b>Ajout d’un propriétaire</b>
             </Text>
             <div>
 

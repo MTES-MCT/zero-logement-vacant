@@ -10,7 +10,7 @@ export interface HousingFilters {
     multiOwners?: string[];
     beneficiaryCounts?: string[];
     housingKinds?: string[];
-    housingStates?: string[];
+    cadastralClassifications?: string[];
     housingAreas?: string[];
     roomsCounts?: string[];
     buildingPeriods?: string[];
@@ -105,10 +105,15 @@ export const roomsCountOptions: SelectOption[] = [
     {value: "5", label: "5 pièces et plus"},
 ];
 
-export const housingStateOptions: SelectOption[] = [
-    {value: "Inconfortable", label: "Inconfortable"},
-    {value: "Confortable", label: "Confortable"},
-    {value: "VeryConfortable", label: "Très confortable"},
+export const cadastralClassificationOptions: SelectOption[] = [
+    {value: "1", label: "1 - Grand luxe"},
+    {value: "2", label: "2 - Luxe"},
+    {value: "3", label: "3 - Très confortable"},
+    {value: "4", label: "4 - Confortable"},
+    {value: "5", label: "5 - Assez confortable"},
+    {value: "6", label: "6 - Ordinaire"},
+    {value: "7", label: "7 - Médiocre"},
+    {value: "8", label: "8 - Très médiocre"}
 ];
 
 export const buildingPeriodOptions: SelectOption[] = [
@@ -189,7 +194,7 @@ export const hasFilters = (housingFilters: HousingFilters) => {
         housingFilters.multiOwners?.length ||
         housingFilters.beneficiaryCounts?.length ||
         housingFilters.housingKinds?.length ||
-        housingFilters.housingStates?.length ||
+        housingFilters.cadastralClassifications?.length ||
         housingFilters.housingAreas?.length ||
         housingFilters.roomsCounts?.length ||
         housingFilters.buildingPeriods?.length ||

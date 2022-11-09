@@ -22,7 +22,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         hasCommitment: true
     },
     {
-        email: 'lovacko@beta.gouv.fr',
+        email: 'lovac_ko@beta.gouv.fr',
         establishment: {
             id: uuidv4(),
             siren: genSiren()
@@ -31,7 +31,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         hasCommitment: false
     },
     {
-        email: 'accountko@beta.gouv.fr',
+        email: 'account_ko@beta.gouv.fr',
         establishment: {
             id: uuidv4(),
             siren: genSiren()

@@ -28,8 +28,11 @@ jobs:
       - name : build
         run: npm run build
         env:
-          NODE_ENV: production
+          AUTH_SECRET: abcd1234
+          CEREMA_API_AUTH_TOKEN: ""
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
+          NODE_ENV: production
       - name: Frontend linter
         run: npm --prefix frontend run lint
       - name: Server linter
@@ -39,4 +42,7 @@ jobs:
       - name: Server tests
         run: npm run test
         env:
+          AUTH_SECRET: abcd1234
+          CEREMA_API_AUTH_TOKEN: ""
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv

@@ -66,7 +66,7 @@ const config = convict<Config>({
     },
     serverPort: {
         env: 'API_PORT',
-        format: 'port',
+        format: Number,
         default: 3001,
     },
     auth: {

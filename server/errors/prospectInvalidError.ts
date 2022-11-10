@@ -1,6 +1,6 @@
 import { constants } from "http2";
 
-import { HttpError } from "./http-error";
+import { HttpError } from "./httpError";
 import { ProspectApi } from "../models/ProspectApi";
 
 export default class ProspectInvalidError extends HttpError implements HttpError {

@@ -12,8 +12,8 @@ import prospectRepository from '../repositories/prospectRepository';
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import { isTestAccount, isValid, } from "../models/ProspectApi";
-import TestAccountError from "../errors/test-account-error";
-import ProspectInvalidError from "../errors/prospect-invalid-error";
+import TestAccountError from "../errors/testAccountError";
+import ProspectInvalidError from "../errors/prospectInvalidError";
 import ceremaService from "../services/ceremaService";
 
 const SALT = 10

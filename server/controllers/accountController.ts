@@ -8,7 +8,7 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { param, ValidationChain } from 'express-validator';
-import UserNotFoundError from '../errors/user-not-found-error';
+import UserNotFoundError from '../errors/userNotFoundError';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
 import { TEST_ACCOUNTS } from "../models/ProspectApi";

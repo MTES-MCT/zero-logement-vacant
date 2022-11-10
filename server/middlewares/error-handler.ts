@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { isClientError, isHttpError } from "../errors/http-error";
+import { isClientError, isHttpError } from "../errors/httpError";
 import { errors as compose, ErrorHandler, Next } from "compose-middleware";
 
 function log(error: Error, request: Request, response: Response, next: Next): void {

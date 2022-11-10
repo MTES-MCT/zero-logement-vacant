@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { genSiren } from "../test/testFixtures";
 
 export interface ProspectApi {
     email: string
@@ -16,7 +15,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         email: 'ok@beta.gouv.fr',
         establishment: {
             id: uuidv4(),
-            siren: genSiren()
+            siren: 40429048
         },
         hasAccount: true,
         hasCommitment: true
@@ -25,7 +24,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         email: 'lovac_ko@beta.gouv.fr',
         establishment: {
             id: uuidv4(),
-            siren: genSiren()
+            siren: 785716885
         },
         hasAccount: true,
         hasCommitment: false
@@ -34,7 +33,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
         email: 'account_ko@beta.gouv.fr',
         establishment: {
             id: uuidv4(),
-            siren: genSiren()
+            siren: 931547662
         },
         hasAccount: false,
         hasCommitment: false

@@ -26,18 +26,40 @@ export function createServer(): Server {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", 'https://stats.data.gouv.fr'],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css'],
-        imgSrc: ["'self'", 'data:'],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://stats.data.gouv.fr',
+          'https://client.crisp.chat'
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
+          'https://client.crisp.chat/static/stylesheets/client_default.css'
+        ],
+        imgSrc: [
+          "'self'",
+          'https://image.crisp.chat',
+          'https://client.crisp.chat',
+          'data:'
+        ],
         fontSrc: [
-          "'self'", 'data:',
+          "'self'",
           'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
           'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
-          'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf'
+          'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
+          'https://client.crisp.chat',
+          'data:'
         ],
         objectSrc: ["'self'"],
         mediaSrc: ["'self'"],
-        connectSrc: ["'self'", 'https://stats.data.gouv.fr']
+        connectSrc: [
+          "'self'",
+          'https://stats.data.gouv.fr',
+          'wss://client.relay.crisp.chat',
+          'https://client.crisp.chat'
+        ]
       },
     }
   }));

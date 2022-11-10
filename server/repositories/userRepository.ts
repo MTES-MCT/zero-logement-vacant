@@ -2,7 +2,7 @@ import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
-import UserNotFoundError from "../errors/user-not-found-error";
+import UserNotFoundError from "../errors/userNotFoundError";
 
 export const usersTable = 'users';
 

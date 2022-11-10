@@ -1,4 +1,4 @@
-import { HttpError } from "./http-error";
+import { HttpError } from "./httpError";
 import { constants } from "http2";
 
 export default class UserNotFoundError extends HttpError implements HttpError {

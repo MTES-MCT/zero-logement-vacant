@@ -8,9 +8,10 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { param, ValidationChain } from 'express-validator';
-import UserNotFoundError from '../errors/user-not-found-error';
+import UserNotFoundError from '../errors/userNotFoundError';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
+import { TEST_ACCOUNTS } from "../models/ProspectApi";
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -58,18 +59,20 @@ const getAccountValidator: ValidationChain[] = [
 ];
 
 const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
-
     const email = request.params.email as string;
-
     console.log('Get account', email)
 
-    try {
+    if (config.features.enableTestAccounts) {
+        const testAccount = TEST_ACCOUNTS.find(account => account.email === email)
+        if (testAccount) {
+            return response.status(constants.HTTP_STATUS_OK).json(testAccount)
+        }
+    }
 
+    try {
         await userRepository.getByEmail(email)
         response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-
     } catch (error) {
-
         if (error instanceof UserNotFoundError) {
             const ceremaUser = await ceremaService.consultUser(email)
             await prospectRepository.upsert(ceremaUser)

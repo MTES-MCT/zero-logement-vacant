@@ -4,13 +4,17 @@ import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { INTENTS } from '../models/EstablishmentApi';
+import { CampaignIntent, INTENTS } from '../models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import establishmentService from '../services/establishmentService';
 import prospectRepository from '../repositories/prospectRepository';
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
+import { isTestAccount, isValid, } from "../models/ProspectApi";
+import TestAccountError from "../errors/testAccountError";
+import ProspectInvalidError from "../errors/prospectInvalidError";
+import ceremaService from "../services/ceremaService";
 
 const SALT = 10
 
@@ -29,29 +33,52 @@ const createUserValidators = [
     body('lastName').isString().optional(),
 ];
 
+interface CreateUserBody {
+    email: string
+    password: string
+    campaignIntent: CampaignIntent
+    establishmentId: string
+    firstName?: string
+    lastName?: string
+}
+
 const createUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
     try {
-        const draftUser = request.body;
+        const body = request.body as CreateUserBody;
+
+        if (isTestAccount(body.email)) {
+            throw new TestAccountError(body.email)
+        }
+
+        const prospect = await prospectRepository.get(body.email) ?? await ceremaService.consultUser(body.email)
+        if (!isValid(prospect)) {
+            throw new ProspectInvalidError(prospect)
+        }
+
         const userApi: UserApi = {
             id: uuidv4(),
-            email: draftUser.email,
-            password: await bcrypt.hash(draftUser.password, SALT),
-            firstName: draftUser.firstName ?? '',
-            lastName: draftUser.lastName ?? '',
+            email: body.email,
+            password: await bcrypt.hash(body.password, SALT),
+            firstName: body.firstName ?? '',
+            lastName: body.lastName ?? '',
             role: UserRoles.Usual,
-            establishmentId: draftUser.establishmentId
+            establishmentId: body.establishmentId
         };
 
-        console.log('Create user', userApi)
+        console.log('Create user', {
+            id: userApi.id,
+            email: userApi.email,
+            establishmentId: userApi.establishmentId
+        })
 
-        const userEstablishment = await establishmentRepository.get(draftUser.establishmentId)
+        const userEstablishment = await establishmentRepository.get(body.establishmentId)
         const createdUser = await userRepository.insert(userApi);
 
         if (!userEstablishment.available) {
             await establishmentService.makeEstablishmentAvailable(userEstablishment)
         }
         // Remove associated prospect
-        await prospectRepository.remove(draftUser.email)
+        await prospectRepository.remove(body.email)
 
         response.status(constants.HTTP_STATUS_CREATED).json(createdUser)
     } catch (error) {

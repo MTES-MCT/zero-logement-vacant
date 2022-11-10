@@ -6,7 +6,7 @@ import { constants } from 'http2';
 import {
   genEstablishmentApi,
   genHousingApi,
-  genLocalityApi,
+  genLocalityApi, genSiren,
   genUserApi
 } from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
@@ -25,18 +25,92 @@ import housingRepository, {
 } from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import { createServer } from '../server';
+import { TEST_ACCOUNTS } from "../models/ProspectApi";
+import fetchMock from "jest-fetch-mock";
+import { JsonObject } from "type-fest";
+import { Request } from "express";
+import config from "../utils/config";
 
 const { app } = createServer()
 
 describe('User controller', () => {
 
-    describe('createUser', () => {
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  const mockCeremaConsultUser = (email: string, user: JsonObject | undefined) => {
+    fetchMock.mockResponse((request: Request) => {
+      return Promise.resolve(
+        (() => {
+          if (request.url === `${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`) {
+            return {
+              body: JSON.stringify(user ? [user] : []), init: { status: 200 }
+            }
+          } else if (request.url === `${config.ban.api.endpoint}/search/csv/`) {
+            return {
+              body: JSON.stringify([]), init: { status: 200 }
+            }
+          } else return { body: '', init: { status: 404 } }
+        })()
+      )
+    });
+  }
+
+  const mockCeremaFail = () => {
+    fetchMock.mockResponse(() => {
+      return Promise.resolve({
+        status: 404
+      })
+    })
+  }
+
+
+  describe('createUser', () => {
 
         const testRoute = '/api/users/creation'
 
         const draftUser = {...genUserApi(Establishment1.id), id: undefined}
 
+        it('should not actually create a user if it is a test account', async () => {
+          const emails = TEST_ACCOUNTS.map(account => account.email)
+          const responses = await Promise.all(
+            emails.map(email =>
+              request(app)
+                .post(testRoute)
+                .send({
+                  ...draftUser,
+                  email,
+                })
+            )
+          )
+
+          responses.forEach(response => {
+            expect(response.status).toBe(constants.HTTP_STATUS_FORBIDDEN)
+          })
+          const users = await db(usersTable)
+            .count('email as count')
+            .whereIn('email', emails)
+            .first()
+          expect(Number(users?.count)).toBe(0)
+        })
+
+        it('should fail if the user is not allowed by Cerema', async () => {
+          mockCeremaFail()
+
+          const { status } = await request(app).post(testRoute).send(draftUser)
+
+          expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+          expect(fetchMock).toHaveBeenCalled()
+        })
+
         it('should be not found if the user establishment does not exist', async () => {
+            mockCeremaConsultUser(draftUser.email, {
+              email: draftUser.email,
+              siret: genSiren().toString(),
+              lovac_ok: true
+            })
+
             await request(app).post(testRoute)
                 .send({
                     ...draftUser,
@@ -85,6 +159,11 @@ describe('User controller', () => {
         });
 
         it('should create a new user with Usual role', async () => {
+            mockCeremaConsultUser(draftUser.email, {
+              email: draftUser.email,
+              siret: genSiren().toString(),
+              lovac_ok: true
+            })
 
             const res = await request(app).post(testRoute)
                 .send({ ...draftUser, role: UserRoles.Admin })
@@ -116,7 +195,11 @@ describe('User controller', () => {
         })
 
         it('should activate user establishment if needed', async () => {
-
+            mockCeremaConsultUser(draftUser.email, {
+              email: draftUser.email,
+              siret: genSiren().toString(),
+              lovac_ok: true
+            })
             const Locality = genLocalityApi()
             const Establishment = genEstablishmentApi(Locality)
             await db(localitiesTable).insert(establishmentRepository.formatLocalityApi(Locality))
@@ -135,6 +218,8 @@ describe('User controller', () => {
                     establishmentId: Establishment.id
                 })
                 .expect(constants.HTTP_STATUS_CREATED);
+
+            jest.runOnlyPendingTimers();
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({

@@ -5,6 +5,15 @@ import path from 'path';
 
 convict.addFormats(formats)
 
+convict.addFormat({
+    name: 'strict-boolean',
+    validate(val: any) {
+        return typeof val === 'string' && val === 'true'
+    },
+    coerce: (val: string): boolean => val === 'true'
+})
+
+
 if (!process.env.API_PORT) {
     dotenv.config({path: path.join(__dirname, '../../.env')});
 }
@@ -40,6 +49,11 @@ interface Config {
         api: {
             endpoint: string
             authToken: string
+        }
+    },
+    ban: {
+        api: {
+            endpoint: string
         }
     }
 }
@@ -154,6 +168,15 @@ const config = convict<Config>({
                 format: String,
                 sensitive: true,
                 default: null
+            }
+        }
+    },
+    ban: {
+        api: {
+            endpoint: {
+                env: 'BAN_API_ENDPOINT',
+                format: 'url',
+                default: 'https://api-adresse.data.gouv.fr'
             }
         }
     }

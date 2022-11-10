@@ -47,6 +47,10 @@ describe('User controller', () => {
             return {
               body: JSON.stringify(user ? [user] : []), init: { status: 200 }
             }
+          } else if (request.url === `${config.ban.api.endpoint}/search/csv/`) {
+            return {
+              body: JSON.stringify([]), init: { status: 200 }
+            }
           } else return { body: '', init: { status: 404 } }
         })()
       )
@@ -214,6 +218,8 @@ describe('User controller', () => {
                     establishmentId: Establishment.id
                 })
                 .expect(constants.HTTP_STATUS_CREATED);
+
+            jest.runOnlyPendingTimers();
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({

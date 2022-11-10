@@ -6,6 +6,7 @@ import ExcelJS from 'exceljs';
 import housingRepository from '../repositories/housingRepository';
 import { HousingApi } from '../models/HousingApi';
 import ownerRepository from '../repositories/ownerRepository';
+import config from '../utils/config';
 
 
 const normalizeEstablishmentAddresses = async (establishmentId: string) => {
@@ -91,7 +92,7 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
             form.append('result_columns', 'result_postcode');
             form.append('result_columns', 'result_city');
 
-            return fetch('https://api-adresse.data.gouv.fr/search/csv/', {
+            return fetch(`${config.ban.api.endpoint}/search/csv/`, {
                 method: 'POST',
                 body: form,
             });

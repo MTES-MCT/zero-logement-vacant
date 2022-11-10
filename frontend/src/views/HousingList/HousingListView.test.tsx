@@ -33,7 +33,7 @@ describe('housing view', () => {
         fetchMock.resetMocks();
         store = createStore(
             applicationReducer,
-            {authentication: {isLoggedIn: true, authUser: genAuthUser()}},
+            {authentication: {authUser: genAuthUser()}},
             applyMiddleware(thunk)
         );
     });

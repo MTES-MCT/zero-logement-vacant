@@ -13,7 +13,7 @@ const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 
 export interface AuthenticationState {
     availableEstablishments?: Establishment[];
-    isLoggedIn: boolean;
+    isLoggedOut?: boolean;
     authUser: AuthUser;
     loginError?: string;
     passwordFormState?: FormState;
@@ -21,9 +21,7 @@ export interface AuthenticationState {
 
 const initialState =
     {
-      ...authUser && authUser.accessToken
-          ? { isLoggedIn: true, authUser: authUser }
-          : { isLoggedIn: false, authUser: null }
+      authUser
     };
 
 const authenticationReducer = (state = initialState, action: AuthenticationActionTypes) => {
@@ -31,21 +29,21 @@ const authenticationReducer = (state = initialState, action: AuthenticationActio
         case LOGIN:
             return {
                 ...state,
-                isLoggedIn: true,
+                isLoggedOut: false,
                 authUser: action.authUser,
                 loginError: null
             };
         case LOGIN_FAIL:
             return {
                 ...state,
-                isLoggedIn: false,
+                isLoggedOut: false,
                 authUser: null,
                 loginError: 'Échec de l\'authentification'
             };
         case LOGOUT:
             return {
                 ...state,
-                isLoggedIn: false,
+                isLoggedOut: true,
                 authUser: null,
             }
         case AVAILABLE_ESTABLISHMENTS_FETCHED:

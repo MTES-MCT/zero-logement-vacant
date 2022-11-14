@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
@@ -17,24 +17,22 @@ import logo_saint_lo_agglo from '../../assets/images/logo_saint_lo_agglo.png';
 import logo_strasbourg from '../../assets/images/logo_strasbourg.png';
 import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
 import collaboration from '../../assets/images/collaboration.svg';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import {
     TrackEventActions,
     TrackEventCategories
 } from '../../models/TrackEvent';
-import AccountCreationModal
-    from "../../components/modals/AccountCreationModal/AccountCreationModal";
 
 
 const HomeView = () => {
 
     const { trackEvent } = useMatomo();
+    const history = useHistory()
 
-    const [isAccountCreationModalOpen, setIsAccountCreationModalOpen] = useState(false)
-    function openAccountCreationModal() {
-        setIsAccountCreationModalOpen(true)
+    async function redirectToAccountCreation() {
+        history.push({ pathname: '/inscription' })
         trackEvent({
             category: TrackEventCategories.Home,
             action: TrackEventActions.Home.Connection
@@ -43,35 +41,32 @@ const HomeView = () => {
 
     return (
         <>
-            <Container spacing="py-4w mb-4w">
-                <Title as="h1" look="h4">
-                    Vous êtes une collectivité ?
-                </Title>
-                <Row>
+            <Container spacing="py-7w mb-4w">
+                <Row gutters>
                     <Col>
+                        <Title as="h1" look="h4">
+                            Vous êtes une collectivité ?
+                        </Title>
                         <Title as="h2" look="h1">
                             Diminuez la vacance de logements sur votre territoire
                         </Title>
-                        <Text size="lg">
+                        <Text size="lead" className="fr-py-4w">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
                         <Button
                           title="Créer un compte"
-                          onClick={openAccountCreationModal}
+                          onClick={redirectToAccountCreation}
                         >
                             Créer un compte
                         </Button>
-                        {isAccountCreationModalOpen &&
-                            <AccountCreationModal onClose={() => setIsAccountCreationModalOpen(false)} />
-                        }
                     </Col>
-                    <Col>
-                        <img src={building} style={{maxWidth: "max-content"}} alt=""/>
+                    <Col className="align-right">
+                        <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
                     </Col>
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -107,7 +102,7 @@ const HomeView = () => {
                     </Row>
                 </Container>
             </div>
-            <Container spacing="py-4w mb-4w">
+            <Container spacing="py-7w mb-4w">
                 <Row>
                     <Col>
                         <Title as="h2" look="h4">
@@ -163,7 +158,7 @@ const HomeView = () => {
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -269,7 +264,7 @@ const HomeView = () => {
                 </Container>
             </div>
             <div className={styles.ownerContainer}>
-                <Container spacing="py-4w">
+                <Container spacing="py-7w">
                     <Title as="h1" look="h4">
                         Vous êtes propriétaire ?
                     </Title>

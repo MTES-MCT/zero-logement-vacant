@@ -6,3 +6,8 @@
 .fr-tabs__panel {
     margin-top: 2.5rem;
 }
+
+a[href].ds-fr--flex {
+    display: inline-flex;
+    padding-bottom: 0.2rem;
+}

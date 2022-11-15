@@ -11,7 +11,12 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
-import { genAuthUser, genCampaign, genHousing, genPaginatedResult } from '../../../test/fixtures.test';
+import {
+    genAuthUser,
+    genCampaign,
+    genHousing,
+    genPaginatedResult
+} from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
@@ -101,8 +106,18 @@ describe('housing view', () => {
     });
 
     test('should search', async () => {
+        const housing = genHousing();
+        const campaign = genCampaign();
+        const paginated = genPaginatedResult([housing]);
 
-        fetchMock.mockResponse(defaultFetchMock);
+        fetchMock.mockResponse((request: Request) => {
+            return Promise.resolve(
+              (request.url === `${config.apiEndpoint}/api/housing`) ? {body: JSON.stringify(paginated), init: { status: 200 }} :
+                (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([campaign]), init: { status: 200 }} :
+                  (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
+                    {body: '', init: {status: 404 } }
+            )
+        });
 
         render(
             <Provider store={store}>
@@ -112,8 +127,8 @@ describe('housing view', () => {
             </Provider>
         );
 
-        const searchInputElement = screen.getByTestId('search-input');
-        const searchFormElement = screen.getByTestId('search-form');
+        const searchInputElement = await screen.findByTestId('search-input');
+        const searchFormElement = await screen.findByTestId('search-form');
         fireEvent.change(searchInputElement, {target: {value: 'my search'}});
 
         fireEvent.submit(searchFormElement)

@@ -151,6 +151,10 @@
   text-align: right;
 }
 
+.justify-space-between {
+  justify-content: space-between;
+}
+
 .valign-top {
   vertical-align: top;
 }
@@ -241,4 +245,8 @@ button.fr-select {
 
 a.fr-btn[target=_blank]:after {
   content: none;
+}
+
+.subtitle {
+  color: var(--grey-425);
 }

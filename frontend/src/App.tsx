@@ -28,6 +28,7 @@ import AccessibilityView from './views/Accessibility/AccessibilityView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
+import AccountCreationView from "./views/Account/AccountCreationView";
 
 
 function AppWrapper () {
@@ -113,6 +114,7 @@ function App() {
                             <Route exact path="/" component={HomeView} />
                             <Route exact path="/stats" component={StatsView} />
                             <Route exact path="/accessibilite" component={AccessibilityView} />
+                            <Route exact path="/inscription" component={AccountCreationView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
                             <Route path="/*">

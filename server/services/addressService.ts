@@ -42,7 +42,7 @@ const normalizeHousingAddresses =  (housingList: HousingApi[]): Promise<AddressA
             inseeCode: housing.inseeCode
         })),
         AddressKinds.Housing
-    ).then(housingAdresses => banAddressesRepository.upsertList(housingAdresses))
+    )
 }
 
 
@@ -56,7 +56,7 @@ const normalizeOwnerAddresses = (housingList: HousingApi[]): Promise<AddressApi[
             rawAddress: housing.owner.rawAddress
         })),
         AddressKinds.Owner
-    ).then(ownerAdresses => banAddressesRepository.upsertList(ownerAdresses))
+    )
 }
 
 
@@ -108,20 +108,22 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
 
     const headers = csvText.split('\n')[0].split(',')
 
-    return csvText.split('\n').slice(1).map(line => {
-        const columns = line.split(',')
-        return <AddressApi>{
-            refId: columns[headers.indexOf('addressId')],
-            addressKind,
-            houseNumber: columns[headers.indexOf('result_housenumber')],
-            street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
-            postalCode: columns[headers.indexOf('result_postcode')],
-            city: columns[headers.indexOf('result_city')],
-            x: Number(columns[headers.indexOf('result_x')]),
-            y:  Number(columns[headers.indexOf('result_y')]),
-            score:  Number(columns[headers.indexOf('score')])
-        }
-    })
+    return banAddressesRepository.upsertList(
+        csvText.split('\n').slice(1).map(line => {
+            const columns = line.split(',')
+            return <AddressApi>{
+                refId: columns[headers.indexOf('addressId')],
+                addressKind,
+                houseNumber: columns[headers.indexOf('result_housenumber')],
+                street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
+                postalCode: columns[headers.indexOf('result_postcode')],
+                city: columns[headers.indexOf('result_city')],
+                x: Number(columns[headers.indexOf('result_x')]),
+                y:  Number(columns[headers.indexOf('result_y')]),
+                score:  Number(columns[headers.indexOf('score')])
+            }
+        })
+    )
 }
 
 export default {

@@ -19,16 +19,21 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
 
     console.log('Upsert address list', addresses.length)
 
+    const upsertedAddresses = addresses
+        .filter(_ => _.refId)
+        .filter((value, index, self) => self.findIndex(_ => _.refId === value.refId) === index)
+        .map(addressApi => ({
+            ...formatAddressApi(addressApi),
+            last_updated_at: new Date()
+        }))
+
+    if (!upsertedAddresses.length) {
+        return []
+    }
+
     try {
         return db(banAddressesTable)
-            .insert(addresses
-                .filter(_ => _.refId)
-                .filter((value, index, self) => self.findIndex(_ => _.refId === value.refId) === index)
-                .map(addressApi => ({
-                    ...formatAddressApi(addressApi),
-                    last_updated_at: new Date()
-                }))
-            )
+            .insert(upsertedAddresses)
             .onConflict(['ref_id', 'address_kind'])
             .merge(['house_number', 'street', 'postal_code', 'city', 'x', 'y', 'score'])
             .returning('*')

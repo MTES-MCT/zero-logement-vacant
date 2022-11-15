@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Link as DSLink, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
@@ -17,7 +17,7 @@ import logo_saint_lo_agglo from '../../assets/images/logo_saint_lo_agglo.png';
 import logo_strasbourg from '../../assets/images/logo_strasbourg.png';
 import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
 import collaboration from '../../assets/images/collaboration.svg';
-import { Link, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import {
@@ -29,15 +29,6 @@ import {
 const HomeView = () => {
 
     const { trackEvent } = useMatomo();
-    const history = useHistory()
-
-    async function redirectToAccountCreation() {
-        history.push({ pathname: '/inscription' })
-        trackEvent({
-            category: TrackEventCategories.Home,
-            action: TrackEventActions.Home.Connection
-        })
-    }
 
     return (
         <>
@@ -53,12 +44,13 @@ const HomeView = () => {
                         <Text size="lead" className="fr-py-4w">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Button
+                        <DSLink
                           title="Créer un compte"
-                          onClick={redirectToAccountCreation}
+                          onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}
+                          as={<Link to="/inscription" />}
                         >
-                            Créer un compte
-                        </Button>
+                            <Button>Créer un compte</Button>
+                        </DSLink>
                     </Col>
                     <Col className="align-right">
                         <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
@@ -252,14 +244,13 @@ const HomeView = () => {
                         </Col>
                     </Row>
                     <Row gutters justifyContent="center" className="fr-pt-2w">
-                        <Link title="Rejoindre la communauté"
-                              to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
-                              target="_blank"
-                              className="fr-btn--md fr-btn"
-                              onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                        <DSLink
+                            title="Rejoindre la communauté"
+                            onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                            as={<Link to={{ pathname: '/inscription' }} />}
                         >
-                            Rejoindre la communauté
-                        </Link>
+                            <Button>Rejoindre la communauté</Button>
+                        </DSLink>
                     </Row>
                 </Container>
             </div>

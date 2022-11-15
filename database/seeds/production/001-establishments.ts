@@ -135,7 +135,7 @@ exports.seed = function(knex) {
                     addLocalityAsEstablishment(knex, 'Commune de Martres-Tolosane', '31324', 213103245),
                     addLocalityAsEstablishment(knex, 'Commune de Glomel', '22061', 212200612),
                     addAreaAsEstablishment(knex, 'DDT Cher', '18', 221800014),
-                    addAreaAsEstablishment(knex, 'DDT Haute-Garonne', '18', 130010747),
+                    addAreaAsEstablishment(knex, 'DDT Haute-Garonne', '31', 130010747),
                     addAreaAsEstablishment(knex, 'DDTM Pas-de-Calais', '62%', 130010366),
                     addAreaAsEstablishment(knex, 'DDTM Nord', '59%', 130009970),
                     addAreaAsEstablishment(knex, 'Département de la Meuse', '55%', 225500016),

@@ -93,8 +93,8 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
             form.append('result_columns', 'result_name');
             form.append('result_columns', 'result_postcode');
             form.append('result_columns', 'result_city');
-            form.append('result_columns', 'result_x');
-            form.append('result_columns', 'result_y');
+            form.append('result_columns', 'latitude');
+            form.append('result_columns', 'longitude');
             form.append('result_columns', 'result_score');
 
             return fetch(`${config.ban.api.endpoint}/search/csv/`, {
@@ -118,9 +118,9 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
                 street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
                 postalCode: columns[headers.indexOf('result_postcode')],
                 city: columns[headers.indexOf('result_city')],
-                x: Number(columns[headers.indexOf('result_x')]),
-                y:  Number(columns[headers.indexOf('result_y')]),
-                score:  Number(columns[headers.indexOf('score')])
+                latitude: columns[headers.indexOf('latitude')] ? Number(columns[headers.indexOf('latitude')]) : undefined,
+                longitude: columns[headers.indexOf('longitude')] ? Number(columns[headers.indexOf('longitude')]) : undefined,
+                score: columns[headers.indexOf('result_score')] ? Number(columns[headers.indexOf('result_score')]) : undefined
             }
         })
     )

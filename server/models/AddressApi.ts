@@ -2,12 +2,12 @@ export interface AddressApi {
     refId: string;
     addressKind: AddressKinds;
     houseNumber?: string;
-    street: string;
-    postalCode: string;
-    city: string;
-    x: number;
-    y: number;
-    score: number;
+    street?: string;
+    postalCode?: string;
+    city?: string;
+    latitude?: number;
+    longitude?: number;
+    score?: number;
 }
 
 

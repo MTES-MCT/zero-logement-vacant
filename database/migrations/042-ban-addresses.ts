@@ -10,8 +10,8 @@ exports.up = function(knex: Knex) {
             table.string('street');
             table.string('postal_code');
             table.string('city');
-            table.double('x').nullable();
-            table.double('y').nullable();
+            table.double('latitude').nullable();
+            table.double('longitude').nullable();
             table.double('score').nullable();
             table.timestamp('last_updated_at');
             table.primary(['ref_id', 'address_kind'])

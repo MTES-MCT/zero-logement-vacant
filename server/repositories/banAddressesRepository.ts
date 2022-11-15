@@ -35,7 +35,7 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
         return db(banAddressesTable)
             .insert(upsertedAddresses)
             .onConflict(['ref_id', 'address_kind'])
-            .merge(['house_number', 'street', 'postal_code', 'city', 'x', 'y', 'score'])
+            .merge(['house_number', 'street', 'postal_code', 'city', 'latitude', 'longitude', 'score', 'last_updated_at'])
             .returning('*')
     } catch (err) {
         console.error('Upserting addresses failed', err, addresses.length);
@@ -50,8 +50,8 @@ export const parseAddressApi = (result: any) => <AddressApi>{
     street: result.street,
     postalCode: result.postal_code,
     city: result.city,
-    x: result.x,
-    y: result.y,
+    latitude: result.latitude,
+    longitude: result.longitude,
     score: result.score
 }
 
@@ -66,8 +66,8 @@ const formatAddressApi = (addressApi: AddressApi) => ({
     street: escapeValue(addressApi.street),
     postal_code: addressApi.postalCode,
     city: escapeValue(addressApi.city),
-    x: addressApi.x,
-    y: addressApi.y,
+    latitude: addressApi.latitude,
+    longitude: addressApi.longitude,
     score: addressApi.score
 })
 

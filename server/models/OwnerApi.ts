@@ -1,5 +1,3 @@
-import { AddressApi } from './AddressApi';
-
 export interface DraftOwnerApi {
     rawAddress: string[];
     fullName: string;
@@ -11,7 +9,6 @@ export interface DraftOwnerApi {
 export interface OwnerApi {
     id: string;
     rawAddress: string[];
-    address: AddressApi;
     fullName: string;
     administrator?: string;
     birthDate?: string;

@@ -249,8 +249,8 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
     const ownerAddresses = await banAddressesRepository.listByRefIds(housingList.map(_ => _.owner.id), AddressKinds.Owner)
 
     const workbook = new ExcelJS.Workbook();
-    const housingWorksheet = workbook.addWorksheet('Logements');
     const ownerWorksheet = workbook.addWorksheet('Propriétaires');
+    const housingWorksheet = workbook.addWorksheet('Logements');
 
     housingWorksheet.columns = [
         { header: 'RefId', key: 'refId' },

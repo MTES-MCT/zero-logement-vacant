@@ -15,6 +15,7 @@ import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
+import { banAddressesTable } from './banAddressesRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -58,13 +59,16 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
                 `${localitiesTable}.locality_kind`,
-                db.raw(`max(${eventsTable}.created_at) as last_contact`)
+                db.raw(`max(${eventsTable}.created_at) as last_contact`),
+                db.raw(`(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`),
+                db.raw(`(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`)
             )
             .from(housingTable)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
+            .joinRaw(`left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
@@ -74,10 +78,10 @@ const get = async (housingId: string): Promise<HousingApi> => {
             .joinRaw(`left join lateral (
                      select kind as perimeter_kind 
                      from ${geoPerimetersTable} perimeter
-                     where st_contains(perimeter.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
+                     where st_contains(perimeter.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))
                      ) perimeters on true`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
-            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
+            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`, 'ban.ref_id', 'ban.address_kind')
             .where(`${housingTable}.id`, housingId)
             .first()
             .then(_ => parseHousingApi(_))
@@ -523,8 +527,8 @@ const parseHousingApi = (result: any) => <HousingApi>{
     buildingLocation: result.building_location,
     inseeCode: result.insee_code,
     rawAddress: result.raw_address,
-    latitude: result.latitude,
-    longitude: result.longitude,
+    latitude: result.latitude_ban ?? result.latitude,
+    longitude: result.longitude_ban ?? result.longitude,
     localityKind: result.locality_kind,
     geoPerimeters: result.geo_perimeters,
     owner: <OwnerApi>{

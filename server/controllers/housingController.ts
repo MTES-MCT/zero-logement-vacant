@@ -261,6 +261,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
         { header: 'Adresse BAN du propriétaire - Code postal', key: 'ownerAddressPostalCode' },
         { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
+        { header: 'Adresse BAN du propriétaire - Fiabilité', key: 'ownerAddressScore' },
         { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
         { header: 'Adresse BAN du logement', key: 'housingAddress' }
     ];
@@ -277,6 +278,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
             ownerAddressStreet: ownerAddress?.street,
             ownerAddressPostalCode: ownerAddress?.postalCode,
             ownerAddressCity: ownerAddress?.city,
+            ownerAddressScore: ownerAddress?.score,
             housingRawAddress: reduceRawAddress(housing.rawAddress),
             housingAddress: reduceAddressApi(housingAddress)
         });
@@ -302,6 +304,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
         { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
         { header: 'Adresse BAN du propriétaire - Code postal', key: 'ownerAddressPostalCode' },
         { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
+        { header: 'Adresse BAN du propriétaire - Fiabilité', key: 'ownerAddressScore' },
         ...[...Array(maxHousingCount).keys()].map(index => [
             { header: `Adresse LOVAC du logement ${index + 1}`, key: `housingRawAddress_${index}` },
             { header: `Adresse BAN du logement ${index + 1}`, key: `housingAddress_${index}` },
@@ -317,6 +320,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
             ownerAddressStreet: ownerAddress?.street,
             ownerAddressPostalCode: ownerAddress?.postalCode,
             ownerAddressCity: ownerAddress?.city,
+            ownerAddressScore: ownerAddress?.score,
         }
 
         ownerHousing.housingList.forEach((housing, index) => {

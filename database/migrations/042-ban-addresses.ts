@@ -30,7 +30,13 @@ exports.up = function(knex: Knex) {
                 table.dropColumn('street');
                 table.dropColumn('postal_code');
                 table.dropColumn('city');
-            })
+            }),
+            knex.schema
+                .alterTable('housing', (table) => {
+                    table.renameColumn('latitude', 'latitude_old');
+                    table.renameColumn('longitude', 'latitude');
+                    table.renameColumn('latitude_old', 'longitude');
+                })
         ]))
     );
 };

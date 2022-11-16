@@ -1,11 +1,10 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
-import { format, formatISO } from 'date-fns';
+import { formatISO } from 'date-fns';
 
 export interface CampaignApi {
     id: string;
     establishmentId: string;
     campaignNumber: number;
-    startMonth: string;
     kind: CampaignKinds;
     reminderNumber: number;
     filters: HousingFiltersApi;
@@ -45,7 +44,6 @@ export enum CampaignKinds {
 
 export const DefaultCampaign = {
     campaignNumber: 0,
-    startMonth: format(new Date(), 'yyMM'),
     filters: {},
     createdAt: new Date(),
     validatedAt: new Date(),

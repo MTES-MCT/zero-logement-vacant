@@ -68,7 +68,6 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const userId = (<RequestUser>request.auth).userId;
 
-    const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
     const title = request.body.draftCampaign.title;
@@ -78,7 +77,6 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
         establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
-        startMonth,
         kind,
         reminderNumber: 0,
         filters,
@@ -123,7 +121,6 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
     const userId = (<RequestUser>request.auth).userId;
 
-    const startMonth = request.body.startMonth;
     const kind = request.body.kind;
     const allHousing = request.body.allHousing;
 
@@ -138,7 +135,6 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
         establishmentId,
         campaignNumber: campaignBundle.campaignNumber,
-        startMonth,
         kind,
         reminderNumber: lastReminderNumber + 1,
         filters: campaignBundle.filters,

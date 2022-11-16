@@ -39,7 +39,7 @@ const CampaignBundleTitleModal = (
             </ModalTitle>
             <ModalContent>
                 <Container fluid>
-                    <Text size="lg"><b>{campaignPartialName(campaignBundle.startMonth, campaignBundle.campaignNumber)}</b></Text>
+                    <Text size="lg"><b>{campaignPartialName(campaignBundle.campaignNumber)}</b></Text>
                     <Row gutters>
                         <Col n="10">
                             <TextInput

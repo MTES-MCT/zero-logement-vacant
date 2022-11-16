@@ -66,7 +66,6 @@ describe('Campaign controller', () => {
                     campaignIds: [Campaign1.id],
                     campaignNumber: Campaign1.campaignNumber,
                     reminderNumber: String(Campaign1.reminderNumber),
-                    startMonth: Campaign1.startMonth,
                     filters: expect.objectContaining(Campaign1.filters)
                 })
             )
@@ -107,7 +106,6 @@ describe('Campaign controller', () => {
                     [
                         expect.objectContaining({
                             campaignNumber: Campaign1.campaignNumber,
-                            startMonth: Campaign1.startMonth,
                             reminderNumber: Campaign1.reminderNumber,
                         })
                     ]
@@ -136,7 +134,6 @@ describe('Campaign controller', () => {
                     [
                         expect.objectContaining({
                             campaignIds: [Campaign1.id],
-                            startMonth: Campaign1.startMonth,
                             campaignNumber: Campaign1.campaignNumber,
                         })
                     ]
@@ -158,7 +155,6 @@ describe('Campaign controller', () => {
             const res = await withAccessToken(request(app).post(testRoute))
                 .send({
                     draftCampaign: {
-                        startMonth: '2112',
                         reminderNumber: 0,
                         filters: {}
                     },
@@ -168,7 +164,6 @@ describe('Campaign controller', () => {
 
             expect(res.body).toMatchObject(
                 expect.objectContaining({
-                    startMonth: '2112',
                     reminderNumber: 0
                 })
             )
@@ -179,7 +174,6 @@ describe('Campaign controller', () => {
                 .then(result => {
                     expect(result[0]).toEqual(expect.objectContaining({
                             campaign_number: 2,
-                            start_month: '2112',
                             reminder_number: 0,
                         }
                     ))
@@ -201,7 +195,6 @@ describe('Campaign controller', () => {
             await withAccessToken(request(app).post(testRoute))
                 .send({
                     draftCampaign: {
-                        startMonth: '2112',
                         reminderNumber: 0,
                         filters: {}
                     },

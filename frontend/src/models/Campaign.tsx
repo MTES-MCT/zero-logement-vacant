@@ -1,10 +1,7 @@
 import { HousingFilters } from './HousingFilters';
-import { format, parse } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { percent } from '../utils/numberUtils';
 
 export interface DraftCampaign {
-    startMonth: string;
     kind: CampaignKinds;
     filters: HousingFilters;
     title?: string;
@@ -14,7 +11,6 @@ export interface Campaign {
     id: string;
     campaignNumber: number;
     reminderNumber: number;
-    startMonth: string;
     kind: CampaignKinds;
     name: string;
     filters: HousingFilters;
@@ -32,7 +28,6 @@ export interface CampaignBundleId {
 
 export interface CampaignBundle extends CampaignBundleId {
     campaignIds: string[];
-    startMonth: string;
     kind: CampaignKinds;
     name: string;
     filters: HousingFilters;
@@ -89,20 +84,19 @@ export const campaignReminderName = (reminderNumber?: number | string, campaignK
     return reminderNumber !== undefined && campaignKind !== undefined ? (Number(reminderNumber) > 0 ? 'Relance n°' + reminderNumber : getCampaignKindLabel(campaignKind)) : ''
 }
 
-export const campaignPartialName = (startMonth: string, campaignNumber?: number | string, reminderNumber?: number | string, campaignKind?: CampaignKinds, campaignTitle?: string) => {
+export const campaignPartialName = (campaignNumber?: number | string, reminderNumber?: number | string, campaignKind?: CampaignKinds, campaignTitle?: string) => {
     return campaignNumber === undefined ?
         'Tous les logements suivis' :
         !campaignNumber ? 'Logements hors campagne' :
             [
                 `C${Number(campaignNumber)}`,
-                format(parse(startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr }),
                 campaignTitle,
                 campaignReminderName(reminderNumber, campaignKind)
             ].filter(_ => _?.length).join(' - ')
 }
 
 export const campaignFullName = (campaign: Campaign | CampaignBundle) => {
-    return campaignPartialName(campaign.startMonth, campaign.campaignNumber, campaign.reminderNumber, campaign.kind, campaign.title)
+    return campaignPartialName(campaign.campaignNumber, campaign.reminderNumber, campaign.kind, campaign.title)
 }
 
 export const campaignStep = (campaign?: Campaign) => {

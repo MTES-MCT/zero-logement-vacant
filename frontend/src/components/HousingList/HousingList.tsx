@@ -149,7 +149,7 @@ const HousingList = (
                     _.uniq(campaignIds
                         .map(campaignId => campaignList?.find(c => c.id === campaignId))
                         .sort(CampaignNumberSort)
-                        .map(campaign => campaign ? campaignPartialName(campaign?.startMonth, campaign?.campaignNumber) : '')
+                        .map(campaign => campaign ? campaignPartialName(campaign?.campaignNumber) : '')
                     ).map((campaignName, campaignIdx) =>
                         <div key={id + '-campaign-' + campaignIdx}>
                             {campaignName}

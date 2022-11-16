@@ -15,10 +15,9 @@ import HousingStatusModal from '../../components/modals/HousingStatusModal/Housi
 import { getHousingState, getSubStatus, HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
 import HousingListStatusModal from '../../components/modals/HousingStatusModal/HousingListStatusModal';
-import CampaignReminderCreationModal
-    from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import Tab from '../../components/Tab/Tab';
 
 const TabContent = ({ status } : { status: HousingStatus }) => {
@@ -115,8 +114,8 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
         }
     }
 
-    const submitCampaignReminder = (startMonth: string) => {
-        dispatch(createCampaignBundleReminder(startMonth, campaignBundle.kind, selectedHousing.all, selectedHousing.ids))
+    const submitCampaignReminder = () => {
+        dispatch(createCampaignBundleReminder(campaignBundle.kind, selectedHousing.all, selectedHousing.ids))
     }
 
     return (
@@ -170,11 +169,13 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                         onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
                 }
                 {reminderModalSelectedHousing &&
-                    <CampaignReminderCreationModal
+                    <CampaignCreationModal
                         housingCount={selectedCount}
                         filters={campaignBundle.filters}
-                        onSubmit={(startMonth: string) => submitCampaignReminder(startMonth)}
-                        onClose={() => setReminderModalSelectedHousing(undefined)}/>
+                        onSubmit={submitCampaignReminder}
+                        onClose={() => setReminderModalSelectedHousing(undefined)}
+                        isReminder={true}
+                    />
                 }
             </>}
         </>

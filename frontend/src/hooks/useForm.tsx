@@ -17,6 +17,10 @@ export const passwordConfirmationValidator = yup
   .required('Veuillez confirmer votre mot de passe.')
   .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.')
 
+export const campaignTitleValidator = yup
+    .string()
+    .required('Veuillez renseigner le titre de la campagne.')
+
 type MessageType = 'error' | 'valid' | ''
 
 export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown>>(
@@ -56,6 +60,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
   async function validate() {
     try {
       await schema.validate(input, { abortEarly: false })
+      setIsTouched(true)
       setErrors(undefined)
     } catch (errors) {
       setErrors(errors as yup.ValidationError)
@@ -80,5 +85,6 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
     hasError,
     message,
     messageType,
+    validate
   }
 }

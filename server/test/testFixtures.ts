@@ -136,7 +136,6 @@ export const genCampaignApi = (establishmentId: string, campaignNumber: number, 
         id: uuidv4(),
         establishmentId,
         campaignNumber,
-        startMonth: randomstring.generate(),
         reminderNumber,
         name: randomstring.generate(),
         filters: {

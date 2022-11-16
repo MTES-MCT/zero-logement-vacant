@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { format, parse, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import {
     Campaign,
     CampaignBundle,
@@ -10,7 +10,6 @@ import {
     CampaignSteps,
     DraftCampaign,
 } from '../models/Campaign';
-import { fr } from 'date-fns/locale';
 import { HousingStatus } from '../models/HousingState';
 import { Housing } from '../models/Housing';
 
@@ -64,12 +63,12 @@ const updateCampaignBundleTitle = async (campaignBundleId: CampaignBundleId, tit
     });
 };
 
-const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, startMonth: string, kind: CampaignKinds, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
+const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, kind: CampaignKinds, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startMonth, kind, allHousing, housingIds }),
+        body: JSON.stringify({ kind, allHousing, housingIds }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -118,10 +117,7 @@ const parseCampaign = (c: any): Campaign => ({
 
 const parseCampaignBundle = (c: any): CampaignBundle => ({
     ...c,
-    name: c.campaignNumber ?
-        `C${c.campaignNumber} - ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}` :
-        'Logements hors campagne'
-
+    name: c.campaignNumber ? `C${c.campaignNumber}` : 'Logements hors campagne'
 } as CampaignBundle)
 
 const campaignService = {

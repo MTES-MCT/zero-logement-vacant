@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import React from 'react';
+import { Button, Col, Container, Link as DSLink, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
@@ -24,54 +24,41 @@ import {
     TrackEventActions,
     TrackEventCategories
 } from '../../models/TrackEvent';
-import AccountCreationModal
-    from "../../components/modals/AccountCreationModal/AccountCreationModal";
 
 
 const HomeView = () => {
 
     const { trackEvent } = useMatomo();
 
-    const [isAccountCreationModalOpen, setIsAccountCreationModalOpen] = useState(false)
-    function openAccountCreationModal() {
-        setIsAccountCreationModalOpen(true)
-        trackEvent({
-            category: TrackEventCategories.Home,
-            action: TrackEventActions.Home.Connection
-        })
-    }
-
     return (
         <>
-            <Container spacing="py-4w mb-4w">
-                <Title as="h1" look="h4">
-                    Vous êtes une collectivité ?
-                </Title>
-                <Row>
+            <Container spacing="py-7w mb-4w">
+                <Row gutters>
                     <Col>
+                        <Title as="h1" look="h4">
+                            Vous êtes une collectivité ?
+                        </Title>
                         <Title as="h2" look="h1">
                             Diminuez la vacance de logements sur votre territoire
                         </Title>
-                        <Text size="lg">
+                        <Text size="lead" className="fr-py-4w">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Button
+                        <DSLink
                           title="Créer un compte"
-                          onClick={openAccountCreationModal}
+                          onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}
+                          as={<Link to="/inscription" />}
                         >
-                            Créer un compte
-                        </Button>
-                        {isAccountCreationModalOpen &&
-                            <AccountCreationModal onClose={() => setIsAccountCreationModalOpen(false)} />
-                        }
+                            <Button>Créer un compte</Button>
+                        </DSLink>
                     </Col>
-                    <Col>
-                        <img src={building} style={{maxWidth: "max-content"}} alt=""/>
+                    <Col className="align-right">
+                        <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
                     </Col>
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -107,7 +94,7 @@ const HomeView = () => {
                     </Row>
                 </Container>
             </div>
-            <Container spacing="py-4w mb-4w">
+            <Container spacing="py-7w mb-4w">
                 <Row>
                     <Col>
                         <Title as="h2" look="h4">
@@ -163,7 +150,7 @@ const HomeView = () => {
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -257,19 +244,18 @@ const HomeView = () => {
                         </Col>
                     </Row>
                     <Row gutters justifyContent="center" className="fr-pt-2w">
-                        <Link title="Rejoindre la communauté"
-                              to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
-                              target="_blank"
-                              className="fr-btn--md fr-btn"
-                              onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                        <DSLink
+                            title="Rejoindre la communauté"
+                            onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                            as={<Link to={{ pathname: '/inscription' }} />}
                         >
-                            Rejoindre la communauté
-                        </Link>
+                            <Button>Rejoindre la communauté</Button>
+                        </DSLink>
                     </Row>
                 </Container>
             </div>
             <div className={styles.ownerContainer}>
-                <Container spacing="py-4w">
+                <Container spacing="py-7w">
                     <Title as="h1" look="h4">
                         Vous êtes propriétaire ?
                     </Title>

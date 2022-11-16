@@ -56,7 +56,12 @@ function AppHeader() {
 
     const logoutUser = () => {
         dispatch(logout())
-        history.push('/accueil');
+    }
+
+    function displayName(): string {
+        return authUser.user.firstName && authUser.user.lastName
+          ? `${authUser.user.firstName} ${authUser.user.lastName}`
+          : authUser.user.email
     }
 
     const menuActions = [
@@ -75,10 +80,10 @@ function AppHeader() {
                     {isValidUser(authUser) ?
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem>
+                                <ToolItem as="div">
                                     <AppActionsMenu
                                         actions={menuActions}
-                                        title={`${authUser.user.firstName} ${authUser.user.lastName}`}
+                                        title={displayName()}
                                         icon="ri-account-circle-line"
                                         iconPosition="left"/>
                                 </ToolItem>
@@ -86,7 +91,7 @@ function AppHeader() {
                         </Tool> :
                         <Tool>
                             <ToolItemGroup>
-                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block">
+                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block fr-my-0">
                                     Connexion
                                 </ToolItem>
                             </ToolItemGroup>

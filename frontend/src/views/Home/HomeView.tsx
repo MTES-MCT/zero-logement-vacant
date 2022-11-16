@@ -1,12 +1,13 @@
 import React from 'react';
-import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Link as DSLink, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
 import statistic_chart from '../../assets/images/statistic_chart.svg';
 import location_review from '../../assets/images/location_review.svg';
-import real_time_collaboration from '../../assets/images/real_time_collaboration.svg';
+import real_time_collaboration
+    from '../../assets/images/real_time_collaboration.svg';
 import quote from '../../assets/images/quote.svg';
 import quote_author from '../../assets/images/quote_author.svg';
 import logo_caba from '../../assets/images/logo_caba.svg';
@@ -19,7 +20,10 @@ import collaboration from '../../assets/images/collaboration.svg';
 import { Link } from 'react-router-dom';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
 
 
 const HomeView = () => {
@@ -28,30 +32,33 @@ const HomeView = () => {
 
     return (
         <>
-            <Container spacing="py-4w mb-4w">
-                <Title as="h1" look="h4">
-                    Vous êtes une collectivité ?
-                </Title>
-                <Row>
+            <Container spacing="py-7w mb-4w">
+                <Row gutters>
                     <Col>
-                        <Title as="h2">
+                        <Title as="h1" look="h4">
+                            Vous êtes une collectivité ?
+                        </Title>
+                        <Title as="h2" look="h1">
                             Diminuez la vacance de logements sur votre territoire
                         </Title>
-                        <Text size="lg">
+                        <Text size="lead" className="fr-py-4w">
                             Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants et à mieux les accompagner dans la remise sur le marché de leur logement.
                         </Text>
-                        <Link title="S'inscrire" to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }} target="_blank" className="fr-btn--md fr-btn"
-                              onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}>
-                            S&apos;inscrire
-                        </Link>
+                        <DSLink
+                          title="Créer un compte"
+                          onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Connection })}
+                          as={<Link to="/inscription" />}
+                        >
+                            <Button>Créer un compte</Button>
+                        </DSLink>
                     </Col>
-                    <Col>
-                        <img src={building} style={{maxWidth: "max-content"}} alt=""/>
+                    <Col className="align-right">
+                        <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
                     </Col>
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -87,7 +94,7 @@ const HomeView = () => {
                     </Row>
                 </Container>
             </div>
-            <Container spacing="py-4w mb-4w">
+            <Container spacing="py-7w mb-4w">
                 <Row>
                     <Col>
                         <Title as="h2" look="h4">
@@ -143,7 +150,7 @@ const HomeView = () => {
                 </Row>
             </Container>
             <div className="bg-bf975">
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w mb-4w">
                     <Row>
                         <Col>
                             <Title as="h2" look="h4">
@@ -176,7 +183,7 @@ const HomeView = () => {
                         <Col className={styles.quote}>
                             <img src={quote} alt=""/>
                             <Text size="lg">
-                                «&nbsp;L&apos;intégration de ZLV nous a permis de structurer et de lancer une action de lutte contre la vacance, qui n&apos;existait pas précédemment. Nous avons aussi amélioré nos prises de contacts avec les propriétaires grâce aux ressources et retours d&apos;expériences partagés par la communauté.&nbsp;»
+                                «&nbsp;L’intégration de ZLV nous a permis de structurer et de lancer une action de lutte contre la vacance, qui n’existait pas précédemment. Nous avons aussi amélioré nos prises de contacts avec les propriétaires grâce aux ressources et retours d’expériences partagés par la communauté.&nbsp;»
                             </Text>
                             <Row>
                                 <Col n="2">
@@ -237,18 +244,18 @@ const HomeView = () => {
                         </Col>
                     </Row>
                     <Row gutters justifyContent="center" className="fr-pt-2w">
-                        <Link title="Rejoindre la communauté"
-                              to={{ pathname: "https://airtable.com/shrb6WTvy167f0iUM" }}
-                              target="_blank"
-                              className="fr-btn--md fr-btn"
-                                onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}>
-                            Rejoindre la communauté
-                        </Link>
+                        <DSLink
+                            title="Rejoindre la communauté"
+                            onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Join })}
+                            as={<Link to={{ pathname: '/inscription' }} />}
+                        >
+                            <Button>Rejoindre la communauté</Button>
+                        </DSLink>
                     </Row>
                 </Container>
             </div>
             <div className={styles.ownerContainer}>
-                <Container spacing="py-4w mb-4w">
+                <Container spacing="py-7w">
                     <Title as="h1" look="h4">
                         Vous êtes propriétaire ?
                     </Title>
@@ -261,7 +268,8 @@ const HomeView = () => {
                                   to={{ pathname: "https://zlv.softr.app/rectification" }}
                                   target="_blank"
                                   className="fr-btn--md fr-btn"
-                                  onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Rectify })}>
+                                  onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Rectify })}
+                            >
                                 Rectifier la situation
                             </Link>
                         </Col>

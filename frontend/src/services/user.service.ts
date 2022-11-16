@@ -20,21 +20,11 @@ const listUsers = async (filters: UserFilters, page: number, perPage: number): P
         }));
 };
 
-const sendActivationMail = async (userId: string): Promise<User> => {
-
-    return await fetch(`${config.apiEndpoint}/api/users/${userId}/activation`, {
-        method: 'GET',
-        headers: { ...authService.authHeader(), 'Content-Type': 'application/json' }
-    })
-        .then(_ => _.json())
-        .then(result => parseUser(result));
-};
-
 const createUser = async (draftUser: DraftUser): Promise<User> => {
     return await fetch(`${config.apiEndpoint}/api/users/creation`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftUser })
+        body: JSON.stringify(draftUser)
     })
         .then(_ => _.json())
         .then(result => parseUser(result));
@@ -49,13 +39,11 @@ const removeUser = async (userId: string): Promise<void> => {
 
 const parseUser = (u: any): User => ({
     ...u,
-    activatedAt: u.activatedAt ? parseISO(u.activatedAt) : undefined,
-    activationSendAt: u.activationSendAt ? parseISO(u.activationSendAt) : undefined
+    activatedAt: parseISO(u.activatedAt)
 } as User)
 
 const userService = {
     listUsers,
-    sendActivationMail,
     createUser,
     removeUser
 };

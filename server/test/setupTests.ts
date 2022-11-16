@@ -1,6 +1,11 @@
 import knex from 'knex';
 import knexConfig from '../knex';
 import db from '../repositories/db';
+import { enableFetchMocks } from 'jest-fetch-mock';
+
+enableFetchMocks();
+
+jest.useFakeTimers();
 
 global.beforeEach(async() => {
     const db = knex(knexConfig)

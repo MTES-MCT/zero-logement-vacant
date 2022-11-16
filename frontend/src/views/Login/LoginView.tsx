@@ -1,13 +1,15 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Alert, Button, Container, Select, TextInput } from '@dataesr/react-dsfr';
+import { Alert, Button, Container, TextInput } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailableEstablishments, login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
+import EstablishmentSearchableSelect
+    from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
 const LoginView = () => {
 
@@ -16,11 +18,10 @@ const LoginView = () => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<{ value: string, label: string, disabled?: boolean }[] | undefined>();
     const [establishmentId, setEstablishmentId] = useState<string>('');
     const [formErrors, setFormErrors] = useState<any>({});
 
-    const { loginError, availableEstablishments, accountActivated } = useSelector((state: ApplicationState) => state.authentication);
+    const { loginError, isLoggedOut } = useSelector((state: ApplicationState) => state.authentication);
 
     const loginForm = yup.object().shape({
         isAdmin: yup.boolean(),
@@ -37,18 +38,6 @@ const LoginView = () => {
             dispatch(fetchAvailableEstablishments())
         }
     }, [dispatch, pathname])
-
-    useEffect(() => {
-        if (availableEstablishments) {
-            setAvailableEstablishmentOptions([
-                { value: '', label: 'Sélectionner un établissement', disabled: true },
-                ...availableEstablishments.map(e => ({
-                    value: e.id,
-                    label: e.name
-                }))
-            ])
-        }
-    }, [availableEstablishments])
 
     const submitLoginForm = (e: FormEvent<HTMLFormElement>) => {
         setFormErrors({});
@@ -70,12 +59,14 @@ const LoginView = () => {
     return (
         <>
             <Container spacing="py-4w">
+                {isLoggedOut &&
+                    <Alert title="Déconnexion"
+                           description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
+                           className="fr-my-3w"
+                           type="warning"
+                           closable/>
+                }
                 <form onSubmit={submitLoginForm} id="login_form">
-                    {accountActivated &&
-                        <div className="fr-my-2w">
-                            <Alert title="Compte activé" description="Votre compte a bien été activé, vous pouvez maintenant vous connecter" type="success"/>
-                        </div>
-                    }
                     <TextInput
                         value={email}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
@@ -95,16 +86,8 @@ const LoginView = () => {
                         label="Mot de passe : "
                         required
                     />
-                    {pathname === ('/admin') && availableEstablishmentOptions &&
-                        <Select
-                            label="Etablissement"
-                            selected={establishmentId}
-                            options={availableEstablishmentOptions}
-                            messageType={formErrors['establishmentId'] ? 'error' : undefined}
-                            message={formErrors['establishmentId']}
-                            onChange={(e: any) => setEstablishmentId(e.target.value)}
-                            required
-                        />
+                    {pathname === ('/admin') &&
+                        <EstablishmentSearchableSelect onChange={(id: string) => setEstablishmentId(id)} />
                     }
                     <Button
                         submit

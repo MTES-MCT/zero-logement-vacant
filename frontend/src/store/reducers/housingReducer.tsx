@@ -43,7 +43,7 @@ export const initialHousingFilters = {
     multiOwners: [],
     beneficiaryCounts: [],
     housingKinds: [],
-    housingStates: [],
+    cadastralClassifications: [],
     housingAreas: [],
     roomsCounts: [],
     buildingPeriods: [],

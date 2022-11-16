@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import styles from './app-actions-menu.module.scss';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectedHousing } from '../../models/Housing';
-import { Alert } from "@dataesr/react-dsfr";
+import { Alert, Button } from "@dataesr/react-dsfr";
 import classNames from 'classnames';
 
 export interface MenuAction {
@@ -21,7 +21,7 @@ const AppActionsMenu = (
     } : {
         title?: string,
         icon?: string,
-        iconPosition?: string,
+        iconPosition?: 'left' | 'right',
         actions: MenuAction[]
     }) => {
 
@@ -55,10 +55,10 @@ const AppActionsMenu = (
             }
             <div className={styles.actionsMenuContainer}>
                 <div className={styles.actionsMenuFitContainer} ref={wrapperRef}>
-                    <button
-                        className="fr-link"
-                        type="button"
+                    <Button
                         title={expandActions? 'Masquer les actions' : 'Afficher les actions'}
+                        size="sm"
+                        className="fr-my-0"
                         aria-controls="actions"
                         aria-expanded={expandActions}
                         onClick={() => {setExpandActions(!expandActions)}}
@@ -70,7 +70,7 @@ const AppActionsMenu = (
                         {iconPosition === 'right' &&
                             <span className={classNames(icon ?? 'ri-more-2-fill')} aria-hidden="true" />
                         }
-                    </button>
+                    </Button>
                     {expandActions &&
                     <div className={styles.actions}>
                         {actions.map((action, actionIdx) =>

@@ -1,14 +1,17 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
 import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import authTokenRepository from '../repositories/authTokenRepository';
-import { addDays, isBefore } from 'date-fns';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { param, ValidationChain } from 'express-validator';
+import UserNotFoundError from '../errors/userNotFoundError';
+import ceremaService from '../services/ceremaService';
+import prospectRepository from '../repositories/prospectRepository';
+import { TEST_ACCOUNTS } from "../models/ProspectApi";
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -51,32 +54,35 @@ const signin = async (request: Request, response: Response): Promise<Response> =
     }
 };
 
-const activateAccount = async (request: Request, response: Response): Promise<Response> => {
+const getAccountValidator: ValidationChain[] = [
+    param('email').notEmpty().isEmail()
+];
 
-    const email = request.body.email;
-    const tokenId = request.body.tokenId;
-    const password = request.body.password;
+const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
+    const email = request.params.email as string;
+    console.log('Get account', email)
 
-    console.log('activateAccount for token', tokenId)
-
-    const authToken = await authTokenRepository.get(tokenId)
-
-    if (!authToken || isBefore(authToken.createdAt, addDays(new Date(), -7))) {
-        return response.sendStatus(498)
+    if (config.features.enableTestAccounts) {
+        const testAccount = TEST_ACCOUNTS.find(account => account.email === email)
+        if (testAccount) {
+            return response.status(constants.HTTP_STATUS_OK).json(testAccount)
+        }
     }
 
-    const user = await userRepository.get(authToken.userId)
-
-    if (user.email !== email) {
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+    try {
+        await userRepository.getByEmail(email)
+        response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+    } catch (error) {
+        if (error instanceof UserNotFoundError) {
+            const ceremaUser = await ceremaService.consultUser(email)
+            await prospectRepository.upsert(ceremaUser)
+            const prospect = await prospectRepository.get(email)
+            response.status(constants.HTTP_STATUS_OK).json(prospect);
+        }
+        else {
+            next(error);
+        }
     }
-
-    return Promise.all([
-        userRepository.updatePassword(authToken.userId, bcrypt.hashSync(password)),
-        authTokenRepository.deleteToken(tokenId),
-        userRepository.activate(authToken.userId)
-    ])
-        .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 };
 
 const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -93,6 +99,8 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
 
     if (isPasswordValid) {
+        // TODO: avoid hashing password synchronously
+        // as it blocks other incoming requests
         return userRepository.updatePassword(userId, bcrypt.hashSync(newPassword))
             .then(() => response.sendStatus(constants.HTTP_STATUS_OK))
     } else {
@@ -103,6 +111,7 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
 
 export default {
     signin,
-    activateAccount,
+    getAccountValidator,
+    getProspectAccount,
     updatePassword
 };

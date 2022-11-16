@@ -1,53 +1,90 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
-import authTokenRepository from '../repositories/authTokenRepository';
-import mailService, { ActivationMail } from '../services/mailService';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import {
-    body,
-    param,
-    ValidationChain,
-    validationResult
-} from 'express-validator';
+import { CampaignIntent, INTENTS } from '../models/EstablishmentApi';
+import { body, param, ValidationChain } from 'express-validator';
+import establishmentRepository from '../repositories/establishmentRepository';
+import establishmentService from '../services/establishmentService';
+import prospectRepository from '../repositories/prospectRepository';
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs";
+import { isTestAccount, isValid, } from "../models/ProspectApi";
+import TestAccountError from "../errors/testAccountError";
+import ProspectInvalidError from "../errors/prospectInvalidError";
+import ceremaService from "../services/ceremaService";
+
+const SALT = 10
 
 const createUserValidators = [
-    body('draftUser.email').isEmail(),
-    body('draftUser.id').isEmpty(),
-    body('draftUser.establishmentId').isUUID(),
-    body('draftUser.firstName').isString(),
-    body('draftUser.lastName').isString(),
+    body('email').isEmail(),
+    body('password').isStrongPassword({
+        minLength: 8,
+        minNumbers: 1,
+        minUppercase: 1,
+        minSymbols: 0,
+        minLowercase: 1
+    }),
+    body('campaignIntent').isString().isIn(INTENTS).optional(),
+    body('establishmentId').isUUID(),
+    body('firstName').isString().optional(),
+    body('lastName').isString().optional(),
 ];
 
-const createUser = async (request: JWTRequest, response: Response): Promise<Response> => {
+interface CreateUserBody {
+    email: string
+    password: string
+    campaignIntent: CampaignIntent
+    establishmentId: string
+    firstName?: string
+    lastName?: string
+}
 
-    const errors = validationResult(request);
-    if (!errors.isEmpty()) {
-        return response.status(constants.HTTP_STATUS_BAD_REQUEST).json({ errors: errors.array() });
+const createUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
+    try {
+        const body = request.body as CreateUserBody;
+
+        if (isTestAccount(body.email)) {
+            throw new TestAccountError(body.email)
+        }
+
+        const prospect = await prospectRepository.get(body.email) ?? await ceremaService.consultUser(body.email)
+        if (!isValid(prospect)) {
+            throw new ProspectInvalidError(prospect)
+        }
+
+        const userApi: UserApi = {
+            id: uuidv4(),
+            email: body.email,
+            password: await bcrypt.hash(body.password, SALT),
+            firstName: body.firstName ?? '',
+            lastName: body.lastName ?? '',
+            role: UserRoles.Usual,
+            establishmentId: body.establishmentId
+        };
+
+        console.log('Create user', {
+            id: userApi.id,
+            email: userApi.email,
+            establishmentId: userApi.establishmentId
+        })
+
+        const userEstablishment = await establishmentRepository.get(body.establishmentId)
+        const createdUser = await userRepository.insert(userApi);
+
+        if (!userEstablishment.available) {
+            await establishmentService.makeEstablishmentAvailable(userEstablishment)
+        }
+        // Remove associated prospect
+        await prospectRepository.remove(body.email)
+
+        response.status(constants.HTTP_STATUS_CREATED).json(createdUser)
+    } catch (error) {
+        next(error);
     }
-
-    const draftUser = request.body.draftUser;
-    const role = (<RequestUser>request.auth).role;
-
-    const userApi = <UserApi> {
-        email: draftUser.email,
-        firstName: draftUser.firstName,
-        lastName: draftUser.lastName,
-        role: UserRoles.Usual,
-        establishmentId: draftUser.establishmentId
-    };
-
-    console.log('Create user', userApi)
-
-    if (role !== UserRoles.Admin) {
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
-    }
-
-    return userRepository.insert(userApi)
-        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
-};
+}
 
 const list = async (request: JWTRequest, response: Response): Promise<Response> => {
 
@@ -61,21 +98,6 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     return role === UserRoles.Admin ?
         userRepository.listWithFilters(filters, page, perPage).then(_ => response.status(constants.HTTP_STATUS_OK).json(_)) :
             response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
-};
-
-
-const sendActivationEmail = async (request: Request, response: Response): Promise<Response> => {
-
-    const userId = request.params.userId;
-
-    console.log('sendAuthToken to ', userId)
-
-    const authToken = await authTokenRepository.upsertUserToken(userId)
-
-    const user = await userRepository.get(userId)
-
-    return mailService.sendMail('ZLV - Activation de votre compte', ActivationMail(authToken.id), [user.email])
-        .then(() => response.status(constants.HTTP_STATUS_OK).json(user));
 };
 
 const removeUser = async (request: JWTRequest, response: Response, next: NextFunction) => {
@@ -101,11 +123,10 @@ const userIdValidator: ValidationChain[] = [
   param('userId').isUUID()
 ];
 
-const userController =  {
+const userController = {
     createUserValidators,
     createUser,
     list,
-    sendActivationEmail,
     removeUser,
     userIdValidator
 };

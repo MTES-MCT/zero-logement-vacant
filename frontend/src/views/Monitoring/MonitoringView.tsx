@@ -323,7 +323,7 @@ const MonitoringView = () => {
                                     onClick={() => exportMonitoring()}
                                     data-testid="export-campaign-button"
                                     className="float-right fr-mr-2w"
-                                    icon="fr-fi-download-line">
+                                    icon="ri-download-line">
                                 Exporter
                             </Button>
                         </Col>

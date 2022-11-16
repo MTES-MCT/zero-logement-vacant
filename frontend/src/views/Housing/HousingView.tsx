@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Alert, Button, Col, Container, Link as DSFRLink, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import {
+    Alert,
+    Button,
+    Col,
+    Container,
+    Link as DSFRLink,
+    Row,
+    Tab,
+    Tabs,
+    Text,
+    Title
+} from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -15,16 +26,29 @@ import { differenceInYears, format, isValid } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 import classNames from 'classnames';
 import styles from '../Owner/owner.module.scss';
-import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
-import { getBuildingLocation, Housing, HousingUpdate, OwnershipKindLabels, OwnershipKinds } from '../../models/Housing';
+import {
+    getHousingState,
+    getHousingSubStatus,
+    getPrecision
+} from '../../models/HousingState';
+import {
+    getBuildingLocation,
+    Housing,
+    HousingUpdate,
+    OwnershipKindLabels,
+    OwnershipKinds
+} from '../../models/Housing';
 import config from '../../utils/config';
 import EventsHistory from '../../components/EventsHistory/EventsHistory';
-import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
+import HousingStatusModal
+    from '../../components/modals/HousingStatusModal/HousingStatusModal';
+import HousingOwnersModal
+    from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { HousingOwner } from '../../models/Owner';
 import HousingAdditionalOwners from './HousingAdditionalOwners';
 import { FormState } from '../../store/actions/FormState';
 import { LocalityKindLabels } from '../../models/Establishment';
+import { cadastralClassificationOptions } from '../../models/HousingFilters';
 
 const HousingView = () => {
 
@@ -105,7 +129,7 @@ const HousingView = () => {
                             </Col>
                             <Col>
                                 <Button title="Modifier le dossier"
-                                        icon="fr-fi-edit-line"
+                                        icon="ri-edit-line"
                                         className="float-right"
                                         onClick={() => {setIsModalStatusOpen(true)}}>
                                     Modifier le dossier
@@ -136,7 +160,7 @@ const HousingView = () => {
                                         <Button title="Modifier les propriétaires"
                                                 secondary
                                                 size="sm"
-                                                icon="fr-fi-edit-line"
+                                                icon="ri-edit-line"
                                                 className="float-right"
                                                 onClick={() => {
                                                     setIsModalOwnersOpen(true)
@@ -314,10 +338,8 @@ const HousingView = () => {
                                     {housing.buildingYear}
                                 </Text>
                                 <Text size="md" className="fr-mb-1w">
-                                    <b>État :&nbsp;</b>
-                                    {housing.uncomfortable && 'Inconfortable'}
-                                    {!housing.uncomfortable && housing.cadastralClassification >= 4 && housing.cadastralClassification <= 6 && 'Confortable'}
-                                    {!housing.uncomfortable && housing.cadastralClassification >= 1 && housing.cadastralClassification <= 3 && 'Très confortable'}
+                                    <b>Classement cadastral :&nbsp;</b>
+                                    {cadastralClassificationOptions.find(_ => _.value === String(housing.cadastralClassification))?.label}
                                 </Text>
                             </Col>
                             <Col n="4">

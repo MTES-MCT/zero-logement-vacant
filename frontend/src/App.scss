@@ -1,4 +1,5 @@
 @import "colors";
+@import "dsfr-fix";
 
 .zlv-container {
   min-height: 600px;
@@ -150,6 +151,10 @@
   text-align: right;
 }
 
+.justify-space-between {
+  justify-content: space-between;
+}
+
 .valign-top {
   vertical-align: top;
 }
@@ -213,7 +218,9 @@ button.fr-select {
   }
 }
 
-
+.select-search-input {
+    margin-top: 0.5rem;
+}
 
 .status-label {
   border-radius: 3px;
@@ -236,4 +243,10 @@ button.fr-select {
 
 }
 
+a.fr-btn[target=_blank]:after {
+  content: none;
+}
 
+.subtitle {
+  color: var(--grey-425);
+}

@@ -8,7 +8,6 @@ import { UserFilters } from '../../models/UserFilters';
 
 export const FETCH_USER_LIST = 'FETCH_USER_LIST';
 export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
-export const ACTIVATION_MAIL_SENT = 'ACTIVATION_MAIL_SENT';
 export const USER_REMOVED = 'USER_REMOVED';
 
 export interface FetchUserListAction {
@@ -24,17 +23,12 @@ export interface UserListFetchedAction {
     filters: UserFilters,
 }
 
-export interface ActivationMailSentAction {
-    type: typeof ACTIVATION_MAIL_SENT,
-    user: User
-}
-
 export interface UserRemovedAction {
     type: typeof USER_REMOVED,
     id: User['id']
 }
 
-export type UserActionTypes = FetchUserListAction | UserListFetchedAction | ActivationMailSentAction | UserRemovedAction;
+export type UserActionTypes = FetchUserListAction | UserListFetchedAction | UserRemovedAction;
 
 export const changeUserFiltering = (filters: UserFilters) => {
 
@@ -91,23 +85,6 @@ export const changeUserPagination = (page: number, perPage: number) => {
     };
 };
 
-export const sendActivationMail = (userId: string) => {
-
-    return function (dispatch: Dispatch) {
-
-        dispatch(showLoading());
-
-        userService.sendActivationMail(userId)
-            .then(user => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: ACTIVATION_MAIL_SENT,
-                    user
-                });
-            });
-    };
-};
-
 export const removeUser = (userId: string) => {
     return function (dispatch: Dispatch) {
 
@@ -125,18 +102,9 @@ export const removeUser = (userId: string) => {
 };
 
 export const createUser = (draftUser: DraftUser) => {
-
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
+    return async function (dispatch: Dispatch) {
         dispatch(showLoading());
-
-        userService.createUser(draftUser)
-            .then(() => {
-                dispatch(hideLoading());
-                changeUserPagination(getState().user.paginatedUsers.page, getState().user.paginatedUsers.perPage)(dispatch, getState)
-            });
+        await userService.createUser(draftUser)
+        dispatch(hideLoading());
     };
 };
-
-
-

@@ -18,7 +18,6 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
-import AccountActivationView from './views/Account/AccountActivationView';
 import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import HomeView from './views/Home/HomeView';
@@ -29,6 +28,7 @@ import AccessibilityView from './views/Accessibility/AccessibilityView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
+import AccountCreationView from "./views/Account/AccountCreationView";
 
 
 function AppWrapper () {
@@ -56,7 +56,7 @@ function AppWrapper () {
 
 function App() {
 
-    const { authUser, accountActivated } = useSelector((state: ApplicationState) => state.authentication);
+    const { authUser, isLoggedOut } = useSelector((state: ApplicationState) => state.authentication);
     const { campaignBundleFetchingId, campaignCreated } = useSelector((state: ApplicationState) => state.campaign);
 
     FetchInterceptor();
@@ -67,7 +67,7 @@ function App() {
                 <BrowserRouter>
                     <AppHeader />
                     {isValidUser(authUser) ?
-                        <div className="zlv-container">
+                        <div>
                             <ScrollToTop />
 
                             {campaignCreated && campaignBundleFetchingId &&
@@ -114,14 +114,11 @@ function App() {
                             <Route exact path="/" component={HomeView} />
                             <Route exact path="/stats" component={StatsView} />
                             <Route exact path="/accessibilite" component={AccessibilityView} />
+                            <Route exact path="/inscription" component={AccountCreationView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />
-                            {!accountActivated ?
-                                <Route exact path="/compte/activation/:tokenId" component={AccountActivationView}/> :
-                                <Route exact path="/compte/activation/:tokenId" component={LoginView}/>
-                            }
                             <Route path="/*">
-                                <Redirect to="/" />
+                                { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
                             </Route>
                         </Switch>
                     }

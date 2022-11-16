@@ -194,21 +194,8 @@ const filteredQuery = (filters: HousingFiltersApi) => {
                 whereBuilder.orWhereIn('rooms_count', filters.roomsCounts);
             })
         }
-        if (filters.housingStates?.length) {
-            queryBuilder.where(function (whereBuilder: any) {
-                if (filters.housingStates?.indexOf('Inconfortable') !== -1) {
-                    whereBuilder.orWhere('uncomfortable', true)
-                }
-                if (filters.housingStates?.indexOf('Confortable') !== -1) {
-                    whereBuilder.orWhere(function (whereBuilder2: any) {
-                        whereBuilder2.andWhereBetween('cadastral_classification', [4, 6])
-                        whereBuilder2.andWhereNot('uncomfortable', true)
-                    })
-                }
-                if (filters.housingStates?.indexOf('VeryConfortable') !== -1) {
-                    whereBuilder.orWhereBetween('cadastral_classification', [1, 3])
-                }
-            })
+        if (filters.cadastralClassifications?.length) {
+            queryBuilder.whereIn('cadastral_classification', filters.cadastralClassifications)
         }
         if (filters.buildingPeriods?.length) {
             queryBuilder.where(function (whereBuilder: any) {
@@ -462,6 +449,9 @@ const updateHousingList = async (housingIds: string[], status: HousingStatusApi,
 
 const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
     try {
+        if (!housingAdresses.length) {
+            return []
+        }
         const update = 'UPDATE housing as h SET ' +
             'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
             'FROM (values' +

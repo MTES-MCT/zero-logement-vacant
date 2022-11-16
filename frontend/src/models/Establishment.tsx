@@ -6,6 +6,7 @@ export interface Establishment {
         geoCode: string,
         name: string
     }[]
+    campaignIntent: string
 }
 
 export interface EstablishmentData {

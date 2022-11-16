@@ -1,17 +1,41 @@
 import React, { useRef, useState } from 'react';
 
-import { Alert, Badge, Col, Container, File, Link, Row, Tab, Table, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import {
+    Alert,
+    Badge,
+    Col,
+    Container,
+    File,
+    Link,
+    Row,
+    Tab,
+    Table,
+    Tabs,
+    Text,
+    Title
+} from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { deleteGeoPerimeter, updateGeoPerimeter, uploadFile } from '../../store/actions/geoAction';
+import {
+    deleteGeoPerimeter,
+    updateGeoPerimeter,
+    uploadFile
+} from '../../store/actions/geoAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { displayCount } from '../../utils/stringUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import AppActionsMenu, { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
-import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import GeoPerimeterEditionModal from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
+import AppActionsMenu, {
+    MenuAction
+} from '../../components/AppActionsMenu/AppActionsMenu';
+import ConfirmationModal
+    from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import GeoPerimeterEditionModal
+    from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const GeoPerimeterView = () => {
@@ -140,8 +164,13 @@ const GeoPerimeterView = () => {
         render: ({ geoJson }: GeoPerimeter) =>
             <Link title="Afficher"
                   target="_blank"
-                  href={'https://geojson.io/#data=data:application/json,' + encodeURIComponent(JSON.stringify(geoJson))} className="ds-fr--inline fr-link">
-                Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+                  isSimple
+                  display="inline"
+                  icon="ri-arrow-right-line"
+                  iconSize="1x"
+                  iconPosition="right"
+                  href={'https://geojson.io/#data=data:application/json,' + encodeURIComponent(JSON.stringify(geoJson))}>
+                Afficher
             </Link>
     }
 

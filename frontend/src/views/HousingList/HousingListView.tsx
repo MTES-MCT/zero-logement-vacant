@@ -141,7 +141,7 @@ const HousingListView = () => {
                     </Row>
                 </Container>
             </div>
-            <Container spacing="pt-2w">
+            <Container spacing="pt-2w mb-4w">
                 <Row>
                     <HousingFiltersBadges filters={filters} onChange={(values) => removeFilter(values)} />
                 </Row>
@@ -180,7 +180,7 @@ const HousingListView = () => {
                                             onClick={() => exportHousing()}
                                             data-testid="export-campaign-button"
                                             className="float-right fr-mr-2w"
-                                            icon="fr-fi-download-line">
+                                            icon="ri-download-line">
                                         Exporter
                                     </Button>
                                     {isCreateModalOpen &&

@@ -8,7 +8,7 @@ import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
-import authenticateController from '../controllers/authenticateController';
+import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
 import validator from "../middlewares/validator";
@@ -39,7 +39,6 @@ if (config.auth.secret) {
     router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);
     router.get('/api/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', jwtCheck, userCheck, housingController.exportHousingByCampaignBundle);
     router.get('/api/housing/normalizeAddresses/:establishmentId', jwtCheck, userCheck, housingController.normalizeAddresses);
-    router.get('/api/housing/normalizeAddresses/:establishmentId/:perPage/:page', jwtCheck, userCheck, housingController.normalizeAddresses);
 
     router.get('/api/campaigns', jwtCheck, userCheck, campaignController.listCampaigns);
     router.post('/api/campaigns/creation', jwtCheck, userCheck, campaignController.createCampaign);
@@ -62,11 +61,9 @@ if (config.auth.secret) {
     router.get('/api/events/owner/:ownerId', jwtCheck, userCheck, eventController.listByOwnerId);
     router.get('/api/events/housing/:housingId', jwtCheck, userCheck, eventController.listByHousingId);
 
-    router.post('/api/account/password', jwtCheck, userCheck, authenticateController.updatePassword);
+    router.post('/api/account/password', jwtCheck, userCheck, accountController.updatePassword);
 
     router.post('/api/users', jwtCheck, userCheck, userController.list);
-    router.post('/api/users/creation', jwtCheck, userCheck, userController.createUserValidators, userController.createUser);
-    router.get('/api/users/:userId/activation', userController.sendActivationEmail);
     router.delete('/api/users/:userId', jwtCheck, userCheck, userController.userIdValidator, validator.validate, userController.removeUser);
 
     router.post('/api/monitoring/establishments/data', jwtCheck, userCheck, monitoringController.listEstablishmentData);

@@ -4,7 +4,7 @@ import { Footer, FooterBody, FooterBodyItem, FooterBottom, FooterLink, Link, Log
 function AppFooter() {
 
     return(
-        <Footer className="fr-mt-4w">
+        <Footer>
             <FooterBody description="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée.">
                 <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
                 <FooterBodyItem>
@@ -29,7 +29,7 @@ function AppFooter() {
                 </FooterBodyItem>
             </FooterBody>
             <FooterBottom>
-                <FooterLink href="https://beta.gouv.fr" target="_blank">Les startups d&apos;Etat</FooterLink>
+                <FooterLink href="https://beta.gouv.fr" target="_blank">Les startups d’Etat</FooterLink>
                 <FooterLink href="mailto:contact@zerologementvacant.beta.gouv.fr">Nous écrire</FooterLink>
                 <FooterLink href="/accessibilite">Accessibilité: non conforme</FooterLink>
                 <FooterLink href="https://github.com/MTES-MCT/zero-logement-vacant" target="_blank">Code source</FooterLink>

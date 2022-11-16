@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import request from "supertest";
 import { constants } from "http2";
 import errorHandler from "../error-handler";
-import UserNotFoundError from "../../errors/user-not-found-error";
+import UserNotFoundError from "../../errors/userNotFoundError";
 
 describe('Error handler', () => {
   describe('Integration test', () => {

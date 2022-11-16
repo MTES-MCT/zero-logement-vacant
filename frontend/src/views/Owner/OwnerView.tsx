@@ -66,7 +66,7 @@ const OwnerView = () => {
                                 </Col>
                                 <Col>
                                     <Button title="Modifier le dossier"
-                                            icon="fr-fi-edit-line"
+                                            icon="ri-edit-line"
                                             className="float-right"
                                             onClick={() => {setIsModalStatusOpen(true)}}>
                                         Modifier le dossier
@@ -92,7 +92,7 @@ const OwnerView = () => {
                                     <Button title="Modifier le propriétaire"
                                             secondary
                                             size="sm"
-                                            icon="fr-fi-edit-line"
+                                            icon="ri-edit-line"
                                             className="float-right"
                                             onClick={() => {setIsModalOwnerOpen(true)}}>
                                         Modifier

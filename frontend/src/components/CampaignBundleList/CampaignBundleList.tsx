@@ -109,7 +109,7 @@ const CampaignBundleList = (
                                 <Col>
                                     {campaignStep(campaign) === CampaignSteps.OwnersValidation &&
                                         <Alert title="Liste des propriétaires à valider"
-                                               description="Avant d&apos;accéder au mode publipostage, vous devez vérifier et valider la liste de propriétaires sélectionnés."
+                                               description="Avant d’accéder au mode publipostage, vous devez vérifier et valider la liste de propriétaires sélectionnés."
                                                type="error"/>
                                     }
                                     {campaignStep(campaign) === CampaignSteps.Export &&

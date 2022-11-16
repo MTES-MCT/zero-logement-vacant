@@ -128,7 +128,7 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
                             onClick={() => setForcedStep(CampaignSteps.OwnersValidation)}>
                             Modifier la liste
                         </button>
-                        <span className="fr-fi-check-line" aria-hidden="true"/>
+                        <span className="ri-check-line" aria-hidden="true"/>
                     </div>
                     }
                 </div>
@@ -201,7 +201,7 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
                             onClick={() => setForcedStep(CampaignSteps.Export)}>
                             Modifier
                         </button>
-                        <span className="fr-fi-check-line" aria-hidden="true"/>
+                        <span className="ri-check-line" aria-hidden="true"/>
                     </div>
                     }
                 </div>

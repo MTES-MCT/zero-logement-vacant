@@ -1,4 +1,5 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
+import { format, formatISO } from 'date-fns';
 
 export interface CampaignApi {
     id: string;
@@ -40,4 +41,15 @@ export enum CampaignSteps {
 
 export enum CampaignKinds {
     Initial, Surveying, DoorToDoor, BeforeZlv
+}
+
+export const DefaultCampaign = {
+    campaignNumber: 0,
+    startMonth: format(new Date(), 'yyMM'),
+    filters: {},
+    createdAt: new Date(),
+    validatedAt: new Date(),
+    exportedAt: new Date(),
+    sentAt: new Date(),
+    sendingDate: formatISO(new Date())
 }

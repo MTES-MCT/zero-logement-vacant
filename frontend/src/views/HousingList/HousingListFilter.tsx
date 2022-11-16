@@ -6,13 +6,13 @@ import { changeHousingFiltering } from '../../store/actions/housingAction';
 import {
     beneficiaryCountOptions,
     buildingPeriodOptions,
+    cadastralClassificationOptions,
     campaignsCountOptions,
     dataYearsExcludedOptions,
     dataYearsIncludedOptions,
     housingAreaOptions,
     housingCountOptions,
     housingKindOptions,
-    housingStateOptions,
     localityKindsOptions,
     multiOwnerOptions,
     ownerAgeOptions,
@@ -122,10 +122,10 @@ const HousingListFilter = () => {
                                         onChange={(values) => onChangeFilters({roomsCounts: values}, 'Nombre de pièces')}/>
                     </Col>
                     <Col n="3">
-                        <AppMultiSelect label="État"
-                                        options={housingStateOptions}
-                                        initialValues={filters.housingStates}
-                                        onChange={(values) => onChangeFilters({housingStates: values}, 'État')}/>
+                        <AppMultiSelect label="Classement cadastral"
+                                        options={cadastralClassificationOptions}
+                                        initialValues={filters.cadastralClassifications}
+                                        onChange={(values) => onChangeFilters({cadastralClassifications: values}, 'Classement cadastral')}/>
                     </Col>
                     <Col n="3">
                         <AppMultiSelect label="Date de construction"

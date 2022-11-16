@@ -249,7 +249,7 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
     };
 };
 
-export const createCampaignBundleReminder = (startMonth: string, kind: CampaignKinds, allHousing: boolean, housingIds: string[]) => {
+export const createCampaignBundleReminder = (kind: CampaignKinds, allHousing: boolean, housingIds: string[]) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -259,7 +259,7 @@ export const createCampaignBundleReminder = (startMonth: string, kind: CampaignK
 
             dispatch(showLoading());
 
-            campaignService.createCampaignBundleReminder(campaignBundleId, startMonth, kind, allHousing, housingIds)
+            campaignService.createCampaignBundleReminder(campaignBundleId, kind, allHousing, housingIds)
                 .then((campaign) => {
                     dispatch(hideLoading());
                     dispatch({

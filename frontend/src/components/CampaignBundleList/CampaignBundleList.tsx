@@ -54,7 +54,7 @@ const CampaignBundleList = (
                     <Row gutters alignItems="top">
                         <Col>
                             <Title as="h2" look="h3">
-                                {campaignPartialName(campaignBundle.startMonth, campaignBundle.campaignNumber)}
+                                {campaignPartialName(campaignBundle.campaignNumber)}
                                 <br />
                                 {campaignBundle.title}
                             </Title>

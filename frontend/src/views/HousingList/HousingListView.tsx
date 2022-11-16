@@ -11,7 +11,7 @@ import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { DraftCampaign } from '../../models/Campaign';
+import { CampaignKinds } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
@@ -85,13 +85,23 @@ const HousingListView = () => {
         }
     }
 
-    const onSubmitDraftCampaign = (draftCampaign: DraftCampaign) => {
-        trackEvent({
-            category: TrackEventCategories.HousingList,
-            action: TrackEventActions.HousingList.SaveCampaign,
-            value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
-        })
-        dispatch(createCampaign(draftCampaign, selectedHousing.all, selectedHousing.ids))
+    const onSubmitCampaignCreation = (campaignTitle?: string) => {
+        if (campaignTitle) {
+            trackEvent({
+                category: TrackEventCategories.HousingList,
+                action: TrackEventActions.HousingList.SaveCampaign,
+                value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
+            })
+            dispatch(createCampaign(
+                {
+                    kind: CampaignKinds.Initial,
+                    filters,
+                    title: campaignTitle
+                },
+                selectedHousing.all,
+                selectedHousing.ids)
+            )
+        }
     }
 
     const onSelectHousing = (selectedHousing: SelectedHousing) => {
@@ -186,7 +196,9 @@ const HousingListView = () => {
                                     {isCreateModalOpen &&
                                     <CampaignCreationModal
                                         housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
-                                        onSubmit={(draftCampaign: DraftCampaign) => onSubmitDraftCampaign(draftCampaign)}
+                                        filters={filters}
+                                        housingExcudedCount={paginatedHousing.totalCount - selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
+                                        onSubmit={(campaignTitle?: string) => onSubmitCampaignCreation(campaignTitle)}
                                         onClose={() => setIsCreateModalOpen(false)}/>}
                                 </Col>
                             }

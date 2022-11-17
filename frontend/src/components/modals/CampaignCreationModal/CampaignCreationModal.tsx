@@ -57,7 +57,7 @@ const CampaignCreationModal = (
         if (isReminder) {
             validate()
         }
-    }, [isReminder])
+    }, [isReminder]) //eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Modal isOpen={true}

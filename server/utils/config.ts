@@ -25,6 +25,7 @@ interface Config {
         secret: string
         expiresIn: string
     }
+    databaseEnvironment: string
     databaseUrl: string
     databaseUrlTest: string
     features: {
@@ -81,6 +82,11 @@ const config = convict<Config>({
             format: String,
             default: '12 hours'
         },
+    },
+    databaseEnvironment: {
+        env: 'DATABASE_ENV',
+        format: String,
+        default: process.env.NODE_ENV ?? 'development'
     },
     databaseUrl: {
         env: 'DATABASE_URL',

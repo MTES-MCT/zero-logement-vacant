@@ -40,6 +40,7 @@ import AppSearchBar from "../../components/AppSearchBar/AppSearchBar";
 import HousingListHeader from "../../components/HousingList/HousingListHeader";
 import HousingListHeaderActions
     from "../../components/HousingList/HousingListHeaderActions";
+import Help from "../../components/Help/Help";
 
 const HousingListView = () => {
 
@@ -188,7 +189,7 @@ const HousingListView = () => {
                                closable/>
                         }
 
-                        { noHousingAlert &&
+                        {noHousingAlert &&
                         <Alert title=""
                                description="Vous devez sélectionner au moins un logement."
                                className="fr-my-3w"
@@ -197,8 +198,11 @@ const HousingListView = () => {
                                closable/>
                         }
                         {!hasSelected() &&
-                          <Notice
-                            title="Sélectionnez les logements que vous souhaitez cibler, puis cliquez sur Créer la campagne ou sur Exporter"/>
+                            <Help>
+                                <b>Sélectionnez</b> les logements que vous souhaitez
+                                cibler, puis cliquez sur <b>Créer la campagne</b> ou
+                                sur <b>Exporter</b>.
+                            </Help>
                         }
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}

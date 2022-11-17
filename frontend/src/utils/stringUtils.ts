@@ -26,4 +26,8 @@ export const displayCount = (totalCount: number, label: string, capitalize = tru
     return `${totalCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
 }
 
+export function pluralize(count: number) {
+    return (str: string): string => count > 1 ? `${str}s` : str
+}
+
 export const stringSort = (s1?: string, s2?: string) => s1 ? (s2 ? s1 > s2 ? 1 : -1 : 1) : (s2 ? -1 : 0)

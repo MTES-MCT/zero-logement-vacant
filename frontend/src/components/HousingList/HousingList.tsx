@@ -1,6 +1,12 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Link as DSFRLink, Pagination, Table } from '@dataesr/react-dsfr';
+import {
+    Button,
+    Checkbox,
+    Link as DSFRLink,
+    Pagination,
+    Table
+} from '@dataesr/react-dsfr';
 import { Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -12,16 +18,32 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
 import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-
+import HousingListHeader from "./HousingListHeader";
+import { findChild } from "../../utils/elementUtils";
 
 export enum HousingDisplayKey {
     Housing, Owner
 }
 
+interface Props {
+    children?: ReactElement | ReactElement[]
+    paginatedHousing: PaginatedResult<Housing>
+    displayKind: HousingDisplayKey
+    filters?: HousingFilters
+    onChangePagination: (page: number, perPage: number) => void
+    onSelectHousing?: (selectedHousing: SelectedHousing) => void
+    additionalColumns?: any[]
+    tableClassName?: string
+}
+
 const HousingList = (
     {
+        children,
         paginatedHousing,
         onChangePagination,
         filters,
@@ -29,15 +51,9 @@ const HousingList = (
         onSelectHousing,
         additionalColumns,
         tableClassName
-    }: {
-        paginatedHousing: PaginatedResult<Housing>,
-        onChangePagination: (page: number, perPage: number) => void,
-        filters?: HousingFilters,
-        displayKind: HousingDisplayKey,
-        onSelectHousing?: (selectedHousing: SelectedHousing) => void,
-        additionalColumns?: any[],
-        tableClassName?: string
-    }) => {
+    }: Props) => {
+
+    const header = findChild(children, HousingListHeader)
 
     const location = useLocation();
     const campaignList = useCampaignList();
@@ -61,6 +77,12 @@ const HousingList = (
         if (onSelectHousing) {
             onSelectHousing({all: allChecked, ids: updatedCheckIds})
         }
+    }
+
+    const unselectAll = () => {
+        setAllChecked(false)
+        setCheckedIds([])
+        onSelectHousing?.({ all: false, ids: [] })
     }
 
     useEffect(() => {
@@ -201,7 +223,16 @@ const HousingList = (
     }
 
     return (
-        <>
+        <div>
+            <header>
+                <HousingListHeader
+                    selected={allChecked ? paginatedHousing.entities.length : checkedIds.length}
+                    count={paginatedHousing.entities.length}
+                    total={paginatedHousing.totalCount}
+                    onUnselectAll={unselectAll}
+                    {...header?.props}
+                />
+            </header>
             { paginatedHousing.entities?.length > 0 && <>
                 <Table
                     caption="Logements"
@@ -240,7 +271,7 @@ const HousingList = (
                     </Button>
                 </div>
             </>}
-        </>
+        </div>
     );
 };
 

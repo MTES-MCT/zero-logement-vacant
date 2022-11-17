@@ -13,13 +13,15 @@ import { CampaignKinds } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
-import { displayCount } from '../../utils/stringUtils';
 import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import AppSearchBar from "../../components/AppSearchBar/AppSearchBar";
+import HousingListHeader from "../../components/HousingList/HousingListHeader";
+import HousingListHeaderActions
+    from "../../components/HousingList/HousingListHeaderActions";
 
 const HousingListView = () => {
 
@@ -180,45 +182,48 @@ const HousingListView = () => {
                           <Notice
                             title="Sélectionnez les logements que vous souhaitez cibler, puis cliquez sur Créer la campagne ou sur Exporter"/>
                         }
-                        {!paginatedHousing.loading &&
-                        <Row alignItems="middle" className="fr-py-1w">
-                            <Col>
-                                {displayCount(paginatedHousing.totalCount, 'logement', true, paginatedHousing.entities.length)}
-                            </Col>
-                            <Col>
-                                <AppSearchBar onSearch={searchWithQuery} initialQuery={filters.query} />
-                            </Col>
-                            {paginatedHousing.totalCount > 0 &&
-                                <Col>
-                                    <Button title="Créer la campagne"
-                                            onClick={() => create()}
-                                            data-testid="create-campaign-button"
-                                            className="float-right">
-                                        Créer la campagne
-                                    </Button>
-                                    <Button title="Exporter"
-                                            secondary
-                                            onClick={() => exportHousing()}
-                                            data-testid="export-campaign-button"
-                                            className="float-right fr-mr-2w">
-                                        Exporter (.csv)
-                                    </Button>
-                                    {isCreateModalOpen &&
-                                    <CampaignCreationModal
-                                        housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
-                                        filters={filters}
-                                        housingExcudedCount={paginatedHousing.totalCount - selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
-                                        onSubmit={(campaignTitle?: string) => onSubmitCampaignCreation(campaignTitle)}
-                                        onClose={() => setIsCreateModalOpen(false)}/>}
-                                </Col>
-                            }
-                        </Row>
-                        }
                         <HousingList paginatedHousing={paginatedHousing}
                                      onChangePagination={(page, perPage) => dispatch(changeHousingPagination(page, perPage))}
                                      filters={filters}
                                      displayKind={HousingDisplayKey.Housing}
-                                     onSelectHousing={onSelectHousing}/>
+                                     onSelectHousing={onSelectHousing}
+                        >
+                            <HousingListHeader>
+                                <HousingListHeaderActions>
+                                    {paginatedHousing.totalCount > 0 &&
+                                      <Row justifyContent="right">
+                                          {!hasSelected() &&
+                                            <Col>
+                                                <AppSearchBar
+                                                  onSearch={searchWithQuery}
+                                                  initialQuery={filters.query}/>
+                                            </Col>
+                                          }
+                                          <Button title="Exporter"
+                                                  secondary
+                                                  onClick={() => exportHousing()}
+                                                  data-testid="export-campaign-button"
+                                                  className="fr-mx-2w">
+                                              Exporter (.csv)
+                                          </Button>
+                                          <Button title="Créer la campagne"
+                                                  onClick={() => create()}
+                                                  data-testid="create-campaign-button">
+                                              Créer la campagne
+                                          </Button>
+                                          {isCreateModalOpen &&
+                                            <CampaignCreationModal
+                                              housingCount={selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
+                                              filters={filters}
+                                        housingExcudedCount={paginatedHousing.totalCount - selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
+                                        onSubmit={(campaignTitle?: string) => onSubmitCampaignCreation(campaignTitle)}
+                                              onClose={() => setIsCreateModalOpen(false)}/>
+                                          }
+                                      </Row>
+                                    }
+                                </HousingListHeaderActions>
+                            </HousingListHeader>
+                        </HousingList>
                     </>
                 }
             </Container>

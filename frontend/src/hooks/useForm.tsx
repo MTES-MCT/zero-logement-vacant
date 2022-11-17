@@ -59,8 +59,8 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
 
   async function validate() {
     try {
-      await schema.validate(input, { abortEarly: false })
       setIsTouched(true)
+      await schema.validate(input, { abortEarly: false })
       setErrors(undefined)
     } catch (errors) {
       setErrors(errors as yup.ValidationError)

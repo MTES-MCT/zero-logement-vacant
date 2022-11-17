@@ -1,0 +1,15 @@
+{
+  "env": {
+    "APPLICATION_HOST": {
+      "generator": "url",
+      "template": "%URL%"
+    },
+    "REACT_APP_API_URL": {
+      "generator": "url",
+      "template": "%URL%"
+    }
+  },
+  "scripts": {
+    "first-deploy": "npm run migrate-latest && psql $DATABASE_URL -f database/scripts/001-load-establishments-localities.sql -v filePath=database/data/common/epci.csv && psql $DATABASE_URL -f database/scripts/002-load-municipalities-localities.sql -v filePath=database/data/common/commune.csv && psql $DATABASE_URL -f database/scripts/003-load-data.sql -v filePath=database/data/dummy/dummy_data.csv -v dateFormat=\"'MM/DD/YY'\" && npm run seed"
+  }
+}

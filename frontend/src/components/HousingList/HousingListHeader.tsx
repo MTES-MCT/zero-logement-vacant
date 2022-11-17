@@ -17,7 +17,6 @@ interface HousingListHeaderProps {
 
 function HousingListHeader(props: HousingListHeaderProps) {
   const actions = findChild(props.children, HousingListHeaderActions)
-  console.log('Props from HousingListHeader', props)
 
   const { selected, total } = defaults(props, {
     selected: 0,

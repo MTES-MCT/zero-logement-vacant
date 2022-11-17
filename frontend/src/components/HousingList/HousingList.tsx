@@ -6,8 +6,8 @@ import {
     Pagination,
     Table
 } from '@dataesr/react-dsfr';
-import { Housing, SelectedHousing } from '../../models/Housing';
-import { capitalize } from '../../utils/stringUtils';
+import { byAddress, Housing, SelectedHousing } from '../../models/Housing';
+import { capitalize, stringSort } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import styles from './housing-list.module.scss';
@@ -129,6 +129,8 @@ const HousingList = (
     const addressColumn = {
         name: 'address',
         label: 'Adresse',
+        sortable: true,
+        sort: byAddress,
         render: ({ id, rawAddress }: Housing) =>
             <>
                 {rawAddress.map((line, lineIdx) =>
@@ -140,6 +142,8 @@ const HousingList = (
     const ownerColumn = {
         name: 'owner',
         label: 'Propriétaire',
+        sortable: true,
+        sort: (a: Housing, b: Housing) => stringSort(a.owner.fullName, b.owner.fullName),
         render: ({ owner }: Housing) =>
             <>
                 <DSFRLink

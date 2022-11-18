@@ -13,7 +13,18 @@ const ProprietaireView = () => {
                 Faites vous accompagné par votre ville pour remettre votre logement en location et bénéficéz d'aides
             </Title>
             <p>
-<button data-tf-popup="w8YB8XMQ" data-tf-size="100" data-tf-hidden="source=,mail=" style="all:unset;font-family:Helvetica,Arial,sans-serif;display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background-color:#0445AF;color:#FFFFFF;font-size:20px;border-radius:25px;padding:0 33px;font-weight:bold;height:50px;cursor:pointer;line-height:50px;text-align:center;margin:0;text-decoration:none;">Inscription</button><script src="//embed.typeform.com/next/embed.js"></script>            </p>
+            <script src="//embed.typeform.com/next/embed.js"></script>
+
+            <div
+  data-tf-widget="w8YB8XMQ"
+  data-tf-opacity={100}
+  data-tf-hidden="source=,mail="
+  style={{ width: "100%", height: 500 }}
+/>
+
+
+
+            </p>
 
         </Container>
     );

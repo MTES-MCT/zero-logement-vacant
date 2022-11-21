@@ -1,6 +1,5 @@
 import db from './db';
 import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
-import { AddressApi } from '../models/AddressApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
@@ -16,6 +15,7 @@ import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
+import { banAddressesTable } from './banAddressesRepository';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -54,22 +54,21 @@ const get = async (housingId: string): Promise<HousingApi> => {
                 'o.raw_address as owner_raw_address',
                 'o.full_name',
                 'o.administrator',
-                'o.house_number as owner_house_number',
-                'o.street as owner_street',
-                'o.postal_code as owner_postal_code',
-                'o.city as owner_city',
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
                 db.raw('json_agg(distinct(perimeters.perimeter_kind)) as geo_perimeters'),
                 `${buildingTable}.housing_count`,
                 `${buildingTable}.vacant_housing_count`,
                 `${localitiesTable}.locality_kind`,
-                db.raw(`max(${eventsTable}.created_at) as last_contact`)
+                db.raw(`max(${eventsTable}.created_at) as last_contact`),
+                db.raw(`(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`),
+                db.raw(`(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`)
             )
             .from(housingTable)
             .join(localitiesTable, `${housingTable}.insee_code`, `${localitiesTable}.geo_code`)
             .leftJoin(ownersHousingTable, ownersHousingJoinClause)
             .leftJoin({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .leftJoin(buildingTable, `${housingTable}.building_id`, `${buildingTable}.id`)
+            .joinRaw(`left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`)
             .joinRaw(`left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
@@ -79,10 +78,10 @@ const get = async (housingId: string): Promise<HousingApi> => {
             .joinRaw(`left join lateral (
                      select kind as perimeter_kind 
                      from ${geoPerimetersTable} perimeter
-                     where st_contains(perimeter.geom, ST_SetSRID( ST_Point(latitude, longitude), 4326))
+                     where st_contains(perimeter.geom, ST_SetSRID( ST_Point(${housingTable}.latitude, ${housingTable}.longitude), 4326))
                      ) perimeters on true`)
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
-            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`)
+            .groupBy(`${housingTable}.id`, 'o.id', `${buildingTable}.id`, `${localitiesTable}.id`, 'ban.ref_id', 'ban.address_kind')
             .where(`${housingTable}.id`, housingId)
             .first()
             .then(_ => parseHousingApi(_))
@@ -335,10 +334,6 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                 'o.raw_address as owner_raw_address',
                 'o.full_name',
                 'o.administrator',
-                'o.house_number as owner_house_number',
-                'o.street as owner_street',
-                'o.postal_code as owner_postal_code',
-                'o.city as owner_city',
                 db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
                 db.raw(`max(${eventsTable}.created_at) as last_contact`)
             )
@@ -411,10 +406,6 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
                 'o.raw_address as owner_raw_address',
                 'o.full_name',
                 'o.administrator',
-                'o.house_number as owner_house_number',
-                'o.street as owner_street',
-                'o.postal_code as owner_postal_code',
-                'o.city as owner_city'
             )
             .from(housingTable)
             .join(ownersHousingTable, ownersHousingJoinClause)
@@ -444,28 +435,6 @@ const updateHousingList = async (housingIds: string[], status: HousingStatusApi,
     } catch (err) {
         console.error('Updating campaign housing list failed', err, housingIds.length);
         throw new Error('Updating campaign housing list failed');
-    }
-}
-
-const updateAddressList = async (housingAdresses: {addressId: string, addressApi: AddressApi}[]): Promise<HousingApi[]> => {
-    try {
-        if (!housingAdresses.length) {
-            return []
-        }
-        const update = 'UPDATE housing as h SET ' +
-            'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
-            'FROM (values' +
-            housingAdresses
-                .filter(ha => ha.addressId)
-                .map(ha => `('${ha.addressId}', '${ha.addressApi.postalCode}', '${ha.addressApi.houseNumber ?? ''}', '${escapeValue(ha.addressApi.street)}', '${escapeValue(ha.addressApi.city)}')`)
-            +
-            ') as c(id, postal_code, house_number, street, city)' +
-            ' WHERE h.id::text = c.id'
-
-        return db.raw(update);
-    } catch (err) {
-        console.error('Listing housing failed', err);
-        throw new Error('Listing housing failed');
     }
 }
 
@@ -551,10 +520,6 @@ const monitoringQueryFilter = (filters: MonitoringFiltersApi) => (queryBuilder: 
     }
 }
 
-const escapeValue = (value?: string) => {
-    return value ? value.replace(/'/g, '\'\'') : ''
-}
-
 const parseHousingApi = (result: any) => <HousingApi>{
     id: result.id,
     invariant: result.invariant,
@@ -562,27 +527,15 @@ const parseHousingApi = (result: any) => <HousingApi>{
     buildingLocation: result.building_location,
     inseeCode: result.insee_code,
     rawAddress: result.raw_address,
-    address: <AddressApi>{
-        houseNumber: result.house_number,
-        street: result.street,
-        postalCode: result.postal_code,
-        city: result.city
-    },
-    latitude: result.latitude,
-    longitude: result.longitude,
+    latitude: result.latitude_ban ?? result.latitude,
+    longitude: result.longitude_ban ?? result.longitude,
     localityKind: result.locality_kind,
     geoPerimeters: result.geo_perimeters,
     owner: <OwnerApi>{
         id: result.owner_id,
         rawAddress: result.owner_raw_address,
         fullName: result.full_name,
-        administrator: result.administrator,
-        address: <AddressApi>{
-            houseNumber: result.owner_house_number,
-            street: result.owner_street,
-            postalCode: result.owner_postal_code,
-            city: result.owner_city
-        }
+        administrator: result.administrator
     },
     livingArea: result.living_area,
     housingKind: result.housing_kind,
@@ -612,10 +565,6 @@ const formatHousingApi = (housingApi: HousingApi) => ({
         building_location: housingApi.buildingLocation,
         insee_code: housingApi.inseeCode,
         raw_address: housingApi.rawAddress,
-        house_number: housingApi.address.houseNumber,
-        street: housingApi.address.street,
-        postal_code: housingApi.address.postalCode,
-        city: housingApi.address.city,
         latitude: housingApi.latitude,
         longitude: housingApi.longitude,
         living_area: housingApi.livingArea,
@@ -641,7 +590,6 @@ export default {
     countWithFilters,
     listByIds,
     updateHousingList,
-    updateAddressList,
     countByStatusWithFilters,
     durationByStatusWithFilters,
     formatHousingApi

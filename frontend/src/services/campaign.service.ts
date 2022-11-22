@@ -117,7 +117,9 @@ const parseCampaign = (c: any): Campaign => ({
 
 const parseCampaignBundle = (c: any): CampaignBundle => ({
     ...c,
-    name: c.campaignNumber ? `C${c.campaignNumber}` : 'Logements hors campagne'
+    name: c.campaignNumber ? `C${c.campaignNumber}` : 'Logements hors campagne',
+    createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
+    exportURL: getExportURL(c as CampaignBundleId)
 } as CampaignBundle)
 
 const campaignService = {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as yup from "yup";
 import { ObjectShape } from "yup/lib/object";
+import { isDate, parse } from 'date-fns';
 
 export const emailValidator = yup
   .string()
@@ -20,6 +21,13 @@ export const passwordConfirmationValidator = yup
 export const campaignTitleValidator = yup
     .string()
     .required('Veuillez renseigner le titre de la campagne.')
+
+export const dateValidator = yup
+  .date()
+  .transform((curr, originalValue) => {
+    return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+  })
+  .typeError('Veuillez renseigner une date valide.')
 
 type MessageType = 'error' | 'valid' | ''
 

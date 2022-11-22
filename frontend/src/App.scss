@@ -99,6 +99,10 @@
   }
 }
 
+.d-inline-block {
+  display: inline-block;
+}
+
 .d-none, .no-head thead {
   display: none !important;
 }
@@ -127,8 +131,19 @@
 .bg-bf113 {
   background-color: var(--blue-france-113)
 }
+.bg-bf925 {
+  background-color: var(--blue-france-925) !important;
+}
 .bg-bf975 {
   background-color: var(--blue-france-975)
+}
+
+.color-bf925-active {
+  color: var(--blue-france-925-active);
+}
+
+.color-grey-850 {
+  color: var(--grey-850);
 }
 
 .capitalize {
@@ -249,4 +264,23 @@ a.fr-btn[target=_blank]:after {
 
 .subtitle {
   color: var(--grey-425);
+}
+
+.app-card-xs {
+
+  width: fit-content;
+  display: inline-block !important;
+
+  .fr-card__content {
+    padding: 2px 8px!important;
+  }
+
+  .fr-card__desc {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  & + .app-card-xs {
+    margin-left: 16px;
+  }
 }

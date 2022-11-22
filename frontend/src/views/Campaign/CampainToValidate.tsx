@@ -45,7 +45,7 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
             .typeError('Veuillez renseigner une date valide.')
     });
 
-    const { campaignBundle, campaignBundleHousing, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundle, campaignBundleHousing } = useSelector((state: ApplicationState) => state.campaign);
 
     useEffect(() => {
         if (campaignBundle) {
@@ -181,13 +181,7 @@ const CampaignToValidate = ({campaignStep}: {campaignStep: CampaignSteps}) => {
                             Exporter
                         </Button>
                         {isModalOpen &&
-                        <CampaignExportModal housingCount={campaignBundle.housingCount}
-                                             ownerCount={campaignBundle.ownerCount}
-                                             exportURL={exportURL}
-                                             onSubmit={() => {
-                                                 validStep(CampaignSteps.Export);
-                                                 setIsModalOpen(false);
-                                             }}
+                        <CampaignExportModal campaignBundle={campaignBundle}
                                              onClose={() => setIsModalOpen(false)}/>
                         }
                     </>

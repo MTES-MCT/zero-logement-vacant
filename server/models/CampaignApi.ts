@@ -21,6 +21,7 @@ export interface CampaignBundleApi {
     campaignIds: string[];
     campaignNumber: number;
     reminderNumber: number;
+    createdAt: Date;
     kind: CampaignKinds;
     filters: HousingFiltersApi;
     title?: string;

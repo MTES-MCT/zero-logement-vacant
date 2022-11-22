@@ -9,7 +9,7 @@ interface AlertProps extends Omit<ComponentPropsWithoutRef<typeof DSFRAlert>, 't
 }
 
 const Alert: React.FC<AlertProps> = (props) => {
-  return <Alert {...props} />
+  return <DSFRAlert {...props} title={props.title ?? ''} type={props.type as any} />
 }
 
 export default Alert

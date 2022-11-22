@@ -1,22 +1,81 @@
-import React from 'react';
-import { Container, Title } from '@dataesr/react-dsfr';
-import { Widget } from '@typeform/embed-react'
+import {  Col, Container, Link as  Row, Text, Title } from '@dataesr/react-dsfr';
+import {  PopupButton } from '@typeform/embed-react'
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import building from '../../assets/images/building.svg';
+import new_message from '../../assets/images/new_message.svg';
+import people_search from '../../assets/images/people_search.svg';
+import sync_files from '../../assets/images/sync_files.svg';
+
 
 
 
 
 const ProprietaireView = () => {
 
+    const { trackEvent } = useMatomo();
+
     return (
-        <Container spacing="py-4w mb-4w">
-            <Title as="h1">
-                Vous êtes proprietaire d'un logement vacant?
-            </Title>
-            <Title as="h2">
-                Faites vous accompagné par votre ville pour bénéficer d'aides et remettre rapidement votre logement en location
-            </Title>
-            <Widget id="w8YB8XMQ" style={{ width: '100%' }} className="my-form" />
-        </Container>
+        <>
+                <Container spacing="py-7w mb-4w">
+                <Row gutters>
+                    <Col>
+                        <Title as="h1" look="h4">
+                            Vous êtes propriétaire d'un logement vacant ?
+                        </Title>
+                        <Title as="h2" look="h1">
+                        Faites vous aidez par votre ville pour remettre rapidement votre logement en location
+                        </Title>
+                        <Text size="lead" className="fr-py-4w">
+                            Profitez gratuitement d'un accompagnement et bénéficiez dans certains cas d'aides financières
+                        </Text>
+                        <PopupButton id="w8YB8XMQ" style={{ fontSize: 20 }} className="fr-btn--md fr-btn">
+                            Inscription
+                        </PopupButton>
+                    </Col>
+                    <Col className="align-right">
+                        <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
+                    </Col>
+                </Row>
+            </Container>
+            <div className="bg-bf975">
+                <Container spacing="py-7w mb-4w">
+                    <Row>
+                        <Col>
+                            <Title as="h2" look="h4">
+                                Concrètement, comment ça fonctionne ?
+                            </Title>
+                        </Col>
+                    </Row>
+                    <Row gutters>
+                        <Col>
+                            <div>
+                                <img src={people_search} height="100%" alt=""/>
+                            </div>
+                            <Text size="lg">
+                               Inscrivez-vous en 2 minutes sur notre site, c'est gratuit et sans engagement
+                            </Text>
+                        </Col>
+                        <Col>
+                            <div>
+                                <img src={new_message} height="100%" alt=""/>
+                            </div>
+                            <Text size="lg">
+                                Si votre logement est situé dans une ville qui utilise notre service, nous vous mettons en relation
+                            </Text>
+                        </Col>
+                        <Col>
+                            <div>
+                                <img src={sync_files} height="100%" alt=""/>
+                            </div>
+                            <Text size="lg">
+                                Vous êtes recontacté par votre ville pour être accompagné et bénéficier le cas échéant d'aides financières  
+                            </Text>
+                        </Col>
+                    </Row>
+                </Container>
+            </div>
+        
+        </>
     );
 };
 

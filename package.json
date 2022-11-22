@@ -27,6 +27,7 @@
     "@jest-mock/express": "^1.4.5",
     "@sentry/integrations": "^7.12.1",
     "@sentry/node": "^7.12.1",
+    "@typeform/embed-react": "^2.4.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/convict": "^6.1.1",
     "@types/convict-format-with-validator": "^6.0.2",

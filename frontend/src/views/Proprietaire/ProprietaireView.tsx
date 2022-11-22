@@ -1,5 +1,8 @@
 import React from 'react';
 import { Container, Title } from '@dataesr/react-dsfr';
+import { Widget } from '@typeform/embed-react'
+
+
 
 
 const ProprietaireView = () => {
@@ -10,22 +13,9 @@ const ProprietaireView = () => {
                 Vous êtes proprietaire d'un logement vacant?
             </Title>
             <Title as="h2">
-                Faites vous accompagné par votre ville pour remettre votre logement en location et bénéficéz d'aides
+                Faites vous accompagné par votre ville pour bénéficer d'aides et remettre rapidement votre logement en location
             </Title>
-            <p>
-            <script src="//embed.typeform.com/next/embed.js"></script>
-
-            <div
-  data-tf-widget="w8YB8XMQ"
-  data-tf-opacity={100}
-  data-tf-hidden="source=,mail="
-  style={{ width: "100%", height: 500 }}
-/>
-
-
-
-            </p>
-
+            <Widget id="w8YB8XMQ" style={{ width: '100%' }} className="my-form" />
         </Container>
     );
 };

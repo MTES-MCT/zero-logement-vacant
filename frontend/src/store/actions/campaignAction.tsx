@@ -69,8 +69,7 @@ export interface CampaignBundleHousingListFetchedAction {
     type: typeof CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
     campaignIds: string[],
     status?: HousingStatus,
-    paginatedHousing: PaginatedResult<Housing>,
-    exportURL: string
+    paginatedHousing: PaginatedResult<Housing>
 }
 
 export interface CampaignCreatedAction {
@@ -189,8 +188,7 @@ export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status
                     type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
                     campaignIds: campaignBundle.campaignIds,
                     status,
-                    paginatedHousing: result,
-                    exportURL: campaignService.getExportURL(campaignBundle as CampaignBundleId)
+                    paginatedHousing: result
                 });
             });
     };
@@ -223,8 +221,7 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
                         type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
                         campaignHousingFetchingIds: campaignBundle.campaignIds,
                         status,
-                        paginatedHousing: result,
-                        exportURL: campaignService.getExportURL(campaignBundle)
+                        paginatedHousing: result
                     });
                 });
         }

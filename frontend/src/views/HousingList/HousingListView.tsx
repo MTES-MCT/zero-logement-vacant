@@ -220,7 +220,7 @@ const HousingListView = () => {
                                                   filters={filters}
                                                   housingExcudedCount={paginatedHousing.totalCount - selectedHousingCount(selectedHousing, paginatedHousing.totalCount)}
                                                   onSubmit={(campaignTitle?: string) => onSubmitCampaignCreation(campaignTitle)}
-                                                  onClose={() => setIsCreateModalOpen(false)}/>}
+                                                  onClose={() => setIsCreateModalOpen(false)}/>
                                           }
                                       </Row>
                                     }

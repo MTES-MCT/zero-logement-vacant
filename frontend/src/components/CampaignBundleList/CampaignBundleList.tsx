@@ -26,6 +26,7 @@ import AppCard from '../AppCard/AppCard';
 import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
+import Help from '../Help/Help';
 
 interface Props {
     withDeletion?: boolean
@@ -101,9 +102,11 @@ const CampaignBundleList = (
                                 <Text size="small" className="subtitle">
                                     échantillon crée le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
                                 </Text> :
-                                <Text size="small" className="subtitle">
-                                    Les logements hors campagne sont les logements qui sont en cours de suivi mais qui ne sont pas compris dans une campagne.
-                                </Text>
+                                <div className="fr-py-2w">
+                                    <Help>
+                                        Les logements hors campagne sont les logements qui sont <b>en cours de suivi mais qui ne sont pas compris dans une campagne.</b>
+                                    </Help>
+                                </div>
                             }
                             <div>
                                 <AppCard icon="ri-home-fill" isGrey={true}>

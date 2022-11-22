@@ -58,7 +58,7 @@ const CampaignView = () => {
                             <Row>
                                 <Col>
                                     <Title as="h1" className="fr-mb-1w">
-                                        {campaignPartialName(campaignBundle.campaignNumber, campaignBundle.reminderNumber, campaignBundle.kind)}
+                                        {campaignPartialName(campaignBundle.campaignNumber, campaignBundle.reminderNumber)}
                                         <br />
                                         {campaignBundle.title}
                                     </Title>

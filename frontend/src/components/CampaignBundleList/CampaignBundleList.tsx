@@ -6,9 +6,8 @@ import {
     CampaignBundle,
     CampaignBundleId,
     campaignBundleIdUrlFragment,
+    campaignFullName,
     CampaignNumberSort,
-    campaignPartialName,
-    campaignReminderName,
     campaignStep,
     CampaignSteps,
     returnRate,
@@ -96,7 +95,7 @@ const CampaignBundleList = (
                     <Row gutters alignItems="top" className="fr-pb-3w">
                         <Col>
                             <Title as="h2" look="h3" className="fr-mb-0">
-                                {campaignPartialName(campaignBundle.campaignNumber)} - {campaignBundle.title}
+                                {campaignFullName(campaignBundle)}
                             </Title>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
                                 <Text size="small" className="subtitle">
@@ -196,7 +195,7 @@ const CampaignBundleList = (
                             <hr className="fr-pb-1w fr-mt-1w"/>
                             <Row gutters>
                                 <Col n="9">
-                                    {campaignReminderName(campaign.reminderNumber, campaign.kind)}
+                                    Relance n° {campaign.reminderNumber}
                                 </Col>
                                 <Col n="3" className="align-right">
                                     {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && withDeletion &&

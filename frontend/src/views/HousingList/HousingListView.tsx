@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-
-import { Alert, Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Container, Notice, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { changeHousingFiltering, changeHousingPagination } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
@@ -21,6 +19,7 @@ import { format } from 'date-fns';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import AppSearchBar from "../../components/AppSearchBar/AppSearchBar";
 
 const HousingListView = () => {
 
@@ -31,6 +30,10 @@ const HousingListView = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [noHousingAlert, setNoHousingAlert] = useState(false);
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
+
+    function hasSelected(): boolean {
+        return selectedHousing.all || selectedHousing.ids.length > 0
+    }
 
     const { paginatedHousing, filters } = useSelector((state: ApplicationState) => state.housing);
 
@@ -134,27 +137,28 @@ const HousingListView = () => {
     return (
         <>
             <div className="bg-100">
-                <Container spacing="pb-1w">
+                <Container spacing="py-4w">
                     <AppBreadcrumb />
                     <Row>
                         <Col n="8">
                             <Title as="h1">Base de données</Title>
-                        </Col>
-                        <Col n="4">
-                            <AppSearchBar onSearch={searchWithQuery} initialQuery={filters.query}/>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <HousingListFilter />
+                            <Text size="lead" className="subtitle">
+                                Explorez les logements vacants de votre
+                                territoire et créez vos échantillons de
+                                logements à mobiliser à partir des filtres
+                                présents ci-dessous.
+                            </Text>
                         </Col>
                     </Row>
                 </Container>
             </div>
-            <Container spacing="pt-2w mb-4w">
+            <Container spacing="py-4w">
                 <Row>
+                    <HousingListFilter />
                     <HousingFiltersBadges filters={filters} onChange={(values) => removeFilter(values)} />
                 </Row>
+            </Container>
+            <Container spacing="py-4w mb-4w">
                 {paginatedHousing &&
                     <>
                         { (new URLSearchParams(search)).get('campagne') &&
@@ -172,10 +176,17 @@ const HousingListView = () => {
                                data-testid="no-housing-alert"
                                closable/>
                         }
+                        {!hasSelected() &&
+                          <Notice
+                            title="Sélectionnez les logements que vous souhaitez cibler, puis cliquez sur Créer la campagne ou sur Exporter"/>
+                        }
                         {!paginatedHousing.loading &&
                         <Row alignItems="middle" className="fr-py-1w">
                             <Col>
-                                <b>{displayCount(paginatedHousing.totalCount, 'logement')}</b>
+                                {displayCount(paginatedHousing.totalCount, 'logement', true, paginatedHousing.entities.length)}
+                            </Col>
+                            <Col>
+                                <AppSearchBar onSearch={searchWithQuery} initialQuery={filters.query} />
                             </Col>
                             {paginatedHousing.totalCount > 0 &&
                                 <Col>
@@ -189,9 +200,8 @@ const HousingListView = () => {
                                             secondary
                                             onClick={() => exportHousing()}
                                             data-testid="export-campaign-button"
-                                            className="float-right fr-mr-2w"
-                                            icon="ri-download-line">
-                                        Exporter
+                                            className="float-right fr-mr-2w">
+                                        Exporter (.csv)
                                     </Button>
                                     {isCreateModalOpen &&
                                     <CampaignCreationModal

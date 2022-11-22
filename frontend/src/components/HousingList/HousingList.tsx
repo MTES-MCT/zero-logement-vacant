@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
+import { Button, Checkbox, Link as DSFRLink, Pagination, Table } from '@dataesr/react-dsfr';
 import { Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -119,7 +119,13 @@ const HousingList = (
         label: 'Propriétaire',
         render: ({ owner }: Housing) =>
             <>
-                <div>{owner.fullName}</div>
+                <DSFRLink
+                    title={owner.fullName}
+                    isSimple
+                    as={<Link to={`/proprietaires/${owner.id}`} />}
+                >
+                    {owner.fullName}
+                </DSFRLink>
                 {owner.administrator &&
                     <div>
                         ({owner.administrator})

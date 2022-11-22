@@ -51,7 +51,7 @@ const CampaignView = () => {
                     <div className="bg-100">
                         <Container className="bg-100">
                             <AppBreadcrumb />
-                            <Badge small
+                            <Badge isSmall
                                    text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
                                    className="fr-mb-1w"
                             />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Tab, Tabs, Text } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tabs, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     changeCampaignHousingPagination,
@@ -19,6 +19,7 @@ import CampaignReminderCreationModal
     from '../../components/modals/CampaignReminderCreationModal/CampaignReminderCreationModal';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Tab from '../../components/Tab/Tab';
 
 const TabContent = ({ status } : { status: HousingStatus }) => {
 

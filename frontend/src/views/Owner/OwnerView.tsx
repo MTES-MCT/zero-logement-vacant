@@ -231,7 +231,7 @@ const OwnerView = () => {
                                     }
                                     <div className="fr-mt-1w">
                                         <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
-                                                  href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                                  href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
                                                   target="_blank">
                                             Localiser
                                         </DSFRLink>

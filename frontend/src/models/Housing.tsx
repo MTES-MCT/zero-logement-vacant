@@ -1,7 +1,8 @@
 import { Owner } from './Owner';
-import { Address } from './Address';
 import { HousingStatus } from './HousingState';
 import { LocalityKinds } from './Establishment';
+import { stringSort } from "../utils/stringUtils";
+import { Compare } from "../utils/compareUtils";
 
 export interface Housing {
     id: string;
@@ -9,7 +10,6 @@ export interface Housing {
     cadastralReference: string,
     buildingLocation?: string,
     rawAddress: string[];
-    address: Address;
     latitude?: number;
     longitude?: number;
     localityKind: LocalityKinds;
@@ -80,6 +80,28 @@ export const HousingSort = (h1: Housing, h2: Housing) =>
     Math.max(...h1.dataYears) === Math.max(...h2.dataYears) ?
         h1.invariant.localeCompare(h2.invariant) :
         Math.max(...h1.dataYears) - Math.max(...h2.dataYears);
+
+export function byAddress(h1: Housing, h2: Housing): Compare {
+    const [house1, city1] = h1.rawAddress
+    const [hn1, ...s1] = house1.split(' ')
+    const street1 = s1.join(' ')
+
+    const [house2, city2] = h2.rawAddress
+    const [hn2, ...s2] = house2.split(' ')
+    const street2 = s2.join(' ')
+
+    const byCity = stringSort(city1, city2)
+    const byStreet = stringSort(street1, street2)
+    const byHouseNumber = stringSort(hn1, hn2)
+
+    if (city1 === city2) {
+        if (street1 === street2) {
+            return byHouseNumber
+        }
+        return byStreet
+    }
+    return byCity
+}
 
 
 export enum OwnershipKinds {

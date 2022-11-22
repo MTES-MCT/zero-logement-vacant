@@ -28,6 +28,7 @@ export interface CampaignBundleId {
 
 export interface CampaignBundle extends CampaignBundleId {
     campaignIds: string[];
+    createdAt: Date;
     kind: CampaignKinds;
     name: string;
     filters: HousingFilters;
@@ -40,6 +41,7 @@ export interface CampaignBundle extends CampaignBundleId {
     exitCount: number;
     npaiCount: number;
     ownerCount: number;
+    exportURL: string;
 }
 
 export enum CampaignKinds {
@@ -63,14 +65,15 @@ export enum CampaignSteps {
     OwnersValidation, Export, Sending, InProgress
 }
 
-export const CampaignNumberSort = (c1?: Campaign, c2?: Campaign) => {
-    return (c1 && c2) ?
-        c1.campaignNumber < c2.campaignNumber ? -1 :
-            c1.campaignNumber > c2.campaignNumber ? 1 :
-                c1.reminderNumber < c2.reminderNumber ? -1 :
-                    c1.reminderNumber > c2.reminderNumber ? 1 : 0 :
-        c1 ? 1 :
-            c2 ? -1 :
+export function CampaignNumberSort<T extends CampaignBundleId> (c1?: T, c2?: T) {
+    return (c1?.campaignNumber !== undefined && c2?.campaignNumber !== undefined) ?
+        c1.campaignNumber === 0 ? 1 :
+            c2.campaignNumber === 0 ? -1 :
+                c1.campaignNumber < c2.campaignNumber ? -1 :
+                    c1.campaignNumber > c2.campaignNumber ? 1 :
+                        (c1.reminderNumber ?? 0) - (c2.reminderNumber ?? 0) :
+        c1?.campaignNumber ? 1 :
+            c2?.campaignNumber ? -1 :
                 0
 }
 

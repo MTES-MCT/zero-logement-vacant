@@ -11,3 +11,7 @@ a[href].ds-fr--flex {
     display: inline-flex;
     padding-bottom: 0.2rem;
 }
+
+.fr-btn--tertiary-no-outline {
+    box-shadow: none !important;
+}

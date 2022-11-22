@@ -12,21 +12,34 @@ import {
     Text,
 } from '@dataesr/react-dsfr';
 import { displayCount } from '../../../utils/stringUtils';
+import { CampaignBundle, CampaignSteps } from '../../../models/Campaign';
+import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
+import { validCampaignStep } from '../../../store/actions/campaignAction';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useDispatch } from 'react-redux';
+
+
+interface Props {
+    campaignBundle: CampaignBundle,
+    onClose: () => void
+}
 
 const CampaignExportModal = (
     {
-        housingCount,
-        ownerCount,
-        exportURL,
-        onSubmit,
+        campaignBundle,
         onClose
-    }: {
-        housingCount: number,
-        ownerCount: number,
-        exportURL: string,
-        onSubmit: () => void,
-        onClose: () => void
-    }) => {
+    } : Props) => {
+
+    const dispatch = useDispatch();
+    const { trackEvent } = useMatomo();
+
+    const onSubmit = () => {
+        trackEvent({
+            category: TrackEventCategories.Campaigns,
+            action: TrackEventActions.Campaigns.ValidStep(CampaignSteps.Export)
+        })
+        dispatch(validCampaignStep(campaignBundle.campaignIds[0], CampaignSteps.Export))
+    }
 
     return (
         <Modal isOpen={true}
@@ -40,10 +53,10 @@ const CampaignExportModal = (
             <ModalContent>
                 <Container fluid>
                     <Text size="md" className="fr-mb-0">
-                        <b>{displayCount(housingCount, 'logement')}</b>
+                        <b>{displayCount(campaignBundle.housingCount, 'logement')}</b>
                     </Text>
                     <Text size="md">
-                        <b>{displayCount(ownerCount, 'propriétaire')}</b>
+                        <b>{displayCount(campaignBundle.ownerCount, 'propriétaire')}</b>
                     </Text>
                     <RadioGroup legend="">
                         <Radio
@@ -66,7 +79,7 @@ const CampaignExportModal = (
                         onClick={() => onClose()}>
                     Annuler
                 </Button>
-                <a href={exportURL}
+                <a href={campaignBundle.exportURL}
                    onClick={() => onSubmit()}
                    className="fr-btn--md fr-btn"
                    download>

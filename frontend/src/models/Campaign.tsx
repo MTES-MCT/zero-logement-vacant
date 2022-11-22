@@ -83,23 +83,18 @@ export const getCampaignBundleId = (campaignBundle?: CampaignBundle | Campaign) 
     }
 }
 
-export const campaignReminderName = (reminderNumber?: number | string, campaignKind?: CampaignKinds) => {
-    return reminderNumber !== undefined && campaignKind !== undefined ? (Number(reminderNumber) > 0 ? 'Relance n°' + reminderNumber : getCampaignKindLabel(campaignKind)) : ''
-}
-
-export const campaignPartialName = (campaignNumber?: number | string, reminderNumber?: number | string, campaignKind?: CampaignKinds, campaignTitle?: string) => {
+export const campaignPartialName = (campaignNumber?: number | string, reminderNumber?: number | string, campaignTitle?: string) => {
     return campaignNumber === undefined ?
         'Tous les logements suivis' :
         !campaignNumber ? 'Logements hors campagne' :
             [
-                `C${Number(campaignNumber)}`,
-                campaignTitle,
-                campaignReminderName(reminderNumber, campaignKind)
+                campaignTitle ? campaignTitle : `C${Number(campaignNumber)}`,
+                (reminderNumber ?? 0) > 0 ? 'Relance n°' + reminderNumber : undefined
             ].filter(_ => _?.length).join(' - ')
 }
 
 export const campaignFullName = (campaign: Campaign | CampaignBundle) => {
-    return campaignPartialName(campaign.campaignNumber, campaign.reminderNumber, campaign.kind, campaign.title)
+    return campaignPartialName(campaign.campaignNumber, campaign.reminderNumber, campaign.title)
 }
 
 export const campaignStep = (campaign?: Campaign) => {

@@ -99,7 +99,7 @@ const CampaignBundleList = (
                             </Title>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
                                 <Text size="small" className="subtitle">
-                                    échantillon crée le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
+                                    échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
                                 </Text> :
                                 <div className="fr-py-2w">
                                     <Help>
@@ -190,12 +190,13 @@ const CampaignBundleList = (
                             </Col>
                         }
                     </Row>
-                    {campaignsOfBundle(campaignBundle).length > 1 && campaignsOfBundle(campaignBundle).map((campaign, campaignIndex) =>
+                    {campaignsOfBundle(campaignBundle).length > 1 &&
+                        campaignsOfBundle(campaignBundle).filter(campaign => campaign.reminderNumber > 0).map((campaign, campaignIndex) =>
                         <div key={`Campaign_${campaign.id}`}>
                             <hr className="fr-pb-1w fr-mt-1w"/>
                             <Row gutters>
                                 <Col n="9">
-                                    Relance n° {campaign.reminderNumber}
+                                    Relance n° {campaign.reminderNumber} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
                                 </Col>
                                 <Col n="3" className="align-right">
                                     {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && withDeletion &&

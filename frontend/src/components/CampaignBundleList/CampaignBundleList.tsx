@@ -183,6 +183,11 @@ const CampaignBundleList = (
                                                         <b>{returnRate(campaignBundle)}%</b> de retour
                                                     </Text>
                                                 </AppCard>
+                                                <AppCard icon="ri-phone-fill">
+                                                    <Text as="span">
+                                                        <b>{campaignBundle.neverContactedCount}</b> à recontacter
+                                                    </Text>
+                                                </AppCard>
                                             </div>
                                         }
                                     </>

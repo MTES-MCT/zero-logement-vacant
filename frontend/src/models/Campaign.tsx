@@ -34,6 +34,7 @@ export interface CampaignBundle extends CampaignBundleId {
     filters: HousingFilters;
     title?: string;
     housingCount: number;
+    neverContactedCount: number;
     waitingCount: number;
     inProgressCount: number;
     notVacantCount: number;

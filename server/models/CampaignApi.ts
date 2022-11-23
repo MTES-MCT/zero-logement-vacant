@@ -26,6 +26,7 @@ export interface CampaignBundleApi {
     filters: HousingFiltersApi;
     title?: string;
     housingCount: number;
+    neverContactedCount: number;
     waitingCount: number;
     inProgressCount: number;
     notVacantCount: number;

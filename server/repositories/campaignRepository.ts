@@ -18,6 +18,7 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi | undefined>
         return db(campaignsTable)
             .select(
                 `${campaignsTable}.*`,
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`),
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
@@ -47,6 +48,7 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
         return db(campaignsTable)
             .select(
                 db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
@@ -112,6 +114,7 @@ const listCampaignBundles = async (establishmentId: string): Promise<CampaignBun
                 db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
                 db.raw(`(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`),
                 db.raw(`(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`),
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
@@ -242,6 +245,7 @@ const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
     kind: result.kind,
     filters: result.filters,
     housingCount: result.housingCount,
+    neverContactedCount: result.neverContactedCount,
     waitingCount: result.waitingCount,
     inProgressCount: result.inProgressCount,
     notVacantCount: result.notVacantCount,

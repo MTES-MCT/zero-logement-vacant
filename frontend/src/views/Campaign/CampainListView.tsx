@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Col, Container, Link as DSFRLink, Row, Text, Title } from '@dataesr/react-dsfr';
+import {
+    Callout,
+    CalloutText,
+    CalloutTitle,
+    Col,
+    Container,
+    Link,
+    Link as DSFRLink,
+    Row,
+    Text,
+    Title,
+} from '@dataesr/react-dsfr';
 import { useDispatch } from 'react-redux';
 import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -59,7 +70,38 @@ const CampaignsListView = () => {
                         Voir tout
                     </DSFRLink>
                 </Title>
+
                 <CampaignBundleList withDeletion={true}/>
+
+                <Row spacing="py-5w">
+                    <Col>
+                        <Callout hasInfoIcon={false} className="fr-mr-4w">
+                            <CalloutTitle as="h3" size="xxl">
+                                Vous souhaitez créer une nouvelle campagne ?
+                            </CalloutTitle>
+                            <CalloutText as="p">
+                                Vous pouvez également en créer une nouvelle directement dans une campagne existante (pour une relance par exemple)
+                            </CalloutText>
+                            <Link title="Créer votre nouvelle campagne" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn fr-btn--secondary">
+                                Créer votre nouvelle campagne
+                            </Link>
+                        </Callout>
+                    </Col>
+                    <Col>
+                        <Callout hasInfoIcon={false} className="fr-ml-4w">
+                            <CalloutTitle as="h3" size="xxl">
+                                Vous souhaitez concevoir des courriers plus percutants ?
+                            </CalloutTitle>
+                            <CalloutText as="p">
+                                Accédez à nos modèles de courriers et ceux envoyés par les autres collectivités
+                            </CalloutText>
+                            <Link title="Voir la bibliothèque des courriers" href="Voir la bibliothèque des courriers" target="_blank" className="fr-btn--md fr-btn fr-btn--secondary">
+                                Voir la bibliothèque des courriers
+                            </Link>
+                        </Callout>
+                    </Col>
+                </Row>
+
             </Container>
             {titleModalCampaignBundle &&
                 <CampaignBundleTitleModal

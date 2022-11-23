@@ -7,7 +7,7 @@
     margin-top: 2.5rem;
 }
 
-a[href] {
+a[href]:not(.fr-btn) {
     padding-bottom: 0.2rem;
 }
 

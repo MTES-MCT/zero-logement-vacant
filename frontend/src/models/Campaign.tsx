@@ -41,6 +41,7 @@ export interface CampaignBundle extends CampaignBundleId {
     noActionCount: number;
     exitCount: number;
     npaiCount: number;
+    inProgressWithSupportCount: number;
     ownerCount: number;
     exportURL: string;
 }

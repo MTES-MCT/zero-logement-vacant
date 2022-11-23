@@ -8,7 +8,7 @@ import {
     queryOwnerHousingWhereClause,
 } from './housingRepository';
 import { ownerTable } from './ownerRepository';
-import { HousingStatusApi } from '../models/HousingStatusApi';
+import { HousingStatusApi, InProgressWithSupportSubStatus } from '../models/HousingStatusApi';
 
 export const campaignsTable = 'campaigns';
 
@@ -24,7 +24,8 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi | undefined>
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`),
                 db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`),
-                db.raw(`count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`)
+                db.raw(`count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`),
+                db.raw(`count(*) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`)
             )
             .count(`${campaignsHousingTable}.housing_id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -54,7 +55,8 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`),
-                db.raw(`count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`)
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`),
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`)
             )
             .countDistinct(`${housingTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -120,7 +122,8 @@ const listCampaignBundles = async (establishmentId: string): Promise<CampaignBun
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`),
                 db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`),
-                db.raw(`count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`)
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`),
+                db.raw(`count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`)
             )
             .countDistinct(`${housingTable}.id`, {as: 'housingCount'})
             .countDistinct('o.id', {as: 'ownerCount'})
@@ -252,6 +255,7 @@ const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{
     noActionCount: result.noActionCount,
     exitCount: result.exitCount,
     npaiCount: result.npaiCount,
+    inProgressWithSupportCount: result.inProgressWithSupportCount,
     ownerCount: result.ownerCount
 }
 

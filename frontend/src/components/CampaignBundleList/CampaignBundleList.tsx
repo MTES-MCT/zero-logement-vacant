@@ -188,6 +188,11 @@ const CampaignBundleList = (
                                                         <b>{campaignBundle.neverContactedCount}</b> à recontacter
                                                     </Text>
                                                 </AppCard>
+                                                <AppCard icon="ri-hand-coin-fill">
+                                                    <Text as="span">
+                                                        <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
+                                                    </Text>
+                                                </AppCard>
                                             </div>
                                         }
                                     </>

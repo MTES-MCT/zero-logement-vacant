@@ -33,6 +33,7 @@ export interface CampaignBundleApi {
     noActionCount: number;
     exitCount: number;
     npaiCount: number;
+    inProgressWithSupportCount: number;
     ownerCount: number;
 }
 

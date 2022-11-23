@@ -113,25 +113,21 @@ const CampaignBundleList = (
         <>
             <TagGroup className="fr-py-2w">
                 <Tag as="span"
-                     size="sm"
                      selected={campaignInProgressFilter}
                      onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}>
                     Suivi en cours ({campaignBundlesCount(CampaignSteps.InProgress)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
                      selected={campaignNoSentFilter}
                      onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}>
                     Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
                      selected={campaignArchivedFilter}
                      onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}>
                     Campagne archivée ({campaignBundlesCount(CampaignSteps.Archived)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
                      selected={outsideCampaignFilter}
                      onClick={() => setOutsideCampaignInProgressFilter(!outsideCampaignFilter)}>
                     Hors campagne ({campaignBundlesCount(CampaignSteps.Outside)})
@@ -142,13 +138,13 @@ const CampaignBundleList = (
             }
             {filteredCampaignBundles && filteredCampaignBundles.sort(CampaignNumberSort).map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
-                    <Row gutters alignItems="top" className="fr-pb-3w">
+                    <Row gutters alignItems="top">
                         <Col>
                             <Title as="h2" look="h3" className="fr-mb-0">
                                 {campaignFullName(campaignBundle)}
                             </Title>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
-                                <Text size="small" className="subtitle">
+                                <Text size="sm" className="subtitle">
                                     échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
                                 </Text> :
                                 <div className="fr-py-2w">
@@ -177,7 +173,6 @@ const CampaignBundleList = (
                                         <Stepper
                                             steps={3}
                                             currentStep={1}
-                                            nextStep={2}
                                             currentTitle="Vous avez créé l'échantillon."
                                             nextStepTitle="Exporter le fichier de publipostage"
                                         />
@@ -197,7 +192,6 @@ const CampaignBundleList = (
                                         <Stepper
                                             steps={3}
                                             currentStep={2}
-                                            nextStep={3}
                                             currentTitle="Vous avez exporté l'échantillon."
                                             nextStepTitle="Dater l'envoi de votre campagne"
                                         />
@@ -310,10 +304,12 @@ const CampaignBundleList = (
                         Êtes-vous sûr de vouloir supprimer cette {deletionModalCampaignBundleId.reminderNumber ? 'relance' : 'campagne'} ?
                     </Text>
                     {(!deletionModalCampaignBundleId.reminderNumber && deletionModalCampaignBundleId.campaignNumber < (campaignList ?? []).length) &&
-                        <Alert description="Les campagnes suivantes seront renumérotées."
+                        <Alert title=""
+                               description="Les campagnes suivantes seront renumérotées."
                                type="info"/>
                     }
-                    <Alert description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                    <Alert title=""
+                           description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
                            type="info"/>
                 </ConfirmationModal>
             }

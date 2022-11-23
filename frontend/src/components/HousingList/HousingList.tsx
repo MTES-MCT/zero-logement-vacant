@@ -1,6 +1,6 @@
 import React, { ChangeEvent, ReactElement, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Link as DSFRLink, Pagination, Table } from '@dataesr/react-dsfr';
+import { Button, Link as DSFRLink, Pagination, Table } from '@dataesr/react-dsfr';
 import { byAddress, Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize, stringSort } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -16,6 +16,7 @@ import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import HousingListHeader from './HousingListHeader';
 import { findChild } from '../../utils/elementUtils';
+import Checkbox from '../Checkbox/Checkbox';
 
 export enum HousingDisplayKey {
     Housing, Owner

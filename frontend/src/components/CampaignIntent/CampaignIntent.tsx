@@ -2,7 +2,7 @@ import { Radio, RadioGroup } from "@dataesr/react-dsfr";
 
 interface Props {
   message?: string
-  messageType?: string
+  messageType?: 'error' | 'valid' | ''
   onChange(value: string): void
 }
 
@@ -24,7 +24,7 @@ const CampaignIntent = (props: Props) => {
       {values.map((item, index) => {
         return <Radio
           key={index}
-          label={item.label}
+          label={item.label as unknown as string}
           value={item.value}
           isExtended={true}
         />

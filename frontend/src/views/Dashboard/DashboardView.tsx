@@ -72,11 +72,11 @@ const DashboardView = () => {
     const hasCampaign = (): boolean => !!campaignBundleList?.length
 
     function NoCampaign() {
-        return (
+      return (
           <>
               <Title as="h2">Vous n’avez pas de campagne en cours.</Title>
               <Callout hasInfoIcon={false}>
-                <CalloutTitle as="h3" size="xxl">
+                <CalloutTitle as="h3">
                   Qu’est ce qu’une campagne ?
                 </CalloutTitle>
                 <CalloutText as="p">

@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Checkbox, CheckboxGroup } from '@dataesr/react-dsfr';
+import { CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
+import Checkbox from '../Checkbox/Checkbox';
 
 const AppMultiSelect = (
     {

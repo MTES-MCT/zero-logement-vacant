@@ -34,7 +34,8 @@ export function genAuthUser() {
             id: genNumber(10),
             name: randomstring.generate(),
             localities: [],
-            siren: genNumber(10)
+            siren: genNumber(10),
+            campaignIntent: randomstring.generate()
         }
     } as AuthUser;
 }

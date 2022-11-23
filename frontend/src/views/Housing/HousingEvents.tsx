@@ -41,8 +41,7 @@ const HousingEvents = ({ ownerId }: { ownerId: string}) => {
                                     return <li key={event.id}>
                                         <div className={styles.ownerEvent}>
                                             <TagGroup>
-                                                <Tag as="span"
-                                                     size="sm">
+                                                <Tag as="span" small>
                                                     {format(event.createdAt, 'dd MMMM yyyy', { locale: fr })}
                                                 </Tag>
                                             </TagGroup>
@@ -54,7 +53,7 @@ const HousingEvents = ({ ownerId }: { ownerId: string}) => {
                                             <div className="fr-mb-0">
                                                 {eventCampaign &&
                                                     <div>
-                                                        <Badge small
+                                                        <Badge isSmall
                                                                text={eventCampaign.campaignNumber ? `Campagne - ${getCampaignKindLabel(eventCampaign.kind)}` : 'Hors campagne'}
                                                                className="fr-mb-1w"
                                                         />

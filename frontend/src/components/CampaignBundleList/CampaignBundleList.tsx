@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Stepper, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Stepper, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
@@ -45,10 +45,34 @@ const CampaignBundleList = (
     const [deletionModalCampaignBundleId, setDeletionModalCampaignBundleId] = useState<CampaignBundleId | undefined>();
     const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
+    const [campaignInProgressFilter, setCampaignInProgressFilter] = useState<boolean>(true);
+    const [campaignNoSentFilter, setCampaignNotSentFilter] = useState<boolean>(true);
+    const [outsideCampaignFilter, setOutsideCampaignInProgressFilter] = useState<boolean>(true);
+    const [campaignArchivedFilter, setCampaignArchivedFilter] = useState<boolean>(true);
+    const [filteredCampaignBundles, setFilteredCampaignBundles] = useState<CampaignBundle[] | undefined>(campaignBundleList);
 
     useEffect(() => {
         dispatch(listCampaignBundles())
     }, [dispatch]);
+
+    useEffect(() => {
+        setFilteredCampaignBundles(
+            campaignBundleList?.filter(campaignBundle =>
+                (campaignInProgressFilter && stepFilter(CampaignSteps.InProgress)(campaignBundle)) ||
+                (campaignNoSentFilter && (
+                    stepFilter(CampaignSteps.OwnersValidation)(campaignBundle) ||
+                    stepFilter(CampaignSteps.Export)(campaignBundle)
+                )) ||
+                (outsideCampaignFilter && stepFilter(CampaignSteps.Outside)(campaignBundle)) ||
+                (campaignArchivedFilter && stepFilter(CampaignSteps.Archived)(campaignBundle))
+            )
+        )
+    }, [campaignBundleList, campaignInProgressFilter, outsideCampaignFilter, campaignNoSentFilter, campaignArchivedFilter]);
+
+    const stepFilter = (step: CampaignSteps) => (campaignBundle: CampaignBundle) => campaignStep(campaignsOfBundle(campaignBundle)[0]) === step
+
+    const campaignBundlesCount = (step: CampaignSteps) =>
+        campaignBundleList?.filter(stepFilter(step)).length ?? 0
 
     const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
         return campaignList?.filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1) ?? []
@@ -87,10 +111,36 @@ const CampaignBundleList = (
 
     return (
         <>
-            {campaignBundleList && !campaignBundleList.length &&
-                <Text>Il n&acute;y a pas de campagne en cours.</Text>
+            <TagGroup className="fr-py-2w">
+                <Tag as="span"
+                     size="sm"
+                     selected={campaignInProgressFilter}
+                     onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}>
+                    Suivi en cours ({campaignBundlesCount(CampaignSteps.InProgress)})
+                </Tag>
+                <Tag as="span"
+                     size="sm"
+                     selected={campaignNoSentFilter}
+                     onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}>
+                    Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export)})
+                </Tag>
+                <Tag as="span"
+                     size="sm"
+                     selected={campaignArchivedFilter}
+                     onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}>
+                    Campagne archivée ({campaignBundlesCount(CampaignSteps.Archived)})
+                </Tag>
+                <Tag as="span"
+                     size="sm"
+                     selected={outsideCampaignFilter}
+                     onClick={() => setOutsideCampaignInProgressFilter(!outsideCampaignFilter)}>
+                    Hors campagne ({campaignBundlesCount(CampaignSteps.Outside)})
+                </Tag>
+            </TagGroup>
+            {filteredCampaignBundles && !filteredCampaignBundles.length &&
+                <Text>Aucune campagne</Text>
             }
-            {campaignBundleList && campaignBundleList.sort(CampaignNumberSort).map(campaignBundle =>
+            {filteredCampaignBundles && filteredCampaignBundles.sort(CampaignNumberSort).map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
                     <Row gutters alignItems="top" className="fr-pb-3w">
                         <Col>
@@ -122,80 +172,76 @@ const CampaignBundleList = (
                         </Col>
                         {(campaignBundle.campaignNumber ?? 0) > 0 &&
                             <Col n="6">
-                                {campaignsOfBundle(campaignBundle).length === 1 &&
-                                    <>
-                                        {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Export &&
-                                            <div className="fr-p-4w bg-bf975">
-                                                <Stepper
-                                                    steps={3}
-                                                    currentStep={1}
-                                                    nextStep={2}
-                                                    currentTitle="Vous avez créé l'échantillon."
-                                                    nextStepTitle="Exporter le fichier de publipostage"
+                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Export &&
+                                    <div className="fr-p-4w bg-bf975">
+                                        <Stepper
+                                            steps={3}
+                                            currentStep={1}
+                                            nextStep={2}
+                                            currentTitle="Vous avez créé l'échantillon."
+                                            nextStepTitle="Exporter le fichier de publipostage"
+                                        />
+                                        <Button title="Exporter"
+                                                secondary
+                                                onClick={() => setIsExportModalOpen(true)}>
+                                            Exporter (.csv)
+                                        </Button>
+                                        {isExportModalOpen &&
+                                            <CampaignExportModal campaignBundle={campaignBundle}
+                                                                 onClose={() => setIsExportModalOpen(false)}/>
+                                        }
+                                    </div>
+                                }
+                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Sending &&
+                                    <div className="fr-p-4w bg-bf975">
+                                        <Stepper
+                                            steps={3}
+                                            currentStep={2}
+                                            nextStep={3}
+                                            currentTitle="Vous avez exporté l'échantillon."
+                                            nextStepTitle="Dater l'envoi de votre campagne"
+                                        />
+                                        <Row alignItems="top">
+                                            <Col className="fr-pr-1w">
+                                                <TextInput
+                                                    value={sendingDate}
+                                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setSendingDate(e.target.value)}
+                                                    label="Date d'envoi"
+                                                    message={message('sendingDate')}
+                                                    messageType={messageType('sendingDate')}
                                                 />
-                                                <Button title="Exporter"
+                                            </Col>
+                                            <Col className="fr-pt-4w">
+                                                <Button title="Confirmer la date d'envoi"
                                                         secondary
-                                                        onClick={() => setIsExportModalOpen(true)}>
-                                                    Exporter (.csv)
+                                                        onClick={() => onSendingCampaign(campaignBundle.campaignIds[0])}>
+                                                    Confirmer la date d'envoi
                                                 </Button>
-                                                {isExportModalOpen &&
-                                                    <CampaignExportModal campaignBundle={campaignBundle}
-                                                                         onClose={() => setIsExportModalOpen(false)}/>
-                                                }
-                                            </div>
-                                        }
-                                        {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Sending &&
-                                            <div className="fr-p-4w bg-bf975">
-                                                <Stepper
-                                                    steps={3}
-                                                    currentStep={2}
-                                                    nextStep={3}
-                                                    currentTitle="Vous avez exporté l'échantillon."
-                                                    nextStepTitle="Dater l'envoi de votre campagne"
-                                                />
-                                                <Row alignItems="top">
-                                                    <Col className="fr-pr-1w">
-                                                        <TextInput
-                                                            value={sendingDate}
-                                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setSendingDate(e.target.value)}
-                                                            label="Date d'envoi"
-                                                            message={message('sendingDate')}
-                                                            messageType={messageType('sendingDate')}
-                                                        />
-                                                    </Col>
-                                                    <Col className="fr-pt-4w">
-                                                        <Button title="Confirmer la date d'envoi"
-                                                                secondary
-                                                                onClick={() => onSendingCampaign(campaignBundle.campaignIds[0])}>
-                                                            Confirmer la date d'envoi
-                                                        </Button>
-                                                    </Col>
-                                                </Row>
-                                            </div>
-                                        }
-                                        {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.InProgress &&
-                                            <div className="fr-p-4w bg-bf975">
-                                                <Title as="h3" look="h6">
-                                                    Suivi en cours
-                                                </Title>
-                                                <AppCard icon="ri-feedback-fill">
-                                                    <Text as="span">
-                                                        <b>{returnRate(campaignBundle)}%</b> de retour
-                                                    </Text>
-                                                </AppCard>
-                                                <AppCard icon="ri-phone-fill">
-                                                    <Text as="span">
-                                                        <b>{campaignBundle.neverContactedCount}</b> à recontacter
-                                                    </Text>
-                                                </AppCard>
-                                                <AppCard icon="ri-hand-coin-fill">
-                                                    <Text as="span">
-                                                        <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
-                                                    </Text>
-                                                </AppCard>
-                                            </div>
-                                        }
-                                    </>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                }
+                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.InProgress &&
+                                    <div className="fr-p-4w bg-bf975">
+                                        <Title as="h3" look="h6">
+                                            Suivi en cours
+                                        </Title>
+                                        <AppCard icon="ri-feedback-fill">
+                                            <Text as="span">
+                                                <b>{returnRate(campaignBundle)}%</b> de retour
+                                            </Text>
+                                        </AppCard>
+                                        <AppCard icon="ri-phone-fill">
+                                            <Text as="span">
+                                                <b>{campaignBundle.neverContactedCount}</b> à recontacter
+                                            </Text>
+                                        </AppCard>
+                                        <AppCard icon="ri-hand-coin-fill">
+                                            <Text as="span">
+                                                <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
+                                            </Text>
+                                        </AppCard>
+                                    </div>
                                 }
                             </Col>
                         }

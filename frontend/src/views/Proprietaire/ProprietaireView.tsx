@@ -1,6 +1,5 @@
 import { PopupButton } from '@typeform/embed-react'
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';

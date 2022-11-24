@@ -6,14 +6,9 @@ import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
 
-import styles from '../Home/home.module.scss';
-
-
 
 
 const ProprietaireView = () => {
-
-    const { trackEvent } = useMatomo();
 
     return (
         <>
@@ -76,9 +71,6 @@ const ProprietaireView = () => {
                     </Row>
                 </Container>
             </div>
-
-
-
         </>
     );
 };

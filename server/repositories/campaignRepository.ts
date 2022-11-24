@@ -77,6 +77,10 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                         )
                         .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
                         .groupBy(`${campaignsTable}.campaign_number`)
+                } else {
+                    queryBuilder
+                        .andWhereRaw(`${campaignsTable}.sending_date is not null`)
+                        .andWhereRaw(`${campaignsTable}.archived_at is null`)
                 }
                 if (reminderNumber) {
                     queryBuilder.andWhere(`${campaignsTable}.reminder_number`, reminderNumber)

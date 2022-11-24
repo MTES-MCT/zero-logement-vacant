@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Callout,
     CalloutText,
@@ -11,22 +11,28 @@ import {
     Text,
     Title,
 } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
-import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCampaignBundle, updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { CampaignBundle, getCampaignBundleId } from '../../models/Campaign';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import CampaignBundleTitleModal from '../../components/modals/CampaignTitleModal/CampaignBundleTitleModal';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
+    const { campaignBundle: inProgressCampaignBundle } = useSelector((state: ApplicationState) => state.campaign);
 
     const [titleModalCampaignBundle, setTitleModalCampaignBundle] = useState<CampaignBundle | undefined>();
+
+    useEffect(() => {
+        dispatch(getCampaignBundle({}))
+    }, [dispatch])
 
     const onSubmitCampaignTitle = (title: string) => {
         const campaignBundleId = getCampaignBundleId(titleModalCampaignBundle)
@@ -59,7 +65,7 @@ const CampaignsListView = () => {
             </div>
             <Container spacing="py-4w">
                 <Title as="h2" look="h5">
-                    Vos logements suivis
+                    Vos logements suivis ({inProgressCampaignBundle?.housingCount})
                     <DSFRLink
                         title="Voir tout"
                         isSimple

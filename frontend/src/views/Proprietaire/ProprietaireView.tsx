@@ -1,6 +1,6 @@
 import { PopupButton } from '@typeform/embed-react'
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
-import building from '../../assets/images/building.svg';
+import buildingrent from '../../assets/images/buildingrent.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
@@ -13,7 +13,7 @@ const ProprietaireView = () => {
         <>
             <Container spacing="py-7w mb-4w">
                 <Row gutters>
-                    <Col>
+                    <Col className="fr-col-8">
                         <Title as="h1" look="h4">
                             Vous êtes propriétaire d'un logement vacant ?
                         </Title>
@@ -28,8 +28,8 @@ const ProprietaireView = () => {
                         </Text>
 
                     </Col>
-                    <Col className="align-right">
-                        <img src={building} style={{ maxWidth: "100%", height: "100%" }} alt="" />
+                    <Col className="fr-col-4">
+                        <img src={buildingrent} style={{ maxWidth: "100%", height: "100%" }} alt="" />
                     </Col>
                 </Row>
             </Container>

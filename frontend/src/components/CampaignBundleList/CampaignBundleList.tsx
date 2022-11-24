@@ -77,7 +77,7 @@ const CampaignBundleList = (
 
     useEffect(() => {
         dispatch(listCampaignBundles())
-    }, [dispatch]);
+    }, [dispatch]) //eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         setFilteredCampaignBundles(

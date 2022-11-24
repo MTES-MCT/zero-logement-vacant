@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardDescription, Text } from '@dataesr/react-dsfr';
+import { Card, CardDescription } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 
 interface Props {

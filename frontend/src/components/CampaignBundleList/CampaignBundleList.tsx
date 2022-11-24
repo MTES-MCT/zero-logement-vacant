@@ -77,7 +77,7 @@ const CampaignBundleList = (
 
     useEffect(() => {
         dispatch(listCampaignBundles())
-    }, [dispatch]) //eslint-disable-line react-hooks/exhaustive-deps
+    }, [dispatch])
 
     useEffect(() => {
         setFilteredCampaignBundles(
@@ -91,7 +91,7 @@ const CampaignBundleList = (
                 (campaignArchivedFilter && stepFilter(CampaignSteps.Archived)(campaignBundle))
             )
         )
-    }, [campaignBundleList, campaignInProgressFilter, outsideCampaignFilter, campaignNoSentFilter, campaignArchivedFilter]);
+    }, [campaignBundleList, campaignInProgressFilter, outsideCampaignFilter, campaignNoSentFilter, campaignArchivedFilter]) //eslint-disable-line react-hooks/exhaustive-deps
 
     const stepFilter = (step: CampaignSteps) => (campaignBundle: CampaignBundle) => campaignBundleStep(campaignBundle) === step
 

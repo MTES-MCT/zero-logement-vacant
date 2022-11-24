@@ -21,9 +21,14 @@ export const campaignTitleValidator = yup
     .string()
     .required('Veuillez renseigner le titre de la campagne.')
 
+interface UseFormOptions {
+  dependencies?: React.DependencyList
+}
+
 export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown>>(
   schema: yup.ObjectSchema<T>,
-  input: U
+  input: U,
+  options?: UseFormOptions
 ) {
   const [errors, setErrors] = useState<yup.ValidationError>()
   const [isTouched, setIsTouched] = useState(false)
@@ -66,7 +71,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
   }
 
   useEffect(() => {
-    if (isTouched) {
+    if (isTouched || options?.dependencies?.length) {
       validate()
     } else {
       if (Object.values(input).some(value => !!value)) {
@@ -75,7 +80,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, Object.values(input))
+  }, [...Object.values(input), ...options?.dependencies ?? []])
 
   return {
     isTouched,

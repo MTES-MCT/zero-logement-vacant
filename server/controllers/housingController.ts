@@ -253,7 +253,7 @@ const exportHousingList = async (housingList: HousingApi[], fileName: string, re
     const housingWorksheet = workbook.addWorksheet('Logements');
 
     housingWorksheet.columns = [
-        { header: 'RefId', key: 'refId' },
+        { header: 'Invariant', key: 'invariant' },
         { header: 'Référence cadastrale', key: 'cadastralReference' },
         { header: 'Propriétaire', key: 'owner' },
         { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },

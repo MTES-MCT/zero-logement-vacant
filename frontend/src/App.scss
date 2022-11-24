@@ -274,7 +274,7 @@ a.fr-btn[target=_blank]:after {
   display: inline-block !important;
 
   .fr-card__content {
-    padding: 2px 8px!important;
+    padding: 8px !important;
   }
 
   .fr-card__desc {
@@ -283,6 +283,11 @@ a.fr-btn[target=_blank]:after {
   }
 
   & + .app-card-xs {
-    margin-left: 16px;
+    margin-left: 8px;
+  }
+
+  .card-icon {
+    line-height: 16px;
+    font-size: 16px;
   }
 }

@@ -17,8 +17,8 @@ function AppCard(
 
     return(
         <Card hasArrow={false} hasBorder={false} isGrey={isGrey} className={classNames('app-card-xs', {'bg-bf925': !isGrey})}>
-            <CardDescription className="fr-p-1w" as="div">
-                <div className={classNames(icon, isGrey ? 'color-grey-850' : 'color-bf925-active')} aria-hidden="true" />
+            <CardDescription as="div">
+                <div className={classNames(icon, 'card-icon', isGrey ? 'color-grey-850' : 'color-bf925-active')} aria-hidden="true" />
                 {children}
             </CardDescription>
         </Card>

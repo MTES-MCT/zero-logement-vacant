@@ -138,7 +138,7 @@ const CampaignBundleList = (
             }
             {filteredCampaignBundles && filteredCampaignBundles.sort(CampaignNumberSort).map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
-                    <Row gutters alignItems="top">
+                    <Row gutters alignItems="top" spacing="mb-1w">
                         <Col>
                             <Title as="h2" look="h3" className="fr-mb-0">
                                 {campaignFullName(campaignBundle)}
@@ -244,7 +244,7 @@ const CampaignBundleList = (
                         campaignsOfBundle(campaignBundle).filter(campaign => campaign.reminderNumber > 0).map((campaign, campaignIndex) =>
                         <div key={`Campaign_${campaign.id}`}>
                             <hr className="fr-pb-1w fr-mt-1w"/>
-                            <Row gutters>
+                            <Row gutters alignItems="middle">
                                 <Col n="9">
                                     Relance n° {campaign.reminderNumber} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
                                 </Col>
@@ -272,7 +272,7 @@ const CampaignBundleList = (
                             </Row>
                         </div>
                     )}
-                    <hr />
+                    <hr className="fr-pb-2w fr-mt-1w"/>
                     <Row>
                         <Col className="align-right">
                             {(campaignBundle.campaignNumber ?? 0) > 0 && withDeletion &&

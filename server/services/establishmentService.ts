@@ -2,7 +2,7 @@ import { EstablishmentApi } from '../models/EstablishmentApi';
 import addressService from './addressService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import campaignRepository from '../repositories/campaignRepository';
-import { CampaignApi, DefaultCampaign } from '../models/CampaignApi';
+import { DefaultCampaign } from '../models/CampaignApi';
 
 
 const makeEstablishmentAvailable = async (establishment: EstablishmentApi): Promise<void> => {
@@ -15,7 +15,7 @@ const createDefaultCampaign = async (establishmentId: string): Promise<void> => 
     await campaignRepository.getCampaignBundle(establishmentId, '0')
         .then(campaignBundle => {
             if (!campaignBundle) {
-                campaignRepository.insert(<CampaignApi>{
+                campaignRepository.insert(<any>{
                     ...DefaultCampaign,
                     establishmentId
                 })

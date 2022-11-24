@@ -8,6 +8,7 @@ import { Request as JWTRequest } from 'express-jwt';
 import { EventApi, EventKinds } from '../models/EventApi';
 import addressService from '../services/addressService';
 import { constants } from 'http2';
+import { AddressKinds } from '../models/AddressApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -53,15 +54,13 @@ const create = async (request: JWTRequest, response: Response): Promise<Response
     const userId = (<RequestUser>request.auth).userId;
     const draftOwnerApi = <DraftOwnerApi>request.body.draftOwner;
 
-    const createdOwnerApi =await ownerRepository.insert(draftOwnerApi)
+    const createdOwnerApi = await ownerRepository.insert(draftOwnerApi)
 
-    const ownerAdresses = await addressService.normalizeAddresses(
+    await addressService.normalizeAddresses(
         [{
             addressId: createdOwnerApi.id,
             rawAddress: createdOwnerApi.rawAddress
-        }])
-
-    await ownerRepository.updateAddressList(ownerAdresses)
+        }], AddressKinds.Owner)
 
     return eventRepository.insert(<EventApi>{
         ownerId: createdOwnerApi.id,
@@ -88,13 +87,11 @@ const update = async (request: JWTRequest, response: Response): Promise<Response
 
     const updatedOwnerApi = await ownerRepository.update(ownerApi);
 
-    const ownerAdresses = await addressService.normalizeAddresses(
-        [{
-            addressId: updatedOwnerApi.id,
-            rawAddress: updatedOwnerApi.rawAddress
-        }])
-
-    await ownerRepository.updateAddressList(ownerAdresses)
+    await addressService.normalizeAddresses(
+    [{
+        addressId: updatedOwnerApi.id,
+        rawAddress: updatedOwnerApi.rawAddress
+    }], AddressKinds.Owner)
 
     return eventRepository.insert(<EventApi>{
             ownerId: updatedOwnerApi.id,

@@ -1,5 +1,4 @@
 import { Owner } from './Owner';
-import { Address } from './Address';
 import { HousingStatus } from './HousingState';
 import { LocalityKinds } from './Establishment';
 
@@ -9,7 +8,6 @@ export interface Housing {
     cadastralReference: string,
     buildingLocation?: string,
     rawAddress: string[];
-    address: Address;
     latitude?: number;
     longitude?: number;
     localityKind: LocalityKinds;

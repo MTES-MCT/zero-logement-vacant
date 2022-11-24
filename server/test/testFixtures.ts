@@ -146,7 +146,8 @@ export const genCampaignApi = (establishmentId: string, campaignNumber: number, 
         ownerCount: genNumber(2),
         kind: 1,
         createdAt: new Date(),
-        createdBy
+        createdBy,
+        sendingDate: new Date()
     };
 }
 

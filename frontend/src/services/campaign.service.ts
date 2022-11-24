@@ -112,7 +112,9 @@ const parseCampaign = (c: any): Campaign => ({
     ...c,
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
-    sentAt: c.sentAt ? parseISO(c.sentAt) : undefined
+    sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
+    archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
+    sendingDate: c.sendingDate ? parseISO(c.sendingDate) : undefined,
 } as Campaign)
 
 const parseCampaignBundle = (c: any): CampaignBundle => ({

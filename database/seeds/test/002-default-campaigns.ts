@@ -1,5 +1,4 @@
-// @ts-ignore
-import { establishmentsTable, housingScopeGeometryTable } from '../../../server/repositories/establishmentRepository';
+import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
 import { Knex } from 'knex';
 import campaignRepository, { campaignsTable } from '../../../server/repositories/campaignRepository';
 import { DefaultCampaign } from '../../../server/models/CampaignApi';

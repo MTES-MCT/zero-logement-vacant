@@ -54,7 +54,7 @@ const ProprietaireView = () => {
                                 <img src={people_search} height="100%" alt="" />
                             </div>
                             <Text size="lg">
-                                Inscrivez-vous en 2 minutes sur notre site, c'est gratuit et sans engagement de votre part
+                                Inscrivez-vous en 2 minutes sur notre site, c'est gratuit et sans engagement de votre part.
                             </Text>
                         </Col>
                         <Col>
@@ -62,7 +62,7 @@ const ProprietaireView = () => {
                                 <img src={new_message} height="100%" alt="" />
                             </div>
                             <Text size="lg">
-                                Si votre logement est situé dans une ville qui utilise notre service, nous vous mettons en relation
+                                Si votre logement est situé dans une ville qui utilise notre service, nous vous mettons en relation.
                             </Text>
                         </Col>
                         <Col>
@@ -70,7 +70,7 @@ const ProprietaireView = () => {
                                 <img src={sync_files} height="100%" alt="" />
                             </div>
                             <Text size="lg">
-                                Vous êtes recontacté par votre ville pour être accompagné et bénéficier le cas échéant d'aides financières
+                                Vous êtes recontacté par votre ville pour être accompagné et bénéficier le cas échéant d'aides financières.
                             </Text>
                         </Col>
                     </Row>

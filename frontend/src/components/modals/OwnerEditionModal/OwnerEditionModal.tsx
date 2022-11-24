@@ -8,7 +8,6 @@ import {
     ModalContent,
     ModalFooter,
     ModalTitle,
-    TextInput,
 } from '@dataesr/react-dsfr';
 import { DraftOwner, Owner } from '../../../models/Owner';
 
@@ -16,6 +15,7 @@ import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { format, isDate, parse } from 'date-fns';
 import styles from './owner-edition-modal.module.scss';
+import TextInput from "../../TextInput/TextInput";
 
 const OwnerEditionModal = (
     {

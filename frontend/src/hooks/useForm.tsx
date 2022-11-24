@@ -25,6 +25,8 @@ interface UseFormOptions {
   dependencies?: React.DependencyList
 }
 
+type MessageType = 'error' | 'valid' | ''
+
 export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown>>(
   schema: yup.ObjectSchema<T>,
   input: U,
@@ -50,7 +52,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
     return error(key)?.message
   }
 
-  function messageType<K extends keyof U>(key: K): string | undefined {
+  function messageType<K extends keyof U>(key: K): MessageType | undefined {
     if (isTouched) {
       if (hasError(key)) {
         return 'error'

@@ -181,7 +181,6 @@ function AccountCreationView() {
         <Stepper
           steps={3}
           currentStep={2}
-          nextStep={3}
           currentTitle="Créer votre mot de passe"
           nextStepTitle="Vos intentions de campagne"
         />

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
-import { Button, Checkbox, Pagination, Table } from '@dataesr/react-dsfr';
+import { Button, Pagination, Table } from '@dataesr/react-dsfr';
 import { Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -14,6 +14,7 @@ import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Checkbox from '../Checkbox/Checkbox';
 
 
 export enum HousingDisplayKey {

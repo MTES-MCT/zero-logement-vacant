@@ -1,7 +1,7 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Alert, Button, Container, TextInput } from '@dataesr/react-dsfr';
+import { Button, Container, TextInput } from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailableEstablishments, login } from '../../store/actions/authenticationAction';
@@ -10,6 +10,7 @@ import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import EstablishmentSearchableSelect
     from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import Alert from '../../components/Alert/Alert';
 
 const LoginView = () => {
 

@@ -47,7 +47,7 @@ const CampaignBundleList = (
             }
             {campaignBundleList && campaignBundleList.map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
-                    <Badge small
+                    <Badge isSmall
                            text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
                            className="fr-mb-1w"
                     />

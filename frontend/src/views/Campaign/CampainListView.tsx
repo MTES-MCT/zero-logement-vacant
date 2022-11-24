@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Col, Container, Row, Tab, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     deleteCampaignBundle,
@@ -17,6 +17,8 @@ import { useHistory } from 'react-router-dom';
 import CampaignBundleTitleModal from '../../components/modals/CampaignTitleModal/CampaignBundleTitleModal';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Tab from '../../components/Tab/Tab';
+import Alert from '../../components/Alert/Alert';
 
 
 const CampaignsListView = () => {
@@ -113,7 +115,7 @@ const CampaignsListView = () => {
                     </Text>
                     {(!removingModalCampaignBundleId.reminderNumber && removingModalCampaignBundleId.campaignNumber < (campaignList ?? []).length) &&
                         <Alert description="Les campagnes suivantes seront renumérotées."
-                               type="info"/>
+                               type="info" />
                     }
                     <Alert description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
                            type="info"/>

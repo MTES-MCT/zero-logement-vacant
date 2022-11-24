@@ -14,7 +14,8 @@ export interface CampaignApi {
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
-    sendingDate?: string;
+    archivedAt?: Date;
+    sendingDate?: Date;
 }
 
 export interface CampaignBundleApi {
@@ -38,7 +39,7 @@ export interface CampaignBundleApi {
 }
 
 export enum CampaignSteps {
-    OwnersValidation, Export, Sending, InProgess
+    OwnersValidation, Export, Sending, InProgess, Outside, Archived
 }
 
 export enum CampaignKinds {

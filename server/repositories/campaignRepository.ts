@@ -219,6 +219,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     validatedAt: result.validated_at,
     exportedAt: result.exported_at,
     sentAt: result.sent_at,
+    archivedAt: result.archived_at,
     sendingDate: result.sending_date,
     title: result.title
 }
@@ -236,6 +237,7 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     validated_at: campaignApi.validatedAt,
     exported_at: campaignApi.exportedAt,
     sent_at: campaignApi.sentAt,
+    archived_at: campaignApi.archivedAt,
     sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined
 })
 

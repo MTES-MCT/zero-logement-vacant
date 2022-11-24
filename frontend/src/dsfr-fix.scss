@@ -18,3 +18,8 @@ a[href].ds-fr--flex {
 .fr-btn--tertiary-no-outline {
     box-shadow: none !important;
 }
+
+.fix-vertical-align {
+    position: relative;
+    top: -3px;
+}

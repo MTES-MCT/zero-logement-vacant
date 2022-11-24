@@ -158,7 +158,7 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
 const validateStepValidators = [
     param('campaignId').notEmpty().isUUID(),
-    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.InProgess]),
+    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.InProgess, CampaignSteps.Archived]),
     body('sendingDate').if(body('step').equals(String(CampaignSteps.Sending))).notEmpty(),
 ];
 
@@ -188,7 +188,8 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
             validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
             exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
             sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
-            sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
+            sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate,
+            archivedAt: step === CampaignSteps.Archived ? new Date() : campaignApi.archivedAt,
         }
 
         if (step === CampaignSteps.Sending) {

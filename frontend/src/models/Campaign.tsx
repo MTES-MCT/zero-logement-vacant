@@ -20,6 +20,7 @@ export interface Campaign {
     exportedAt?: Date;
     sentAt?: Date;
     archivedAt?: Date;
+    sendingDate?: Date;
 }
 
 export interface CampaignBundleId {
@@ -100,7 +101,7 @@ export const campaignFullName = (campaign: Campaign | CampaignBundle) => {
     return campaignPartialName(campaign.campaignNumber, campaign.reminderNumber, campaign.title)
 }
 
-export const campaignStep = (campaign?: Campaign) => {
+export const campaignStep = (campaign: Campaign) => {
     return campaign?.campaignNumber === 0 ? CampaignSteps.Outside :
         (!campaign?.validatedAt) ? CampaignSteps.OwnersValidation :
             !campaign?.exportedAt ? CampaignSteps.Export :

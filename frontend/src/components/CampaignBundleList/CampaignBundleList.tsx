@@ -27,6 +27,29 @@ import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
 
+const CampaignBundleStats = ({ campaignBundle, isArchived }: { campaignBundle: CampaignBundle, isArchived: boolean }) => {
+
+    return(
+        <>
+            <AppCard icon="ri-feedback-fill" isGrey={isArchived}>
+                <Text as="span">
+                    <b>{returnRate(campaignBundle)}%</b> de retour
+                </Text>
+            </AppCard>
+            <AppCard icon="ri-phone-fill" isGrey={isArchived}>
+                <Text as="span">
+                    <b>{campaignBundle.neverContactedCount}</b> à recontacter
+                </Text>
+            </AppCard>
+            <AppCard icon="ri-hand-coin-fill" isGrey={isArchived}>
+                <Text as="span">
+                    <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
+                </Text>
+            </AppCard>
+        </>
+    )
+}
+
 interface Props {
     withDeletion?: boolean
 }
@@ -43,12 +66,13 @@ const CampaignBundleList = (
 
     const { loading, campaignBundleList } = useSelector((state: ApplicationState) => state.campaign);
     const [deletionModalCampaignBundleId, setDeletionModalCampaignBundleId] = useState<CampaignBundleId | undefined>();
+    const [archiveModalCampaignIds, setArchiveModalCampaignIds] = useState<string[]>([]);
     const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [campaignInProgressFilter, setCampaignInProgressFilter] = useState<boolean>(true);
     const [campaignNoSentFilter, setCampaignNotSentFilter] = useState<boolean>(true);
     const [outsideCampaignFilter, setOutsideCampaignInProgressFilter] = useState<boolean>(true);
-    const [campaignArchivedFilter, setCampaignArchivedFilter] = useState<boolean>(true);
+    const [campaignArchivedFilter, setCampaignArchivedFilter] = useState<boolean>(false);
     const [filteredCampaignBundles, setFilteredCampaignBundles] = useState<CampaignBundle[] | undefined>(campaignBundleList);
 
     useEffect(() => {
@@ -69,14 +93,22 @@ const CampaignBundleList = (
         )
     }, [campaignBundleList, campaignInProgressFilter, outsideCampaignFilter, campaignNoSentFilter, campaignArchivedFilter]);
 
-    const stepFilter = (step: CampaignSteps) => (campaignBundle: CampaignBundle) => campaignStep(campaignsOfBundle(campaignBundle)[0]) === step
+    const stepFilter = (step: CampaignSteps) => (campaignBundle: CampaignBundle) => campaignBundleStep(campaignBundle) === step
 
     const campaignBundlesCount = (step: CampaignSteps) =>
         campaignBundleList?.filter(stepFilter(step)).length ?? 0
 
-    const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
-        return campaignList?.filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1) ?? []
+    const mainCampaignOfBundle = (campaignBundle: CampaignBundle) => {
+        return (campaignList ?? []).filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1)[0]
     }
+
+    const reminderCampaignsOfBundle = (campaignBundle: CampaignBundle) => {
+        return (campaignList ?? [])
+            .filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1)
+            .filter(_ => _.reminderNumber > 0)
+    }
+
+    const campaignBundleStep  = (campaignBundle: CampaignBundle) => campaignStep(mainCampaignOfBundle(campaignBundle))
 
     const schema = yup.object().shape({sendingDate: dateValidator})
 
@@ -103,6 +135,18 @@ const CampaignBundleList = (
             dispatch(deleteCampaignBundle(deletionModalCampaignBundleId))
         }
         setDeletionModalCampaignBundleId(undefined);
+    }
+
+    const onArchiveCampaign = () => {
+        archiveModalCampaignIds.forEach(campaignId => {
+            trackEvent({
+                category: TrackEventCategories.Campaigns,
+                action: TrackEventActions.Campaigns.Archive
+            })
+
+            dispatch(validCampaignStep(campaignId, CampaignSteps.Archived))
+        })
+        setArchiveModalCampaignIds([]);
     }
 
     if (loading) {
@@ -168,11 +212,21 @@ const CampaignBundleList = (
                                         <b>{campaignBundle.ownerCount}</b> {campaignBundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
                                     </Text>
                                 </AppCard>
+                                {mainCampaignOfBundle(campaignBundle).sendingDate &&
+                                    <AppCard icon="ri-send-plane-fill" isGrey={true}>
+                                        <Text as="span">
+                                            envoyée le <b>{format(mainCampaignOfBundle(campaignBundle).sendingDate!, 'dd/MM/yy', { locale: fr })}</b>
+                                        </Text>
+                                    </AppCard>
+                                }
+                                {campaignBundleStep(campaignBundle) === CampaignSteps.Archived &&
+                                    <CampaignBundleStats campaignBundle={campaignBundle} isArchived={true}/>
+                                }
                             </div>
                         </Col>
-                        {(campaignBundle.campaignNumber ?? 0) > 0 &&
+                        {(campaignBundle.campaignNumber ?? 0) > 0 && campaignBundleStep(campaignBundle) !== CampaignSteps.Archived &&
                             <Col n="6">
-                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Export &&
+                                {campaignBundleStep(campaignBundle) === CampaignSteps.Export &&
                                     <div className="fr-p-4w bg-bf975">
                                         <Stepper
                                             steps={3}
@@ -192,7 +246,7 @@ const CampaignBundleList = (
                                         }
                                     </div>
                                 }
-                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.Sending &&
+                                {campaignBundleStep(campaignBundle) === CampaignSteps.Sending &&
                                     <div className="fr-p-4w bg-bf975">
                                         <Stepper
                                             steps={3}
@@ -221,33 +275,19 @@ const CampaignBundleList = (
                                         </Row>
                                     </div>
                                 }
-                                {campaignStep(campaignsOfBundle(campaignBundle)[0]) === CampaignSteps.InProgress &&
+                                {campaignBundleStep(campaignBundle) === CampaignSteps.InProgress &&
                                     <div className="fr-p-4w bg-bf975">
                                         <Title as="h3" look="h6">
                                             Suivi en cours
                                         </Title>
-                                        <AppCard icon="ri-feedback-fill">
-                                            <Text as="span">
-                                                <b>{returnRate(campaignBundle)}%</b> de retour
-                                            </Text>
-                                        </AppCard>
-                                        <AppCard icon="ri-phone-fill">
-                                            <Text as="span">
-                                                <b>{campaignBundle.neverContactedCount}</b> à recontacter
-                                            </Text>
-                                        </AppCard>
-                                        <AppCard icon="ri-hand-coin-fill">
-                                            <Text as="span">
-                                                <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
-                                            </Text>
-                                        </AppCard>
+                                        <CampaignBundleStats campaignBundle={campaignBundle} isArchived={false}/>
                                     </div>
                                 }
                             </Col>
                         }
                     </Row>
-                    {campaignsOfBundle(campaignBundle).length > 1 &&
-                        campaignsOfBundle(campaignBundle).filter(campaign => campaign.reminderNumber > 0).map((campaign, campaignIndex) =>
+                    {(reminderCampaignsOfBundle(campaignBundle).length > 0) &&
+                        reminderCampaignsOfBundle(campaignBundle).map((campaign, campaignIndex) =>
                         <div key={`Campaign_${campaign.id}`}>
                             <hr className="fr-pb-1w fr-mt-1w"/>
                             <Row gutters alignItems="middle">
@@ -255,7 +295,7 @@ const CampaignBundleList = (
                                     Relance n° {campaign.reminderNumber} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
                                 </Col>
                                 <Col n="3" className="align-right">
-                                    {campaignIndex === campaignsOfBundle(campaignBundle).length - 1 && withDeletion &&
+                                    {campaignIndex === reminderCampaignsOfBundle(campaignBundle).length - 1 && withDeletion &&
                                         <Button title="Supprimer"
                                                 tertiary
                                                 onClick={() => setDeletionModalCampaignBundleId(campaign as CampaignBundleId)}
@@ -270,7 +310,7 @@ const CampaignBundleList = (
                                             onClick={() => history.push('/campagnes/' + campaignBundleIdUrlFragment({campaignNumber: campaign.campaignNumber, reminderNumber: campaign.reminderNumber}))}
                                             icon="ri-arrow-right-line"
                                             iconPosition="right"
-                                            className="fr-btn--tertiary-no-outline"
+                                            className="fr-btn--tertiary-no-outline fix-vertical-align"
                                     >
                                         Accéder
                                     </Button>
@@ -281,7 +321,10 @@ const CampaignBundleList = (
                     <hr className="fr-pb-2w fr-mt-1w"/>
                     <Row>
                         <Col className="align-right">
-                            {(campaignBundle.campaignNumber ?? 0) > 0 && withDeletion &&
+                            {(campaignBundle.campaignNumber ?? 0) > 0
+                                && withDeletion
+                                && reminderCampaignsOfBundle(campaignBundle).length === 0
+                                &&campaignBundleStep(campaignBundle) !== CampaignSteps.Archived &&
                                 <Button title="Supprimer"
                                         tertiary
                                         onClick={() => setDeletionModalCampaignBundleId(campaignBundle)}
@@ -291,12 +334,23 @@ const CampaignBundleList = (
                                     Supprimer
                                 </Button>
                             }
+                            {campaignBundleStep(campaignBundle) === CampaignSteps.InProgress &&
+                                <Button title="Archiver"
+                                        secondary
+                                        onClick={() => setArchiveModalCampaignIds(campaignBundle.campaignIds)}
+                                        icon="ri-archive-fill"
+                                        className="fr-mr-2w"
+                                >
+                                    Archiver
+                                </Button>
+                            }
                             <Button title="Accéder"
                                     onClick={() => history.push('/campagnes/C' + campaignBundle.campaignNumber)}
                                     icon="ri-arrow-right-line"
                                     iconPosition="right"
+                                    className="fix-vertical-align"
                             >
-                                Accéder
+                                {campaignBundleStep(campaignBundle) === CampaignSteps.InProgress ? 'Accéder au suivi' : 'Accéder' }
                             </Button>
                         </Col>
                     </Row>
@@ -315,6 +369,15 @@ const CampaignBundleList = (
                     }
                     <Alert description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
                            type="info"/>
+                </ConfirmationModal>
+            }
+            {(archiveModalCampaignIds.length > 0) &&
+                <ConfirmationModal
+                    onSubmit={onArchiveCampaign}
+                    onClose={() => setArchiveModalCampaignIds([])}>
+                    <Text size="md">
+                        Êtes-vous sûr de vouloir archiver cette campagne {archiveModalCampaignIds.length > 1 ? 'et ses relances ' : ''} ?
+                    </Text>
                 </ConfirmationModal>
             }
         </>

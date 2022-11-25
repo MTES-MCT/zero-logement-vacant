@@ -34,6 +34,10 @@ export function createServer(): Server {
           'https://renderer-assets.typeform.com',
           'https://form.typeform.com'
         ],
+        frameSrc: [
+          "'self'",
+          "'https://form.typeform.com'"
+        ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",

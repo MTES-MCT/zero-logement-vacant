@@ -36,7 +36,7 @@ export function createServer(): Server {
           'https://form.typeform.com'
         ],
         frameAncestors: [
-          "'https://form.typeform.com'"
+          'https://form.typeform.com'
         ],
         styleSrc: [
           "'self'",

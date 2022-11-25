@@ -23,6 +23,7 @@ export function createServer(): Server {
 
   app.use(helmet({
     crossOriginEmbedderPolicy: false,
+    frameguard: false,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],

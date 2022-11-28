@@ -1,4 +1,10 @@
-import React, { ChangeEvent, ReactElement, useEffect, useState } from 'react';
+import React, {
+    ChangeEvent,
+    ReactElement, ReactNode,
+    useEffect,
+    useMemo,
+    useState
+} from 'react';
 
 import {
     Button,
@@ -32,6 +38,7 @@ export enum HousingDisplayKey {
 }
 
 interface Props {
+    actions?: (housing: Housing) => ReactNode | ReactNode[]
     children?: ReactElement | ReactElement[]
     paginatedHousing: PaginatedResult<Housing>
     displayKind: HousingDisplayKey
@@ -44,6 +51,7 @@ interface Props {
 
 const HousingList = (
     {
+        actions,
         children,
         paginatedHousing,
         onChangePagination,
@@ -206,24 +214,27 @@ const HousingList = (
 
     };
 
-    const viewColumn = {
-        name: 'view',
+    const actionColumn = {
+        name: 'action',
         headerRender: () => '',
-        render: ({ id }: Housing) =>
+        render: (housing: Housing) => actions
+          ? <>{actions(housing)}</>
+          : (
             <Link title="Afficher"
-                  to={location.pathname + '/logements/' + id}
+                  to={location.pathname + '/logements/' + housing.id}
                   className="ds-fr--inline fr-link"
                   onClick={() => trackEvent({ category: TrackEventCategories.HousingList, action: TrackEventActions.HousingList.DisplayHousing })}>
                 Afficher<span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
             </Link>
+          )
     }
 
     const columns = () => {
         switch (displayKind) {
             case HousingDisplayKey.Housing :
-                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, statusColumn, ...additionalColumns ?? [], viewColumn];
+                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, addressColumn, ownerColumn, ownerAddressColumn, campaignColumn, statusColumn, ...additionalColumns ?? [], actionColumn];
             case HousingDisplayKey.Owner :
-                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], viewColumn];
+                return [...onSelectHousing ? [selectColumn] : [], rowNumberColumn, ownerColumn, { ...addressColumn, label: 'Logement' }, campaignColumn, ...additionalColumns ?? [], actionColumn];
         }
     }
 
@@ -238,7 +249,7 @@ const HousingList = (
                     {...header?.props}
                 />
             </header>
-            { paginatedHousing.entities?.length > 0 && <>
+            {paginatedHousing.entities?.length > 0 && <>
                 <Table
                     caption="Logements"
                     captionPosition="none"

@@ -1,7 +1,9 @@
 import { Link } from "@dataesr/react-dsfr";
-import { ComponentPropsWithoutRef } from "react";
+import { ComponentPropsWithoutRef, MouseEventHandler } from "react";
 
-type LinkProps = ComponentPropsWithoutRef<typeof Link>
+interface LinkProps extends ComponentPropsWithoutRef<typeof Link> {
+  onClick: MouseEventHandler
+}
 
 function ButtonLink(props: LinkProps) {
   return (

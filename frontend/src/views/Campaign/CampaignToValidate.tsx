@@ -2,6 +2,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Button, Col, Link, Row, Text, TextInput } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  changeCampaignHousingPagination,
   listCampaignBundleHousing,
   removeCampaignHousingList,
   validCampaignStep,
@@ -10,8 +11,6 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { CampaignSteps } from '../../models/Campaign';
 import { format, isDate, parse } from 'date-fns';
 import * as yup from 'yup';
-import { SelectedHousing } from '../../models/Housing';
-import { MenuAction } from '../../components/AppActionsMenu/AppActionsMenu';
 import {
   TrackEventActions,
   TrackEventCategories
@@ -22,6 +21,17 @@ import VerticalStepper from "../../components/VerticalStepper/VerticalStepper";
 import VerticalStep from "../../components/VerticalStepper/VerticalStep";
 import { useStepper } from "../../hooks/useStepper";
 import { useForm } from "../../hooks/useForm";
+import HousingList, {
+  HousingDisplayKey
+} from "../../components/HousingList/HousingList";
+import HousingListHeaderActions
+  from "../../components/HousingList/HousingListHeaderActions";
+import HousingListHeader from "../../components/HousingList/HousingListHeader";
+import AppSearchBar from "../../components/AppSearchBar/AppSearchBar";
+import { useSelection } from "../../hooks/useSelection";
+import { useSearch } from "../../hooks/useSearch";
+import ConfirmationModal
+  from "../../components/modals/ConfirmationModal/ConfirmationModal";
 
 interface CampaignToValidateProps {
     campaignStep: CampaignSteps
@@ -32,10 +42,10 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
 
-    const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
+    const [removing, setRemoving] = useState<string>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
-    const { index, isCompleted, next } = useStepper([
+    const { forceStep, index, isCompleted, next } = useStepper([
       CampaignSteps.OwnersValidation,
       CampaignSteps.Export,
       CampaignSteps.Sending,
@@ -59,7 +69,10 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
     });
     const { isValid, message, messageType } = useForm(sendingForm, { sendingDate })
 
-    const { campaignBundle, exportURL } = useSelector((state: ApplicationState) => state.campaign);
+    const { campaignBundle, campaignBundleHousing } = useSelector((state: ApplicationState) => state.campaign);
+    const { hasSelected, setSelected } = useSelection()
+
+    const { filters, searchWithQuery } = useSearch()
 
     useEffect(() => {
         if (campaignBundle) {
@@ -69,6 +82,10 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
 
     if (!campaignBundle) {
         return <></>
+    }
+
+    function editHousings() {
+      forceStep(CampaignSteps.OwnersValidation)
     }
 
     const validStep = (step: CampaignSteps) => {
@@ -85,17 +102,20 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
         }
     }
 
-    const submitCampaignHousingRemove = () => {
-        dispatch(removeCampaignHousingList(campaignBundle.campaignIds[0], selectedHousing.all, selectedHousing.ids))
-        setIsRemovingModalOpen(false);
+    function remove(id: string): void {
+      setRemoving(id)
+      setIsRemovingModalOpen(true)
     }
 
-    const menuActions = [
-        { title: 'Supprimer', selectedHousing, onClick: () => setIsRemovingModalOpen(true)}
-    ] as MenuAction[]
+    const submitCampaignHousingRemove = () => {
+        if (removing) {
+          dispatch(removeCampaignHousingList(campaignBundle.campaignIds[0], false, [removing]))
+          setIsRemovingModalOpen(false);
+        }
+    }
 
     async function downloadCSV(downloadOnly = false): Promise<void> {
-      // window.open(exportURL, '_self')
+      window.open(campaignBundle?.exportURL, '_self')
       if (!downloadOnly) {
         validStep(CampaignSteps.Export)
       }
@@ -110,8 +130,52 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
               : "Modification de la liste de logements de l'échantillon."
             }
             content={isCompleted(CampaignSteps.OwnersValidation)
-              ? <ButtonLink display="flex" isSimple>Voir ou supprimer des logements</ButtonLink>
-              : null
+              ? <ButtonLink display="flex" isSimple onClick={editHousings}>Voir ou supprimer des logements</ButtonLink>
+              : (
+                <>
+                  <Text size="lg">Supprimer des logements de votre campagne.</Text>
+                  <HousingList
+                    actions={housing => (
+                      <ButtonLink
+                        isSimple
+                        onClick={() => remove(housing.id)}
+                      >
+                        Supprimer
+                      </ButtonLink>
+                    )}
+                    displayKind={HousingDisplayKey.Housing}
+                    onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage))}
+                    onSelectHousing={setSelected}
+                    paginatedHousing={campaignBundleHousing}
+                  >
+                    <HousingListHeader>
+                      <HousingListHeaderActions>
+                        <Row>
+                          {!hasSelected &&
+                            <Col>
+                              <AppSearchBar
+                                onSearch={searchWithQuery}
+                                initialQuery={filters.query}
+                              />
+                            </Col>
+                          }
+                        </Row>
+                      </HousingListHeaderActions>
+                    </HousingListHeader>
+                  </HousingList>
+                  {isRemovingModalOpen &&
+                    <ConfirmationModal
+                      onSubmit={() => submitCampaignHousingRemove()}
+                      onClose={() => setIsRemovingModalOpen(false)}>
+                      Êtes-vous sûr de vouloir supprimer ce logement de la campagne ?
+                    </ConfirmationModal>
+                  }
+                </>
+              )
+            }
+            actions={isCompleted(CampaignSteps.OwnersValidation)
+                ? undefined
+                : <Button onClick={() => validStep(CampaignSteps.OwnersValidation)}>Valider</Button>
             }
           />
 

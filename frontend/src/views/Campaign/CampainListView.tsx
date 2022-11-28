@@ -101,7 +101,7 @@ const CampaignsListView = () => {
                             <CalloutText as="p">
                                 Accédez à nos modèles de courriers et ceux envoyés par les autres collectivités
                             </CalloutText>
-                            <Link title="Voir la bibliothèque des courriers" href="Voir la bibliothèque des courriers" target="_blank" className="fr-btn--md fr-btn fr-btn--secondary">
+                            <Link title="Voir la bibliothèque des courriers" href="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R" target="_blank" className="fr-btn--md fr-btn fr-btn--secondary">
                                 Voir la bibliothèque des courriers
                             </Link>
                         </Callout>

@@ -22,7 +22,7 @@ export function createServer(): Server {
   const app = express();
 
   app.use(helmet({
-    crossOriginEmbedderPolicy: false,
+    crossOriginEmbedderPolicy: true,
     frameguard: false,
     contentSecurityPolicy: {
       directives: {

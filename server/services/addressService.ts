@@ -1,12 +1,12 @@
-import { AddressApi } from '../models/AddressApi';
+import { AddressApi, AddressKinds } from '../models/AddressApi';
 import FormData from 'form-data';
 import fs from 'fs';
 import fetch, { Response as FetchResponse } from 'node-fetch';
 import ExcelJS from 'exceljs';
 import housingRepository from '../repositories/housingRepository';
 import { HousingApi } from '../models/HousingApi';
-import ownerRepository from '../repositories/ownerRepository';
 import config from '../utils/config';
+import banAddressesRepository from '../repositories/banAddressesRepository';
 
 
 const normalizeEstablishmentAddresses = async (establishmentId: string) => {
@@ -31,7 +31,7 @@ const normalizeEstablishmentAddresses = async (establishmentId: string) => {
     )
 }
 
-const normalizeHousingAddresses =  (housingList: HousingApi[]): Promise<HousingApi[]> => {
+const normalizeHousingAddresses =  (housingList: HousingApi[]): Promise<AddressApi[]> => {
 
     console.log('Normalize housing addresses', housingList.length)
 
@@ -40,12 +40,13 @@ const normalizeHousingAddresses =  (housingList: HousingApi[]): Promise<HousingA
             addressId: housing.id,
             rawAddress: housing.rawAddress,
             inseeCode: housing.inseeCode
-        }))
-    ).then(housingAdresses => housingRepository.updateAddressList(housingAdresses))
+        })),
+        AddressKinds.Housing
+    )
 }
 
 
-const normalizeOwnerAddresses = (housingList: HousingApi[]): Promise<HousingApi[]> => {
+const normalizeOwnerAddresses = (housingList: HousingApi[]): Promise<AddressApi[]> => {
 
     console.log('Normalize owner addresses', housingList.length)
 
@@ -53,12 +54,13 @@ const normalizeOwnerAddresses = (housingList: HousingApi[]): Promise<HousingApi[
         housingList.map((housing: HousingApi) => ({
             addressId: housing.owner.id,
             rawAddress: housing.owner.rawAddress
-        }))
-    ).then(ownerAdresses => ownerRepository.updateAddressList(ownerAdresses))
+        })),
+        AddressKinds.Owner
+    )
 }
 
 
-const normalizeAddresses = async (addresses: {addressId: string, rawAddress: string[], inseeCode?: string}[]): Promise<{ addressId: string, addressApi: AddressApi }[]> => {
+const normalizeAddresses = async (addresses: {addressId: string, rawAddress: string[], inseeCode?: string}[], addressKind: AddressKinds): Promise<AddressApi[]> => {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet();
@@ -91,6 +93,9 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
             form.append('result_columns', 'result_name');
             form.append('result_columns', 'result_postcode');
             form.append('result_columns', 'result_city');
+            form.append('result_columns', 'latitude');
+            form.append('result_columns', 'longitude');
+            form.append('result_columns', 'result_score');
 
             return fetch(`${config.ban.api.endpoint}/search/csv/`, {
                 method: 'POST',
@@ -103,18 +108,22 @@ const normalizeAddresses = async (addresses: {addressId: string, rawAddress: str
 
     const headers = csvText.split('\n')[0].split(',')
 
-    return csvText.split('\n').slice(1).map(line => {
-        const columns = line.split(',')
-        return <{ addressId: string, addressApi: AddressApi }>{
-            addressId: columns[headers.indexOf('addressId')],
-            addressApi: {
+    return banAddressesRepository.upsertList(
+        csvText.split('\n').slice(1).map(line => {
+            const columns = line.split(',')
+            return <AddressApi>{
+                refId: columns[headers.indexOf('addressId')],
+                addressKind,
                 houseNumber: columns[headers.indexOf('result_housenumber')],
                 street: ['street', 'housenumber'].indexOf(columns[headers.indexOf('result_type')]) !== -1 ? columns[headers.indexOf('result_name')] : undefined,
                 postalCode: columns[headers.indexOf('result_postcode')],
                 city: columns[headers.indexOf('result_city')],
+                latitude: columns[headers.indexOf('latitude')] ? Number(columns[headers.indexOf('latitude')]) : undefined,
+                longitude: columns[headers.indexOf('longitude')] ? Number(columns[headers.indexOf('longitude')]) : undefined,
+                score: columns[headers.indexOf('result_score')] ? Number(columns[headers.indexOf('result_score')]) : undefined
             }
-        }
-    })
+        })
+    )
 }
 
 export default {

@@ -1,14 +1,12 @@
 import React, { useRef, useState } from 'react';
 
 import {
-    Alert,
     Badge,
     Col,
     Container,
     File,
     Link,
     Row,
-    Tab,
     Table,
     Tabs,
     Text,
@@ -37,6 +35,8 @@ import {
     TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Tab from '../../components/Tab/Tab';
+import Alert from '../../components/Alert/Alert';
 
 const GeoPerimeterView = () => {
 
@@ -115,7 +115,7 @@ const GeoPerimeterView = () => {
             <>
                 {kind ?
                     kind :
-                    <Badge small
+                    <Badge isSmall
                            text='Non renseigné'
                            colorFamily='pink-tuile'
                     />

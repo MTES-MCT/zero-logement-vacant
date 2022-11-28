@@ -7,7 +7,6 @@ import {
     Container,
     Link as DSFRLink,
     Row,
-    Tab,
     Tabs,
     Text,
     Title
@@ -49,6 +48,7 @@ import HousingAdditionalOwners from './HousingAdditionalOwners';
 import { FormState } from '../../store/actions/FormState';
 import { LocalityKindLabels } from '../../models/Establishment';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
+import Tab from "../../components/Tab/Tab";
 
 const HousingView = () => {
 
@@ -310,7 +310,7 @@ const HousingView = () => {
                                 }
                                 <div className="fr-mt-1w">
                                     <DSFRLink title="Localiser dans Google Map - nouvelle fenêtre"
-                                              href={`https://www.google.com/maps/place/${housing.longitude},${housing.latitude}`}
+                                              href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
                                               target="_blank">
                                         Localiser
                                     </DSFRLink>

@@ -41,5 +41,5 @@ const productionConfig = {
 };
 
 
-export default process.env.NODE_ENV === 'production' ? productionConfig : process.env.NODE_ENV === 'test'? testConfig : dummyConfig;
+export default config.databaseEnvironment === 'production' ? productionConfig : config.databaseEnvironment === 'test'? testConfig : dummyConfig;
 

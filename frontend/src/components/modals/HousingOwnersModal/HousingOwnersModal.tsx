@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-    Alert,
     Button,
     Col,
     Container,
@@ -17,6 +16,7 @@ import { HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { SelectOption } from '../../../models/SelectOption';
+import Alert from '../../Alert/Alert';
 
 const HousingOwnersModal = (
     {
@@ -105,7 +105,7 @@ const HousingOwnersModal = (
                     {Object.values(errors).length > 0 &&
                         <Row className="fr-pb-2w">
                             <Col>
-                                <Alert title="Erreur" description={Object.values(errors)[0]} type="error"/>
+                                <Alert title="Erreur" description={Object.values(errors)[0] as string} type="error"/>
                             </Col>
                         </Row>
                     }

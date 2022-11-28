@@ -1,4 +1,3 @@
-import { AddressApi } from './AddressApi';
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 
@@ -10,7 +9,6 @@ export interface HousingApi {
     buildingLocation: string,
     inseeCode: string,
     rawAddress: string[];
-    address: AddressApi;
     latitude?: number;
     longitude?: number;
     localityKind: string;

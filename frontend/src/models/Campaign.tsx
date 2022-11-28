@@ -21,6 +21,7 @@ export interface Campaign {
     sentAt?: Date;
     archivedAt?: Date;
     sendingDate?: Date;
+    confirmedAt?: Date
 }
 
 export interface CampaignBundleId {
@@ -66,8 +67,13 @@ export const getCampaignKindLabel = (kind: CampaignKinds) => {
 }
 
 export enum CampaignSteps {
-    OwnersValidation, Export, Sending, InProgress, Outside, Archived
+    OwnersValidation, Export, Sending, Confirmation, InProgress, Outside, Archived
 }
+
+export const CAMPAIGN_STEP_VALUES: number[] =
+  Object
+    .values(CampaignSteps)
+    .filter((step: any): step is number => Number.isInteger(step))
 
 export function CampaignNumberSort<T extends CampaignBundleId> (c1?: T, c2?: T) {
     return (c1?.campaignNumber !== undefined && c2?.campaignNumber !== undefined) ?
@@ -107,7 +113,8 @@ export const campaignStep = (campaign: Campaign) => {
             !campaign?.exportedAt ? CampaignSteps.Export :
                 !campaign?.sentAt ? CampaignSteps.Sending :
                     campaign?.archivedAt ? CampaignSteps.Archived :
-                        CampaignSteps.InProgress
+                        !campaign?.confirmedAt ? CampaignSteps.Confirmation :
+                    CampaignSteps.InProgress
 }
 
 export const returnRate = (campaignBundle: CampaignBundle) => {

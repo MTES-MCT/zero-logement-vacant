@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Badge, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
@@ -7,19 +7,19 @@ import {
     campaignPartialName,
     campaignStep,
     CampaignSteps,
-    getCampaignKindLabel,
     returnRate,
 } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
-import CampaignInProgress from './CampainInProgress';
-import CampaignToValidate from './CampainToValidate';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import CampaignInProgress from './CampaignInProgress';
+import CampaignToValidate from './CampaignToValidate';
+import HousingFiltersBadges
+    from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import styles from './campaign.module.scss';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
+import ButtonLink from "../../components/ButtonLink/ButtonLink";
 
 
 const CampaignView = () => {
@@ -39,6 +39,13 @@ const CampaignView = () => {
         }, searchQuery))
     }, [dispatch, campaignNumber, reminderNumber, searchQuery])
 
+    function removeCampaign(): void {
+        // TODO
+    }
+
+    function renameCampaign(): void {
+        // TODO
+    }
 
     const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
         return campaignList?.filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1) ?? []
@@ -49,22 +56,41 @@ const CampaignView = () => {
             {campaignBundle &&
                 <>
                     <div className="bg-100">
-                        <Container className="bg-100">
-                            <AppBreadcrumb />
-                            <Badge isSmall
-                                   text={campaignBundle.campaignNumber ? `Campagne - ${getCampaignKindLabel(campaignBundle.kind)}` : 'Hors campagne'}
-                                   className="fr-mb-1w"
-                            />
+                        <Container spacing="py-4w" as="section">
                             <Row>
                                 <Col>
-                                    <Title as="h1" className="fr-mb-1w">
+                                    <AppBreadcrumb />
+                                </Col>
+                                <Col className="align-right">
+                                    <ButtonLink
+                                      className="fr-pt-3w"
+                                      display="flex"
+                                      icon="ri-delete-bin-line"
+                                      iconPosition="left"
+                                      iconSize="1x"
+                                      onClick={removeCampaign}
+                                    >
+                                        Supprimer la campagne
+                                    </ButtonLink>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <Title as="h1" className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
                                         {campaignPartialName(campaignBundle.campaignNumber, campaignBundle.reminderNumber)}
                                         <br />
                                         {campaignBundle.title}
                                     </Title>
-                                </Col>
-                                <Col n="4" spacing="mt-1w">
-                                    <AppSearchBar onSearch={(input: string) => {setSearchQuery(input)}} />
+                                    <ButtonLink
+                                      display="flex"
+                                      icon="ri-edit-2-fill"
+                                      iconPosition="left"
+                                      iconSize="1x"
+                                      isSimple
+                                      onClick={renameCampaign}
+                                    >
+                                        Renommer
+                                    </ButtonLink>
                                 </Col>
                             </Row>
                             <Row>
@@ -87,6 +113,7 @@ const CampaignView = () => {
                             </Row>
                             <Row className="fr-pb-2w">
                                 <Col>
+                                    <Text>Filtres utilisés pour la création de l'échantillon :</Text>
                                     <HousingFiltersBadges filters={campaignBundle.filters}/>
                                 </Col>
                             </Row>
@@ -101,7 +128,7 @@ const CampaignView = () => {
                             }
                         </Container>
                     </div>
-                    <Container spacing="py-4w">
+                    <Container spacing="py-4w" as="section">
                         {(campaignBundle.campaignNumber ?? 0) > 0 && campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
                             <CampaignToValidate campaignStep={campaignStep(campaignsOfBundle(campaignBundle)[0])}/> :
                             <CampaignInProgress query={searchQuery}/>

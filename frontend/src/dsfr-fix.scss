@@ -11,7 +11,8 @@ a[href]:not(.fr-btn) {
     padding-bottom: 0.2rem;
 }
 
-a[href].ds-fr--flex {
+a[href].ds-fr--flex,
+a[href].fr-link {
     display: inline-flex;
 }
 

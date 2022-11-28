@@ -318,7 +318,7 @@ describe('Campaign controller', () => {
 
         })
 
-        it('should update the campaign when validating step Sending and update housing status if needed', async () => {
+      it('should update the campaign when validating step Sending and update housing status if needed', async () => {
 
             await db(campaignsHousingTable).insert([
                 { campaign_id: Campaign1.id, housing_id: Housing0.id },
@@ -370,6 +370,28 @@ describe('Campaign controller', () => {
                 .then(result => expect(result.status).toBe(HousingStatusApi.InProgress));
 
         })
+
+      it('should update the campaign when validating step Confirmation', async () => {
+        const { body, status } = await withAccessToken(
+          request(app)
+            .put(testRoute(Campaign1.id))
+            .send({ step: CampaignSteps.Confirmation })
+        )
+
+        expect(status).toBe(constants.HTTP_STATUS_OK)
+        expect(body).toMatchObject({
+          id: Campaign1.id,
+          confirmedAt: expect.any(String)
+        })
+
+        const actual = await db(campaignsTable)
+          .where('id', Campaign1.id)
+          .first()
+        expect(actual).toMatchObject({
+          id: Campaign1.id,
+          confirmed_at: expect.any(Date)
+        })
+      });
 
     })
 

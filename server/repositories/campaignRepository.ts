@@ -225,6 +225,7 @@ const parseCampaignApi = (result: any) => <CampaignApi>{
     sentAt: result.sent_at,
     archivedAt: result.archived_at,
     sendingDate: result.sending_date,
+    confirmedAt: result.confirmed_at,
     title: result.title
 }
 
@@ -242,7 +243,8 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     exported_at: campaignApi.exportedAt,
     sent_at: campaignApi.sentAt,
     archived_at: campaignApi.archivedAt,
-    sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined
+    sending_date: campaignApi.sendingDate ? new Date(campaignApi.sendingDate) : undefined,
+    confirmed_at: campaignApi.confirmedAt
 })
 
 const parseCampaignBundleApi = (result: any) => <CampaignBundleApi>{

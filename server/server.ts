@@ -38,6 +38,9 @@ export function createServer(): Server {
         frameAncestors: [
           'https://form.typeform.com'
         ],
+        frameSrc: [
+          'https://form.typeform.com'
+        ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",

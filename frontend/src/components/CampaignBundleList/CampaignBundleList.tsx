@@ -1,5 +1,7 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Stepper, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
+
+import { Alert, Button, Col, Row, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
+
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
@@ -26,6 +28,7 @@ import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportMod
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
+import Stepper from '../Stepper/Stepper';
 
 const CampaignBundleStats = ({ campaignBundle, isArchived }: { campaignBundle: CampaignBundle, isArchived: boolean }) => {
 
@@ -157,21 +160,25 @@ const CampaignBundleList = (
         <>
             <TagGroup className="fr-py-2w">
                 <Tag as="span"
+                     small
                      selected={campaignInProgressFilter}
                      onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}>
                     Suivi en cours ({campaignBundlesCount(CampaignSteps.InProgress)})
                 </Tag>
                 <Tag as="span"
+                     small
                      selected={campaignNoSentFilter}
                      onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}>
                     Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export)})
                 </Tag>
                 <Tag as="span"
+                     small
                      selected={campaignArchivedFilter}
                      onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}>
                     Campagne archivée ({campaignBundlesCount(CampaignSteps.Archived)})
                 </Tag>
                 <Tag as="span"
+                     small
                      selected={outsideCampaignFilter}
                      onClick={() => setOutsideCampaignInProgressFilter(!outsideCampaignFilter)}>
                     Hors campagne ({campaignBundlesCount(CampaignSteps.Outside)})
@@ -358,12 +365,10 @@ const CampaignBundleList = (
                         Êtes-vous sûr de vouloir supprimer cette {deletionModalCampaignBundleId.reminderNumber ? 'relance' : 'campagne'} ?
                     </Text>
                     {(!deletionModalCampaignBundleId.reminderNumber && deletionModalCampaignBundleId.campaignNumber < (campaignList ?? []).length) &&
-                        <Alert title=""
-                               description="Les campagnes suivantes seront renumérotées."
+                        <Alert description="Les campagnes suivantes seront renumérotées."
                                type="info"/>
                     }
-                    <Alert title=""
-                           description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                    <Alert description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
                            type="info"/>
                 </ConfirmationModal>
             }

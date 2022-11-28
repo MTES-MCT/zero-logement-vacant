@@ -14,8 +14,10 @@ import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+
 import HousingListHeader from './HousingListHeader';
 import { findChild } from '../../utils/elementUtils';
+
 import Checkbox from '../Checkbox/Checkbox';
 
 export enum HousingDisplayKey {

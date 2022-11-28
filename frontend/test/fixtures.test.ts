@@ -1,7 +1,6 @@
 import { Owner } from '../src/models/Owner';
 import { Housing, OwnershipKinds } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
-import { Address } from '../src/models/Address';
 import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
@@ -48,15 +47,6 @@ export function genUser() {
     } as User;
 }
 
-export function genAddress() {
-    return {
-        houseNumber: genNumber(2),
-        street: randomstring.generate(),
-        postalCode: genNumber(5),
-        city: randomstring.generate()
-    } as Address;
-}
-
 export function genOwner() {
     return {
         id: randomstring.generate(),
@@ -79,7 +69,6 @@ export function genHousing() {
             randomstring.generate(),
             randomstring.generate()
         ],
-        address: genAddress(),
         localityKind: LocalityKinds.ACV,
         owner: genOwner(),
         livingArea: genNumber(4),

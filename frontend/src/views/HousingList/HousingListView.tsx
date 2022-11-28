@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
+
 import { Alert, Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
 import { changeHousingFiltering, changeHousingPagination } from '../../store/actions/housingAction';
+
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
+
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+
 import { CampaignKinds } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
 import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
@@ -17,11 +21,13 @@ import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
 import Help from '../../components/Help/Help';
+
 
 const HousingListView = () => {
 

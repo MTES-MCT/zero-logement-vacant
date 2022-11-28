@@ -82,7 +82,7 @@ const CampaignsListView = () => {
                 <Row spacing="py-5w">
                     <Col>
                         <Callout hasInfoIcon={false} className="fr-mr-4w">
-                            <CalloutTitle as="h3" size="lg">
+                            <CalloutTitle as="h3">
                                 Vous souhaitez créer une nouvelle campagne ?
                             </CalloutTitle>
                             <CalloutText as="p">
@@ -95,7 +95,7 @@ const CampaignsListView = () => {
                     </Col>
                     <Col>
                         <Callout hasInfoIcon={false} className="fr-ml-4w">
-                            <CalloutTitle as="h3" size="lg">
+                            <CalloutTitle as="h3">
                                 Vous souhaitez concevoir des courriers plus percutants ?
                             </CalloutTitle>
                             <CalloutText as="p">

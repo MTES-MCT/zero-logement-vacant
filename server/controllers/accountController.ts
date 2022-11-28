@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -8,10 +8,9 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { param, ValidationChain } from 'express-validator';
-import UserNotFoundError from '../errors/userNotFoundError';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
-import { TEST_ACCOUNTS } from "../models/ProspectApi";
+import { TEST_ACCOUNTS } from '../models/ProspectApi';
 
 const signin = async (request: Request, response: Response): Promise<Response> => {
 
@@ -23,31 +22,33 @@ const signin = async (request: Request, response: Response): Promise<Response> =
     try {
         const user = await userRepository.getByEmail(email)
 
-        const isPasswordValid = await bcrypt.compare(password, user.password)
-
-        if (isPasswordValid) {
-
-            await userRepository.updateLastAuthentication(user.id)
-
-            const establishmentId = user.establishmentId ?? request.body.establishmentId;
-            const establishment = await establishmentRepository.get(establishmentId)
-
-            if (establishment) {
-
-                if (!config.auth.secret) {
-                    return response.sendStatus(500)
-                }
-
-                return response.status(constants.HTTP_STATUS_OK).send({
-                    user: {...user, password: undefined, establishmentId: undefined},
-                    establishment,
-                    accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
-                });
-            }
+        if (!user) {
+            console.log('Invalid user for email', email)
             return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
         }
-        console.log('Invalid password for email', email)
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+
+        const isPasswordValid = await bcrypt.compare(password, user.password)
+
+        if (!isPasswordValid) {
+            console.log('Invalid password for email', email)
+            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+        }
+
+        await userRepository.updateLastAuthentication(user.id)
+
+        const establishmentId = user.establishmentId ?? request.body.establishmentId;
+        const establishment = await establishmentRepository.get(establishmentId)
+
+        if (!establishment) {
+            console.log('Invalid establishment for id', establishmentId)
+            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+        }
+
+        return response.status(constants.HTTP_STATUS_OK).send({
+            user: {...user, password: undefined, establishmentId: undefined},
+            establishment,
+            accessToken: jwt.sign(<RequestUser>{ userId: user.id, establishmentId: establishment.id, role: user.role }, config.auth.secret, { expiresIn: config.auth.expiresIn })
+        });
 
     } catch {
         return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
@@ -58,7 +59,7 @@ const getAccountValidator: ValidationChain[] = [
     param('email').notEmpty().isEmail()
 ];
 
-const getProspectAccount = async (request: Request, response: Response, next: NextFunction) => {
+const getProspectAccount = async (request: Request, response: Response) => {
     const email = request.params.email as string;
     console.log('Get account', email)
 
@@ -69,20 +70,19 @@ const getProspectAccount = async (request: Request, response: Response, next: Ne
         }
     }
 
-    try {
-        await userRepository.getByEmail(email)
-        response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-    } catch (error) {
-        if (error instanceof UserNotFoundError) {
-            const ceremaUser = await ceremaService.consultUser(email)
-            await prospectRepository.upsert(ceremaUser)
-            const prospect = await prospectRepository.get(email)
-            response.status(constants.HTTP_STATUS_OK).json(prospect);
-        }
-        else {
-            next(error);
-        }
+    const user = await userRepository.getByEmail(email)
+
+    if (user) {
+        console.log('Prospect is already a user for email', email)
+        return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
     }
+
+    const ceremaUser = await ceremaService.consultUser(email)
+    await prospectRepository.upsert(ceremaUser)
+
+    const prospect = await prospectRepository.get(email)
+
+    return response.status(constants.HTTP_STATUS_OK).json(prospect);
 };
 
 const updatePassword = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -95,6 +95,11 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
     console.log('update password for ', userId)
 
     const user = await userRepository.get(userId)
+
+    if (!user) {
+        console.log('Invalid user for id', userId)
+        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+    }
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
 

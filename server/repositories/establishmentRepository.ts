@@ -7,42 +7,24 @@ import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
-import EstablishmentNotFoundError from '../errors/establishmentNotFoundError';
 
 export const establishmentsTable = 'establishments';
 
-const get = async (establishmentId: string): Promise<EstablishmentApi> => {
-    try {
-        return db
-            .select(`${establishmentsTable}.*`,
-                db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name) order by l.name) as localities')
-            )
-            .from(establishmentsTable)
-            .joinRaw(`join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`)
-            .where(`${establishmentsTable}.id`, establishmentId)
-            .groupBy(`${establishmentsTable}.id`)
-            .first()
-            .then(result => {
-                if (result) {
-                    return <EstablishmentApi>{
-                        id: result.id,
-                        name: result.name,
-                        siren: result.siren,
-                        localities: result.localities
-                            .map((l: { geo_code: any; name: any; }) => ({
-                                geoCode: l.geo_code,
-                                name: l.name
-                            }))
-                    }
-                } else {
-                    console.error('Establishment not found', establishmentId);
-                    throw new EstablishmentNotFoundError()
-                }
-            })
-    } catch (err) {
-        console.error('Getting establishment failed', err, establishmentId);
-        throw new Error('Getting establishment by email failed');
-    }
+const get = async (establishmentId: string): Promise<EstablishmentApi| null> => {
+
+    console.log('Get establishments by id', establishmentId)
+
+    const result = await db
+        .select(`${establishmentsTable}.*`,
+            db.raw('json_agg(json_build_object(\'geo_code\', l.geo_code, \'name\', l.name) order by l.name) as localities')
+        )
+        .from(establishmentsTable)
+        .joinRaw(`join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`)
+        .where(`${establishmentsTable}.id`, establishmentId)
+        .groupBy(`${establishmentsTable}.id`)
+        .first()
+
+    return result ? parseEstablishmentApi(result) : null
 }
 
 
@@ -165,6 +147,17 @@ const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
     available: establishmentApi.available,
     localities_geo_code: establishmentApi.localities.map(_ => _.geoCode)
 })
+
+const parseEstablishmentApi = (result: any): EstablishmentApi => <EstablishmentApi>{
+    id: result.id,
+    name: result.name,
+    siren: result.siren,
+    localities: result.localities
+        .map((l: { geo_code: any; name: any; }) => ({
+            geoCode: l.geo_code,
+            name: l.name
+        }))
+}
 
 export default {
     get,

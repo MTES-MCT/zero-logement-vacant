@@ -74,7 +74,7 @@ const createUser = async (request: JWTRequest, response: Response, next: NextFun
         const userEstablishment = await establishmentRepository.get(body.establishmentId)
         const createdUser = await userRepository.insert(userApi);
 
-        if (!userEstablishment.available) {
+        if (userEstablishment && !userEstablishment.available) {
             await establishmentService.makeEstablishmentAvailable(userEstablishment)
         }
         // Remove associated prospect
@@ -111,6 +111,12 @@ const removeUser = async (request: JWTRequest, response: Response, next: NextFun
 
         const { userId } = request.params
         const user = await userRepository.get(userId);
+
+        if (!user) {
+            console.log('Invalid user for id', userId)
+            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+        }
+
         await userRepository.remove(user.id);
 
         response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);

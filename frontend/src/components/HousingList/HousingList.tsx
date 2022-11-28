@@ -112,6 +112,10 @@ const HousingList = (
         onChangePagination(page, paginatedHousing.perPage)
     }
 
+    const hasPagination = useMemo<boolean>(() => {
+        return paginatedHousing.entities.length > paginatedHousing.perPage
+    }, [paginatedHousing.entities, paginatedHousing.perPage])
+
     const selectColumn = {
         name: 'select',
         headerRender: () =>
@@ -260,32 +264,36 @@ const HousingList = (
                     className={classNames('zlv-table-with-view', 'with-row-number', { 'with-select': onSelectHousing }, tableClassName)}
                     data-testid="housing-table"
                 />
-                <div className="fr-react-table--pagination-center nav">
-                    <Pagination onClick={changePage}
-                                currentPage={paginatedHousing.page}
-                                pageCount={Math.ceil(paginatedHousing.totalCount / paginatedHousing.perPage)}/>
-                </div>
-                <div style={{textAlign: 'center'}}>
-                    <Button
-                        onClick={() => changePerPage(50)}
-                        secondary
-                        disabled={paginatedHousing.perPage === 50}
-                        title="Afficher 50 résultats par page">50 résultats par page
-                    </Button>
-                    <Button
-                        onClick={() => changePerPage(200)}
-                        className="fr-mx-3w"
-                        secondary
-                        disabled={paginatedHousing.perPage === 200}
-                        title="Afficher 200 résultats par page">200 résultats par page
-                    </Button>
-                    <Button
-                        onClick={() => changePerPage(500)}
-                        secondary
-                        disabled={paginatedHousing.perPage === 500}
-                        title="Afficher 500 résultats par page">500 résultats par page
-                    </Button>
-                </div>
+                {hasPagination &&
+                  <>
+                      <div className="fr-react-table--pagination-center nav">
+                          <Pagination onClick={changePage}
+                                      currentPage={paginatedHousing.page}
+                                      pageCount={Math.ceil(paginatedHousing.totalCount / paginatedHousing.perPage)}/>
+                      </div>
+                      <div style={{textAlign: 'center'}}>
+                          <Button
+                            onClick={() => changePerPage(50)}
+                            secondary
+                            disabled={paginatedHousing.perPage === 50}
+                            title="Afficher 50 résultats par page">50 résultats par page
+                          </Button>
+                          <Button
+                            onClick={() => changePerPage(200)}
+                            className="fr-mx-3w"
+                            secondary
+                            disabled={paginatedHousing.perPage === 200}
+                            title="Afficher 200 résultats par page">200 résultats par page
+                          </Button>
+                          <Button
+                            onClick={() => changePerPage(500)}
+                            secondary
+                            disabled={paginatedHousing.perPage === 500}
+                            title="Afficher 500 résultats par page">500 résultats par page
+                          </Button>
+                      </div>
+                  </>
+                }
             </>}
         </div>
     );

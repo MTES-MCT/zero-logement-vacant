@@ -3,7 +3,7 @@ import request from 'supertest';
 import { constants } from 'http2';
 import errorHandler from '../error-handler';
 import TestAccountError from '../../errors/testAccountError';
-import { genEmail } from '../../../frontend/test/fixtures.test';
+import { genEmail } from '../../test/testFixtures';
 
 describe('Error handler', () => {
   describe('Integration test', () => {
@@ -25,7 +25,7 @@ describe('Error handler', () => {
     it('should respond with the status of the error if any', async () => {
       await request(app)
         .get(expectedErrorRoute)
-        .expect(constants.HTTP_STATUS_NOT_FOUND)
+        .expect(constants.HTTP_STATUS_FORBIDDEN)
         .expect({
           name: 'TestAccountError',
           message: `${email} is a test account. It cannot be used.`

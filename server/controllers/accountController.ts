@@ -23,8 +23,8 @@ const signin = async (request: Request, response: Response): Promise<Response> =
         const user = await userRepository.getByEmail(email)
 
         if (!user) {
-            console.log('Invalid user for email', email)
-            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+            console.log('User not found for email', email)
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password)
@@ -40,8 +40,8 @@ const signin = async (request: Request, response: Response): Promise<Response> =
         const establishment = await establishmentRepository.get(establishmentId)
 
         if (!establishment) {
-            console.log('Invalid establishment for id', establishmentId)
-            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+            console.log('Establishment not found for id', establishmentId)
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
         }
 
         return response.status(constants.HTTP_STATUS_OK).send({
@@ -97,8 +97,8 @@ const updatePassword = async (request: JWTRequest, response: Response): Promise<
     const user = await userRepository.get(userId)
 
     if (!user) {
-        console.log('Invalid user for id', userId)
-        return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+        console.log('User not found for id', userId)
+        return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
     }
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password)

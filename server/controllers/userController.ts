@@ -55,6 +55,12 @@ const createUser = async (request: JWTRequest, response: Response, next: NextFun
             throw new ProspectInvalidError(prospect)
         }
 
+        const userEstablishment = await establishmentRepository.get(body.establishmentId)
+        if (!userEstablishment) {
+            console.log('Establishment not found for id', body.establishmentId)
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
+        }
+
         const userApi: UserApi = {
             id: uuidv4(),
             email: body.email,
@@ -71,10 +77,9 @@ const createUser = async (request: JWTRequest, response: Response, next: NextFun
             establishmentId: userApi.establishmentId
         })
 
-        const userEstablishment = await establishmentRepository.get(body.establishmentId)
         const createdUser = await userRepository.insert(userApi);
 
-        if (userEstablishment && !userEstablishment.available) {
+        if (!userEstablishment.available) {
             await establishmentService.makeEstablishmentAvailable(userEstablishment)
         }
         // Remove associated prospect
@@ -113,8 +118,8 @@ const removeUser = async (request: JWTRequest, response: Response, next: NextFun
         const user = await userRepository.get(userId);
 
         if (!user) {
-            console.log('Invalid user for id', userId)
-            return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED)
+            console.log('User not found for id', userId)
+            return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND)
         }
 
         await userRepository.remove(user.id);

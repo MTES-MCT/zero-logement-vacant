@@ -8,6 +8,7 @@ import {
     ModalContent,
     ModalFooter,
     ModalTitle,
+    TextInput
 } from '@dataesr/react-dsfr';
 import { DraftOwner, Owner } from '../../../models/Owner';
 
@@ -15,7 +16,6 @@ import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import { format, isDate, parse } from 'date-fns';
 import styles from './owner-edition-modal.module.scss';
-import TextInput from "../../TextInput/TextInput";
 
 const OwnerEditionModal = (
     {
@@ -112,23 +112,23 @@ const OwnerEditionModal = (
                         <TextInput
                             textarea
                             value={rawAddress.join('\n')}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRawAddress(e.target.value.split('\n'))}
+                            onChange={e => setRawAddress(e.target.value.split('\n'))}
                             label="Adresse postale"
                             messageType={errors['address'] ? 'error' : ''}
                             message={errors['address']}
-                            rows="3"
+                            rows={3}
                         />
                         <TextInput
                             value={email}
                             type="text"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(e.target.value)}
                             label="Adresse mail"
                             messageType={errors['email'] ? 'error' : ''}
                             message={errors['email']}
                         />
                         <TextInput
                             value={phone}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                            onChange={(e) => setPhone(e.target.value)}
                             label="Numéro de téléphone"
                             messageType={errors['phone'] ? 'error' : ''}
                             message={errors['phone']}

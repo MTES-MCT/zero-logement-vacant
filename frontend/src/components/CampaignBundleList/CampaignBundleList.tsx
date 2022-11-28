@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Stepper, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
@@ -26,6 +26,7 @@ import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportMod
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
+import Stepper from "../Stepper/Stepper";
 
 const CampaignBundleStats = ({ campaignBundle, isArchived }: { campaignBundle: CampaignBundle, isArchived: boolean }) => {
 
@@ -157,25 +158,25 @@ const CampaignBundleList = (
         <>
             <TagGroup className="fr-py-2w">
                 <Tag as="span"
-                     size="sm"
+                     small
                      selected={campaignInProgressFilter}
                      onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}>
                     Suivi en cours ({campaignBundlesCount(CampaignSteps.InProgress)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
+                     small
                      selected={campaignNoSentFilter}
                      onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}>
                     Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
+                     small
                      selected={campaignArchivedFilter}
                      onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}>
                     Campagne archivée ({campaignBundlesCount(CampaignSteps.Archived)})
                 </Tag>
                 <Tag as="span"
-                     size="sm"
+                     small
                      selected={outsideCampaignFilter}
                      onClick={() => setOutsideCampaignInProgressFilter(!outsideCampaignFilter)}>
                     Hors campagne ({campaignBundlesCount(CampaignSteps.Outside)})
@@ -192,7 +193,7 @@ const CampaignBundleList = (
                                 {campaignFullName(campaignBundle)}
                             </Title>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
-                                <Text size="small" className="subtitle">
+                                <Text size="sm" className="subtitle">
                                     échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
                                 </Text> :
                                 <div className="fr-py-2w">
@@ -231,7 +232,6 @@ const CampaignBundleList = (
                                         <Stepper
                                             steps={3}
                                             currentStep={1}
-                                            nextStep={2}
                                             currentTitle="Vous avez créé l'échantillon."
                                             nextStepTitle="Exporter le fichier de publipostage"
                                         />
@@ -251,7 +251,6 @@ const CampaignBundleList = (
                                         <Stepper
                                             steps={3}
                                             currentStep={2}
-                                            nextStep={3}
                                             currentTitle="Vous avez exporté l'échantillon."
                                             nextStepTitle="Dater l'envoi de votre campagne"
                                         />

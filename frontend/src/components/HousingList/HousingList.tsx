@@ -113,8 +113,8 @@ const HousingList = (
     }
 
     const hasPagination = useMemo<boolean>(() => {
-        return paginatedHousing.entities.length > paginatedHousing.perPage
-    }, [paginatedHousing.entities, paginatedHousing.perPage])
+        return paginatedHousing.totalCount > paginatedHousing.perPage
+    }, [paginatedHousing.totalCount, paginatedHousing.perPage])
 
     const selectColumn = {
         name: 'select',

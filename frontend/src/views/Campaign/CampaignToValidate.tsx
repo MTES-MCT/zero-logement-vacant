@@ -29,9 +29,11 @@ import HousingListHeaderActions
 import HousingListHeader from "../../components/HousingList/HousingListHeader";
 import AppSearchBar from "../../components/AppSearchBar/AppSearchBar";
 import { useSelection } from "../../hooks/useSelection";
-import { useSearch } from "../../hooks/useSearch";
 import ConfirmationModal
   from "../../components/modals/ConfirmationModal/ConfirmationModal";
+import Help from "../../components/Help/Help";
+import { useCampaignHousingSearch } from "../../hooks/useCampaignHousingSearch";
+import { prependIf } from "../../utils/stringUtils";
 
 interface CampaignToValidateProps {
     campaignStep: CampaignSteps
@@ -72,7 +74,7 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
     const { campaignBundle, campaignBundleHousing } = useSelector((state: ApplicationState) => state.campaign);
     const { hasSelected, setSelected } = useSelection()
 
-    const { filters, searchWithQuery } = useSearch()
+    const { search } = useCampaignHousingSearch()
 
     useEffect(() => {
         if (campaignBundle) {
@@ -121,12 +123,21 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
       }
     }
 
+    const prependBravo = (condition: boolean) => prependIf(condition)('Bravo ! ')
+
     return (
-      <VerticalStepper step={index}>
+      <>
+        {!isCompleted(CampaignSteps.Export) &&
+          <Help>
+            Vous avez basculé dans l’onglet <b>“logements suivis”</b>, ici vous
+            pouvez paramètrer votre campagne et y faire le suivi.
+          </Help>
+        }
+        <VerticalStepper step={index}>
           <VerticalStep
             completed={isCompleted(CampaignSteps.OwnersValidation)}
             title={isCompleted(CampaignSteps.OwnersValidation)
-              ? "Bravo ! Vous avez créé votre échantillon de campagne."
+              ? prependBravo(!isCompleted(CampaignSteps.Export))("Vous avez créé votre échantillon de campagne.")
               : "Modification de la liste de logements de l'échantillon."
             }
             content={isCompleted(CampaignSteps.OwnersValidation)
@@ -152,17 +163,17 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
                       <HousingListHeaderActions>
                         <Row>
                           {!hasSelected &&
-                            <Col>
-                              <AppSearchBar
-                                onSearch={searchWithQuery}
-                                initialQuery={filters.query}
-                              />
+                            <Col n="6">
+                              <AppSearchBar onSearch={(q) => search(campaignBundle)(q)} />
                             </Col>
                           }
                         </Row>
                       </HousingListHeaderActions>
                     </HousingListHeader>
                   </HousingList>
+                  <Row justifyContent="right">
+                    <Button onClick={() => validStep(CampaignSteps.OwnersValidation)}>Valider</Button>
+                  </Row>
                   {isRemovingModalOpen &&
                     <ConfirmationModal
                       onSubmit={() => submitCampaignHousingRemove()}
@@ -173,16 +184,13 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
                 </>
               )
             }
-            actions={isCompleted(CampaignSteps.OwnersValidation)
-                ? undefined
-                : <Button onClick={() => validStep(CampaignSteps.OwnersValidation)}>Valider</Button>
-            }
           />
 
           <VerticalStep
             completed={isCompleted(CampaignSteps.Export)}
+            disabled={!isCompleted(CampaignSteps.OwnersValidation)}
             title={isCompleted(CampaignSteps.Export)
-              ? "Bravo ! Vous avez exporté la liste de logements."
+              ? prependBravo(!isCompleted(CampaignSteps.Sending))('Vous avez exporté la liste de logements.')
               : "Export du fichier de publipostage"
             }
             content={
@@ -201,7 +209,10 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
           <VerticalStep
             completed={isCompleted(CampaignSteps.Sending)}
             disabled={!isCompleted(CampaignSteps.Export)}
-            title="Envoi de la campagne"
+            title={isCompleted(CampaignSteps.Sending)
+              ? prependBravo(!isCompleted(CampaignSteps.Confirmation))('Vous avez envoyé la campagne.')
+              : 'Envoi de la campagne'
+            }
             content="Datez l'envoi qui marque le début de votre campagne."
             actions={isCompleted(CampaignSteps.Sending)
               ? (
@@ -221,21 +232,21 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
               )
               : (
                 <Row alignItems={isValid() ? 'bottom' : 'middle'} gutters>
-                    <Col n="3">
-                        <TextInput
-                          value={sendingDate}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setSendingDate(e.target.value)}
-                          label="Date d'envoi"
-                          messageType={messageType('sendingDate')}
-                          message={message('sendingDate')}
-                          type="date"
-                        />
-                    </Col>
-                    <Col>
-                        <Button onClick={() => validStep(CampaignSteps.Sending)} disabled={!isValid()}>
-                            Confirmer
-                        </Button>
-                    </Col>
+                  <Col n="3">
+                    <TextInput
+                      value={sendingDate}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setSendingDate(e.target.value)}
+                      label="Date d'envoi"
+                      messageType={messageType('sendingDate')}
+                      message={message('sendingDate')}
+                      type="date"
+                    />
+                  </Col>
+                  <Col>
+                    <Button onClick={() => validStep(CampaignSteps.Sending)} disabled={!isValid()}>
+                      Confirmer
+                    </Button>
+                  </Col>
                 </Row>
               )
             }
@@ -247,10 +258,11 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
             title="Suivi de la campagne"
             content="Complétez et suivez toutes les interactions avec les propriétaires."
             actions={
-                <Button onClick={() => validStep(CampaignSteps.Confirmation)}>Accéder au suivi</Button>
+              <Button onClick={() => validStep(CampaignSteps.Confirmation)}>Accéder au suivi</Button>
             }
           />
-      </VerticalStepper>
+        </VerticalStepper>
+      </>
     )
 }
 

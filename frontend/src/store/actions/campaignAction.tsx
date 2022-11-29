@@ -8,7 +8,9 @@ import {
     getCampaignBundleId,
     CampaignKinds
 } from '../../models/Campaign';
-import campaignService from '../../services/campaign.service';
+import campaignService, {
+  ValidateCampaignStepParams
+} from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
@@ -288,7 +290,7 @@ export const updateCampaignBundleTitle = (campaignBundleId: CampaignBundleId, ti
     };
 };
 
-export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: ValidateCampaignStepParams) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 

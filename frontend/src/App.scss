@@ -269,12 +269,11 @@ a.fr-btn[target=_blank]:after {
 }
 
 .app-card-xs {
-
   width: fit-content;
   display: inline-block !important;
 
   .fr-card__content {
-    padding: 8px !important;
+    padding: 0.5rem 1rem !important;
   }
 
   .fr-card__desc {
@@ -283,11 +282,12 @@ a.fr-btn[target=_blank]:after {
   }
 
   & + .app-card-xs {
-    margin-left: 8px;
+    margin-left: 0.5rem;
   }
 
   .card-icon {
-    line-height: 16px;
-    font-size: 16px;
+    margin-bottom: 0.25rem;
+    line-height: 1rem;
+    font-size: 1rem;
   }
 }

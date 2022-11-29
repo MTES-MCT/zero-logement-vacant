@@ -83,12 +83,18 @@ const deleteCampaignBundle = async (campaignBundleId: CampaignBundleId): Promise
         .then(() => {});
 };
 
-const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}): Promise<Campaign> => {
+export interface ValidateCampaignStepParams {
+    sendingDate?: Date
+    // Skip campaign confirmation after filling in the sentAt date
+    skipConfirmation?: boolean
+}
+
+const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: ValidateCampaignStepParams): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, sendingDate: params?.sendingDate }),
+        body: JSON.stringify({ ...params, step }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));

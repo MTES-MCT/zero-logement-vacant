@@ -6,7 +6,7 @@ import classNames from 'classnames';
 const FilterBadge = ({option, filters = [], onChange} : {option: SelectOption, filters: string[] | undefined, onChange?: (_: string[]) => void}) => {
     return (
         <>
-            <span className={classNames('fr-tag', 'fr-tag--sm', 'fr-fi-icon', { 'fr-tag-click': onChange })}>
+            <span className={classNames('fr-tag', 'fr-fi-icon', { 'fr-tag-click': onChange })}>
                 {option.badgeLabel ?? option.label}
                 {onChange &&
                     <button className="ri-md ri-close-line fr-pr-0"

@@ -131,3 +131,22 @@ export const campaignBundleIdApiFragment = (campaignBundleId: CampaignBundleId) 
 export const campaignBundleIdUrlFragment = (campaignBundleId?: CampaignBundleId) => {
     return campaignBundleId ? `C${campaignBundleId.campaignNumber ?? ''}${(campaignBundleId.reminderNumber ?? -1) >= 0 ? `/R${campaignBundleId.reminderNumber}` : ''}` : 'C'
 }
+
+export function bundleCampaigns(campaigns: Campaign[], bundle: CampaignBundle): Campaign[] {
+    return campaigns.filter(
+      campaign => bundle.campaignIds.includes(campaign.id)
+    )
+}
+
+export function mainCampaign(campaigns: Campaign[]) {
+    return (bundle: CampaignBundle): Campaign | null => {
+        return bundleCampaigns(campaigns, bundle)[0] ?? null
+    }
+}
+
+export function reminderCampaigns(campaigns: Campaign[]) {
+    return (bundle: CampaignBundle): Campaign[] => {
+        return bundleCampaigns(campaigns, bundle)
+          .filter(campaign => campaign.reminderNumber > 0)
+    }
+}

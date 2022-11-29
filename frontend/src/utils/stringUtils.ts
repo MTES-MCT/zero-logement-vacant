@@ -49,3 +49,13 @@ export const stringSort = (s1?: string, s2?: string): Compare => {
 
     return Compare.A_EQ_B
 }
+
+export function prepend(prefix: string) {
+    return (str: string) => `${prefix}${str}`
+}
+
+export function prependIf(condition: boolean) {
+    return (prefix: string) => {
+        return (str: string) => condition ? prepend(prefix)(str) : str
+    }
+}

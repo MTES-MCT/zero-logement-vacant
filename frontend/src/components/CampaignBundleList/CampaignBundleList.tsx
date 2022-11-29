@@ -1,5 +1,15 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Row, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import {
+    Alert,
+    Button,
+    Col,
+    Row,
+    Tag,
+    TagGroup,
+    Text,
+    TextInput,
+    Title
+} from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
@@ -10,19 +20,29 @@ import {
     CampaignNumberSort,
     campaignStep,
     CampaignSteps,
+    mainCampaign,
+    reminderCampaigns,
     returnRate,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
-import { deleteCampaignBundle, listCampaignBundles, validCampaignStep } from '../../store/actions/campaignAction';
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from '../../models/TrackEvent';
+import {
+    deleteCampaignBundle,
+    listCampaignBundles,
+    validCampaignStep
+} from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AppCard from '../AppCard/AppCard';
-import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
+import CampaignExportModal
+    from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
@@ -86,7 +106,8 @@ const CampaignBundleList = (
                 (campaignInProgressFilter && stepFilter(CampaignSteps.InProgress)(campaignBundle)) ||
                 (campaignNoSentFilter && (
                     stepFilter(CampaignSteps.OwnersValidation)(campaignBundle) ||
-                    stepFilter(CampaignSteps.Export)(campaignBundle)
+                    stepFilter(CampaignSteps.Export)(campaignBundle) ||
+                    stepFilter(CampaignSteps.Confirmation)(campaignBundle)
                 )) ||
                 (outsideCampaignFilter && stepFilter(CampaignSteps.Outside)(campaignBundle)) ||
                 (campaignArchivedFilter && stepFilter(CampaignSteps.Archived)(campaignBundle))
@@ -99,17 +120,12 @@ const CampaignBundleList = (
     const campaignBundlesCount = (step: CampaignSteps) =>
         campaignBundleList?.filter(stepFilter(step)).length ?? 0
 
-    const mainCampaignOfBundle = (campaignBundle: CampaignBundle) => {
-        return (campaignList ?? []).filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1)[0]
+    const mainCampaignOfBundle = mainCampaign(campaignList ?? [])
+    const reminderCampaignsOfBundle = reminderCampaigns(campaignList ?? [])
+    const campaignBundleStep = (bundle: CampaignBundle): CampaignSteps | null => {
+        const main = mainCampaignOfBundle(bundle)
+        return main ? campaignStep(main) : null
     }
-
-    const reminderCampaignsOfBundle = (campaignBundle: CampaignBundle) => {
-        return (campaignList ?? [])
-            .filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1)
-            .filter(_ => _.reminderNumber > 0)
-    }
-
-    const campaignBundleStep  = (campaignBundle: CampaignBundle) => campaignStep(mainCampaignOfBundle(campaignBundle))
 
     const schema = yup.object().shape({sendingDate: dateValidator})
 
@@ -122,7 +138,10 @@ const CampaignBundleList = (
                     category: TrackEventCategories.Campaigns,
                     action: TrackEventActions.Campaigns.ValidStep(CampaignSteps.Sending)
                 })
-                dispatch(validCampaignStep(campaignId, CampaignSteps.Sending, {sendingDate : parse(sendingDate, 'dd/MM/yyyy', new Date())}))
+                dispatch(validCampaignStep(campaignId, CampaignSteps.Sending, {
+                    sendingDate: parse(sendingDate, 'dd/MM/yyyy', new Date()),
+                    skipConfirmation: true
+                }))
             }
         })
     }
@@ -167,7 +186,7 @@ const CampaignBundleList = (
                      small
                      selected={campaignNoSentFilter}
                      onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}>
-                    Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export)})
+                    Campagne en attente d'envoi ({campaignBundlesCount(CampaignSteps.OwnersValidation) + campaignBundlesCount(CampaignSteps.Export) + campaignBundlesCount(CampaignSteps.Confirmation)})
                 </Tag>
                 <Tag as="span"
                      small
@@ -187,13 +206,13 @@ const CampaignBundleList = (
             }
             {filteredCampaignBundles && filteredCampaignBundles.sort(CampaignNumberSort).map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
-                    <Row gutters alignItems="top" spacing="mb-1w">
-                        <Col>
-                            <Title as="h2" look="h3" className="fr-mb-0">
+                    <Row alignItems="top" spacing="mb-1w">
+                        <Col spacing="px-3w py-2w">
+                            <Title as="h2" className="fr-mb-0">
                                 {campaignFullName(campaignBundle)}
                             </Title>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
-                                <Text size="sm" className="subtitle">
+                                <Text className="subtitle" spacing="mb-2w">
                                     échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
                                 </Text> :
                                 <div className="fr-py-2w">
@@ -213,10 +232,10 @@ const CampaignBundleList = (
                                         <b>{campaignBundle.ownerCount}</b> {campaignBundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
                                     </Text>
                                 </AppCard>
-                                {mainCampaignOfBundle(campaignBundle).sendingDate &&
+                                {mainCampaignOfBundle(campaignBundle)?.sendingDate &&
                                     <AppCard icon="ri-send-plane-fill" isGrey={true}>
                                         <Text as="span">
-                                            envoyée le <b>{format(mainCampaignOfBundle(campaignBundle).sendingDate!, 'dd/MM/yy', { locale: fr })}</b>
+                                            envoyée le <b>{format(mainCampaignOfBundle(campaignBundle)?.sendingDate!, 'dd/MM/yy', { locale: fr })}</b>
                                         </Text>
                                     </AppCard>
                                 }
@@ -228,7 +247,7 @@ const CampaignBundleList = (
                         {(campaignBundle.campaignNumber ?? 0) > 0 && campaignBundleStep(campaignBundle) !== CampaignSteps.Archived &&
                             <Col n="6">
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.Export &&
-                                    <div className="fr-p-4w bg-bf975">
+                                    <div className="fr-p-3w bg-bf975">
                                         <Stepper
                                             steps={3}
                                             currentStep={1}
@@ -247,7 +266,7 @@ const CampaignBundleList = (
                                     </div>
                                 }
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.Sending &&
-                                    <div className="fr-p-4w bg-bf975">
+                                    <div className="fr-p-3w bg-bf975">
                                         <Stepper
                                             steps={3}
                                             currentStep={2}
@@ -275,7 +294,7 @@ const CampaignBundleList = (
                                     </div>
                                 }
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.InProgress &&
-                                    <div className="fr-p-4w bg-bf975">
+                                    <div className="fr-p-3w bg-bf975">
                                         <Title as="h3" look="h6">
                                             Suivi en cours
                                         </Title>

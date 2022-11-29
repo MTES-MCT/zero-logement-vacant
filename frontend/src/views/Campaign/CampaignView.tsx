@@ -1,25 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import {
-    CampaignBundle,
-    campaignPartialName,
-    campaignStep,
-    CampaignSteps,
-    returnRate,
-} from '../../models/Campaign';
+import { Alert, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { useDispatch } from 'react-redux';
+import { campaignFullName, CampaignSteps, } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges
     from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { getCampaignBundle } from '../../store/actions/campaignAction';
+import {
+    deleteCampaignBundle,
+    getCampaignBundle
+} from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import styles from './campaign.module.scss';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import Help from "../../components/Help/Help";
+import AppCard from "../../components/AppCard/AppCard";
+import { useCampaignBundle } from "../../hooks/useCampaignBundle";
+import {
+    TrackEventActions,
+    TrackEventCategories
+} from "../../models/TrackEvent";
+import { useMatomo } from "@datapunt/matomo-tracker-react";
+import ConfirmationModal
+    from "../../components/modals/ConfirmationModal/ConfirmationModal";
 
 
 const CampaignView = () => {
@@ -27,8 +34,9 @@ const CampaignView = () => {
     const dispatch = useDispatch();
     const campaignList = useCampaignList(true);
     const { campaignNumber, reminderNumber } = useParams<{campaignNumber: string, reminderNumber: string}>();
+    const { trackEvent } = useMatomo()
 
-    const { campaignBundle } = useSelector((state: ApplicationState) => state.campaign);
+    const { bundle, mainCampaign, step } = useCampaignBundle()
 
     const [searchQuery, setSearchQuery] = useState<string>();
 
@@ -39,22 +47,47 @@ const CampaignView = () => {
         }, searchQuery))
     }, [dispatch, campaignNumber, reminderNumber, searchQuery])
 
+    const [campaignRemovalModalOpen, setCampaignRemovalModalOpen] = useState(false)
     function removeCampaign(): void {
-        // TODO
+        if (bundle) {
+            trackEvent({
+                category: TrackEventCategories.Campaigns,
+                action: TrackEventActions.Campaigns.Delete
+            })
+            dispatch(deleteCampaignBundle(bundle))
+        }
+        setCampaignRemovalModalOpen(false)
     }
 
     function renameCampaign(): void {
         // TODO
     }
 
-    const campaignsOfBundle = (campaignBundle: CampaignBundle) => {
-        return campaignList?.filter(_ => campaignBundle.campaignIds.indexOf(_.id) !== -1) ?? []
-    }
-
     return (
         <>
-            {campaignBundle &&
+            {bundle &&
                 <>
+                    {campaignRemovalModalOpen &&
+                      <ConfirmationModal
+                        onSubmit={removeCampaign}
+                        onClose={() => setCampaignRemovalModalOpen(false)}
+                      >
+                          <Text>
+                              Êtes-vous sûr de vouloir supprimer
+                              cette {bundle.reminderNumber ? 'relance' : 'campagne'} ?
+                          </Text>
+                          {(!bundle.reminderNumber && bundle.campaignNumber! < (campaignList ?? []).length) &&
+                            <Alert
+                              description="Les campagnes suivantes seront renumérotées."
+                              type="info"
+                            />
+                          }
+                          <Alert
+                            description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                            type="info"
+                          />
+                      </ConfirmationModal>
+                    }
                     <div className="bg-100">
                         <Container spacing="py-4w" as="section">
                             <Row>
@@ -68,7 +101,7 @@ const CampaignView = () => {
                                       icon="ri-delete-bin-line"
                                       iconPosition="left"
                                       iconSize="1x"
-                                      onClick={removeCampaign}
+                                      onClick={() => setCampaignRemovalModalOpen(true)}
                                     >
                                         Supprimer la campagne
                                     </ButtonLink>
@@ -77,9 +110,7 @@ const CampaignView = () => {
                             <Row>
                                 <Col>
                                     <Title as="h1" className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
-                                        {campaignPartialName(campaignBundle.campaignNumber, campaignBundle.reminderNumber)}
-                                        <br />
-                                        {campaignBundle.title}
+                                        {campaignFullName(bundle)}
                                     </Title>
                                     <ButtonLink
                                       display="flex"
@@ -91,30 +122,49 @@ const CampaignView = () => {
                                     >
                                         Renommer
                                     </ButtonLink>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col spacing="my-3w">
-                                    <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}>{campaignBundle.ownerCount}</div>
-                                        <span className={styles.statLabel}>{campaignBundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}</span>
-                                    </div>
-                                    <div className={styles.campaignStat}>
-                                        <div className={styles.statTitle}>{campaignBundle.housingCount}</div>
-                                        <span className={styles.statLabel}>{campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}</span>
-                                    </div>
-                                    {campaignStep(campaignsOfBundle(campaignBundle)[0]) >= CampaignSteps.InProgress &&
-                                        <div className={styles.campaignStat}>
-                                            <div className={styles.statTitle}> {returnRate(campaignBundle)}%</div>
-                                            <span className={styles.statLabel}>retours</span>
-                                        </div>
+                                    {(bundle.campaignNumber ?? 0) > 0 && bundle.createdAt &&
+                                      <Text size="sm" className="subtitle">
+                                          échantillon créé
+                                          le <b>{format(bundle.createdAt, 'dd/MM/yy', {locale: fr})}</b>
+                                      </Text>
+                                    }
+                                    {(bundle.campaignNumber ?? 0) === 0 &&
+                                      <div className="fr-py-2w">
+                                          <Help>
+                                              Les logements hors campagne sont les logements qui sont <b>en cours de suivi mais qui ne sont pas compris dans une campagne.</b>
+                                          </Help>
+                                      </div>
                                     }
                                 </Col>
                             </Row>
-                            <Row className="fr-pb-2w">
+                            <Row spacing="my-2w">
                                 <Col>
-                                    <Text>Filtres utilisés pour la création de l'échantillon :</Text>
-                                    <HousingFiltersBadges filters={campaignBundle.filters}/>
+                                    <div>
+                                        <AppCard icon="ri-home-fill">
+                                            <Text as="span">
+                                                <b>{bundle.housingCount}</b> {bundle.housingCount <= 1 ? 'logement' : 'logements'}
+                                            </Text>
+                                        </AppCard>
+                                        <AppCard icon="ri-user-fill">
+                                            <Text as="span">
+                                                <b>{bundle.ownerCount}</b> {bundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
+                                            </Text>
+                                        </AppCard>
+                                        {mainCampaign?.sendingDate &&
+                                          <AppCard icon="ri-send-plane-fill">
+                                              <Text as="span">
+                                                  envoyée
+                                                  le <b>{format(mainCampaign?.sendingDate, 'dd/MM/yy', {locale: fr})}</b>
+                                              </Text>
+                                          </AppCard>
+                                        }
+                                    </div>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col>
+                                    <Text size="sm" className="fr-mb-1w">Filtres utilisés pour la création de l'échantillon :</Text>
+                                    <HousingFiltersBadges filters={bundle.filters}/>
                                 </Col>
                             </Row>
                             {searchQuery &&
@@ -129,8 +179,8 @@ const CampaignView = () => {
                         </Container>
                     </div>
                     <Container spacing="py-4w" as="section">
-                        {(campaignBundle.campaignNumber ?? 0) > 0 && campaignStep(campaignsOfBundle(campaignBundle)[0]) < CampaignSteps.InProgress ?
-                            <CampaignToValidate campaignStep={campaignStep(campaignsOfBundle(campaignBundle)[0])}/> :
+                        {(bundle.campaignNumber ?? 0) > 0 && step && step < CampaignSteps.InProgress ?
+                            <CampaignToValidate campaignStep={step}/> :
                             <CampaignInProgress query={searchQuery}/>
                         }
                     </Container>

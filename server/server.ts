@@ -31,11 +31,7 @@ export function createServer(): Server {
           "'unsafe-inline'",
           'https://stats.data.gouv.fr',
           'https://client.crisp.chat',
-          'https://renderer-assets.typeform.com',
-          'https://form.typeform.com'
-        ],
-        frameAncestors: [
-          'https://form.typeform.com'
+          'https://renderer-assets.typeform.com'
         ],
         frameSrc: [
           'https://form.typeform.com'
@@ -67,7 +63,6 @@ export function createServer(): Server {
           'https://stats.data.gouv.fr',
           'wss://client.relay.crisp.chat',
           'https://client.crisp.chat',
-          'https://form.typeform.com'
         ]
       },
     }

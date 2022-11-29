@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
     Callout,
     CalloutText,
@@ -12,39 +12,20 @@ import {
     Title,
 } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCampaignBundle, updateCampaignBundleTitle } from '../../store/actions/campaignAction';
+import { getCampaignBundle } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import { CampaignBundle, getCampaignBundleId } from '../../models/Campaign';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
-import CampaignBundleTitleModal from '../../components/modals/CampaignTitleModal/CampaignBundleTitleModal';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 
 const CampaignsListView = () => {
 
     const dispatch = useDispatch();
-    const { trackEvent } = useMatomo();
     const { campaignBundle: inProgressCampaignBundle } = useSelector((state: ApplicationState) => state.campaign);
-
-    const [titleModalCampaignBundle, setTitleModalCampaignBundle] = useState<CampaignBundle | undefined>();
 
     useEffect(() => {
         dispatch(getCampaignBundle({}))
     }, [dispatch])
-
-    const onSubmitCampaignTitle = (title: string) => {
-        const campaignBundleId = getCampaignBundleId(titleModalCampaignBundle)
-        if (campaignBundleId) {
-            trackEvent({
-                category: TrackEventCategories.Campaigns,
-                action: TrackEventActions.Campaigns.Rename
-            })
-            dispatch(updateCampaignBundleTitle(campaignBundleId, title))
-            setTitleModalCampaignBundle(undefined);
-        }
-    }
 
     return (
         <>
@@ -109,12 +90,6 @@ const CampaignsListView = () => {
                 </Row>
 
             </Container>
-            {titleModalCampaignBundle &&
-                <CampaignBundleTitleModal
-                    campaignBundle={titleModalCampaignBundle}
-                    onSubmit={onSubmitCampaignTitle}
-                    onClose={() => setTitleModalCampaignBundle(undefined)} />
-            }
         </>
     );
 };

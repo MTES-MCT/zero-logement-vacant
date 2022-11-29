@@ -8,7 +8,6 @@ import {
     CampaignBundle,
     CampaignBundleId,
     campaignBundleIdUrlFragment,
-    campaignFullName,
     CampaignNumberSort,
     campaignStep,
     CampaignSteps,
@@ -29,6 +28,7 @@ import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
 import Stepper from '../Stepper/Stepper';
+import CampaignBundleTitle from '../CampaignBundleTitle/CampaignBundleTitle';
 
 const CampaignBundleStats = ({ campaignBundle, isArchived }: { campaignBundle: CampaignBundle, isArchived: boolean }) => {
 
@@ -191,9 +191,7 @@ const CampaignBundleList = (
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
                     <Row gutters alignItems="top" spacing="mb-1w">
                         <Col>
-                            <Title as="h2" look="h3" className="fr-mb-0">
-                                {campaignFullName(campaignBundle)}
-                            </Title>
+                            <CampaignBundleTitle campaignBundle={campaignBundle} />
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
                                 <Text size="sm" className="subtitle">
                                     échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>

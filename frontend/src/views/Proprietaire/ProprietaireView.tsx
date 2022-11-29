@@ -18,7 +18,7 @@ const ProprietaireView = () => {
                             Vous êtes propriétaire d'un logement vacant ?
                         </Title>
                         <Title as="h2" look="h1">
-                            Faites vous aidez par votre ville pour remettre rapidement votre logement en location
+                            Faites vous aidez par votre ville pour remettre rapidement votre logement sur le marché
                         </Title>
                         <PopupButton id="w8YB8XMQ" style={{ fontSize: 20 }} className="fr-btn--md fr-btn">
                             Inscription

@@ -25,11 +25,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Server install
         run: npm install
-      - name : build
+      - name: build
         run: npm run build
         env:
           AUTH_SECRET: abcd1234
-          CEREMA_API_AUTH_TOKEN: ""
+          CEREMA_API_AUTH_TOKEN: ''
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           NODE_ENV: production
@@ -43,6 +43,8 @@ jobs:
         run: npm run test
         env:
           AUTH_SECRET: abcd1234
-          CEREMA_API_AUTH_TOKEN: ""
+          CEREMA_API_AUTH_TOKEN: ''
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
+      - name: Check prettier
+        run: npx prettier --check .

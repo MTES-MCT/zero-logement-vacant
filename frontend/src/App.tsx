@@ -25,6 +25,7 @@ import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
+import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
@@ -78,6 +79,7 @@ function App() {
                                 <Route exact path="/" component={DashboardView} />
                                 <Route exact path="/stats" component={StatsView} />
                                 <Route exact path="/accessibilite" component={AccessibilityView} />
+                                <Route exact path="/proprietaire" component={ProprietaireView} />
                                 <Route exact path="/accueil" component={DashboardView} />
                                 <Route exact path="/base-de-donnees" component={HousingListView} />
                                 <Route exact path="/campagnes" component={CampaignsListView} />
@@ -114,6 +116,7 @@ function App() {
                             <Route exact path="/" component={HomeView} />
                             <Route exact path="/stats" component={StatsView} />
                             <Route exact path="/accessibilite" component={AccessibilityView} />
+                            <Route exact path="/proprietaire" component={ProprietaireView} />
                             <Route exact path="/inscription" component={AccountCreationView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/admin" component={LoginView} />

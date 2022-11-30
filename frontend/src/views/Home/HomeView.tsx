@@ -265,7 +265,7 @@ const HomeView = () => {
                                 Vous avez reçu un courrier alors que votre logement n’est pas vacant ?
                             </Text>
                             <Link title="Rectifier la situation"
-                                  to={{ pathname: "https://zlv.softr.app/rectification" }}
+                                  to={{ pathname: "https://startupdetat.typeform.com/rectification#source=homepage" }}
                                   target="_blank"
                                   className="fr-btn--md fr-btn"
                                   onClick={() => trackEvent({ category: TrackEventCategories.Home, action: TrackEventActions.Home.Rectify })}

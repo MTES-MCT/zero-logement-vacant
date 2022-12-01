@@ -2,7 +2,6 @@ import db from './db';
 import {
     getOwnershipKindFromValue,
     HousingApi,
-    HousingSortableApi,
     HousingSortApi,
     OwnershipKindsApi,
     OwnershipKindValues
@@ -361,30 +360,21 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .modify(filteredQuery(filters))
 
         if (sort) {
-            const formattedSort = SortApi.format<HousingSortableApi>(sort, {
-                mapKeys: {
-                    owner: 'o.full_name',
-                    rawAddress: `${housingTable}.raw_address[2]`
+            SortApi.use(sort, {
+                keys: {
+                    owner: () => query.orderBy('o.full_name', sort.owner),
+                    rawAddress: () => {
+                        query
+                          .orderBy(`${housingTable}.raw_address[2]`, sort.rawAddress)
+                          .orderByRaw(
+                            `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${sort.rawAddress}`
+                          )
+                          .orderByRaw(
+                            `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${sort.rawAddress}`
+                          )
+                    }
                 }
             })
-              // .flatMap(clause => {
-              //     if (clause.column === `${housingTable}.raw_address[2]`) {
-              //         return [
-              //           clause,
-              //           {
-              //             column: `substring(${housingTable}.raw_address[1], E'([^\\s]+)$')`,
-              //             order: clause.order
-              //           }
-              //         ]
-              //     }
-              //     return clause
-              // })
-            query.orderBy(formattedSort)
-            query.orderByRaw(
-              `substring("${housingTable}"."raw_address"[1] FROM E'\\s+(.+)$') ${sort.rawAddress}`
-            )
-            console.log(query.toSQL());
-            query.debug(true)
         }
 
         return Promise.all([
@@ -396,8 +386,7 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                             .limit(perPage)
                     }
                 }),
-            // countWithFilters(filters)
-            3860
+            countWithFilters(filters)
         ]).then(([results, housingCount]) => <PaginatedResultApi<HousingApi>> {
             entities: results.map((result: any) => parseHousingApi(result)),
             totalCount: housingCount,

@@ -5,7 +5,7 @@ import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialHousingFilters } from '../store/reducers/housingReducer';
-import { prependIf, toTitleCase } from '../utils/stringUtils';
+import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
 import { toQuery } from "../models/Sort";

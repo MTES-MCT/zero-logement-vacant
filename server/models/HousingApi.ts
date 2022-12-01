@@ -1,6 +1,6 @@
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
-import SortApi, { Sort } from "./SortApi";
+import { Sort } from "./SortApi";
 
 export interface HousingApi {
     id: string;

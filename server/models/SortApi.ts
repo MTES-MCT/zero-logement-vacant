@@ -29,31 +29,19 @@ function parse<Sortable extends object = object>(query?: string): Sort<Sortable>
     }, {})
 }
 
-interface OrderByClause {
-  column: string
-  order?: Direction
-}
-
 interface FormatOptions<Sortable> {
-  mapKeys?: Partial<Record<keyof Sortable, string>>
+  keys?: Partial<Record<keyof Sortable, () => void>>
 }
 
-function format<Sortable extends object = object>(sort: Sort, options?: FormatOptions<Sortable>): OrderByClause[] {
+function use<Sortable extends object = object>(sort: Sort, options?: FormatOptions<Sortable>): void {
   return Object
-    .entries<Direction>(sort)
-    .map(([key, direction]) => {
-      const mappedKey = options?.mapKeys?.[key as keyof Sortable] ?? key
-      return [mappedKey, direction]
-    })
-    .map<OrderByClause>(([key, direction]) => {
-      return {
-        column: key,
-        order: direction as Direction,
-      }
+    .keys(sort)
+    .forEach(key => {
+      options?.keys?.[key as keyof Sortable]?.()
     })
 }
 
 export default {
   parse,
-  format,
+  use
 }

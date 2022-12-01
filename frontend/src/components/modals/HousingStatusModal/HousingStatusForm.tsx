@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
 import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../../models/Housing';
 import {
@@ -14,7 +14,10 @@ import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
-import { statusOptions, vacancyReasonsOptions } from '../../../models/HousingFilters';
+import {
+    statusOptions,
+    vacancyReasonsOptions
+} from '../../../models/HousingFilters';
 
 const HousingStatusForm = (
     {

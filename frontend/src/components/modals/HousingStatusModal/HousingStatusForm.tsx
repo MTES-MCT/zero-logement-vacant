@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
 import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../../models/Housing';
 import {

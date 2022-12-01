@@ -274,7 +274,7 @@ export const createCampaignBundleReminder = (kind: CampaignKinds, allHousing: bo
 
 export const updateCampaignBundleTitle = (campaignBundleId: CampaignBundleId, title?: string) => {
 
-    return function (dispatch: Dispatch) {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
@@ -285,7 +285,12 @@ export const updateCampaignBundleTitle = (campaignBundleId: CampaignBundleId, ti
                     type: CAMPAIGN_UPDATED,
                     campaignBundleFetchingId: campaignBundleId
                 });
-                listCampaignBundles()(dispatch)
+                if (getState().campaign.campaignBundle) {
+                    getCampaignBundle(getState().campaign.campaignBundle as CampaignBundleId, getState().campaign.searchQuery)(dispatch)
+                }
+                if (getState().campaign.campaignList) {
+                    listCampaignBundles()(dispatch)
+                }
             });
     };
 };

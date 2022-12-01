@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Alert, Col, Container, Row, Text } from '@dataesr/react-dsfr';
 import { useDispatch } from 'react-redux';
-import { campaignFullName, CampaignSteps } from '../../models/Campaign';
+import { CampaignSteps } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
@@ -20,6 +20,7 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
+import CampaignBundleTitle from '../../components/CampaignBundleTitle/CampaignBundleTitle';
 
 
 const CampaignView = () => {
@@ -50,10 +51,6 @@ const CampaignView = () => {
             dispatch(deleteCampaignBundle(bundle))
         }
         setCampaignRemovalModalOpen(false)
-    }
-
-    function renameCampaign(): void {
-        // TODO
     }
 
     return (
@@ -102,19 +99,7 @@ const CampaignView = () => {
                             </Row>
                             <Row>
                                 <Col>
-                                    <Title as="h1" className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
-                                        {campaignFullName(bundle)}
-                                    </Title>
-                                    <ButtonLink
-                                      display="flex"
-                                      icon="ri-edit-2-fill"
-                                      iconPosition="left"
-                                      iconSize="1x"
-                                      isSimple
-                                      onClick={renameCampaign}
-                                    >
-                                        Renommer
-                                    </ButtonLink>
+                                    <CampaignBundleTitle campaignBundle={bundle} />
                                     {(bundle.campaignNumber ?? 0) > 0 && bundle.createdAt &&
                                       <Text size="sm" className="subtitle">
                                           échantillon créé

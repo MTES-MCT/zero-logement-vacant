@@ -6,12 +6,7 @@ import React, {
     useState
 } from 'react';
 
-import {
-    Button,
-    Link as DSFRLink,
-    Pagination,
-    Table
-} from '@dataesr/react-dsfr';
+import { Button, Link as DSFRLink, Pagination, Table } from '@dataesr/react-dsfr';
 import { byAddress, Housing, SelectedHousing } from '../../models/Housing';
 import { capitalize, stringSort } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
@@ -23,15 +18,13 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
 import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
-import {
-    TrackEventActions,
-    TrackEventCategories
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import HousingListHeader from "./HousingListHeader";
-import { findChild } from "../../utils/elementUtils";
-import Checkbox from '../Checkbox/Checkbox';
 
+import HousingListHeader from './HousingListHeader';
+import { findChild } from '../../utils/elementUtils';
+
+import Checkbox from '../Checkbox/Checkbox';
 
 export enum HousingDisplayKey {
     Housing, Owner

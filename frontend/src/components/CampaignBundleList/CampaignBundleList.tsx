@@ -1,12 +1,13 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
+
 import { Alert, Button, Col, Row, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
+
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
     CampaignBundle,
     CampaignBundleId,
     campaignBundleIdUrlFragment,
-    campaignFullName,
     CampaignNumberSort,
     campaignStep,
     CampaignSteps,
@@ -29,6 +30,7 @@ import Help from '../Help/Help';
 import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
+import CampaignBundleTitle from '../CampaignBundleTitle/CampaignBundleTitle';
 
 
 interface Props {
@@ -166,11 +168,9 @@ const CampaignBundleList = (
             }
             {filteredCampaignBundles && filteredCampaignBundles.sort(CampaignNumberSort).map(campaignBundle =>
                 <div key={`CampaignBundle_${campaignBundle.campaignIds.join('-')}`} className={styles.campaignCard}>
-                    <Row alignItems="top" spacing="mb-1w">
-                        <Col spacing="px-3w py-2w">
-                            <Title as="h2" className="fr-mb-0">
-                                {campaignFullName(campaignBundle)}
-                            </Title>
+                    <Row gutters alignItems="top" spacing="mb-1w">
+                        <Col>
+                            <CampaignBundleTitle campaignBundle={campaignBundle} as="h2"/>
                             {(campaignBundle.campaignNumber ?? 0) > 0 ?
                                 <Text className="subtitle" spacing="mb-2w">
                                     échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>

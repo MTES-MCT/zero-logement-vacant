@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import {
     Button,
     Col,
@@ -43,7 +43,7 @@ const CampaignCreationModal = (
     })
     const { isValid, message, messageType, validate } = useForm(schema, isReminder ? {} : {
         campaignTitle
-    })
+    }, isReminder ? {dependencies: [isReminder]} : undefined)
 
     const create = () => {
         validate().then(() => {
@@ -52,12 +52,6 @@ const CampaignCreationModal = (
             }
         })
     }
-
-    useEffect(() => {
-        if (isReminder) {
-            validate()
-        }
-    }, [isReminder]) //eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Modal isOpen={true}

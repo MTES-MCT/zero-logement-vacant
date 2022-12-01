@@ -3,6 +3,7 @@ import { HousingStatus } from './HousingState';
 import { LocalityKinds } from './Establishment';
 import { stringSort } from "../utils/stringUtils";
 import { Compare } from "../utils/compareUtils";
+import { Sort } from "./Sort";
 
 export interface Housing {
     id: string;
@@ -76,7 +77,7 @@ export const selectedHousingCount = (selectedHousing: SelectedHousing, totalCoun
     return selectedHousing.all ? totalCount - selectedHousing.ids.length : selectedHousing.ids.length
 }
 
-export const HousingSort = (h1: Housing, h2: Housing) =>
+export const housingSort = (h1: Housing, h2: Housing) =>
     Math.max(...h1.dataYears) === Math.max(...h2.dataYears) ?
         h1.invariant.localeCompare(h2.invariant) :
         Math.max(...h1.dataYears) - Math.max(...h2.dataYears);
@@ -115,3 +116,6 @@ export const OwnershipKindLabels = {
     [OwnershipKinds.CoOwnership]: 'Copropriété',
     [OwnershipKinds.Other]: 'Autre'
 }
+
+export type HousingSortable = Pick<Housing, 'rawAddress' | 'owner'>
+export type HousingSort = Sort<HousingSortable>

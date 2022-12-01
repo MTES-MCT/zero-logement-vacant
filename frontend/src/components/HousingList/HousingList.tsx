@@ -1,6 +1,7 @@
 import React, {
     ChangeEvent,
-    ReactElement, ReactNode,
+    ReactElement,
+    ReactNode,
     useEffect,
     useMemo,
     useState
@@ -12,8 +13,13 @@ import {
     Pagination,
     Table
 } from '@dataesr/react-dsfr';
-import { byAddress, Housing, SelectedHousing } from '../../models/Housing';
-import { capitalize, stringSort } from '../../utils/stringUtils';
+import {
+    Housing,
+    HousingSort,
+    HousingSortable,
+    SelectedHousing
+} from '../../models/Housing';
+import { capitalize } from '../../utils/stringUtils';
 import { Link, useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import styles from './housing-list.module.scss';
@@ -31,6 +37,7 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import HousingListHeader from "./HousingListHeader";
 import { findChild } from "../../utils/elementUtils";
 import Checkbox from '../Checkbox/Checkbox';
+import { useSort } from "../../hooks/useSort";
 
 
 export enum HousingDisplayKey {
@@ -45,6 +52,7 @@ interface Props {
     filters?: HousingFilters
     onChangePagination: (page: number, perPage: number) => void
     onSelectHousing?: (selectedHousing: SelectedHousing) => void
+    onSort?: (sort: HousingSort) => void | Promise<void>
     additionalColumns?: any[]
     tableClassName?: string
 }
@@ -55,6 +63,7 @@ const HousingList = (
         children,
         paginatedHousing,
         onChangePagination,
+        onSort,
         filters,
         displayKind,
         onSelectHousing,
@@ -68,6 +77,9 @@ const HousingList = (
     const campaignList = useCampaignList();
     const { trackEvent } = useMatomo();
 
+    const { cycleSort, getIcon } = useSort<HousingSortable>({ onSort })
+
+    // Contains unchecked elements if "allChecked" is true
     const [checkedIds, setCheckedIds] = useState<string[]>([]);
     const [allChecked, setAllChecked] = useState<boolean>(false);
 
@@ -127,7 +139,7 @@ const HousingList = (
         render: ({ id }: Housing) =>
             <Checkbox value={id}
                       onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
-                      checked={(allChecked && checkedIds.indexOf(id) === -1) || (!allChecked && checkedIds.indexOf(id) !== -1)}
+                      checked={(allChecked && !checkedIds.includes(id)) || (!allChecked && checkedIds.includes(id))}
                       data-testid={'housing-check-' + id}
                       label="">
             </Checkbox>
@@ -140,9 +152,11 @@ const HousingList = (
 
     const addressColumn = {
         name: 'address',
-        label: 'Adresse',
-        sortable: true,
-        sort: byAddress,
+        headerRender: () => (
+          <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('rawAddress')}>
+              Adresse {getIcon('rawAddress')}
+          </div>
+        ),
         render: ({ id, rawAddress }: Housing) =>
             <>
                 {rawAddress.map((line, lineIdx) =>
@@ -153,9 +167,11 @@ const HousingList = (
 
     const ownerColumn = {
         name: 'owner',
-        label: 'Propriétaire',
-        sortable: true,
-        sort: (a: Housing, b: Housing) => stringSort(a.owner.fullName, b.owner.fullName),
+        headerRender: () => (
+          <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('owner')}>
+              Propriétaire {getIcon('owner')}
+          </div>
+        ),
         render: ({ owner }: Housing) =>
             <>
                 <DSFRLink
@@ -246,7 +262,7 @@ const HousingList = (
         <div>
             <header>
                 <HousingListHeader
-                    selected={allChecked ? paginatedHousing.entities.length : checkedIds.length}
+                    selected={allChecked ? paginatedHousing.totalCount - checkedIds.length : checkedIds.length}
                     count={paginatedHousing.entities.length}
                     total={paginatedHousing.totalCount}
                     onUnselectAll={unselectAll}

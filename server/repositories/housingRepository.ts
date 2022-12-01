@@ -1,5 +1,12 @@
 import db from './db';
-import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
+import {
+    getOwnershipKindFromValue,
+    HousingApi,
+    HousingSortableApi,
+    HousingSortApi,
+    OwnershipKindsApi,
+    OwnershipKindValues
+} from '../models/HousingApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
@@ -16,6 +23,7 @@ import { eventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
+import SortApi from "../models/SortApi";
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -323,7 +331,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
 }
 
-const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
+const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number, sort?: HousingSortApi): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
 
@@ -352,6 +360,33 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
 
+        if (sort) {
+            const formattedSort = SortApi.format<HousingSortableApi>(sort, {
+                mapKeys: {
+                    owner: 'o.full_name',
+                    rawAddress: `${housingTable}.raw_address[2]`
+                }
+            })
+              // .flatMap(clause => {
+              //     if (clause.column === `${housingTable}.raw_address[2]`) {
+              //         return [
+              //           clause,
+              //           {
+              //             column: `substring(${housingTable}.raw_address[1], E'([^\\s]+)$')`,
+              //             order: clause.order
+              //           }
+              //         ]
+              //     }
+              //     return clause
+              // })
+            query.orderBy(formattedSort)
+            query.orderByRaw(
+              `substring("${housingTable}"."raw_address"[1] FROM E'\\s+(.+)$') ${sort.rawAddress}`
+            )
+            console.log(query.toSQL());
+            query.debug(true)
+        }
+
         return Promise.all([
             query
                 .modify((queryBuilder: any) => {
@@ -361,7 +396,8 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
                             .limit(perPage)
                     }
                 }),
-            countWithFilters(filters)
+            // countWithFilters(filters)
+            3860
         ]).then(([results, housingCount]) => <PaginatedResultApi<HousingApi>> {
             entities: results.map((result: any) => parseHousingApi(result)),
             totalCount: housingCount,
@@ -382,9 +418,9 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
             .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count 
-                    from campaigns_housing ch, campaigns c 
-                    where housing.id = ch.housing_id 
+                    select campaign_id as campaign_id, count(*) over() as campaign_count
+                    from campaigns_housing ch, campaigns c
+                    where housing.id = ch.housing_id
                     and c.id = ch.campaign_id
                     ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
                 ) campaigns on true`, filters.establishmentIds ?? [])
@@ -482,7 +518,7 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
                     )
                     .join(eventsTable, `${housingTable}.id`, 'housing_id')
                     .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
-                    .andWhereRaw(`${eventsTable}.content like 
+                    .andWhereRaw(`${eventsTable}.content like
                         (case
                              when status = ${HousingStatusApi.Waiting} then '%Ajout dans la campagne%'
                              when status = ${HousingStatusApi.FirstContact} then '%${getHousingStatusApiLabel(HousingStatusApi.FirstContact)}%'

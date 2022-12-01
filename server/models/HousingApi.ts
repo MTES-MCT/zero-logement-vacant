@@ -1,5 +1,6 @@
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
+import SortApi, { Sort } from "./SortApi";
 
 export interface HousingApi {
     id: string;
@@ -42,6 +43,9 @@ export interface HousingUpdateApi {
     vacancyReasons?: string[],
     comment: string
 }
+
+export type HousingSortableApi = Pick<HousingApi, 'owner' | 'rawAddress'>
+export type HousingSortApi = Sort<HousingSortableApi>
 
 export enum OwnershipKindsApi {
     Single = 'single',

@@ -1,13 +1,14 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
-import { Housing, HousingUpdate } from '../models/Housing';
+import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialHousingFilters } from '../store/reducers/housingReducer';
-import { toTitleCase } from '../utils/stringUtils';
+import { prependIf, toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
+import { toQuery } from "../models/Sort";
 
 
 const getHousing = async (id: string): Promise<Housing> => {
@@ -20,9 +21,10 @@ const getHousing = async (id: string): Promise<Housing> => {
         .then(_ => parseHousing(_))
 };
 
-const listHousing = async (filters: HousingFilters, page: number, perPage: number): Promise<PaginatedResult<Housing>> => {
+const listHousing = async (filters: HousingFilters, page: number, perPage: number, sort?: HousingSort): Promise<PaginatedResult<Housing>> => {
+    const query = toQuery(sort).length > 0 ? `?sort=${toQuery(sort)}` : ''
 
-    return await fetch(`${config.apiEndpoint}/api/housing`, {
+    return await fetch(`${config.apiEndpoint}/api/housing${query}`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ filters, page, perPage }),

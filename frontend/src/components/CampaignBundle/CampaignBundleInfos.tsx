@@ -29,7 +29,7 @@ const CampaignBundleInfos = ({ campaignBundle, isGrey }: Props) => {
                             <b>{bundle.ownerCount}</b> {bundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
                         </Text>
                     </AppCard>
-                    {mainCampaign?.sendingDate &&
+                    {(bundle.campaignNumber ?? 0) > 0 && mainCampaign?.sendingDate &&
                         <AppCard icon="ri-send-plane-fill" isGrey={isGrey}>
                             <Text as="span">
                                 envoyée

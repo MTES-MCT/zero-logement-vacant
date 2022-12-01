@@ -11,9 +11,6 @@ import { deleteCampaignBundle, getCampaignBundle } from '../../store/actions/cam
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import ButtonLink from '../../components/ButtonLink/ButtonLink';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import Help from '../../components/Help/Help';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -100,19 +97,6 @@ const CampaignView = () => {
                             <Row>
                                 <Col>
                                     <CampaignBundleTitle campaignBundle={bundle} />
-                                    {(bundle.campaignNumber ?? 0) > 0 && bundle.createdAt &&
-                                      <Text size="sm" className="subtitle">
-                                          échantillon créé
-                                          le <b>{format(bundle.createdAt, 'dd/MM/yy', {locale: fr})}</b>
-                                      </Text>
-                                    }
-                                    {(bundle.campaignNumber ?? 0) === 0 &&
-                                      <div className="fr-py-2w">
-                                          <Help>
-                                              Les logements hors campagne sont les logements qui sont <b>en cours de suivi mais qui ne sont pas compris dans une campagne.</b>
-                                          </Help>
-                                      </div>
-                                    }
                                 </Col>
                             </Row>
                             <Row spacing="my-2w">

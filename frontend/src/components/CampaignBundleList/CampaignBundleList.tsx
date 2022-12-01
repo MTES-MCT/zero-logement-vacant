@@ -26,7 +26,6 @@ import { fr } from 'date-fns/locale';
 import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
-import Help from '../Help/Help';
 import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
@@ -171,16 +170,6 @@ const CampaignBundleList = (
                     <Row gutters alignItems="top" spacing="mb-1w">
                         <Col>
                             <CampaignBundleTitle campaignBundle={campaignBundle} as="h2"/>
-                            {(campaignBundle.campaignNumber ?? 0) > 0 ?
-                                <Text className="subtitle" spacing="mb-2w">
-                                    échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
-                                </Text> :
-                                <div className="fr-py-2w">
-                                    <Help>
-                                        Les logements hors campagne sont les logements qui sont <b>en cours de suivi mais qui ne sont pas compris dans une campagne.</b>
-                                    </Help>
-                                </div>
-                            }
                             <div>
                                 <CampaignBundleInfos campaignBundle={campaignBundle} isGrey={true}/>
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.Archived &&

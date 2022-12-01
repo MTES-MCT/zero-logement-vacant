@@ -15,7 +15,7 @@ const CampaignBundleStats = ({ campaignBundle, isArchived }: Props) => {
 
     return(
         <>
-            {bundle &&
+            {bundle && (bundle.campaignNumber ?? 0) > 0 &&
                 <>
                     <AppCard icon="ri-feedback-fill" isGrey={isArchived}>
                         <Text as="span">

@@ -7,7 +7,7 @@ import {
     ModalContent,
     ModalFooter,
     ModalTitle,
-    Row,
+    Row, Text,
     TextInput,
     Title,
 } from '@dataesr/react-dsfr';
@@ -19,6 +19,9 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
 import ButtonLink from '../ButtonLink/ButtonLink';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Help from '../Help/Help';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -66,10 +69,21 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
                 iconPosition="left"
                 iconSize="1x"
                 isSimple
-                onClick={() => setIsModalOpen(true)}
-            >
+                onClick={() => setIsModalOpen(true)}>
                 Renommer
             </ButtonLink>
+            {(campaignBundle.campaignNumber ?? 0) > 0 && campaignBundle.createdAt &&
+                <Text className="subtitle" spacing="mb-2w">
+                    échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
+                </Text>
+            }
+            {campaignBundle.campaignNumber === 0 &&
+                <div className="fr-py-2w">
+                    <Help>
+                        Les logements hors campagne sont les logements qui sont <b>en cours de suivi mais qui ne sont pas compris dans une campagne.</b>
+                    </Help>
+                </div>
+            }
             <Modal isOpen={isModalOpen}
                    hide={() => setIsModalOpen(false)}>
                 <ModalTitle>

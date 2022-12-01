@@ -71,6 +71,7 @@ const getCampaignBundle = async (establishmentId: string, campaignNumber?: strin
                     queryBuilder
                         .select(
                             `${campaignsTable}.campaign_number`,
+                            db.raw(`(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`),
                             db.raw(`(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`),
                             db.raw(`(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`),
                             db.raw(`(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`),

@@ -1,15 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import {
-    Alert,
-    Button,
-    Col,
-    Row,
-    Tag,
-    TagGroup,
-    Text,
-    TextInput,
-    Title
-} from '@dataesr/react-dsfr';
+import { Alert, Button, Col, Row, Tag, TagGroup, Text, TextInput, Title } from '@dataesr/react-dsfr';
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
@@ -22,54 +12,24 @@ import {
     CampaignSteps,
     mainCampaign,
     reminderCampaigns,
-    returnRate,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import {
-    TrackEventActions,
-    TrackEventCategories
-} from '../../models/TrackEvent';
-import {
-    deleteCampaignBundle,
-    listCampaignBundles,
-    validCampaignStep
-} from '../../store/actions/campaignAction';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { deleteCampaignBundle, listCampaignBundles, validCampaignStep } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import AppCard from '../AppCard/AppCard';
-import CampaignExportModal
-    from '../modals/CampaignExportModal/CampaignExportModal';
+import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Help from '../Help/Help';
-import Stepper from "../Stepper/Stepper";
+import Stepper from '../Stepper/Stepper';
+import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
+import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
 
-const CampaignBundleStats = ({ campaignBundle, isArchived }: { campaignBundle: CampaignBundle, isArchived: boolean }) => {
-
-    return(
-        <>
-            <AppCard icon="ri-feedback-fill" isGrey={isArchived}>
-                <Text as="span">
-                    <b>{returnRate(campaignBundle)}%</b> de retour
-                </Text>
-            </AppCard>
-            <AppCard icon="ri-phone-fill" isGrey={isArchived}>
-                <Text as="span">
-                    <b>{campaignBundle.neverContactedCount}</b> à recontacter
-                </Text>
-            </AppCard>
-            <AppCard icon="ri-hand-coin-fill" isGrey={isArchived}>
-                <Text as="span">
-                    <b>{campaignBundle.inProgressWithSupportCount}</b> en accompagnement
-                </Text>
-            </AppCard>
-        </>
-    )
-}
 
 interface Props {
     withDeletion?: boolean
@@ -222,23 +182,7 @@ const CampaignBundleList = (
                                 </div>
                             }
                             <div>
-                                <AppCard icon="ri-home-fill" isGrey={true}>
-                                    <Text as="span">
-                                        <b>{campaignBundle.housingCount}</b> {campaignBundle.housingCount <= 1 ? 'logement' : 'logements'}
-                                    </Text>
-                                </AppCard>
-                                <AppCard icon="ri-user-fill" isGrey={true}>
-                                    <Text as="span">
-                                        <b>{campaignBundle.ownerCount}</b> {campaignBundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
-                                    </Text>
-                                </AppCard>
-                                {mainCampaignOfBundle(campaignBundle)?.sendingDate &&
-                                    <AppCard icon="ri-send-plane-fill" isGrey={true}>
-                                        <Text as="span">
-                                            envoyée le <b>{format(mainCampaignOfBundle(campaignBundle)?.sendingDate!, 'dd/MM/yy', { locale: fr })}</b>
-                                        </Text>
-                                    </AppCard>
-                                }
+                                <CampaignBundleInfos campaignBundle={campaignBundle} isGrey={true}/>
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.Archived &&
                                     <CampaignBundleStats campaignBundle={campaignBundle} isArchived={true}/>
                                 }

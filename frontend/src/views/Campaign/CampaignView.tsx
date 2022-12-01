@@ -1,32 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { useDispatch } from 'react-redux';
-import { campaignFullName, CampaignSteps, } from '../../models/Campaign';
+import { campaignFullName, CampaignSteps } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
-import HousingFiltersBadges
-    from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import {
-    deleteCampaignBundle,
-    getCampaignBundle
-} from '../../store/actions/campaignAction';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import { deleteCampaignBundle, getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
-import ButtonLink from "../../components/ButtonLink/ButtonLink";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import Help from "../../components/Help/Help";
-import AppCard from "../../components/AppCard/AppCard";
-import { useCampaignBundle } from "../../hooks/useCampaignBundle";
-import {
-    TrackEventActions,
-    TrackEventCategories
-} from "../../models/TrackEvent";
-import { useMatomo } from "@datapunt/matomo-tracker-react";
-import ConfirmationModal
-    from "../../components/modals/ConfirmationModal/ConfirmationModal";
+import ButtonLink from '../../components/ButtonLink/ButtonLink';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Help from '../../components/Help/Help';
+import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';
+import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
 
 
 const CampaignView = () => {
@@ -36,7 +29,7 @@ const CampaignView = () => {
     const { campaignNumber, reminderNumber } = useParams<{campaignNumber: string, reminderNumber: string}>();
     const { trackEvent } = useMatomo()
 
-    const { bundle, mainCampaign, step } = useCampaignBundle()
+    const { bundle, step } = useCampaignBundle()
 
     const [searchQuery, setSearchQuery] = useState<string>();
 
@@ -140,24 +133,8 @@ const CampaignView = () => {
                             <Row spacing="my-2w">
                                 <Col>
                                     <div>
-                                        <AppCard icon="ri-home-fill">
-                                            <Text as="span">
-                                                <b>{bundle.housingCount}</b> {bundle.housingCount <= 1 ? 'logement' : 'logements'}
-                                            </Text>
-                                        </AppCard>
-                                        <AppCard icon="ri-user-fill">
-                                            <Text as="span">
-                                                <b>{bundle.ownerCount}</b> {bundle.ownerCount <= 1 ? 'propriétaire' : 'propriétaires'}
-                                            </Text>
-                                        </AppCard>
-                                        {mainCampaign?.sendingDate &&
-                                          <AppCard icon="ri-send-plane-fill">
-                                              <Text as="span">
-                                                  envoyée
-                                                  le <b>{format(mainCampaign?.sendingDate, 'dd/MM/yy', {locale: fr})}</b>
-                                              </Text>
-                                          </AppCard>
-                                        }
+                                        <CampaignBundleInfos campaignBundle={bundle}/>
+                                        <CampaignBundleStats campaignBundle={bundle}/>
                                     </div>
                                 </Col>
                             </Row>

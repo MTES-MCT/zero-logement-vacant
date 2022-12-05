@@ -46,5 +46,3 @@ jobs:
           CEREMA_API_AUTH_TOKEN: ''
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
-      - name: Check prettier
-        run: npx prettier --check .

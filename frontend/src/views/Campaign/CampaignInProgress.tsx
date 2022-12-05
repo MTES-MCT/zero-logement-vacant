@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, Col, Row, Tabs } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    changeCampaignHousingPagination,
+    changeCampaignHousingPagination, changeCampaignHousingSort,
     createCampaignBundleReminder,
     listCampaignBundleHousing,
     updateCampaignHousingList,
@@ -123,8 +123,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
     }
 
     const onSort = (sort: HousingSort) => {
-        console.log('sort', sort)
-        // dispatch(changeCampaignHousingSort(sort, status))
+        dispatch(changeCampaignHousingSort(sort, status))
     }
 
     return (
@@ -157,66 +156,64 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                     }
                 </Row>
             }
-            {!paginatedCampaignHousing.loading && <>
-                {actionAlert &&
-                    <Alert title=""
-                           description="Vous devez sélectionner au moins un logement réaliser cette action."
-                           className="fr-my-3w"
-                           type="error"
-                           onClose={() => setActionAlert(false)}
-                           data-testid="no-housing-alert"
-                           closable/>
-                }
-                <HousingList paginatedHousing={paginatedCampaignHousing}
-                             onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
-                             onSort={onSort}
-                             displayKind={HousingDisplayKey.Owner}
-                             onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}
-                             additionalColumns={[statusColumn, modifyColumn]}
-                             tableClassName="campaign">
-                    <HousingListHeader>
-                        <HousingListHeaderActions>
-                            {hasSelected() &&
-                                <Row justifyContent="right">
-                                    <Button title="Créer une campagne de relance"
-                                            secondary
-                                            onClick={handleCampaignReminder}
-                                            className="fr-mx-2w">
-                                        Créer une campagne de relance
-                                    </Button>
-                                    <Button title="Mettre à jour le statut"
-                                            onClick={() => setUpdatingModalSelectedHousing(selectedHousing)}>
-                                        Mettre à jour le statut
-                                    </Button>
-                                </Row>
-                            }
-                        </HousingListHeaderActions>
-                    </HousingListHeader>
-                </HousingList>
-                {updatingModalHousing &&
-                    <HousingStatusModal
-                        housingList={[updatingModalHousing]}
-                        onSubmit={submitHousingUpdate}
-                        onClose={() => setUpdatingModalHousing(undefined)}/>
-                }
-                {updatingModalSelectedHousing &&
-                    <HousingListStatusModal
-                        housingCount={selectedCount}
-                        initialStatus={status}
-                        fromDefaultCampaign={campaignBundle.campaignNumber === 0}
-                        onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
-                        onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
-                }
-                {reminderModalSelectedHousing &&
-                    <CampaignCreationModal
-                        housingCount={selectedCount}
-                        filters={campaignBundle.filters}
-                        onSubmit={submitCampaignReminder}
-                        onClose={() => setReminderModalSelectedHousing(undefined)}
-                        isReminder={true}
-                    />
-                }
-            </>}
+            {actionAlert &&
+                <Alert title=""
+                       description="Vous devez sélectionner au moins un logement réaliser cette action."
+                       className="fr-my-3w"
+                       type="error"
+                       onClose={() => setActionAlert(false)}
+                       data-testid="no-housing-alert"
+                       closable/>
+            }
+            <HousingList paginatedHousing={paginatedCampaignHousing}
+                         onChangePagination={(page, perPage) => dispatch(changeCampaignHousingPagination(page, perPage, status))}
+                         onSort={onSort}
+                         displayKind={HousingDisplayKey.Owner}
+                         onSelectHousing={(selectedHousing: SelectedHousing) => setSelectedHousing(selectedHousing)}
+                         additionalColumns={[statusColumn, modifyColumn]}
+                         tableClassName="campaign">
+                <HousingListHeader>
+                    <HousingListHeaderActions>
+                        {hasSelected() &&
+                            <Row justifyContent="right">
+                                <Button title="Créer une campagne de relance"
+                                        secondary
+                                        onClick={handleCampaignReminder}
+                                        className="fr-mx-2w">
+                                    Créer une campagne de relance
+                                </Button>
+                                <Button title="Mettre à jour le statut"
+                                        onClick={() => setUpdatingModalSelectedHousing(selectedHousing)}>
+                                    Mettre à jour le statut
+                                </Button>
+                            </Row>
+                        }
+                    </HousingListHeaderActions>
+                </HousingListHeader>
+            </HousingList>
+            {updatingModalHousing &&
+                <HousingStatusModal
+                    housingList={[updatingModalHousing]}
+                    onSubmit={submitHousingUpdate}
+                    onClose={() => setUpdatingModalHousing(undefined)}/>
+            }
+            {updatingModalSelectedHousing &&
+                <HousingListStatusModal
+                    housingCount={selectedCount}
+                    initialStatus={status}
+                    fromDefaultCampaign={campaignBundle.campaignNumber === 0}
+                    onSubmit={campaignHousingUpdate => submitSelectedHousingUpdate(campaignHousingUpdate)}
+                    onClose={() => setUpdatingModalSelectedHousing(undefined)}/>
+            }
+            {reminderModalSelectedHousing &&
+                <CampaignCreationModal
+                    housingCount={selectedCount}
+                    filters={campaignBundle.filters}
+                    onSubmit={submitCampaignReminder}
+                    onClose={() => setReminderModalSelectedHousing(undefined)}
+                    isReminder={true}
+                />
+            }
         </>
     )
 }

@@ -2,48 +2,31 @@ import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
-import UserNotFoundError from "../errors/userNotFoundError";
 
 export const usersTable = 'users';
 
-const get = async (id: string): Promise<UserApi> => {
-    try {
-        return db(usersTable)
+const get = async (id: string): Promise<UserApi | null> => {
+
+    console.log('Get user by id', id)
+
+    const result = await db(usersTable)
             .where(`${usersTable}.id`, id)
             .andWhere(notDeleted)
             .first()
-            .then(result => {
-                if (result) {
-                    return parseUserApi(result);
-                } else {
-                    console.error('User not found', id);
-                    throw new UserNotFoundError();
-                }
-            })
-    } catch (err) {
-        console.error('Getting user by id failed', err, id);
-        throw new Error('Getting user by id failed');
-    }
+
+        return result ? parseUserApi(result) : null
 }
 
-const getByEmail = async (email: string): Promise<UserApi> => {
-    try {
-        return db(usersTable)
-            .whereRaw('upper(email) = upper(?)', email)
-            .andWhere(notDeleted)
-            .first()
-            .then(result => {
-                if (result) {
-                    return parseUserApi(result);
-                } else {
-                    console.error('User not found', email);
-                    throw new UserNotFoundError();
-                }
-            })
-    } catch (err) {
-        console.error('Getting user by email failed', err, email);
-        throw new Error('Getting user by email failed');
-    }
+const getByEmail = async (email: string): Promise<UserApi | null> => {
+
+    console.log('Get user by email', email)
+
+    const result = await db(usersTable)
+        .whereRaw('upper(email) = upper(?)', email)
+        .andWhere(notDeleted)
+        .first()
+
+    return result ? parseUserApi(result) : null
 }
 
 const updatePassword = async (userId: string, password: string): Promise<any> => {

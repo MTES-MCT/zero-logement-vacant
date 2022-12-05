@@ -14,7 +14,10 @@ import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
-import { statusOptions, vacancyReasonsOptions } from '../../../models/HousingFilters';
+import {
+    statusOptions,
+    vacancyReasonsOptions
+} from '../../../models/HousingFilters';
 
 const HousingStatusForm = (
     {

@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
@@ -79,12 +79,14 @@ export interface FetchHousingListAction {
     filters: HousingFilters,
     page: number,
     perPage: number
+    sort: HousingSort
 }
 
 export interface HousingListFetchedAction {
     type: typeof HOUSING_LIST_FETCHED,
     paginatedHousing: PaginatedResult<Housing>,
     filters: HousingFilters
+    sort: HousingSort
 }
 
 export type HousingActionTypes =
@@ -155,6 +157,31 @@ export const changeHousingPagination = (page: number, perPage: number) => {
             });
     };
 };
+
+export const changeHousingSort = (sort: HousingSort) => {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+        const { filters, paginatedHousing } = getState().housing
+        const { page, perPage } = paginatedHousing
+
+        dispatch(showLoading());
+        dispatch({
+            type: FETCHING_HOUSING_LIST,
+            page,
+            perPage,
+            filters,
+        })
+
+        housingService.listHousing(filters, page, perPage, sort)
+          .then(result => {
+              dispatch(hideLoading())
+              dispatch({
+                  type: HOUSING_LIST_FETCHED,
+                  paginatedHousing: result,
+                  filters
+              })
+        })
+    }
+}
 
 
 export const getHousing = (id: string) => {

@@ -1,4 +1,4 @@
-import { Housing } from '../../models/Housing';
+import { Housing, HousingSort } from '../../models/Housing';
 import {
     ADDITIONAL_OWNER_CREATED,
     ADDITIONAL_OWNERS_FETCHED,
@@ -35,6 +35,7 @@ export interface HousingState {
     events?: Event[];
     checkedHousingIds?: string[];
     housingOwnersUpdateFormState?: FormState;
+    sort?: HousingSort
 }
 
 export const initialHousingFilters = {

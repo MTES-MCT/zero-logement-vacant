@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilter from './HousingListFilter';
 import HousingList, { HousingDisplayKey } from '../../components/HousingList/HousingList';
-import { changeHousingFiltering, changeHousingPagination } from '../../store/actions/housingAction';
-
+import { changeHousingFiltering, changeHousingPagination, changeHousingSort } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -15,7 +14,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 
 import { CampaignKinds } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
-import { SelectedHousing, selectedHousingCount } from '../../models/Housing';
+import { HousingSort, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import housingService from '../../services/housing.service';
 import { format } from 'date-fns';
@@ -122,6 +121,10 @@ const HousingListView = () => {
         setSelectedHousing(selectedHousing)
     }
 
+    const onSort = (sort: HousingSort) => {
+        dispatch(changeHousingSort(sort))
+    }
+
     const removeFilter = (removedFilter: any) => {
         dispatch(changeHousingFiltering({
             ...filters,
@@ -196,6 +199,7 @@ const HousingListView = () => {
                                      filters={filters}
                                      displayKind={HousingDisplayKey.Housing}
                                      onSelectHousing={onSelectHousing}
+                                     onSort={onSort}
                         >
                             <HousingListHeader>
                                 <HousingListHeaderActions>

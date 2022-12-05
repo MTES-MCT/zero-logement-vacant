@@ -1,7 +1,11 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import { HousingApi, HousingUpdateApi } from '../models/HousingApi';
+import {
+    HousingApi,
+    HousingSortableApi,
+    HousingUpdateApi
+} from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
@@ -19,6 +23,7 @@ import { constants } from 'http2';
 import { body, param, validationResult } from 'express-validator';
 import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
+import SortApi from "../models/SortApi";
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -30,7 +35,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
         .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
-const list = async (request: JWTRequest, response: Response): Promise<Response> => {
+const list = async (request: JWTRequest, response: Response, next: NextFunction) => {
 
     console.log('List housing')
 
@@ -39,9 +44,20 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     const role = (<RequestUser>request.auth).role;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
+    const sort = SortApi.parse<HousingSortableApi>(request.query.sort as string | undefined)
 
-    return housingRepository.listWithFilters({...filters, establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] }, page, perPage)
-        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
+    try {
+        const housing = await housingRepository.listWithFilters({
+          ...filters,
+          establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] },
+          page,
+          perPage,
+          sort
+        )
+        return response.status(constants.HTTP_STATUS_OK).json(housing)
+    } catch (err) {
+        next(err)
+    }
 };
 
 const listByOwner = async (request: JWTRequest, response: Response): Promise<Response> => {

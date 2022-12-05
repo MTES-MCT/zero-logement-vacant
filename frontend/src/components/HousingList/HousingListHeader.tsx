@@ -3,7 +3,6 @@ import { Col, Row } from "@dataesr/react-dsfr";
 import { displayCount, pluralize } from "../../utils/stringUtils";
 import HousingListHeaderActions from "./HousingListHeaderActions";
 import { findChild } from "../../utils/elementUtils";
-import { defaults } from "lodash";
 import classNames from "classnames";
 import styles from "./housing-list-header.module.scss";
 
@@ -18,11 +17,11 @@ interface HousingListHeaderProps {
 function HousingListHeader(props: HousingListHeaderProps) {
   const actions = findChild(props.children, HousingListHeaderActions)
 
-  const { selected, total } = defaults(props, {
+  const { selected, total } = {
     selected: 0,
-    count: 0,
-    total: 0
-  })
+    total: 0,
+    ...props,
+  }
 
   const pluralizeMany = pluralize(selected)
 

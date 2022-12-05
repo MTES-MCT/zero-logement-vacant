@@ -1,5 +1,11 @@
 import db from './db';
-import { getOwnershipKindFromValue, HousingApi, OwnershipKindsApi, OwnershipKindValues } from '../models/HousingApi';
+import {
+    getOwnershipKindFromValue,
+    HousingApi,
+    HousingSortApi,
+    OwnershipKindsApi,
+    OwnershipKindValues
+} from '../models/HousingApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
@@ -16,6 +22,7 @@ import { eventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
+import SortApi from "../models/SortApi";
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -323,7 +330,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
 }
 
-const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number): Promise<PaginatedResultApi<HousingApi>> => {
+const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPage?: number, sort?: HousingSortApi): Promise<PaginatedResultApi<HousingApi>> => {
 
     try {
 
@@ -351,6 +358,24 @@ const listWithFilters = async (filters: HousingFiltersApi, page?: number, perPag
             .joinRaw(`left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`)
             .groupBy(`${housingTable}.id`, 'o.id')
             .modify(filteredQuery(filters))
+
+        if (sort) {
+            SortApi.use(sort, {
+                keys: {
+                    owner: () => query.orderBy('o.full_name', sort.owner),
+                    rawAddress: () => {
+                        query
+                          .orderBy(`${housingTable}.raw_address[2]`, sort.rawAddress)
+                          .orderByRaw(
+                            `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${sort.rawAddress}`
+                          )
+                          .orderByRaw(
+                            `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${sort.rawAddress}`
+                          )
+                    }
+                }
+            })
+        }
 
         return Promise.all([
             query
@@ -382,9 +407,9 @@ const countWithFilters = async (filters: HousingFiltersApi): Promise<number> => 
             .join(ownersHousingTable, ownersHousingJoinClause)
             .join({o: ownerTable}, `${ownersHousingTable}.owner_id`, `o.id`)
             .joinRaw(`left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count 
-                    from campaigns_housing ch, campaigns c 
-                    where housing.id = ch.housing_id 
+                    select campaign_id as campaign_id, count(*) over() as campaign_count
+                    from campaigns_housing ch, campaigns c
+                    where housing.id = ch.housing_id
                     and c.id = ch.campaign_id
                     ${filters.establishmentIds?.length ? ` and c.establishment_id in (?)` : ''}
                 ) campaigns on true`, filters.establishmentIds ?? [])
@@ -482,7 +507,7 @@ const durationByStatusWithFilters = async (filters: MonitoringFiltersApi): Promi
                     )
                     .join(eventsTable, `${housingTable}.id`, 'housing_id')
                     .whereRaw(`${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`)
-                    .andWhereRaw(`${eventsTable}.content like 
+                    .andWhereRaw(`${eventsTable}.content like
                         (case
                              when status = ${HousingStatusApi.Waiting} then '%Ajout dans la campagne%'
                              when status = ${HousingStatusApi.FirstContact} then '%${getHousingStatusApiLabel(HousingStatusApi.FirstContact)}%'

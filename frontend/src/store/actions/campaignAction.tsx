@@ -3,18 +3,16 @@ import {
     Campaign,
     CampaignBundle,
     CampaignBundleId,
+    CampaignKinds,
     CampaignSteps,
     DraftCampaign,
     getCampaignBundleId,
-    CampaignKinds
 } from '../../models/Campaign';
-import campaignService, {
-  ValidateCampaignStepParams
-} from '../../services/campaign.service';
+import campaignService, { ValidateCampaignStepParams } from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import housingService from '../../services/housing.service';
 
@@ -229,6 +227,42 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
         }
     };
 };
+
+export const changeCampaignHousingSort = (sort: HousingSort, status?: HousingStatus) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        const { campaignBundle, searchQuery, campaignBundleHousing } = getState().campaign;
+
+        if (campaignBundle) {
+
+            dispatch(showLoading());
+
+            dispatch({
+                type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
+                campaignHousingFetchingIds: campaignBundle.campaignIds,
+                status,
+                page: 1,
+                perPage: campaignBundleHousing.perPage
+            });
+
+            housingService.listHousing({
+                campaignIds: campaignBundle.campaignIds,
+                status: status ? [status] : [],
+                query: searchQuery
+            }, 1, campaignBundleHousing.perPage, sort)
+                .then((result: PaginatedResult<Housing>) => {
+                    dispatch(hideLoading());
+                    dispatch({
+                        type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
+                        campaignHousingFetchingIds: campaignBundle.campaignIds,
+                        status,
+                        paginatedHousing: result
+                    });
+                });
+        }
+    }
+}
 
 export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean, housingIds: string[]) => {
 

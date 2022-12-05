@@ -227,7 +227,7 @@ const CampaignBundleList = (
                                     </div>
                                 }
                                 {campaignBundleStep(campaignBundle) === CampaignSteps.InProgress &&
-                                    <div className="fr-p-3w bg-bf975">
+                                    <div className="fr-pl-2w fr-py-3w bg-bf975">
                                         <Title as="h3" look="h6">
                                             Suivi en cours
                                         </Title>

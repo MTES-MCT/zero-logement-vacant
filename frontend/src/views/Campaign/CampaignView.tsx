@@ -9,7 +9,6 @@ import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { deleteCampaignBundle, getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import ButtonLink from '../../components/ButtonLink/ButtonLink';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
@@ -18,6 +17,7 @@ import ConfirmationModal from '../../components/modals/ConfirmationModal/Confirm
 import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
 import CampaignBundleTitle from '../../components/CampaignBundleTitle/CampaignBundleTitle';
+import { hasFilters } from '../../models/HousingFilters';
 
 
 const CampaignView = () => {
@@ -29,14 +29,12 @@ const CampaignView = () => {
 
     const { bundle, step } = useCampaignBundle()
 
-    const [searchQuery, setSearchQuery] = useState<string>();
-
     useEffect(() => {
         dispatch(getCampaignBundle({
             campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
             reminderNumber: reminderNumber ? Number(reminderNumber) : undefined
-        }, searchQuery))
-    }, [dispatch, campaignNumber, reminderNumber, searchQuery])
+        }))
+    }, [dispatch, campaignNumber, reminderNumber])
 
     const [campaignRemovalModalOpen, setCampaignRemovalModalOpen] = useState(false)
     function removeCampaign(): void {
@@ -103,31 +101,33 @@ const CampaignView = () => {
                                 <Col>
                                     <div>
                                         <CampaignBundleInfos campaignBundle={bundle}/>
-                                        <CampaignBundleStats campaignBundle={bundle}/>
+                                        {step && step >= CampaignSteps.InProgress &&
+                                            <CampaignBundleStats campaignBundle={bundle}/>
+                                        }
                                     </div>
                                 </Col>
                             </Row>
-                            <Row>
-                                <Col>
-                                    <Text size="sm" className="fr-mb-1w">Filtres utilisés pour la création de l'échantillon :</Text>
-                                    <HousingFiltersBadges filters={bundle.filters}/>
-                                </Col>
-                            </Row>
-                            {searchQuery &&
-                                <Row className="fr-pb-2w">
+                            {bundle.filters && hasFilters(bundle.filters) &&
+                                <Row>
                                     <Col>
-                                        <FilterBadges options={[{value: searchQuery, label: searchQuery}]}
-                                                      filters={[searchQuery]}
-                                                      onChange={() => setSearchQuery('')}/>
+                                        <Text size="sm" className="fr-mb-1w">Filtres utilisés pour la création de
+                                            l'échantillon :</Text>
+                                        <HousingFiltersBadges filters={bundle.filters}/>
                                     </Col>
                                 </Row>
+                            }
+                            {(bundle.campaignNumber ?? 0) > 0 && step && step >= CampaignSteps.InProgress &&
+                                < Alert title="Bienvenue dans l’espace suivi de votre campagne."
+                                description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
+                                className="fr-my-3w"
+                                closable/>
                             }
                         </Container>
                     </div>
                     <Container spacing="py-4w" as="section">
                         {(bundle.campaignNumber ?? 0) > 0 && step && step < CampaignSteps.InProgress ?
                             <CampaignToValidate campaignStep={step}/> :
-                            <CampaignInProgress query={searchQuery}/>
+                            <CampaignInProgress />
                         }
                     </Container>
                 </>

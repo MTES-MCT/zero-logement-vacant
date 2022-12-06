@@ -246,7 +246,9 @@ const CampaignBundleList = (
                                     Relance n° {campaign.reminderNumber} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
                                 </Col>
                                 <Col n="3" className="align-right">
-                                    {campaignIndex === reminderCampaignsOfBundle(campaignBundle).length - 1 && withDeletion &&
+                                    {campaignIndex === reminderCampaignsOfBundle(campaignBundle).length - 1
+                                        && withDeletion
+                                        && campaignBundleStep(campaignBundle) !== CampaignSteps.Archived &&
                                         <Button title="Supprimer"
                                                 tertiary
                                                 onClick={() => setDeletionModalCampaignBundleId(campaign as CampaignBundleId)}

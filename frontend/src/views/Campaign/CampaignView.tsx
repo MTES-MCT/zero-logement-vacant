@@ -27,7 +27,7 @@ const CampaignView = () => {
     const { campaignNumber, reminderNumber } = useParams<{campaignNumber: string, reminderNumber: string}>();
     const { trackEvent } = useMatomo()
 
-    const { bundle, step } = useCampaignBundle()
+    const { bundle, step, isDeletable } = useCampaignBundle()
 
     useEffect(() => {
         dispatch(getCampaignBundle({
@@ -79,18 +79,20 @@ const CampaignView = () => {
                                 <Col>
                                     <AppBreadcrumb />
                                 </Col>
-                                <Col className="align-right">
-                                    <ButtonLink
-                                      className="fr-pt-3w"
-                                      display="flex"
-                                      icon="ri-delete-bin-line"
-                                      iconPosition="left"
-                                      iconSize="1x"
-                                      onClick={() => setCampaignRemovalModalOpen(true)}
-                                    >
-                                        Supprimer la campagne
-                                    </ButtonLink>
-                                </Col>
+                                {isDeletable &&
+                                    <Col className="align-right">
+                                        <ButtonLink
+                                          className="fr-pt-3w"
+                                          display="flex"
+                                          icon="ri-delete-bin-line"
+                                          iconPosition="left"
+                                          iconSize="1x"
+                                          onClick={() => setCampaignRemovalModalOpen(true)}
+                                        >
+                                            Supprimer la campagne
+                                        </ButtonLink>
+                                    </Col>
+                                }
                             </Row>
                             <Row>
                                 <Col>

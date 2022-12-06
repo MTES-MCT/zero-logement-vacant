@@ -70,11 +70,6 @@ export enum CampaignSteps {
     OwnersValidation, Export, Sending, Confirmation, InProgress, Outside, Archived
 }
 
-export const CAMPAIGN_STEP_VALUES: number[] =
-  Object
-    .values(CampaignSteps)
-    .filter((step: any): step is number => Number.isInteger(step))
-
 export function CampaignNumberSort<T extends CampaignBundleId> (c1?: T, c2?: T) {
     return (c1?.campaignNumber !== undefined && c2?.campaignNumber !== undefined) ?
         c1.campaignNumber === 0 ? 1 :
@@ -141,12 +136,5 @@ export function bundleCampaigns(campaigns: Campaign[], bundle: CampaignBundle): 
 export function mainCampaign(campaigns: Campaign[]) {
     return (bundle: CampaignBundle): Campaign | null => {
         return bundleCampaigns(campaigns, bundle)[0] ?? null
-    }
-}
-
-export function reminderCampaigns(campaigns: Campaign[]) {
-    return (bundle: CampaignBundle): Campaign[] => {
-        return bundleCampaigns(campaigns, bundle)
-          .filter(campaign => campaign.reminderNumber > 0)
     }
 }

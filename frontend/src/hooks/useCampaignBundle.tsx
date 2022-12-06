@@ -54,6 +54,7 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
     bundle,
     campaigns,
     mainCampaign: main,
+    reminderCampaigns: reminders,
     isDeletable,
     step
   }

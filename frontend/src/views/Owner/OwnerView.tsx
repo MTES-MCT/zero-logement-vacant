@@ -34,6 +34,8 @@ import {
 } from '../../models/Campaign';
 import { useOwner } from "../../hooks/useOwner";
 import OwnerCard from "../../components/OwnerCard/OwnerCard";
+import OwnerDetailsCard
+    from "../../components/OwnerDetailsCard/OwnerDetailsCard";
 
 const OwnerView = () => {
 
@@ -63,12 +65,20 @@ const OwnerView = () => {
     return (
       <Container as="main" className="bg-100" fluid>
           <Container as="section">
+              {isModalOwnerOpen &&
+                <OwnerEditionModal
+                  owner={owner}
+                  onUpdate={updateOwner}
+                  onClose={() => setIsModalOwnerOpen(false)}
+                />
+              }
               <Row>
                   <AppBreadcrumb />
               </Row>
               <Row spacing="mt-3w" alignItems="top">
                   <Col n="4">
                       <OwnerCard owner={owner} />
+                      <OwnerDetailsCard owner={owner} onModify={() => setIsModalOwnerOpen(true)} />
                   </Col>
                   <Col n="8">
                       <div className={styles.titleContainer}>
@@ -94,68 +104,6 @@ const OwnerView = () => {
                       </div>
                       <Container spacing="py-4w">
                           <Row className="fr-grid-row--center">
-                              <Col n="6" className="bordered fr-py-2w fr-px-3w">
-                                  <Row>
-                                      <Col>
-                                          <Title as="h2" look="h3">Propriétaire</Title>
-                                      </Col>
-                                      <Col>
-                                          <Button title="Modifier le propriétaire"
-                                                  secondary
-                                                  size="sm"
-                                                  icon="ri-edit-line"
-                                                  className="float-right"
-                                                  onClick={() => {setIsModalOwnerOpen(true)}}>
-                                              Modifier
-                                          </Button>
-                                          {isModalOwnerOpen &&
-                                            <OwnerEditionModal owner={owner}
-                                                               onUpdate={updateOwner}
-                                                               onClose={() => setIsModalOwnerOpen(false)} />
-                                          }
-                                      </Col>
-                                  </Row>
-                                  <Text size="lg" className="fr-mb-1w">
-                                      <b>Identité</b>
-                                  </Text>
-                                  <hr />
-                                  <Text size="md" className="fr-mb-1w">
-                                      <b>Nom prénom :&nbsp;</b>
-                                      <span data-testid="fullName-text">{owner.fullName}</span>
-                                  </Text>
-                                  { owner.birthDate && isValid(owner.birthDate) &&
-                                    <Text size="md" className="fr-mb-1w">
-                                        <b>Date de naissance :&nbsp;</b>
-                                        <span className="capitalize" data-testid="birthDate-text">{format(owner.birthDate, 'dd/MM/yyyy')}</span>
-                                        <span> ({differenceInYears(new Date(), owner.birthDate)} ans)</span>
-                                    </Text>
-                                  }
-
-                                  <Text size="lg" className="fr-pt-5w fr-mb-1w">
-                                      <b>Coordonnées</b>
-                                  </Text>
-                                  <hr />
-                                  <Text size="md" className="fr-mb-1w">
-                                <span style={{verticalAlign: 'top'}}>
-                                    <b>Adresse postale :&nbsp;</b>
-                                </span>
-                                      <span style={{display: 'inline-block'}}>
-                                    <span className="capitalize">
-                                        {owner.rawAddress.map((_, i) =>
-                                          <span style={{display: 'block'}} key={owner.id + '_address_' + i}>{capitalize(_)}</span>)
-                                        }
-                                    </span>
-                                </span>
-                                  </Text>
-                                  <Text size="md" className="fr-mb-1w">
-                                      <b>Adresse mail :&nbsp;</b>
-                                      <span data-testid="email-text">{owner.email}</span>
-                                  </Text>
-                                  <Text size="md" className="fr-mb-1w">
-                                      <b>Numéro de téléphone :&nbsp;</b>
-                                      <span data-testid="phone-text">{owner.phone}</span>
-                                  </Text>
-                              </Col>
                               <Col n="6" className="fr-py-2w fr-px-3w">
                                   <EventsHistory events={events} housingList={housingList}/>
                               </Col>

@@ -137,7 +137,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                                 status === HousingStatus.FirstContact ? 'Il y a eu un retour ou un échange avec le propriétaire.' :
                                     status === HousingStatus.InProgress ? 'La vacance du bien est confirmée et celui-ci fait l’objet d’un projet de travaux, d’une vente en cours ou est accompagné par un partenaire pour une remise sur le marché.' :
                                         status === HousingStatus.Exit ? 'Le bien était vacant dans les 2 dernières années et est sorti de la vacance avec ou sans accompagnement (à renseigner dans sous-statut).' :
-                                            status === HousingStatus.NotVacant ? 'Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a jamais été vacant ou qu’il a été vendu ou loué il y a plus de 2 ans.<br />Retour traduisant une erreur dans la base de données.' :
+                                            status === HousingStatus.NotVacant ? 'Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a jamais été vacant ou qu’il a été vendu ou loué il y a plus de 2 ans. Retour traduisant une erreur dans la base de données.' :
                                                 status === HousingStatus.NoAction && 'La vacance du bien est confirmée mais la situation est complexe et le propriétaire ne semble pas être dans une dynamique de sortie de vacance.'
                             }
                             <Link to="/ressources" className="float-right">

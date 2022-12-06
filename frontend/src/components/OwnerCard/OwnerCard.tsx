@@ -27,7 +27,7 @@ function OwnerCard({ owner }: OwnerCardProps) {
   }
 
   return (
-    <Card hasArrow={false} hasBorder={false} size="sm" className="fr-px-1w">
+    <Card hasArrow={false} hasBorder={false} size="sm" className="fr-mb-1w fr-px-1w">
       <CardTitle>
         <span className={styles.icon}>
           <Icon name="ri-user-fill" iconPosition="center" size="1x" />

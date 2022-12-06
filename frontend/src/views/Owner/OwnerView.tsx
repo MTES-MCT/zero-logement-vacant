@@ -14,6 +14,8 @@ import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard
 import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNoteModal';
 import { HousingNote, OwnerNote } from '../../models/Note';
 import { createHousingNote } from '../../store/actions/housingAction';
+import OwnerDetailsCard
+    from "../../components/OwnerDetailsCard/OwnerDetailsCard";
 
 const OwnerView = () => {
   const dispatch = useDispatch();

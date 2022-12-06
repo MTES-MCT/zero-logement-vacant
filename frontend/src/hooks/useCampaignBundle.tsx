@@ -38,7 +38,7 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
 
   const hasReminders = useMemo<boolean>(() => {
     return reminders?.length !== 0
-  }, [bundle])
+  }, [reminders])
 
   const isLastReminder = useMemo<(reminderNumber?: number) => boolean>(() => {
     return (reminderNumber?: number) => {
@@ -47,7 +47,7 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
         .sort(CampaignNumberSort)
         .reverse()[0]?.reminderNumber === Number(reminderNumber)
       }
-  }, [bundle])
+  }, [bundle, campaignList])
 
   const isCampaign = useMemo<boolean>(() => {
     return !!bundle
@@ -59,7 +59,8 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
         && isCampaign
         && (!hasReminders || isLastReminder(bundle.reminderNumber))
         && step !== CampaignSteps.Archived
-  }, [bundle])
+  }, [bundle]) //eslint-disable-line react-hooks/exhaustive-deps
+
 
   return {
     bundle,

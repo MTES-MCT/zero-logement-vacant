@@ -7,7 +7,8 @@ import {
     ModalContent,
     ModalFooter,
     ModalTitle,
-    Row, Text,
+    Row,
+    Text,
     TextInput,
     Title,
 } from '@dataesr/react-dsfr';
@@ -19,9 +20,9 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import Help from '../Help/Help';
+import { dateShortFormat } from '../../utils/dateUtils';
+import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -34,6 +35,7 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
 
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
+    const { isCampaign } = useCampaignBundle(campaignBundle)
 
     const [campaignTitle, setCampaignTitle] = useState(campaignBundle.title ?? '');
     const schema = yup.object().shape( {
@@ -63,18 +65,20 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
             <Title as={as ?? 'h1'} className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
                 {campaignFullName(campaignBundle)}
             </Title>
-            <ButtonLink
-                display="flex"
-                icon="ri-edit-2-fill"
-                iconPosition="left"
-                iconSize="1x"
-                isSimple
-                onClick={() => setIsModalOpen(true)}>
-                Renommer
-            </ButtonLink>
-            {(campaignBundle.campaignNumber ?? 0) > 0 && campaignBundle.createdAt &&
+            {isCampaign &&
+                <ButtonLink
+                    display="flex"
+                    icon="ri-edit-2-fill"
+                    iconPosition="left"
+                    iconSize="1x"
+                    isSimple
+                    onClick={() => setIsModalOpen(true)}>
+                    Renommer
+                </ButtonLink>
+            }
+            {isCampaign && campaignBundle.createdAt &&
                 <Text className="subtitle" spacing="mb-2w">
-                    échantillon créé le <b>{format(campaignBundle.createdAt, 'dd/MM/yy', { locale: fr })}</b>
+                    échantillon créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
                 </Text>
             }
             {campaignBundle.campaignNumber === 0 &&

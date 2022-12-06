@@ -21,15 +21,15 @@ import { deleteCampaignBundle, listCampaignBundles, validCampaignStep } from '..
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { format, parse } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
 import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
-import CampaignBundleTitle from '../CampaignBundleTitle/CampaignBundleTitle';
+import CampaignBundleTitle from '../CampaignBundle/CampaignBundleTitle';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { dateShortFormat } from '../../utils/dateUtils';
 
 interface ItemProps {
     campaignBundle: CampaignBundle,
@@ -41,7 +41,7 @@ const CampaignBundleItem = ({ campaignBundle, withDeletion = false } : ItemProps
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
     const history = useHistory();
-    const { step, reminderCampaigns, isDeletable } = useCampaignBundle(campaignBundle)
+    const { step, reminderCampaigns, isDeletable, isCampaign, hasReminders, isLastReminder } = useCampaignBundle(campaignBundle)
     const campaignList = useCampaignList();
 
     const [sendingDate, setSendingDate] = useState(format(new Date(), 'dd/MM/yyyy'));
@@ -104,7 +104,7 @@ const CampaignBundleItem = ({ campaignBundle, withDeletion = false } : ItemProps
                         }
                     </div>
                 </Col>
-                {(campaignBundle.campaignNumber ?? 0) > 0 && step !== CampaignSteps.Archived &&
+                {isCampaign && step !== CampaignSteps.Archived &&
                     <Col n="6">
                         {step === CampaignSteps.Export &&
                             <div className="fr-p-3w bg-bf975">
@@ -164,16 +164,16 @@ const CampaignBundleItem = ({ campaignBundle, withDeletion = false } : ItemProps
                     </Col>
                 }
             </Row>
-            {reminderCampaigns && (reminderCampaigns.length > 0) &&
-                reminderCampaigns.map((campaign, campaignIndex) =>
+            {hasReminders &&
+                reminderCampaigns.map(campaign =>
                     <div key={`Campaign_${campaign.id}`}>
                         <hr className="fr-pb-1w fr-mt-1w"/>
                         <Row gutters alignItems="middle">
                             <Col n="9">
-                                Relance n° {campaign.reminderNumber} ({format(campaign.createdAt, 'dd/MM/yy', { locale: fr })})
+                                Relance n° {campaign.reminderNumber} ({dateShortFormat(campaign.createdAt)})
                             </Col>
                             <Col n="3" className="align-right">
-                                {campaignIndex === reminderCampaigns.length - 1
+                                {isLastReminder(campaign.reminderNumber)
                                     && withDeletion
                                     && step !== CampaignSteps.Archived &&
                                     <Button title="Supprimer"

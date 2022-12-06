@@ -27,8 +27,8 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
     [campaigns]
   )
 
-  const reminders = useMemo<Campaign[] | null>(
-    () => campaigns ? campaigns.filter(_ => _.reminderNumber > 0)  : null,
+  const reminders = useMemo<Campaign[]>(
+    () => campaigns ? campaigns.filter(_ => _.reminderNumber > 0) : [],
     [campaigns]
   )
 
@@ -36,18 +36,29 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
     return main ? campaignStep(main) : null
   }, [main])
 
-  const isLastReminder = useMemo<boolean>(() => {
-    return bundle ?
-       campaignList?.filter(_ => _.campaignNumber === bundle.campaignNumber)
-            .sort(CampaignNumberSort)
-            .reverse()[0]?.reminderNumber === Number(bundle.reminderNumber) : false
+  const hasReminders = useMemo<boolean>(() => {
+    return reminders?.length !== 0
+  }, [bundle])
+
+  const isLastReminder = useMemo<(reminderNumber?: number) => boolean>(() => {
+    return (reminderNumber?: number) => {
+      return !!bundle && !!reminderNumber
+        && campaignList?.filter(_ => _.campaignNumber === bundle.campaignNumber)
+        .sort(CampaignNumberSort)
+        .reverse()[0]?.reminderNumber === Number(reminderNumber)
+      }
+  }, [bundle])
+
+  const isCampaign = useMemo<boolean>(() => {
+    return !!bundle
+        && bundle.campaignNumber !== undefined && bundle.campaignNumber > 0
   }, [bundle])
 
   const isDeletable = useMemo<boolean>(() => {
-    return bundle ?
-        (bundle.campaignNumber ?? 0) > 0
-        && (reminders?.length === 0 || isLastReminder)
-        && step !== CampaignSteps.Archived : false
+    return !!bundle
+        && isCampaign
+        && (!hasReminders || isLastReminder(bundle.reminderNumber))
+        && step !== CampaignSteps.Archived
   }, [bundle])
 
   return {
@@ -56,6 +67,9 @@ export function useCampaignBundle(initialBundle?: CampaignBundle) {
     mainCampaign: main,
     reminderCampaigns: reminders,
     isDeletable,
+    isCampaign,
+    hasReminders,
+    isLastReminder,
     step
   }
 }

@@ -2,9 +2,8 @@ import React from 'react';
 import { Text } from '@dataesr/react-dsfr';
 import { CampaignBundle } from '../../models/Campaign';
 import AppCard from '../AppCard/AppCard';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { dateShortFormat } from '../../utils/dateUtils';
 
 interface Props {
     campaignBundle: CampaignBundle,
@@ -33,7 +32,7 @@ const CampaignBundleInfos = ({ campaignBundle, isGrey }: Props) => {
                         <AppCard icon="ri-send-plane-fill" isGrey={isGrey}>
                             <Text as="span">
                                 envoyée
-                                le <b>{format(mainCampaign?.sendingDate!, 'dd/MM/yy', { locale: fr })}</b>
+                                le <b>{dateShortFormat(mainCampaign?.sendingDate!)}</b>
                             </Text>
                         </AppCard>
                     }

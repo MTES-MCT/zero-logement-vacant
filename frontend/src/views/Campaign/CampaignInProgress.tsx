@@ -23,11 +23,13 @@ import HousingListHeaderActions from '../../components/HousingList/HousingListHe
 import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 
 const TabContent = ({ status } : { status: HousingStatus }) => {
 
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
+    const { isCampaign } = useCampaignBundle()
 
     const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({all: false, ids: []});
     const [updatingModalHousing, setUpdatingModalHousing] = useState<Housing | undefined>();
@@ -145,7 +147,7 @@ const TabContent = ({ status } : { status: HousingStatus }) => {
                             </Link>
                         </Help>
                     </Col>
-                    {status === HousingStatus.Waiting && (campaignBundle.campaignNumber ?? 0) > 0 &&
+                    {status === HousingStatus.Waiting && isCampaign &&
                         <Col n="3">
                             <Button title="Créer une campagne de relance"
                                     className="float-right"

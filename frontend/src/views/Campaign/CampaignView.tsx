@@ -16,7 +16,7 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
-import CampaignBundleTitle from '../../components/CampaignBundleTitle/CampaignBundleTitle';
+import CampaignBundleTitle from '../../components/CampaignBundle/CampaignBundleTitle';
 import { hasFilters } from '../../models/HousingFilters';
 
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button, Col, Container, Row, Tag, Title } from '@dataesr/react-dsfr';
 import { useDispatch } from 'react-redux';
 import styles from './owner.module.scss';
@@ -16,10 +17,11 @@ import { createHousingNote } from '../../store/actions/housingAction';
 
 const OwnerView = () => {
   const dispatch = useDispatch();
+
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
-  const { housingList, owner } = useOwner();
+  const { owner, housingList } = useOwner();
 
   const updateOwner = (owner: Owner) => {
     dispatch(update(owner));

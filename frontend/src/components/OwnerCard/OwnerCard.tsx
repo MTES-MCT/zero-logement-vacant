@@ -19,20 +19,15 @@ interface OwnerCardProps {
 
 function OwnerCard({ owner }: OwnerCardProps) {
   function birthdate(date: Date): string {
-    return format(date, 'dd/MM/yyyy', { locale: fr });
+    return format(date, 'dd/MM/yyyy', { locale: fr })
   }
 
   function age(date: Date): number {
-    return differenceInYears(new Date(), date);
+    return differenceInYears(new Date(), date)
   }
 
   return (
-    <Card
-      hasArrow={false}
-      hasBorder={false}
-      size="sm"
-      className="fr-mb-1w fr-px-1w"
-    >
+    <Card hasArrow={false} hasBorder={false} size="sm" className="fr-px-1w">
       <CardTitle>
         <span className={styles.icon}>
           <Icon name="ri-user-fill" iconPosition="center" size="1x" />

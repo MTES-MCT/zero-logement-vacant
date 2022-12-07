@@ -1,7 +1,8 @@
 import {
   Card,
   CardDescription,
-  CardTitle, Link,
+  CardTitle,
+  Link,
   Text,
   Title
 } from "@dataesr/react-dsfr";
@@ -44,7 +45,7 @@ function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
           <Text size="sm" className={styles.label}>Adresse postale</Text>
           {owner.rawAddress.map((address, i) => (
             <Text className="capitalize" key={`${owner.id}_address_${i}`} spacing="mb-0">
-              {address}
+              {capitalize(address)}
             </Text>
           ))}
         </div>

@@ -13,3 +13,17 @@
   }
 
 }
+
+.header {
+  background-color: var(--grey-1000);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tag {
+  color: var(--grey-425);
+  background-color: var(--grey-975);
+}

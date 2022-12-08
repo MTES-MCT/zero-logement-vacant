@@ -107,7 +107,7 @@ const updateHousing = async (request: JWTRequest, response: Response): Promise<R
     await createHousingUpdateEvent([housing], housingUpdateApi, [lastCampaignId], userId)
 
     if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
-        campaignHousingRepository.deleteHousingFromCampaigns([lastCampaignId], [housing.id])
+        await campaignHousingRepository.deleteHousingFromCampaigns([lastCampaignId], [housing.id])
     }
 
     const updatedHousingList = await housingRepository.updateHousingList(
@@ -161,7 +161,7 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
     await createHousingUpdateEvent(housingList, housingUpdateApi, campaignIds, userId)
 
     if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
-        campaignHousingRepository.deleteHousingFromCampaigns(campaignIds, housingList.map(_ => _.id))
+        await campaignHousingRepository.deleteHousingFromCampaigns(campaignIds, housingList.map(_ => _.id))
     }
 
     const updatedHousingList = await housingRepository.updateHousingList(

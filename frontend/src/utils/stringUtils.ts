@@ -1,3 +1,5 @@
+import { Compare } from "./compareUtils";
+
 export const capitalize = (string: string) => {
     return string ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : string;
 }
@@ -10,10 +12,50 @@ export const toTitleCase = (string: string) => {
         .join(' ');
 };
 
-export const displayCount = (housingCount: number, label: string, capitalize = true) => {
-    return housingCount === 0 ? `${capitalize ? 'Aucun' : 'aucun'} ${label}` :
-        housingCount === 1 ? `${capitalize ? 'Un' : 'un'} ${label}` :
-            `${housingCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
+export const displayCount = (totalCount: number, label: string, capitalize = true, count?: number) => {
+    if (totalCount === 0) {
+        return `${capitalize ? 'Aucun' : 'aucun'} ${label}`
+    }
+
+    if (totalCount === 1) {
+        return `${capitalize ? 'Un' : 'un'} ${label}`
+    }
+
+    if (count) {
+        return `${count} ${label.split(' ').map(_ => `${_}s`).join(' ')} sur un total de ${totalCount}`
+    }
+
+    return `${totalCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
 }
 
-export const stringSort = (s1?: string, s2?: string) => s1 ? (s2 ? s1 > s2 ? 1 : -1 : 1) : (s2 ? -1 : 0)
+export function pluralize(count: number) {
+    return (str: string): string => count > 1 ? `${str}s` : str
+}
+
+export const stringSort = (s1?: string, s2?: string): Compare => {
+    if (s1 && s2) {
+        return s1 > s2
+          ? Compare.A_GT_B
+          : s1 < s2 ? Compare.B_GT_A : Compare.A_EQ_B
+    }
+
+    if (s1 && !s2) {
+        return Compare.A_GT_B
+    }
+
+    if (!s1 && s2) {
+        return Compare.B_GT_A
+    }
+
+    return Compare.A_EQ_B
+}
+
+export function prepend(prefix: string) {
+    return (str: string) => `${prefix}${str}`
+}
+
+export function prependIf(condition: boolean) {
+    return (prefix: string) => {
+        return (str: string) => condition ? prepend(prefix)(str) : str
+    }
+}

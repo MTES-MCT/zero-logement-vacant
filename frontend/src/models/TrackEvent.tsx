@@ -22,7 +22,6 @@ export const TrackEventActions = {
     HousingList: {
         CreateCampaign: 'Créer la campagne',
         SaveCampaign: 'Enregistrer la campagne',
-        Export: 'Exporter les logements',
         DisplayHousing: 'Afficher un logement',
         Search: 'Rechercher un logement'
     },
@@ -33,7 +32,8 @@ export const TrackEventActions = {
         UpdateHousing: 'Mise à jour de dossier(s)',
         DisplayHousing: 'Afficher un logement',
         Rename: 'Renommer une campagne',
-        Delete: 'Supprimer une campagne'
+        Delete: 'Supprimer une campagne',
+        Archive: 'Archiver une campagne',
     },
     GeoPerimeters: {
         Upload: 'Déposer un fichier',

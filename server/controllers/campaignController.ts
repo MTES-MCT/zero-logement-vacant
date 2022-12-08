@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
-import campaignHousingRepository from '../repositories/campaignHousingRepository';
+import campaignHousingRepository
+    from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
@@ -68,7 +69,6 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const userId = (<RequestUser>request.auth).userId;
 
-    const startMonth = request.body.draftCampaign.startMonth;
     const kind = request.body.draftCampaign.kind;
     const filters = request.body.draftCampaign.filters;
     const title = request.body.draftCampaign.title;
@@ -78,7 +78,6 @@ const createCampaign = async (request: JWTRequest, response: Response): Promise<
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
         establishmentId,
         campaignNumber: (lastNumber ?? 0) + 1,
-        startMonth,
         kind,
         reminderNumber: 0,
         filters,
@@ -123,7 +122,6 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
     const userId = (<RequestUser>request.auth).userId;
 
-    const startMonth = request.body.startMonth;
     const kind = request.body.kind;
     const allHousing = request.body.allHousing;
 
@@ -138,7 +136,6 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
     const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
         establishmentId,
         campaignNumber: campaignBundle.campaignNumber,
-        startMonth,
         kind,
         reminderNumber: lastReminderNumber + 1,
         filters: campaignBundle.filters,
@@ -162,8 +159,9 @@ const createReminderCampaign = async (request: JWTRequest, response: Response): 
 
 const validateStepValidators = [
     param('campaignId').notEmpty().isUUID(),
-    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.InProgess]),
+    body('step').notEmpty().isIn([CampaignSteps.OwnersValidation, CampaignSteps.Export, CampaignSteps.Sending, CampaignSteps.Confirmation, CampaignSteps.InProgess, CampaignSteps.Archived]),
     body('sendingDate').if(body('step').equals(String(CampaignSteps.Sending))).notEmpty(),
+    body('skipConfirmation').if(body('step').equals(String(CampaignSteps.Sending))).isBoolean({ strict: true }).default(false).optional()
 ];
 
 const validateStep = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -177,6 +175,7 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
     const step = request.body.step;
     const userId = (<RequestUser>request.auth).userId;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
+    const skipConfirmation: boolean = request.body.skipConfirmation
 
     console.log('Validate campaign step', campaignId, step)
 
@@ -192,7 +191,11 @@ const validateStep = async (request: JWTRequest, response: Response): Promise<Re
             validatedAt: step === CampaignSteps.OwnersValidation ? new Date() : campaignApi.validatedAt,
             exportedAt: step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
             sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
-            sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate
+            sendingDate: step === CampaignSteps.Sending ? request.body.sendingDate : campaignApi.sendingDate,
+            confirmedAt: step === CampaignSteps.Confirmation || step === CampaignSteps.Sending && skipConfirmation
+              ? new Date()
+              : campaignApi.confirmedAt,
+            archivedAt: step === CampaignSteps.Archived ? new Date() : campaignApi.archivedAt,
         }
 
         if (step === CampaignSteps.Sending) {

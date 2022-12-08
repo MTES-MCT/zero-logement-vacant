@@ -13,7 +13,7 @@ import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
-import CampaignView from './views/Campaign/CampainView';
+import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';

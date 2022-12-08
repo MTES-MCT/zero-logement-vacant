@@ -93,7 +93,7 @@ const DashboardView = () => {
           </>
         )
     }
-
+    
     return (
         <>
             <div className="bg-100 fr-pt-8w fr-pb-12w">
@@ -130,7 +130,7 @@ const DashboardView = () => {
                       <Title as="h2">
                           Campagnes en cours
                       </Title>
-                      <CampaignBundleList campaignBundleList={campaignBundleList?.filter(_ => _.campaignNumber) ?? []} />
+                      <CampaignBundleList />
                       <div className="align-center fr-pt-4w">
                           <Link title="Accéder à la base de données" href="/base-de-donnees?campagne=true" className="fr-btn--md fr-btn">
                               Créer une campagne

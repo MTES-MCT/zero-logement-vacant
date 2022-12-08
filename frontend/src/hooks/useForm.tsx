@@ -60,7 +60,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
     return error(key)?.message
   }
 
-  function messageType<K extends keyof U>(key: K): MessageType | undefined {
+  function messageType<K extends keyof U>(key: K): MessageType {
     if (isTouched) {
       if (hasError(key)) {
         return 'error'

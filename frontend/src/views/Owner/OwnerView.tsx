@@ -13,6 +13,9 @@ import OwnerDetailsCard
     from "../../components/OwnerDetailsCard/OwnerDetailsCard";
 import OwnerHousingCard
     from "../../components/OwnerHousingCard/OwnerHousingCard";
+import HousingNoteModal
+    from "../../components/modals/HousingNoteModal/HousingNoteModal";
+import { Housing } from "../../models/Housing";
 
 const OwnerView = () => {
     const dispatch = useDispatch();
@@ -24,6 +27,16 @@ const OwnerView = () => {
     const updateOwner = (owner: Owner) => {
         dispatch(update(owner));
         setIsModalOwnerOpen(false);
+    }
+
+    function submitHousingNoteAboutOwner(): void {
+        // TODO
+        setIsModalNoteOpen(false)
+    }
+
+    function submitHousingNoteAboutHousing(housingList: Housing[]): void {
+        // TODO
+        setIsModalNoteOpen(false)
     }
 
     if (!owner || !housingList) {
@@ -38,6 +51,14 @@ const OwnerView = () => {
                   owner={owner}
                   onUpdate={updateOwner}
                   onClose={() => setIsModalOwnerOpen(false)}
+                />
+              }
+              {isModalNoteOpen &&
+                <HousingNoteModal
+                  housingList={housingList}
+                  onClose={() => setIsModalNoteOpen(false)}
+                  onSubmitAboutOwner={submitHousingNoteAboutOwner}
+                  onSubmitAboutHousing={submitHousingNoteAboutHousing}
                 />
               }
               <Row>

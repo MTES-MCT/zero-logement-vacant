@@ -5,24 +5,27 @@ import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import Checkbox from '../Checkbox/Checkbox';
 
-const AppMultiSelect = (
-    {
-        label,
-        defaultOption,
-        options,
-        initialValues,
-        onChange,
-        messageType,
-        message
-    }: {
-        label: string,
-        defaultOption?: string,
-        options: SelectOption[],
-        initialValues: string[] | undefined ,
-        onChange: (values: string[]) => void,
-        messageType?: string,
-        message?: string
-    }) => {
+interface AppMultiSelectProps {
+  label: string,
+  defaultOption?: string,
+  options: SelectOption[],
+  initialValues: string[] | undefined ,
+  onChange: (values: string[]) => void,
+  messageType?: string,
+  message?: string
+  size?: 'sm' | 'md'
+}
+
+const AppMultiSelect = ({
+  label,
+  defaultOption,
+  options,
+  initialValues,
+  onChange,
+  messageType,
+  message,
+  size
+}: AppMultiSelectProps) => {
 
     const wrapperRef = useRef(null);
     useOutsideClick(wrapperRef, () => setShowOptions(false));
@@ -58,19 +61,17 @@ const AppMultiSelect = (
                 <div
                     className={classNames('select-multi-options', { 'select-multi-options__visible': showOptions })}>
                     <CheckboxGroup legend="" data-testid={`${label.toLowerCase()}-checkbox-group`}>
-                        {options.map((option, index) =>
-                            option.disabled ?
-                                <div className="fr-ml-2w fr-mt-1w" key={label + '-' + index}><b>{option.label}</b>
-                                    <hr className="fr-pb-1w"/>
-                                </div> :
-                                <Checkbox
-                                    label={option.label}
-                                    onChange={(e: any) => onChangeValue(option.value, e.target.checked)}
-                                    value={option.value}
-                                    size="sm"
-                                    key={label + '-' + index}
-                                    checked={(initialValues ?? []).indexOf(option.value) !== -1}
-                                />
+                        {options.map((option, index) => option.separator
+                          ? <hr className="fr-mt-1w"/>
+                          : <Checkbox
+                            label={option.label}
+                            disabled={option.disabled}
+                            onChange={(e: any) => onChangeValue(option.value, e.target.checked)}
+                            value={option.value}
+                            size={size ?? 'sm'}
+                            key={label + '-' + index}
+                            checked={(initialValues ?? []).indexOf(option.value) !== -1}
+                          />
                         )}
                     </CheckboxGroup>
                 </div>

@@ -25,6 +25,10 @@ a[href].fr-link {
     top: -3px;
 }
 
+input[type=checkbox]:disabled {
+    opacity: 0 !important;
+}
+
 .fr-accordion__btn {
     font-weight: 700;
 }

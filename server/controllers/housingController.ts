@@ -1,12 +1,11 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import { HousingApi, HousingUpdateApi } from '../models/HousingApi';
+import { HousingApi, HousingSortableApi, HousingUpdateApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi, AddressKinds } from '../models/AddressApi';
-import localityRepository from '../repositories/localityRepository';
 import { RequestUser, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
@@ -19,6 +18,7 @@ import { constants } from 'http2';
 import { body, param, validationResult } from 'express-validator';
 import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
+import SortApi from '../models/SortApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -30,7 +30,7 @@ const get = async (request: Request, response: Response): Promise<Response> => {
         .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
 }
 
-const list = async (request: JWTRequest, response: Response): Promise<Response> => {
+const list = async (request: JWTRequest, response: Response, next: NextFunction) => {
 
     console.log('List housing')
 
@@ -39,9 +39,20 @@ const list = async (request: JWTRequest, response: Response): Promise<Response> 
     const role = (<RequestUser>request.auth).role;
     const establishmentId = (<RequestUser>request.auth).establishmentId;
     const filters = <HousingFiltersApi> request.body.filters ?? {};
+    const sort = SortApi.parse<HousingSortableApi>(request.query.sort as string | undefined)
 
-    return housingRepository.listWithFilters({...filters, establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] }, page, perPage)
-        .then(_ => response.status(constants.HTTP_STATUS_OK).json(_));
+    try {
+        const housing = await housingRepository.listWithFilters({
+          ...filters,
+          establishmentIds: role === UserRoles.Admin && filters.establishmentIds?.length ? filters.establishmentIds : [establishmentId] },
+          page,
+          perPage,
+          sort
+        )
+        return response.status(constants.HTTP_STATUS_OK).json(housing)
+    } catch (err) {
+        next(err)
+    }
 };
 
 const listByOwner = async (request: JWTRequest, response: Response): Promise<Response> => {
@@ -96,7 +107,7 @@ const updateHousing = async (request: JWTRequest, response: Response): Promise<R
     await createHousingUpdateEvent([housing], housingUpdateApi, [lastCampaignId], userId)
 
     if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
-        campaignHousingRepository.deleteHousingFromCampaigns([lastCampaignId], [housing.id])
+        await campaignHousingRepository.deleteHousingFromCampaigns([lastCampaignId], [housing.id])
     }
 
     const updatedHousingList = await housingRepository.updateHousingList(
@@ -150,7 +161,7 @@ const updateHousingList = async (request: JWTRequest, response: Response): Promi
     await createHousingUpdateEvent(housingList, housingUpdateApi, campaignIds, userId)
 
     if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
-        campaignHousingRepository.deleteHousingFromCampaigns(campaignIds, housingList.map(_ => _.id))
+        await campaignHousingRepository.deleteHousingFromCampaigns(campaignIds, housingList.map(_ => _.id))
     }
 
     const updatedHousingList = await housingRepository.updateHousingList(
@@ -210,34 +221,6 @@ const exportHousingByCampaignBundle = async (request: JWTRequest, response: Resp
     const housingList = await housingRepository.listWithFilters( {establishmentIds: [establishmentId], campaignIds: campaignApi.campaignIds}).then(_ => _.entities)
 
     const fileName = `C${campaignApi.campaignNumber}.xlsx`;
-
-    return await exportHousingList(housingList, fileName, response);
-
-}
-
-const exportHousingWithFilters = async (request: JWTRequest, response: Response): Promise<Response> => {
-
-    console.log('Export housing with filters')
-
-    const establishmentId = (<RequestUser>request.auth).establishmentId;
-
-    const filters = <HousingFiltersApi> request.body.filters ?? {};
-    const allHousing = request.body.allHousing;
-
-    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
-    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
-
-    const housingIds = allHousing ?
-        await housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId], localities: filterLocalities})
-            .then(_ => _.entities
-                .map(_ => _.id)
-                .filter(id => request.body.housingIds.indexOf(id) === -1)
-            ):
-        request.body.housingIds;
-
-    const housingList = await housingRepository.listByIds(housingIds)
-
-    const fileName = `export_${(new Date()).toDateString()}.xlsx`;
 
     return await exportHousingList(housingList, fileName, response);
 
@@ -363,7 +346,6 @@ const housingController =  {
     updateHousingListValidators,
     updateHousingList,
     exportHousingByCampaignBundle,
-    exportHousingWithFilters,
     normalizeAddresses
 };
 

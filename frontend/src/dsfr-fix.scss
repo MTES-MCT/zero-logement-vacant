@@ -7,7 +7,20 @@
     margin-top: 2.5rem;
 }
 
-a[href].ds-fr--flex {
-    display: inline-flex;
+a[href]:not(.fr-btn) {
     padding-bottom: 0.2rem;
+}
+
+a[href].ds-fr--flex,
+a[href].fr-link {
+    display: inline-flex;
+}
+
+.fr-btn--tertiary-no-outline {
+    box-shadow: none !important;
+}
+
+.fix-vertical-align {
+    position: relative;
+    top: -3px;
 }

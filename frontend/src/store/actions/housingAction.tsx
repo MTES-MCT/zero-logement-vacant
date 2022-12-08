@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
@@ -19,7 +19,6 @@ export const FETCHING_HOUSING_OWNERS = 'FETCHING_HOUSING_OWNERS';
 export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
 export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
 export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
-export const ADDITIONAL_OWNER_CREATED = 'ADDITIONAL_OWNER_CREATED';
 export const HOUSING_OWNERS_UPDATE = 'HOUSING_OWNERS_UPDATE';
 export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
@@ -55,11 +54,6 @@ export interface AdditionalOwnersFetchedAction {
     q: string
 }
 
-export interface AdditionalOwnerCreatedAction {
-    type: typeof ADDITIONAL_OWNER_CREATED,
-    additionalOwner: Owner
-}
-
 export interface HousingOwnersUpdateAction {
     type: typeof HOUSING_OWNERS_UPDATE;
     formState: typeof FormState;
@@ -79,12 +73,14 @@ export interface FetchHousingListAction {
     filters: HousingFilters,
     page: number,
     perPage: number
+    sort: HousingSort
 }
 
 export interface HousingListFetchedAction {
     type: typeof HOUSING_LIST_FETCHED,
     paginatedHousing: PaginatedResult<Housing>,
     filters: HousingFilters
+    sort: HousingSort
 }
 
 export type HousingActionTypes =
@@ -96,7 +92,6 @@ export type HousingActionTypes =
     HousingOwnersFetchedAction |
     FetchingAdditionalOwnersAction |
     AdditionalOwnersFetchedAction |
-    AdditionalOwnerCreatedAction |
     HousingOwnersUpdateAction |
     FetchingHousingEventsAction |
     HousingEventsFetchedAction;
@@ -155,6 +150,31 @@ export const changeHousingPagination = (page: number, perPage: number) => {
             });
     };
 };
+
+export const changeHousingSort = (sort: HousingSort) => {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+        const { filters, paginatedHousing } = getState().housing
+        const { page, perPage } = paginatedHousing
+
+        dispatch(showLoading());
+        dispatch({
+            type: FETCHING_HOUSING_LIST,
+            page,
+            perPage,
+            filters,
+        })
+
+        housingService.listHousing(filters, page, perPage, sort)
+          .then(result => {
+              dispatch(hideLoading())
+              dispatch({
+                  type: HOUSING_LIST_FETCHED,
+                  paginatedHousing: result,
+                  filters
+              })
+        })
+    }
+}
 
 
 export const getHousing = (id: string) => {
@@ -237,19 +257,16 @@ export const updateHousing = (housing: Housing, housingUpdate: HousingUpdate) =>
 }
 
 
-export const createAdditionalOwner = (draftOwner: DraftOwner) => {
+export const createAdditionalOwner = (housingId: string, draftOwner: DraftOwner, ownerRank: number) => {
 
-    return function (dispatch: Dispatch) {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
         ownerService.createOwner(draftOwner)
             .then((owner) => {
                 dispatch(hideLoading());
-                dispatch({
-                    type: ADDITIONAL_OWNER_CREATED,
-                    additionalOwner: owner
-                });
+                addHousingOwner(housingId, owner, ownerRank)(dispatch, getState)
             })
             .catch(error => {
                 console.error(error);
@@ -257,6 +274,31 @@ export const createAdditionalOwner = (draftOwner: DraftOwner) => {
 
     };
 };
+
+export const addHousingOwner = (housingId: string, owner: Owner, ownerRank: number) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        const { housingOwners } = getState().housing
+
+        updateHousingOwners(housingId, [
+            ...(housingOwners ?? []).map(ho => ({
+                ...ho,
+                rank : (ownerRank && ownerRank <= ho.rank) ? ho.rank + 1 : ho.rank
+            })),
+            {
+                ...owner,
+                housingId: housingId,
+                rank: ownerRank,
+                startDate: new Date(),
+                origin: 'ZLV'
+            }
+        ])(dispatch)
+
+
+    }
+}
+
 
 export const updateHousingOwners = (housingId: string, housingOwners: HousingOwner[]) => {
 

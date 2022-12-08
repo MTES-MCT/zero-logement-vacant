@@ -17,13 +17,13 @@ import {
   Container,
   Link,
   Row,
-  Stepper,
   Text,
   TextInput,
   Title
 } from "@dataesr/react-dsfr";
 import CampaignIntent from "../../components/CampaignIntent/CampaignIntent";
 import building from "../../assets/images/building.svg";
+import Stepper from "../../components/Stepper/Stepper";
 
 function AccountCreationView() {
   const steps = {

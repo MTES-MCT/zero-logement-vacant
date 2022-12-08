@@ -1,8 +1,7 @@
-// @ts-ignore
-import { establishmentsTable, housingScopeGeometryTable } from '../../../server/repositories/establishmentRepository';
+import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
 import { Knex } from 'knex';
 import campaignRepository, { campaignsTable } from '../../../server/repositories/campaignRepository';
-import { CampaignApi, DefaultCampaign } from '../../../server/models/CampaignApi';
+import { DefaultCampaign } from '../../../server/models/CampaignApi';
 
 exports.seed = function(knex: Knex) {
     return knex
@@ -17,7 +16,7 @@ exports.seed = function(knex: Knex) {
         .then(results => {
             if (results.length) {
                 return knex.table(campaignsTable)
-                    .insert(results.map(result => campaignRepository.formatCampaignApi(<CampaignApi>{
+                    .insert(results.map(result => campaignRepository.formatCampaignApi(<any>{
                         ...DefaultCampaign,
                         establishmentId: result.id
                     })))

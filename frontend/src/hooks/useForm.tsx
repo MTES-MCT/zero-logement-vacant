@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as yup from "yup";
 import { ObjectShape } from "yup/lib/object";
+import { isDate, parse } from 'date-fns';
 
 export const emailValidator = yup
   .string()
@@ -17,11 +18,27 @@ export const passwordConfirmationValidator = yup
   .required('Veuillez confirmer votre mot de passe.')
   .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.')
 
+export const campaignTitleValidator = yup
+    .string()
+    .required('Veuillez renseigner le titre de la campagne.')
+
+export const dateValidator = yup
+  .date()
+  .transform((curr, originalValue) => {
+    return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+  })
+  .typeError('Veuillez renseigner une date valide.')
+
+interface UseFormOptions {
+  dependencies?: React.DependencyList
+}
+
 type MessageType = 'error' | 'valid' | ''
 
 export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown>>(
   schema: yup.ObjectSchema<T>,
-  input: U
+  input: U,
+  options?: UseFormOptions
 ) {
   const [errors, setErrors] = useState<yup.ValidationError>()
   const [isTouched, setIsTouched] = useState(false)
@@ -55,6 +72,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
 
   async function validate() {
     try {
+      setIsTouched(true)
       await schema.validate(input, { abortEarly: false })
       setErrors(undefined)
     } catch (errors) {
@@ -63,7 +81,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
   }
 
   useEffect(() => {
-    if (isTouched) {
+    if (isTouched || options?.dependencies?.length) {
       validate()
     } else {
       if (Object.values(input).some(value => !!value)) {
@@ -72,7 +90,7 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, Object.values(input))
+  }, [...Object.values(input), ...options?.dependencies ?? []])
 
   return {
     isTouched,
@@ -80,5 +98,6 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
     hasError,
     message,
     messageType,
+    validate
   }
 }

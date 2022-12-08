@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { format, parse, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import {
     Campaign,
     CampaignBundle,
@@ -10,7 +10,6 @@ import {
     CampaignSteps,
     DraftCampaign,
 } from '../models/Campaign';
-import { fr } from 'date-fns/locale';
 import { HousingStatus } from '../models/HousingState';
 import { Housing } from '../models/Housing';
 
@@ -64,12 +63,12 @@ const updateCampaignBundleTitle = async (campaignBundleId: CampaignBundleId, tit
     });
 };
 
-const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, startMonth: string, kind: CampaignKinds, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
+const createCampaignBundleReminder = async (campaignBundleId: CampaignBundleId, kind: CampaignKinds, allHousing: boolean, housingIds?: string[]): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(campaignBundleId)}`, {
         method: 'POST',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startMonth, kind, allHousing, housingIds }),
+        body: JSON.stringify({ kind, allHousing, housingIds }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -84,12 +83,18 @@ const deleteCampaignBundle = async (campaignBundleId: CampaignBundleId): Promise
         .then(() => {});
 };
 
-const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}): Promise<Campaign> => {
+export interface ValidateCampaignStepParams {
+    sendingDate?: Date
+    // Skip campaign confirmation after filling in the sentAt date
+    skipConfirmation?: boolean
+}
+
+const validCampaignStep = async (campaignId: string, step: CampaignSteps, params?: ValidateCampaignStepParams): Promise<Campaign> => {
 
     return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: { ...authService.authHeader(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, sendingDate: params?.sendingDate }),
+        body: JSON.stringify({ ...params, step }),
     })
         .then(_ => _.json())
         .then(_ => parseCampaign(_));
@@ -113,15 +118,16 @@ const parseCampaign = (c: any): Campaign => ({
     ...c,
     createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
-    sentAt: c.sentAt ? parseISO(c.sentAt) : undefined
+    sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
+    archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
+    sendingDate: c.sendingDate ? parseISO(c.sendingDate) : undefined,
 } as Campaign)
 
 const parseCampaignBundle = (c: any): CampaignBundle => ({
     ...c,
-    name: c.campaignNumber ?
-        `C${c.campaignNumber} - ${format(parse(c.startMonth, 'yyMM', new Date()), 'MMM yyyy', { locale: fr })}` :
-        'Logements hors campagne'
-
+    name: c.campaignNumber ? `C${c.campaignNumber}` : 'Logements hors campagne',
+    createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
+    exportURL: getExportURL(c as CampaignBundleId)
 } as CampaignBundle)
 
 const campaignService = {

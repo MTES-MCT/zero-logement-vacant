@@ -1,11 +1,10 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
-import { format, formatISO } from 'date-fns';
+import { formatISO } from 'date-fns';
 
 export interface CampaignApi {
     id: string;
     establishmentId: string;
     campaignNumber: number;
-    startMonth: string;
     kind: CampaignKinds;
     reminderNumber: number;
     filters: HousingFiltersApi;
@@ -15,28 +14,33 @@ export interface CampaignApi {
     validatedAt?: Date;
     exportedAt?: Date;
     sentAt?: Date;
-    sendingDate?: string;
+    archivedAt?: Date;
+    sendingDate?: Date;
+    confirmedAt?: Date
 }
 
 export interface CampaignBundleApi {
     campaignIds: string[];
     campaignNumber: number;
     reminderNumber: number;
+    createdAt: Date;
     kind: CampaignKinds;
     filters: HousingFiltersApi;
     title?: string;
     housingCount: number;
+    neverContactedCount: number;
     waitingCount: number;
     inProgressCount: number;
     notVacantCount: number;
     noActionCount: number;
     exitCount: number;
     npaiCount: number;
+    inProgressWithSupportCount: number;
     ownerCount: number;
 }
 
 export enum CampaignSteps {
-    OwnersValidation, Export, Sending, InProgess
+    OwnersValidation, Export, Sending, Confirmation, InProgess, Outside, Archived
 }
 
 export enum CampaignKinds {
@@ -45,7 +49,6 @@ export enum CampaignKinds {
 
 export const DefaultCampaign = {
     campaignNumber: 0,
-    startMonth: format(new Date(), 'yyMM'),
     filters: {},
     createdAt: new Date(),
     validatedAt: new Date(),

@@ -1,5 +1,5 @@
-import React, { ChangeEvent, useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Row, Select, Text } from '@dataesr/react-dsfr';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
+import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../../models/Housing';
 import {
     getHousingState,
@@ -14,8 +14,10 @@ import { DefaultOption, SelectOption } from '../../../models/SelectOption';
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
 import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
-import { statusOptions, vacancyReasonsOptions } from '../../../models/HousingFilters';
-import TextInput from '../../TextInput/TextInput';
+import {
+    statusOptions,
+    vacancyReasonsOptions
+} from '../../../models/HousingFilters';
 
 const HousingStatusForm = (
     {
@@ -231,8 +233,8 @@ const HousingStatusForm = (
                         <TextInput
                             textarea
                             label="Commentaire"
-                            rows="3"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+                            rows={3}
+                            onChange={e => setComment(e.target.value)}
                         />
                     </Col>
                 </Row>

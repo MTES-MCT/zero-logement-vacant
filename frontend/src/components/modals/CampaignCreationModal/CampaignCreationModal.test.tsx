@@ -30,46 +30,45 @@ describe('Campagne creation modal', () => {
         );
     });
 
-    test('should display housing count, select with next 6 months input and submit button', () => {
+    test('should display housing count, campaign title input and submit button', () => {
 
         fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>
                 <CampaignCreationModal housingCount={2}
+                                       filters={{}}
                                        onSubmit={() => {}}
                                        onClose={() => {}} />
             </Provider>
         );
 
         const housingInfosTextElement = screen.getByTestId('housing-infos');
-        const startMonthSelectElement = screen.getByTestId('start-month-select');
+        const campaignTitleInputElement = screen.getByTestId('campaign-title-input');
         const createButton = screen.getByTestId('create-button');
         expect(housingInfosTextElement).toBeInTheDocument();
-        expect(housingInfosTextElement).toContainHTML('<b>2 logements</b>');
-        expect(startMonthSelectElement).toBeInTheDocument();
-        expect(startMonthSelectElement.querySelectorAll('option').length).toBe(7);  //eslint-disable-line testing-library/no-node-access
+        expect(housingInfosTextElement).toContainHTML('Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>');
+        expect(campaignTitleInputElement).toBeInTheDocument();
         expect(createButton).toBeInTheDocument();
     });
 
-    test('should require campaign start month', async() => {
+    test('should require campaign title', async() => {
 
         fetchMock.mockResponse(defaultFetchMock);
 
         render(
             <Provider store={store}>
                 <CampaignCreationModal housingCount={2}
-                                       onSubmit={() => {
-                                       }}
-                                       onClose={() => {
-                                       }}/>
+                                       filters={{}}
+                                       onSubmit={() => {}}
+                                       onClose={() => {}}/>
             </Provider>
         );
 
         fireEvent.click(screen.getByTestId('create-button'));
 
-        const startMonthSelectElement = await screen.findByTestId('start-month-select');
-        expect(startMonthSelectElement.querySelector('.fr-error-text')).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
+        const campaignTitleInputElement = await screen.findByTestId('campaign-title-input');
+        expect(campaignTitleInputElement.querySelector('.fr-error-text')).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
     });
 
 });

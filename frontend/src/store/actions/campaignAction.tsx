@@ -3,16 +3,16 @@ import {
     Campaign,
     CampaignBundle,
     CampaignBundleId,
+    CampaignKinds,
     CampaignSteps,
     DraftCampaign,
     getCampaignBundleId,
-    CampaignKinds
 } from '../../models/Campaign';
-import campaignService from '../../services/campaign.service';
+import campaignService, { ValidateCampaignStepParams } from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import housingService from '../../services/housing.service';
 
@@ -69,8 +69,7 @@ export interface CampaignBundleHousingListFetchedAction {
     type: typeof CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
     campaignIds: string[],
     status?: HousingStatus,
-    paginatedHousing: PaginatedResult<Housing>,
-    exportURL: string
+    paginatedHousing: PaginatedResult<Housing>
 }
 
 export interface CampaignCreatedAction {
@@ -189,8 +188,7 @@ export const listCampaignBundleHousing = (campaignBundle: CampaignBundle, status
                     type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
                     campaignIds: campaignBundle.campaignIds,
                     status,
-                    paginatedHousing: result,
-                    exportURL: campaignService.getExportURL(campaignBundle as CampaignBundleId)
+                    paginatedHousing: result
                 });
             });
     };
@@ -223,13 +221,48 @@ export const changeCampaignHousingPagination = (page: number, perPage: number, s
                         type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
                         campaignHousingFetchingIds: campaignBundle.campaignIds,
                         status,
-                        paginatedHousing: result,
-                        exportURL: campaignService.getExportURL(campaignBundle)
+                        paginatedHousing: result
                     });
                 });
         }
     };
 };
+
+export const changeCampaignHousingSort = (sort: HousingSort, status?: HousingStatus) => {
+
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+
+        const { campaignBundle, searchQuery, campaignBundleHousing } = getState().campaign;
+
+        if (campaignBundle) {
+
+            dispatch(showLoading());
+
+            dispatch({
+                type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
+                campaignHousingFetchingIds: campaignBundle.campaignIds,
+                status,
+                page: 1,
+                perPage: campaignBundleHousing.perPage
+            });
+
+            housingService.listHousing({
+                campaignIds: campaignBundle.campaignIds,
+                status: status ? [status] : [],
+                query: searchQuery
+            }, 1, campaignBundleHousing.perPage, sort)
+                .then((result: PaginatedResult<Housing>) => {
+                    dispatch(hideLoading());
+                    dispatch({
+                        type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
+                        campaignHousingFetchingIds: campaignBundle.campaignIds,
+                        status,
+                        paginatedHousing: result
+                    });
+                });
+        }
+    }
+}
 
 export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean, housingIds: string[]) => {
 
@@ -249,7 +282,7 @@ export const createCampaign = (draftCampaign: DraftCampaign, allHousing: boolean
     };
 };
 
-export const createCampaignBundleReminder = (startMonth: string, kind: CampaignKinds, allHousing: boolean, housingIds: string[]) => {
+export const createCampaignBundleReminder = (kind: CampaignKinds, allHousing: boolean, housingIds: string[]) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
@@ -259,7 +292,7 @@ export const createCampaignBundleReminder = (startMonth: string, kind: CampaignK
 
             dispatch(showLoading());
 
-            campaignService.createCampaignBundleReminder(campaignBundleId, startMonth, kind, allHousing, housingIds)
+            campaignService.createCampaignBundleReminder(campaignBundleId, kind, allHousing, housingIds)
                 .then((campaign) => {
                     dispatch(hideLoading());
                     dispatch({
@@ -275,7 +308,7 @@ export const createCampaignBundleReminder = (startMonth: string, kind: CampaignK
 
 export const updateCampaignBundleTitle = (campaignBundleId: CampaignBundleId, title?: string) => {
 
-    return function (dispatch: Dispatch) {
+    return function (dispatch: Dispatch, getState: () => ApplicationState) {
 
         dispatch(showLoading());
 
@@ -286,12 +319,17 @@ export const updateCampaignBundleTitle = (campaignBundleId: CampaignBundleId, ti
                     type: CAMPAIGN_UPDATED,
                     campaignBundleFetchingId: campaignBundleId
                 });
-                listCampaignBundles()(dispatch)
+                if (getState().campaign.campaignBundle) {
+                    getCampaignBundle(getState().campaign.campaignBundle as CampaignBundleId, getState().campaign.searchQuery)(dispatch)
+                }
+                if (getState().campaign.campaignList) {
+                    listCampaignBundles()(dispatch)
+                }
             });
     };
 };
 
-export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: {sendingDate?: Date}) => {
+export const validCampaignStep = (campaignId: string, step: CampaignSteps, params?: ValidateCampaignStepParams) => {
 
     return function (dispatch: Dispatch, getState: () => ApplicationState) {
 

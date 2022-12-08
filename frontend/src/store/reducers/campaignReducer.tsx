@@ -23,7 +23,6 @@ export interface CampaignState {
     campaignBundleHousingByStatus: PaginatedResult<Housing>[],
     campaignBundleHousing: PaginatedResult<Housing>,
     campaignIds?: string[];
-    exportURL: string;
     loading: boolean;
     campaignCreated: boolean;
     searchQuery?: string;
@@ -40,7 +39,6 @@ const initialState: CampaignState = {
         initialPaginatedResult()
     ],
     campaignBundleHousing: initialPaginatedResult(),
-    exportURL: '',
     loading: false,
     campaignCreated: false
 };
@@ -136,7 +134,6 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                     totalCount: action.paginatedHousing.totalCount,
                     loading: false
                 },
-                exportURL: action.exportURL,
             };
         }
         case CAMPAIGN_CREATED:

@@ -16,9 +16,6 @@ import { CampaignKinds } from '../../models/Campaign';
 import { useLocation } from 'react-router-dom';
 import { HousingSort, SelectedHousing, selectedHousingCount } from '../../models/Housing';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
-import housingService from '../../services/housing.service';
-import { format } from 'date-fns';
-import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
@@ -64,34 +61,6 @@ const HousingListView = () => {
         } else {
             setNoHousingAlert(false)
             setIsCreateModalOpen(true)
-        }
-    }
-
-    const exportHousing = () => {
-        trackEvent({
-            category: TrackEventCategories.HousingList,
-            action: TrackEventActions.HousingList.Export,
-            value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount)
-        })
-        if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
-            setNoHousingAlert(true)
-        } else {
-            setNoHousingAlert(false)
-            dispatch(showLoading());
-            housingService.exportHousing(filters, selectedHousing.all, selectedHousing.ids)
-                .then((response) => {
-                    const link = document.createElement("a");
-                    link.href = window.URL.createObjectURL(response);
-                    link.download = `export_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
-
-                    document.body.appendChild(link);
-
-                    link.click();
-                    setTimeout(function() {
-                        dispatch(hideLoading());
-                        window.URL.revokeObjectURL(link.href);
-                    }, 200);
-                });
         }
     }
 
@@ -190,8 +159,7 @@ const HousingListView = () => {
                         {!hasSelected() &&
                             <Help>
                                 <b>Sélectionnez</b> les logements que vous souhaitez
-                                cibler, puis cliquez sur <b>Créer la campagne</b> ou
-                                sur <b>Exporter</b>.
+                                cibler, puis cliquez sur <b>Créer la campagne</b>.
                             </Help>
                         }
                         <HousingList paginatedHousing={paginatedHousing}
@@ -206,19 +174,12 @@ const HousingListView = () => {
                                     {paginatedHousing.totalCount > 0 &&
                                       <Row justifyContent="right">
                                           {!hasSelected() &&
-                                            <Col>
+                                            <Col n="6" spacing="mr-2w">
                                                 <AppSearchBar
                                                   onSearch={searchWithQuery}
                                                   initialQuery={filters.query}/>
                                             </Col>
                                           }
-                                          <Button title="Exporter"
-                                                  secondary
-                                                  onClick={() => exportHousing()}
-                                                  data-testid="export-campaign-button"
-                                                  className="fr-mx-2w">
-                                              Exporter (.csv)
-                                          </Button>
                                           <Button title="Créer la campagne"
                                                   onClick={() => create()}
                                                   data-testid="create-campaign-button">

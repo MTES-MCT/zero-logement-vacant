@@ -1,16 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
-import {
-    HousingApi,
-    HousingSortableApi,
-    HousingUpdateApi
-} from '../models/HousingApi';
+import { HousingApi, HousingSortableApi, HousingUpdateApi } from '../models/HousingApi';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi, AddressKinds } from '../models/AddressApi';
-import localityRepository from '../repositories/localityRepository';
 import { RequestUser, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
@@ -23,7 +18,7 @@ import { constants } from 'http2';
 import { body, param, validationResult } from 'express-validator';
 import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
-import SortApi from "../models/SortApi";
+import SortApi from '../models/SortApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
 
@@ -231,34 +226,6 @@ const exportHousingByCampaignBundle = async (request: JWTRequest, response: Resp
 
 }
 
-const exportHousingWithFilters = async (request: JWTRequest, response: Response): Promise<Response> => {
-
-    console.log('Export housing with filters')
-
-    const establishmentId = (<RequestUser>request.auth).establishmentId;
-
-    const filters = <HousingFiltersApi> request.body.filters ?? {};
-    const allHousing = request.body.allHousing;
-
-    const userLocalities = await localityRepository.listByEstablishmentId(establishmentId).then(_ => _.map(_ => _.geoCode))
-    const filterLocalities = (filters.localities ?? []).length ? userLocalities.filter(l => (filters.localities ?? []).indexOf(l) !== -1) : userLocalities
-
-    const housingIds = allHousing ?
-        await housingRepository.listWithFilters({...filters, establishmentIds: [establishmentId], localities: filterLocalities})
-            .then(_ => _.entities
-                .map(_ => _.id)
-                .filter(id => request.body.housingIds.indexOf(id) === -1)
-            ):
-        request.body.housingIds;
-
-    const housingList = await housingRepository.listByIds(housingIds)
-
-    const fileName = `export_${(new Date()).toDateString()}.xlsx`;
-
-    return await exportHousingList(housingList, fileName, response);
-
-}
-
 const exportHousingList = async (housingList: HousingApi[], fileName: string, response: Response): Promise<Response> => {
 
     const housingAddresses = await banAddressesRepository.listByRefIds(housingList.map(_ => _.id), AddressKinds.Housing)
@@ -379,7 +346,6 @@ const housingController =  {
     updateHousingListValidators,
     updateHousingList,
     exportHousingByCampaignBundle,
-    exportHousingWithFilters,
     normalizeAddresses
 };
 

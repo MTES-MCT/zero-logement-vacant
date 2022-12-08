@@ -22,7 +22,6 @@ export const TrackEventActions = {
     HousingList: {
         CreateCampaign: 'Créer la campagne',
         SaveCampaign: 'Enregistrer la campagne',
-        Export: 'Exporter les logements',
         DisplayHousing: 'Afficher un logement',
         Search: 'Rechercher un logement'
     },

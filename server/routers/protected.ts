@@ -33,7 +33,6 @@ if (config.auth.secret) {
 
     router.get('/api/housing/:id', jwtCheck, userCheck, housingController.get);
     router.post('/api/housing', jwtCheck, userCheck, housingController.list);
-    router.post('/api/housing/export', jwtCheck, userCheck, housingController.exportHousingWithFilters);
     router.post('/api/housing/list', jwtCheck, userCheck,  housingController.updateHousingListValidators, housingController.updateHousingList);
     router.post('/api/housing/:housingId', jwtCheck, userCheck, housingController.updateHousingValidators, housingController.updateHousing);
     router.get('/api/housing/owner/:ownerId', jwtCheck, userCheck, housingController.listByOwner);

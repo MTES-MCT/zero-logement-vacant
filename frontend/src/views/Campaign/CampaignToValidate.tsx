@@ -44,7 +44,10 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
     const dispatch = useDispatch();
     const { trackEvent } = useMatomo();
 
-    const [removing, setRemoving] = useState<string>();
+    const { campaignBundle, campaignBundleHousing, campaignList } = useSelector((state: ApplicationState) => state.campaign);
+    const campaign = campaignList?.find(_ => _.id === campaignBundle?.campaignIds[0])
+
+  const [removing, setRemoving] = useState<string>();
     const [isRemovingModalOpen, setIsRemovingModalOpen] = useState<boolean>(false);
 
     const { forceStep, index, isCompleted, next } = useStepper([
@@ -56,7 +59,7 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
         step: campaignStep
     })
 
-    const [sendingDate, setSendingDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [sendingDate, setSendingDate] = useState(format(campaign?.sendingDate ?? new Date(), 'yyyy-MM-dd'));
     const sendingForm = yup.object().shape({
         sendingDate: yup
             .date()
@@ -71,7 +74,6 @@ function CampaignToValidate({campaignStep}: CampaignToValidateProps) {
     });
     const { isValid, message, messageType } = useForm(sendingForm, { sendingDate })
 
-    const { campaignBundle, campaignBundleHousing } = useSelector((state: ApplicationState) => state.campaign);
     const { hasSelected, setSelected } = useSelection()
 
     const { search } = useCampaignHousingSearch()

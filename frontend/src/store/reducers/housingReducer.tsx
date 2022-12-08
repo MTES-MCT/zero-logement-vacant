@@ -1,6 +1,5 @@
 import { Housing } from '../../models/Housing';
 import {
-    ADDITIONAL_OWNER_CREATED,
     ADDITIONAL_OWNERS_FETCHED,
     FETCHING_ADDITIONAL_OWNERS,
     FETCHING_HOUSING,
@@ -31,7 +30,6 @@ export interface HousingState {
         paginatedOwners: PaginatedResult<Owner>;
         q: string
     };
-    additionalOwner?: Owner;
     events?: Event[];
     checkedHousingIds?: string[];
     housingOwnersUpdateFormState?: FormState;
@@ -126,11 +124,6 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
                 }
             };
         }
-        case ADDITIONAL_OWNER_CREATED:
-            return {
-                ...state,
-                additionalOwner: action.additionalOwner
-            };
         case FETCHING_HOUSING_EVENTS:
             return {
                 ...state,

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Col, Pagination, Row, Select, Table, Text } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
+    addHousingOwner,
     changeAdditionalOwnersPagination,
     changeAdditionalOwnersSearching,
     createAdditionalOwner,
-    updateHousingOwners,
 } from '../../store/actions/housingAction';
 import { format } from 'date-fns';
 import { displayCount } from '../../utils/stringUtils';
@@ -19,7 +19,7 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
 
     const dispatch = useDispatch();
 
-    const { additionalOwners, additionalOwner } = useSelector((state: ApplicationState) => state.housing);
+    const { additionalOwners } = useSelector((state: ApplicationState) => state.housing);
     const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('1');
     const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
@@ -28,8 +28,7 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
     }
 
     const createDraftOwner = (draftOwner: DraftOwner) => {
-        dispatch(createAdditionalOwner(draftOwner));
-        setIsModalOwnerOpen(false);
+        dispatch(createAdditionalOwner(housingId, draftOwner, Number(additionalOwnerRank)));
     }
 
     const ownerRankOptions: SelectOption[] = [
@@ -41,28 +40,8 @@ const HousingAdditionalOwners = ({ housingId, housingOwners } : { housingId: str
     ]
 
     const onAddingOwner = (owner: Owner) => {
-        const ownerRank = Number(additionalOwnerRank)
-        dispatch(updateHousingOwners(housingId, [
-            ...(housingOwners ?? []).map(ho => ({
-                ...ho,
-                rank : (ownerRank && ownerRank <= ho.rank) ? ho.rank + 1 : ho.rank
-            })),
-            {
-                ...owner,
-                housingId: housingId,
-                rank: ownerRank,
-                startDate: ownerRank ? (new Date()): undefined,
-                endDate: !ownerRank ? (new Date()): undefined,
-                origin: 'ZLV'
-            }
-        ]))
+        dispatch(addHousingOwner(housingId, owner, Number(additionalOwnerRank)))
     }
-
-    useEffect(() => {
-        if (additionalOwner && !housingOwners.find(ho => ho.id === additionalOwner.id)) {
-            onAddingOwner(additionalOwner)
-        }
-    }, [additionalOwner])  //eslint-disable-line react-hooks/exhaustive-deps
 
     const columns = () => [{
         name: 'fullName',

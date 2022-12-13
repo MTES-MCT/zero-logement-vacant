@@ -104,6 +104,7 @@ export function byAddress(h1: Housing, h2: Housing): Compare {
     return byCity
 }
 
+export const hasGeoPerimeters = (housing: Housing) => housing?.geoPerimeters && housing.geoPerimeters?.filter(_ => _ !== null).length > 0
 
 export enum OwnershipKinds {
     Single= 'single',

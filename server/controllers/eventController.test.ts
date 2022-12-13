@@ -20,7 +20,12 @@ describe('Event controller', () => {
       await withAccessToken(
         request(app)
           .post(testRoute)
-          .send({ ...genEventCreationDTO(), title: undefined })
+          .send({ ...genEventCreationDTO(), title: '' })
+      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+      await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({ ...genEventCreationDTO(), housingId: 'housing' })
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 

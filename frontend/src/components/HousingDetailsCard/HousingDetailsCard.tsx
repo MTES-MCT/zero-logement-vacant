@@ -1,266 +1,298 @@
 import {
-    Card,
-    CardDescription,
-    CardTitle,
-    Col,
-    Icon,
-    Link as DSFRLink,
-    Row,
-    Tabs,
-    Text,
-    Title,
+  Card,
+  CardDescription,
+  CardTitle,
+  Col,
+  Icon,
+  Link as DSFRLink,
+  Row,
+  Tabs,
+  Text,
+  Title,
 } from '@dataesr/react-dsfr';
 import React, { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 import { pluralize } from '../../utils/stringUtils';
-import { getHousingState, getHousingSubStatus, getPrecision } from '../../models/HousingState';
+import {
+  getHousingState,
+  getHousingSubStatus,
+  getPrecision,
+} from '../../models/HousingState';
 import Tab from '../Tab/Tab';
-import { getBuildingLocation, hasGeoPerimeters, Housing, OwnershipKindLabels } from '../../models/Housing';
+import {
+  getBuildingLocation,
+  hasGeoPerimeters,
+  Housing,
+  OwnershipKindLabels,
+} from '../../models/Housing';
 import { LocalityKindLabels } from '../../models/Establishment';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import config from '../../utils/config';
 
 interface DetailsCardProps {
-    title: string;
-    children?: ReactElement | ReactElement[];
+  title: string;
+  children?: ReactElement | ReactElement[];
 }
 
 function DetailsCard({ title, children }: DetailsCardProps) {
-
-    return (
-        <Card hasArrow={false} hasBorder={false} size="sm" className={classNames(styles.detailsCard, 'app-card-xs')}>
-            <CardTitle>
-                <Title as="h2" spacing="mb-1w" className={styles.title}>{title}</Title>
-                <hr/>
-            </CardTitle>
-            <CardDescription className={styles.content}>
-                {children}
-            </CardDescription>
-        </Card>
-    );
+  return (
+    <Card
+      hasArrow={false}
+      hasBorder={false}
+      size="sm"
+      className={classNames(styles.detailsCard, 'app-card-xs')}
+    >
+      <CardTitle>
+        <Title as="h2" spacing="mb-1w" className={styles.title}>
+          {title}
+        </Title>
+        <hr />
+      </CardTitle>
+      <CardDescription className={styles.content}>{children}</CardDescription>
+    </Card>
+  );
 }
 
 interface HousingDetailsCardProps {
-    housing: Housing;
+  housing: Housing;
 }
 
 function HousingDetailsCard({ housing }: HousingDetailsCardProps) {
-
-    return (
-        <Card hasArrow={false} hasBorder={false} size="sm">
-            <CardTitle>
-                <span className={styles.icon}>
-                  <Icon name="ri-home-fill" iconPosition="center" size="1x"/>
-                </span>
-                <Title as="h1" look="h4" spacing="mb-1w">
-                    {housing.rawAddress.join(' - ')}
-                    <DSFRLink title="Voir sur la carte - nouvelle fenêtre"
-                              href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
-                              target="_blank"
-                              icon="ri-map-pin-2-fill"
-                              iconPosition="left"
-                              className="fr-link fr-ml-3w">
-                        Voir sur la carte
-                    </DSFRLink>
-                </Title>
-            </CardTitle>
-            <CardDescription>
-                <div className="bg-975 fr-p-2w">
-                    <div className={styles.reference}>
-                        <span>Invariant fiscal : {housing.invariant}</span>
-                        <span>Référence cadastrale : {housing.cadastralReference}</span>
-                        <span>{pluralize(housing.dataYears.length)('Millésime')} : {housing.dataYears.join(' - ')}</span>
+  return (
+    <Card hasArrow={false} hasBorder={false} size="sm">
+      <CardTitle>
+        <span className={styles.icon}>
+          <Icon name="ri-home-fill" iconPosition="center" size="1x" />
+        </span>
+        <Title as="h1" look="h4" spacing="mb-1w">
+          {housing.rawAddress.join(' - ')}
+          <DSFRLink
+            title="Voir sur la carte - nouvelle fenêtre"
+            href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
+            target="_blank"
+            icon="ri-map-pin-2-fill"
+            iconPosition="left"
+            className={classNames(styles.link, 'fr-link', 'fr-ml-3w')}
+          >
+            Voir sur la carte
+          </DSFRLink>
+        </Title>
+      </CardTitle>
+      <CardDescription>
+        <div className="bg-975 fr-p-2w">
+          <div className={styles.reference}>
+            <span>Invariant fiscal : {housing.invariant}</span>
+            <span>Référence cadastrale : {housing.cadastralReference}</span>
+            <span>
+              {pluralize(housing.dataYears.length)('Millésime')} :{' '}
+              {housing.dataYears.join(' - ')}
+            </span>
+          </div>
+          {housing.status != null && (
+            <span
+              style={{
+                backgroundColor: `var(${
+                  getHousingState(housing.status).bgcolor
+                })`,
+                color: `var(${getHousingState(housing.status).color})`,
+              }}
+              className="status-label"
+            >
+              {getHousingState(housing.status).title}
+            </span>
+          )}
+          {housing.subStatus && (
+            <span
+              style={{
+                backgroundColor: `var(${
+                  getHousingSubStatus(housing)?.bgcolor
+                })`,
+                color: `var(${getHousingSubStatus(housing)?.color})`,
+              }}
+              className="status-label"
+            >
+              {housing.subStatus}
+            </span>
+          )}
+          {housing.precisions &&
+            housing.precisions.map((precision, index) => (
+              <b key={'precision_' + index} className="status-label">
+                {housing.status && housing.subStatus && (
+                  <span
+                    style={{
+                      backgroundColor: `var(${
+                        getPrecision(
+                          housing.status,
+                          housing.subStatus,
+                          precision
+                        )?.bgcolor
+                      })`,
+                      color: `var(${
+                        getPrecision(
+                          housing.status,
+                          housing.subStatus,
+                          precision
+                        )?.color
+                      })`,
+                    }}
+                    className="status-label"
+                  >
+                    {precision}
+                  </span>
+                )}
+              </b>
+            ))}
+        </div>
+        <Tabs className="fr-pt-3w">
+          <Tab label="Caractéristiques" className="fr-px-0">
+            <Row>
+              <Col spacing="mx-1w">
+                <DetailsCard title="Emplacement">
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Adresse postale
+                    </Text>
+                    <Text className="color-bf113">
+                      {housing.rawAddress.join(' - ')}
+                    </Text>
+                  </div>
+                  {getBuildingLocation(housing) ? (
+                    <div>
+                      <Text size="sm" className={styles.label}>
+                        Complément
+                      </Text>
+                      <Text>
+                        {[
+                          getBuildingLocation(housing)?.building,
+                          getBuildingLocation(housing)?.entrance,
+                          getBuildingLocation(housing)?.level,
+                          getBuildingLocation(housing)?.local,
+                        ].join(', ')}
+                      </Text>
                     </div>
-                    {housing.status != null &&
-                        <span style={{
-                            backgroundColor: `var(${getHousingState(housing.status).bgcolor})`,
-                            color: `var(${getHousingState(housing.status).color})`,
-                        }}
-                              className="status-label">
-                                                {getHousingState(housing.status).title}
-                                                </span>
-                    }
-                    {housing.subStatus &&
-                        <span style={{
-                            backgroundColor: `var(${getHousingSubStatus(housing)?.bgcolor})`,
-                            color: `var(${getHousingSubStatus(housing)?.color})`,
-                        }}
-                              className="status-label">
-                                                    {housing.subStatus}
-                                                </span>
-                    }
-                    {housing.precisions && housing.precisions.map((precision, index) =>
-                        <b key={'precision_' + index} className="status-label">
-                            {housing.status && housing.subStatus &&
-                                <span style={{
-                                    backgroundColor: `var(${getPrecision(housing.status, housing.subStatus, precision)?.bgcolor})`,
-                                    color: `var(${getPrecision(housing.status, housing.subStatus, precision)?.color})`,
-                                }}
-                                      className="status-label">
-                                                            {precision}
-                                                        </span>
-                            }
-                        </b>)
-                    }
-                </div>
-                <Tabs className="fr-pt-3w">
-                    <Tab label="Caractéristiques" className="fr-px-0">
-                        <Row>
-                            <Col spacing="mx-1w">
-                                <DetailsCard title="Emplacement">
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Adresse postale
-                                        </Text>
-                                        <Text className="color-bf113">
-                                            {housing.rawAddress.join(' - ')}
-                                        </Text>
-                                    </div>
-                                    {getBuildingLocation(housing) ?
-                                        <div>
-                                            <Text size="sm" className={styles.label}>
-                                                Complément
-                                            </Text>
-                                            <Text>
-                                                {[
-                                                    getBuildingLocation(housing)?.building,
-                                                    getBuildingLocation(housing)?.entrance,
-                                                    getBuildingLocation(housing)?.level,
-                                                    getBuildingLocation(housing)?.local,
-                                                ].join(', ')}
-                                            </Text>
-                                        </div> : <></>
-                                    }
-                                    {housing.localityKind ?
-                                        <div>
-                                            <Text size="sm" className={styles.label}>
-                                                Périmètres
-                                            </Text>
-                                            <Text>
-                                                {LocalityKindLabels[housing.localityKind]}
-                                            </Text>
-                                        </div> : <></>
-                                    }
-                                    {hasGeoPerimeters(housing) ?
-                                        <div>
-                                            <Text size="sm" className={styles.label}>
-                                                Périmètres
-                                            </Text>
-                                            <Text>
-                                                {housing.geoPerimeters?.join(', ')}
-                                            </Text>
-                                        </div> : <></>
-                                    }
-                                </DetailsCard>
-                                <DetailsCard title="Caractéristiques">
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Type
-                                        </Text>
-                                        <Text>
-                                            {housing.housingKind}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Surface
-                                        </Text>
-                                        <Text>
-                                            {housing.livingArea}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Pièces
-                                        </Text>
-                                        <Text>
-                                            {housing.roomsCount}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Construction
-                                        </Text>
-                                        <Text>
-                                            {housing.buildingYear}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Classement cadastral
-                                        </Text>
-                                        <Text>
-                                            {cadastralClassificationOptions.find(_ => _.value === String(housing.cadastralClassification))?.label}
-                                        </Text>
-                                    </div>
-                                </DetailsCard>
-                                {housing.buildingHousingCount && housing.buildingHousingCount > 1 &&
-                                    <DetailsCard title="Immeuble">
-                                        <div>
-                                            <Text size="sm" className={styles.label}>
-                                                Nombre de logements
-                                            </Text>
-                                            <Text>
-                                                {housing.buildingHousingCount}
-                                            </Text>
-                                        </div>
-                                        <div>
-                                            <Text size="sm" className={styles.label}>
-                                                Taux de vacances
-                                            </Text>
-                                            <Text>
-                                                {housing.buildingVacancyRate}%
-                                            </Text>
-                                        </div>
-                                    </DetailsCard>
-                                }
-                            </Col>
-                            <Col spacing="mx-1w">
-                                <DetailsCard title="Situation">
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Durée de vacance au 01/01/{config.dataYear}
-                                        </Text>
-                                        <Text>
-                                            {config.dataYear - housing.vacancyStartYear} ans ({housing.vacancyStartYear})
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Cause de la vacance
-                                        </Text>
-                                        <Text>
-                                            {housing.vacancyReasons?.map((reason, reasonIdx) =>
-                                                <div key={`${housing.id}_${reasonIdx}`}>{reason}</div>,
-                                            )}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Taxé
-                                        </Text>
-                                        <Text>
-                                            {housing.taxed ? 'Oui' : 'Non'}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text size="sm" className={styles.label}>
-                                            Type de propriété
-                                        </Text>
-                                        <Text>
-                                            {OwnershipKindLabels[housing.ownershipKind]}
-                                        </Text>
-                                    </div>
-                                </DetailsCard>
-                            </Col>
-                        </Row>
-                    </Tab>
-                </Tabs>
-            </CardDescription>
-        </Card>
-    );
+                  ) : (
+                    <></>
+                  )}
+                  {housing.localityKind ? (
+                    <div>
+                      <Text size="sm" className={styles.label}>
+                        Périmètres
+                      </Text>
+                      <Text>{LocalityKindLabels[housing.localityKind]}</Text>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {hasGeoPerimeters(housing) ? (
+                    <div>
+                      <Text size="sm" className={styles.label}>
+                        Périmètres
+                      </Text>
+                      <Text>{housing.geoPerimeters?.join(', ')}</Text>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                </DetailsCard>
+                <DetailsCard title="Caractéristiques">
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Type
+                    </Text>
+                    <Text>{housing.housingKind}</Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Surface
+                    </Text>
+                    <Text>{housing.livingArea}</Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Pièces
+                    </Text>
+                    <Text>{housing.roomsCount}</Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Construction
+                    </Text>
+                    <Text>{housing.buildingYear}</Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Classement cadastral
+                    </Text>
+                    <Text>
+                      {
+                        cadastralClassificationOptions.find(
+                          (_) =>
+                            _.value === String(housing.cadastralClassification)
+                        )?.label
+                      }
+                    </Text>
+                  </div>
+                </DetailsCard>
+                {housing.buildingHousingCount &&
+                  housing.buildingHousingCount > 1 && (
+                    <DetailsCard title="Immeuble">
+                      <div>
+                        <Text size="sm" className={styles.label}>
+                          Nombre de logements
+                        </Text>
+                        <Text>{housing.buildingHousingCount}</Text>
+                      </div>
+                      <div>
+                        <Text size="sm" className={styles.label}>
+                          Taux de vacances
+                        </Text>
+                        <Text>{housing.buildingVacancyRate}%</Text>
+                      </div>
+                    </DetailsCard>
+                  )}
+              </Col>
+              <Col spacing="mx-1w">
+                <DetailsCard title="Situation">
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Durée de vacance au 01/01/{config.dataYear}
+                    </Text>
+                    <Text>
+                      {config.dataYear - housing.vacancyStartYear} ans (
+                      {housing.vacancyStartYear})
+                    </Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Cause de la vacance
+                    </Text>
+                    <Text>
+                      {housing.vacancyReasons?.map((reason, reasonIdx) => (
+                        <div key={`${housing.id}_${reasonIdx}`}>{reason}</div>
+                      ))}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Taxé
+                    </Text>
+                    <Text>{housing.taxed ? 'Oui' : 'Non'}</Text>
+                  </div>
+                  <div>
+                    <Text size="sm" className={styles.label}>
+                      Type de propriété
+                    </Text>
+                    <Text>{OwnershipKindLabels[housing.ownershipKind]}</Text>
+                  </div>
+                </DetailsCard>
+              </Col>
+            </Row>
+          </Tab>
+        </Tabs>
+      </CardDescription>
+    </Card>
+  );
 }
-
 
 export default HousingDetailsCard;

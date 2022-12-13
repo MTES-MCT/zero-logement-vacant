@@ -6,7 +6,7 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import React from 'react';
+import React, { ReactElement } from 'react';
 
 import { Owner } from '../../models/Owner';
 import styles from './owner-card.module.scss';
@@ -15,9 +15,10 @@ import { fr } from 'date-fns/locale';
 
 interface OwnerCardProps {
   owner: Owner;
+  children?: ReactElement | ReactElement[];
 }
 
-function OwnerCard({ owner }: OwnerCardProps) {
+function OwnerCard({ owner, children }: OwnerCardProps) {
   function birthdate(date: Date): string {
     return format(date, 'dd/MM/yyyy', { locale: fr });
   }
@@ -41,14 +42,15 @@ function OwnerCard({ owner }: OwnerCardProps) {
           {owner.fullName}
         </Title>
       </CardTitle>
-      {owner.birthDate && (
-        <CardDescription>
+      <CardDescription>
+        {owner.birthDate && (
           <Text size="lg" className="fr-mb-0">
             né(e) le {birthdate(owner.birthDate)}{' '}
             <b>({age(owner.birthDate)} ans)</b>
           </Text>
-        </CardDescription>
-      )}
+        )}
+        {children}
+      </CardDescription>
     </Card>
   );
 }

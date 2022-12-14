@@ -1,12 +1,41 @@
+import React, { ReactElement } from 'react';
+import { Text } from '@dataesr/react-dsfr';
+
 export interface SelectOption {
-    value: string;
-    label: string;
-    disabled?: boolean;
-    hidden?: boolean;
-    separator?: boolean;
-    badgeLabel?: string;
+  label: string;
+  value: string;
+  disabled?: boolean;
+  hidden?: boolean;
+  badgeLabel?: string;
+  markup?: ReactElement;
 }
 
-export const DefaultOption: SelectOption = {value: '', label: 'Sélectionner', disabled: true, hidden: true}
+export const DefaultOption: SelectOption = {
+  label: 'Sélectionner',
+  value: '',
+  hidden: true,
+};
 
-export const Separator: SelectOption = { value: '', label: '', disabled: true, hidden: true, separator: true }
+export const Separator: SelectOption = {
+  label: '',
+  value: '',
+  markup: <hr className="fr-mt-1w" />,
+};
+
+// We might have to transform options in components in the future,
+// having all of them implement a single SelectOption interface
+
+export function createSubtitleOption(label: string): SelectOption {
+  return {
+    label,
+    value: '',
+    markup: (
+      <div>
+        <Text as="span" bold size="md">
+          {label}
+        </Text>
+        <hr className="fr-pb-1w" />
+      </div>
+    ),
+  };
+}

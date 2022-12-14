@@ -4,24 +4,29 @@ import {
   CardTitle,
   Link,
   Text,
-  Title
-} from "@dataesr/react-dsfr";
+  Title,
+} from '@dataesr/react-dsfr';
 
-import { Owner } from "../../models/Owner";
-import styles from "./owner-details-card.module.scss";
-import ButtonLink from "../ButtonLink/ButtonLink";
-import { capitalize } from "../../utils/stringUtils";
+import { Owner } from '../../models/Owner';
+import styles from './owner-details-card.module.scss';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import { capitalize } from '../../utils/stringUtils';
 
 interface OwnerDetailsCardProps {
-  onModify?: () => any
-  owner: Owner
+  onModify?: () => any;
+  owner: Owner;
 }
 
 function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
-  const mailto = (email: string): string => `mailto:${email}`
+  const mailto = (email: string): string => `mailto:${email}`;
 
   return (
-    <Card hasArrow={false} hasBorder={false} size="sm" className="fr-mb-1w fr-px-1w">
+    <Card
+      hasArrow={false}
+      hasBorder={false}
+      size="sm"
+      className="fr-mb-1w fr-px-1w"
+    >
       <CardTitle>
         <Title as="h2" look="h6" spacing="mb-1w" className={styles.titleInline}>
           Coordonnées
@@ -42,34 +47,40 @@ function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
       </CardTitle>
       <CardDescription className={styles.content}>
         <div>
-          <Text size="sm" className={styles.label}>Adresse postale</Text>
+          <Text size="sm" className="zlv-label">
+            Adresse postale
+          </Text>
           {owner.rawAddress.map((address, i) => (
-            <Text className="capitalize" key={`${owner.id}_address_${i}`} spacing="mb-0">
+            <Text
+              className="capitalize"
+              key={`${owner.id}_address_${i}`}
+              spacing="mb-0"
+            >
               {capitalize(address)}
             </Text>
           ))}
         </div>
-        {owner.email &&
+        {owner.email && (
           <div>
-            <Text size="sm" className={styles.label}>Adresse mail</Text>
-            <Link
-              className={styles.mailto}
-              isSimple
-              href={mailto(owner.email)}
-            >
+            <Text size="sm" className="zlv-label">
+              Adresse mail
+            </Text>
+            <Link className={styles.mailto} isSimple href={mailto(owner.email)}>
               {owner.email}
             </Link>
           </div>
-        }
-        {owner.phone &&
+        )}
+        {owner.phone && (
           <div>
-            <Text size="sm" className={styles.label}>Téléphone</Text>
+            <Text size="sm" className="zlv-label">
+              Téléphone
+            </Text>
             <Text spacing="mb-0">{owner.phone}</Text>
           </div>
-        }
+        )}
       </CardDescription>
     </Card>
-  )
+  );
 }
 
-export default OwnerDetailsCard
+export default OwnerDetailsCard;

@@ -297,6 +297,12 @@ a.fr-btn[target=_blank]:after {
   }
 }
 
+.zlv-label {
+  margin-bottom: 0 !important;
+  color: var(--grey-625);
+  font-weight: 500;
+}
+
 @for $i from 1 through 9 {
   .weight-#{$i}00 {
     font-weight: $i * 100

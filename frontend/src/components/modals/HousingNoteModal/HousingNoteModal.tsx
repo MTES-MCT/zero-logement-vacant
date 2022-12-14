@@ -22,7 +22,7 @@ import { Owner } from '../../../models/Owner';
 
 interface HousingNoteModalProps {
   housingList: Housing[];
-  owner: Owner;
+  owner?: Owner;
   onClose: () => void;
   onSubmitAboutOwner: (note: OwnerNote) => void;
   onSubmitAboutHousing: (note: HousingNote) => void;
@@ -109,7 +109,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
   });
 
   function submit(): void {
-    if (selectedHousing.includes(OWNER)) {
+    if (selectedHousing.includes(OWNER) && props.owner) {
       return props.onSubmitAboutOwner({
         title,
         content,

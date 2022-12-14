@@ -7,7 +7,7 @@ import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetailsCard/HousingDetailsCard';
 
 const HousingView = () => {
-  const { housing, mainHousingOwner } = useHousing();
+  const { housing, mainHousingOwner, housingOwners } = useHousing();
 
   return (
     <>
@@ -46,7 +46,10 @@ const HousingView = () => {
             <Col n="8">
               {housing && (
                 <>
-                  <HousingDetailsCard housing={housing} />
+                  <HousingDetailsCard
+                    housing={housing}
+                    housingOwners={housingOwners ?? []}
+                  />
                 </>
               )}
             </Col>

@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   CardDescription,
   CardTitle,
@@ -10,7 +11,7 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 import { pluralize } from '../../utils/stringUtils';
@@ -24,18 +25,29 @@ import {
   getBuildingLocation,
   hasGeoPerimeters,
   Housing,
+  HousingUpdate,
   OwnershipKindLabels,
 } from '../../models/Housing';
 import { LocalityKindLabels } from '../../models/Establishment';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import config from '../../utils/config';
+import HousingStatusModal from '../modals/HousingStatusModal/HousingStatusModal';
+import {
+  updateHousing,
+  updateHousingOwners,
+} from '../../store/actions/housingAction';
+import { useDispatch } from 'react-redux';
+import { HousingOwner } from '../../models/Owner';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import HousingOwnersModal from '../modals/HousingOwnersModal/HousingOwnersModal';
 
 interface DetailsCardProps {
   title: string;
+  onModify?: () => any;
   children?: ReactElement | ReactElement[];
 }
 
-function DetailsCard({ title, children }: DetailsCardProps) {
+function DetailsCard({ title, onModify, children }: DetailsCardProps) {
   return (
     <Card
       hasArrow={false}
@@ -44,8 +56,27 @@ function DetailsCard({ title, children }: DetailsCardProps) {
       className={classNames(styles.detailsCard, 'app-card-xs')}
     >
       <CardTitle>
-        <Title as="h2" spacing="mb-1w" className={styles.title}>
+        <Title
+          as="h2"
+          look="h6"
+          spacing="mb-1w"
+          className={classNames(styles.title, styles.titleInline)}
+        >
           {title}
+          {onModify && (
+            <ButtonLink
+              className={styles.link}
+              display="flex"
+              icon="ri-edit-2-fill"
+              iconPosition="left"
+              iconSize="1x"
+              isSimple
+              title="Modifier"
+              onClick={() => onModify()}
+            >
+              Modifier
+            </ButtonLink>
+          )}
         </Title>
         <hr />
       </CardTitle>
@@ -56,9 +87,34 @@ function DetailsCard({ title, children }: DetailsCardProps) {
 
 interface HousingDetailsCardProps {
   housing: Housing;
+  housingOwners: HousingOwner[];
 }
 
-function HousingDetailsCard({ housing }: HousingDetailsCardProps) {
+function HousingDetailsCard({
+  housing,
+  housingOwners,
+}: HousingDetailsCardProps) {
+  const dispatch = useDispatch();
+
+  const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
+  const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
+  const [isModalOwnersOpen, setIsModalOwnersOpen] = useState(false);
+
+  const submitHousingUpdate = (
+    housing: Housing,
+    housingUpdate: HousingUpdate
+  ) => {
+    dispatch(updateHousing(housing, housingUpdate));
+    setIsModalStatusOpen(false);
+  };
+
+  const submitHousingOwnersUpdate = (housingOwnersUpdated: HousingOwner[]) => {
+    if (housing) {
+      dispatch(updateHousingOwners(housing.id, housingOwnersUpdated));
+      setIsModalOwnersOpen(false);
+    }
+  };
+
   return (
     <Card hasArrow={false} hasBorder={false} size="sm">
       <CardTitle>
@@ -144,6 +200,37 @@ function HousingDetailsCard({ housing }: HousingDetailsCardProps) {
               </b>
             ))}
         </div>
+        <Row spacing="pt-2w float" justifyContent="right">
+          <Button
+            secondary
+            icon="ri-sticky-note-fill"
+            onClick={() => setIsModalNoteOpen(true)}
+          >
+            Ajouter une note
+          </Button>
+          <Button
+            icon="ri-edit-2-fill"
+            onClick={() => setIsModalStatusOpen(true)}
+            className="fr-ml-1w"
+          >
+            Mettre à jour le dossier
+          </Button>
+          {/*{isModalNoteOpen && */}
+          {/*  <HousingNoteModal*/}
+          {/*    housingList={housingList}*/}
+          {/*    onClose={() => setIsModalNoteOpen(false)}*/}
+          {/*    onSubmitAboutOwner={submitHousingNoteAboutOwner}*/}
+          {/*    onSubmitAboutHousing={submitHousingNoteAboutHousing}*/}
+          {/*  />*/}
+          {/*}*/}
+          {isModalStatusOpen && (
+            <HousingStatusModal
+              housingList={[housing]}
+              onSubmit={submitHousingUpdate}
+              onClose={() => setIsModalStatusOpen(false)}
+            />
+          )}
+        </Row>
         <Tabs className="fr-pt-3w">
           <Tab label="Caractéristiques" className="fr-px-0">
             <Row>
@@ -286,6 +373,68 @@ function HousingDetailsCard({ housing }: HousingDetailsCardProps) {
                     <Text>{OwnershipKindLabels[housing.ownershipKind]}</Text>
                   </div>
                 </DetailsCard>
+                <DetailsCard
+                  title={`Tous les propriétaires (${housingOwners.length})`}
+                  onModify={() => setIsModalOwnersOpen(true)}
+                >
+                  {housingOwners.map((housingOwner) => (
+                    <Card
+                      key={'owner_' + housingOwner.rank}
+                      hasArrow={false}
+                      href={
+                        (window.location.pathname.indexOf('proprietaires') ===
+                        -1
+                          ? window.location.pathname
+                          : '') +
+                        '/proprietaires/' +
+                        housingOwner.id
+                      }
+                      className="fr-mb-1w"
+                    >
+                      <CardTitle>
+                        <span className={styles.iconXs}>
+                          <Icon
+                            name="ri-user-fill"
+                            iconPosition="center"
+                            size="xs"
+                          />
+                        </span>
+                        <Text as="span">
+                          <b>{housingOwner.fullName}</b>
+                        </Text>
+                      </CardTitle>
+                      <CardDescription>
+                        <Text size="sm" className={styles.label} as="span">
+                          {!housingOwner.rank
+                            ? 'Ancien propriétaire'
+                            : housingOwner.rank === 1
+                            ? 'Propriétaire principal'
+                            : `${housingOwner.rank}ème ayant droit`}
+                        </Text>
+                        <Text
+                          as="span"
+                          spacing="mb-0 mr-1w"
+                          className="float-right fr-link"
+                        >
+                          Voir la fiche
+                          <Icon
+                            name="ri-arrow-right-line"
+                            size="lg"
+                            verticalAlign="middle"
+                            iconPosition="center"
+                          />
+                        </Text>
+                      </CardDescription>
+                    </Card>
+                  ))}
+                </DetailsCard>
+                {isModalOwnersOpen && (
+                  <HousingOwnersModal
+                    housingOwners={housingOwners}
+                    onSubmit={submitHousingOwnersUpdate}
+                    onClose={() => setIsModalOwnersOpen(false)}
+                  />
+                )}
               </Col>
             </Row>
           </Tab>

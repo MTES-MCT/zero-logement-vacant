@@ -18,13 +18,14 @@ const ProprietaireView = () => {
                             Vous êtes propriétaire d'un logement vacant ?
                         </Title>
                         <Title as="h2" look="h1">
-                            Faites vous aidez par votre ville pour remettre rapidement votre logement sur le marché
+                            Faites-vous aider par votre ville pour remettre votre logement sur le marché et ne pas payer de taxe supplémentaire
                         </Title>
                         <PopupButton id="w8YB8XMQ" style={{ fontSize: 20 }} className="fr-btn--md fr-btn">
-                            Inscription
+                            Prendre contact avec ma commune
                         </PopupButton>
                         <Text size="lead" className="fr-py-4w">
-                            Profitez gratuitement d'un accompagnement et bénéficiez dans certains cas d'aides financières
+                            Selon la commune où se trouve votre bien, vous êtes peut-être soumis à une Taxe sur les Logement Vacants (TLV ou THLV) qui peut atteindre 25% de la valeur locative. 
+                            Pour ne pas la payer, profitez gratuitement d'un accompagnement et bénéficiez dans certains cas d'aides financières
                         </Text>
 
                     </Col>

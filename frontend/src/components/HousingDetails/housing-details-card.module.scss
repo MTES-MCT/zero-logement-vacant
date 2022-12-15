@@ -1,9 +1,9 @@
-.detailsCard {
+.subCard {
   background-color: var(--grey-975);
   width: 100%;
   height: fit-content !important;
 
-  + .detailsCard {
+  + .subCard {
     margin-left: 0;
     margin-top: 2rem;
     display: block;

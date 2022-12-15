@@ -4,7 +4,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard';
 import { useHousing } from '../../hooks/useHousing';
-import HousingDetailsCard from '../../components/HousingDetailsCard/HousingDetailsCard';
+import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
 
 const HousingView = () => {
   const { housing, mainHousingOwner, housingOwners } = useHousing();

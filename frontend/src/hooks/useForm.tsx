@@ -1,96 +1,104 @@
-import { useEffect, useState } from "react";
-import * as yup from "yup";
-import { ObjectShape } from "yup/lib/object";
-import { isDate, parse } from 'date-fns';
+import { useEffect, useState } from 'react';
+import * as yup from 'yup';
+import { ObjectShape } from 'yup/lib/object';
+import { isDate } from 'date-fns';
+import { parseDateInput } from '../utils/dateUtils';
 
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email('L\'adresse doit être un email valide')
+  .email("L'adresse doit être un email valide");
 
 export const passwordValidator = yup
   .string()
   .required('Veuillez renseigner un mot de passe.')
-  .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/, 'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre.')
+  .matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/,
+    'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre.'
+  );
 
 export const passwordConfirmationValidator = yup
   .string()
   .required('Veuillez confirmer votre mot de passe.')
-  .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.')
+  .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.');
 
 export const campaignTitleValidator = yup
-    .string()
-    .required('Veuillez renseigner le titre de la campagne.')
+  .string()
+  .required('Veuillez renseigner le titre de la campagne.');
 
 export const dateValidator = yup
   .date()
   .transform((curr, originalValue) => {
-    return !originalValue.length ? null : (isDate(originalValue) ? originalValue : parse(originalValue, 'dd/MM/yyyy', new Date()))
+    return !originalValue.length
+      ? null
+      : isDate(originalValue)
+      ? originalValue
+      : parseDateInput(originalValue);
   })
-  .typeError('Veuillez renseigner une date valide.')
+  .typeError('Veuillez renseigner une date valide.');
 
 interface UseFormOptions {
-  dependencies?: React.DependencyList
+  dependencies?: React.DependencyList;
 }
 
-type MessageType = 'error' | 'valid' | ''
+type MessageType = 'error' | 'valid' | '';
 
-export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown>>(
-  schema: yup.ObjectSchema<T>,
-  input: U,
-  options?: UseFormOptions
-) {
-  const [errors, setErrors] = useState<yup.ValidationError>()
-  const [isTouched, setIsTouched] = useState(false)
+export function useForm<
+  T extends ObjectShape,
+  U extends Record<keyof T, unknown>
+>(schema: yup.ObjectSchema<T>, input: U, options?: UseFormOptions) {
+  const [errors, setErrors] = useState<yup.ValidationError>();
+  const [isTouched, setIsTouched] = useState(false);
 
   function error<K extends keyof U>(key?: K): yup.ValidationError | undefined {
-    return isTouched
-      && key ? errors?.inner.find(error => error.path === key) : errors
+    return isTouched && key
+      ? errors?.inner.find((error) => error.path === key)
+      : errors;
   }
 
   function hasError<K extends keyof U>(key?: K): boolean {
-    return error(key) !== undefined
+    return error(key) !== undefined;
   }
 
   function isValid(): boolean {
-    return isTouched && !hasError()
+    return isTouched && !hasError();
   }
 
   function message<K extends keyof U>(key: K): string | undefined {
-    return error(key)?.message
+    return error(key)?.message;
   }
 
   function messageType<K extends keyof U>(key: K): MessageType {
     if (isTouched) {
       if (hasError(key)) {
-        return 'error'
+        return 'error';
       }
-      return 'valid'
+      return 'valid';
     }
-    return ''
+    return '';
   }
 
   async function validate() {
     try {
-      setIsTouched(true)
-      await schema.validate(input, { abortEarly: false })
-      setErrors(undefined)
+      setIsTouched(true);
+      await schema.validate(input, { abortEarly: false });
+      setErrors(undefined);
     } catch (errors) {
-      setErrors(errors as yup.ValidationError)
+      setErrors(errors as yup.ValidationError);
     }
   }
 
   useEffect(() => {
     if (isTouched || options?.dependencies?.length) {
-      validate()
+      validate();
     } else {
-      if (Object.values(input).some(value => !!value)) {
-        setIsTouched(true)
-        validate()
+      if (Object.values(input).some((value) => !!value)) {
+        setIsTouched(true);
+        validate();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...Object.values(input), ...options?.dependencies ?? []])
+  }, [...Object.values(input), ...(options?.dependencies ?? [])]);
 
   return {
     isTouched,
@@ -98,6 +106,6 @@ export function useForm<T extends ObjectShape, U extends Record<keyof T, unknown
     hasError,
     message,
     messageType,
-    validate
-  }
+    validate,
+  };
 }

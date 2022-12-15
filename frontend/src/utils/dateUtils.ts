@@ -1,9 +1,20 @@
-import { add, differenceInMilliseconds, format } from 'date-fns';
+import { add, differenceInMilliseconds, format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+export const dateSort = (d1?: Date, d2?: Date) =>
+  d1 ? (d2 ? differenceInMilliseconds(d1, d2) : 1) : d2 ? -1 : 0;
 
-export const dateSort = (d1?: Date, d2?: Date) => d1 ? (d2 ? differenceInMilliseconds(d1, d2) : 1) : (d2 ? -1 : 0)
+export const durationSort = (d1?: Duration, d2?: Duration) =>
+  d1
+    ? d2
+      ? dateSort(add(new Date(), d1), add(new Date(), d2))
+      : 1
+    : d2
+    ? -1
+    : 0;
 
-export const durationSort = (d1?: Duration, d2?: Duration) => d1 ? (d2 ? dateSort(add(new Date(), d1), add(new Date(), d2)) : 1) : (d2 ? -1 : 0)
+export const dateShortFormat = (d: Date) =>
+  format(d, 'dd/MM/yy', { locale: fr });
 
-export const dateShortFormat = (d: Date) => format(d, 'dd/MM/yy', { locale: fr })
+export const parseDateInput = (s: string) =>
+  s.length ? parse(s, 'yyyy-MM-dd', new Date()) : undefined;

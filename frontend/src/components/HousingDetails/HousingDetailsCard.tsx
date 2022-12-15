@@ -22,7 +22,10 @@ import {
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingStatusModal from '../modals/HousingStatusModal/HousingStatusModal';
-import { updateHousing } from '../../store/actions/housingAction';
+import {
+  createHousingNote,
+  updateHousing,
+} from '../../store/actions/housingAction';
 import { useDispatch } from 'react-redux';
 import { HousingOwner } from '../../models/Owner';
 import HousingDetailsSubCardOwners from './HousingDetailsSubCardOwners';
@@ -30,6 +33,8 @@ import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
 import HousingDetailsSubCardSituation from './HousingDetailsSubCardSituation';
+import HousingNoteModal from '../modals/HousingNoteModal/HousingNoteModal';
+import { HousingNote } from '../../models/Note';
 
 interface Props {
   housing: Housing;
@@ -48,6 +53,11 @@ function HousingDetailsCard({ housing, housingOwners }: Props) {
   ) => {
     dispatch(updateHousing(housing, housingUpdate));
     setIsModalStatusOpen(false);
+  };
+
+  const submitHousingNoteAboutHousing = (note: HousingNote): void => {
+    dispatch(createHousingNote(note));
+    setIsModalNoteOpen(false);
   };
 
   return (
@@ -150,14 +160,13 @@ function HousingDetailsCard({ housing, housingOwners }: Props) {
           >
             Mettre à jour le dossier
           </Button>
-          {/*{isModalNoteOpen && */}
-          {/*  <HousingNoteModal*/}
-          {/*    housingList={housingList}*/}
-          {/*    onClose={() => setIsModalNoteOpen(false)}*/}
-          {/*    onSubmitAboutOwner={submitHousingNoteAboutOwner}*/}
-          {/*    onSubmitAboutHousing={submitHousingNoteAboutHousing}*/}
-          {/*  />*/}
-          {/*}*/}
+          {isModalNoteOpen && (
+            <HousingNoteModal
+              housingList={[housing]}
+              onClose={() => setIsModalNoteOpen(false)}
+              onSubmitAboutHousing={submitHousingNoteAboutHousing}
+            />
+          )}
           {isModalStatusOpen && (
             <HousingStatusModal
               housingList={[housing]}

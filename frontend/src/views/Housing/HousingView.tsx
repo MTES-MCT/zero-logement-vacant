@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Container, Link, Row } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
+import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
+import { Owner } from '../../models/Owner';
+import { useDispatch } from 'react-redux';
+import { updateMainHousingOwner } from '../../store/actions/housingAction';
 
 const HousingView = () => {
+  const dispatch = useDispatch();
   const { housing, mainHousingOwner, housingOwners } = useHousing();
+  const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
+
+  const updateMainOwner = (owner: Owner) => {
+    if (housing) {
+      dispatch(updateMainHousingOwner(owner, housing?.id));
+      setIsModalOwnerOpen(false);
+    }
+  };
 
   return (
     <>
@@ -38,8 +51,15 @@ const HousingView = () => {
                   </OwnerCard>
                   <OwnerDetailsCard
                     owner={mainHousingOwner}
-                    onModify={() => {}}
+                    onModify={() => setIsModalOwnerOpen(true)}
                   />
+                  {isModalOwnerOpen && (
+                    <OwnerEditionModal
+                      owner={mainHousingOwner}
+                      onUpdate={updateMainOwner}
+                      onClose={() => setIsModalOwnerOpen(false)}
+                    />
+                  )}
                 </>
               )}
             </Col>

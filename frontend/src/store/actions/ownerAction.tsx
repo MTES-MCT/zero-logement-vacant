@@ -6,7 +6,7 @@ import housingService from '../../services/housing.service';
 import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing } from '../../models/Housing';
 import { OwnerNote } from '../../models/Note';
 
 export const FETCHING_OWNER = 'FETCHING_OWNER';
@@ -133,23 +133,6 @@ export const update = (modifiedOwner: Owner) => {
           console.error(error);
         });
     }
-  };
-};
-
-export const updateOwnerHousing = (
-  housing: Housing,
-  housingUpdate: HousingUpdate
-) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
-    dispatch(showLoading());
-
-    const ownerState = getState().owner;
-
-    housingService.updateHousing(housing.id, housingUpdate).then(() => {
-      dispatch(hideLoading());
-      getOwnerHousing(ownerState.owner.id)(dispatch);
-      getOwnerEvents(ownerState.owner.id)(dispatch);
-    });
   };
 };
 

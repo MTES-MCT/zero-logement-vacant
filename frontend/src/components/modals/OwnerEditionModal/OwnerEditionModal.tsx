@@ -10,7 +10,7 @@ import {
   ModalTitle,
   TextInput,
 } from '@dataesr/react-dsfr';
-import { DraftOwner, Owner } from '../../../models/Owner';
+import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
@@ -21,12 +21,10 @@ import { parseDateInput } from '../../../utils/dateUtils';
 const OwnerEditionModal = ({
   owner,
   onClose,
-  onCreate,
   onUpdate,
 }: {
   owner: Owner;
-  onCreate?: (owner: DraftOwner) => void;
-  onUpdate?: (owner: Owner) => void;
+  onUpdate: (owner: Owner) => void;
   onClose: () => void;
 }) => {
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
@@ -63,17 +61,9 @@ const OwnerEditionModal = ({
     ownerForm
       .validate({ fullName, birthDate, email, phone }, { abortEarly: false })
       .then(() => {
-        if (owner && onUpdate) {
+        if (owner) {
           onUpdate({
             ...owner,
-            fullName,
-            birthDate: parseDateInput(birthDate),
-            rawAddress,
-            email,
-            phone,
-          });
-        } else if (onCreate) {
-          onCreate({
             fullName,
             birthDate: parseDateInput(birthDate),
             rawAddress,

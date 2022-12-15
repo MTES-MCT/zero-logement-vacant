@@ -12,7 +12,7 @@ import { updateMainHousingOwner } from '../../store/actions/housingAction';
 
 const HousingView = () => {
   const dispatch = useDispatch();
-  const { housing, mainHousingOwner, housingOwners } = useHousing();
+  const { housing, mainHousingOwner, housingOwners, events } = useHousing();
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
   const updateMainOwner = (owner: Owner) => {
@@ -69,6 +69,7 @@ const HousingView = () => {
                   <HousingDetailsCard
                     housing={housing}
                     housingOwners={housingOwners ?? []}
+                    housingEvents={events ?? []}
                   />
                 </>
               )}

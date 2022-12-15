@@ -35,13 +35,16 @@ import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
 import HousingDetailsSubCardSituation from './HousingDetailsSubCardSituation';
 import HousingNoteModal from '../modals/HousingNoteModal/HousingNoteModal';
 import { HousingNote } from '../../models/Note';
+import EventsHistory from '../EventsHistory/EventsHistory';
+import { Event } from '../../models/Event';
 
 interface Props {
   housing: Housing;
   housingOwners: HousingOwner[];
+  housingEvents: Event[];
 }
 
-function HousingDetailsCard({ housing, housingOwners }: Props) {
+function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
   const dispatch = useDispatch();
 
   const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
@@ -194,6 +197,9 @@ function HousingDetailsCard({ housing, housingOwners }: Props) {
                 />
               </Col>
             </Row>
+          </Tab>
+          <Tab label="Suivi du logement">
+            <EventsHistory events={housingEvents} />
           </Tab>
         </Tabs>
       </CardDescription>

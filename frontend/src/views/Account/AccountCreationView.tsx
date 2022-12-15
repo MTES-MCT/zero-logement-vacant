@@ -1,16 +1,16 @@
-import React, { ChangeEvent, useState } from "react";
-import { useDispatch } from "react-redux";
-import { DraftUser } from "../../models/User";
-import prospectService from "../../services/prospect.service";
-import { createUser } from "../../store/actions/userAction";
-import { login } from "../../store/actions/authenticationAction";
-import * as yup from "yup";
+import React, { useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { DraftUser } from '../../models/User';
+import prospectService from '../../services/prospect.service';
+import { createUser } from '../../store/actions/userAction';
+import { login } from '../../store/actions/authenticationAction';
+import * as yup from 'yup';
 import {
   emailValidator,
   passwordConfirmationValidator,
   passwordValidator,
-  useForm
-} from "../../hooks/useForm";
+  useForm,
+} from '../../hooks/useForm';
 import {
   Button,
   Col,
@@ -19,11 +19,13 @@ import {
   Row,
   Text,
   TextInput,
-  Title
-} from "@dataesr/react-dsfr";
-import CampaignIntent from "../../components/CampaignIntent/CampaignIntent";
-import building from "../../assets/images/building.svg";
-import Stepper from "../../components/Stepper/Stepper";
+  Title,
+} from '@dataesr/react-dsfr';
+import CampaignIntent from '../../components/CampaignIntent/CampaignIntent';
+import building from '../../assets/images/building.svg';
+import Stepper from '../../components/Stepper/Stepper';
+import { Prospect } from '../../models/Prospect';
+import Help from '../../components/Help/Help';
 
 function AccountCreationView() {
   const steps = {
@@ -31,59 +33,62 @@ function AccountCreationView() {
     'awaiting-access': AwaitingAccess,
     'fill-password': FillPassword,
     'access-forbidden': AccessForbidden,
-    'fill-campaign-intent': FillCampaignIntent
-  }
-  const [step, setStep] = useState<keyof typeof steps>('fill-email')
+    'fill-campaign-intent': FillCampaignIntent,
+  };
+  const [step, setStep] = useState<keyof typeof steps>('fill-email');
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const [prospect, setProspect] = useState<Prospect>();
   const [user, setUser] = useState<DraftUser>({
     email: '',
     password: '',
     establishmentId: '',
-  })
+  });
 
   async function onEmail(email: string): Promise<void> {
     try {
-      const { establishment, hasAccount, hasCommitment } = await prospectService.get(email)
+      const prospect = await prospectService.get(email);
+      setProspect(prospect);
+      const { establishment, hasAccount, hasCommitment } = prospect;
 
       if (establishment && hasAccount && hasCommitment) {
-        setStep('fill-password')
-        setUser({ ...user, email, establishmentId: establishment.id })
-        return
+        setStep('fill-password');
+        setUser({ ...user, email, establishmentId: establishment.id });
+        return;
       }
 
       if (establishment && hasAccount && !hasCommitment) {
-        setStep('awaiting-access')
-        setUser({ ...user, email, establishmentId: establishment.id })
-        return
+        setStep('awaiting-access');
+        setUser({ ...user, email, establishmentId: establishment.id });
+        return;
       }
 
-      setStep('access-forbidden')
+      setStep('access-forbidden');
     } catch (error) {
-      setStep('access-forbidden')
+      setStep('access-forbidden');
     }
   }
 
   async function onPassword(password: string): Promise<void> {
-    setUser({ ...user, password })
-    setStep('fill-campaign-intent')
+    setUser({ ...user, password });
+    setStep('fill-campaign-intent');
   }
 
   async function onCampaignIntent(campaignIntent: string): Promise<void> {
     // Save user and remove prospect
-    await dispatch(createUser({ ...user, campaignIntent }))
-    setUser({ ...user, campaignIntent })
-    dispatch(login(user.email, user.password, user.establishmentId))
+    await dispatch(createUser({ ...user, campaignIntent }));
+    setUser({ ...user, campaignIntent });
+    dispatch(login(user.email, user.password, user.establishmentId));
   }
 
   function FillEmail({ onFillEmail }: { onFillEmail(email: string): void }) {
-    const [email, setEmail] = useState('')
-    const schema = yup.object().shape({ email: emailValidator })
-    const { isValid, message, messageType } = useForm(schema, { email })
+    const [email, setEmail] = useState('');
+    const schema = yup.object().shape({ email: emailValidator });
+    const { isValid, message, messageType } = useForm(schema, { email });
 
     async function next(): Promise<void> {
       if (isValid()) {
-        onFillEmail(email)
+        onFillEmail(email);
       }
     }
 
@@ -92,13 +97,14 @@ function AccountCreationView() {
         <Title as="h2">Créer votre compte</Title>
         <Text size="lead">
           Pour créer votre compte sur Zéro Logement Vacant, vous devez
-          impérativement avoir déjà signé l'acte d'engagement permettant d'accéder
-          aux données LOVAC via la procédure indiquée sur le site du Cerema.
+          impérativement avoir déjà signé l'acte d'engagement permettant
+          d'accéder aux données LOVAC via la procédure indiquée sur le site du
+          Cerema.
         </Text>
         <TextInput
           type="text"
           value={email}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           messageType={messageType('email')}
           message={message('email')}
           label="Adresse email"
@@ -117,10 +123,12 @@ function AccountCreationView() {
           >
             Revenir à l'écran d'accueil
           </Link>
-          <Button title="Continuer" disabled={!isValid()} onClick={next}>Continuer</Button>
+          <Button title="Continuer" disabled={!isValid()} onClick={next}>
+            Continuer
+          </Button>
         </Row>
       </>
-    )
+    );
   }
 
   function AwaitingAccess() {
@@ -130,14 +138,13 @@ function AccountCreationView() {
           Votre demande d’accès aux données LOVAC n’a pas encore été validée
         </Title>
         <Text>
-          Vous avez déjà signé et transmis l’acte d’engagement
-          permettant d’accéder aux données LOVAC via la plateforme
-          Démarches Simplifiées.
+          Vous avez déjà signé et transmis l’acte d’engagement permettant
+          d’accéder aux données LOVAC via la plateforme Démarches Simplifiées.
         </Text>
         <Text>
-          Cependant, votre demande n’a pas encore
-          été validée. Nous reviendrons très prochainement vers vous
-          pour finaliser la création de votre compte.
+          Cependant, votre demande n’a pas encore été validée. Nous reviendrons
+          très prochainement vers vous pour finaliser la création de votre
+          compte.
         </Text>
         <Link
           isSimple
@@ -151,28 +158,32 @@ function AccountCreationView() {
           Revenir à l'écran d'accueil
         </Link>
       </>
-    )
+    );
   }
 
-  function FillPassword({ onFillPassword }: { onFillPassword(password: string): void }) {
-    const [password, setPassword] = useState('')
-    const [confirmation, setConfirmation] = useState('')
+  function FillPassword({
+    onFillPassword,
+  }: {
+    onFillPassword(password: string): void;
+  }) {
+    const [password, setPassword] = useState('');
+    const [confirmation, setConfirmation] = useState('');
     const schema = yup.object().shape({
       password: passwordValidator,
-      confirmation: passwordConfirmationValidator
-    })
+      confirmation: passwordConfirmationValidator,
+    });
     const { isValid, message, messageType } = useForm(schema, {
       password,
-      confirmation
-    })
+      confirmation,
+    });
 
     function back() {
-      setStep('fill-email')
+      setStep('fill-email');
     }
 
     function next() {
       if (isValid()) {
-        onFillPassword(password)
+        onFillPassword(password);
       }
     }
 
@@ -187,7 +198,7 @@ function AccountCreationView() {
         <TextInput
           type="password"
           value={password}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           messageType={messageType('password')}
           message={message('password')}
           label="Créer votre mot de passe"
@@ -197,7 +208,7 @@ function AccountCreationView() {
         <TextInput
           type="password"
           value={confirmation}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmation(e.target.value)}
+          onChange={(e) => setConfirmation(e.target.value)}
           messageType={messageType('confirmation')}
           message={message('confirmation')}
           label="Confirmer votre mot de passe"
@@ -221,32 +232,37 @@ function AccountCreationView() {
           </Button>
         </Row>
       </>
-    )
+    );
   }
 
   function AccessForbidden() {
     function back() {
-      setStep('fill-email')
+      setStep('fill-email');
     }
 
     return (
       <>
         <Title as="h2">
-          Vous n’avez pas signé et transmis l’acte d’engagement
-          permettant d’accéder aux données LOVAC
+          Vous n’avez pas signé et transmis l’acte d’engagement permettant
+          d’accéder aux données LOVAC
         </Title>
         <Text>
-          Vous n’avez pas l’autorisation d’accéder aux données
-          LOVAC. Veuillez signer et transmettre l’acte d’engagement
-          permettant d’accéder à ces données en suivant la procédure
-          indiquée sur le site du Cerema.
+          Vous n’avez pas l’autorisation d’accéder aux données LOVAC. Veuillez
+          signer et transmettre l’acte d’engagement permettant d’accéder à ces
+          données en suivant la procédure indiquée sur le site du Cerema.
         </Text>
         <Text>
-          Vous avez peut être signé et transmis l’acte d’engagement
-          permettant d’accéder aux données LOVAC via une adresse mail
-          différente. Dans ce cas, <Link title="Modifier l'adresse email" href="#" isSimple onClick={back}>
-          réessayez avec l’adresse mail utilisée sur Démarches Simplifiées.
-        </Link>
+          Vous avez peut être signé et transmis l’acte d’engagement permettant
+          d’accéder aux données LOVAC via une adresse mail différente. Dans ce
+          cas,{' '}
+          <Link
+            title="Modifier l'adresse email"
+            href="#"
+            isSimple
+            onClick={back}
+          >
+            réessayez avec l’adresse mail utilisée sur Démarches Simplifiées.
+          </Link>
         </Text>
         <Link
           isSimple
@@ -260,27 +276,38 @@ function AccountCreationView() {
           Revenir à l'écran d'accueil
         </Link>
       </>
-    )
+    );
   }
 
-  function FillCampaignIntent({ onFillCampaignIntent }: { onFillCampaignIntent(intent: string): void }) {
-    const [campaignIntent, setCampaignIntent] = useState<string>()
+  function FillCampaignIntent({
+    onFillCampaignIntent,
+  }: {
+    onFillCampaignIntent(intent: string): void;
+  }) {
+    const [campaignIntent, setCampaignIntent] = useState<string | undefined>(
+      prospect?.establishment?.campaignIntent
+    );
     const schema = yup.object().shape({
-      campaignIntent: yup.string().required().oneOf(['0-2', '2-4', '4+'])
-    })
+      campaignIntent: yup.string().required().oneOf(['0-2', '2-4', '4+']),
+    });
     const { isValid, message, messageType } = useForm(schema, {
-      campaignIntent
-    })
+      campaignIntent,
+    });
 
     function back() {
-      setStep('fill-password')
+      setStep('fill-password');
     }
 
     async function createAccount() {
       if (isValid()) {
-        onFillCampaignIntent(campaignIntent as string)
+        onFillCampaignIntent(campaignIntent as string);
       }
     }
+
+    const disabled = useMemo<boolean>(
+      () => !!prospect?.establishment?.campaignIntent,
+      []
+    );
 
     return (
       <>
@@ -291,9 +318,18 @@ function AccountCreationView() {
           nextStepTitle=""
         />
         <Title as="h5">
-          Quand prévoyez-vous de contacter des propriétaires de logements vacants ?
+          Quand prévoyez-vous de contacter des propriétaires de logements
+          vacants ?
         </Title>
+        {disabled && (
+          <Help className="fr-mb-2w">
+            Un agent de votre collectivité a déjà indiqué les intentions de
+            campagne.
+          </Help>
+        )}
         <CampaignIntent
+          defaultValue={prospect?.establishment?.campaignIntent}
+          disabled={disabled}
           message={message('campaignIntent')}
           messageType={messageType('campaignIntent')}
           onChange={setCampaignIntent}
@@ -311,15 +347,19 @@ function AccountCreationView() {
           >
             Revenir à l'étape précédente
           </Link>
-          <Button title="Créer votre compte" disabled={!isValid()} onClick={createAccount}>
+          <Button
+            title="Créer votre compte"
+            disabled={!isValid()}
+            onClick={createAccount}
+          >
             Créer votre compte
           </Button>
         </Row>
       </>
-    )
+    );
   }
 
-  const Component = steps[step]
+  const Component = steps[step];
   return (
     <Container spacing="py-7w mb-4w">
       <Row gutters>
@@ -331,11 +371,15 @@ function AccountCreationView() {
           />
         </Col>
         <Col n="5" offset="1" className="align-right">
-          <img src={building} style={{maxWidth: "100%", height: "100%"}} alt=""/>
+          <img
+            src={building}
+            style={{ maxWidth: '100%', height: '100%' }}
+            alt=""
+          />
         </Col>
       </Row>
     </Container>
-  )
+  );
 }
 
-export default AccountCreationView
+export default AccountCreationView;

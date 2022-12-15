@@ -1,9 +1,10 @@
 export interface Prospect {
-  email: string
+  email: string;
   establishment?: {
-    id: string
-    siren: number
-  }
-  hasAccount: boolean
-  hasCommitment: boolean
+    id: string;
+    siren: number;
+    campaignIntent?: string;
+  };
+  hasAccount: boolean;
+  hasCommitment: boolean;
 }

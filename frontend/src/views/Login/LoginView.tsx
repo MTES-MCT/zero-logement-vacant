@@ -68,75 +68,73 @@ const LoginView = () => {
   }
 
   return (
-    <>
-      <Container as="main" spacing="py-4w">
-        {isLoggedOut && (
-          <Alert
-            title="Déconnexion"
-            description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
-            className="fr-my-3w"
-            type="warning"
-            closable
-          />
-        )}
-        {loginError && (
-          <div data-testid="alert-error" className="fr-my-2w">
-            <Alert title="Erreur" description={loginError} type="error" />
-          </div>
-        )}
-        <Row gutters>
-          <Col>
-            <form onSubmit={submitLoginForm} id="login_form">
-              <TextInput
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                messageType={messageType('email')}
-                message={message('email')}
-                data-testid="email-input"
-                label="Adresse email : "
-                required
-              />
-              <TextInput
-                value={password}
-                type="password"
-                onChange={(e) => setPassword(e.target.value)}
-                messageType={messageType('password')}
-                message={message('password')}
-                data-testid="password-input"
-                label="Mot de passe : "
-                required
-              />
-              {pathname === '/admin' && (
-                <EstablishmentSearchableSelect
-                  onChange={(id: string) => setEstablishmentId(id)}
-                />
-              )}
-              <Row alignItems="middle">
-                <Col>
-                  <InternalLink to="/mot-de-passe/oublie" isSimple>
-                    Mot de passe oublié ?
-                  </InternalLink>
-                </Col>
-                <Col>
-                  <Row justifyContent="right">
-                    <Button submit data-testid="login-button">
-                      Se connecter
-                    </Button>
-                  </Row>
-                </Col>
-              </Row>
-            </form>
-          </Col>
-          <Col n="5" offset="1" className="align-right">
-            <img
-              src={building}
-              style={{ width: '100%', height: '100%' }}
-              alt=""
+    <Container as="main" spacing="py-4w">
+      {isLoggedOut && (
+        <Alert
+          title="Déconnexion"
+          description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
+          className="fr-my-3w"
+          type="warning"
+          closable
+        />
+      )}
+      {loginError && (
+        <div data-testid="alert-error" className="fr-my-2w">
+          <Alert title="Erreur" description={loginError} type="error" />
+        </div>
+      )}
+      <Row gutters>
+        <Col>
+          <form onSubmit={submitLoginForm} id="login_form">
+            <TextInput
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              messageType={messageType('email')}
+              message={message('email')}
+              data-testid="email-input"
+              label="Adresse email : "
+              required
             />
-          </Col>
-        </Row>
-      </Container>
-    </>
+            <TextInput
+              value={password}
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              messageType={messageType('password')}
+              message={message('password')}
+              data-testid="password-input"
+              label="Mot de passe : "
+              required
+            />
+            {pathname === '/admin' && (
+              <EstablishmentSearchableSelect
+                onChange={(id: string) => setEstablishmentId(id)}
+              />
+            )}
+            <Row alignItems="middle">
+              <Col>
+                <InternalLink to="/mot-de-passe/oublie" isSimple>
+                  Mot de passe oublié ?
+                </InternalLink>
+              </Col>
+              <Col>
+                <Row justifyContent="right">
+                  <Button submit data-testid="login-button">
+                    Se connecter
+                  </Button>
+                </Row>
+              </Col>
+            </Row>
+          </form>
+        </Col>
+        <Col n="5" offset="1" className="align-right">
+          <img
+            src={building}
+            style={{ width: '100%', height: '100%' }}
+            alt=""
+          />
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

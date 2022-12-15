@@ -91,7 +91,7 @@ const ProprietaireView = () => {
                             Un simulateur permet de déterminer la zone dans laquelle est le logement.
                         </CalloutText>
                         <Link title="Accéder à la base de données" href="https://www.service-public.fr/particuliers/vosdroits/R49131" className="fr-btn--md fr-btn">
-                            Vérifier si mon logement est en zone tendu
+                            Vérifier si mon logement est en zone tendue
                         </Link>
                     </Callout>
                 </Container>

@@ -10,7 +10,7 @@
     "frontend:test": "npm --prefix frontend test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
-    "build": "npm install --production=false && npm run migrate-latest && tsc && npm run frontend:build",
+    "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
     "test": "jest --maxWorkers=1",
     "lint": "eslint . --ext .js,.ts",

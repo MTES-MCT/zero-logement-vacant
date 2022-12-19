@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';
@@ -43,6 +43,11 @@ interface UseFormOptions {
 
 type MessageType = 'error' | 'valid' | '';
 
+interface Message {
+  text: string;
+  type: Omit<MessageType, ''>;
+}
+
 export function useForm<
   T extends ObjectShape,
   U extends Record<keyof T, unknown>
@@ -56,6 +61,18 @@ export function useForm<
       : errors;
   }
 
+  /**
+   * Return all the errors related to a given field.
+   * @param key
+   */
+  function errorList<K extends keyof U>(
+    key?: K
+  ): yup.ValidationError[] | undefined {
+    return isTouched && key
+      ? errors?.inner.filter((error) => error.path === key)
+      : errors?.inner;
+  }
+
   function hasError<K extends keyof U>(key?: K): boolean {
     return error(key) !== undefined;
   }
@@ -64,8 +81,43 @@ export function useForm<
     return isTouched && !hasError();
   }
 
-  function message<K extends keyof U>(key: K): string | undefined {
-    return error(key)?.message;
+  function labels<K extends keyof U>(key?: K): string[] {
+    if (key) {
+      return (schema.fields[key] as any).tests.map(
+        (test: any) => test.OPTIONS.message
+      );
+    }
+    return Object.values(schema.fields)
+      .flatMap((field) => (field as any).tests)
+      .map((test) => test.OPTIONS.message);
+  }
+
+  function message<K extends keyof U>(
+    key: K,
+    whenValid?: string
+  ): string | undefined {
+    return messageType(key) === 'valid' && whenValid
+      ? whenValid
+      : error(key)?.message;
+  }
+
+  /**
+   * Return individual messages for a given field.
+   * @param key
+   */
+  function messageList<K extends keyof U>(key: K): Message[] {
+    if (!isTouched) {
+      return [];
+    }
+
+    return labels(key).map((label) => {
+      return {
+        text: label,
+        type: errorList(key)?.find((error) => error.message === label)
+          ? 'error'
+          : 'valid',
+      };
+    });
   }
 
   function messageType<K extends keyof U>(key: K): MessageType {
@@ -104,6 +156,7 @@ export function useForm<
     isTouched,
     isValid,
     hasError,
+    messageList,
     message,
     messageType,
     validate,

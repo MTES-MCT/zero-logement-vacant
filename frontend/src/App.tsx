@@ -31,7 +31,8 @@ import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from "./views/Account/AccountCreationView";
 import ForgottenPasswordView
-    from "./views/ForgottenPassword/ForgottenPasswordView";
+    from "./views/Account/ForgottenPasswordView";
+import ResetPasswordView from "./views/Account/ResetPasswordView";
 
 
 function AppWrapper () {
@@ -122,7 +123,7 @@ function App() {
                             <Route exact path="/inscription" component={AccountCreationView} />
                             <Route exact path="/connexion" component={LoginView} />
                             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
-                            <Route exact path="/mot-de-passe/nouveau" />
+                            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
                             <Route exact path="/admin" component={LoginView} />
                             <Route path="/*">
                                 { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }

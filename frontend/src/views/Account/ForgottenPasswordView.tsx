@@ -13,6 +13,7 @@ import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
 import authService from '../../services/auth.service';
 import Alert from '../../components/Alert/Alert';
+import InternalLink from '../../components/InternalLink/InternalLink';
 
 function ForgottenPasswordView() {
   const [error, setError] = useState('');
@@ -40,19 +41,26 @@ function ForgottenPasswordView() {
     }
   }
 
+  function EmailSent() {
+    return (
+      <>
+        <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
+        <Text className="subtitle">
+          Vous ne trouvez pas le mail ? Vérifiez qu'il ne s'est pas glissé dans
+          vos spams ou{' '}
+          <InternalLink to="#" isSimple onClick={submit}>
+            renvoyer le mail
+          </InternalLink>
+          .
+        </Text>
+      </>
+    );
+  }
+
   return (
-    <Container as="main" spacing="py-4w">
-      <Row gutters>
+    <Container as="main" spacing="py-4w" className="grow-container">
+      <Row gutters alignItems="middle">
         <Col>
-          {emailSent && (
-            <Alert
-              title="Email envoyé"
-              description="Vous le recevrez dans quelques minutes."
-              type="success"
-              className="fr-my-3w"
-              closable
-            />
-          )}
           {error && (
             <Alert
               title="Erreur"
@@ -62,28 +70,37 @@ function ForgottenPasswordView() {
               type="error"
             />
           )}
-          <Title as="h1" look="h2">
-            Réinitialisez votre mot de passe
+          <Title as="h1" look="h4">
+            Réinitialisation de votre mot de passe
           </Title>
-          <Text size="sm" className="subtitle">
-            Nous vous enverrons un mail de réinitialisation de mot de passe si
-            vous avez un compte.
-          </Text>
-          <form onSubmit={submit}>
-            <TextInput
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              messageType={messageType('email')}
-              message={message('email')}
-              data-testid="email-input"
-              label="Adresse email : "
-              placeholder="exemple@gmail.com"
-              required
-            />
-            <Button disabled={!isValid()} submit>
-              Envoyer un lien par mail
-            </Button>
-          </form>
+          {emailSent ? (
+            <EmailSent />
+          ) : (
+            <>
+              <Text>
+                Vous allez <b>recevoir un email</b> qui vous permettra de créer
+                un nouveau mot de passe.
+              </Text>
+              <form onSubmit={submit}>
+                <TextInput
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  hint="Entrez l’adresse mail utilisée pour créer votre compte ZLV"
+                  messageType={messageType('email')}
+                  message={message('email', 'Email valide.')}
+                  data-testid="email-input"
+                  label="Adresse email : "
+                  placeholder="exemple@gmail.com"
+                  required
+                />
+                <Row justifyContent="right">
+                  <Button disabled={!isValid()} submit>
+                    Envoyer un email de réinitialisation
+                  </Button>
+                </Row>
+              </form>
+            </>
+          )}
         </Col>
         <Col n="5" offset="1" className="align-right">
           <img

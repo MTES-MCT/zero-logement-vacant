@@ -80,25 +80,25 @@ const LoginView = () => {
   return (
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
-        {isLoggedOut && (
-          <Col n="12">
-            <Alert
-              title="Déconnexion"
-              description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
-              className="fr-my-3w"
-              type="warning"
-              closable
-            />
-          </Col>
-        )}
-        {loginError && (
-          <Col n="12">
-            <div data-testid="alert-error" className="fr-my-2w">
-              <Alert title="Erreur" description={loginError} type="error" />
-            </div>
-          </Col>
-        )}
         <Col>
+          {isLoggedOut && (
+            <Col n="12">
+              <Alert
+                title="Déconnexion"
+                description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
+                className="fr-my-3w"
+                type="warning"
+                closable
+              />
+            </Col>
+          )}
+          {loginError && (
+            <Col n="12">
+              <div data-testid="alert-error" className="fr-my-2w">
+                <Alert title="Erreur" description={loginError} type="error" />
+              </div>
+            </Col>
+          )}
           <Title as="h1" look="h2">
             Connexion
           </Title>

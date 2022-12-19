@@ -3,6 +3,7 @@ import {
   Col,
   Container,
   Row,
+  Text,
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
@@ -10,10 +11,13 @@ import React, { ChangeEvent, FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
+import { useHistory } from 'react-router-dom';
 
 function ResetPasswordView() {
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [passwordReset, setPasswordReset] = useState(false);
+  const router = useHistory();
 
   const form = yup.object().shape({
     password: yup
@@ -50,23 +54,54 @@ function ResetPasswordView() {
       e.preventDefault();
       if (isValid()) {
         // TODO
+        setPasswordReset(true);
       }
     } catch (err) {
       // TODO
     }
   }
 
+  if (passwordReset) {
+    return (
+      <Container as="main" className="grow-container" spacing="py-4w">
+        <Row gutters alignItems="middle">
+          <Col>
+            <Title as="h1" look="h4">
+              Votre mot de passe a été réinitialisé !
+            </Title>
+            <Text>
+              Essayez de vous connecter en utilisant votre nouveau mot de passe.
+            </Text>
+            <Row justifyContent="right">
+              <Button onClick={() => router.push('/connexion')}>
+                Se connecter
+              </Button>
+            </Row>
+          </Col>
+          <Col n="5" offset="1" className="align-right">
+            <img
+              src={building}
+              style={{ width: '100%', height: '100%' }}
+              alt=""
+            />
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
+
   return (
-    <Container as="main" spacing="py-4w">
-      <Row gutters>
+    <Container as="main" className="grow-container" spacing="py-4w">
+      <Row gutters alignItems="middle">
         <Col>
           <Title as="h1" look="h2">
-            Réinitialisez votre mot de passe
+            Réinitialisation de votre mot de passe
           </Title>
           <form onSubmit={submit}>
             <TextInput
               value={password}
               type="password"
+              hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
               onChange={(e) => setPassword(e.target.value)}
               messageType={messageType('password')}
               label="Créer votre mot de passe : "

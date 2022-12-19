@@ -315,3 +315,11 @@ a.fr-btn[target=_blank]:after {
     font-weight: $i * 100
   }
 }
+
+.grow-container {
+  flex-grow: 1;
+
+  & > * {
+    height: 100%;
+  }
+}

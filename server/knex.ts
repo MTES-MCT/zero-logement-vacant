@@ -32,14 +32,10 @@ const testConfig = {
 };
 
 const productionConfig = {
-  migrations: {
-    ...defaultConfig.migrations,
-    loadExtensions: ['.js'],
-  },
+  ...defaultConfig,
   seeds: {
     directory: '../database/seeds/production',
     extension: 'ts',
-    loadExtensions: ['.js'],
   },
 };
 

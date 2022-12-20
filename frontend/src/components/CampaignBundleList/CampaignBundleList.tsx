@@ -15,24 +15,22 @@ import {
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
 import {
+  Campaign,
   CampaignBundle,
   CampaignBundleId,
   campaignBundleIdUrlFragment,
+  CampaignNotSentSteps,
   CampaignNumberSort,
-  campaignStep,
   CampaignSteps,
-  mainCampaign,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { useDispatch } from 'react-redux';
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import {
   deleteCampaignBundle,
-  listCampaignBundles,
   validCampaignStep,
 } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -45,8 +43,9 @@ import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
 import CampaignBundleTitle from '../CampaignBundle/CampaignBundleTitle';
-import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { dateShortFormat, parseDateInput } from '../../utils/dateUtils';
+import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
+import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 
 interface ItemProps {
   campaignBundle: CampaignBundle;
@@ -222,7 +221,7 @@ const CampaignBundleItem = ({
         )}
       </Row>
       {hasReminders &&
-        reminderCampaigns.map((campaign) => (
+        reminderCampaigns.map((campaign: Campaign) => (
           <div key={`Campaign_${campaign.id}`}>
             <hr className="fr-pb-1w fr-mt-1w" />
             <Row gutters alignItems="middle">
@@ -357,12 +356,9 @@ interface Props {
 }
 
 const CampaignBundleList = ({ withDeletion = false }: Props) => {
-  const dispatch = useDispatch();
-  const campaignList = useCampaignList(true);
+  const { campaignBundleList, stepsFilter, campaignBundlesCount } =
+    useCampaignBundleList();
 
-  const { loading, campaignBundleList } = useSelector(
-    (state: ApplicationState) => state.campaign
-  );
   const [campaignInProgressFilter, setCampaignInProgressFilter] =
     useState<boolean>(true);
   const [campaignNoSentFilter, setCampaignNotSentFilter] =
@@ -376,24 +372,17 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
   >(campaignBundleList);
 
   useEffect(() => {
-    dispatch(listCampaignBundles());
-  }, [dispatch]);
-
-  useEffect(() => {
     setFilteredCampaignBundles(
       campaignBundleList?.filter(
         (campaignBundle) =>
           (campaignInProgressFilter &&
-            stepFilter(CampaignSteps.InProgress)(campaignBundle)) ||
+            stepsFilter([CampaignSteps.InProgress])(campaignBundle)) ||
           (campaignNoSentFilter &&
-            (stepFilter(CampaignSteps.OwnersValidation)(campaignBundle) ||
-              stepFilter(CampaignSteps.Export)(campaignBundle) ||
-              stepFilter(CampaignSteps.Sending)(campaignBundle) ||
-              stepFilter(CampaignSteps.Confirmation)(campaignBundle))) ||
+            stepsFilter(CampaignNotSentSteps)(campaignBundle)) ||
           (outsideCampaignFilter &&
-            stepFilter(CampaignSteps.Outside)(campaignBundle)) ||
+            stepsFilter([CampaignSteps.Outside])(campaignBundle)) ||
           (campaignArchivedFilter &&
-            stepFilter(CampaignSteps.Archived)(campaignBundle))
+            stepsFilter([CampaignSteps.Archived])(campaignBundle))
       )
     );
   }, [
@@ -404,23 +393,6 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
     campaignArchivedFilter,
   ]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const stepFilter =
-    (step: CampaignSteps) => (campaignBundle: CampaignBundle) =>
-      campaignBundleStep(campaignBundle) === step;
-
-  const campaignBundlesCount = (step: CampaignSteps) =>
-    campaignBundleList?.filter(stepFilter(step)).length ?? 0;
-
-  const mainCampaignOfBundle = mainCampaign(campaignList ?? []);
-  const campaignBundleStep = (bundle: CampaignBundle): CampaignSteps | null => {
-    const main = mainCampaignOfBundle(bundle);
-    return main ? campaignStep(main) : null;
-  };
-
-  if (loading) {
-    return <></>;
-  }
-
   return (
     <>
       <TagGroup className="fr-py-2w">
@@ -430,7 +402,7 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
           selected={campaignInProgressFilter}
           onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}
         >
-          Suivi en cours ({campaignBundlesCount(CampaignSteps.InProgress)})
+          Suivi en cours ({campaignBundlesCount([CampaignSteps.InProgress])})
         </Tag>
         <Tag
           as="span"
@@ -439,10 +411,7 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
           onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}
         >
           Campagne en attente d'envoi (
-          {campaignBundlesCount(CampaignSteps.OwnersValidation) +
-            campaignBundlesCount(CampaignSteps.Export) +
-            campaignBundlesCount(CampaignSteps.Confirmation)}
-          )
+          {campaignBundlesCount(CampaignNotSentSteps)})
         </Tag>
         <Tag
           as="span"
@@ -450,7 +419,7 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
           selected={campaignArchivedFilter}
           onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}
         >
-          Campagne archivée ({campaignBundlesCount(CampaignSteps.Archived)})
+          Campagne archivée ({campaignBundlesCount([CampaignSteps.Archived])})
         </Tag>
         <Tag
           as="span"
@@ -460,7 +429,7 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
             setOutsideCampaignInProgressFilter(!outsideCampaignFilter)
           }
         >
-          Hors campagne ({campaignBundlesCount(CampaignSteps.Outside)})
+          Hors campagne ({campaignBundlesCount([CampaignSteps.Outside])})
         </Tag>
       </TagGroup>
       {filteredCampaignBundles && !filteredCampaignBundles.length && (

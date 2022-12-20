@@ -1,5 +1,5 @@
-@import "colors";
-@import "dsfr-fix";
+@use "colors";
+@use "dsfr-fix";
 
 @import "@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css";
 
@@ -138,6 +138,14 @@
 }
 .bg-bf975 {
   background-color: var(--blue-france-975)
+}
+
+.color-grey-50 {
+  color: var(--grey-50);
+}
+
+.color-grey-625 {
+  color: var(--grey-625-425);
 }
 
 .color-bf925-active {
@@ -289,5 +297,11 @@ a.fr-btn[target=_blank]:after {
     margin-bottom: 0.25rem;
     line-height: 1rem;
     font-size: 1rem;
+  }
+}
+
+@for $i from 1 through 9 {
+  .weight-#{$i}00 {
+    font-weight: $i * 100
   }
 }

@@ -371,27 +371,31 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
     CampaignBundle[] | undefined
   >(campaignBundleList);
 
-  useEffect(() => {
-    setFilteredCampaignBundles(
-      campaignBundleList?.filter(
-        (campaignBundle) =>
-          (campaignInProgressFilter &&
-            stepsFilter([CampaignSteps.InProgress])(campaignBundle)) ||
-          (campaignNoSentFilter &&
-            stepsFilter(CampaignNotSentSteps)(campaignBundle)) ||
-          (outsideCampaignFilter &&
-            stepsFilter([CampaignSteps.Outside])(campaignBundle)) ||
-          (campaignArchivedFilter &&
-            stepsFilter([CampaignSteps.Archived])(campaignBundle))
-      )
-    );
-  }, [
-    campaignBundleList,
-    campaignInProgressFilter,
-    outsideCampaignFilter,
-    campaignNoSentFilter,
-    campaignArchivedFilter,
-  ]); //eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(
+    () => {
+      setFilteredCampaignBundles(
+        campaignBundleList?.filter(
+          (campaignBundle) =>
+            (campaignInProgressFilter &&
+              stepsFilter([CampaignSteps.InProgress])(campaignBundle)) ||
+            (campaignNoSentFilter &&
+              stepsFilter(CampaignNotSentSteps)(campaignBundle)) ||
+            (outsideCampaignFilter &&
+              stepsFilter([CampaignSteps.Outside])(campaignBundle)) ||
+            (campaignArchivedFilter &&
+              stepsFilter([CampaignSteps.Archived])(campaignBundle))
+        )
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      campaignBundleList,
+      campaignInProgressFilter,
+      outsideCampaignFilter,
+      campaignNoSentFilter,
+      campaignArchivedFilter,
+    ]
+  );
 
   return (
     <>

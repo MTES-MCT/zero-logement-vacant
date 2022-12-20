@@ -226,15 +226,12 @@ button.fr-select {
     z-index: 10;
     width: 100%;
     display: none;
+    padding: 0.5rem 1rem;
 
     &.select-multi-options__visible {
       display: inherit;
       max-height: 250px;
       overflow: auto;
-    }
-
-    .fr-checkbox-group {
-      margin-left: 8px;
     }
 
     .fr-checkbox-group:first-child {
@@ -298,6 +295,12 @@ a.fr-btn[target=_blank]:after {
     line-height: 1rem;
     font-size: 1rem;
   }
+}
+
+.zlv-label {
+  margin-bottom: 0 !important;
+  color: var(--grey-625);
+  font-weight: 500;
 }
 
 @for $i from 1 through 9 {

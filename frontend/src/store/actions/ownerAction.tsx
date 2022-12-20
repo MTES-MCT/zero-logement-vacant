@@ -7,6 +7,7 @@ import eventService from '../../services/event.service';
 import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
 import { Housing, HousingUpdate } from '../../models/Housing';
+import { OwnerNote } from '../../models/Note';
 
 export const FETCHING_OWNER = 'FETCHING_OWNER';
 export const OWNER_FETCHED = 'OWNER_FETCHED';
@@ -17,150 +18,147 @@ export const FETCHING_OWNER_EVENTS = 'FETCHING_OWNER_EVENTS';
 export const OWNER_EVENTS_FETCHED = 'OWNER_EVENTS_FETCHED';
 
 export interface FetchingOwnerAction {
-    type: typeof FETCHING_OWNER
+  type: typeof FETCHING_OWNER;
 }
 
 export interface OwnerFetchedAction {
-    type: typeof OWNER_FETCHED,
-    owner: Owner
+  type: typeof OWNER_FETCHED;
+  owner: Owner;
 }
 
 export interface FetchingOwnerHousingAction {
-    type: typeof FETCHING_OWNER_HOUSING
+  type: typeof FETCHING_OWNER_HOUSING;
 }
 
 export interface OwnerHousingFetchedAction {
-    type: typeof OWNER_HOUSING_FETCHED,
-    housingList: Housing[],
-    housingTotalCount: number
+  type: typeof OWNER_HOUSING_FETCHED;
+  housingList: Housing[];
+  housingTotalCount: number;
 }
 
 export interface OwnerUpdatedAction {
-    type: typeof OWNER_UPDATED,
-    owner: Owner
+  type: typeof OWNER_UPDATED;
+  owner: Owner;
 }
 
 export interface FetchingOwnerEventsAction {
-    type: typeof FETCHING_OWNER_EVENTS
+  type: typeof FETCHING_OWNER_EVENTS;
 }
 
 export interface OwnerEventsFetchedAction {
-    type: typeof OWNER_EVENTS_FETCHED,
-    events: Event[]
+  type: typeof OWNER_EVENTS_FETCHED;
+  events: Event[];
 }
 
 export type OwnerActionTypes =
-    FetchingOwnerAction |
-    OwnerFetchedAction |
-    FetchingOwnerHousingAction |
-    OwnerHousingFetchedAction |
-    OwnerUpdatedAction |
-    FetchingOwnerEventsAction |
-    OwnerEventsFetchedAction;
+  | FetchingOwnerAction
+  | OwnerFetchedAction
+  | FetchingOwnerHousingAction
+  | OwnerHousingFetchedAction
+  | OwnerUpdatedAction
+  | FetchingOwnerEventsAction
+  | OwnerEventsFetchedAction;
 
 export const getOwner = (id: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch) {
+    dispatch({
+      type: FETCHING_OWNER,
+    });
 
-        dispatch(showLoading());
-
-        dispatch({
-            type: FETCHING_OWNER
-        });
-
-        ownerService.getOwner(id)
-            .then(owner => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: OWNER_FETCHED,
-                    owner
-                });
-            });
-    };
+    ownerService.getOwner(id).then((owner) => {
+      dispatch(hideLoading());
+      dispatch({
+        type: OWNER_FETCHED,
+        owner,
+      });
+    });
+  };
 };
 
 export const getOwnerHousing = (ownerId: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch) {
+    dispatch({
+      type: FETCHING_OWNER_HOUSING,
+    });
 
-        dispatch(showLoading());
-
-        dispatch({
-            type: FETCHING_OWNER_HOUSING
-        });
-
-        housingService.listByOwner(ownerId)
-            .then(result => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: OWNER_HOUSING_FETCHED,
-                    housingList: result.entities,
-                    housingTotalCount: result.totalCount
-                });
-            });
-    };
+    housingService.listByOwner(ownerId).then((result) => {
+      dispatch(hideLoading());
+      dispatch({
+        type: OWNER_HOUSING_FETCHED,
+        housingList: result.entities,
+        housingTotalCount: result.totalCount,
+      });
+    });
+  };
 };
 
 export const getOwnerEvents = (ownerId: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch) {
+    dispatch({
+      type: FETCHING_OWNER_EVENTS,
+    });
 
-        dispatch(showLoading());
-
-        dispatch({
-            type: FETCHING_OWNER_EVENTS
-        });
-
-        eventService.listByOwner(ownerId)
-            .then(events => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: OWNER_EVENTS_FETCHED,
-                    events
-                });
-            });
-    };
+    eventService.listByOwner(ownerId).then((events) => {
+      dispatch(hideLoading());
+      dispatch({
+        type: OWNER_EVENTS_FETCHED,
+        events,
+      });
+    });
+  };
 };
-
 
 export const update = (modifiedOwner: Owner) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
+      dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
-        if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
-
-            dispatch(showLoading());
-
-            ownerService.updateOwner(modifiedOwner)
-                .then(() => {
-                    dispatch(hideLoading());
-                    dispatch({
-                        type: OWNER_UPDATED,
-                        owner: modifiedOwner
-                    });
-                    getOwnerEvents(modifiedOwner.id)(dispatch)
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        }
-    };
+      ownerService
+        .updateOwner(modifiedOwner)
+        .then(() => {
+          dispatch(hideLoading());
+          dispatch({
+            type: OWNER_UPDATED,
+            owner: modifiedOwner,
+          });
+          getOwnerEvents(modifiedOwner.id)(dispatch);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  };
 };
 
-export const updateOwnerHousing = (housing: Housing, housingUpdate: HousingUpdate) => {
+export const updateOwnerHousing = (
+  housing: Housing,
+  housingUpdate: HousingUpdate
+) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    const ownerState = getState().owner;
 
-        dispatch(showLoading());
+    housingService.updateHousing(housing.id, housingUpdate).then(() => {
+      dispatch(hideLoading());
+      getOwnerHousing(ownerState.owner.id)(dispatch);
+      getOwnerEvents(ownerState.owner.id)(dispatch);
+    });
+  };
+};
 
-        const ownerState = getState().owner;
+export const createOwnerNote = (note: OwnerNote) => {
+  return async function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
-        housingService.updateHousing(housing.id, housingUpdate)
-            .then(() => {
-                dispatch(hideLoading());
-                getOwnerHousing(ownerState.owner.id)(dispatch);
-                getOwnerEvents(ownerState.owner.id)(dispatch);
-            });
-
-    }
-}
+    await eventService.createNote(note);
+    dispatch(hideLoading());
+    getOwnerEvents(note.owner.id)(dispatch);
+  };
+};

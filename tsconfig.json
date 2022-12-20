@@ -11,7 +11,8 @@
       "sourceMap": true,
       "forceConsistentCasingInFileNames": true,
       "skipLibCheck": true,
-      "esModuleInterop": true
+      "esModuleInterop": true,
+      "typeRoots": ["node_modules/@types", "types"]
   },
   "include": [
       "**/*.ts",

@@ -23,6 +23,10 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": "^16",
+    "npm": "^8"
+  },
   "dependencies": {
     "@jest-mock/express": "^1.4.5",
     "@sentry/integrations": "^7.12.1",
@@ -86,9 +90,5 @@
     "ts-jest": "^26.5.6",
     "ts-node-dev": "^1.1.8",
     "uuid": "^8.3.2"
-  },
-  "engines": {
-    "node": "^14.16.0",
-    "npm": "^6.14.0"
   }
 }

@@ -12,12 +12,17 @@ import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
+import authService from '../../services/auth.service';
+import { useResetLink } from '../../hooks/useResetLink';
+import Alert from '../../components/Alert/Alert';
 
 function ResetPasswordView() {
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordReset, setPasswordReset] = useState(false);
+  const [error, setError] = useState('');
   const router = useHistory();
+  const resetLink = useResetLink();
 
   const form = yup.object().shape({
     password: yup
@@ -49,16 +54,43 @@ function ResetPasswordView() {
     passwordConfirmation,
   });
 
-  function submit(e: FormEvent<HTMLFormElement>) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     try {
       e.preventDefault();
       if (isValid()) {
-        // TODO
+        await authService.resetPassword(resetLink.value, password);
         setPasswordReset(true);
       }
     } catch (err) {
-      // TODO
+      setError((err as Error).message);
     }
+  }
+
+  if (!resetLink.exists) {
+    return (
+      <Container as="main" className="grow-container" spacing="py-4w">
+        <Row gutters alignItems="middle">
+          <Col>
+            <Title as="h1" look="h4">
+              Ce lien n’existe pas ou est expiré !
+            </Title>
+            <Text>Recommencez la procédure ou contactez le support.</Text>
+            <Row justifyContent="right">
+              <Button onClick={() => router.replace('/')}>
+                Revenir à l'accueil
+              </Button>
+            </Row>
+          </Col>
+          <Col n="5" offset="1" className="align-right">
+            <img
+              src={building}
+              style={{ width: '100%', height: '100%' }}
+              alt=""
+            />
+          </Col>
+        </Row>
+      </Container>
+    );
   }
 
   if (passwordReset) {
@@ -94,6 +126,15 @@ function ResetPasswordView() {
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
         <Col>
+          {error && (
+            <Alert
+              title="Erreur"
+              description="Erreur lors de la mise à jour du mot de passe."
+              className="fr-my-3w"
+              closable
+              type="error"
+            />
+          )}
           <Title as="h1" look="h2">
             Réinitialisation de votre mot de passe
           </Title>

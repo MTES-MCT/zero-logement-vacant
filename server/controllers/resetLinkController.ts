@@ -1,22 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
-import { body, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import mailService from '../services/mailService';
 import resetLinkRepository from '../repositories/resetLinkRepository';
-import { ResetLinkApi } from '../models/ResetLinkApi';
+import {
+  hasExpired,
+  RESET_LINK_EXPIRATION,
+  RESET_LINK_LENGTH,
+  ResetLinkApi,
+} from '../models/ResetLinkApi';
 import { addHours } from 'date-fns';
 import userRepository from '../repositories/userRepository';
 import UserMissingError from '../errors/userMissingError';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
-
-/**
- * Expire in 24 hours.
- */
-const LINK_EXPIRATION = 24;
-/**
- * 100 characters id.
- */
-const LINK_LENGTH = 100;
+import ResetLinkMissingError from '../errors/resetLinkMissingError';
+import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 
 const create = async (
   request: Request,
@@ -33,11 +31,11 @@ const create = async (
     const resetLink: ResetLinkApi = {
       id: randomstring.generate({
         charset: 'alphanumeric',
-        length: LINK_LENGTH,
+        length: RESET_LINK_LENGTH,
       }),
       userId: user.id,
       createdAt: new Date(),
-      expiresAt: addHours(new Date(), LINK_EXPIRATION),
+      expiresAt: addHours(new Date(), RESET_LINK_EXPIRATION),
       usedAt: null,
     };
     await resetLinkRepository.insert(resetLink);
@@ -59,14 +57,28 @@ const show = async (
   next: NextFunction
 ) => {
   try {
-    // TODO
+    const { id } = request.params;
+    const link = await resetLinkRepository.get(id);
+    if (!link) {
+      throw new ResetLinkMissingError();
+    }
+
+    if (hasExpired(link)) {
+      throw new ResetLinkExpiredError();
+    }
+
+    response.status(constants.HTTP_STATUS_OK).json(link);
   } catch (error) {
     next(error);
   }
 };
+const showValidators: ValidationChain[] = [
+  param('id').isString().notEmpty().isAlphanumeric(),
+];
 
 export default {
   create,
   createValidators,
   show,
+  showValidators,
 };

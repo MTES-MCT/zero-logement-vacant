@@ -3,13 +3,17 @@ import { OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
-import { formatISO } from 'date-fns';
+import { addHours, formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 import { ProspectApi } from '../models/ProspectApi';
 import { EventCreationDTO } from '../../shared/models/EventDTO';
-
+import {
+  RESET_LINK_EXPIRATION,
+  RESET_LINK_LENGTH,
+  ResetLinkApi,
+} from '../models/ResetLinkApi';
 const randomstring = require('randomstring');
 
 export const genEmail = () => {
@@ -175,3 +179,16 @@ export const genEventCreationDTO = (): EventCreationDTO => ({
   housingId: [uuidv4()],
   ownerId: uuidv4(),
 });
+
+export const genResetLinkApi = (userId: string) => {
+  return <ResetLinkApi>{
+    id: randomstring.generate({
+      length: RESET_LINK_LENGTH,
+      charset: 'alphanumeric',
+    }),
+    userId,
+    createdAt: new Date(),
+    expiresAt: addHours(new Date(), RESET_LINK_EXPIRATION),
+    usedAt: null,
+  };
+};

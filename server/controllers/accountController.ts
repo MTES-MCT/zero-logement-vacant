@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -7,10 +7,14 @@ import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { param, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
 import { TEST_ACCOUNTS } from '../models/ProspectApi';
+import resetLinkRepository from '../repositories/resetLinkRepository';
+import ResetLinkMissingError from '../errors/resetLinkMissingError';
+import { hasExpired } from '../models/ResetLinkApi';
+import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 
 const signin = async (
   request: Request,
@@ -128,9 +132,50 @@ const updatePassword = async (
   }
 };
 
+const resetPassword = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const { key, password } = request.body;
+
+    const link = await resetLinkRepository.get(key);
+    if (!link) {
+      throw new ResetLinkMissingError();
+    }
+
+    if (hasExpired(link)) {
+      throw new ResetLinkExpiredError();
+    }
+
+    await userRepository.updatePassword(link.userId, bcrypt.hashSync(password));
+    await resetLinkRepository.used(link.id);
+    response.sendStatus(constants.HTTP_STATUS_OK);
+  } catch (error) {
+    next(error);
+  }
+};
+const resetPasswordValidators: ValidationChain[] = [
+  body('key').isString().isAlphanumeric(),
+  body('password')
+    .isStrongPassword({
+      minLength: 8,
+      minNumbers: 1,
+      minUppercase: 1,
+      minSymbols: 0,
+      minLowercase: 1,
+    })
+    .withMessage(
+      'Must have at least 8 characters, 1 number, 1 uppercase, 1 lowercase.'
+    ),
+];
+
 export default {
   signin,
   getAccountValidator,
   getProspectAccount,
   updatePassword,
+  resetPassword,
+  resetPasswordValidators,
 };

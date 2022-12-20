@@ -8,22 +8,23 @@ import resetLinkController from "../controllers/resetLinkController";
 
 const router = express.Router();
 
-router.get('/api/prospects/:email', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
-router.post('/api/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
-router.post('/api/authenticate', accountController.signin);
+router.get('/prospects/:email', accountController.getAccountValidator, validator.validate, accountController.getProspectAccount);
+router.post('/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
+router.post('/authenticate', accountController.signin);
+router.post('/account/reset-password', accountController.resetPasswordValidators, validator.validate, accountController.resetPassword)
 
-router.post('/api/reset-links', resetLinkController.createValidators, validator.validate, resetLinkController.create)
-router.get('/api/reset-links/:id', resetLinkController.show)
+router.post('/reset-links', resetLinkController.createValidators, validator.validate, resetLinkController.create)
+router.get('/reset-links/:id', resetLinkController.showValidators, validator.validate, resetLinkController.show)
 
-router.get('/api/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
-router.get('/api/establishments/available', establishmentController.listAvailableEstablishments);
-router.get('/api/statistics/establishments/count', monitoringController.establishmentCount);
-router.get('/api/statistics/housing/contacted/count', monitoringController.housingContactedCount);
-router.get('/api/statistics/housing/waiting/count', monitoringController.housingWaitingCount);
-router.get('/api/statistics/answers/count', monitoringController.answersCount);
-router.get('/api/statistics/housing/inprogress-with-support/count', monitoringController.housingInProgressWithSupportCount);
-router.get('/api/statistics/housing/inprogress-without-support/count', monitoringController.housingInProgressWithoutSupportCount);
-router.get('/api/statistics/housing/exit-with-support/count', monitoringController.housingExitWithSupportCount);
-router.get('/api/statistics/housing/exit-without-support/count', monitoringController.housingExitWithoutSupportCount);
+router.get('/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
+router.get('/establishments/available', establishmentController.listAvailableEstablishments);
+router.get('/statistics/establishments/count', monitoringController.establishmentCount);
+router.get('/statistics/housing/contacted/count', monitoringController.housingContactedCount);
+router.get('/statistics/housing/waiting/count', monitoringController.housingWaitingCount);
+router.get('/statistics/answers/count', monitoringController.answersCount);
+router.get('/statistics/housing/inprogress-with-support/count', monitoringController.housingInProgressWithSupportCount);
+router.get('/statistics/housing/inprogress-without-support/count', monitoringController.housingInProgressWithoutSupportCount);
+router.get('/statistics/housing/exit-with-support/count', monitoringController.housingExitWithSupportCount);
+router.get('/statistics/housing/exit-without-support/count', monitoringController.housingExitWithoutSupportCount);
 
 export default router;

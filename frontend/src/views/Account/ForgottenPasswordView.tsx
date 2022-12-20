@@ -18,7 +18,7 @@ import resetLinkService from '../../services/reset-link.service';
 function ForgottenPasswordView() {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
+  const [emailSent, setEmailSent] = useState(0);
   const form = yup.object().shape({
     email: yup
       .string()
@@ -34,7 +34,7 @@ function ForgottenPasswordView() {
       e.preventDefault();
       if (isValid()) {
         await resetLinkService.sendResetEmail(email);
-        setEmailSent(true);
+        setEmailSent((state) => state + 1);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -53,6 +53,11 @@ function ForgottenPasswordView() {
           </InternalLink>
           .
         </Text>
+        {emailSent > 1 && (
+          <Text size="sm" className="fr-valid-text">
+            Email renvoyé.
+          </Text>
+        )}
       </>
     );
   }
@@ -73,7 +78,7 @@ function ForgottenPasswordView() {
           <Title as="h1" look="h4">
             Réinitialisation de votre mot de passe
           </Title>
-          {emailSent ? (
+          {emailSent > 0 ? (
             <EmailSent />
           ) : (
             <>

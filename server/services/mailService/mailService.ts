@@ -5,6 +5,7 @@ export interface SendOptions {
   subject?: string;
   content?: string;
   templateId?: TemplateId;
+  params?: any;
 }
 
 export interface MailService {

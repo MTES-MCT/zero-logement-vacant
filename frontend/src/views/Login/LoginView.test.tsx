@@ -63,20 +63,20 @@ describe('login view', () => {
   });
 
   test('should redirect when "forgotten password" is clicked', async () => {
-    fetchMock.mockResponseOnce('[]', { status: 401 });
+    const history = createMemoryHistory();
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router history={history}>
           <LoginView />
         </Router>
       </Provider>
     );
 
-    const forgottenPassword = screen.getByText('Mot de passe oublié');
+    const forgottenPassword = screen.getByText('Mot de passe perdu ?');
     user.click(forgottenPassword);
 
-    expect(fetchMock).toHaveBeenCalled();
+    expect(history.location.pathname).toBe('/mot-de-passe/oublie');
   });
 
   test('should route to dashboard view when login succeeded', async () => {

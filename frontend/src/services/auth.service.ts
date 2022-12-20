@@ -45,6 +45,20 @@ const changePassword = async (currentPassword: string, newPassword: string) => {
   });
 };
 
+const resetPassword = async (key: string, password: string) => {
+  const response = await fetch(
+    `${config.apiEndpoint}/api/account/reset-password`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, password }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Password reset failed');
+  }
+};
+
 const authHeader = () => {
   const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
   return authUser && authUser.accessToken
@@ -56,6 +70,7 @@ const authService = {
   login,
   logout,
   changePassword,
+  resetPassword,
   authHeader,
 };
 

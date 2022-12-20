@@ -30,7 +30,7 @@ class NodemailerService implements MailService {
     return this.send({
       ...options,
       subject: 'Réinitialisation du mot de passe',
-      content: `Cliquez sur le lien ${config.application.host}/mot-de-passe/nouveau?key=${key}`,
+      content: `Cliquez sur le lien ${config.application.host}/mot-de-passe/nouveau#${key}`,
     });
   }
 }

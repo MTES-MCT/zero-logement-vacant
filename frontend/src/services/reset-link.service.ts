@@ -12,8 +12,20 @@ const sendResetEmail = async (email: string): Promise<void> => {
   });
 };
 
+const exists = async (id: string): Promise<boolean> => {
+  const response = await fetch(`${config.apiEndpoint}/api/reset-links/${id}`, {
+    method: 'GET',
+    headers: {
+      ...authService.authHeader(),
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.ok;
+};
+
 const resetLinkService = {
   sendResetEmail,
+  exists,
 };
 
 export default resetLinkService;

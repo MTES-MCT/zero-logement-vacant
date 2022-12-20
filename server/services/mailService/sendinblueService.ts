@@ -20,8 +20,12 @@ class SendinblueService implements MailService {
   }
 
   async send(options: SendOptions): Promise<void> {
-    await this.client.sendTestTemplate(Number(options.templateId), {
-      emailTo: options.recipients,
+    await this.client.sendTransacEmail({
+      ...options,
+      templateId: Number(options.templateId),
+      to: options.recipients.map((recipient) => ({
+        email: recipient,
+      })),
     });
   }
 
@@ -29,6 +33,9 @@ class SendinblueService implements MailService {
     await this.send({
       ...options,
       templateId: PASSWORD_RESET_TEMPLATE_ID,
+      params: {
+        link: `${config.application.host}/mot-de-passe/nouveau#${key}`,
+      },
     });
   }
 }

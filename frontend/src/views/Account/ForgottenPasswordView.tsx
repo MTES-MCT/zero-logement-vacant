@@ -11,9 +11,9 @@ import building from '../../assets/images/building.svg';
 import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
-import authService from '../../services/auth.service';
 import Alert from '../../components/Alert/Alert';
 import InternalLink from '../../components/InternalLink/InternalLink';
+import resetLinkService from '../../services/reset-link.service';
 
 function ForgottenPasswordView() {
   const [error, setError] = useState('');
@@ -33,7 +33,7 @@ function ForgottenPasswordView() {
     try {
       e.preventDefault();
       if (isValid()) {
-        await authService.sendResetEmail(email);
+        await resetLinkService.sendResetEmail(email);
         setEmailSent(true);
       }
     } catch (err) {

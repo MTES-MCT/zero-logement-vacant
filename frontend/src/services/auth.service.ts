@@ -52,26 +52,11 @@ const authHeader = () => {
     : undefined;
 };
 
-const sendResetEmail = async (email: string): Promise<void> => {
-  const res = await fetch(`${config.apiEndpoint}/api/account/password/email`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) {
-    throw new Error('Could not send reset link');
-  }
-};
-
 const authService = {
   login,
   logout,
   changePassword,
   authHeader,
-  sendResetEmail,
 };
 
 export default authService;

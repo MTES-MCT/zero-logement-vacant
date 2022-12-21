@@ -19,15 +19,19 @@ exports.seed = function (knex: Knex) {
     })
     .andWhere('available', true)
     .then((results) => {
+      console.log('results', results, results.length);
       if (results.length) {
-        return knex.table(campaignsTable).insert(
-          results.map((result) =>
-            campaignRepository.formatCampaignApi(<any>{
-              ...DefaultCampaign,
-              establishmentId: result.id,
-            })
+        return knex
+          .table(campaignsTable)
+          .insert(
+            results.map((result) =>
+              campaignRepository.formatCampaignApi(<any>{
+                ...DefaultCampaign,
+                establishmentId: result.id,
+              })
+            )
           )
-        );
+          .debug(true);
       }
     });
 };

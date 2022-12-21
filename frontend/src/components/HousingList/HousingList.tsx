@@ -3,7 +3,6 @@ import React, {
   ReactElement,
   ReactNode,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 
@@ -40,6 +39,7 @@ import HousingListHeader from './HousingListHeader';
 import { findChild } from '../../utils/elementUtils';
 import Checkbox from '../Checkbox/Checkbox';
 import { useSort } from '../../hooks/useSort';
+import { usePagination } from '../../hooks/usePagination';
 
 export enum HousingDisplayKey {
   Housing,
@@ -127,9 +127,8 @@ const HousingList = ({
     onChangePagination(page, paginatedHousing.perPage);
   };
 
-  const hasPagination = useMemo<boolean>(() => {
-    return paginatedHousing.totalCount > paginatedHousing.perPage;
-  }, [paginatedHousing.totalCount, paginatedHousing.perPage]);
+  const { pageCount, rowNumber, hasPagination } =
+    usePagination(paginatedHousing);
 
   const selectColumn = {
     name: 'select',
@@ -334,10 +333,7 @@ const HousingList = ({
             rowKey="id"
             data={paginatedHousing.entities.map((_, index) => ({
               ..._,
-              rowNumber:
-                (paginatedHousing.page - 1) * paginatedHousing.perPage +
-                index +
-                1,
+              rowNumber: rowNumber(index),
             }))}
             columns={columns()}
             fixedLayout={true}
@@ -355,9 +351,7 @@ const HousingList = ({
                 <Pagination
                   onClick={changePage}
                   currentPage={paginatedHousing.page}
-                  pageCount={Math.ceil(
-                    paginatedHousing.totalCount / paginatedHousing.perPage
-                  )}
+                  pageCount={pageCount}
                 />
               </div>
               <div style={{ textAlign: 'center' }}>

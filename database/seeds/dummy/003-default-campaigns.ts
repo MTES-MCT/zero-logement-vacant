@@ -18,19 +18,17 @@ exports.seed = function (knex: Knex) {
         .andWhere(`${campaignsTable}.campaign_number`, 0);
     })
     .andWhere('available', true)
-    .then((results) => {
-      if (results.length) {
-        knex
-          .table(campaignsTable)
-          .insert(
-            results.map((result) =>
-              campaignRepository.formatCampaignApi(<any>{
-                ...DefaultCampaign,
-                establishmentId: result.id,
-              })
-            )
+    .then((results) =>
+      knex
+        .table(campaignsTable)
+        .insert(
+          results.map((result) =>
+            campaignRepository.formatCampaignApi(<any>{
+              ...DefaultCampaign,
+              establishmentId: result.id,
+            })
           )
-          .debug(true);
-      }
-    });
+        )
+        .debug(true)
+    );
 };

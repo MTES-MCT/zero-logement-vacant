@@ -11,6 +11,7 @@ import { eventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 export const establishmentsTable = 'establishments';
 
@@ -107,7 +108,7 @@ const listDataWithFilters = async (
         ),
         db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
         db.raw(
-          `count(distinct(${housingTable}.id)) filter (where ${campaignsTable}.sending_date is not null and ${housingTable}.status is not null) as "contacted_housing_count"`
+          `count(distinct(${housingTable}.id)) filter (where ${campaignsTable}.sending_date is not null and coalesce(${housingTable}.status, 0) <> ${HousingStatusApi.NeverContacted}) as "contacted_housing_count"`
         ),
         db.raw(
           `min(${campaignsTable}.sending_date) as "first_campaign_sending_date"`

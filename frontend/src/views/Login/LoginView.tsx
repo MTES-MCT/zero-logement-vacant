@@ -128,13 +128,11 @@ const LoginView = () => {
                 onChange={(id: string) => setEstablishmentId(id)}
               />
             )}
-            <InternalLink
-              to="/mot-de-passe/oublie"
-              className="fr-mb-4w"
-              isSimple
-            >
-              Mot de passe perdu ?
-            </InternalLink>
+            <Row spacing="mb-4w">
+              <InternalLink to="/mot-de-passe/oublie" isSimple>
+                Mot de passe perdu ?
+              </InternalLink>
+            </Row>
             <Row alignItems="middle">
               <Col n="9">
                 <Text as="span" size="lg">

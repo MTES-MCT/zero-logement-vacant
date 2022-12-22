@@ -66,74 +66,72 @@ function App() {
     FetchInterceptor();
 
     return (
-        <>
-            <React.Suspense fallback={<></>}>
-                <BrowserRouter>
-                    <AppHeader />
-                    {isValidUser(authUser) ?
-                        <div>
-                            <ScrollToTop />
+      <React.Suspense fallback={<></>}>
+          <BrowserRouter>
+              <AppHeader />
+              {isValidUser(authUser) ?
+                <>
+                    <ScrollToTop />
 
-                            {campaignCreated && campaignBundleFetchingId &&
-                                <Redirect push={true} to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`} />
-                            }
-
-                            <Switch>
-                                <Route exact path="/" component={DashboardView} />
-                                <Route exact path="/stats" component={StatsView} />
-                                <Route exact path="/accessibilite" component={AccessibilityView} />
-                                <Route exact path="/proprietaire" component={ProprietaireView} />
-                                <Route exact path="/accueil" component={DashboardView} />
-                                <Route exact path="/base-de-donnees" component={HousingListView} />
-                                <Route exact path="/campagnes" component={CampaignsListView} />
-                                <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
-                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView} />
-                                <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
-                                <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
-                                <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
-                                <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
-                                <Route exact path="*/logements/:housingId" component={HousingView} />
-                                <Route exact path="*/perimetres" component={GeoPerimeterView} />
-                                <Route exact path="/ressources" component={ResourcesView} />
-                                <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
-                                <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
-                                {authUser.user.role === UserRoles.Admin &&
-                                    <Route exact path="/utilisateurs" component={UserListView}/>
-                                }
-                                {authUser.user.role === UserRoles.Admin &&
-                                    <Route exact path="/suivi" component={MonitoringView}/>
-                                }
-                                <Route path="/*">
-                                    <Redirect to="/accueil" />
-                                </Route>
-                            </Switch>
-                        </div> :
-                        <Switch>
-                            <Route exact path="/" component={HomeView} />
-                            <Route exact path="/stats" component={StatsView} />
-                            <Route exact path="/accessibilite" component={AccessibilityView} />
-                            <Route exact path="/proprietaire" component={ProprietaireView} />
-                            <Route exact path="/inscription" component={AccountCreationView} />
-                            <Route exact path="/connexion" component={LoginView} />
-                            <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
-                            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
-                            <Route exact path="/admin" component={LoginView} />
-                            <Route path="/*">
-                                { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
-                            </Route>
-                        </Switch>
+                    {campaignCreated && campaignBundleFetchingId &&
+                      <Redirect push={true} to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`} />
                     }
-                    <AppFooter />
-                </BrowserRouter>
-            </React.Suspense>
-        </>
+
+                    <Switch>
+                        <Route exact path="/" component={DashboardView} />
+                        <Route exact path="/stats" component={StatsView} />
+                        <Route exact path="/accessibilite" component={AccessibilityView} />
+                        <Route exact path="/proprietaire" component={ProprietaireView} />
+                        <Route exact path="/accueil" component={DashboardView} />
+                        <Route exact path="/base-de-donnees" component={HousingListView} />
+                        <Route exact path="/campagnes" component={CampaignsListView} />
+                        <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
+                        <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
+                        <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView} />
+                        <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView} />
+                        <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                        <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                        <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
+                        <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+                        <Route exact path="*/logements/:housingId" component={HousingView} />
+                        <Route exact path="*/perimetres" component={GeoPerimeterView} />
+                        <Route exact path="/ressources" component={ResourcesView} />
+                        <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
+                        <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
+                        {authUser.user.role === UserRoles.Admin &&
+                          <Route exact path="/utilisateurs" component={UserListView}/>
+                        }
+                        {authUser.user.role === UserRoles.Admin &&
+                          <Route exact path="/suivi" component={MonitoringView}/>
+                        }
+                        <Route path="/*">
+                            <Redirect to="/accueil" />
+                        </Route>
+                    </Switch>
+                </> :
+                <Switch>
+                    <Route exact path="/" component={HomeView} />
+                    <Route exact path="/stats" component={StatsView} />
+                    <Route exact path="/accessibilite" component={AccessibilityView} />
+                    <Route exact path="/proprietaire" component={ProprietaireView} />
+                    <Route exact path="/inscription" component={AccountCreationView} />
+                    <Route exact path="/connexion" component={LoginView} />
+                    <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
+                    <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
+                    <Route exact path="/admin" component={LoginView} />
+                    <Route path="/*">
+                        { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
+                    </Route>
+                </Switch>
+              }
+              <AppFooter />
+          </BrowserRouter>
+      </React.Suspense>
     );
 }
 

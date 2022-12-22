@@ -7,10 +7,14 @@ import {
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
-import { useForm } from '../../hooks/useForm';
+import {
+  passwordConfirmationValidator,
+  passwordValidator,
+  useForm,
+} from '../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
 import { useResetLink } from '../../hooks/useResetLink';
@@ -25,29 +29,8 @@ function ResetPasswordView() {
   const resetLink = useResetLink();
 
   const form = yup.object().shape({
-    password: yup
-      .string()
-      .required('Veuillez renseigner votre nouveau mot de passe.')
-      .min(8, 'Au moins 8 caractères.')
-      .matches(/[A-Z]/g, {
-        name: 'uppercase',
-        message: 'Au moins une majuscule.',
-      })
-      .matches(/[a-z]/g, {
-        name: 'lowercase',
-        message: 'Au moins une minuscule.',
-      })
-      .matches(/[0-9]/g, {
-        name: 'number',
-        message: 'Au moins un chiffre.',
-      }),
-    passwordConfirmation: yup
-      .string()
-      .required('Veuillez renseigner votre mot de passe.')
-      .oneOf(
-        [yup.ref('password')],
-        'Les mots de passe doivent être identiques.'
-      ),
+    password: passwordValidator,
+    passwordConfirmation: passwordConfirmationValidator,
   });
   const { isValid, message, messageList, messageType } = useForm(form, {
     password,
@@ -156,10 +139,8 @@ function ResetPasswordView() {
             <TextInput
               value={passwordConfirmation}
               type="password"
-              className="fr-mt-4w"
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setPasswordConfirmation(e.target.value)
-              }
+              className="fr-mt-3w"
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
               messageType={messageType('passwordConfirmation')}
               message={message(
                 'passwordConfirmation',

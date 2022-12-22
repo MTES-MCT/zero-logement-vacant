@@ -11,11 +11,20 @@ export const emailValidator = yup
 
 export const passwordValidator = yup
   .string()
-  .required('Veuillez renseigner un mot de passe.')
-  .matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/,
-    'Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre.'
-  );
+  .required('Veuillez renseigner votre nouveau mot de passe.')
+  .min(8, 'Au moins 8 caractères.')
+  .matches(/[A-Z]/g, {
+    name: 'uppercase',
+    message: 'Au moins une majuscule.',
+  })
+  .matches(/[a-z]/g, {
+    name: 'lowercase',
+    message: 'Au moins une minuscule.',
+  })
+  .matches(/[0-9]/g, {
+    name: 'number',
+    message: 'Au moins un chiffre.',
+  });
 
 export const passwordConfirmationValidator = yup
   .string()

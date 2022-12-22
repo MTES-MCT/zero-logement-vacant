@@ -10,31 +10,33 @@ import {
 import building from '../../assets/images/building.svg';
 import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
-import { useForm } from '../../hooks/useForm';
+import { emailValidator, useForm } from '../../hooks/useForm';
 import Alert from '../../components/Alert/Alert';
 import InternalLink from '../../components/InternalLink/InternalLink';
 import resetLinkService from '../../services/reset-link.service';
+import classNames from 'classnames';
+import styles from './forgotten-password-view.module.scss';
+import { useHide } from '../../hooks/useHide';
 
 function ForgottenPasswordView() {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
-  const [emailSent, setEmailSent] = useState(0);
+  const [emailSent, setEmailSent] = useState(false);
   const form = yup.object().shape({
-    email: yup
-      .string()
-      .required('Veuillez renseigner un email.')
-      .email('Veuillez renseigner un email valide.'),
+    email: emailValidator,
   });
   const { isValid, message, messageType } = useForm(form, {
     email,
   });
+  const { hidden, setHidden } = useHide();
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
+  async function submit(e?: FormEvent<HTMLFormElement>) {
     try {
-      e.preventDefault();
+      e?.preventDefault();
       if (isValid()) {
         await resetLinkService.sendResetEmail(email);
-        setEmailSent((state) => state + 1);
+        setEmailSent(true);
+        setHidden(false);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -42,22 +44,24 @@ function ForgottenPasswordView() {
   }
 
   function EmailSent() {
+    const confirmationClasses = classNames('fr-valid-text', {
+      [styles.hidden]: hidden,
+    });
+
     return (
       <>
         <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
         <Text className="subtitle">
           Vous ne trouvez pas le mail ? Vérifiez qu'il ne s'est pas glissé dans
-          vos spams ou{' '}
+          vos spams ou 
           <InternalLink to="#" isSimple onClick={submit}>
             renvoyer le mail
           </InternalLink>
           .
         </Text>
-        {emailSent > 1 && (
-          <Text size="sm" className="fr-valid-text">
-            Email renvoyé.
-          </Text>
-        )}
+        <Text size="sm" className={confirmationClasses}>
+          Email envoyé.
+        </Text>
       </>
     );
   }
@@ -78,7 +82,7 @@ function ForgottenPasswordView() {
           <Title as="h1" look="h4">
             Réinitialisation de votre mot de passe
           </Title>
-          {emailSent > 0 ? (
+          {emailSent ? (
             <EmailSent />
           ) : (
             <>
@@ -88,6 +92,7 @@ function ForgottenPasswordView() {
               </Text>
               <form onSubmit={submit}>
                 <TextInput
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   hint="Entrez l’adresse mail utilisée pour créer votre compte ZLV"

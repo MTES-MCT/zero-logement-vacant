@@ -22,7 +22,7 @@ import EstablishmentSearchableSelect from '../../components/EstablishmentSearcha
 import Alert from '../../components/Alert/Alert';
 import building from '../../assets/images/building.svg';
 import InternalLink from '../../components/InternalLink/InternalLink';
-import { useForm } from '../../hooks/useForm';
+import { emailValidator, useForm } from '../../hooks/useForm';
 
 const LoginView = () => {
   const dispatch = useDispatch();
@@ -38,10 +38,7 @@ const LoginView = () => {
 
   const loginForm = yup.object().shape({
     isAdmin: yup.boolean(),
-    email: yup
-      .string()
-      .required('Veuillez renseigner un email.')
-      .email('Veuillez renseigner un email valide.'),
+    email: emailValidator,
     password: yup.string().required('Veuillez renseigner un mot de passe.'),
     establishmentId: yup.string().when('isAdmin', {
       is: true,
@@ -104,6 +101,7 @@ const LoginView = () => {
           </Title>
           <form onSubmit={submitLoginForm} id="login_form">
             <TextInput
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               messageType={messageType('email')}
@@ -113,8 +111,8 @@ const LoginView = () => {
               required
             />
             <TextInput
-              value={password}
               type="password"
+              value={password}
               className={isAdminView ? '' : 'fr-mb-1w'}
               onChange={(e) => setPassword(e.target.value)}
               messageType={messageType('password')}

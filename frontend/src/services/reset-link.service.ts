@@ -2,7 +2,7 @@ import config from '../utils/config';
 import authService from './auth.service';
 
 const sendResetEmail = async (email: string): Promise<void> => {
-  await fetch(`${config.apiEndpoint}/api/reset-links`, {
+  const { status } = await fetch(`${config.apiEndpoint}/api/reset-links`, {
     method: 'POST',
     headers: {
       ...authService.authHeader(),
@@ -10,6 +10,9 @@ const sendResetEmail = async (email: string): Promise<void> => {
     },
     body: JSON.stringify({ email }),
   });
+  if (status >= 500) {
+    throw new Error('Impossible d’envoyer le mail');
+  }
 };
 
 const exists = async (id: string): Promise<boolean> => {

@@ -1,0 +1,72 @@
+.subCard {
+  background-color: var(--grey-975);
+  width: 100%;
+  height: fit-content !important;
+
+  + .subCard {
+    margin-left: 0;
+    margin-top: 1rem;
+    display: block;
+  }
+}
+
+.title {
+  font-size: 1rem !important;
+}
+
+.label {
+  margin-bottom: 0.25rem;
+  color: var(--grey-625);
+  font-weight: 500;
+}
+
+.icon {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--grey-975);
+  border-radius: 50%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+.iconXs {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--grey-975);
+  color: var(--grey-625);
+  border-radius: 50%;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.reference {
+  display: inline-flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.link {
+  font-weight: normal;
+}
+
+.titleInline {
+  display: flex;
+  justify-content: space-between;
+}
+
+.addButton {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+

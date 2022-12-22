@@ -13,7 +13,7 @@ a[href]:not(.fr-btn) {
 
 a[href].ds-fr--flex,
 a[href].fr-link {
-    display: inline-flex;
+    width: fit-content;
 }
 
 .fr-btn--tertiary-no-outline {
@@ -23,6 +23,14 @@ a[href].fr-link {
 .fix-vertical-align {
     position: relative;
     top: -3px;
+}
+
+input[type=checkbox]:disabled {
+    opacity: 0 !important;
+}
+
+.fr-accordion__btn {
+    font-weight: 700;
 }
 
 span.ri-checkbox-circle-line.ds-fr-tag-icon {

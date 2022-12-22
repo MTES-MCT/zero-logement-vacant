@@ -1,5 +1,5 @@
-@import "colors";
-@import "dsfr-fix";
+@use "colors";
+@use "dsfr-fix";
 
 @import "@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css";
 
@@ -127,6 +127,9 @@
 .bg-100 {
   background-color: var(--grey-975)
 }
+.bg-975 {
+  background-color: var(--grey-975)
+}
 .bg-925 {
   background-color: var(--grey-925)
 }
@@ -140,8 +143,20 @@
   background-color: var(--blue-france-975)
 }
 
+.color-grey-50 {
+  color: var(--grey-50);
+}
+
+.color-grey-625 {
+  color: var(--grey-625-425);
+}
+
 .color-bf925-active {
   color: var(--blue-france-925-active);
+}
+
+.color-bf113 {
+  color: var(--blue-france-113);
 }
 
 .color-grey-850 {
@@ -218,15 +233,12 @@ button.fr-select {
     z-index: 10;
     width: 100%;
     display: none;
+    padding: 0.5rem 1rem;
 
     &.select-multi-options__visible {
       display: inherit;
       max-height: 250px;
       overflow: auto;
-    }
-
-    .fr-checkbox-group {
-      margin-left: 8px;
     }
 
     .fr-checkbox-group:first-child {
@@ -289,5 +301,17 @@ a.fr-btn[target=_blank]:after {
     margin-bottom: 0.25rem;
     line-height: 1rem;
     font-size: 1rem;
+  }
+}
+
+.zlv-label {
+  margin-bottom: 0 !important;
+  color: var(--grey-625);
+  font-weight: 500;
+}
+
+@for $i from 1 through 9 {
+  .weight-#{$i}00 {
+    font-weight: $i * 100
   }
 }

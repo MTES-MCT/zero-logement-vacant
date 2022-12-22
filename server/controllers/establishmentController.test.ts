@@ -1,50 +1,49 @@
-import unprotectedRouter from '../routers/unprotected';
-import express from 'express';
 import request from 'supertest';
 import { constants } from 'http2';
-import bodyParser from 'body-parser';
 import randomstring from 'randomstring';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
+import { createServer } from '../server';
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(unprotectedRouter);
+const { app } = createServer();
 
 describe('Establishment controller', () => {
+  describe('search', () => {
+    const testRoute = (query?: string) =>
+      `/api/establishments${query ? '?q=' + query : ''}`;
 
-    describe('search', () => {
+    it('should received a query param', async () => {
+      await request(app)
+        .get(testRoute())
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-        const testRoute = (query?: string) => `/api/establishments${query ? '?q=' + query : ''}`
+      await request(app)
+        .get(testRoute(''))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
 
-        it('should received a query param', async () => {
+    it('should return an empty array where no establishment is found', async () => {
+      const res = await request(app)
+        .get(testRoute(randomstring.generate()))
+        .expect(constants.HTTP_STATUS_OK);
 
-            await request(app).get(testRoute()).expect(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(res.body).toEqual([]);
+    });
 
-            await request(app).get(testRoute('')).expect(constants.HTTP_STATUS_BAD_REQUEST);
+    it('should return an array with establishment found', async () => {
+      const res = await request(app)
+        .get(
+          testRoute(
+            Establishment1.name.substring(1, Establishment1.name.length - 1)
+          )
+        )
+        .expect(constants.HTTP_STATUS_OK);
 
-        });
-
-        it('should return an empty array where no establishment is found', async () => {
-
-            const res = await request(app).get(testRoute(randomstring.generate())).expect(constants.HTTP_STATUS_OK);
-
-            expect(res.body).toEqual([]);
-        });
-
-        it('should return an array with establishment found', async () => {
-
-            const res = await request(app).get(testRoute(Establishment1.name.substring(1, Establishment1.name.length - 1))).expect(constants.HTTP_STATUS_OK);
-
-            expect(res.body).toEqual([
-                {
-                    id: Establishment1.id,
-                    name: Establishment1.name
-                }
-            ]);
-        });
+      expect(res.body).toEqual([
+        {
+          id: Establishment1.id,
+          name: Establishment1.name,
+        },
+      ]);
+    });
   });
-
 });
-

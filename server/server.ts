@@ -33,7 +33,7 @@ export function createServer(): Server {
           scriptSrc: [
             "'self'",
             "'unsafe-inline'",
-            'https://stats.data.gouv.fr',
+            'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
             'https://renderer-assets.typeform.com',
           ],
@@ -62,7 +62,7 @@ export function createServer(): Server {
           mediaSrc: ["'self'"],
           connectSrc: [
             "'self'",
-            'https://stats.data.gouv.fr',
+            'https://stats.beta.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
           ],

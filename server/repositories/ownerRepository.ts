@@ -62,12 +62,17 @@ const searchOwners = async (
 const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
   try {
     return db(ownerTable)
-      .join(
-        ownersHousingTable,
-        `${ownerTable}.id`,
-        `${ownersHousingTable}.owner_id`
+      .select(
+        '*',
+        db.raw(
+          '(select count(*)\n' +
+            '        from owners_housing oh2\n' +
+            '        where oh1.owner_id = oh2."owner_id"\n' +
+            '          and current_date between coalesce(oh2.start_date, current_date) and coalesce(oh2.end_date, current_date)) as housing_count'
+        )
       )
-      .where(`${ownersHousingTable}.housing_id`, housingId)
+      .join({ oh1: ownersHousingTable }, `${ownerTable}.id`, 'oh1.owner_id')
+      .where('oh1.housing_id', housingId)
       .orderBy('end_date', 'desc')
       .orderBy('rank')
       .then((_) => _.map((result: any) => parseHousingOwnerApi(result)));
@@ -218,6 +223,7 @@ export const parseHousingOwnerApi = (result: any) =>
     startDate: result.start_date,
     endDate: result.end_date,
     origin: result.origin,
+    housingCount: Number(result.housing_count),
   };
 
 const formatOwnerApi = (ownerApi: OwnerApi) => ({

@@ -11,6 +11,7 @@ import { Event } from '../../models/Event';
 import eventService from '../../services/event.service';
 import { FormState } from './FormState';
 import { HousingNote } from '../../models/Note';
+import _ from 'lodash';
 
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
@@ -260,6 +261,27 @@ export const createAdditionalOwner = (
       .catch((error) => {
         console.error(error);
       });
+  };
+};
+
+export const updateMainHousingOwner = (
+  modifiedOwner: Owner,
+  housingId: string
+) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
+      dispatch(showLoading());
+
+      ownerService
+        .updateOwner(modifiedOwner)
+        .then(() => {
+          dispatch(hideLoading());
+          getHousingOwners(housingId)(dispatch);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
   };
 };
 

@@ -22,9 +22,9 @@ import { Owner } from '../../../models/Owner';
 
 interface HousingNoteModalProps {
   housingList: Housing[];
-  owner: Owner;
+  owner?: Owner;
   onClose: () => void;
-  onSubmitAboutOwner: (note: OwnerNote) => void;
+  onSubmitAboutOwner?: (note: OwnerNote) => void;
   onSubmitAboutHousing: (note: HousingNote) => void;
 }
 
@@ -35,7 +35,9 @@ function HousingNoteModal(props: HousingNoteModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contactKind, setContactKind] = useState(DefaultOption.value);
-  const [selectedHousing, setSelectedHousing] = useState<string[]>([ALL]);
+  const [selectedHousing, setSelectedHousing] = useState<string[]>(
+    props.onSubmitAboutOwner ? [ALL] : props.housingList.map((_) => _.id)
+  );
 
   const allHousingSelected = useMemo<boolean>(() => {
     return selectedHousing.includes(ALL);
@@ -78,9 +80,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
   ];
 
   const housingOptions = [
-    ownerOption,
-    allOption,
-    Separator,
+    ...(props.onSubmitAboutOwner ? [ownerOption, allOption, Separator] : []),
     ...props.housingList.map((housing) => ({
       value: housing.id,
       label: `${housing.rawAddress[0]} (i.f. : ${housing.invariant})`,
@@ -109,8 +109,8 @@ function HousingNoteModal(props: HousingNoteModalProps) {
   });
 
   function submit(): void {
-    if (selectedHousing.includes(OWNER)) {
-      return props.onSubmitAboutOwner({
+    if (selectedHousing.includes(OWNER) && props.owner) {
+      return props.onSubmitAboutOwner?.({
         title,
         content,
         contactKind,
@@ -139,9 +139,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
 
   return (
     <Modal isOpen hide={() => props.onClose()} size="lg">
-      <ModalClose hide={() => props.onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
+      <ModalClose hide={() => props.onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
       <ModalTitle>
         <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
         Ajouter une note

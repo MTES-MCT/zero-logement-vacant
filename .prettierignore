@@ -25,3 +25,6 @@ yarn-error.log*
 /.idea/
 /frontend/.env
 /dist/
+
+# specific files
+/server/routers

@@ -4,7 +4,7 @@ import { CampaignIntent } from './EstablishmentApi';
 export interface ProspectApi {
   email: string;
   establishment?: {
-    id: string;
+    id?: string;
     siren: number;
     campaignIntent?: CampaignIntent;
   };
@@ -42,8 +42,13 @@ export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
   },
 ];
 
+export function getTestAccount(email: string): ProspectApi | null {
+  const testAccount = TEST_ACCOUNTS.find((account) => account.email === email);
+  return testAccount ?? null;
+}
+
 export function isTestAccount(email: string): boolean {
-  return TEST_ACCOUNTS.map((account) => account.email).includes(email);
+  return getTestAccount(email) !== null;
 }
 
 export function isValid(prospect: ProspectApi): boolean {

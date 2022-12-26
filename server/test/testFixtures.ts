@@ -14,6 +14,8 @@ import {
   RESET_LINK_LENGTH,
   ResetLinkApi,
 } from '../models/ResetLinkApi';
+import { SIGNUP_LINK_EXPIRATION, SignupLinkApi } from '../models/SignupLinkApi';
+
 const randomstring = require('randomstring');
 
 export const genEmail = () => {
@@ -74,6 +76,7 @@ export const genUserApi = (establishmentId: string) => {
     lastName: randomstring.generate(),
     establishmentId,
     role: UserRoles.Usual,
+    activatedAt: new Date(),
   };
 };
 
@@ -192,3 +195,9 @@ export const genResetLinkApi = (userId: string) => {
     usedAt: null,
   };
 };
+
+export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
+  id: uuidv4(),
+  prospectEmail,
+  expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+});

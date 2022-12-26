@@ -17,10 +17,14 @@ export function useHide(options?: HideOptions) {
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setHidden(true);
     }, opts.timeout);
-  });
+
+    return function cleanup() {
+      clearTimeout(timeout);
+    };
+  }, [opts.timeout]);
 
   return {
     hidden,

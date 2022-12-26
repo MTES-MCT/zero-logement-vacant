@@ -115,11 +115,11 @@ function App() {
             </Switch>
           </> :
           <Switch>
+            <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/" component={HomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />
-            <Route exact path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />

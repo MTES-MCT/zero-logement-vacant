@@ -10,7 +10,6 @@ import { constants } from 'http2';
 import { body, param, ValidationChain } from 'express-validator';
 import ceremaService from '../services/ceremaService';
 import prospectRepository from '../repositories/prospectRepository';
-import { TEST_ACCOUNTS } from '../models/ProspectApi';
 import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
@@ -76,15 +75,6 @@ const getAccountValidator: ValidationChain[] = [
 const getProspectAccount = async (request: Request, response: Response) => {
   const email = request.params.email as string;
   console.log('Get account', email);
-
-  if (config.features.enableTestAccounts) {
-    const testAccount = TEST_ACCOUNTS.find(
-      (account) => account.email === email
-    );
-    if (testAccount) {
-      return response.status(constants.HTTP_STATUS_OK).json(testAccount);
-    }
-  }
 
   const user = await userRepository.getByEmail(email);
 

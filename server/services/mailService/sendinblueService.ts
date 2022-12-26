@@ -7,6 +7,7 @@ import { MailService, SendOptions } from './mailService';
 import config from '../../utils/config';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
+const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
 
 class SendinblueService implements MailService {
   private client: TransactionalEmailsApi;
@@ -35,6 +36,19 @@ class SendinblueService implements MailService {
       templateId: PASSWORD_RESET_TEMPLATE_ID,
       params: {
         link: `${config.application.host}/mot-de-passe/nouveau#${key}`,
+      },
+    });
+  }
+
+  async sendAccountActivationEmail(
+    key: string,
+    options: SendOptions
+  ): Promise<void> {
+    await this.send({
+      ...options,
+      templateId: ACCOUNT_ACTIVATION_TEMPLATE_ID,
+      params: {
+        link: `${config.application.host}/compte#${key}`,
       },
     });
   }

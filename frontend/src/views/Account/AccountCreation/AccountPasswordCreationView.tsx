@@ -7,7 +7,7 @@ import {
 } from '../../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Button, Link, Row, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import { Button, Row, Text, TextInput, Title } from '@dataesr/react-dsfr';
 import { useEmailLink } from '../../../hooks/useEmailLink';
 import signupLinkService from '../../../services/signup-link.service';
 import InternalLink from '../../../components/InternalLink/InternalLink';

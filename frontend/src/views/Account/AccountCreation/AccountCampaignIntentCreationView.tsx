@@ -5,7 +5,7 @@ import Stepper from '../../../components/Stepper/Stepper';
 import { Button, Link, Row, Title } from '@dataesr/react-dsfr';
 import Help from '../../../components/Help/Help';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
-import { Redirect, useHistory, useLocation } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 import { createUser } from '../../../store/actions/userAction';
 import { login } from '../../../store/actions/authenticationAction';
 import prospectService from '../../../services/prospect.service';

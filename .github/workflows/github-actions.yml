@@ -38,9 +38,9 @@ jobs:
       - name: Server linter
         run: npm run lint
       - name: Frontend tests
-        run: npm --prefix frontend test
+        run: npm --prefix frontend test -- --test-timeout=30000
       - name: Server tests
-        run: npm run test
+        run: npm run test -- --test-timeout=30000
         env:
           AUTH_SECRET: abcd1234
           CEREMA_API_AUTH_TOKEN: ''

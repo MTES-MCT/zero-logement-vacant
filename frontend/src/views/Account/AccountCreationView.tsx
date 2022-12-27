@@ -179,7 +179,7 @@ function AccountCreationView() {
       password: passwordValidator,
       confirmation: passwordConfirmationValidator,
     });
-    const { isValid, message, messageType } = useForm(schema, {
+    const { isValid, message, messageList, messageType } = useForm(schema, {
       password,
       confirmation,
     });
@@ -207,17 +207,21 @@ function AccountCreationView() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           messageType={messageType('password')}
-          message={message('password')}
           label="Créer votre mot de passe"
           hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
           required
         />
+        {messageList('password')?.map((message, i) => (
+          <p className={`fr-${message.type}-text`} key={i}>
+            {message.text}
+          </p>
+        ))}
         <TextInput
           type="password"
           value={confirmation}
           onChange={(e) => setConfirmation(e.target.value)}
           messageType={messageType('confirmation')}
-          message={message('confirmation')}
+          message={message('confirmation', 'Mots de passe identiques.')}
           label="Confirmer votre mot de passe"
           required
         />

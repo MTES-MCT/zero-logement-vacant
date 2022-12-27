@@ -1,5 +1,5 @@
 import React from 'react';
-import user from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
@@ -11,6 +11,8 @@ import { applyMiddleware, createStore } from 'redux';
 import applicationReducer from '../../store/reducers/applicationReducers';
 
 describe('login view', () => {
+  const user = userEvent.setup();
+
   let store: any;
 
   beforeEach(() => {
@@ -74,7 +76,7 @@ describe('login view', () => {
     );
 
     const forgottenPassword = screen.getByText('Mot de passe perdu ?');
-    user.click(forgottenPassword);
+    await user.click(forgottenPassword);
 
     expect(history.location.pathname).toBe('/mot-de-passe/oublie');
   });

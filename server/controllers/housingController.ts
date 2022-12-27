@@ -440,7 +440,7 @@ const exportHousingList = async (
       .flat(),
   ];
 
-  housingListByOwner.map(
+  housingListByOwner.forEach(
     (ownerHousing: { owner: OwnerApi; housingList: HousingApi[] }) => {
       const ownerAddress = ownerAddresses.find(
         (_) => _.refId === ownerHousing.owner.id

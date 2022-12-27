@@ -263,7 +263,7 @@ const exportMonitoring = async (
     housingRepository.countByStatusWithFilters(filters),
     housingRepository.durationByStatusWithFilters(filters),
   ]).then(([establishmentDataList, counts, durations]) => {
-    establishmentDataList.map((data) => {
+    establishmentDataList.forEach((data) => {
       establishmentWorksheet.addRow({
         name: data.name,
         housingCount: data.housingCount,
@@ -279,7 +279,7 @@ const exportMonitoring = async (
       });
     });
 
-    counts.map((countData, countIndex) => {
+    counts.forEach((countData, countIndex) => {
       housingWorksheet.addRow({
         status:
           counts[countIndex - 1]?.status !== countData.status

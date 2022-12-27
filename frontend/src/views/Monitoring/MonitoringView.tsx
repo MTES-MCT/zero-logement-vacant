@@ -230,7 +230,9 @@ const MonitoringView = () => {
     name: 'firstCampaign',
     label: "Temps d'envoi de la première campagne après inscription",
     render: ({ firstCampaignSentDelay }: EstablishmentData) => (
-      <div>{firstCampaignSentDelay && <>{firstCampaignSentDelay} jours</>}</div>
+      <div>
+        {firstCampaignSentDelay ? <>{firstCampaignSentDelay} jours</> : null}
+      </div>
     ),
     sortable: true,
     sort: (e1: EstablishmentData, e2: EstablishmentData) =>

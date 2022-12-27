@@ -1,10 +1,10 @@
-import validator from "../validator";
-import { v4 as uuidv4 } from "uuid";
-import express, { Request, Response } from "express";
-import { body, header, param, query } from "express-validator";
-import { constants } from "http2";
-import bodyParser from "body-parser";
-import request from "supertest";
+import validator from '../validator';
+import { v4 as uuidv4 } from 'uuid';
+import express, { Request, Response } from 'express';
+import { body, header, param, query } from 'express-validator';
+import { constants } from 'http2';
+import bodyParser from 'body-parser';
+import request from 'supertest';
 
 describe('Validator middleware', () => {
   describe('Integration test', () => {
@@ -48,7 +48,7 @@ describe('Validator middleware', () => {
       return request(app)
         .post(testRoute)
         .query({
-          establishmentId: '1234'
+          establishmentId: '1234',
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -58,7 +58,7 @@ describe('Validator middleware', () => {
         .post(testRoute)
         .send({
           name: '12345',
-          should: 'be removed'
+          should: 'be removed',
         })
         .expect(constants.HTTP_STATUS_CREATED)
         .expect({ name: '12345' });

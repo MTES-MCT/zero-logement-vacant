@@ -1,4 +1,4 @@
 export interface MonitoringFiltersApi {
-    establishmentIds?: string[];
-    dataYears?: number[];
+  establishmentIds?: string[];
+  dataYears?: number[];
 }

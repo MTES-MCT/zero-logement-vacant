@@ -1,15 +1,15 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 interface HousingListHeaderActionsProps {
-  children?: ReactNode | ReactNode[]
+  children?: ReactNode | ReactNode[];
 }
 
 function HousingListHeaderActions(props: HousingListHeaderActionsProps) {
   if (props.children) {
-    return <>{props.children}</>
+    return <>{props.children}</>;
   }
 
-  return <></>
+  return <></>;
 }
 
-export default HousingListHeaderActions
+export default HousingListHeaderActions;

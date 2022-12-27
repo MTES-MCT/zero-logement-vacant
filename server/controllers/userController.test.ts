@@ -246,7 +246,7 @@ describe('User controller', () => {
       });
       const housing = new Array(2500)
         .fill(0)
-        .map((_) => genHousingApi(Locality.geoCode));
+        .map(() => genHousingApi(Locality.geoCode));
       await db(housingTable).insert(
         housing.map((_) => housingRepository.formatHousingApi(_))
       );

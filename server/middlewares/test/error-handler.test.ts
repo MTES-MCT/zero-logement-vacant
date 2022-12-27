@@ -11,15 +11,21 @@ describe('Error handler', () => {
     const unexpectedErrorRoute = '/unexpected-fail';
     const app = express();
 
-    const email = genEmail()
-    app.get(expectedErrorRoute, async (request: Request, response: Response, next: NextFunction) => {
-      const error = new TestAccountError(email);
-      next(error);
-    });
-    app.get(unexpectedErrorRoute, async (request: Request, response: Response, next: NextFunction) => {
-      const error = new Error('Unexpected error');
-      next(error);
-    });
+    const email = genEmail();
+    app.get(
+      expectedErrorRoute,
+      async (request: Request, response: Response, next: NextFunction) => {
+        const error = new TestAccountError(email);
+        next(error);
+      }
+    );
+    app.get(
+      unexpectedErrorRoute,
+      async (request: Request, response: Response, next: NextFunction) => {
+        const error = new Error('Unexpected error');
+        next(error);
+      }
+    );
     app.use(errorHandler());
 
     it('should respond with the status of the error if any', async () => {
@@ -28,7 +34,7 @@ describe('Error handler', () => {
         .expect(constants.HTTP_STATUS_FORBIDDEN)
         .expect({
           name: 'TestAccountError',
-          message: `${email} is a test account. It cannot be used.`
+          message: `${email} is a test account. It cannot be used.`,
         });
     });
 

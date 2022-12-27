@@ -1,33 +1,33 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-export type Step = number
+export type Step = number;
 
 export interface StepperOptions {
-  step?: number
+  step?: number;
 }
 
 export function useStepper(steps: Step[], options?: StepperOptions) {
-  const [index, setIndex] = useState(options?.step ?? 0)
+  const [index, setIndex] = useState(options?.step ?? 0);
 
-  const step: Step = useMemo(() => steps[index], [steps, index])
+  const step: Step = useMemo(() => steps[index], [steps, index]);
 
   function isCompleted(i: number): boolean {
-    return i < index
+    return i < index;
   }
 
   function isInBounds(index: number): boolean {
-    return Number.isInteger(index) &&  0 <= index && index <= steps.length - 1
+    return Number.isInteger(index) && 0 <= index && index <= steps.length - 1;
   }
 
   function forceStep(index: number): void {
     if (isInBounds(index)) {
-      setIndex(index)
+      setIndex(index);
     }
   }
 
   function next(): void {
     if (isInBounds(index + 1)) {
-      setIndex(index + 1)
+      setIndex(index + 1);
     }
   }
 
@@ -36,6 +36,6 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
     index,
     isCompleted,
     next,
-    step
-  }
+    step,
+  };
 }

@@ -1,11 +1,11 @@
 export interface HttpError extends Error {
-  status: number
+  status: number;
 }
 
 interface HttpErrorOptions {
-  name: string
-  message: string
-  status: number
+  name: string;
+  message: string;
+  status: number;
 }
 
 export abstract class HttpError extends Error implements HttpError {
@@ -22,7 +22,7 @@ export abstract class HttpError extends Error implements HttpError {
       name: this.name,
       message: this.message,
       status: this.status,
-    }
+    };
   }
 }
 

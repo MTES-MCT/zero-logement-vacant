@@ -1,11 +1,7 @@
 import React from 'react';
 
 const AppBreadcrumb = () => {
-
-    return (
-        <></>
-    );
+  return <></>;
 };
 
 export default AppBreadcrumb;
-

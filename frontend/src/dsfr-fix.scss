@@ -1,38 +1,38 @@
 .fr-tabs:before {
-    position: absolute;
-    margin-top: 39px !important;
+  position: absolute;
+  margin-top: 39px !important;
 }
 
 .fr-tabs__panel {
-    margin-top: 2.5rem;
+  margin-top: 2.5rem;
 }
 
 a[href]:not(.fr-btn) {
-    padding-bottom: 0.2rem;
+  padding-bottom: 0.2rem;
 }
 
 a[href].ds-fr--flex,
 a[href].fr-link {
-    width: fit-content;
+  width: fit-content;
 }
 
 .fr-btn--tertiary-no-outline {
-    box-shadow: none !important;
+  box-shadow: none !important;
 }
 
 .fix-vertical-align {
-    position: relative;
-    top: -3px;
+  position: relative;
+  top: -3px;
 }
 
-input[type=checkbox]:disabled {
-    opacity: 0 !important;
+input[type='checkbox']:disabled {
+  opacity: 0 !important;
 }
 
 .fr-accordion__btn {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 span.ri-checkbox-circle-line.ds-fr-tag-icon {
-    display: none;
+  display: none;
 }

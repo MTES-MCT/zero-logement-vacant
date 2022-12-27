@@ -1,3 +1,3 @@
-import { createServer } from "./server";
+import { createServer } from './server';
 
-createServer().start()
+createServer().start();

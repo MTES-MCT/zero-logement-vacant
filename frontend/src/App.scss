@@ -1,7 +1,7 @@
 @use "colors";
 @use "dsfr-fix";
 
-@import "@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css";
+@import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css';
 
 .zlv-container {
   min-height: 600px;
@@ -13,12 +13,13 @@
       width: 48px;
     }
 
-    input[type=checkbox]+label:before {
+    input[type='checkbox'] + label:before {
       margin-top: 0 !important;
     }
 
     &.with-row-number {
-      th:nth-child(2), tr > td:nth-child(2)  {
+      th:nth-child(2),
+      tr > td:nth-child(2) {
         width: 42px;
         padding-left: 8px;
         padding-right: 0;
@@ -28,43 +29,42 @@
 
   &:not(.with-select) {
     &.with-row-number {
-      th:first-child, tr > td:first-child {
+      th:first-child,
+      tr > td:first-child {
         width: 42px;
       }
     }
   }
 
   &.with-view {
-
-    th:last-child, tr > td:last-child  {
+    th:last-child,
+    tr > td:last-child {
       width: 100px;
       padding: 0;
     }
 
     &.with-actions {
-
-      th:nth-last-child(2), tr > td:nth-last-child(2)  {
+      th:nth-last-child(2),
+      tr > td:nth-last-child(2) {
         width: 100px;
         padding: 0;
       }
-
     }
   }
 }
 
 .zlv-table-with-view {
-
   table:before {
     display: none !important;
   }
 
-  th:last-child, tr > td:last-child  {
+  th:last-child,
+  tr > td:last-child {
     width: 100px;
     padding: 0;
   }
 
   &.campaign {
-
     th:nth-child(3) {
       width: 20%;
     }
@@ -81,7 +81,8 @@
       width: 30%;
     }
 
-    th:nth-child(7), tr > td:nth-child(7)  {
+    th:nth-child(7),
+    tr > td:nth-child(7) {
       width: 150px;
       padding: 0;
     }
@@ -92,7 +93,8 @@
   .table-column-header {
     min-width: 150px;
   }
-  td, th {
+  td,
+  th {
     text-align: center !important;
     display: block;
   }
@@ -105,42 +107,43 @@
   display: inline-block;
 }
 
-.d-none, .no-head thead {
+.d-none,
+.no-head thead {
   display: none !important;
 }
 
 .d-lg-block {
-  @media (min-width:992px) {
+  @media (min-width: 992px) {
     display: block !important;
   }
 }
 
 .d-lg-none {
-  @media (min-width:992px) {
+  @media (min-width: 992px) {
     display: none !important;
   }
 }
 
 .bg-white {
-  background-color: var(--white-1000)
+  background-color: var(--white-1000);
 }
 .bg-100 {
-  background-color: var(--grey-975)
+  background-color: var(--grey-975);
 }
 .bg-975 {
-  background-color: var(--grey-975)
+  background-color: var(--grey-975);
 }
 .bg-925 {
-  background-color: var(--grey-925)
+  background-color: var(--grey-925);
 }
 .bg-bf113 {
-  background-color: var(--blue-france-113)
+  background-color: var(--blue-france-113);
 }
 .bg-bf925 {
   background-color: var(--blue-france-925) !important;
 }
 .bg-bf975 {
-  background-color: var(--blue-france-975)
+  background-color: var(--blue-france-975);
 }
 
 .color-grey-50 {
@@ -201,12 +204,12 @@
 
 .fr-tag-click {
   color: var(--blue-france-113) !important;
-  background-color: #E5E5F4 !important;
+  background-color: #e5e5f4 !important;
   margin-right: 8px;
   margin-bottom: 4px;
 
   button {
-    background-color: #E5E5F4 !important;
+    background-color: #e5e5f4 !important;
   }
 }
 
@@ -214,11 +217,11 @@ button.fr-select {
   text-align: left;
 }
 
-
 .campaignTabs {
-  li:last-child, li:nth-last-child(2)  {
-    .fr-tabs__tab:not([aria-selected=true]) {
-      background-color:  var(--grey-925);
+  li:last-child,
+  li:nth-last-child(2) {
+    .fr-tabs__tab:not([aria-selected='true']) {
+      background-color: var(--grey-925);
     }
   }
 }
@@ -248,7 +251,7 @@ button.fr-select {
 }
 
 .select-search-input {
-    margin-top: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .status-label {
@@ -269,10 +272,9 @@ button.fr-select {
   & + span.status-label {
     margin-left: 8px;
   }
-
 }
 
-a.fr-btn[target=_blank]:after {
+a.fr-btn[target='_blank']:after {
   content: none;
 }
 
@@ -312,7 +314,7 @@ a.fr-btn[target=_blank]:after {
 
 @for $i from 1 through 9 {
   .weight-#{$i}00 {
-    font-weight: $i * 100
+    font-weight: $i * 100;
   }
 }
 

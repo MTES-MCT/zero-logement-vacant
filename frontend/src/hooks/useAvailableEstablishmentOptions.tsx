@@ -5,22 +5,25 @@ import { fetchAvailableEstablishments } from '../store/actions/authenticationAct
 import { SelectOption } from '../models/SelectOption';
 
 export const useAvailableEstablishmentOptions = () => {
+  const dispatch = useDispatch();
+  const [availableEstablishmentOptions, setAvailableEstablishmentOptions] =
+    useState<SelectOption[]>([]);
+  const { availableEstablishments } = useSelector(
+    (state: ApplicationState) => state.authentication
+  );
 
-    const dispatch = useDispatch();
-    const [availableEstablishmentOptions, setAvailableEstablishmentOptions] = useState<SelectOption[]>([]);
-    const { availableEstablishments } = useSelector((state: ApplicationState) => state.authentication);
+  useEffect(() => {
+    if (!availableEstablishments) {
+      dispatch(fetchAvailableEstablishments());
+    } else {
+      setAvailableEstablishmentOptions(
+        availableEstablishments.map((establishment) => ({
+          value: establishment.id,
+          label: establishment.name,
+        }))
+      );
+    }
+  }, [dispatch, availableEstablishments]);
 
-
-    useEffect(() => {
-        if (!availableEstablishments) {
-            dispatch(fetchAvailableEstablishments())
-        } else {
-            setAvailableEstablishmentOptions(availableEstablishments.map(establishment => ({
-                value: establishment.id,
-                label: establishment.name
-            })))
-        }
-    }, [dispatch, availableEstablishments]);
-
-    return availableEstablishmentOptions;
-}
+  return availableEstablishmentOptions;
+};

@@ -4,16 +4,15 @@ import config from './config';
 import * as sentryIntegrations from '@sentry/integrations';
 
 const initCaptureConsole = (dsn: string): void => {
-
   const logLevel = ['error'];
 
-  console.log(`Initializing Sentry for log level "${logLevel}" and config: ${config.sentryDNS}`);
+  console.log(
+    `Initializing Sentry for log level "${logLevel}" and config: ${config.sentryDNS}`
+  );
 
   Sentry.init({
     dsn,
-    integrations: [
-      new sentryIntegrations.CaptureConsole({ levels: logLevel }),
-    ],
+    integrations: [new sentryIntegrations.CaptureConsole({ levels: logLevel })],
   });
 };
 
@@ -27,9 +26,10 @@ const initCaptureConsoleWithHandler = (app: Express): void => {
 
     // TracingHandler creates a trace for every incoming request
     app.use(Sentry.Handlers.tracingHandler());
-
   } else {
-    console.log('Sentry was not initialized as SENTRY_DNS env variable is missing');
+    console.log(
+      'Sentry was not initialized as SENTRY_DNS env variable is missing'
+    );
   }
 };
 

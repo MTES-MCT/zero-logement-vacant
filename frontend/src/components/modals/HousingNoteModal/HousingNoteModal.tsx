@@ -139,7 +139,9 @@ function HousingNoteModal(props: HousingNoteModalProps) {
 
   return (
     <Modal isOpen hide={() => props.onClose()} size="lg">
-      <ModalClose hide={() => props.onClose()} title="Fermer la fenêtre">Fermer</ModalClose>
+      <ModalClose hide={() => props.onClose()} title="Fermer la fenêtre">
+        Fermer
+      </ModalClose>
       <ModalTitle>
         <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
         Ajouter une note

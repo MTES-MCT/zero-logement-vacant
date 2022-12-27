@@ -1,5 +1,5 @@
-import { HttpError } from "./httpError";
-import { constants } from "http2";
+import { HttpError } from './httpError';
+import { constants } from 'http2';
 
 export default class TestAccountError extends HttpError implements HttpError {
   constructor(email: string) {

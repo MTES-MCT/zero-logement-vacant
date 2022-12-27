@@ -10,65 +10,75 @@ import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
 
 describe('Campagne creation modal', () => {
+  let store: any;
 
-    let store: any;
+  const defaultFetchMock = (request: Request) => {
+    return Promise.resolve(
+      request.url === `${config.apiEndpoint}/api/campaigns`
+        ? { body: JSON.stringify([]), init: { status: 200 } }
+        : request.url === `${config.apiEndpoint}/api/geo/perimeters`
+        ? { body: JSON.stringify([]), init: { status: 200 } }
+        : { body: '', init: { status: 404 } }
+    );
+  };
 
-    const defaultFetchMock = (request: Request) => {
-        return Promise.resolve(
-            (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
-                (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
-                    {body: '', init: {status: 404 } }
-        )
-    }
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    store = createStore(
+      applicationReducer,
+      { authentication: { authUser: genAuthUser() } },
+      applyMiddleware(thunk)
+    );
+  });
 
-    beforeEach(() => {
-        fetchMock.resetMocks();
-        store = createStore(
-            applicationReducer,
-            {authentication: {authUser: genAuthUser()}},
-            applyMiddleware(thunk)
-        );
-    });
+  test('should display housing count, campaign title input and submit button', () => {
+    fetchMock.mockResponse(defaultFetchMock);
 
-    test('should display housing count, campaign title input and submit button', () => {
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => {}}
+          onClose={() => {}}
+        />
+      </Provider>
+    );
 
-        fetchMock.mockResponse(defaultFetchMock);
+    const housingInfosTextElement = screen.getByTestId('housing-infos');
+    const campaignTitleInputElement = screen.getByTestId(
+      'campaign-title-input'
+    );
+    const createButton = screen.getByTestId('create-button');
+    expect(housingInfosTextElement).toBeInTheDocument();
+    expect(housingInfosTextElement).toContainHTML(
+      'Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>'
+    );
+    expect(campaignTitleInputElement).toBeInTheDocument();
+    expect(createButton).toBeInTheDocument();
+  });
 
-        render(
-            <Provider store={store}>
-                <CampaignCreationModal housingCount={2}
-                                       filters={{}}
-                                       onSubmit={() => {}}
-                                       onClose={() => {}} />
-            </Provider>
-        );
+  test('should require campaign title', async () => {
+    fetchMock.mockResponse(defaultFetchMock);
 
-        const housingInfosTextElement = screen.getByTestId('housing-infos');
-        const campaignTitleInputElement = screen.getByTestId('campaign-title-input');
-        const createButton = screen.getByTestId('create-button');
-        expect(housingInfosTextElement).toBeInTheDocument();
-        expect(housingInfosTextElement).toContainHTML('Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>');
-        expect(campaignTitleInputElement).toBeInTheDocument();
-        expect(createButton).toBeInTheDocument();
-    });
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => {}}
+          onClose={() => {}}
+        />
+      </Provider>
+    );
 
-    test('should require campaign title', async() => {
+    fireEvent.click(screen.getByTestId('create-button'));
 
-        fetchMock.mockResponse(defaultFetchMock);
-
-        render(
-            <Provider store={store}>
-                <CampaignCreationModal housingCount={2}
-                                       filters={{}}
-                                       onSubmit={() => {}}
-                                       onClose={() => {}}/>
-            </Provider>
-        );
-
-        fireEvent.click(screen.getByTestId('create-button'));
-
-        const campaignTitleInputElement = await screen.findByTestId('campaign-title-input');
-        expect(campaignTitleInputElement.querySelector('.fr-error-text')).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
-    });
-
+    const campaignTitleInputElement = await screen.findByTestId(
+      'campaign-title-input'
+    );
+    expect(
+      campaignTitleInputElement.querySelector('.fr-error-text')
+    ).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
+  });
 });

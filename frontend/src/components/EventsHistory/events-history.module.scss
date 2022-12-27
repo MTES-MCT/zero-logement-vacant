@@ -1,5 +1,5 @@
 ul.ownerEvents {
-  list-style-image: url("../../assets/images/list-item-circle.svg");
+  list-style-image: url('../../assets/images/list-item-circle.svg');
 
   li {
     padding-bottom: 0;
@@ -8,7 +8,6 @@ ul.ownerEvents {
       border-left: 1px solid var(--grey-850);
       padding: 0 0 24px 19px;
       margin: 0 0 0 -16px;
-
     }
   }
 }

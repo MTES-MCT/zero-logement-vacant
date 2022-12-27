@@ -11,100 +11,99 @@ export const USER_LIST_FETCHED = 'USER_LIST_FETCHED';
 export const USER_REMOVED = 'USER_REMOVED';
 
 export interface FetchUserListAction {
-    type: typeof FETCH_USER_LIST,
-    filters: UserFilters,
-    page: number,
-    perPage: number
+  type: typeof FETCH_USER_LIST;
+  filters: UserFilters;
+  page: number;
+  perPage: number;
 }
 
 export interface UserListFetchedAction {
-    type: typeof USER_LIST_FETCHED,
-    paginatedUsers: PaginatedResult<User>,
-    filters: UserFilters,
+  type: typeof USER_LIST_FETCHED;
+  paginatedUsers: PaginatedResult<User>;
+  filters: UserFilters;
 }
 
 export interface UserRemovedAction {
-    type: typeof USER_REMOVED,
-    id: User['id']
+  type: typeof USER_REMOVED;
+  id: User['id'];
 }
 
-export type UserActionTypes = FetchUserListAction | UserListFetchedAction | UserRemovedAction;
+export type UserActionTypes =
+  | FetchUserListAction
+  | UserListFetchedAction
+  | UserRemovedAction;
 
 export const changeUserFiltering = (filters: UserFilters) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    const page = 1;
+    const perPage = getState().user.paginatedUsers.perPage;
 
-        dispatch(showLoading());
+    dispatch({
+      type: FETCH_USER_LIST,
+      page,
+      perPage,
+      filters,
+    });
 
-        const page = 1
-        const perPage = getState().user.paginatedUsers.perPage
-
+    userService
+      .listUsers(filters, page, perPage)
+      .then((result: PaginatedResult<User>) => {
+        dispatch(hideLoading());
         dispatch({
-            type: FETCH_USER_LIST,
-            page,
-            perPage,
-            filters
+          type: USER_LIST_FETCHED,
+          paginatedUsers: result,
+          filters,
         });
-
-        userService.listUsers(filters, page, perPage)
-            .then((result: PaginatedResult<User>) => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: USER_LIST_FETCHED,
-                    paginatedUsers: result,
-                    filters
-                });
-            });
-    };
+      });
+  };
 };
 
 export const changeUserPagination = (page: number, perPage: number) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    const filters = getState().user.filters;
 
-        dispatch(showLoading());
+    dispatch({
+      type: FETCH_USER_LIST,
+      page: page,
+      perPage,
+      filters,
+    });
 
-        const filters = getState().user.filters
-
+    userService
+      .listUsers(filters, page, perPage)
+      .then((result: PaginatedResult<User>) => {
+        dispatch(hideLoading());
         dispatch({
-            type: FETCH_USER_LIST,
-            page: page,
-            perPage,
-            filters
+          type: USER_LIST_FETCHED,
+          paginatedUsers: result,
+          filters,
         });
-
-        userService.listUsers(filters, page, perPage)
-            .then((result: PaginatedResult<User>) => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: USER_LIST_FETCHED,
-                    paginatedUsers: result,
-                    filters
-                });
-            });
-    };
+      });
+  };
 };
 
 export const removeUser = (userId: string) => {
-    return function (dispatch: Dispatch) {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
-        dispatch(showLoading());
-
-        userService.removeUser(userId)
-          .then(() => {
-              dispatch(hideLoading());
-              dispatch<UserRemovedAction>({
-                  type: USER_REMOVED,
-                  id: userId
-              });
-          });
-    };
+    userService.removeUser(userId).then(() => {
+      dispatch(hideLoading());
+      dispatch<UserRemovedAction>({
+        type: USER_REMOVED,
+        id: userId,
+      });
+    });
+  };
 };
 
 export const createUser = (draftUser: DraftUser) => {
-    return async function (dispatch: Dispatch) {
-        dispatch(showLoading());
-        await userService.createUser(draftUser)
-        dispatch(hideLoading());
-    };
+  return async function (dispatch: Dispatch) {
+    dispatch(showLoading());
+    await userService.createUser(draftUser);
+    dispatch(hideLoading());
+  };
 };

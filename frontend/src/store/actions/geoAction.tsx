@@ -10,97 +10,90 @@ export const GEO_PERIMETER_FILE_UPLOADING = 'GEO_PERIMETER_FILE_UPLOADING';
 export const GEO_PERIMETER_FILE_UPLOADED = 'GEO_PERIMETER_FILE_UPLOADED';
 
 export interface FetchGeoPerimeterListAction {
-    type: typeof FETCH_GEO_PERIMETER_LIST
+  type: typeof FETCH_GEO_PERIMETER_LIST;
 }
 
 export interface GeoPerimeterListFetchedAction {
-    type: typeof GEO_PERIMETER_LIST_FETCHED,
-    geoPerimeters: GeoPerimeter[]
+  type: typeof GEO_PERIMETER_LIST_FETCHED;
+  geoPerimeters: GeoPerimeter[];
 }
 
 export interface GeoPerimeterFileUploadingAction {
-    type: typeof GEO_PERIMETER_FILE_UPLOADING,
-    file: File,
-    filename: string
+  type: typeof GEO_PERIMETER_FILE_UPLOADING;
+  file: File;
+  filename: string;
 }
 
 export interface GeoPerimeterFileUploadedAction {
-    type: typeof GEO_PERIMETER_FILE_UPLOADED
+  type: typeof GEO_PERIMETER_FILE_UPLOADED;
 }
 
-export type GeoActionTypes = GeoPerimeterFileUploadingAction | GeoPerimeterFileUploadedAction | FetchGeoPerimeterListAction | GeoPerimeterListFetchedAction;
+export type GeoActionTypes =
+  | GeoPerimeterFileUploadingAction
+  | GeoPerimeterFileUploadedAction
+  | FetchGeoPerimeterListAction
+  | GeoPerimeterListFetchedAction;
 
 export const fetchGeoPerimeters = () => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    if (!getState().geo.loading) {
+      dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+      dispatch({
+        type: FETCH_GEO_PERIMETER_LIST,
+      });
 
-        if (!getState().geo.loading) {
-
-            dispatch(showLoading());
-
-            dispatch({
-                type: FETCH_GEO_PERIMETER_LIST
-            });
-
-            geoService.listGeoPerimeters()
-                .then((geoPerimeters) => {
-                    dispatch(hideLoading());
-                    dispatch({
-                        type: GEO_PERIMETER_LIST_FETCHED,
-                        geoPerimeters
-                    });
-                });
-        }
-    };
+      geoService.listGeoPerimeters().then((geoPerimeters) => {
+        dispatch(hideLoading());
+        dispatch({
+          type: GEO_PERIMETER_LIST_FETCHED,
+          geoPerimeters,
+        });
+      });
+    }
+  };
 };
 
-export const updateGeoPerimeter = (geoPerimeterId: string, kind: string, name?: string) => {
+export const updateGeoPerimeter = (
+  geoPerimeterId: string,
+  kind: string,
+  name?: string
+) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
-        dispatch(showLoading());
-
-        geoService.updateGeoPerimeter(geoPerimeterId, kind, name)
-            .then(() => {
-                dispatch(hideLoading());
-                fetchGeoPerimeters()(dispatch, getState)
-            });
-
-    }
-}
+    geoService.updateGeoPerimeter(geoPerimeterId, kind, name).then(() => {
+      dispatch(hideLoading());
+      fetchGeoPerimeters()(dispatch, getState);
+    });
+  };
+};
 
 export const deleteGeoPerimeter = (geoPerimeterId: string) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
-
-        dispatch(showLoading());
-
-        geoService.deleteGeoPerimeter(geoPerimeterId)
-            .then(() => {
-                dispatch(hideLoading());
-                fetchGeoPerimeters()(dispatch, getState)
-            });
-
-    }
-}
+    geoService.deleteGeoPerimeter(geoPerimeterId).then(() => {
+      dispatch(hideLoading());
+      fetchGeoPerimeters()(dispatch, getState);
+    });
+  };
+};
 
 export const uploadFile = (file: File) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch(showLoading());
 
-    return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch({
+      type: GEO_PERIMETER_FILE_UPLOADING,
+    });
 
-        dispatch(showLoading());
-
-        dispatch({
-            type: GEO_PERIMETER_FILE_UPLOADING
-        });
-
-        geoService.uploadGeoPerimeterFile(file)
-            .then(() => {
-                dispatch(hideLoading());
-                dispatch({
-                    type: GEO_PERIMETER_FILE_UPLOADED
-                });
-                fetchGeoPerimeters()(dispatch, getState)
-            });
-    };
+    geoService.uploadGeoPerimeterFile(file).then(() => {
+      dispatch(hideLoading());
+      dispatch({
+        type: GEO_PERIMETER_FILE_UPLOADED,
+      });
+      fetchGeoPerimeters()(dispatch, getState);
+    });
+  };
 };

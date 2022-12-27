@@ -1,3 +1,6 @@
 export enum FormState {
-    Init, Submit, Succeed, Error
+  Init,
+  Submit,
+  Succeed,
+  Error,
 }

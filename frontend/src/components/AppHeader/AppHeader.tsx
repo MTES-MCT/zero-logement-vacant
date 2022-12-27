@@ -1,125 +1,170 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Header,
-    HeaderBody,
-    HeaderNav,
-    Logo,
-    NavItem,
-    Service,
-    Tool,
-    ToolItem,
-    ToolItemGroup,
+  Header,
+  HeaderBody,
+  HeaderNav,
+  Logo,
+  NavItem,
+  Service,
+  Tool,
+  ToolItem,
+  ToolItemGroup,
 } from '@dataesr/react-dsfr';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
-import { getUserNavItem, UserNavItem, UserNavItems } from '../../models/UserNavItem';
+import {
+  getUserNavItem,
+  UserNavItem,
+  UserNavItems,
+} from '../../models/UserNavItem';
 import { logout } from '../../store/actions/authenticationAction';
 import { isValidUser, UserRoles } from '../../models/User';
 import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
-function AppNavItem({ userNavItem } : {userNavItem: UserNavItem}) {
+function AppNavItem({ userNavItem }: { userNavItem: UserNavItem }) {
+  const location = useLocation();
+  const [path, setPath] = useState(() => location.pathname || '');
 
-    const location = useLocation();
-    const [path, setPath] = useState(() => location.pathname || '');
+  useEffect(() => {
+    if (path !== location.pathname) {
+      setPath(location.pathname);
+    }
+  }, [path, setPath, location]);
 
-    useEffect(() => {
-        if (path !== location.pathname) {
-            setPath(location.pathname);
-        }
-    }, [path, setPath, location]);
-
-    return (
-        <NavItem
-            current={path.indexOf(userNavItem.url) !== -1}
-            title={userNavItem.label}
-            asLink={<Link to={userNavItem.url} className="d-md-none"/>}
-        />
-    )
+  return (
+    <NavItem
+      current={path.indexOf(userNavItem.url) !== -1}
+      title={userNavItem.label}
+      asLink={<Link to={userNavItem.url} className="d-md-none" />}
+    />
+  );
 }
 
 function AppHeader() {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const { trackPageView } = useMatomo();
 
-    const location = useLocation();
-    const dispatch = useDispatch();
-    const history = useHistory();
-    const { trackPageView } = useMatomo();
+  const { authUser } = useSelector(
+    (state: ApplicationState) => state.authentication
+  );
 
-    const { authUser } = useSelector((state: ApplicationState) => state.authentication);
+  useEffect(() => {
+    trackPageView({});
+  }, [location]); //eslint-disable-line react-hooks/exhaustive-deps
 
-    useEffect(() => {
-        trackPageView({})
-    }, [location]) //eslint-disable-line react-hooks/exhaustive-deps
+  const logoutUser = () => {
+    dispatch(logout());
+  };
 
-    const logoutUser = () => {
-        dispatch(logout())
-    }
+  function displayName(): string {
+    return authUser.user.firstName && authUser.user.lastName
+      ? `${authUser.user.firstName} ${authUser.user.lastName}`
+      : authUser.user.email;
+  }
 
-    function displayName(): string {
-        return authUser.user.firstName && authUser.user.lastName
-          ? `${authUser.user.firstName} ${authUser.user.lastName}`
-          : authUser.user.email
-    }
+  const menuActions = [
+    {
+      title: 'Modifier mon mot de passe',
+      icon: 'ri-key-2-fill',
+      onClick: () => history.push('/compte/mot-de-passe'),
+    },
+    {
+      title: 'Me déconnecter',
+      icon: 'ri-lock-line',
+      onClick: () => logoutUser(),
+    },
+  ] as MenuAction[];
 
-    const menuActions = [
-        { title: 'Modifier mon mot de passe', icon: 'ri-key-2-fill', onClick: () => history.push('/compte/mot-de-passe')},
-        { title: 'Me déconnecter', icon: 'ri-lock-line', onClick: () => logoutUser()}
-    ] as MenuAction[]
-
-    return (
-        <>
-            <Header closeButtonLabel='Fermer' data-testid="header">
-                <HeaderBody>
-                    <Logo splitCharacter={10}>Ministère de la transition écologique et de la cohésion des territoires</Logo>
-                    <Service
-                        title="Zéro Logement Vacant"
-                        description={isValidUser(authUser) ? authUser.establishment.name : ''}/>
-                    {isValidUser(authUser) ?
-                        <Tool>
-                            <ToolItemGroup>
-                                <ToolItem as="div">
-                                    <AppActionsMenu
-                                        actions={menuActions}
-                                        title={displayName()}
-                                        icon="ri-account-circle-line"
-                                        iconPosition="left"/>
-                                </ToolItem>
-                            </ToolItemGroup>
-                        </Tool> :
-                        <Tool>
-                            <ToolItemGroup>
-                                <ToolItem icon="ri-user-fill" link="/connexion" className="d-none d-lg-block fr-my-0">
-                                    Connexion
-                                </ToolItem>
-                            </ToolItemGroup>
-                        </Tool>
-                    }
-                </HeaderBody>
-                {isValidUser(authUser) ?
-                    <HeaderNav data-testid="header-nav">
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.HousingList)} />
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.GeoPerimeters)} />
-                        {authUser.user.role === UserRoles.Admin ? <>
-                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
-                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Monitoring)} />
-                        </> :
-                            <AppNavItem userNavItem={getUserNavItem(UserNavItems.EstablishmentMonitoring, authUser.establishment.id)} />
-                        }
-                        <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
-                    </HeaderNav> :
-                    <HeaderNav className="d-lg-none">
-                        <AppNavItem userNavItem={{url: '/connexion', label: 'Connexion'}} />
-                    </HeaderNav>
-                }
-            </Header>
-            <LoadingBar className={styles.loading} updateTime={10} maxProgress={100} progressIncrease={5}/>
-        </>
-    );
+  return (
+    <>
+      <Header closeButtonLabel="Fermer" data-testid="header">
+        <HeaderBody>
+          <Logo splitCharacter={10}>
+            Ministère de la transition écologique et de la cohésion des
+            territoires
+          </Logo>
+          <Service
+            title="Zéro Logement Vacant"
+            description={
+              isValidUser(authUser) ? authUser.establishment.name : ''
+            }
+          />
+          {isValidUser(authUser) ? (
+            <Tool>
+              <ToolItemGroup>
+                <ToolItem as="div">
+                  <AppActionsMenu
+                    actions={menuActions}
+                    title={displayName()}
+                    icon="ri-account-circle-line"
+                    iconPosition="left"
+                  />
+                </ToolItem>
+              </ToolItemGroup>
+            </Tool>
+          ) : (
+            <Tool>
+              <ToolItemGroup>
+                <ToolItem
+                  icon="ri-user-fill"
+                  link="/connexion"
+                  className="d-none d-lg-block fr-my-0"
+                >
+                  Connexion
+                </ToolItem>
+              </ToolItemGroup>
+            </Tool>
+          )}
+        </HeaderBody>
+        {isValidUser(authUser) ? (
+          <HeaderNav data-testid="header-nav">
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.HousingList)}
+            />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.GeoPerimeters)}
+            />
+            {authUser.user.role === UserRoles.Admin ? (
+              <>
+                <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
+                <AppNavItem
+                  userNavItem={getUserNavItem(UserNavItems.Monitoring)}
+                />
+              </>
+            ) : (
+              <AppNavItem
+                userNavItem={getUserNavItem(
+                  UserNavItems.EstablishmentMonitoring,
+                  authUser.establishment.id
+                )}
+              />
+            )}
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
+          </HeaderNav>
+        ) : (
+          <HeaderNav className="d-lg-none">
+            <AppNavItem
+              userNavItem={{ url: '/connexion', label: 'Connexion' }}
+            />
+          </HeaderNav>
+        )}
+      </Header>
+      <LoadingBar
+        className={styles.loading}
+        updateTime={10}
+        maxProgress={100}
+        progressIncrease={5}
+      />
+    </>
+  );
 }
 
 export default AppHeader;

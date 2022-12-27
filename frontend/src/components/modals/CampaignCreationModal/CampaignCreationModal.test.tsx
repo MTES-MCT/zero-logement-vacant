@@ -74,12 +74,9 @@ describe('Campagne creation modal', () => {
 
     fireEvent.click(screen.getByTestId('create-button'));
 
-    const campaignTitleInputElement = await screen.findByTestId(
-      'campaign-title-input'
+    const error = await screen.findByText(
+      'Veuillez renseigner le titre de la campagne.'
     );
-    expect(
-      // eslint-disable-next-line testing-library/no-node-access
-      campaignTitleInputElement.querySelector('.fr-error-text')
-    ).toBeInTheDocument();
+    expect(error).toBeVisible();
   });
 });

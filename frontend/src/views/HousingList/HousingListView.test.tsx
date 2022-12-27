@@ -1,7 +1,6 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
-
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { applyMiddleware, createStore } from 'redux';
@@ -19,8 +18,11 @@ import {
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
+import userEvent from '@testing-library/user-event';
 
 describe('housing view', () => {
+  const user = userEvent.setup();
+
   let store: any;
 
   const defaultFetchMock = (request: Request) => {
@@ -63,7 +65,7 @@ describe('housing view', () => {
     expect(additionalFiltersElement).not.toBeVisible();
   });
 
-  test('should enable to show and hide additional filters', () => {
+  test('should enable to show and hide additional filters', async () => {
     fetchMock.mockResponse(defaultFetchMock);
 
     render(
@@ -78,10 +80,10 @@ describe('housing view', () => {
       'additional-filters-button'
     );
 
-    fireEvent.click(additionalFiltersButton);
+    await user.click(additionalFiltersButton);
     expect(additionalFiltersElement).toBeVisible();
 
-    fireEvent.click(additionalFiltersButton);
+    await user.click(additionalFiltersButton);
     expect(additionalFiltersElement).not.toBeVisible();
   });
 
@@ -100,7 +102,7 @@ describe('housing view', () => {
       .queryAllByTestId('type-checkbox-group')[0]
       .querySelectorAll('input'); //eslint-disable-line testing-library/no-node-access
 
-    fireEvent.click(ownerKindCheckboxes[0]);
+    await user.click(ownerKindCheckboxes[0]);
 
     expect(fetchMock).toHaveBeenCalledWith(
       `${config.apiEndpoint}/api/housing`,
@@ -148,10 +150,10 @@ describe('housing view', () => {
     );
 
     const searchInputElement = await screen.findByTestId('search-input');
-    const searchFormElement = await screen.findByTestId('search-form');
-    fireEvent.change(searchInputElement, { target: { value: 'my search' } });
+    const searchButtonElement = await screen.findByTitle('Bouton de recherche' );
 
-    fireEvent.submit(searchFormElement);
+    await user.type(searchInputElement, 'my search');
+    await user.click(searchButtonElement);
 
     expect(fetchMock).toHaveBeenCalledWith(
       `${config.apiEndpoint}/api/housing`,
@@ -199,7 +201,7 @@ describe('housing view', () => {
       'create-campaign-button'
     );
 
-    fireEvent.click(createCampaignButton);
+    await user.click(createCampaignButton);
 
     const noHousingAlert = screen.getByTestId('no-housing-alert');
     expect(noHousingAlert).toBeInTheDocument();
@@ -241,8 +243,8 @@ describe('housing view', () => {
       'input[type="checkbox"]'
     ) as HTMLInputElement;
 
-    fireEvent.click(housing1CheckboxElement);
-    fireEvent.click(createCampaignButton);
+    await user.click(housing1CheckboxElement);
+    await user.click(createCampaignButton);
 
     const campaignCreationModal = screen.getByTestId('campaign-creation-modal');
 

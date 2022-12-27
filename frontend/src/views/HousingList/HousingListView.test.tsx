@@ -236,9 +236,10 @@ describe('housing view', () => {
     const housing1Element = await screen.findByTestId(
       'housing-check-' + housing.id
     );
+    // eslint-disable-next-line testing-library/no-node-access
     const housing1CheckboxElement = housing1Element.querySelector(
       'input[type="checkbox"]'
-    ) as HTMLInputElement; //eslint-disable-line testing-library/no-node-access
+    ) as HTMLInputElement;
 
     fireEvent.click(housing1CheckboxElement);
     fireEvent.click(createCampaignButton);

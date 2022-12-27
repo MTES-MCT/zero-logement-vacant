@@ -78,7 +78,8 @@ describe('Campagne creation modal', () => {
       'campaign-title-input'
     );
     expect(
+      // eslint-disable-next-line testing-library/no-node-access
       campaignTitleInputElement.querySelector('.fr-error-text')
-    ).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
+    ).toBeInTheDocument();
   });
 });

@@ -54,7 +54,7 @@ const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
         Exporter
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           <Text size="md" className="fr-mb-0">
             <b>{displayCount(campaignBundle.housingCount, 'logement')}</b>
           </Text>

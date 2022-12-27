@@ -201,7 +201,7 @@ const GeoPerimeterView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="pb-1w">
+        <Container as="section" spacing="pb-1w">
           <AppBreadcrumb />
           <Row>
             <Col n="8">
@@ -210,7 +210,7 @@ const GeoPerimeterView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="py-4w">
+      <Container as="section" spacing="py-4w">
         <div ref={tabsRef}>
           <Tabs>
             <Tab label="Liste des périmètres">

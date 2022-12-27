@@ -142,7 +142,7 @@ const UserListView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="pb-1w">
+        <Container as="section" spacing="pb-1w">
           <AppBreadcrumb />
           <Row>
             <Col n="8">
@@ -161,7 +161,7 @@ const UserListView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="pt-2w">
+      <Container as="section" spacing="pt-2w">
         <Row>
           <FilterBadges
             filters={filters.establishmentIds}

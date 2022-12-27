@@ -18,7 +18,7 @@ import sync_files from '../../assets/images/sync_files.svg';
 const ProprietaireView = () => {
   return (
     <>
-      <Container spacing="py-7w mb-4w">
+      <Container as="section" spacing="py-7w mb-4w">
         <Row gutters>
           <Col className="fr-col-8">
             <Title as="h1" look="h4">
@@ -53,7 +53,7 @@ const ProprietaireView = () => {
         </Row>
       </Container>
       <div className="bg-bf975">
-        <Container spacing="py-7w mb-4w">
+        <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
               <Title as="h2" look="h4">
@@ -94,7 +94,7 @@ const ProprietaireView = () => {
       </div>
       <div>
         <br />
-        <Container spacing="fr-pt-7w">
+        <Container as="section" spacing="fr-pt-7w">
           <Callout hasInfoIcon={false}>
             <CalloutTitle as="h3">
               Dois-je payer la taxe sur les logements vacants ?
@@ -127,7 +127,7 @@ const ProprietaireView = () => {
           </Callout>
         </Container>
 
-        <Container spacing="t-7w">
+        <Container as="section" spacing="t-7w">
           <Callout hasInfoIcon={false}>
             <CalloutTitle as="h3">
               Quels sont les logements exonérés de taxe sur les logements
@@ -163,7 +163,7 @@ const ProprietaireView = () => {
             </CalloutText>
           </Callout>
         </Container>
-        <Container spacing="t-7w">
+        <Container as="section" spacing="t-7w">
           <Callout hasInfoIcon={false}>
             <CalloutTitle as="h3">Autres informations</CalloutTitle>
             <CalloutText as="p">

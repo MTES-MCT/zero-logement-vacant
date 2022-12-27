@@ -115,7 +115,7 @@ const DashboardView = () => {
   return (
     <>
       <div className="bg-100 fr-pt-8w fr-pb-12w">
-        <Container>
+        <Container as="section">
           <Title as="h1">Bienvenue sur Zéro Logement Vacant</Title>
           <Text size="lead" spacing="pb-3w" className={styles.subtitle}>
             Zéro logement Vacant vous aide à mobiliser les propriétaires de
@@ -141,7 +141,7 @@ const DashboardView = () => {
           </Link>
         </Container>
       </div>
-      <Container spacing="py-4w">
+      <Container as="section" spacing="py-4w">
         {activeCampaignsCount() === 0 ? (
           <>
             <Title as="h2">Vous n’avez pas de campagne en cours.</Title>

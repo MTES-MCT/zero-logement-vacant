@@ -128,11 +128,11 @@ const HousingOwnersModal = ({
                 onChange={(e: any) => selectRank(owner.id, e.target.value)}
               />
             </Col>
-          </Row>
-        ))}
+          </Row>))}
+
       </ModalContent>
       <ModalFooter>
-        <Container>
+        <Container as="section">
           {Object.values(errors).length > 0 && (
             <Row className="fr-pb-2w">
               <Col>

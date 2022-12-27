@@ -33,7 +33,7 @@ const StatsView = () => {
 
   return (
     <>
-      <Container spacing="py-4w mb-4w">
+      <Container as="section" spacing="py-4w mb-4w">
         <Title as="h1">Statistiques</Title>
         <Row gutters>
           <Col n="4">

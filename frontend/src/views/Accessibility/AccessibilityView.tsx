@@ -3,7 +3,7 @@ import { Container, Title } from '@dataesr/react-dsfr';
 
 const AccessibilityView = () => {
   return (
-    <Container spacing="py-4w mb-4w">
+    <Container as="section" spacing="py-4w mb-4w">
       <Title as="h1">Déclaration d’accessibilité</Title>
       <p>
         Établie le <span>27 juin 2022</span>.

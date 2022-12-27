@@ -60,7 +60,7 @@ const GeoPerimeterEditionModal = ({
         Modifier le périmètre
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           <form id="user_form">
             <Row gutters>
               <Col>

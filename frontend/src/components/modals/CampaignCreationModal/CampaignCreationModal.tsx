@@ -131,7 +131,7 @@ const CampaignCreationModal = ({
         </Container>
       </ModalContent>
       <ModalFooter>
-        <Container>
+        <Container as="section">
           <Row>
             <Col className="align-right">
               <Button

@@ -231,7 +231,7 @@ const MonitoringView = () => {
     label: "Temps d'envoi de la première campagne après inscription",
     render: ({ firstCampaignSentDelay }: EstablishmentData) => (
       <div>
-        {firstCampaignSentDelay ? <>{firstCampaignSentDelay} jours</> : null}
+          {firstCampaignSentDelay ? <>{firstCampaignSentDelay} jours</> : null}
       </div>
     ),
     sortable: true,
@@ -380,7 +380,7 @@ const MonitoringView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="pb-1w">
+        <Container as="section" spacing="pb-1w">
           <AppBreadcrumb />
 
           <Row gutters>
@@ -430,7 +430,7 @@ const MonitoringView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="pt-2w">
+      <Container as="section" spacing="pt-2w">
         <Row className="fr-pb-2w">
           <FilterBadges
             filters={housingByStatusCountFilters.establishmentIds}
@@ -456,7 +456,7 @@ const MonitoringView = () => {
           />
         </Row>
       </Container>
-      <Container className="bordered fr-mb-4w">
+      <Container as="section" className="bordered fr-mb-4w">
         <Row className="bordered-b fr-py-1w">
           <Col n="4">
             <b>En attente de retour</b> :&nbsp;
@@ -509,7 +509,7 @@ const MonitoringView = () => {
           </Col>
         </Row>
       </Container>
-      <Container fluid>
+      <Container as="section" fluid>
         <div>
           {establishmentData && (
             <Table

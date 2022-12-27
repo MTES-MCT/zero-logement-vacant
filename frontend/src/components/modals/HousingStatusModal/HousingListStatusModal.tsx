@@ -39,7 +39,7 @@ const HousingListStatusModal = ({
         Mettre à jour {housingCount === 1 ? 'le dossier' : 'les dossiers'}
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           <Text>{displayCount(housingCount, 'logement concerné')}.</Text>
           <HousingStatusForm
             currentStatus={initialStatus}

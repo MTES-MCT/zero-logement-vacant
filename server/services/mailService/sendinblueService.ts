@@ -48,7 +48,7 @@ class SendinblueService implements MailService {
       ...options,
       templateId: ACCOUNT_ACTIVATION_TEMPLATE_ID,
       params: {
-        link: `${config.application.host}/compte#${key}`,
+        link: `${config.application.host}/inscription/mot-de-passe#${key}`,
       },
     });
   }

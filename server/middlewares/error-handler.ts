@@ -21,10 +21,15 @@ function respond(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: Next
 ): void {
+  if (response.headersSent) {
+    next(error);
+    return;
+  }
+
   const status =
     isHttpError(error) && isClientError(error) ? error.status : 500;
 
-  response.status(status).send({
+  response.status(status).json({
     name: error.name,
     message: error.message,
   });

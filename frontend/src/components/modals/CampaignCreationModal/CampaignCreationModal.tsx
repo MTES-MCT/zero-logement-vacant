@@ -73,7 +73,7 @@ const CampaignCreationModal = ({
         {isReminder ? 'Créer la campagne de relance' : 'Créer la campagne'}
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           <Text size="md">
             <span data-testid="housing-infos">
               Vous êtes sur le point de créer une campagne comportant{' '}

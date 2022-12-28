@@ -31,9 +31,9 @@ import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';
-import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
-import ResetPasswordView from './views/Account/ResetPasswordView';
+import AccountCreationView from './views/Account/AccountCreationView';import ForgottenPasswordView
+  from "./views/Account/ForgottenPasswordView";
+import ResetPasswordView from "./views/Account/ResetPasswordView";
 
 function AppWrapper() {
   const instance = createInstance({
@@ -46,6 +46,7 @@ function AppWrapper() {
   const store = createStore(applicationReducer, applyMiddleware(thunk));
 
   return (
+    // @ts-ignore
     <MatomoProvider value={instance}>
       <Provider store={store}>
         <App />
@@ -68,129 +69,51 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <AppHeader />
-        {isValidUser(authUser) ? (
+        {isValidUser(authUser) ?
           <>
             <ScrollToTop />
 
-            {campaignCreated && campaignBundleFetchingId && (
-              <Redirect
-                push={true}
-                to={`/campagnes/${campaignBundleIdUrlFragment(
-                  campaignBundleFetchingId
-                )}`}
-              />
-            )}
+            {campaignCreated && campaignBundleFetchingId &&
+              <Redirect push={true} to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`} />
+            }
 
             <Switch>
               <Route exact path="/" component={DashboardView} />
               <Route exact path="/stats" component={StatsView} />
-              <Route
-                exact
-                path="/accessibilite"
-                component={AccessibilityView}
-              />
+              <Route exact path="/accessibilite" component={AccessibilityView} />
               <Route exact path="/proprietaire" component={ProprietaireView} />
               <Route exact path="/accueil" component={DashboardView} />
-              <Route
-                exact
-                path="/base-de-donnees"
-                component={HousingListView}
-              />
+              <Route exact path="/base-de-donnees" component={HousingListView} />
               <Route exact path="/campagnes" component={CampaignsListView} />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber?"
-                component={CampaignView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/R:reminderNumber?"
-                component={CampaignView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/logements/:housingId"
-                component={HousingView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId"
-                component={HousingView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId"
-                component={HousingView}
-              />
-              <Route
-                exact
-                path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId"
-                component={HousingView}
-              />
-              <Route
-                exact
-                path="*/logements/:housingId/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="*/proprietaires/:ownerId"
-                component={OwnerView}
-              />
-              <Route
-                exact
-                path="*/proprietaires/:ownerId/logements/:housingId"
-                component={HousingView}
-              />
-              <Route
-                exact
-                path="*/logements/:housingId"
-                component={HousingView}
-              />
+              <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} />
+              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} />
+              <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView} />
+              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView} />
+              <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+              <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
+              <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
+              <Route exact path="*/logements/:housingId" component={HousingView} />
               <Route exact path="*/perimetres" component={GeoPerimeterView} />
               <Route exact path="/ressources" component={ResourcesView} />
-              <Route
-                exact
-                path="/compte/mot-de-passe"
-                component={AccountPasswordView}
-              />
-              <Route
-                exact
-                path="/suivi/etablissement/:establishmentId"
-                component={MonitoringDetailView}
-              />
-              {authUser.user.role === UserRoles.Admin && (
-                <Route exact path="/utilisateurs" component={UserListView} />
-              )}
-              {authUser.user.role === UserRoles.Admin && (
-                <Route exact path="/suivi" component={MonitoringView} />
-              )}
+              <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
+              <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
+              {authUser.user.role === UserRoles.Admin &&
+                <Route exact path="/utilisateurs" component={UserListView}/>
+              }
+              {authUser.user.role === UserRoles.Admin &&
+                <Route exact path="/suivi" component={MonitoringView}/>
+              }
               <Route path="/*">
                 <Redirect to="/accueil" />
               </Route>
             </Switch>
-          </>
-        ) : (
+          </> :
           <Switch>
             <Route exact path="/" component={HomeView} />
             <Route exact path="/stats" component={StatsView} />
@@ -198,22 +121,14 @@ function App() {
             <Route exact path="/proprietaire" component={ProprietaireView} />
             <Route exact path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
-            <Route
-              exact
-              path="/mot-de-passe/oublie"
-              component={ForgottenPasswordView}
-            />
-            <Route
-              exact
-              path="/mot-de-passe/nouveau"
-              component={ResetPasswordView}
-            />
+            <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
+            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
             <Route exact path="/admin" component={LoginView} />
             <Route path="/*">
-              {isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" />}
+              { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
             </Route>
           </Switch>
-        )}
+        }
         <AppFooter />
       </BrowserRouter>
     </React.Suspense>

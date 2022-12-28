@@ -1,15 +1,18 @@
 import express, { Application } from 'express';
+// Allows to throw an error or reject a promise in controllers
+// instead of having to call the next(err) function.
+import 'express-async-errors';
 import path from 'path';
-import protectedRouter from './routers/protected';
 import unprotectedRouter from './routers/unprotected';
 import config from './utils/config';
-
 import cors from 'cors';
 import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import fileUpload from 'express-fileupload';
 import errorHandler from './middlewares/error-handler';
+import RouteNotFoundError from './errors/routeNotFoundError';
+import protectedRouter from './routers/protected';
 
 const PORT = config.serverPort;
 
@@ -85,8 +88,6 @@ export function createServer(): Server {
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);
 
-  app.use(errorHandler());
-
   if (config.environment === 'production') {
     sentry.initCaptureConsoleWithHandler(app);
 
@@ -95,6 +96,11 @@ export function createServer(): Server {
       res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
     });
   }
+
+  app.all('*', () => {
+    throw new RouteNotFoundError();
+  });
+  app.use(errorHandler());
 
   function start(): Promise<void> {
     return new Promise((resolve) => {

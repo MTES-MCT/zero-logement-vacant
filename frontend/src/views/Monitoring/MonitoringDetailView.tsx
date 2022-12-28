@@ -77,7 +77,7 @@ const MonitoringView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="pb-1w">
+        <Container as="section" spacing="pb-1w">
           <AppBreadcrumb />
           <Row gutters>
             <Col>
@@ -86,7 +86,7 @@ const MonitoringView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="pt-2w">
+      <Container as="section" spacing="pt-2w">
         <ul>
           <li>
             <b>Nombre de logements vacants :&nbsp;</b>

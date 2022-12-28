@@ -21,7 +21,7 @@ const ResourcesView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="pb-1w">
+        <Container as="section" spacing="pb-1w">
           <AppBreadcrumb />
           <Row>
             <Col n="8">
@@ -30,7 +30,7 @@ const ResourcesView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="pt-2w">
+      <Container as="section" spacing="pt-2w">
         <Row className="fr-pt-2w fr-pb-5w">
           <Link
             href="https://zlv.notion.site/Centre-de-ressources-543b515794324b16bd00d261a118db06"

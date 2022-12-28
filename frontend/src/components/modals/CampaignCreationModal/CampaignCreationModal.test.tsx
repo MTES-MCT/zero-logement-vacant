@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
@@ -8,8 +8,11 @@ import thunk from 'redux-thunk';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
+import userEvent from '@testing-library/user-event';
 
 describe('Campagne creation modal', () => {
+  const user = userEvent.setup();
+
   let store: any;
 
   const defaultFetchMock = (request: Request) => {
@@ -72,7 +75,7 @@ describe('Campagne creation modal', () => {
       </Provider>
     );
 
-    fireEvent.click(screen.getByTestId('create-button'));
+    user.click(screen.getByTestId('create-button'));
 
     const error = await screen.findByText(
       'Veuillez renseigner le titre de la campagne.'

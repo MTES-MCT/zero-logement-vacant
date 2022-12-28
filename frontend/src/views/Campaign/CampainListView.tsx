@@ -30,7 +30,7 @@ const CampaignsListView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="py-4w">
+        <Container as="section" spacing="py-4w">
           <AppBreadcrumb />
           <Row>
             <Title as="h1" className="fr-mb-4w">
@@ -47,7 +47,7 @@ const CampaignsListView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="py-4w">
+      <Container as="section" spacing="py-4w">
         <Title as="h2" look="h5">
           Vos logements suivis ({inProgressCampaignBundle?.housingCount})
           <DSFRLink

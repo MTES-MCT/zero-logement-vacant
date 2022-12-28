@@ -111,7 +111,7 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
           Titre de la campagne
         </ModalTitle>
         <ModalContent>
-          <Container fluid>
+          <Container as="section" fluid>
             <Row gutters>
               <Col n="10">
                 <TextInput

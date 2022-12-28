@@ -1,6 +1,6 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
 import { Router } from 'react-router-dom';
@@ -48,14 +48,14 @@ describe('login view', () => {
       .getByTestId('password-input')
       .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (passwordInput) {
-      fireEvent.change(passwordInput, { target: { value: 'password' } });
+      await user.type(passwordInput, 'password');
     }
     const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (emailInput) {
-      fireEvent.change(emailInput, { target: { value: 'email@test.com' } });
+      await user.type(emailInput, 'email@test.com');
     }
 
-    fireEvent.click(screen.getByTestId('login-button'));
+    await user.click(screen.getByTestId('login-button'));
 
     await screen.findByTestId('alert-error');
 
@@ -104,14 +104,14 @@ describe('login view', () => {
       .getByTestId('password-input')
       .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (passwordInput) {
-      fireEvent.change(passwordInput, { target: { value: 'password' } });
+      await user.type(passwordInput, 'password');
     }
     const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (emailInput) {
-      fireEvent.change(emailInput, { target: { value: 'email@test.com' } });
+      await user.type(emailInput, 'email@test.com');
     }
 
-    fireEvent.click(screen.getByTestId('login-button'));
+    await user.click(screen.getByTestId('login-button'));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalled();

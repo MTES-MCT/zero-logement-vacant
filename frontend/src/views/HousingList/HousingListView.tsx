@@ -149,7 +149,7 @@ const HousingListView = () => {
   return (
     <>
       <div className="bg-100">
-        <Container spacing="py-4w">
+        <Container as="section" spacing="py-4w">
           <AppBreadcrumb />
           <Row>
             <Col n="8">
@@ -163,7 +163,7 @@ const HousingListView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="py-4w">
+      <Container as="section" spacing="py-4w">
         <Row>
           <HousingListFilter />
           <HousingFiltersBadges
@@ -172,7 +172,7 @@ const HousingListView = () => {
           />
         </Row>
       </Container>
-      <Container spacing="py-4w mb-4w">
+      <Container as="section" spacing="py-4w mb-4w">
         {paginatedHousing && (
           <>
             {new URLSearchParams(search).get('campagne') && (

@@ -37,7 +37,7 @@ const HomeView = () => {
 
   return (
     <>
-      <Container spacing="py-7w mb-4w">
+      <Container as="main" spacing="py-7w mb-4w">
         <Row gutters>
           <Col>
             <Title as="h1" look="h4">
@@ -74,7 +74,7 @@ const HomeView = () => {
         </Row>
       </Container>
       <div className="bg-bf975">
-        <Container spacing="py-7w mb-4w">
+        <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
               <Title as="h2" look="h4">
@@ -113,7 +113,7 @@ const HomeView = () => {
           </Row>
         </Container>
       </div>
-      <Container spacing="py-7w mb-4w">
+      <Container as="section" spacing="py-7w mb-4w">
         <Row>
           <Col>
             <Title as="h2" look="h4">
@@ -173,7 +173,7 @@ const HomeView = () => {
         </Row>
       </Container>
       <div className="bg-bf975">
-        <Container spacing="py-7w mb-4w">
+        <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
               <Title as="h2" look="h4">
@@ -293,7 +293,7 @@ const HomeView = () => {
         </Container>
       </div>
       <div className={styles.ownerContainer}>
-        <Container spacing="py-7w">
+        <Container as="section" spacing="py-7w">
           <Title as="h1" look="h4">
             Vous êtes propriétaire ?
           </Title>

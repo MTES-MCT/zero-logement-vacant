@@ -86,7 +86,7 @@ const HousingListFilter = () => {
   };
 
   return (
-    <Container fluid>
+    <Container as="section" fluid>
       <div data-testid="owner-filters">
         <Text size="md" className="fr-mb-1w fr-mt-4w">
           <b>Propriétaire</b>

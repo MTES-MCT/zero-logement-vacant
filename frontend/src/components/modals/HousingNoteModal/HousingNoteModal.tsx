@@ -147,7 +147,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
         Ajouter une note
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           <TextInput
             label="Titre"
             type="text"

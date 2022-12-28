@@ -28,7 +28,9 @@ const ConfirmationModal = ({
         Confirmation
       </ModalTitle>
       <ModalContent>
-        <Container fluid>{children}</Container>
+        <Container as="section" fluid>
+          {children}
+        </Container>
       </ModalContent>
       <ModalFooter>
         <Button

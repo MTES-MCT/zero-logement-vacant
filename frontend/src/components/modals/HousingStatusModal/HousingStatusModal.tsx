@@ -80,7 +80,7 @@ const HousingStatusModal = ({
         Mettre à jour le dossier
       </ModalTitle>
       <ModalContent>
-        <Container fluid>
+        <Container as="section" fluid>
           {housingOptions && (
             <Select
               label="Logement concerné"

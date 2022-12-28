@@ -7,6 +7,7 @@ import {
   genEstablishmentApi,
   genHousingApi,
   genLocalityApi,
+  genProspectApi,
   genSiren,
   genUserApi,
 } from '../test/testFixtures';
@@ -26,12 +27,13 @@ import housingRepository, {
 } from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import { createServer } from '../server';
-import { TEST_ACCOUNTS } from '../models/ProspectApi';
+import { ProspectApi, TEST_ACCOUNTS } from '../models/ProspectApi';
 import fetchMock from 'jest-fetch-mock';
 import { JsonObject } from 'type-fest';
 import { Request } from 'express';
 import config from '../utils/config';
 import { CampaignIntent } from '../models/EstablishmentApi';
+import prospectRepository from '../repositories/prospectRepository';
 
 const { app } = createServer();
 
@@ -66,14 +68,6 @@ describe('User controller', () => {
     });
   };
 
-  const mockCeremaFail = () => {
-    fetchMock.mockResponse(() => {
-      return Promise.resolve({
-        status: 404,
-      });
-    });
-  };
-
   describe('createUser', () => {
     const testRoute = '/api/users/creation';
 
@@ -103,12 +97,22 @@ describe('User controller', () => {
     });
 
     it('should fail if the user is not allowed by Cerema', async () => {
-      mockCeremaFail();
+      const prospect: ProspectApi = {
+        ...genProspectApi(),
+        establishment: Establishment1,
+        hasAccount: true,
+        hasCommitment: false,
+      };
+      await prospectRepository.upsert(prospect);
 
-      const { status } = await request(app).post(testRoute).send(draftUser);
+      const { status } = await request(app)
+        .post(testRoute)
+        .send({
+          ...draftUser,
+          email: prospect.email,
+        });
 
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-      expect(fetchMock).toHaveBeenCalled();
     });
 
     it('should be not found if the user establishment does not exist', async () => {

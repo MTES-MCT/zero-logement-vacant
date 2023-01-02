@@ -21,6 +21,7 @@ const StatsView = () => {
             width="100%"
             height="900"
             allowTransparency
+            title="Statistiques"
           ></iframe>
         ) : (
           <>Statistiques indisponibles</>

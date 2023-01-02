@@ -20,7 +20,7 @@ const StatsView = () => {
             src={config.publicStatsUrl}
             width="100%"
             height="900"
-            title="Statistiques"
+            allowTransparency
           ></iframe>
         ) : (
           <>Statistiques indisponibles</>

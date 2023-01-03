@@ -10,27 +10,37 @@ import thunk from 'redux-thunk';
 import { genAuthUser } from '../../../test/fixtures.test';
 
 describe('AppHeader', () => {
+  test('should not display navbar when no user is logged', () => {
+    const store = createStore(applicationReducer, applyMiddleware(thunk));
 
-    test('should not display navbar when no user is logged', () => {
-        const store = createStore(applicationReducer, applyMiddleware(thunk));
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <AppHeader />
+        </Router>
+      </Provider>
+    );
 
-        render(<Provider store={store}><Router history={createMemoryHistory()}><AppHeader/></Router></Provider>);
+    const loginInputElement = screen.queryByTestId('header-nav');
+    expect(loginInputElement).not.toBeInTheDocument();
+  });
 
-        const loginInputElement = screen.queryByTestId('header-nav');
-        expect(loginInputElement).not.toBeInTheDocument();
-    });
+  test('should display navbar when a user is logged', () => {
+    const store = createStore(
+      applicationReducer,
+      { authentication: { authUser: genAuthUser() } },
+      applyMiddleware(thunk)
+    );
 
-    test('should display navbar when a user is logged', () => {
-        const store = createStore(
-            applicationReducer,
-            {authentication: {authUser: genAuthUser()}},
-            applyMiddleware(thunk)
-        );
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <AppHeader />
+        </Router>
+      </Provider>
+    );
 
-        render(<Provider store={store}><Router history={createMemoryHistory()}><AppHeader/></Router></Provider>);
-
-        const loginInputElement = screen.queryByTestId('header-nav');
-        expect(loginInputElement).toBeInTheDocument();
-    });
-
+    const loginInputElement = screen.queryByTestId('header-nav');
+    expect(loginInputElement).toBeInTheDocument();
+  });
 });

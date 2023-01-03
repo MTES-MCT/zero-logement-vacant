@@ -1,61 +1,72 @@
-import { Compare } from "./compareUtils";
+import { Compare } from './compareUtils';
 
 export const capitalize = (string: string) => {
-    return string ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase() : string;
-}
-
-export const toTitleCase = (string: string) => {
-    return string
-        .toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+  return string
+    ? string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
+    : string;
 };
 
-export const displayCount = (totalCount: number, label: string, capitalize = true, count?: number) => {
-    if (totalCount === 0) {
-        return `${capitalize ? 'Aucun' : 'aucun'} ${label}`
-    }
+export const toTitleCase = (string: string) => {
+  return string
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
-    if (totalCount === 1) {
-        return `${capitalize ? 'Un' : 'un'} ${label}`
-    }
+export const displayCount = (
+  totalCount: number,
+  label: string,
+  capitalize = true,
+  count?: number
+) => {
+  if (totalCount === 0) {
+    return `${capitalize ? 'Aucun' : 'aucun'} ${label}`;
+  }
 
-    if (count) {
-        return `${count} ${label.split(' ').map(_ => `${_}s`).join(' ')} sur un total de ${totalCount}`
-    }
+  if (totalCount === 1) {
+    return `${capitalize ? 'Un' : 'un'} ${label}`;
+  }
 
-    return `${totalCount} ${label.split(' ').map(_ => `${_}s`).join(' ')}`
-}
+  if (count) {
+    return `${count} ${label
+      .split(' ')
+      .map((_) => `${_}s`)
+      .join(' ')} sur un total de ${totalCount}`;
+  }
+
+  return `${totalCount} ${label
+    .split(' ')
+    .map((_) => `${_}s`)
+    .join(' ')}`;
+};
 
 export function pluralize(count: number) {
-    return (str: string): string => count > 1 ? `${str}s` : str
+  return (str: string): string => (count > 1 ? `${str}s` : str);
 }
 
 export const stringSort = (s1?: string, s2?: string): Compare => {
-    if (s1 && s2) {
-        return s1 > s2
-          ? Compare.A_GT_B
-          : s1 < s2 ? Compare.B_GT_A : Compare.A_EQ_B
-    }
+  if (s1 && s2) {
+    return s1 > s2 ? Compare.A_GT_B : s1 < s2 ? Compare.B_GT_A : Compare.A_EQ_B;
+  }
 
-    if (s1 && !s2) {
-        return Compare.A_GT_B
-    }
+  if (s1 && !s2) {
+    return Compare.A_GT_B;
+  }
 
-    if (!s1 && s2) {
-        return Compare.B_GT_A
-    }
+  if (!s1 && s2) {
+    return Compare.B_GT_A;
+  }
 
-    return Compare.A_EQ_B
-}
+  return Compare.A_EQ_B;
+};
 
 export function prepend(prefix: string) {
-    return (str: string) => `${prefix}${str}`
+  return (str: string) => `${prefix}${str}`;
 }
 
 export function prependIf(condition: boolean) {
-    return (prefix: string) => {
-        return (str: string) => condition ? prepend(prefix)(str) : str
-    }
+  return (prefix: string) => {
+    return (str: string) => (condition ? prepend(prefix)(str) : str);
+  };
 }

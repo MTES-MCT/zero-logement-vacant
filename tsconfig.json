@@ -1,27 +1,19 @@
 {
   "compilerOptions": {
-      "lib": ["esnext"],
-      "outDir": "./dist",
-      "target": "esnext",
-      "allowJs": true,
-      "strict": true,
-      "module": "commonjs",
-      "resolveJsonModule": true,
-      "noUnusedLocals": true,
-      "sourceMap": true,
-      "forceConsistentCasingInFileNames": true,
-      "skipLibCheck": true,
-      "esModuleInterop": true,
-      "typeRoots": ["node_modules/@types", "types"]
+    "lib": ["esnext"],
+    "outDir": "./dist",
+    "target": "esnext",
+    "allowJs": true,
+    "strict": true,
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "typeRoots": ["node_modules/@types", "types"]
   },
-  "include": [
-      "**/*.ts",
-      "**/*.js"
-  ],
-  "exclude": [
-      "node_modules",
-      "**/*.d.ts",
-      "dist",
-      "frontend"
-  ]
+  "include": ["**/*.ts", "**/*.js"],
+  "exclude": ["node_modules", "**/*.d.ts", "dist", "frontend"]
 }

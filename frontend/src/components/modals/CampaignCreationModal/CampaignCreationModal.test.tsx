@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
@@ -8,67 +8,78 @@ import thunk from 'redux-thunk';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
+import userEvent from '@testing-library/user-event';
 
 describe('Campagne creation modal', () => {
+  const user = userEvent.setup();
 
-    let store: any;
+  let store: any;
 
-    const defaultFetchMock = (request: Request) => {
-        return Promise.resolve(
-            (request.url === `${config.apiEndpoint}/api/campaigns`) ? {body: JSON.stringify([]), init: { status: 200 }} :
-                (request.url === `${config.apiEndpoint}/api/geo/perimeters`) ? {body: JSON.stringify([]), init: { status: 200 }} :
-                    {body: '', init: {status: 404 } }
-        )
-    }
+  const defaultFetchMock = (request: Request) => {
+    return Promise.resolve(
+      request.url === `${config.apiEndpoint}/api/campaigns`
+        ? { body: JSON.stringify([]), init: { status: 200 } }
+        : request.url === `${config.apiEndpoint}/api/geo/perimeters`
+        ? { body: JSON.stringify([]), init: { status: 200 } }
+        : { body: '', init: { status: 404 } }
+    );
+  };
 
-    beforeEach(() => {
-        fetchMock.resetMocks();
-        store = createStore(
-            applicationReducer,
-            {authentication: {authUser: genAuthUser()}},
-            applyMiddleware(thunk)
-        );
-    });
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    store = createStore(
+      applicationReducer,
+      { authentication: { authUser: genAuthUser() } },
+      applyMiddleware(thunk)
+    );
+  });
 
-    test('should display housing count, campaign title input and submit button', () => {
+  test('should display housing count, campaign title input and submit button', () => {
+    fetchMock.mockResponse(defaultFetchMock);
 
-        fetchMock.mockResponse(defaultFetchMock);
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => {}}
+          onClose={() => {}}
+        />
+      </Provider>
+    );
 
-        render(
-            <Provider store={store}>
-                <CampaignCreationModal housingCount={2}
-                                       filters={{}}
-                                       onSubmit={() => {}}
-                                       onClose={() => {}} />
-            </Provider>
-        );
+    const housingInfosTextElement = screen.getByTestId('housing-infos');
+    const campaignTitleInputElement = screen.getByTestId(
+      'campaign-title-input'
+    );
+    const createButton = screen.getByTestId('create-button');
+    expect(housingInfosTextElement).toBeInTheDocument();
+    expect(housingInfosTextElement).toContainHTML(
+      'Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>'
+    );
+    expect(campaignTitleInputElement).toBeInTheDocument();
+    expect(createButton).toBeInTheDocument();
+  });
 
-        const housingInfosTextElement = screen.getByTestId('housing-infos');
-        const campaignTitleInputElement = screen.getByTestId('campaign-title-input');
-        const createButton = screen.getByTestId('create-button');
-        expect(housingInfosTextElement).toBeInTheDocument();
-        expect(housingInfosTextElement).toContainHTML('Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>');
-        expect(campaignTitleInputElement).toBeInTheDocument();
-        expect(createButton).toBeInTheDocument();
-    });
+  test('should require campaign title', async () => {
+    fetchMock.mockResponse(defaultFetchMock);
 
-    test('should require campaign title', async() => {
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => {}}
+          onClose={() => {}}
+        />
+      </Provider>
+    );
 
-        fetchMock.mockResponse(defaultFetchMock);
+    user.click(screen.getByTestId('create-button'));
 
-        render(
-            <Provider store={store}>
-                <CampaignCreationModal housingCount={2}
-                                       filters={{}}
-                                       onSubmit={() => {}}
-                                       onClose={() => {}}/>
-            </Provider>
-        );
-
-        fireEvent.click(screen.getByTestId('create-button'));
-
-        const campaignTitleInputElement = await screen.findByTestId('campaign-title-input');
-        expect(campaignTitleInputElement.querySelector('.fr-error-text')).toBeInTheDocument(); //eslint-disable-line testing-library/no-node-access
-    });
-
+    const error = await screen.findByText(
+      'Veuillez renseigner le titre de la campagne.'
+    );
+    expect(error).toBeVisible();
+  });
 });

@@ -3,8 +3,8 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-import { enableFetchMocks } from 'jest-fetch-mock'
+import { enableFetchMocks } from 'jest-fetch-mock';
 
 enableFetchMocks();
 
-jest.mock("./components/AppBreadcrumb/AppBreadcrumb");
+jest.mock('./components/AppBreadcrumb/AppBreadcrumb');

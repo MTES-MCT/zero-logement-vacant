@@ -1,8 +1,7 @@
 import React from 'react';
 
 import { Col, Row, SearchableSelect, Title } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { changeHousingFiltering } from '../../store/actions/housingAction';
+import { useSelector } from 'react-redux';
 import {
   dataYearsIncludedOptions,
   ownerAgeOptions,
@@ -11,11 +10,6 @@ import {
 } from '../../models/HousingFilters';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from './HousingListFiltersSidemenu';

@@ -21,7 +21,6 @@ import {
   dataYearsIncludedOptions,
   housingAreaOptions,
   housingCountOptions,
-  HousingFilters,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
@@ -34,8 +33,7 @@ import {
   vacancyDurationOptions,
   vacancyRateOptions,
 } from '../../models/HousingFilters';
-import { useDispatch, useSelector } from 'react-redux';
-import { changeHousingFiltering } from '../../store/actions/housingAction';
+import { useSelector } from 'react-redux';
 import styles from './housing-list-filters.module.scss';
 import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
@@ -49,12 +47,6 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { useHousing } from '../../hooks/useHousing';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { SelectOption } from '../../models/SelectOption';
 
 interface TitleWithIconProps {

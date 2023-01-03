@@ -38,7 +38,7 @@ import ResetPasswordView from "./views/Account/ResetPasswordView";
 function AppWrapper() {
   const instance = createInstance({
     urlBase: 'https://stats.beta.gouv.fr/',
-    siteId: 212,
+    siteId: 2,
     srcUrl: 'https://stats.beta.gouv.fr/js/container_nr5Y2bYi.js',
     linkTracking: true,
   });

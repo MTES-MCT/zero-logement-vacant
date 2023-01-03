@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
@@ -32,22 +32,39 @@ import {
   getSubStatusList,
   getSubStatusListOptions,
 } from '../../models/HousingState';
+import { TagGroup } from '@dataesr/react-dsfr';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import styles from './housing-filters-badges.module.scss';
+
+interface HousingFiltersBadgesProps {
+  filters: HousingFilters;
+  onChange?: (value: any) => void;
+  onReset?: () => void;
+}
 
 const HousingFiltersBadges = ({
   filters,
   onChange,
-}: {
-  filters: HousingFilters;
-  onChange?: (_: any) => void;
-}) => {
+  onReset,
+}: HousingFiltersBadgesProps) => {
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
   const { establishment } = useSelector(
     (state: ApplicationState) => state.authentication.authUser
   );
 
-  return filters ? (
-    <>
+  function reset() {
+    onReset?.();
+  }
+
+  const canReset = useMemo<boolean>(() => !!onReset, [onReset]);
+
+  if (!filters) {
+    return null;
+  }
+
+  return (
+    <TagGroup>
       <FilterBadges
         options={ownerKindOptions}
         filters={filters.ownerKinds}
@@ -220,9 +237,12 @@ const HousingFiltersBadges = ({
         filters={filters.query ? [filters.query] : []}
         onChange={onChange && (() => onChange({ query: '' }))}
       />
-    </>
-  ) : (
-    <></>
+      {canReset && (
+        <ButtonLink className={styles.reinit} onClick={reset}>
+          Réinitialiser les filtres
+        </ButtonLink>
+      )}
+    </TagGroup>
   );
 };
 

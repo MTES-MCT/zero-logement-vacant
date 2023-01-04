@@ -37,7 +37,10 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://renderer-assets.typeform.com',
           ],
-          frameSrc: ['https://form.typeform.com'],
+          frameSrc: [
+            'https://form.typeform.com',
+            'https://zerologementvacant.crisp.help',
+          ],
           styleSrc: [
             "'self'",
             "'unsafe-inline'",

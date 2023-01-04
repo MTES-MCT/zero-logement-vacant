@@ -8,16 +8,13 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
-import applicationReducer, {
-  ApplicationState,
-} from './store/reducers/applicationReducers';
+import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import UserListView from './views/User/UserListView';
@@ -32,8 +29,9 @@ import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
-import ForgottenPasswordView from "./views/Account/ForgottenPasswordView";
-import ResetPasswordView from "./views/Account/ResetPasswordView";
+import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
+import ResetPasswordView from './views/Account/ResetPasswordView';
+import { useUser } from './hooks/useUser';
 
 function AppWrapper() {
   const instance = createInstance({
@@ -56,7 +54,8 @@ function AppWrapper() {
 }
 
 function App() {
-  const { authUser, isLoggedOut } = useSelector(
+  const { isAdmin, isAuthenticated } = useUser();
+  const { isLoggedOut } = useSelector(
     (state: ApplicationState) => state.authentication
   );
   const { campaignBundleFetchingId, campaignCreated } = useSelector(
@@ -69,7 +68,7 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <AppHeader />
-        {isValidUser(authUser) ?
+        {isAuthenticated ?
           <>
             <ScrollToTop />
 
@@ -103,10 +102,8 @@ function App() {
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
-              {authUser.user.role === UserRoles.Admin &&
-                <Route exact path="/utilisateurs" component={UserListView}/>
-              }
-              {authUser.user.role === UserRoles.Admin &&
+              <Route exact path="/utilisateurs" component={UserListView}/>
+              {isAdmin &&
                 <Route exact path="/suivi" component={MonitoringView}/>
               }
               <Route path="/*">

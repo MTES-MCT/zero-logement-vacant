@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
+import {
+  Button,
+  Col,
+  Container,
+  Link,
+  Row,
+  Table,
+  Title,
+} from '@dataesr/react-dsfr';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDispatch, useSelector } from 'react-redux';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -19,9 +27,12 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import { useUser } from '../../hooks/useUser';
+import Help from '../../components/Help/Help';
 
 const UserListView = () => {
   const dispatch = useDispatch();
+  const { isAdmin } = useUser();
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
   const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] =
@@ -131,37 +142,53 @@ const UserListView = () => {
     ),
   };
 
-  const columns = [
-    nameColumn,
-    emailColumn,
-    establishmentColumn,
-    stateColumn,
-    deletionColumn,
-  ];
+  const columns = isAdmin
+    ? [
+        nameColumn,
+        emailColumn,
+        establishmentColumn,
+        stateColumn,
+        deletionColumn,
+      ]
+    : [nameColumn, emailColumn];
 
   return (
     <>
       <div className="bg-100">
-        <Container as="section" spacing="pb-1w">
+        <Container as="section" spacing="py-4w">
           <AppBreadcrumb />
           <Row>
             <Col n="8">
               <Title as="h1">Utilisateurs</Title>
             </Col>
-            <Col>
-              <AppMultiSelect
-                label="Etablissements"
-                options={availableEstablishmentOptions}
-                initialValues={filters.establishmentIds}
-                onChange={(values) =>
-                  onChangeFilters({ establishmentIds: values })
-                }
-              />
-            </Col>
+            {isAdmin && (
+              <Col>
+                <AppMultiSelect
+                  label="Etablissements"
+                  options={availableEstablishmentOptions}
+                  initialValues={filters.establishmentIds}
+                  onChange={(values) =>
+                    onChangeFilters({ establishmentIds: values })
+                  }
+                />
+              </Col>
+            )}
           </Row>
+          {!isAdmin && (
+            <Help>
+              Vous avez la possibilité de supprimer ou de rattacher des
+              utilisateurs sur votre espace{' '}
+              <Link
+                href="https://consultdf.cerema.fr/consultdf/orion-cerema/login"
+                target="_blank"
+              >
+                Consultdf
+              </Link>
+            </Help>
+          )}
         </Container>
       </div>
-      <Container as="section" spacing="pt-2w">
+      <Container as="section" spacing="py-4w">
         <Row>
           <FilterBadges
             filters={filters.establishmentIds}

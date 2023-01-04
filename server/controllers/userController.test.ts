@@ -302,6 +302,44 @@ describe('User controller', () => {
     });
   });
 
+  describe('list', () => {
+    const testRoute = '/api/users';
+
+    it('should be forbidden for a non authenticated user', async () => {
+      await request(app)
+        .post(testRoute)
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should list all users when authenticated user has admin role', async () => {
+      const res = await withAdminAccessToken(
+        request(app).post(testRoute)
+      ).expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject({ totalCount: 3 });
+    });
+
+    it('should filter users', async () => {
+      const res = await withAdminAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            filters: { establishmentIds: [Establishment1.id] },
+          })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject({ totalCount: 2 });
+    });
+
+    it('should list only establishmen users when authenticated user has not admin role', async () => {
+      const res = await withAccessToken(request(app).post(testRoute)).expect(
+        constants.HTTP_STATUS_OK
+      );
+
+      expect(res.body).toMatchObject({ totalCount: 2 });
+    });
+  });
+
   describe('removeUser', () => {
     const { id, email } = User1;
     const testRoute = `/api/users/${id}`;

@@ -113,13 +113,20 @@ const list = async (
   const page = request.body.page;
   const perPage = request.body.perPage;
   const role = (<RequestUser>request.auth).role;
-  const filters = <UserFiltersApi>request.body.filters ?? {};
+  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const bodyFilters = <UserFiltersApi>request.body.filters ?? {};
 
-  return role === UserRoles.Admin
-    ? userRepository
-        .listWithFilters(filters, page, perPage)
-        .then((_) => response.status(constants.HTTP_STATUS_OK).json(_))
-    : response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
+  const filters = {
+    ...bodyFilters,
+    establishmentIds:
+      role === UserRoles.Admin
+        ? bodyFilters.establishmentIds
+        : [establishmentId],
+  };
+
+  return userRepository
+    .listWithFilters(filters, page, perPage)
+    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
 const removeUser = async (

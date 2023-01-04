@@ -29,3 +29,6 @@ export enum UserRoles {
   Usual,
   Admin,
 }
+
+export const isValidUser = (authUser: AuthUser) =>
+  authUser && authUser.accessToken && authUser.establishment && authUser.user;

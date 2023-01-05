@@ -1,10 +1,9 @@
-import { ConsultUserService } from './consultUserService';
-import { ProspectApi } from '../../models/ProspectApi';
+import { CeremaUser, ConsultUserService } from './consultUserService';
 import fetch from 'node-fetch';
 import config from '../../utils/config';
 
 class CeremaService implements ConsultUserService {
-  async consultUser(email: string): Promise<ProspectApi> {
+  async consultUser(email: string): Promise<CeremaUser> {
     try {
       const response = await fetch(
         `${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`,
@@ -18,11 +17,9 @@ class CeremaService implements ConsultUserService {
       );
       const users = await response.json();
       if (users.length) {
-        return <ProspectApi>{
+        return {
           email: users[0].email,
-          establishment: {
-            siren: users[0].siret.substring(0, 9),
-          },
+          establishmentSiren: Number(users[0].siret.substring(0, 9)),
           hasAccount: true,
           hasCommitment: users[0].lovac_ok,
         };
@@ -35,7 +32,7 @@ class CeremaService implements ConsultUserService {
   }
 }
 
-function defaultUser(email: string): ProspectApi {
+function defaultUser(email: string): CeremaUser {
   return {
     email,
     hasAccount: false,

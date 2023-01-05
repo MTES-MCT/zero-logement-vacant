@@ -1,5 +1,10 @@
-import { ProspectApi } from '../../models/ProspectApi';
+export interface CeremaUser {
+  email: string;
+  establishmentSiren?: number;
+  hasAccount: boolean;
+  hasCommitment: boolean;
+}
 
 export interface ConsultUserService {
-  consultUser(email: string): Promise<ProspectApi>;
+  consultUser(email: string): Promise<CeremaUser>;
 }

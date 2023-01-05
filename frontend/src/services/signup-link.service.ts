@@ -7,7 +7,7 @@ const sendActivationEmail = async (email: string): Promise<void> => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-  if (!response.ok) {
+  if (response.status >= 500) {
     throw new Error('Cannot create sign-up link');
   }
 };

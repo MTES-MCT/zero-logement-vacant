@@ -1,19 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useMemo, useState } from 'react';
+import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Button, Link, Row, Title } from '@dataesr/react-dsfr';
+import { Button, Row, Title } from '@dataesr/react-dsfr';
 import Help from '../../../components/Help/Help';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';
 import { createUser } from '../../../store/actions/userAction';
 import { login } from '../../../store/actions/authenticationAction';
-import prospectService from '../../../services/prospect.service';
 import { Prospect } from '../../../models/Prospect';
 import { useDispatch } from 'react-redux';
+import InternalLink from '../../../components/InternalLink/InternalLink';
 
 interface State {
-  email: string;
+  prospect: Prospect;
   password: string;
 }
 
@@ -21,9 +22,12 @@ function AccountCampaignIntentCreationView() {
   const dispatch = useDispatch();
   const router = useHistory<State | undefined>();
   const { location } = router;
+  const prospect = location.state?.prospect;
+  const password = location.state?.password;
 
-  const [prospect, setProspect] = useState<Prospect>();
-  const [campaignIntent, setCampaignIntent] = useState<string | undefined>();
+  const [campaignIntent, setCampaignIntent] = useState<string | undefined>(
+    prospect?.establishment?.campaignIntent
+  );
 
   const schema = yup.object().shape({
     campaignIntent: yup.string().required().oneOf(['0-2', '2-4', '4+']),
@@ -32,46 +36,37 @@ function AccountCampaignIntentCreationView() {
     campaignIntent,
   });
 
-  function back() {
-    router.goBack();
-  }
-
   const disabled = useMemo<boolean>(
     () => !!prospect?.establishment?.campaignIntent,
     [prospect?.establishment?.campaignIntent]
   );
 
-  useEffect(() => {
-    if (location.state?.email) {
-      prospectService.get(location.state.email).then((prospect) => {
-        setProspect(prospect);
-        setCampaignIntent(prospect.establishment?.campaignIntent);
-      });
-    }
-  }, [location.state, setProspect]);
-
-  async function createAccount() {
-    if (isValid() && prospect?.establishment) {
+  async function createAccount(e: FormEvent) {
+    e.preventDefault();
+    if (isValid() && prospect && password && prospect.establishment) {
       // Save user and remove prospect
       await dispatch(
         createUser({
-          email: location.state!.email,
-          password: location.state!.password,
+          email: prospect.email,
+          password,
           establishmentId: prospect.establishment.id,
           campaignIntent,
         })
       );
-      dispatch(
-        login(
-          location.state!.email,
-          location.state!.password,
-          prospect.establishment.id
-        )
-      );
+      dispatch(login(prospect.email, password, prospect.establishment.id));
     }
   }
 
-  if (!location.state || !location.state?.email || !location.state?.password) {
+  const back: Location = {
+    pathname: '/inscription/mot-de-passe',
+    state: {
+      prospect,
+    },
+    hash: '',
+    search: '',
+  };
+
+  if (!location.state || !prospect || !password) {
     return <Redirect to="/inscription/email" />;
   }
 
@@ -93,34 +88,31 @@ function AccountCampaignIntentCreationView() {
           campagne.
         </Help>
       )}
-      <CampaignIntent
-        defaultValue={prospect?.establishment?.campaignIntent}
-        disabled={disabled}
-        message={message('campaignIntent')}
-        messageType={messageType('campaignIntent')}
-        onChange={setCampaignIntent}
-      />
-      <Row alignItems="middle" className="justify-space-between">
-        <Link
-          isSimple
-          display="flex"
-          title="Revenir à l'étape précédente"
-          href="#"
-          icon="ri-arrow-left-line"
-          iconSize="1x"
-          iconPosition="left"
-          onClick={back}
-        >
-          Revenir à l'étape précédente
-        </Link>
-        <Button
-          title="Créer votre compte"
-          disabled={!isValid()}
-          onClick={createAccount}
-        >
-          Créer votre compte
-        </Button>
-      </Row>
+      <form onSubmit={createAccount}>
+        <CampaignIntent
+          defaultValue={prospect?.establishment?.campaignIntent}
+          disabled={disabled}
+          message={message('campaignIntent')}
+          messageType={messageType('campaignIntent')}
+          onChange={setCampaignIntent}
+        />
+        <Row alignItems="middle" className="justify-space-between">
+          {/*@ts-ignore*/}
+          <InternalLink
+            isSimple
+            display="flex"
+            to={back}
+            icon="ri-arrow-left-line"
+            iconSize="1x"
+            iconPosition="left"
+          >
+            Revenir à l’étape précédente
+          </InternalLink>
+          <Button submit disabled={!isValid()}>
+            Créer votre compte
+          </Button>
+        </Row>
+      </form>
     </>
   );
 }

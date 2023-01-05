@@ -14,7 +14,11 @@ import {
   RESET_LINK_LENGTH,
   ResetLinkApi,
 } from '../models/ResetLinkApi';
-import { SIGNUP_LINK_EXPIRATION, SignupLinkApi } from '../models/SignupLinkApi';
+import {
+  SIGNUP_LINK_EXPIRATION,
+  SIGNUP_LINK_LENGTH,
+  SignupLinkApi,
+} from '../models/SignupLinkApi';
 
 const randomstring = require('randomstring');
 
@@ -80,12 +84,13 @@ export const genUserApi = (establishmentId: string) => {
   };
 };
 
-export const genProspectApi = () => {
+export const genProspectApi = (establishment: EstablishmentApi) => {
   return <ProspectApi>{
     email: genEmail(),
     establishment: {
-      id: uuidv4(),
-      siren: genSiren(),
+      id: establishment.id,
+      siren: establishment.siren,
+      campaignIntent: establishment.campaignIntent ?? null,
     },
     hasAccount: genBoolean(),
     hasCommitment: genBoolean(),
@@ -197,7 +202,10 @@ export const genResetLinkApi = (userId: string) => {
 };
 
 export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
-  id: uuidv4(),
+  id: randomstring.generate({
+    length: SIGNUP_LINK_LENGTH,
+    charset: 'alphanumeric',
+  }),
   prospectEmail,
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
 });

@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordValidator,
   useForm,
 } from '../../../hooks/useForm';
-import { useHistory } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 import Stepper from '../../../components/Stepper/Stepper';
 import { Button, Row, Text, TextInput, Title } from '@dataesr/react-dsfr';
-import { useEmailLink } from '../../../hooks/useEmailLink';
-import signupLinkService from '../../../services/signup-link.service';
 import InternalLink from '../../../components/InternalLink/InternalLink';
+import { useProspect } from '../../../hooks/useProspect';
+import { Prospect } from '../../../models/Prospect';
+
+interface RouterState {
+  prospect?: Prospect | undefined;
+  password?: string;
+}
 
 function AccountPasswordCreationView() {
-  const router = useHistory();
+  const router = useHistory<RouterState | undefined>();
+  const { location } = router;
 
-  const { link } = useEmailLink({
-    service: signupLinkService,
-  });
+  const { linkExists, loading, prospect } = useProspect(
+    location.state?.prospect
+  );
 
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -31,28 +37,51 @@ function AccountPasswordCreationView() {
     confirmation,
   });
 
-  if (!link) {
+  if (loading) {
+    return null;
+  }
+
+  if (!linkExists) {
     return (
       <>
         <Title as="h1" look="h4">
           Ce lien n’existe pas ou est expiré !
         </Title>
         <Text>Recommencez la procédure ou contactez le support.</Text>
-        <Row justifyContent="right">
-          <Button onClick={() => router.replace('/')}>
-            Revenir à l'accueil
-          </Button>
+        <Row>
+          <InternalLink
+            icon="ri-home-fill"
+            iconPosition="left"
+            iconSize="1x"
+            isSimple
+            to="/"
+          >
+            Revenir à l’accueil
+          </InternalLink>
         </Row>
       </>
     );
   }
 
-  function next() {
-    if (isValid()) {
+  if (prospect) {
+    if (prospect.hasAccount && !prospect.hasCommitment) {
+      return <Redirect to="/inscription/en-attente" />;
+    }
+    if (
+      !prospect.establishment ||
+      (!prospect.hasAccount && !prospect.hasCommitment)
+    ) {
+      return <Redirect to="/inscription/impossible" />;
+    }
+  }
+
+  async function next(e: FormEvent) {
+    e.preventDefault();
+    if (isValid() && !!prospect) {
       router.push({
         pathname: '/inscription/campagne',
         state: {
-          email: link?.prospectEmail,
+          prospect,
           password,
         },
       });
@@ -67,46 +96,47 @@ function AccountPasswordCreationView() {
         currentTitle="Créer votre mot de passe"
         nextStepTitle="Intentions opérationnelles"
       />
-      <TextInput
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        messageType={messageType('password')}
-        label="Créer votre mot de passe"
-        hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
-        required
-      />
-      {messageList('password')?.map((message, i) => (
-        <p className={`fr-${message.type}-text`} key={i}>
-          {message.text}
-        </p>
-      ))}
-      <TextInput
-        type="password"
-        className="fr-mt-3w"
-        value={confirmation}
-        onChange={(e) => setConfirmation(e.target.value)}
-        messageType={messageType('confirmation')}
-        message={message('confirmation', 'Mots de passe identiques.')}
-        label="Confirmer votre mot de passe"
-        required
-      />
-      <Row alignItems="middle" className="justify-space-between">
-        <InternalLink
-          isSimple
-          display="flex"
-          title="Revenir à l'étape précédente"
-          to="/inscription/email"
-          icon="ri-arrow-left-line"
-          iconSize="1x"
-          iconPosition="left"
-        >
-          Revenir à l'étape précédente
-        </InternalLink>
-        <Button title="Continuer" disabled={!isValid()} onClick={next}>
-          Continuer
-        </Button>
-      </Row>
+      <form onSubmit={next}>
+        <TextInput
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          messageType={messageType('password')}
+          label="Créer votre mot de passe"
+          hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
+          required
+        />
+        {messageList('password')?.map((message, i) => (
+          <p className={`fr-${message.type}-text`} key={i}>
+            {message.text}
+          </p>
+        ))}
+        <TextInput
+          type="password"
+          className="fr-mt-3w"
+          value={confirmation}
+          onChange={(e) => setConfirmation(e.target.value)}
+          messageType={messageType('confirmation')}
+          message={message('confirmation', 'Mots de passe identiques.')}
+          label="Confirmer votre mot de passe"
+          required
+        />
+        <Row alignItems="middle" className="justify-space-between">
+          <InternalLink
+            isSimple
+            display="flex"
+            to="/inscription/email"
+            icon="ri-arrow-left-line"
+            iconSize="1x"
+            iconPosition="left"
+          >
+            Revenir à l’étape précédente
+          </InternalLink>
+          <Button submit title="Continuer">
+            Continuer
+          </Button>
+        </Row>
+      </form>
     </>
   );
 }

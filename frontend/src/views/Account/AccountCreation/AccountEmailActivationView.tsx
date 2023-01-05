@@ -1,11 +1,10 @@
 import { Text, Title } from '@dataesr/react-dsfr';
 import { Redirect, useHistory } from 'react-router-dom';
-import InternalLink from '../../../components/InternalLink/InternalLink';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useHide } from '../../../hooks/useHide';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
-import signupLinkService from '../../../services/signup-link.service';
+import ButtonLink from '../../../components/ButtonLink/ButtonLink';
+import { useActivationEmail } from '../../../hooks/useActivationEmail';
 
 interface State {
   email?: string;
@@ -13,24 +12,16 @@ interface State {
 
 function AccountEmailActivationView() {
   const router = useHistory<State | undefined>();
-  const [error, setError] = useState('');
-  const { hidden, setHidden } = useHide();
+  const { error, hidden, send: sendActivationEmail } = useActivationEmail();
 
   const status = useMemo(() => (error ? 'error' : 'valid'), [error]);
 
-  useEffect(() => {
+  function send(): void {
     const { state } = router.location;
     if (state?.email) {
-      signupLinkService
-        .sendActivationEmail(state.email)
-        .then(() => {
-          setHidden(false);
-        })
-        .catch((error) => {
-          setError((error as Error).message);
-        });
+      sendActivationEmail(state.email);
     }
-  }, [router.location, setHidden]);
+  }
 
   if (!router.location.state?.email) {
     return <Redirect to="/inscription/email" />;
@@ -54,9 +45,9 @@ function AccountEmailActivationView() {
       </Text>
       <Text size="sm" className="subtitle">
         Vérifiez qu’il ne s’est pas glissé dans vos spams ou 
-        <InternalLink to={router.location} isSimple>
+        <ButtonLink size="sm" onClick={send}>
           renvoyer le mail
-        </InternalLink>
+        </ButtonLink>
         .
       </Text>
       <Text size="sm" className={confirmationClasses}>

@@ -7,9 +7,6 @@ import {
   genEstablishmentApi,
   genHousingApi,
   genLocalityApi,
-  genProspectApi,
-  genSiren,
-  genUserApi,
 } from '../test/testFixtures';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { UserRoles } from '../models/UserApi';
@@ -27,13 +24,10 @@ import housingRepository, {
 } from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import { createServer } from '../server';
-import { ProspectApi, TEST_ACCOUNTS } from '../models/ProspectApi';
+import { TEST_ACCOUNTS } from '../models/ProspectApi';
 import fetchMock from 'jest-fetch-mock';
-import { JsonObject } from 'type-fest';
-import { Request } from 'express';
-import config from '../utils/config';
 import { CampaignIntent } from '../models/EstablishmentApi';
-import prospectRepository from '../repositories/prospectRepository';
+import { Prospect1 } from '../../database/seeds/test/007-prospects';
 
 const { app } = createServer();
 
@@ -42,36 +36,52 @@ describe('User controller', () => {
     fetchMock.resetMocks();
   });
 
-  const mockCeremaConsultUser = (
-    email: string,
-    user: JsonObject | undefined
-  ) => {
-    fetchMock.mockResponse((request: Request) => {
-      return Promise.resolve(
-        (() => {
-          if (
-            request.url ===
-            `${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`
-          ) {
-            return {
-              body: JSON.stringify(user ? [user] : []),
-              init: { status: 200 },
-            };
-          } else if (request.url === `${config.ban.api.endpoint}/search/csv/`) {
-            return {
-              body: JSON.stringify([]),
-              init: { status: 200 },
-            };
-          } else return { body: '', init: { status: 404 } };
-        })()
-      );
-    });
-  };
-
   describe('createUser', () => {
     const testRoute = '/api/users/creation';
+    const prospect = Prospect1;
+    const validPassword = '123QWEasd';
 
-    const draftUser = { ...genUserApi(Establishment1.id), id: undefined };
+    it('should received a valid draft user', async () => {
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...prospect,
+          email: randomstring.generate(),
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...prospect,
+          email: undefined,
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...prospect,
+          establishmentId: randomstring.generate(),
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...prospect,
+          establishmentId: undefined,
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...prospect,
+          campaignIntent: '123',
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
 
     it('should not actually create a user if it is a test account', async () => {
       const emails = TEST_ACCOUNTS.map((account) => account.email);
@@ -80,7 +90,7 @@ describe('User controller', () => {
           request(app)
             .post(testRoute)
             .send({
-              ...draftUser,
+              ...prospect,
               email,
             })
         )
@@ -96,115 +106,54 @@ describe('User controller', () => {
       expect(Number(users?.count)).toBe(0);
     });
 
-    it('should fail if the user is not allowed by Cerema', async () => {
-      const prospect: ProspectApi = {
-        ...genProspectApi(),
-        establishment: Establishment1,
-        hasAccount: true,
-        hasCommitment: false,
-      };
-      await prospectRepository.upsert(prospect);
+    it('should fail if the prospect is missing', async () => {
+      const { status } = await request(app).post(testRoute).send({
+        email: 'missing@non.existing',
+        password: '123QWEasd',
+        establishmentId: prospect.establishment?.id,
+      });
 
-      const { status } = await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          email: prospect.email,
-        });
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should be not found if the user establishment does not exist', async () => {
-      mockCeremaConsultUser(draftUser.email, {
-        email: draftUser.email,
-        siret: genSiren().toString(),
-        lovac_ok: true,
-      });
-
       await request(app)
         .post(testRoute)
         .send({
-          ...draftUser,
+          ...prospect,
+          password: validPassword,
           establishmentId: uuidv4(),
         })
         .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should received a valid draft user', async () => {
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          email: randomstring.generate(),
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          email: undefined,
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          establishmentId: randomstring.generate(),
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          establishmentId: undefined,
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...draftUser,
-          campaignIntent: '123',
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
     it('should create a new user with Usual role', async () => {
-      mockCeremaConsultUser(draftUser.email, {
-        email: draftUser.email,
-        siret: genSiren().toString(),
-        lovac_ok: true,
-      });
-
-      const res = await request(app)
+      const { body, status } = await request(app)
         .post(testRoute)
-        .send({ ...draftUser, role: UserRoles.Admin })
-        .expect(constants.HTTP_STATUS_CREATED);
+        .send({
+          ...prospect,
+          establishmentId: prospect.establishment?.id,
+          password: validPassword,
+          role: UserRoles.Admin,
+        });
 
-      expect(res.body).toMatchObject(
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject(
         expect.objectContaining({
-          email: draftUser.email,
-          firstName: draftUser.firstName,
-          lastName: draftUser.lastName,
-          establishmentId: draftUser.establishmentId,
+          email: prospect.email,
+          establishmentId: prospect.establishment?.id,
           role: UserRoles.Usual,
         })
       );
 
       await db(usersTable)
         .where('establishment_id', Establishment1.id)
-        .andWhere('email', draftUser.email)
+        .andWhere('email', prospect.email)
         .then((result) => {
           expect(result[0]).toEqual(
             expect.objectContaining({
-              email: draftUser.email,
-              first_name: draftUser.firstName,
-              last_name: draftUser.lastName,
-              establishment_id: draftUser.establishmentId,
+              email: prospect.email,
+              establishment_id: prospect.establishment?.id,
               role: UserRoles.Usual,
             })
           );
@@ -212,17 +161,14 @@ describe('User controller', () => {
     });
 
     it('should save the establishment campaign intent if it was not provided yet', async () => {
-      mockCeremaConsultUser(draftUser.email, {
-        email: draftUser.email,
-        siret: genSiren().toString(),
-        lovac_ok: true,
-      });
       const campaignIntent: CampaignIntent = '2-4';
 
       const { status } = await request(app)
         .post(testRoute)
         .send({
-          ...draftUser,
+          ...prospect,
+          establishmentId: prospect.establishment?.id,
+          password: validPassword,
           campaignIntent,
         });
 
@@ -234,18 +180,13 @@ describe('User controller', () => {
     });
 
     it('should activate user establishment if needed', async () => {
-      mockCeremaConsultUser(draftUser.email, {
-        email: draftUser.email,
-        siret: genSiren().toString(),
-        lovac_ok: true,
-      });
       const Locality = genLocalityApi();
-      const Establishment = genEstablishmentApi(Locality);
+      const establishment = genEstablishmentApi(Locality);
       await db(localitiesTable).insert(
         establishmentRepository.formatLocalityApi(Locality)
       );
       await db(establishmentsTable).insert({
-        ...establishmentRepository.formatEstablishmentApi(Establishment),
+        ...establishmentRepository.formatEstablishmentApi(establishment),
         available: false,
       });
       const housing = new Array(2500)
@@ -265,8 +206,9 @@ describe('User controller', () => {
       const res = await request(app)
         .post(testRoute)
         .send({
-          ...draftUser,
-          establishmentId: Establishment.id,
+          ...prospect,
+          password: validPassword,
+          establishmentId: establishment.id,
         })
         .expect(constants.HTTP_STATUS_CREATED);
 
@@ -274,31 +216,29 @@ describe('User controller', () => {
 
       expect(res.body).toMatchObject(
         expect.objectContaining({
-          email: draftUser.email,
-          firstName: draftUser.firstName,
-          lastName: draftUser.lastName,
-          establishmentId: Establishment.id,
+          email: prospect.email,
+          establishmentId: establishment.id,
           role: UserRoles.Usual,
         })
       );
 
       await db(establishmentsTable)
-        .where('id', Establishment.id)
+        .where('id', establishment.id)
         .then((result) => {
           expect(result[0]).toEqual(
             expect.objectContaining({
-              id: Establishment.id,
+              id: establishment.id,
               available: true,
             })
           );
         });
 
       await db(campaignsTable)
-        .where('establishment_id', Establishment.id)
+        .where('establishment_id', establishment.id)
         .then((result) => {
           expect(result[0]).toEqual(
             expect.objectContaining({
-              establishment_id: Establishment.id,
+              establishment_id: establishment.id,
               campaign_number: 0,
             })
           );

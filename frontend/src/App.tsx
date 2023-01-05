@@ -31,8 +31,8 @@ import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';import ForgottenPasswordView
-  from "./views/Account/ForgottenPasswordView";
+import AccountCreationView from './views/Account/AccountCreationView';
+import ForgottenPasswordView from "./views/Account/ForgottenPasswordView";
 import ResetPasswordView from "./views/Account/ResetPasswordView";
 
 function AppWrapper() {

@@ -2,11 +2,9 @@ import request from 'supertest';
 import randomstring from 'randomstring';
 import { constants } from 'http2';
 import { User1 } from '../../database/seeds/test/003-users';
-import { genEmail, genResetLinkApi } from '../test/testFixtures';
+import { genResetLinkApi } from '../test/testFixtures';
 import fetchMock from 'jest-fetch-mock';
 import db from '../repositories/db';
-import { prospectsTable } from '../repositories/prospectRepository';
-import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import {
   formatResetLinkApi,
   resetLinkTable,
@@ -26,59 +24,6 @@ beforeEach(() => {
 });
 
 describe('Account controller', () => {
-  describe('getAccount', () => {
-    const testRoute = (email: string) => `/api/prospects/${email}`;
-
-    it('should receive a valid email', async () => {
-      await request(app)
-        .get(testRoute('a'))
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .get(testRoute(randomstring.generate()))
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should return forbidden when a user already exist', async () => {
-      await request(app)
-        .get(testRoute(User1.email))
-        .expect(constants.HTTP_STATUS_FORBIDDEN);
-    });
-
-    it('should consult Cerema for a new prospect, then insert an return the result when user known from Cerema', async () => {
-      const email = genEmail();
-      const siren = Establishment1.siren;
-
-      const res = await request(app)
-        .get(testRoute(email))
-        .expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject({
-        email,
-        hasAccount: true,
-        hasCommitment: true,
-        establishment: {
-          id: Establishment1.id,
-          siren: Establishment1.siren,
-        },
-      });
-
-      await db(prospectsTable)
-        .where('email', email)
-        .first()
-        .then((result) => {
-          expect(result).toEqual(
-            expect.objectContaining({
-              email,
-              has_account: true,
-              has_commitment: true,
-              establishment_siren: siren,
-            })
-          );
-        });
-    });
-  });
-
   describe('resetPassword', () => {
     const testRoute = '/api/account/reset-password';
 

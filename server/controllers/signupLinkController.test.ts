@@ -5,11 +5,10 @@ import db from '../repositories/db';
 import signupLinkRepository, {
   signupLinkTable,
 } from '../repositories/signupLinkRepository';
-import { genProspectApi, genSignupLinkApi } from '../test/testFixtures';
-import { Establishment1 } from '../../database/seeds/test/001-establishments';
-import { ProspectApi } from '../models/ProspectApi';
+import { genEmail, genSignupLinkApi } from '../test/testFixtures';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
-import prospectRepository from '../repositories/prospectRepository';
+import { SignupLinkApi } from '../models/SignupLinkApi';
+import { subHours } from 'date-fns';
 
 describe('Signup link controller', () => {
   const { app } = createServer();
@@ -39,51 +38,19 @@ describe('Signup link controller', () => {
     });
 
     it('should create a signup link', async () => {
-      const prospect: ProspectApi = {
-        ...genProspectApi(),
-        establishment: {
-          id: Establishment1.id,
-          siren: Establishment1.siren,
-        },
-        hasAccount: true,
-        hasCommitment: true,
-      };
-      await prospectRepository.upsert(prospect);
+      const email = genEmail();
 
       const { status } = await request(app).post(testRoute).send({
-        email: prospect.email,
+        email,
       });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
       const actualLink = await db(signupLinkTable)
         .select()
-        .where('prospect_email', prospect.email)
+        .where('prospect_email', email)
         .first();
       expect(actualLink).toBeDefined();
-    });
-
-    it('should return not found if the prospect does not exist', async () => {
-      const email = 'test@test.test';
-
-      const { status } = await request(app).post(testRoute).send({ email });
-
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
-    });
-
-    it('should forbid the activation of an invalid prospect', async () => {
-      const prospect: ProspectApi = {
-        ...genProspectApi(),
-        hasAccount: false,
-        hasCommitment: false,
-      };
-      await prospectRepository.upsert(prospect);
-
-      const { status } = await request(app).post(testRoute).send({
-        email: prospect.email,
-      });
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
   });
 
@@ -109,6 +76,19 @@ describe('Signup link controller', () => {
       const { status } = await request(app).get(testRoute('not-found'));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should be impossible when the signup link is expired', async () => {
+      const email = genEmail();
+      const link: SignupLinkApi = {
+        ...genSignupLinkApi(email),
+        expiresAt: subHours(new Date(), 24),
+      };
+      await signupLinkRepository.insert(link);
+
+      const { status } = await request(app).get(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
   });
 });

@@ -17,6 +17,7 @@ export function useEmailLink<T>(options: EmailLinkOptions<T>) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<T>();
+  const [error, setError] = useState('');
 
   const exists = useMemo<boolean>(() => !!link, [link]);
 
@@ -28,6 +29,9 @@ export function useEmailLink<T>(options: EmailLinkOptions<T>) {
       .then((link: T) => {
         setLink(link);
       })
+      .catch((error) => {
+        setError(error);
+      })
       .finally(() => {
         dispatch(hideLoading());
         setLoading(false);
@@ -35,6 +39,7 @@ export function useEmailLink<T>(options: EmailLinkOptions<T>) {
   }, [dispatch, hash, options.service]);
 
   return {
+    error,
     exists,
     hash,
     link,

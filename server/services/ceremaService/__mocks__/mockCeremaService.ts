@@ -1,12 +1,11 @@
-import { ConsultUserService } from '../consultUserService';
-import { ProspectApi } from '../../../models/ProspectApi';
+import { CeremaUser, ConsultUserService } from '../consultUserService';
 import { Establishment1 } from '../../../../database/seeds/test/001-establishments';
 
 class MockCeremaService implements ConsultUserService {
-  async consultUser(email: string): Promise<ProspectApi> {
+  async consultUser(email: string): Promise<CeremaUser> {
     return {
       email,
-      establishment: Establishment1,
+      establishmentSiren: Establishment1.siren,
       hasAccount: true,
       hasCommitment: true,
     };

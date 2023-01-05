@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import {
+  hasExpired,
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
   SignupLinkApi,
@@ -9,66 +10,43 @@ import { addHours } from 'date-fns';
 import mailService from '../services/mailService';
 import signupLinkRepository from '../repositories/signupLinkRepository';
 import { body, param, ValidationChain } from 'express-validator';
-import prospectRepository from '../repositories/prospectRepository';
-import ProspectMissingError from '../errors/prospectMissingError';
-import { isValid } from '../models/ProspectApi';
-import ProspectInvalidError from '../errors/prospectInvalidError';
 import SignupLinkMissingError from '../errors/signupLinkMissingError';
 import { constants } from 'http2';
+import SignupLinkExpiredError from '../errors/signupLinkExpiredError';
 
-const create = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = request.body;
+const create = async (request: Request, response: Response) => {
+  const { email } = request.body;
 
-    const prospect = await prospectRepository.get(email);
-    if (!prospect) {
-      throw new ProspectMissingError(email);
-    }
-
-    if (!isValid(prospect)) {
-      throw new ProspectInvalidError(prospect);
-    }
-
-    const link: SignupLinkApi = {
-      id: randomstring.generate({
-        charset: 'alphanumeric',
-        length: SIGNUP_LINK_LENGTH,
-      }),
-      prospectEmail: prospect.email,
-      expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
-    };
-    await signupLinkRepository.insert(link);
-    await mailService.sendAccountActivationEmail(link.id, {
-      recipients: [prospect.email],
-    });
-    response.sendStatus(constants.HTTP_STATUS_CREATED);
-  } catch (error) {
-    next(error);
-  }
+  const link: SignupLinkApi = {
+    id: randomstring.generate({
+      charset: 'alphanumeric',
+      length: SIGNUP_LINK_LENGTH,
+    }),
+    prospectEmail: email,
+    expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+  };
+  await signupLinkRepository.insert(link);
+  await mailService.sendAccountActivationEmail(link.id, {
+    recipients: [email],
+  });
+  response.sendStatus(constants.HTTP_STATUS_CREATED);
 };
+
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
-const show = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = request.params;
-    const link = await signupLinkRepository.get(id);
-    if (!link) {
-      throw new SignupLinkMissingError(id);
-    }
-
-    response.status(constants.HTTP_STATUS_OK).json(link);
-  } catch (error) {
-    next(error);
+const show = async (request: Request, response: Response) => {
+  const { id } = request.params;
+  const link = await signupLinkRepository.get(id);
+  if (!link) {
+    throw new SignupLinkMissingError(id);
   }
+  if (hasExpired(link)) {
+    throw new SignupLinkExpiredError();
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(link);
 };
+
 const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 
 const signupLinkController = {

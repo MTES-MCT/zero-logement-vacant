@@ -1,13 +1,13 @@
-import { v4 as uuidv4 } from 'uuid';
-import { CampaignIntent } from './EstablishmentApi';
+import { EstablishmentApi } from './EstablishmentApi';
+
+type PartialEstablishment = Pick<
+  EstablishmentApi,
+  'id' | 'siren' | 'campaignIntent'
+>;
 
 export interface ProspectApi {
   email: string;
-  establishment?: {
-    id?: string;
-    siren: number;
-    campaignIntent?: CampaignIntent;
-  };
+  establishment?: PartialEstablishment | null;
   hasAccount: boolean;
   hasCommitment: boolean;
 }
@@ -15,28 +15,16 @@ export interface ProspectApi {
 export const TEST_ACCOUNTS: ReadonlyArray<ProspectApi> = [
   {
     email: 'ok@beta.gouv.fr',
-    establishment: {
-      id: uuidv4(),
-      siren: 40429048,
-    },
     hasAccount: true,
     hasCommitment: true,
   },
   {
     email: 'lovac_ko@beta.gouv.fr',
-    establishment: {
-      id: uuidv4(),
-      siren: 785716885,
-    },
     hasAccount: true,
     hasCommitment: false,
   },
   {
     email: 'account_ko@beta.gouv.fr',
-    establishment: {
-      id: uuidv4(),
-      siren: 931547662,
-    },
     hasAccount: false,
     hasCommitment: false,
   },

@@ -1,22 +1,18 @@
-import { v4 as uuidv4 } from 'uuid';
-import { ConsultUserService } from './consultUserService';
-import { getTestAccount, ProspectApi } from '../../models/ProspectApi';
+import { CeremaUser, ConsultUserService } from './consultUserService';
+import { getTestAccount } from '../../models/ProspectApi';
 import { SirenStrasbourg } from '../../../database/seeds/dummy/001-establishments';
 
 class MockCeremaService implements ConsultUserService {
-  async consultUser(email: string): Promise<ProspectApi> {
+  async consultUser(email: string): Promise<CeremaUser> {
     const testAccount = getTestAccount(email);
     return testAccount ?? defaultOK(email);
   }
 }
 
-function defaultOK(email: string): ProspectApi {
+function defaultOK(email: string): CeremaUser {
   return {
     email,
-    establishment: {
-      id: uuidv4(),
-      siren: Number(SirenStrasbourg),
-    },
+    establishmentSiren: Number(SirenStrasbourg),
     hasAccount: true,
     hasCommitment: true,
   };

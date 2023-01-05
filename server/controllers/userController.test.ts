@@ -92,6 +92,8 @@ describe('User controller', () => {
             .send({
               ...prospect,
               email,
+              password: validPassword,
+              establishmentId: prospect.establishment?.id,
             })
         )
       );

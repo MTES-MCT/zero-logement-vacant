@@ -129,9 +129,6 @@ function AppHeader() {
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.HousingList)}
             />
-            <AppNavItem
-              userNavItem={getUserNavItem(UserNavItems.GeoPerimeters)}
-            />
             {authUser.user.role === UserRoles.Admin ? (
               <>
                 <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
@@ -148,6 +145,9 @@ function AppHeader() {
               />
             )}
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.Establishment)}
+            />
           </HeaderNav>
         ) : (
           <HeaderNav className="d-lg-none">

@@ -8,9 +8,7 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
-import applicationReducer, {
-  ApplicationState,
-} from './store/reducers/applicationReducers';
+import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
@@ -29,11 +27,11 @@ import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
 import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
-import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';import ForgottenPasswordView
-  from "./views/Account/ForgottenPasswordView";
-import ResetPasswordView from "./views/Account/ResetPasswordView";
+import AccountCreationView from './views/Account/AccountCreationView';
+import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
+import ResetPasswordView from './views/Account/ResetPasswordView';
+import EstablismentView from './views/Establishment/EstablismentView';
 
 function AppWrapper() {
   const instance = createInstance({
@@ -99,7 +97,7 @@ function App() {
               <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
               <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
               <Route exact path="*/logements/:housingId" component={HousingView} />
-              <Route exact path="*/perimetres" component={GeoPerimeterView} />
+              <Route exact path="*/territoire" component={EstablismentView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>

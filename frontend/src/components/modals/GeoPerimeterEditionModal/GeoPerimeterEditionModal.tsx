@@ -13,8 +13,8 @@ import {
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
-import { ValidationError } from 'yup/es';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
+import { useForm } from '../../../hooks/useForm';
 
 const GeoPerimeterEditionModal = ({
   geoPerimeter,
@@ -28,26 +28,20 @@ const GeoPerimeterEditionModal = ({
   const [kind, setKind] = useState(geoPerimeter.kind);
   const [name, setName] = useState(geoPerimeter.name);
 
-  const [formErrors, setFormErrors] = useState<any>({});
+  const schema = yup.object().shape({
+    name: yup.string().required('Veuillez saisir le nom du périmètre'),
+    kind: yup.string().required('Veuillez saisir le nom filtre'),
+  });
 
-  const perimeterForm = yup.object().shape({
-    kind: yup.string().required('Veuillez renseigner un nom de filtre.'),
+  const { isValid, message, messageType } = useForm(schema, {
+    name,
+    kind,
   });
 
   const submitPerimeterForm = () => {
-    setFormErrors({});
-    perimeterForm
-      .validate({ kind, name }, { abortEarly: false })
-      .then(() => onSubmit(kind, name))
-      .catch((err) => {
-        const object: any = {};
-        err.inner.forEach((x: ValidationError) => {
-          if (x.path !== undefined && x.errors.length) {
-            object[x.path] = x.errors[0];
-          }
-        });
-        setFormErrors(object);
-      });
+    if (isValid()) {
+      onSubmit(kind, name);
+    }
   };
 
   return (
@@ -57,31 +51,36 @@ const GeoPerimeterEditionModal = ({
       </ModalClose>
       <ModalTitle>
         <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        Modifier le périmètre
+        Edition du périmètre
       </ModalTitle>
       <ModalContent>
         <Container as="section" fluid>
           <form id="user_form">
-            <Row gutters>
-              <Col>
-                <TextInput
-                  value={kind}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setKind(e.target.value)
-                  }
-                  messageType={formErrors['kind'] ? 'error' : ''}
-                  message={formErrors['kind']}
-                  label="Nom du filtre : "
-                  required
-                />
-              </Col>
+            <Row spacing="mb-2w">
               <Col>
                 <TextInput
                   value={name}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setName(e.target.value)
                   }
-                  label="Entité : "
+                  messageType={messageType('name')}
+                  message={message('name')}
+                  label="Nom du périmètre : "
+                  required
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <TextInput
+                  value={kind}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setKind(e.target.value)
+                  }
+                  messageType={messageType('kind')}
+                  message={message('kind')}
+                  label="Nom du filtre : "
+                  required
                 />
               </Col>
             </Row>

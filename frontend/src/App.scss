@@ -104,7 +104,7 @@
 }
 
 .d-inline-block {
-  display: inline-block;
+  display: inline-block !important;
 }
 
 .d-none,
@@ -130,11 +130,14 @@
 .bg-100 {
   background-color: var(--grey-975);
 }
-.bg-975 {
-  background-color: var(--grey-975);
+.bg-900 {
+  background-color: var(--grey-900) !important;
 }
 .bg-925 {
   background-color: var(--grey-925);
+}
+.bg-975 {
+  background-color: var(--grey-975);
 }
 .bg-bf113 {
   background-color: var(--blue-france-113);

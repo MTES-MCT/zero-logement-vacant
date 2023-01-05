@@ -5,7 +5,7 @@ export enum UserNavItems {
   User,
   Monitoring,
   EstablishmentMonitoring,
-  GeoPerimeters,
+  Establishment,
   Resources,
 }
 
@@ -25,8 +25,8 @@ export const getUserNavItem = (
       return { url: '/campagnes', label: 'Logements suivis' };
     case UserNavItems.HousingList:
       return { url: '/base-de-donnees', label: 'Base de données' };
-    case UserNavItems.GeoPerimeters:
-      return { url: '/perimetres', label: 'Périmètres' };
+    case UserNavItems.Establishment:
+      return { url: '/territoire', label: 'Votre territoire' };
     case UserNavItems.User:
       return { url: '/utilisateurs', label: 'Utilisateurs' };
     case UserNavItems.Monitoring:

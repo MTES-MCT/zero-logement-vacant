@@ -27,14 +27,13 @@ const AppBreadcrumb = () => {
     ownerId,
     housingId,
     establishmentId,
-  } =
-    useParams<{
-      campaignNumber: string;
-      reminderNumber: string;
-      ownerId: string;
-      housingId: string;
-      establishmentId: string;
-    }>();
+  } = useParams<{
+    campaignNumber: string;
+    reminderNumber: string;
+    ownerId: string;
+    housingId: string;
+    establishmentId: string;
+  }>();
 
   const [items, setItems] = useState<UserNavItem[]>([
     getUserNavItem(UserNavItems.Dashboard),
@@ -92,9 +91,9 @@ const AppBreadcrumb = () => {
             return getUserNavItem(UserNavItems.HousingList);
           } else if (
             value ===
-            getUserNavItem(UserNavItems.GeoPerimeters).url.substring(1)
+            getUserNavItem(UserNavItems.Establishment).url.substring(1)
           ) {
-            return getUserNavItem(UserNavItems.GeoPerimeters);
+            return getUserNavItem(UserNavItems.Establishment);
           } else if (
             value === getUserNavItem(UserNavItems.Campaign).url.substring(1)
           ) {

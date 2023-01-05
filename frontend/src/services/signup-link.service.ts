@@ -18,13 +18,7 @@ const get = async (id: string): Promise<SignupLink> => {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!response.ok) {
-    const body = await response.json();
-    if ('message' in body && 'name' in body) {
-      const error = new Error(body.message);
-      error.name = body.name;
-      throw error;
-    }
-    throw new Error('Unknown error');
+    throw new Error('Cannot get sign-up link');
   }
   return response.json();
 };

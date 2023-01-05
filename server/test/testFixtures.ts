@@ -92,8 +92,8 @@ export const genProspectApi = (establishment: EstablishmentApi) => {
       siren: establishment.siren,
       campaignIntent: establishment.campaignIntent ?? null,
     },
-    hasAccount: genBoolean(),
-    hasCommitment: genBoolean(),
+    hasAccount: true,
+    hasCommitment: true,
   };
 };
 

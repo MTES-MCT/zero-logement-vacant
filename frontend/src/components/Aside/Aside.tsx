@@ -4,12 +4,13 @@ import { createPortal } from 'react-dom';
 import classNames from 'classnames';
 import styles from './aside.module.scss';
 
-interface AsideProps {
+export interface AsideProps {
   title: ReactNode;
   content: ReactNode | ReactNode[];
   footer: ReactNode | ReactNode[];
   expand?: boolean;
   onClose?: () => void;
+  attachTo?: Element;
 }
 
 function Aside(props: AsideProps) {
@@ -44,7 +45,7 @@ function Aside(props: AsideProps) {
     </aside>
   );
 
-  const root = document.getElementById('root');
+  const root = props.attachTo ?? document.getElementById('root');
   if (!root) {
     // Should never happen
     throw new Error('root element not found');

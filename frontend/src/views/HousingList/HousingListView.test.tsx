@@ -20,8 +20,20 @@ import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
 
+jest.mock('../../components/Aside/Aside.tsx');
+
 describe('housing view', () => {
   const user = userEvent.setup();
+
+  function setup() {
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+  }
 
   let store: any;
 
@@ -49,20 +61,18 @@ describe('housing view', () => {
     );
   });
 
-  test('should only show owner filters initially', () => {
+  test('should only show owner filters initially', async () => {
     fetchMock.mockResponse(defaultFetchMock);
+    setup();
 
-    render(
-      <Provider store={store}>
-        <Router history={createMemoryHistory()}>
-          <HousingListView />
-        </Router>
-      </Provider>
+    const favoriteFilters = await screen.findByText(
+      'Filtres les plus utilisés'
     );
-    const ownerFiltersElement = screen.getByTestId('owner-filters');
-    const additionalFiltersElement = screen.getByTestId('additional-filters');
-    expect(ownerFiltersElement).toBeInTheDocument();
-    expect(additionalFiltersElement).not.toBeVisible();
+    expect(favoriteFilters).toBeVisible();
+
+    const allFilters = await screen.findByText('Tous les filtres');
+    // Visibility: hidden does not work correctly in jest-dom
+    expect(allFilters.clientWidth).toBe(0);
   });
 
   test('should enable to show and hide additional filters', async () => {
@@ -150,7 +160,7 @@ describe('housing view', () => {
     );
 
     const searchInputElement = await screen.findByTestId('search-input');
-    const searchButtonElement = await screen.findByTitle('Bouton de recherche' );
+    const searchButtonElement = await screen.findByTitle('Bouton de recherche');
 
     await user.type(searchInputElement, 'my search');
     await user.click(searchButtonElement);

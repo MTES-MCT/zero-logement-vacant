@@ -1,4 +1,4 @@
-import Aside from '../Sidemenu/Aside';
+import Aside from '../Aside/Aside';
 import {
   Accordion,
   AccordionItem,

@@ -9,6 +9,7 @@
   background-color: var(--background-default-grey);
   box-shadow: var(--overlap-shadow);
   overflow-x: hidden;
+  visibility: visible;
 }
 
 .aside.collapsed {
@@ -21,6 +22,7 @@
 
 .collapsed {
   width: 0;
+  visibility: collapse;
 }
 
 .article {

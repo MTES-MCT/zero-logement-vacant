@@ -28,7 +28,7 @@ export interface GeoPerimeterFileUploadedAction {
   type: typeof GEO_PERIMETER_FILE_UPLOADED;
 }
 
-export type GeoActionTypes =
+export type EstablishmentActionTypes =
   | GeoPerimeterFileUploadingAction
   | GeoPerimeterFileUploadedAction
   | FetchGeoPerimeterListAction
@@ -36,7 +36,7 @@ export type GeoActionTypes =
 
 export const fetchGeoPerimeters = () => {
   return function (dispatch: Dispatch, getState: () => ApplicationState) {
-    if (!getState().geo.loading) {
+    if (!getState().establishment.loading) {
       dispatch(showLoading());
 
       dispatch({

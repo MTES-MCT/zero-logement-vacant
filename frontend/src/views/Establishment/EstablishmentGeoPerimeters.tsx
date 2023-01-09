@@ -15,7 +15,7 @@ import {
   deleteGeoPerimeter,
   updateGeoPerimeter,
   uploadFile,
-} from '../../store/actions/geoAction';
+} from '../../store/actions/establishmentAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { displayCount } from '../../utils/stringUtils';
@@ -47,7 +47,9 @@ const EstablishmentGeoPerimeters = () => {
   const dispatch = useDispatch();
   const { trackEvent } = useMatomo();
   const geoPerimeters = useGeoPerimeterList();
-  const { loading } = useSelector((state: ApplicationState) => state.geo);
+  const { loading } = useSelector(
+    (state: ApplicationState) => state.establishment
+  );
   const [uploadingState, setUploadingState] = useState<
     ActionSteps | undefined
   >();

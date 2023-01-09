@@ -3,22 +3,25 @@ import {
   GEO_PERIMETER_FILE_UPLOADED,
   GEO_PERIMETER_FILE_UPLOADING,
   GEO_PERIMETER_LIST_FETCHED,
-  GeoActionTypes,
-} from '../actions/geoAction';
+  EstablishmentActionTypes,
+} from '../actions/establishmentAction';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 
-export interface GeoState {
+export interface EstablishmentState {
   loading: boolean;
   geoPerimeters?: GeoPerimeter[];
   file?: File;
   filename?: string;
 }
 
-const initialState: GeoState = {
+const initialState: EstablishmentState = {
   loading: false,
 };
 
-const geoReducer = (state = initialState, action: GeoActionTypes) => {
+const establishmentReducer = (
+  state = initialState,
+  action: EstablishmentActionTypes
+) => {
   switch (action.type) {
     case FETCH_GEO_PERIMETER_LIST: {
       return {
@@ -54,4 +57,4 @@ const geoReducer = (state = initialState, action: GeoActionTypes) => {
   }
 };
 
-export default geoReducer;
+export default establishmentReducer;

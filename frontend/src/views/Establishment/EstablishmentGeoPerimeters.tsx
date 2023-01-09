@@ -231,6 +231,7 @@ const EstablishmentGeoPerimeters = () => {
           type="success"
           description="Le fichier à été déposé avec succès ! "
           closable
+          className="fr-mb-2w"
         />
       )}
       {updatingState?.step === ActionSteps.Done && (
@@ -242,6 +243,7 @@ const EstablishmentGeoPerimeters = () => {
             ' a été modifié avec succès !'
           }
           closable
+          className="fr-mb-2w"
         />
       )}
       {removingState?.step === ActionSteps.Done && (
@@ -249,6 +251,7 @@ const EstablishmentGeoPerimeters = () => {
           type="success"
           description="Le périmètre / filtre a été supprimé avec succès !"
           closable
+          className="fr-mb-2w"
         />
       )}
       {invalidGeoFilters && invalidGeoFilters.length > 0 && (

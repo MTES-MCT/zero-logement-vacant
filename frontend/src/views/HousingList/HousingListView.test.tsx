@@ -77,7 +77,6 @@ describe('housing view', () => {
 
   test('should enable to show and hide additional filters', async () => {
     fetchMock.mockResponse(defaultFetchMock);
-
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
@@ -85,16 +84,12 @@ describe('housing view', () => {
         </Router>
       </Provider>
     );
-    const additionalFiltersElement = screen.getByTestId('additional-filters');
-    const additionalFiltersButton = screen.getByTestId(
-      'additional-filters-button'
-    );
 
-    await user.click(additionalFiltersButton);
-    expect(additionalFiltersElement).toBeVisible();
+    const seeAllFilters = await screen.findByText(/Voir tous les filtres/);
+    await user.click(seeAllFilters);
 
-    await user.click(additionalFiltersButton);
-    expect(additionalFiltersElement).not.toBeVisible();
+    const additionalFilters = await screen.findByText('Tous les filtres');
+    expect(additionalFilters).toBeVisible();
   });
 
   test('should filter', async () => {

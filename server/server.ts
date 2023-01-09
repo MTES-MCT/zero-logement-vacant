@@ -40,6 +40,7 @@ export function createServer(): Server {
           frameSrc: [
             'https://form.typeform.com',
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
+            'https://zerologementvacant.crisp.help',
           ],
           styleSrc: [
             "'self'",

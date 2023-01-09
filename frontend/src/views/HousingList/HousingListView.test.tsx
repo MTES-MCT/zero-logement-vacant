@@ -103,10 +103,11 @@ describe('housing view', () => {
       </Provider>
     );
 
-    const ownerKindCheckboxes = screen
-      .queryAllByTestId('type-checkbox-group')[0]
-      .querySelectorAll('input'); //eslint-disable-line testing-library/no-node-access
-
+    const ownerKindInput = await screen.findByLabelText('Type de propriétaire');
+    await user.click(ownerKindInput);
+    const ownerKindCheckboxes = await screen.findAllByLabelText(
+      ownerKindOptions[0].label
+    );
     await user.click(ownerKindCheckboxes[0]);
 
     expect(fetchMock).toHaveBeenCalledWith(

@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
 import { CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
+import React, { useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import Checkbox from '../Checkbox/Checkbox';
@@ -51,6 +52,8 @@ const AppMultiSelect = ({
       : defaultOption ?? 'Tous';
   };
 
+  const id = uuidv4();
+
   return (
     <>
       {options.length > 0 && (
@@ -60,8 +63,11 @@ const AppMultiSelect = ({
               [`fr-select-group--${messageType}`]: messageType,
             })}
           >
-            <label className="fr-label">{label}</label>
+            <label className="fr-label" htmlFor={id}>
+              {label}
+            </label>
             <button
+              id={id}
               className="fr-select"
               title={
                 showOptions ? 'Masquer les options' : 'Afficher les options'

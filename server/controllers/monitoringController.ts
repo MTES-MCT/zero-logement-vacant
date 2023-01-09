@@ -1,170 +1,13 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import establishmentRepository from '../repositories/establishmentRepository';
-import {
-  ExitWithoutSupportSubStatus,
-  ExitWithPublicSupportSubStatus,
-  ExitWithSupportSubStatus,
-  FirstContactWithPreSupportSubStatus,
-  getHousingStatusApiLabel,
-  HousingStatusApi,
-  InProgressWithoutSupportSubStatus,
-  InProgressWithPublicSupportSubStatus,
-  InProgressWithSupportSubStatus,
-} from '../models/HousingStatusApi';
+import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { Request as JWTRequest } from 'express-jwt';
 import { RequestUser, UserRoles } from '../models/UserApi';
 import ExcelJS from 'exceljs';
 import exportFileService from '../services/exportFileService';
 import { constants } from 'http2';
-
-const establishmentCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get available establishment count');
-
-  return establishmentRepository
-    .listAvailable()
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_.length));
-};
-
-const housingContactedCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get contacted housing count');
-
-  return housingRepository
-    .countWithFilters({
-      status: [
-        HousingStatusApi.Waiting,
-        HousingStatusApi.FirstContact,
-        HousingStatusApi.InProgress,
-        HousingStatusApi.NotVacant,
-        HousingStatusApi.NoAction,
-        HousingStatusApi.Exit,
-      ],
-    })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
-
-const housingWaitingCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get waiting housing count');
-
-  return housingRepository
-    .countWithFilters({ status: [HousingStatusApi.Waiting] })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
-
-const answersCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get answers count');
-
-  return housingRepository
-    .countWithFilters({
-      status: [
-        HousingStatusApi.FirstContact,
-        HousingStatusApi.InProgress,
-        HousingStatusApi.NotVacant,
-        HousingStatusApi.NoAction,
-        HousingStatusApi.Exit,
-      ],
-    })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
-
-const housingInProgressWithSupportCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get housing in progress with support count');
-
-  return Promise.all([
-    housingRepository.listWithFilters({
-      status: [HousingStatusApi.FirstContact],
-      subStatus: [FirstContactWithPreSupportSubStatus],
-    }),
-    housingRepository.listWithFilters({
-      status: [HousingStatusApi.InProgress],
-      subStatus: [InProgressWithSupportSubStatus],
-    }),
-    housingRepository.listWithFilters({
-      status: [HousingStatusApi.InProgress],
-      subStatus: [InProgressWithPublicSupportSubStatus],
-    }),
-  ]).then(([result1, result2, result3]) =>
-    response
-      .status(constants.HTTP_STATUS_OK)
-      .json(
-        result1.entities.length +
-          result2.entities.length +
-          result3.entities.length
-      )
-  );
-};
-
-const housingInProgressWithoutSupportCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get housing in progress without support count');
-
-  return housingRepository
-    .listWithFilters({
-      status: [HousingStatusApi.InProgress],
-      subStatus: [InProgressWithoutSupportSubStatus],
-    })
-    .then((_) =>
-      response.status(constants.HTTP_STATUS_OK).json(_.entities.length)
-    );
-};
-
-const housingExitWithSupportCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get housing out of vacancy with support count');
-
-  return Promise.all([
-    housingRepository.listWithFilters({
-      status: [HousingStatusApi.Exit],
-      subStatus: [ExitWithSupportSubStatus],
-    }),
-    housingRepository.listWithFilters({
-      status: [HousingStatusApi.Exit],
-      subStatus: [ExitWithPublicSupportSubStatus],
-    }),
-  ]).then(([result1, result2]) =>
-    response
-      .status(constants.HTTP_STATUS_OK)
-      .json(result1.entities.length + result2.entities.length)
-  );
-};
-
-const housingExitWithoutSupportCount = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('Get housing out of vacancy without support count');
-
-  return housingRepository
-    .listWithFilters({
-      status: [HousingStatusApi.Exit],
-      subStatus: [ExitWithoutSupportSubStatus],
-    })
-    .then((_) =>
-      response
-        .status(constants.HTTP_STATUS_OK)
-        .json(_.entities.filter((housing) => housing.subStatus?.length).length)
-    );
-};
 
 const listEstablishmentData = async (
   request: JWTRequest,
@@ -337,14 +180,6 @@ const getFiltersFromRequest = (request: JWTRequest) => {
 };
 
 const monitoringController = {
-  establishmentCount,
-  housingContactedCount,
-  housingWaitingCount,
-  answersCount,
-  housingInProgressWithSupportCount,
-  housingInProgressWithoutSupportCount,
-  housingExitWithSupportCount,
-  housingExitWithoutSupportCount,
   listEstablishmentData,
   housingByStatusCount,
   housingByStatusDuration,

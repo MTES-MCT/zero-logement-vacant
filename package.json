@@ -34,7 +34,7 @@
     "@sentry/node": "^7.12.1",
     "bcryptjs": "^2.4.3",
     "compose-middleware": "^5.0.1",
-    "convict": "^6.2.3",
+    "convict": "^6.2.4",
     "convict-format-with-validator": "^6.2.0",
     "cors": "^2.8.5",
     "date-fns": "^2.28.0",

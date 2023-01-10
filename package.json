@@ -52,7 +52,6 @@
     "jest-fetch-mock": "^3.0.3",
     "jsonwebtoken": "^9.0.0",
     "knex": "^0.95.15",
-    "maplibre-gl": "^2.4.0",
     "node-fetch": "^2.6.7",
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",

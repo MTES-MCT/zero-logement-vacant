@@ -1,8 +1,9 @@
+import { Container } from '@dataesr/react-dsfr';
+import * as turf from '@turf/turf';
 import maplibregl from 'maplibre-gl';
 import { useEffect, useRef, useState } from 'react';
 
 import styles from './map.module.scss';
-import { Container } from '@dataesr/react-dsfr';
 import { Housing } from '../../models/Housing';
 
 const STYLE = {
@@ -69,9 +70,25 @@ function Map(props: MapProps) {
       ?.map(toHousingMarker)
       .filter((marker): marker is maplibregl.Marker => marker !== null);
 
-    markers?.forEach((marker) => {
-      marker.addTo(map.current!);
-    });
+    if (markers) {
+      markers.forEach((marker) => {
+        marker.addTo(map.current!);
+      });
+
+      const points = markers
+        .map((marker) => marker.getLngLat().toArray())
+        .map((coords) => turf.point(coords));
+
+      const bbox = turf.bbox(turf.featureCollection(points));
+      map.current?.fitBounds(bbox as [number, number, number, number], {
+        padding: {
+          left: 16,
+          top: 64,
+          right: 16,
+          bottom: 16,
+        },
+      });
+    }
 
     return function cleanup() {
       markers?.forEach((marker) => {

@@ -12,6 +12,7 @@ import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
 import validator from '../middlewares/validator';
+import contactPointController from '../controllers/contactPointController';
 
 const router = express.Router();
 
@@ -81,5 +82,10 @@ router.get('/geo/perimeters', geoController.listGeoPerimeters);
 router.post('/geo/perimeters', geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, geoController.updateGeoPerimeter);
 router.delete('/geo/perimeters/:geoPerimeterId', geoController.deleteGeoPerimeterValidators, geoController.deleteGeoPerimeter);
+
+router.get('/contact-points', contactPointController.listContactPoints);
+router.post('/contact-points', contactPointController.createContactPointValidators, validator.validate, contactPointController.createContactPoint);
+router.put('/contact-points/:contactPointId', contactPointController.updateContactPointValidators, validator.validate, contactPointController.updateContactPoint);
+router.delete('/contact-points/:contactPointId', contactPointController.deleteContactPointValidators, validator.validate, contactPointController.deleteContactPoint);
 
 export default router;

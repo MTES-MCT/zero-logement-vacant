@@ -66,7 +66,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
   return (
     <Card hasArrow={false} hasBorder={false} size="sm">
       <CardTitle>
-        <span className={styles.icon}>
+        <span className="card-title-icon">
           <Icon name="ri-home-fill" iconPosition="center" size="1x" />
         </span>
         <Title as="h1" look="h4" spacing="mb-1w">

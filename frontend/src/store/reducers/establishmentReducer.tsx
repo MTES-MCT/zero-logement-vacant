@@ -1,17 +1,21 @@
 import {
+  CONTACT_POINT_LIST_FETCHED,
+  EstablishmentActionTypes,
+  FETCH_CONTACT_POINT_LIST,
   FETCH_GEO_PERIMETER_LIST,
   GEO_PERIMETER_FILE_UPLOADED,
   GEO_PERIMETER_FILE_UPLOADING,
   GEO_PERIMETER_LIST_FETCHED,
-  EstablishmentActionTypes,
 } from '../actions/establishmentAction';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
+import { ContactPoint } from '../../models/ContactPoint';
 
 export interface EstablishmentState {
   loading: boolean;
   geoPerimeters?: GeoPerimeter[];
   file?: File;
   filename?: string;
+  contactPoints?: ContactPoint[];
 }
 
 const initialState: EstablishmentState = {
@@ -50,6 +54,20 @@ const establishmentReducer = (
         loading: false,
         file: undefined,
         filename: undefined,
+      };
+    }
+    case FETCH_CONTACT_POINT_LIST: {
+      return {
+        ...state,
+        loading: true,
+        contactPoints: [],
+      };
+    }
+    case CONTACT_POINT_LIST_FETCHED: {
+      return {
+        ...state,
+        loading: false,
+        contactPoints: action.contactPoints,
       };
     }
     default:

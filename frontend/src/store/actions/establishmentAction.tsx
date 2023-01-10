@@ -2,12 +2,15 @@ import { Dispatch } from 'redux';
 import geoService from '../../services/geo.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { ApplicationState } from '../reducers/applicationReducers';
+import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
+import contactPointService from '../../services/contact-point.service';
 
 export const FETCH_GEO_PERIMETER_LIST = 'FETCH_GEO_PERIMETER_LIST';
 export const GEO_PERIMETER_LIST_FETCHED = 'GEO_PERIMETER_LIST_FETCHED';
 export const GEO_PERIMETER_FILE_UPLOADING = 'GEO_PERIMETER_FILE_UPLOADING';
 export const GEO_PERIMETER_FILE_UPLOADED = 'GEO_PERIMETER_FILE_UPLOADED';
+export const FETCH_CONTACT_POINT_LIST = 'FETCH_CONTACT_POINT_LIST';
+export const CONTACT_POINT_LIST_FETCHED = 'CONTACT_POINT_LIST_FETCHED';
 
 export interface FetchGeoPerimeterListAction {
   type: typeof FETCH_GEO_PERIMETER_LIST;
@@ -28,29 +31,38 @@ export interface GeoPerimeterFileUploadedAction {
   type: typeof GEO_PERIMETER_FILE_UPLOADED;
 }
 
+export interface FetchContactPointListAction {
+  type: typeof FETCH_CONTACT_POINT_LIST;
+}
+
+export interface ContactPointListFetchedAction {
+  type: typeof CONTACT_POINT_LIST_FETCHED;
+  contactPoints: ContactPoint[];
+}
+
 export type EstablishmentActionTypes =
   | GeoPerimeterFileUploadingAction
   | GeoPerimeterFileUploadedAction
   | FetchGeoPerimeterListAction
-  | GeoPerimeterListFetchedAction;
+  | GeoPerimeterListFetchedAction
+  | FetchContactPointListAction
+  | ContactPointListFetchedAction;
 
 export const fetchGeoPerimeters = () => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
-    if (!getState().establishment.loading) {
-      dispatch(showLoading());
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
 
+    dispatch({
+      type: FETCH_GEO_PERIMETER_LIST,
+    });
+
+    geoService.listGeoPerimeters().then((geoPerimeters) => {
+      dispatch(hideLoading());
       dispatch({
-        type: FETCH_GEO_PERIMETER_LIST,
+        type: GEO_PERIMETER_LIST_FETCHED,
+        geoPerimeters,
       });
-
-      geoService.listGeoPerimeters().then((geoPerimeters) => {
-        dispatch(hideLoading());
-        dispatch({
-          type: GEO_PERIMETER_LIST_FETCHED,
-          geoPerimeters,
-        });
-      });
-    }
+    });
   };
 };
 
@@ -59,29 +71,29 @@ export const updateGeoPerimeter = (
   kind: string,
   name?: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     geoService.updateGeoPerimeter(geoPerimeterId, kind, name).then(() => {
       dispatch(hideLoading());
-      fetchGeoPerimeters()(dispatch, getState);
+      fetchGeoPerimeters()(dispatch);
     });
   };
 };
 
 export const deleteGeoPerimeter = (geoPerimeterId: string) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     geoService.deleteGeoPerimeter(geoPerimeterId).then(() => {
       dispatch(hideLoading());
-      fetchGeoPerimeters()(dispatch, getState);
+      fetchGeoPerimeters()(dispatch);
     });
   };
 };
 
 export const uploadFile = (file: File) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch({
@@ -93,7 +105,58 @@ export const uploadFile = (file: File) => {
       dispatch({
         type: GEO_PERIMETER_FILE_UPLOADED,
       });
-      fetchGeoPerimeters()(dispatch, getState);
+      fetchGeoPerimeters()(dispatch);
+    });
+  };
+};
+
+export const fetchContactPoints = () => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    dispatch({
+      type: FETCH_CONTACT_POINT_LIST,
+    });
+
+    contactPointService.listContactPoints().then((contactPoints) => {
+      dispatch(hideLoading());
+      dispatch({
+        type: CONTACT_POINT_LIST_FETCHED,
+        contactPoints,
+      });
+    });
+  };
+};
+
+export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    contactPointService.createContactPoint(draftContactPoint).then(() => {
+      dispatch(hideLoading());
+      fetchContactPoints()(dispatch);
+    });
+  };
+};
+
+export const updateContactPoint = (contactPoint: ContactPoint) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    contactPointService.updateContactPoint(contactPoint).then(() => {
+      dispatch(hideLoading());
+      fetchContactPoints()(dispatch);
+    });
+  };
+};
+
+export const deleteContactPoint = (contactPointId: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    contactPointService.deleteContactPoint(contactPointId).then(() => {
+      dispatch(hideLoading());
+      fetchContactPoints()(dispatch);
     });
   };
 };

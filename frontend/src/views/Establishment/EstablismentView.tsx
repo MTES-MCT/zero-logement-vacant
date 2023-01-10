@@ -4,6 +4,7 @@ import { Container, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
+import EstablishmentContactPoints from './EstablishmentContactPoints';
 
 const EstablishmentView = () => {
   return (
@@ -26,6 +27,9 @@ const EstablishmentView = () => {
         <Tabs>
           <Tab label="Vos périmètres géographiques">
             <EstablishmentGeoPerimeters />
+          </Tab>
+          <Tab label="Vos guichets contact">
+            <EstablishmentContactPoints />
           </Tab>
         </Tabs>
       </Container>

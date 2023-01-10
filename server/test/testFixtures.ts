@@ -14,6 +14,7 @@ import {
   RESET_LINK_LENGTH,
   ResetLinkApi,
 } from '../models/ResetLinkApi';
+import { ContactPointApi } from '../models/ContactPointApi';
 const randomstring = require('randomstring');
 
 export const genEmail = () => {
@@ -190,5 +191,16 @@ export const genResetLinkApi = (userId: string) => {
     createdAt: new Date(),
     expiresAt: addHours(new Date(), RESET_LINK_EXPIRATION),
     usedAt: null,
+  };
+};
+
+export const genContactPointApi = (establishmentId: string) => {
+  return <ContactPointApi>{
+    id: uuidv4(),
+    establishmentId,
+    title: randomstring.generate(),
+    opening: randomstring.generate(),
+    address: randomstring.generate(),
+    email: genEmail(),
   };
 };

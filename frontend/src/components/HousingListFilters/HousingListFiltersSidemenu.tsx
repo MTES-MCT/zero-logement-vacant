@@ -74,12 +74,13 @@ function HousingListFiltersSidemenu() {
   const { paginatedHousing } = useSelector(
     (state: ApplicationState) => state.housing
   );
-  const localities: SelectOption[] = establishment.localities.map(
-    (locality) => ({
+  const localities: SelectOption[] = establishment.localities
+    // Remove those localities which are already selected
+    .filter((locality) => !filters.localities?.includes(locality.geoCode))
+    .map((locality) => ({
       value: locality.geoCode,
       label: locality.name,
-    })
-  );
+    }));
 
   function close(): void {
     setExpand(false);
@@ -360,10 +361,10 @@ function HousingListFiltersSidemenu() {
                     options={localities}
                     label="Commune"
                     placeholder="Rechercher une commune"
-                    selected={filters.localities?.[0]}
                     onChange={(value: string) => {
                       if (value) {
-                        onChangeFilters({ localities: [value] }, 'Commune');
+                        const values = [...(filters.localities ?? []), value];
+                        onChangeFilters({ localities: values }, 'Commune');
                       }
                     }}
                   />

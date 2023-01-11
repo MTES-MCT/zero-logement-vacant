@@ -18,11 +18,14 @@ const HousingListFilters = () => {
   const { establishment } = useSelector(
     (state: ApplicationState) => state.authentication.authUser
   );
-  const localities = establishment.localities.map((locality) => ({
-    value: locality.geoCode,
-    label: locality.name,
-  }));
   const { filters, length, onChangeFilters, setExpand } = useFilters();
+  const localities = establishment.localities
+    // Remove those localities which are already selected
+    .filter((locality) => !filters.localities?.includes(locality.geoCode))
+    .map((locality) => ({
+      value: locality.geoCode,
+      label: locality.name,
+    }));
 
   return (
     <>
@@ -45,10 +48,10 @@ const HousingListFilters = () => {
             options={localities}
             label="Commune"
             placeholder="Rechercher une commune"
-            selected={filters.localities?.[0]}
             onChange={(value: string) => {
               if (value) {
-                onChangeFilters({ localities: [value] }, 'Commune');
+                const values = [...(filters.localities ?? []), value];
+                onChangeFilters({ localities: values }, 'Commune');
               }
             }}
           />

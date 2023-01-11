@@ -1,4 +1,9 @@
-import maplibregl from 'maplibre-gl';
+// Avoid transpiling maplibre-gl because the production build yields some undefined value.
+// See https://github.com/alex3165/react-mapbox-gl/issues/931
+// See https://github.com/mapbox/mapbox-gl-js/issues/10565
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import maplibregl from '!maplibre-gl';
 import { useState } from 'react';
 import ReactiveMap, { Marker, NavigationControl, Popup } from 'react-map-gl';
 import { Housing } from '../../models/Housing';

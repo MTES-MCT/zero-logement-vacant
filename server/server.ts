@@ -48,6 +48,7 @@ export function createServer(): Server {
             "'unsafe-inline'",
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
             'https://client.crisp.chat/static/stylesheets/client_default.css',
+            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css',
           ],
           imgSrc: [
             "'self'",

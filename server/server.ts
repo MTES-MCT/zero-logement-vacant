@@ -72,6 +72,8 @@ export function createServer(): Server {
             'https://stats.data.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
+            'https://openmaptiles.geo.data.gouv.fr',
+            'https://openmaptiles.github.io',
           ],
           workerSrc: ["'self'", 'blob:'],
         },

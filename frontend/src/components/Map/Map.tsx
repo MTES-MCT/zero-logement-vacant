@@ -1,106 +1,81 @@
-import { Container } from '@dataesr/react-dsfr';
-import * as turf from '@turf/turf';
 import maplibregl from 'maplibre-gl';
-import { useEffect, useRef, useState } from 'react';
-
-import styles from './map.module.scss';
+import { useState } from 'react';
+import ReactiveMap, { Marker, NavigationControl, Popup } from 'react-map-gl';
 import { Housing } from '../../models/Housing';
+import OwnerHousingCard from '../OwnerHousingCard/OwnerHousingCard';
 
 const STYLE = {
   title: 'Carte',
   uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json',
 };
 
-type MapState = 'pending' | 'loaded';
-
 interface MapProps {
   housingList?: Housing[];
+  lng?: number;
+  lat?: number;
   zoom?: number;
   minZoom?: number;
   maxZoom?: number;
 }
 
 function Map(props: MapProps) {
-  const mapContainer: null | { current: any } = useRef(null);
-  const map = useRef<maplibregl.Map>();
-  const [mapState] = useState<MapState>('pending');
-  const [lng] = useState(2);
-  const [lat] = useState(47);
+  const options = {
+    longitude: props.lng ?? 2,
+    latitude: props.lat ?? 47,
+    zoom: props.zoom ?? 5,
+    ...props,
+  };
+  const padding = {
+    left: 16,
+    top: 64,
+    right: 16,
+    bottom: 16,
+  };
 
-  function toHousingMarker(housing: Housing): maplibregl.Marker | null {
-    if (housing.longitude && housing.latitude) {
-      const popup = new maplibregl.Popup().setText(housing.rawAddress[0]);
-      return new maplibregl.Marker({
-        color: 'var(--blue-france-main-525)',
-      })
-        .setLngLat([housing.longitude, housing.latitude])
-        .setPopup(popup);
-    }
-    return null;
-  }
-
-  useEffect(() => {
-    if (mapState === 'loaded' || map.current) {
-      return;
-    }
-
-    map.current = new maplibregl.Map({
-      attributionControl: false,
-      container: mapContainer.current,
-      style: STYLE.uri,
-      center: [lng, lat],
-      zoom: props.zoom ?? 5,
-      minZoom: props.minZoom,
-      maxZoom: props.maxZoom,
-    });
-
-    map.current.on('load', () => {
-      map.current!.addControl(
-        new maplibregl.NavigationControl({
-          showZoom: true,
-          showCompass: false,
-        }),
-        'top-right'
-      );
-    });
-  });
-
-  useEffect(() => {
-    const markers = props.housingList
-      ?.map(toHousingMarker)
-      .filter((marker): marker is maplibregl.Marker => marker !== null);
-
-    if (markers) {
-      markers.forEach((marker) => {
-        marker.addTo(map.current!);
-      });
-
-      const points = markers
-        .map((marker) => marker.getLngLat().toArray())
-        .map((coords) => turf.point(coords));
-
-      const bbox = turf.bbox(turf.featureCollection(points));
-      map.current?.fitBounds(bbox as [number, number, number, number], {
-        padding: {
-          left: 16,
-          top: 64,
-          right: 16,
-          bottom: 16,
-        },
-      });
-    }
-
-    return function cleanup() {
-      markers?.forEach((marker) => {
-        marker.remove();
-      });
-    };
-  }, [props.housingList]);
+  const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
   return (
-    <Container as="section" fluid className={styles.mapContainer}>
-      <div ref={mapContainer} className={styles.map} />
-    </Container>
+    <ReactiveMap
+      attributionControl={false}
+      initialViewState={options}
+      mapLib={maplibregl}
+      mapStyle={STYLE.uri}
+      padding={padding}
+      style={{ minHeight: '600px' }}
+    >
+      <NavigationControl showCompass={false} showZoom visualizePitch={false} />
+      {props.housingList?.map((housing) => {
+        return (
+          <div key={housing.id}>
+            <Marker
+              key={`marker-${housing.id}`}
+              longitude={housing.longitude}
+              latitude={housing.latitude}
+              color="var(--blue-france-main-525)"
+              onClick={() =>
+                setOpenPopups({ ...openPopups, [housing.id]: true })
+              }
+            />
+            {openPopups[housing.id] && (
+              <Popup
+                anchor="bottom"
+                key={`popup-${housing.id}`}
+                longitude={housing.longitude}
+                latitude={housing.latitude}
+                onClose={() =>
+                  setOpenPopups({
+                    ...openPopups,
+                    [housing.id]: false,
+                  })
+                }
+              >
+                <OwnerHousingCard housing={housing} />
+              </Popup>
+            )}
+          </div>
+        );
+      })}
+    </ReactiveMap>
   );
 }
 

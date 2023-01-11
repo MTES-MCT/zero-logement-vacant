@@ -11,8 +11,8 @@ export interface Housing {
   cadastralReference: string;
   buildingLocation?: string;
   rawAddress: string[];
-  latitude?: number;
-  longitude?: number;
+  latitude: number;
+  longitude: number;
   localityKind: LocalityKinds;
   geoPerimeters?: string[];
   owner: Owner;
@@ -142,3 +142,7 @@ export const OwnershipKindLabels = {
 
 export type HousingSortable = Pick<Housing, 'rawAddress' | 'owner'>;
 export type HousingSort = Sort<HousingSortable>;
+
+export function toLink(housing: Housing): string {
+  return `/logements/${housing.id}`;
+}

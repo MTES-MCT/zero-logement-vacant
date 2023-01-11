@@ -3,7 +3,7 @@ import React from 'react';
 import { Col, Row, SearchableSelect, Title } from '@dataesr/react-dsfr';
 import { useSelector } from 'react-redux';
 import {
-  dataYearsIncludedOptions,
+  housingAreaOptions,
   ownerAgeOptions,
   ownerKindOptions,
   vacancyDurationOptions,
@@ -85,16 +85,11 @@ const HousingListFilters = () => {
         </Col>
         <Col>
           <AppMultiSelect
-            label="Millésime inclus"
-            options={dataYearsIncludedOptions}
-            initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
-              String(_)
-            )}
+            label="Surface"
+            options={housingAreaOptions}
+            initialValues={filters.housingAreas}
             onChange={(values) =>
-              onChangeFilters(
-                { dataYearsIncluded: values.map(Number) },
-                'Millésime inclus'
-              )
+              onChangeFilters({ housingAreas: values }, 'Surface')
             }
           />
         </Col>

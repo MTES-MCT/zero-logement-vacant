@@ -96,7 +96,7 @@ function HousingListFiltersSidemenu() {
           <AccordionItem
             title={<TitleWithIcon icon="ri-home-fill" title="Logement" />}
           >
-            <Container as="section" fluid className={styles.category}>
+            <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
                   <AppMultiSelect

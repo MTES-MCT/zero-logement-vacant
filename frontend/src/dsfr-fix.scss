@@ -32,3 +32,11 @@ input[type='checkbox']:disabled {
 span.ri-checkbox-circle-line.ds-fr-tag-icon {
   display: none;
 }
+
+.fr-accordion .fr-collapse {
+  margin: 0 !important;
+}
+
+.fr-collapse--expanded {
+  overflow: inherit !important;
+}

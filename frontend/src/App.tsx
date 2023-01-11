@@ -35,9 +35,9 @@ import EstablismentView from './views/Establishment/EstablismentView';
 
 function AppWrapper() {
   const instance = createInstance({
-    urlBase: 'https://stats.beta.gouv.fr/',
-    siteId: 2,
-    srcUrl: 'https://stats.beta.gouv.fr/js/container_nr5Y2bYi.js',
+    urlBase: 'https://stats.data.gouv.fr/',
+    siteId: 212,
+    srcUrl: 'https://stats.data.gouv.fr/js/container_1DHkPTZd.js',
     linkTracking: true,
   });
 
@@ -113,11 +113,11 @@ function App() {
             </Switch>
           </> :
           <Switch>
+            <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/" component={HomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />
-            <Route exact path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />

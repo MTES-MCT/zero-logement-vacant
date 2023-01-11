@@ -1,5 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
+import { ResetLink } from '../models/ResetLink';
 
 const sendResetEmail = async (email: string): Promise<void> => {
   const { status } = await fetch(`${config.apiEndpoint}/api/reset-links`, {
@@ -15,7 +16,7 @@ const sendResetEmail = async (email: string): Promise<void> => {
   }
 };
 
-const exists = async (id: string): Promise<boolean> => {
+const get = async (id: string): Promise<ResetLink> => {
   const response = await fetch(`${config.apiEndpoint}/api/reset-links/${id}`, {
     method: 'GET',
     headers: {
@@ -23,12 +24,15 @@ const exists = async (id: string): Promise<boolean> => {
       'Content-Type': 'application/json',
     },
   });
-  return response.ok;
+  if (!response.ok) {
+    throw new Error('Impossible de récupérer le lien');
+  }
+  return response.json();
 };
 
 const resetLinkService = {
   sendResetEmail,
-  exists,
+  get,
 };
 
 export default resetLinkService;

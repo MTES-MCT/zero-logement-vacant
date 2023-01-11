@@ -27,6 +27,17 @@ const get = async (email: string): Promise<ProspectApi | null> => {
   return prospect ? parseProspectApi(prospect) : null;
 };
 
+const exists = async (email: string): Promise<boolean> => {
+  console.log(`Does prospect ${email} exist`);
+
+  const prospect = await db(prospectsTable)
+    .select('email')
+    .where('email', email)
+    .first();
+
+  return !!prospect;
+};
+
 const upsert = async (prospectApi: ProspectApi): Promise<ProspectApi> => {
   console.log('Upsert prospect with email', prospectApi.email);
 
@@ -73,6 +84,7 @@ const formatProspectApi = (prospectApi: ProspectApi) => ({
 
 export default {
   get,
+  exists,
   upsert,
   remove,
   formatProspectApi,

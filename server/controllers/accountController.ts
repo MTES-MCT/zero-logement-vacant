@@ -7,10 +7,7 @@ import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { body, param, ValidationChain } from 'express-validator';
-import ceremaService from '../services/ceremaService';
-import prospectRepository from '../repositories/prospectRepository';
-import { TEST_ACCOUNTS } from '../models/ProspectApi';
+import { body, ValidationChain } from 'express-validator';
 import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
@@ -67,38 +64,6 @@ const signin = async (
   } catch {
     return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
   }
-};
-
-const getAccountValidator: ValidationChain[] = [
-  param('email').notEmpty().isEmail(),
-];
-
-const getProspectAccount = async (request: Request, response: Response) => {
-  const email = request.params.email as string;
-  console.log('Get account', email);
-
-  if (config.features.enableTestAccounts) {
-    const testAccount = TEST_ACCOUNTS.find(
-      (account) => account.email === email
-    );
-    if (testAccount) {
-      return response.status(constants.HTTP_STATUS_OK).json(testAccount);
-    }
-  }
-
-  const user = await userRepository.getByEmail(email);
-
-  if (user) {
-    console.log('Prospect is already a user for email', email);
-    return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-  }
-
-  const ceremaUser = await ceremaService.consultUser(email);
-  await prospectRepository.upsert(ceremaUser);
-
-  const prospect = await prospectRepository.get(email);
-
-  return response.status(constants.HTTP_STATUS_OK).json(prospect);
 };
 
 const updatePassword = async (
@@ -173,8 +138,6 @@ const resetPasswordValidators: ValidationChain[] = [
 
 export default {
   signin,
-  getAccountValidator,
-  getProspectAccount,
   updatePassword,
   resetPassword,
   resetPasswordValidators,

@@ -18,6 +18,14 @@ import { getOwner } from '../../store/actions/ownerAction';
 import { getHousing } from '../../store/actions/housingAction';
 import { UserRoles } from '../../models/User';
 
+interface BreadcrumbParams {
+  campaignNumber: string;
+  reminderNumber: string;
+  ownerId: string;
+  housingId: string;
+  establishmentId: string;
+}
+
 const AppBreadcrumb = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -27,13 +35,7 @@ const AppBreadcrumb = () => {
     ownerId,
     housingId,
     establishmentId,
-  } = useParams<{
-    campaignNumber: string;
-    reminderNumber: string;
-    ownerId: string;
-    housingId: string;
-    establishmentId: string;
-  }>();
+  } = useParams<BreadcrumbParams>();
 
   const [items, setItems] = useState<UserNavItem[]>([
     getUserNavItem(UserNavItems.Dashboard),

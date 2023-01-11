@@ -38,6 +38,33 @@ const get = async (
   return result ? parseEstablishmentApi(result) : null;
 };
 
+interface FindOneOptions {
+  siren?: number;
+}
+
+const findOne = async (
+  options: FindOneOptions
+): Promise<EstablishmentApi | null> => {
+  console.log('Find establishment by', options);
+
+  const result = await db
+    .select(
+      `${establishmentsTable}.*`,
+      db.raw(
+        "json_agg(json_build_object('geo_code', l.geo_code, 'name', l.name) order by l.name) as localities"
+      )
+    )
+    .from(establishmentsTable)
+    .joinRaw(
+      `join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`
+    )
+    .where(`${establishmentsTable}.siren`, options.siren)
+    .groupBy(`${establishmentsTable}.id`)
+    .first();
+
+  return result ? parseEstablishmentApi(result) : null;
+};
+
 const update = async (
   establishmentApi: EstablishmentApi
 ): Promise<EstablishmentApi> => {
@@ -222,6 +249,7 @@ const parseEstablishmentApi = (result: any): EstablishmentApi =>
 
 export default {
   get,
+  findOne,
   update,
   search,
   listAvailable,

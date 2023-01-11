@@ -15,6 +15,12 @@ import {
   ResetLinkApi,
 } from '../models/ResetLinkApi';
 import { ContactPointApi } from '../models/ContactPointApi';
+import {
+  SIGNUP_LINK_EXPIRATION,
+  SIGNUP_LINK_LENGTH,
+  SignupLinkApi,
+} from '../models/SignupLinkApi';
+
 const randomstring = require('randomstring');
 
 export const genEmail = () => {
@@ -75,18 +81,20 @@ export const genUserApi = (establishmentId: string) => {
     lastName: randomstring.generate(),
     establishmentId,
     role: UserRoles.Usual,
+    activatedAt: new Date(),
   };
 };
 
-export const genProspectApi = () => {
+export const genProspectApi = (establishment: EstablishmentApi) => {
   return <ProspectApi>{
     email: genEmail(),
     establishment: {
-      id: uuidv4(),
-      siren: genSiren(),
+      id: establishment.id,
+      siren: establishment.siren,
+      campaignIntent: establishment.campaignIntent ?? null,
     },
-    hasAccount: genBoolean(),
-    hasCommitment: genBoolean(),
+    hasAccount: true,
+    hasCommitment: true,
   };
 };
 
@@ -193,6 +201,15 @@ export const genResetLinkApi = (userId: string) => {
     usedAt: null,
   };
 };
+
+export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
+  id: randomstring.generate({
+    length: SIGNUP_LINK_LENGTH,
+    charset: 'alphanumeric',
+  }),
+  prospectEmail,
+  expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+});
 
 export const genContactPointApi = (establishmentId: string) => {
   return <ContactPointApi>{

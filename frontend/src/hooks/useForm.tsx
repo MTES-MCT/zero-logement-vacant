@@ -46,7 +46,7 @@ export const dateValidator = yup
   })
   .typeError('Veuillez renseigner une date valide.');
 
-export const fileValidator = (supportedFormats: String[]) =>
+export const fileValidator = (supportedFormats: string[]) =>
   yup
     .mixed()
     .required('Veuillez sélectionner un fichier')

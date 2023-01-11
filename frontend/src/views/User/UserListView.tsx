@@ -177,7 +177,7 @@ const UserListView = () => {
           {!isAdmin && (
             <Help>
               Vous avez la possibilité de supprimer ou de rattacher des
-              utilisateurs sur votre espace{' '}
+              utilisateurs sur votre espace 
               <Link
                 href="https://consultdf.cerema.fr/consultdf/orion-cerema/login"
                 target="_blank"

@@ -5,6 +5,11 @@ import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
 import { LocalityKinds } from '../src/models/Establishment';
+import { SignupLink } from '../src/models/SignupLink';
+import { SIGNUP_LINK_EXPIRATION } from '../../server/models/SignupLinkApi';
+import { addHours } from 'date-fns';
+import { Prospect } from '../src/models/Prospect';
+import { genBoolean, genSiren } from '../../server/test/testFixtures';
 
 const randomstring = require('randomstring');
 
@@ -108,4 +113,28 @@ export function genPaginatedResult<T>(results: Array<T>) {
     page: 1,
     perPage: 50,
   } as PaginatedResult<T>;
+}
+
+export function genSignupLink(email: string): SignupLink {
+  return {
+    id: randomstring.generate({
+      length: 100,
+      charset: 'alphanumeric',
+    }),
+    prospectEmail: email,
+    expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+  };
+}
+
+export function genProspect(): Prospect {
+  return {
+    email: genEmail(),
+    establishment: {
+      id: randomstring.generate(),
+      siren: genSiren(),
+      campaignIntent: '0-2',
+    },
+    hasAccount: genBoolean(),
+    hasCommitment: genBoolean(),
+  };
 }

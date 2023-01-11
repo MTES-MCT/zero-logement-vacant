@@ -64,6 +64,7 @@ interface Config {
       endpoint: string;
       authToken: string;
     };
+    enable: boolean;
   };
   ban: {
     api: {
@@ -200,6 +201,11 @@ const config = convict<Config>({
         sensitive: true,
         default: null,
       },
+    },
+    enable: {
+      env: 'CEREMA_ENABLE',
+      format: 'strict-boolean',
+      default: process.env.NODE_ENV === 'production',
     },
   },
   ban: {

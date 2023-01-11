@@ -11,4 +11,5 @@ export interface SendOptions {
 export interface MailService {
   send(options: SendOptions): Promise<void>;
   sendPasswordReset(key: string, options: SendOptions): Promise<void>;
+  sendAccountActivationEmail(key: string, options: SendOptions): Promise<void>;
 }

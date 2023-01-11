@@ -26,6 +26,7 @@ import classNames from 'classnames';
 import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { CampaignNotSentSteps, CampaignSteps } from '../../models/Campaign';
 import { pluralize } from '../../utils/stringUtils';
+import InternalLink from '../../components/InternalLink/InternalLink';
 
 const DashboardView = () => {
   const history = useHistory();
@@ -95,9 +96,9 @@ const DashboardView = () => {
           adapté à vos outils de publipostages, (3) de{' '}
           <strong>suivre ensuite les retours</strong> des propriétaires.
         </CalloutText>
-        <Link
+        <InternalLink
           title="Accéder à la base de données"
-          href="/base-de-donnees?campagne=true"
+          to="/base-de-donnees?campagne=true"
           className={classNames(
             { 'fr-btn--secondary': hasCampaign },
             'fr-btn--md',
@@ -107,7 +108,7 @@ const DashboardView = () => {
           {hasCampaign
             ? 'Créer votre nouvelle campagne'
             : 'Créer votre première campagne'}
-        </Link>
+        </InternalLink>
       </Callout>
     );
   };
@@ -129,16 +130,16 @@ const DashboardView = () => {
             placeholder="Rechercher une adresse ou un propriétaire..."
             size="lg"
           />
-          <Link
+          <InternalLink
             title="Accéder à la base de données"
-            href="/base-de-donnees"
+            to="/base-de-donnees"
             display="flex"
             icon="ri-arrow-right-line"
             iconSize="1x"
             className="fr-link float-right fr-my-2w"
           >
             Accéder à la base de données
-          </Link>
+          </InternalLink>
         </Container>
       </div>
       <Container as="section" spacing="py-4w">

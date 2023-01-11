@@ -31,8 +31,8 @@ import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';import ForgottenPasswordView
-  from "./views/Account/ForgottenPasswordView";
+import AccountCreationView from './views/Account/AccountCreationView';
+import ForgottenPasswordView from "./views/Account/ForgottenPasswordView";
 import ResetPasswordView from "./views/Account/ResetPasswordView";
 
 function AppWrapper() {
@@ -115,11 +115,11 @@ function App() {
             </Switch>
           </> :
           <Switch>
+            <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/" component={HomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />
-            <Route exact path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />

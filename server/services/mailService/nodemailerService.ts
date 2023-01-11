@@ -33,6 +33,17 @@ class NodemailerService implements MailService {
       content: `Cliquez sur le lien ${config.application.host}/mot-de-passe/nouveau#${key}`,
     });
   }
+
+  async sendAccountActivationEmail(
+    key: string,
+    options: SendOptions
+  ): Promise<void> {
+    return this.send({
+      ...options,
+      subject: 'Activation du compte',
+      content: `Cliquez sur le lien ${config.application.host}/inscription/mot-de-passe#${key}`,
+    });
+  }
 }
 
 export default function createNodemailerService(): MailService {

@@ -19,3 +19,7 @@ export enum UserRoles {
   Usual,
   Admin,
 }
+
+export function isActivated(user: UserApi): boolean {
+  return !!user.activatedAt;
+}

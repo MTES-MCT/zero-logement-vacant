@@ -73,6 +73,7 @@ export function createServer(): Server {
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
           ],
+          workerSrc: ["'self'", 'blob:'],
         },
       },
     })

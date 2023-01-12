@@ -151,7 +151,7 @@ const listDataWithFilters = async (
                 )as "contacted_housing_per_campaign"`)
       )
       .joinRaw(
-        `join ${housingTable} on insee_code  = any (${establishmentsTable}.localities_geo_code)`
+        `join ${housingTable} on geo_code  = any (${establishmentsTable}.localities_geo_code)`
       )
       .modify((queryBuilder: any) => {
         queryBuilder.andWhereRaw(

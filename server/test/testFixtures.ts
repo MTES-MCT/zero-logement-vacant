@@ -119,14 +119,14 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (inseeCode: string) => {
+export const genHousingApi = (geoCode: string) => {
   return <HousingApi>{
     id: uuidv4(),
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
     cadastralReference: randomstring.generate(),
     buildingLocation: randomstring.generate(),
-    inseeCode,
+    geoCode,
     rawAddress: [randomstring.generate(), randomstring.generate()],
     address: genAddressApi(),
     localityKind: randomstring.generate(),

@@ -1,9 +1,4 @@
-// Avoid transpiling maplibre-gl because the production build yields some undefined value.
-// See https://github.com/alex3165/react-mapbox-gl/issues/931
-// See https://github.com/mapbox/mapbox-gl-js/issues/10565
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import maplibregl from '!maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import { useEffect, useState } from 'react';
 import * as turf from '@turf/turf';
 import ReactiveMap, { Marker, NavigationControl, useMap } from 'react-map-gl';

@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "lint": "node_modules/.bin/eslint . --ext .ts,.tsx",
-    "eject": "react-scripts eject"
+    "eject": "craco eject"
   },
   "engines": {
     "node": "^16",
@@ -26,6 +26,7 @@
     ]
   },
   "dependencies": {
+    "@craco/craco": "^7.0.0",
     "@dataesr/react-dsfr": "3.5.2",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@testing-library/jest-dom": "^5.16.4",

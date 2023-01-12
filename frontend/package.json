@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "lint": "node_modules/.bin/eslint . --ext .ts,.tsx",
-    "eject": "react-scripts eject"
+    "eject": "craco eject"
   },
   "engines": {
     "node": "^16",
@@ -26,11 +26,13 @@
     ]
   },
   "dependencies": {
-    "@dataesr/react-dsfr": "3.5.1",
+    "@craco/craco": "^7.0.0",
+    "@dataesr/react-dsfr": "3.5.2",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
+    "@turf/turf": "^6.5.0",
     "@typeform/embed-react": "^2.4.0",
     "@types/jest": "^28.1.4",
     "@types/node": "^16.11.43",
@@ -42,8 +44,10 @@
     "jest-fetch-mock": "^3.0.3",
     "jest-watch-typeahead": "^2.2.1",
     "lodash": "^4.17.21",
+    "maplibre-gl": "^2.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-map-gl": "^7.0.21",
     "react-redux": "^7.2.8",
     "react-redux-loading-bar": "^5.0.4",
     "react-router-dom": "^5.3.2",

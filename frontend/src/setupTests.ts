@@ -8,3 +8,5 @@ import { enableFetchMocks } from 'jest-fetch-mock';
 enableFetchMocks();
 
 jest.mock('./components/AppBreadcrumb/AppBreadcrumb');
+
+global.URL.createObjectURL = jest.fn();

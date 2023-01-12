@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
+  ButtonGroup,
   Col,
   Container,
   Row,
@@ -45,6 +46,9 @@ import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
 import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
+import Map from '../../components/Map/Map';
+
+type ViewMode = 'list' | 'map';
 
 const HousingListView = () => {
   const dispatch = useDispatch();
@@ -52,6 +56,7 @@ const HousingListView = () => {
   const { trackEvent } = useMatomo();
   const { onResetFilters } = useFilters();
 
+  const [view, setView] = useState<ViewMode>('list');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [noHousingAlert, setNoHousingAlert] = useState(false);
   const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({
@@ -195,66 +200,86 @@ const HousingListView = () => {
                 closable
               />
             )}
-            {!hasSelected() && (
-              <Help>
-                <b>Sélectionnez</b> les logements que vous souhaitez cibler,
-                puis cliquez sur <b>Créer la campagne</b>.
-              </Help>
-            )}
-            <HousingList
-              paginatedHousing={paginatedHousing}
-              onChangePagination={(page, perPage) =>
-                dispatch(changeHousingPagination(page, perPage))
-              }
-              filters={filters}
-              displayKind={HousingDisplayKey.Housing}
-              onSelectHousing={onSelectHousing}
-              onSort={onSort}
-            >
-              <HousingListHeader>
-                <HousingListHeaderActions>
-                  {paginatedHousing.totalCount > 0 && (
-                    <Row justifyContent="right">
-                      {!hasSelected() && (
-                        <Col n="6" spacing="mr-2w">
-                          <AppSearchBar
-                            onSearch={searchWithQuery}
-                            initialQuery={filters.query}
-                          />
-                        </Col>
-                      )}
-                      <Button
-                        title="Créer la campagne"
-                        onClick={() => create()}
-                        data-testid="create-campaign-button"
-                      >
-                        Créer la campagne
-                      </Button>
-                      {isCreateModalOpen && (
-                        <CampaignCreationModal
-                          housingCount={selectedHousingCount(
-                            selectedHousing,
-                            paginatedHousing.totalCount
+            <ButtonGroup isInlineFrom="sm" isEquisized size="md" align="right">
+              <Button
+                title="Vue liste"
+                icon="ri-list-unordered"
+                secondary={view !== 'list'}
+                onClick={() => setView('list')}
+              />
+              <Button
+                title="Vue carte"
+                icon="fr-icon-road-map-fill"
+                secondary={view !== 'map'}
+                onClick={() => setView('map')}
+              />
+            </ButtonGroup>
+            {view === 'map' ? (
+              <Map housingList={paginatedHousing.entities} />
+            ) : (
+              <>
+                {!hasSelected() && (
+                  <Help>
+                    <b>Sélectionnez</b> les logements que vous souhaitez cibler,
+                    puis cliquez sur <b>Créer la campagne</b>.
+                  </Help>
+                )}
+                <HousingList
+                  paginatedHousing={paginatedHousing}
+                  onChangePagination={(page, perPage) =>
+                    dispatch(changeHousingPagination(page, perPage))
+                  }
+                  filters={filters}
+                  displayKind={HousingDisplayKey.Housing}
+                  onSelectHousing={onSelectHousing}
+                  onSort={onSort}
+                >
+                  <HousingListHeader>
+                    <HousingListHeaderActions>
+                      {paginatedHousing.totalCount > 0 && (
+                        <Row justifyContent="right">
+                          {!hasSelected() && (
+                            <Col n="6" spacing="mr-2w">
+                              <AppSearchBar
+                                onSearch={searchWithQuery}
+                                initialQuery={filters.query}
+                              />
+                            </Col>
                           )}
-                          filters={filters}
-                          housingExcudedCount={
-                            paginatedHousing.totalCount -
-                            selectedHousingCount(
-                              selectedHousing,
-                              paginatedHousing.totalCount
-                            )
-                          }
-                          onSubmit={(campaignTitle?: string) =>
-                            onSubmitCampaignCreation(campaignTitle)
-                          }
-                          onClose={() => setIsCreateModalOpen(false)}
-                        />
+                          <Button
+                            title="Créer la campagne"
+                            onClick={() => create()}
+                            data-testid="create-campaign-button"
+                          >
+                            Créer la campagne
+                          </Button>
+                          {isCreateModalOpen && (
+                            <CampaignCreationModal
+                              housingCount={selectedHousingCount(
+                                selectedHousing,
+                                paginatedHousing.totalCount
+                              )}
+                              filters={filters}
+                              housingExcudedCount={
+                                paginatedHousing.totalCount -
+                                selectedHousingCount(
+                                  selectedHousing,
+                                  paginatedHousing.totalCount
+                                )
+                              }
+                              onSubmit={(campaignTitle?: string) =>
+                                onSubmitCampaignCreation(campaignTitle)
+                              }
+                              onClose={() => setIsCreateModalOpen(false)}
+                            />
+                          )}
+                        </Row>
                       )}
-                    </Row>
-                  )}
-                </HousingListHeaderActions>
-              </HousingListHeader>
-            </HousingList>
+                    </HousingListHeaderActions>
+                  </HousingListHeader>
+                </HousingList>
+              </>
+            )}
           </>
         )}
       </Container>

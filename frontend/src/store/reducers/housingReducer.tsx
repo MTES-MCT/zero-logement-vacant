@@ -1,6 +1,7 @@
 import { Housing, HousingSort } from '../../models/Housing';
 import {
   ADDITIONAL_OWNERS_FETCHED,
+  EXPAND_FILTERS,
   FETCHING_ADDITIONAL_OWNERS,
   FETCHING_HOUSING,
   FETCHING_HOUSING_EVENTS,
@@ -23,6 +24,7 @@ import { FormState } from '../actions/FormState';
 export interface HousingState {
   paginatedHousing: PaginatedResult<Housing>;
   filters: HousingFilters;
+  filtersExpanded: boolean;
   housing?: Housing;
   housingOwners?: HousingOwner[];
   additionalOwners?: {
@@ -70,10 +72,16 @@ const initialState: HousingState = {
     loading: true,
   },
   filters: initialHousingFilters,
+  filtersExpanded: false,
 };
 
 const housingReducer = (state = initialState, action: HousingActionTypes) => {
   switch (action.type) {
+    case EXPAND_FILTERS:
+      return {
+        ...state,
+        filtersExpanded: action.value,
+      };
     case FETCHING_HOUSING:
       return {
         ...state,

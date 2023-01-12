@@ -11,8 +11,8 @@ export interface Housing {
   cadastralReference: string;
   buildingLocation?: string;
   rawAddress: string[];
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   localityKind: LocalityKinds;
   geoPerimeters?: string[];
   owner: Owner;
@@ -145,4 +145,14 @@ export type HousingSort = Sort<HousingSortable>;
 
 export function toLink(housing: Housing): string {
   return `/logements/${housing.id}`;
+}
+
+export interface HousingWithCoordinates extends Housing {
+  longitude: number;
+  latitude: number;
+}
+export function hasCoordinates(
+  housing: Housing
+): housing is HousingWithCoordinates {
+  return !!housing.longitude && !!housing.latitude;
 }

@@ -4,10 +4,11 @@
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import maplibregl from '!maplibre-gl';
-import { useState } from 'react';
-import ReactiveMap, { Marker, NavigationControl, Popup } from 'react-map-gl';
+import { useEffect, useState } from 'react';
+import * as turf from '@turf/turf';
+import ReactiveMap, { Marker, NavigationControl, useMap } from 'react-map-gl';
 import { Housing } from '../../models/Housing';
-import OwnerHousingCard from '../OwnerHousingCard/OwnerHousingCard';
+import HousingPopup from './HousingPopup';
 
 const STYLE = {
   title: 'Carte',
@@ -37,11 +38,25 @@ function Map(props: MapProps) {
     bottom: 16,
   };
 
+  const { housingMap } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!housingMap || !props.housingList) {
+      return;
+    }
+
+    const points = props.housingList
+      ?.map((housing) => [housing.longitude, housing.latitude])
+      .map((coords) => turf.point(coords));
+    const bbox = turf.bbox(turf.featureCollection(points));
+    housingMap.fitBounds(bbox as [number, number, number, number]);
+  }, [housingMap, props.housingList]);
 
   return (
     <ReactiveMap
       attributionControl={false}
+      id="housingMap"
       initialViewState={options}
       mapLib={maplibregl}
       mapStyle={STYLE.uri}
@@ -57,25 +72,25 @@ function Map(props: MapProps) {
               longitude={housing.longitude}
               latitude={housing.latitude}
               color="var(--blue-france-main-525)"
-              onClick={() =>
-                setOpenPopups({ ...openPopups, [housing.id]: true })
-              }
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setOpenPopups((state) => ({
+                  ...state,
+                  [housing.id]: true,
+                }));
+              }}
             />
             {openPopups[housing.id] && (
-              <Popup
-                anchor="bottom"
+              <HousingPopup
                 key={`popup-${housing.id}`}
-                longitude={housing.longitude}
-                latitude={housing.latitude}
+                housing={housing}
                 onClose={() =>
-                  setOpenPopups({
-                    ...openPopups,
+                  setOpenPopups((state) => ({
+                    ...state,
                     [housing.id]: false,
-                  })
+                  }))
                 }
-              >
-                <OwnerHousingCard housing={housing} />
-              </Popup>
+              />
             )}
           </div>
         );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { MapProvider } from "react-map-gl";
 import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
@@ -46,9 +47,11 @@ function AppWrapper() {
   return (
     // @ts-ignore
     <MatomoProvider value={instance}>
-      <Provider store={store}>
-        <App />
-      </Provider>
+      <MapProvider>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </MapProvider>
     </MatomoProvider>
   );
 }

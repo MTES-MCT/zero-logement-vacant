@@ -455,7 +455,11 @@ function HousingListFiltersSidemenu() {
       }
       footer={
         <>
-          <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
+          <HousingFiltersBadges
+            filters={filters}
+            onChange={onChangeFilters}
+            small
+          />
           <Row gutters>
             <Col>
               <ButtonLink onClick={onResetFilters}>

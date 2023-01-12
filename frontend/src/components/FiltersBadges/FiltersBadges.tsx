@@ -6,11 +6,17 @@ interface FilterBadgeProps {
   option: SelectOption;
   filters: string[] | undefined;
   onChange?: (value: string[]) => void;
+  small?: boolean;
 }
 
 type TagIconPosition = ComponentPropsWithoutRef<typeof Tag>['iconPosition'];
 
-const FilterBadge = ({ option, filters = [], onChange }: FilterBadgeProps) => {
+const FilterBadge = ({
+  option,
+  filters = [],
+  onChange,
+  small,
+}: FilterBadgeProps) => {
   function onClose() {
     onChange?.(filters.filter((v) => v !== option.value));
   }
@@ -23,7 +29,7 @@ const FilterBadge = ({ option, filters = [], onChange }: FilterBadgeProps) => {
     : {};
 
   return (
-    <Tag className="fr-tag--dismiss" onClick={onClose} {...icon}>
+    <Tag className="fr-tag--dismiss" onClick={onClose} small={small} {...icon}>
       {option.badgeLabel ?? option.label}
     </Tag>
   );
@@ -33,10 +39,11 @@ interface FilterBadgesProps {
   options: SelectOption[];
   filters: string[] | undefined;
   onChange?: (value: string[]) => void;
+  small?: boolean;
 }
 
 const FilterBadges = (props: FilterBadgesProps) => {
-  const { filters, onChange, options }: FilterBadgesProps = {
+  const { filters, onChange, options, small }: FilterBadgesProps = {
     ...props,
     filters: props.filters ?? [],
   };
@@ -50,6 +57,7 @@ const FilterBadges = (props: FilterBadgesProps) => {
             filters={filters}
             onChange={onChange}
             key={option + '-' + index}
+            small={small}
           />
         ))}
 
@@ -61,6 +69,7 @@ const FilterBadges = (props: FilterBadgesProps) => {
             filters={filters}
             onChange={onChange}
             key={filter + '-' + index}
+            small={small}
           />
         ))}
     </>

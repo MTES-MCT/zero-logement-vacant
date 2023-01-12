@@ -147,6 +147,11 @@ export function toLink(housing: Housing): string {
   return `/logements/${housing.id}`;
 }
 
+const MIN_LNG = -180;
+const MAX_LNG = 180;
+const MIN_LAT = -90;
+const MAX_LAT = 90;
+
 export interface HousingWithCoordinates extends Housing {
   longitude: number;
   latitude: number;
@@ -157,11 +162,9 @@ export function hasCoordinates(
   return (
     !!housing.longitude &&
     !!housing.latitude &&
-    isInBounds(housing.longitude) &&
-    isInBounds(housing.latitude)
+    MIN_LNG <= housing.longitude &&
+    housing.longitude <= MAX_LNG &&
+    MIN_LAT <= housing.latitude &&
+    housing.latitude <= MAX_LAT
   );
-}
-
-function isInBounds(angle: number): boolean {
-  return -90 <= angle && angle <= 90;
 }

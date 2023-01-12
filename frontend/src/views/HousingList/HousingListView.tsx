@@ -11,7 +11,7 @@ import {
 } from '@dataesr/react-dsfr';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import HousingListFilter from './HousingListFilter';
+import HousingListFilters from '../../components/HousingListFilters/HousingListFilters';
 import HousingList, {
   HousingDisplayKey,
 } from '../../components/HousingList/HousingList';
@@ -44,11 +44,13 @@ import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
 import Help from '../../components/Help/Help';
+import { useFilters } from '../../hooks/useFilters';
 
 const HousingListView = () => {
   const dispatch = useDispatch();
   const { search } = useLocation();
   const { trackEvent } = useMatomo();
+  const { onResetFilters } = useFilters();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [noHousingAlert, setNoHousingAlert] = useState(false);
@@ -164,13 +166,12 @@ const HousingListView = () => {
         </Container>
       </div>
       <Container as="section" spacing="py-4w">
-        <Row>
-          <HousingListFilter />
-          <HousingFiltersBadges
-            filters={filters}
-            onChange={(values) => removeFilter(values)}
-          />
-        </Row>
+        <HousingListFilters />
+        <HousingFiltersBadges
+          filters={filters}
+          onChange={(values) => removeFilter(values)}
+          onReset={onResetFilters}
+        />
       </Container>
       <Container as="section" spacing="py-4w mb-4w">
         {paginatedHousing && (

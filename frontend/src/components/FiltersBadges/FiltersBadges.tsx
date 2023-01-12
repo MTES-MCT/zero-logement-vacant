@@ -1,68 +1,75 @@
-import React from 'react';
+import React, { ComponentPropsWithoutRef } from 'react';
 import { SelectOption } from '../../models/SelectOption';
-import classNames from 'classnames';
+import { Tag } from '@dataesr/react-dsfr';
+
+interface FilterBadgeProps {
+  option: SelectOption;
+  filters: string[] | undefined;
+  onChange?: (value: string[]) => void;
+  small?: boolean;
+}
+
+type TagIconPosition = ComponentPropsWithoutRef<typeof Tag>['iconPosition'];
 
 const FilterBadge = ({
   option,
   filters = [],
   onChange,
-}: {
-  option: SelectOption;
-  filters: string[] | undefined;
-  onChange?: (_: string[]) => void;
-}) => {
+  small,
+}: FilterBadgeProps) => {
+  function onClose() {
+    onChange?.(filters.filter((v) => v !== option.value));
+  }
+
+  const icon = onChange
+    ? {
+        icon: 'ri-close-line',
+        iconPosition: 'right' as TagIconPosition,
+      }
+    : {};
+
   return (
-    <>
-      <span
-        className={classNames('fr-tag', 'fr-fi-icon', {
-          'fr-tag-click': onChange,
-        })}
-      >
-        {option.badgeLabel ?? option.label}
-        {onChange && (
-          <button
-            className="ri-md ri-close-line fr-pr-0"
-            title="Supprimer le filtre"
-            onClick={() => {
-              onChange(filters.filter((v) => v !== option.value));
-            }}
-          ></button>
-        )}
-      </span>
-    </>
+    <Tag className="fr-tag--dismiss" onClick={onClose} small={small} {...icon}>
+      {option.badgeLabel ?? option.label}
+    </Tag>
   );
 };
 
-const FilterBadges = ({
-  options,
-  filters = [],
-  onChange,
-}: {
+interface FilterBadgesProps {
   options: SelectOption[];
   filters: string[] | undefined;
-  onChange?: (_: string[]) => void;
-}) => {
+  onChange?: (value: string[]) => void;
+  small?: boolean;
+}
+
+const FilterBadges = (props: FilterBadgesProps) => {
+  const { filters, onChange, options, small }: FilterBadgesProps = {
+    ...props,
+    filters: props.filters ?? [],
+  };
   return (
     <>
       {options
-        .filter((o) => o.value.length && filters.indexOf(o.value) !== -1)
+        .filter((o) => o.value.length && filters.includes(o.value))
         .map((option, index) => (
           <FilterBadge
             option={option}
             filters={filters}
             onChange={onChange}
             key={option + '-' + index}
+            small={small}
           />
         ))}
 
       {filters
-        .filter((f) => options.map((_) => _.value).indexOf(f) === -1)
+        .filter((f) => !options.map((_) => _.value).includes(f))
         .map((filter, index) => (
           <FilterBadge
             option={{ value: filter, label: filter }}
             filters={filters}
             onChange={onChange}
             key={filter + '-' + index}
+            small={small}
           />
         ))}
     </>

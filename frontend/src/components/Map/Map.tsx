@@ -46,11 +46,13 @@ function Map(props: MapProps) {
       return;
     }
 
-    const points = housingList
-      .map((housing) => [housing.longitude, housing.latitude])
-      .map((coords) => turf.point(coords));
-    const bbox = turf.bbox(turf.featureCollection(points));
-    housingMap.fitBounds(bbox as [number, number, number, number]);
+    if (housingList.length) {
+      const points = housingList
+        .map((housing) => [housing.longitude, housing.latitude])
+        .map((coords) => turf.point(coords));
+      const bbox = turf.bbox(turf.featureCollection(points));
+      housingMap.fitBounds(bbox as [number, number, number, number]);
+    }
   }, [housingMap, housingList]);
 
   return (

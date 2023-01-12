@@ -1,9 +1,9 @@
 import { Popup, PopupProps } from 'react-map-gl';
-import { Housing, toLink } from '../../models/Housing';
+import { HousingWithCoordinates, toLink } from '../../models/Housing';
 import { Link } from '@dataesr/react-dsfr';
 
 interface HousingPopupProps {
-  housing: Housing;
+  housing: HousingWithCoordinates;
   onClose: PopupProps['onClose'];
 }
 

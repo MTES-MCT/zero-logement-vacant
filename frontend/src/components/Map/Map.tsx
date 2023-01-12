@@ -1,8 +1,8 @@
 import maplibregl from 'maplibre-gl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
 import ReactiveMap, { Marker, NavigationControl, useMap } from 'react-map-gl';
-import { Housing } from '../../models/Housing';
+import { hasCoordinates, Housing } from '../../models/Housing';
 import HousingPopup from './HousingPopup';
 
 const STYLE = {
@@ -36,17 +36,22 @@ function Map(props: MapProps) {
   const { housingMap } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
+  const housingList = useMemo(
+    () => props.housingList?.filter(hasCoordinates),
+    [props.housingList]
+  );
+
   useEffect(() => {
-    if (!housingMap || !props.housingList) {
+    if (!housingMap || !housingList) {
       return;
     }
 
-    const points = props.housingList
-      ?.map((housing) => [housing.longitude, housing.latitude])
+    const points = housingList
+      .map((housing) => [housing.longitude, housing.latitude])
       .map((coords) => turf.point(coords));
     const bbox = turf.bbox(turf.featureCollection(points));
     housingMap.fitBounds(bbox as [number, number, number, number]);
-  }, [housingMap, props.housingList]);
+  }, [housingMap, housingList]);
 
   return (
     <ReactiveMap
@@ -59,7 +64,7 @@ function Map(props: MapProps) {
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {props.housingList?.map((housing) => {
+      {housingList?.map((housing) => {
         return (
           <div key={housing.id}>
             <Marker

@@ -12,6 +12,7 @@ exports.up = function (knex: Knex) {
       table.string('title').notNullable();
       table.string('opening');
       table.string('address');
+      table.string('geo_code');
       table.string('email');
       table.string('phone');
       table.string('notes');

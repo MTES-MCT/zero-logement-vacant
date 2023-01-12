@@ -9,12 +9,15 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
+  SearchableSelect,
   TextInput,
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
 import { ContactPoint, DraftContactPoint } from '../../../models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
+import { useSelector } from 'react-redux';
+import { ApplicationState } from '../../../store/reducers/applicationReducers';
 
 interface Props {
   contactPoint?: ContactPoint;
@@ -30,9 +33,13 @@ const ContactPointEditionModal = ({
   const [title, setTitle] = useState(contactPoint?.title ?? '');
   const [opening, setOpening] = useState(contactPoint?.opening ?? undefined);
   const [address, setAddress] = useState(contactPoint?.address ?? undefined);
+  const [geoCode, setGeoCode] = useState(contactPoint?.geoCode ?? undefined);
   const [email, setEmail] = useState(contactPoint?.email ?? undefined);
   const [phone, setPhone] = useState(contactPoint?.phone ?? undefined);
   const [notes, setNotes] = useState(contactPoint?.notes ?? undefined);
+  const { localities } = useSelector(
+    (state: ApplicationState) => state.authentication.authUser.establishment
+  );
 
   const schema = yup.object().shape({
     title: yup.string().required('Veuillez saisir le titre du guichet'),
@@ -43,6 +50,7 @@ const ContactPointEditionModal = ({
     title,
     opening,
     address,
+    geoCode,
     email,
     phone,
     notes,
@@ -55,6 +63,7 @@ const ContactPointEditionModal = ({
         title: title!,
         opening,
         address,
+        geoCode,
         email,
         phone,
         notes,
@@ -117,6 +126,19 @@ const ContactPointEditionModal = ({
                   message={message('address')}
                   label="Adresse postale : "
                   rows={3}
+                />
+              </Col>
+            </Row>
+            <Row spacing="my-2w">
+              <Col>
+                <SearchableSelect
+                  options={localities.map((locality) => ({
+                    value: locality.geoCode,
+                    label: locality.name,
+                  }))}
+                  label="Commune"
+                  placeholder="Rechercher une commune"
+                  onChange={(value: string) => setGeoCode(value)}
                 />
               </Col>
             </Row>

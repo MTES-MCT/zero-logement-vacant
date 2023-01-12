@@ -62,6 +62,7 @@ interface DraftContactPointDbo {
   title: string;
   opening?: string;
   address?: string;
+  geo_code?: string;
   email?: string;
   phone?: string;
   notes?: string;
@@ -79,6 +80,7 @@ const formatDraftContactPointApi = (
     title: draftContactPointApi.title,
     opening: draftContactPointApi.opening,
     address: draftContactPointApi.address,
+    geo_code: draftContactPointApi.geoCode,
     email: draftContactPointApi.email,
     phone: draftContactPointApi.phone,
     notes: draftContactPointApi.notes,
@@ -99,6 +101,7 @@ const parseContactPointApi = (contactPointDbo: ContactPointDbo) =>
     title: contactPointDbo.title,
     opening: contactPointDbo.opening,
     address: contactPointDbo.address,
+    geoCode: contactPointDbo.geo_code,
     email: contactPointDbo.email,
     phone: contactPointDbo.phone,
     notes: contactPointDbo.notes,

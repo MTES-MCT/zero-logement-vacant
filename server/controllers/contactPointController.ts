@@ -23,6 +23,7 @@ interface ContactPointBody {
   title: string;
   opening?: string;
   address?: string;
+  geoCode?: string;
   email?: string;
   phone?: string;
   notes?: string;
@@ -32,6 +33,7 @@ const createContactPointValidators = [
   body('title').isString().notEmpty(),
   body('opening').isString().optional(),
   body('address').isString().optional(),
+  body('geoCode').isString().optional(),
   body('email').isEmail().optional(),
   body('phone').isString().optional(),
   body('notes').isString().optional(),

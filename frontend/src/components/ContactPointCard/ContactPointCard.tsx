@@ -13,6 +13,8 @@ import { ContactPoint } from '../../models/ContactPoint';
 import React from 'react';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { mailto } from '../../utils/stringUtils';
+import { useSelector } from 'react-redux';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
 
 interface Props {
   contactPoint: ContactPoint;
@@ -21,6 +23,9 @@ interface Props {
 }
 
 function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
+  const { localities } = useSelector(
+    (state: ApplicationState) => state.authentication.authUser.establishment
+  );
   return (
     <Card hasArrow={false} className="h-fit-content">
       <CardTitle>
@@ -78,6 +83,16 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
             </Text>
             <Text spacing="mb-0" className="pre-wrap">
               {contactPoint.address}
+            </Text>
+          </div>
+        )}
+        {contactPoint.geoCode && (
+          <div className="fr-mb-1w">
+            <Text size="sm" className="zlv-label">
+              Commune
+            </Text>
+            <Text spacing="mb-0" className="pre-wrap">
+              {localities.find((_) => _.geoCode === contactPoint.geoCode)?.name}
             </Text>
           </div>
         )}

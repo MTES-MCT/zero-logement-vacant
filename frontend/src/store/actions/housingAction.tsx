@@ -13,6 +13,7 @@ import { FormState } from './FormState';
 import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
 
+export const EXPAND_FILTERS = 'EXPAND_FILTERS';
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
 export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
 export const FETCHING_HOUSING = 'FETCHING_HOUSING';
@@ -24,6 +25,11 @@ export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
 export const HOUSING_OWNERS_UPDATE = 'HOUSING_OWNERS_UPDATE';
 export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
 export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
+
+export interface ExpandFiltersAction {
+  type: typeof EXPAND_FILTERS;
+  value: boolean;
+}
 
 export interface FetchingHousingAction {
   type: typeof FETCHING_HOUSING;
@@ -86,6 +92,7 @@ export interface HousingListFetchedAction {
 }
 
 export type HousingActionTypes =
+  | ExpandFiltersAction
   | FetchingHousingAction
   | HousingFetchedAction
   | FetchHousingListAction
@@ -97,6 +104,15 @@ export type HousingActionTypes =
   | HousingOwnersUpdateAction
   | FetchingHousingEventsAction
   | HousingEventsFetchedAction;
+
+export const expandFilters = (value: boolean) => {
+  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+    dispatch({
+      type: EXPAND_FILTERS,
+      value,
+    });
+  };
+};
 
 export const changeHousingFiltering = (filters: HousingFilters) => {
   return function (dispatch: Dispatch, getState: () => ApplicationState) {

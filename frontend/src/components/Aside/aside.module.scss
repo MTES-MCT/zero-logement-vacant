@@ -1,0 +1,39 @@
+.aside {
+  height: 100vh;
+  z-index: 9999;
+  position: fixed;
+  display: flex;
+  top: 0;
+  right: 0;
+  width: 33%;
+  background-color: var(--background-default-grey);
+  box-shadow: var(--overlap-shadow);
+  overflow-x: hidden;
+  visibility: visible;
+}
+
+.aside.collapsed {
+  transition: width 0.4s var(--material-transition-curve);
+}
+
+.aside:not(.collapsed) {
+  transition: width 0.2s var(--material-transition-curve);
+}
+
+.collapsed {
+  width: 0;
+  visibility: collapse;
+}
+
+.article {
+  display: flex;
+  flex-flow: column nowrap;
+  flex: 1;
+  padding: 2rem 1.5rem;
+}
+
+.main {
+  margin-bottom: 1.5rem;
+  flex: 1;
+  overflow-y: scroll;
+}

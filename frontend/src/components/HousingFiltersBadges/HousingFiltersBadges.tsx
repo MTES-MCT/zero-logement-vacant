@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
@@ -32,40 +32,63 @@ import {
   getSubStatusList,
   getSubStatusListOptions,
 } from '../../models/HousingState';
+import { TagGroup } from '@dataesr/react-dsfr';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import styles from './housing-filters-badges.module.scss';
+
+interface HousingFiltersBadgesProps {
+  filters: HousingFilters;
+  onChange?: (value: any) => void;
+  onReset?: () => void;
+  small?: boolean;
+}
 
 const HousingFiltersBadges = ({
   filters,
   onChange,
-}: {
-  filters: HousingFilters;
-  onChange?: (_: any) => void;
-}) => {
+  onReset,
+  small,
+}: HousingFiltersBadgesProps) => {
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
   const { establishment } = useSelector(
     (state: ApplicationState) => state.authentication.authUser
   );
 
-  return filters ? (
-    <>
+  function reset() {
+    onReset?.();
+  }
+
+  const canReset = useMemo<boolean>(() => !!onReset, [onReset]);
+
+  if (!filters) {
+    return null;
+  }
+
+  return (
+    <TagGroup>
       <FilterBadges
         options={ownerKindOptions}
         filters={filters.ownerKinds}
+        small={small}
         onChange={onChange && ((values) => onChange({ ownerKinds: values }))}
       />
       <FilterBadges
         options={ownerAgeOptions}
         filters={filters.ownerAges}
+        small={small}
         onChange={onChange && ((values) => onChange({ ownerAges: values }))}
       />
       <FilterBadges
         options={multiOwnerOptions}
         filters={filters.multiOwners}
+        small={small}
         onChange={onChange && ((values) => onChange({ multiOwners: values }))}
       />
       <FilterBadges
         options={beneficiaryCountOptions}
         filters={filters.beneficiaryCounts}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ beneficiaryCounts: values }))
         }
@@ -73,21 +96,25 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={housingKindOptions}
         filters={filters.housingKinds}
+        small={small}
         onChange={onChange && ((values) => onChange({ housingKinds: values }))}
       />
       <FilterBadges
         options={housingAreaOptions}
         filters={filters.housingAreas}
+        small={small}
         onChange={onChange && ((values) => onChange({ housingAreas: values }))}
       />
       <FilterBadges
         options={roomsCountOptions}
         filters={filters.roomsCounts}
+        small={small}
         onChange={onChange && ((values) => onChange({ roomsCounts: values }))}
       />
       <FilterBadges
         options={cadastralClassificationOptions}
         filters={filters.cadastralClassifications}
+        small={small}
         onChange={
           onChange &&
           ((values) => onChange({ cadastralClassifications: values }))
@@ -96,6 +123,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={buildingPeriodOptions}
         filters={filters.buildingPeriods}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ buildingPeriods: values }))
         }
@@ -103,6 +131,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={vacancyDurationOptions}
         filters={filters.vacancyDurations}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ vacancyDurations: values }))
         }
@@ -110,11 +139,13 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={taxedOptions}
         filters={filters.isTaxedValues}
+        small={small}
         onChange={onChange && ((values) => onChange({ isTaxedValues: values }))}
       />
       <FilterBadges
         options={ownershipKindsOptions}
         filters={filters.ownershipKinds}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ ownershipKinds: values }))
         }
@@ -122,11 +153,13 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={housingCountOptions}
         filters={filters.housingCounts}
+        small={small}
         onChange={onChange && ((values) => onChange({ housingCounts: values }))}
       />
       <FilterBadges
         options={vacancyRateOptions}
         filters={filters.vacancyRates}
+        small={small}
         onChange={onChange && ((values) => onChange({ vacancyRates: values }))}
       />
       <FilterBadges
@@ -135,17 +168,20 @@ const HousingFiltersBadges = ({
           label: l.name,
         }))}
         filters={filters.localities}
+        small={small}
         onChange={onChange && ((values) => onChange({ localities: values }))}
       />
       <FilterBadges
         options={localityKindsOptions}
         filters={filters.localityKinds}
+        small={small}
         onChange={onChange && ((values) => onChange({ localityKinds: values }))}
       />
       {geoPerimeters && (
         <FilterBadges
           options={geoPerimeterOptions(geoPerimeters)}
           filters={filters.geoPerimetersIncluded}
+          small={small}
           onChange={
             onChange &&
             ((values) => onChange({ geoPerimetersIncluded: values }))
@@ -159,6 +195,7 @@ const HousingFiltersBadges = ({
             badgeLabel: `${option.label} exclu`,
           }))}
           filters={filters.geoPerimetersExcluded}
+          small={small}
           onChange={
             onChange &&
             ((values) => onChange({ geoPerimetersExcluded: values }))
@@ -168,6 +205,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={campaignsCountOptions}
         filters={filters.campaignsCounts}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ campaignsCounts: values }))
         }
@@ -175,6 +213,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={statusOptions()}
         filters={filters.status?.map((_) => _.toString())}
+        small={small}
         onChange={
           onChange &&
           ((values) =>
@@ -189,6 +228,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={getSubStatusListOptions(filters.status)}
         filters={filters.subStatus}
+        small={small}
         onChange={onChange && ((values) => onChange({ subStatus: values }))}
       />
       {campaignList && filters.campaignIds && (
@@ -198,12 +238,14 @@ const HousingFiltersBadges = ({
             label: campaignFullName(c),
           }))}
           filters={filters.campaignIds}
+          small={small}
           onChange={onChange && ((values) => onChange({ campaignIds: values }))}
         />
       )}
       <FilterBadges
         options={dataYearsIncludedOptions}
         filters={(filters.dataYearsIncluded ?? []).map((_) => String(_))}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ dataYearsIncluded: values }))
         }
@@ -211,6 +253,7 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={dataYearsExcludedOptions}
         filters={(filters.dataYearsExcluded ?? []).map((_) => String(_))}
+        small={small}
         onChange={
           onChange && ((values) => onChange({ dataYearsExcluded: values }))
         }
@@ -218,11 +261,15 @@ const HousingFiltersBadges = ({
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}
         filters={filters.query ? [filters.query] : []}
+        small={small}
         onChange={onChange && (() => onChange({ query: '' }))}
       />
-    </>
-  ) : (
-    <></>
+      {canReset && (
+        <ButtonLink className={styles.reinit} onClick={reset}>
+          Réinitialiser les filtres
+        </ButtonLink>
+      )}
+    </TagGroup>
   );
 };
 

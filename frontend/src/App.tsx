@@ -1,4 +1,5 @@
 import React from 'react';
+import { MapProvider } from "react-map-gl";
 import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
@@ -8,16 +9,13 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider, useSelector } from 'react-redux';
 import thunk from 'redux-thunk';
-import applicationReducer, {
-  ApplicationState,
-} from './store/reducers/applicationReducers';
+import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import { isValidUser, UserRoles } from './models/User';
 import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import UserListView from './views/User/UserListView';
@@ -31,9 +29,10 @@ import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';import ForgottenPasswordView
-  from "./views/Account/ForgottenPasswordView";
-import ResetPasswordView from "./views/Account/ResetPasswordView";
+import AccountCreationView from './views/Account/AccountCreationView';
+import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
+import ResetPasswordView from './views/Account/ResetPasswordView';
+import { useUser } from './hooks/useUser';
 
 function AppWrapper() {
   const instance = createInstance({
@@ -48,15 +47,18 @@ function AppWrapper() {
   return (
     // @ts-ignore
     <MatomoProvider value={instance}>
-      <Provider store={store}>
-        <App />
-      </Provider>
+      <MapProvider>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </MapProvider>
     </MatomoProvider>
   );
 }
 
 function App() {
-  const { authUser, isLoggedOut } = useSelector(
+  const { isAdmin, isAuthenticated } = useUser();
+  const { isLoggedOut } = useSelector(
     (state: ApplicationState) => state.authentication
   );
   const { campaignBundleFetchingId, campaignCreated } = useSelector(
@@ -69,7 +71,7 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <AppHeader />
-        {isValidUser(authUser) ?
+        {isAuthenticated ?
           <>
             <ScrollToTop />
 
@@ -103,10 +105,8 @@ function App() {
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
-              {authUser.user.role === UserRoles.Admin &&
-                <Route exact path="/utilisateurs" component={UserListView}/>
-              }
-              {authUser.user.role === UserRoles.Admin &&
+              <Route exact path="/utilisateurs" component={UserListView}/>
+              {isAdmin &&
                 <Route exact path="/suivi" component={MonitoringView}/>
               }
               <Route path="/*">
@@ -115,11 +115,11 @@ function App() {
             </Switch>
           </> :
           <Switch>
+            <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/" component={HomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />
-            <Route exact path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />

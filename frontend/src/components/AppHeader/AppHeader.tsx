@@ -21,9 +21,9 @@ import {
   UserNavItems,
 } from '../../models/UserNavItem';
 import { logout } from '../../store/actions/authenticationAction';
-import { isValidUser, UserRoles } from '../../models/User';
 import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useUser } from '../../hooks/useUser';
 
 function AppNavItem({ userNavItem }: { userNavItem: UserNavItem }) {
   const location = useLocation();
@@ -49,6 +49,7 @@ function AppHeader() {
   const dispatch = useDispatch();
   const history = useHistory();
   const { trackPageView } = useMatomo();
+  const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useSelector(
     (state: ApplicationState) => state.authentication
@@ -91,11 +92,9 @@ function AppHeader() {
           </Logo>
           <Service
             title="Zéro Logement Vacant"
-            description={
-              isValidUser(authUser) ? authUser.establishment.name : ''
-            }
+            description={isAuthenticated ? authUser.establishment.name : ''}
           />
-          {isValidUser(authUser) ? (
+          {isAuthenticated ? (
             <Tool>
               <ToolItemGroup>
                 <ToolItem as="div">
@@ -122,7 +121,7 @@ function AppHeader() {
             </Tool>
           )}
         </HeaderBody>
-        {isValidUser(authUser) ? (
+        {isAuthenticated ? (
           <HeaderNav data-testid="header-nav">
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
@@ -132,9 +131,9 @@ function AppHeader() {
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.GeoPerimeters)}
             />
-            {authUser.user.role === UserRoles.Admin ? (
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
+            {isAdmin ? (
               <>
-                <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
                 <AppNavItem
                   userNavItem={getUserNavItem(UserNavItems.Monitoring)}
                 />

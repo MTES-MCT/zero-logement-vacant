@@ -17,8 +17,9 @@ import {
 } from '../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
-import { useResetLink } from '../../hooks/useResetLink';
+import { useEmailLink } from '../../hooks/useEmailLink';
 import Alert from '../../components/Alert/Alert';
+import resetLinkService from '../../services/reset-link.service';
 
 function ResetPasswordView() {
   const [password, setPassword] = useState('');
@@ -26,7 +27,9 @@ function ResetPasswordView() {
   const [passwordReset, setPasswordReset] = useState(false);
   const [error, setError] = useState('');
   const router = useHistory();
-  const resetLink = useResetLink();
+  const resetLink = useEmailLink({
+    service: resetLinkService,
+  });
 
   const form = yup.object().shape({
     password: passwordValidator,
@@ -41,7 +44,7 @@ function ResetPasswordView() {
     try {
       e.preventDefault();
       if (isValid()) {
-        await authService.resetPassword(resetLink.value, password);
+        await authService.resetPassword(resetLink.hash, password);
         setPasswordReset(true);
       }
     } catch (err) {

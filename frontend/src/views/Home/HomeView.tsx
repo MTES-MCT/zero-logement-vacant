@@ -59,7 +59,7 @@ const HomeView = () => {
                   action: TrackEventActions.Home.Connection,
                 })
               }
-              as={<Link to="/inscription" />}
+              as={<Link to="/inscription/email" />}
             >
               <Button>Créer un compte</Button>
             </DSLink>

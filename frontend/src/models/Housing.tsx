@@ -154,5 +154,14 @@ export interface HousingWithCoordinates extends Housing {
 export function hasCoordinates(
   housing: Housing
 ): housing is HousingWithCoordinates {
-  return !!housing.longitude && !!housing.latitude;
+  return (
+    !!housing.longitude &&
+    !!housing.latitude &&
+    isInBounds(housing.longitude) &&
+    isInBounds(housing.latitude)
+  );
+}
+
+function isInBounds(angle: number): boolean {
+  return -90 <= angle && angle <= 90;
 }

@@ -48,6 +48,7 @@ export function createServer(): Server {
             "'unsafe-inline'",
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
             'https://client.crisp.chat/static/stylesheets/client_default.css',
+            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css',
           ],
           imgSrc: [
             "'self'",
@@ -71,7 +72,10 @@ export function createServer(): Server {
             'https://stats.data.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
+            'https://openmaptiles.geo.data.gouv.fr',
+            'https://openmaptiles.github.io',
           ],
+          workerSrc: ["'self'", 'blob:'],
         },
       },
     })

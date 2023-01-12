@@ -1,8 +1,10 @@
 import React from 'react';
 import { Container, Row, Title } from '@dataesr/react-dsfr';
 import config from '../../utils/config';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const StatsView = () => {
+  useDocumentTitle('Statistiques');
   return (
     <>
       <div className="bg-100">

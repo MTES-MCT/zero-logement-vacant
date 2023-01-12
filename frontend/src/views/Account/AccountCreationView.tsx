@@ -8,8 +8,10 @@ import AccountPasswordCreationView from './AccountCreation/AccountPasswordCreati
 import AccountAwaitingAccessView from './AccountCreation/AccountAwaitingAccessView';
 import AccountAccessForbiddenView from './AccountCreation/AccountAccessForbiddenView';
 import AccountCampaignIntentCreationView from './AccountCreation/AccountCampaignIntentCreationView';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function AccountCreationView() {
+  useDocumentTitle('Créer un compte');
   return (
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">

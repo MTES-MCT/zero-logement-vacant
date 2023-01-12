@@ -22,8 +22,10 @@ import {
   passwordValidator,
   useForm,
 } from '../../hooks/useForm';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const AccountPasswordView = () => {
+  useDocumentTitle('Mot de passe');
   const dispatch = useDispatch();
 
   const [currentPassword, setCurrentPassword] = useState('');

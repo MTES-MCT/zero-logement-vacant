@@ -22,8 +22,10 @@ import { dateSort, durationSort } from '../../utils/dateUtils';
 import { Link } from 'react-router-dom';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import monitoringService from '../../services/monitoring.service';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const MonitoringView = () => {
+  useDocumentTitle('Suivi');
   const dispatch = useDispatch();
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
@@ -231,7 +233,7 @@ const MonitoringView = () => {
     label: "Temps d'envoi de la première campagne après inscription",
     render: ({ firstCampaignSentDelay }: EstablishmentData) => (
       <div>
-          {firstCampaignSentDelay ? <>{firstCampaignSentDelay} jours</> : null}
+        {firstCampaignSentDelay ? <>{firstCampaignSentDelay} jours</> : null}
       </div>
     ),
     sortable: true,

@@ -31,7 +31,7 @@
     "@jest-mock/express": "^1.4.5",
     "@sendinblue/client": "^3.2.2",
     "@sentry/integrations": "^7.12.1",
-    "@sentry/node": "^7.12.1",
+    "@sentry/node": "^7.28.1",
     "bcryptjs": "^2.4.3",
     "compose-middleware": "^5.0.1",
     "convict": "^6.2.4",

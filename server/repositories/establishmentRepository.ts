@@ -3,7 +3,6 @@ import { localitiesTable } from './localityRepository';
 import {
   EstablishmentApi,
   EstablishmentDataApi,
-  LocalityApi,
 } from '../models/EstablishmentApi';
 import { housingTable, ReferenceDataYear } from './housingRepository';
 import { usersTable } from './userRepository';
@@ -220,12 +219,6 @@ const listDataWithFilters = async (
   }
 };
 
-const formatLocalityApi = (localityApi: LocalityApi) => ({
-  id: localityApi.id,
-  geo_code: localityApi.geoCode,
-  name: localityApi.name,
-});
-
 const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
   id: establishmentApi.id,
   name: establishmentApi.name,
@@ -254,6 +247,5 @@ export default {
   search,
   listAvailable,
   listDataWithFilters,
-  formatLocalityApi,
   formatEstablishmentApi,
 };

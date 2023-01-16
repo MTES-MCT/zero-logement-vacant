@@ -1,9 +1,9 @@
 import { Owner } from './Owner';
 import { HousingStatus } from './HousingState';
-import { LocalityKinds } from './Establishment';
 import { stringSort } from '../utils/stringUtils';
 import { Compare } from '../utils/compareUtils';
 import { Sort } from './Sort';
+import { LocalityKinds } from './Locality';
 
 export interface Housing {
   id: string;

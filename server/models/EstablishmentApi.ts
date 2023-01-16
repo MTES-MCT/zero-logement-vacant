@@ -1,3 +1,5 @@
+import { LocalityApi } from './LocalityApi';
+
 export interface EstablishmentApi {
   id: string;
   name: string;
@@ -25,10 +27,4 @@ export interface EstablishmentDataApi {
   lastCampaignSendingDate: Date;
   delayBetweenCampaigns: any;
   firstCampaignSentDelay: number;
-}
-
-export interface LocalityApi {
-  id: string;
-  geoCode: string;
-  name: string;
 }

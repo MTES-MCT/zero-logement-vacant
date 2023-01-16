@@ -2,7 +2,7 @@ import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
-import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
+import { EstablishmentApi } from '../models/EstablishmentApi';
 import { addHours, formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
@@ -20,6 +20,7 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi,
 } from '../models/SignupLinkApi';
+import { LocalityApi } from '../models/LocalityApi';
 
 const randomstring = require('randomstring');
 

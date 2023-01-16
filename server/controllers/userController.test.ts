@@ -17,7 +17,9 @@ import establishmentRepository, {
   establishmentsTable,
 } from '../repositories/establishmentRepository';
 import { campaignsTable } from '../repositories/campaignRepository';
-import { localitiesTable } from '../repositories/localityRepository';
+import localityRepository, {
+  localitiesTable,
+} from '../repositories/localityRepository';
 import housingRepository, {
   housingTable,
   ownersHousingTable,
@@ -184,9 +186,10 @@ describe('User controller', () => {
     it('should activate user establishment if needed', async () => {
       const Locality = genLocalityApi();
       const establishment = genEstablishmentApi(Locality);
-      await db(localitiesTable).insert(
-        establishmentRepository.formatLocalityApi(Locality)
-      );
+      await db(localitiesTable).insert({
+        id: uuidv4(),
+        ...localityRepository.formatLocalityApi(Locality),
+      });
       await db(establishmentsTable).insert({
         ...establishmentRepository.formatEstablishmentApi(establishment),
         available: false,

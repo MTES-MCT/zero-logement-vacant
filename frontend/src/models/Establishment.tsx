@@ -1,11 +1,10 @@
+import { Locality } from './Locality';
+
 export interface Establishment {
   id: string;
   name: string;
   siren: number;
-  localities: {
-    geoCode: string;
-    name: string;
-  }[];
+  localities: Locality[];
   campaignIntent?: string;
 }
 
@@ -24,13 +23,3 @@ export interface EstablishmentData {
   delayBetweenCampaigns: any;
   firstCampaignSentDelay: number;
 }
-
-export enum LocalityKinds {
-  ACV = 'ACV',
-  PVD = 'PVD',
-}
-
-export const LocalityKindLabels = {
-  [LocalityKinds.ACV]: 'Action Cœur de Ville',
-  [LocalityKinds.PVD]: 'Petites Villes de Demain',
-};

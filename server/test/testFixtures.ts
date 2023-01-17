@@ -59,17 +59,17 @@ export const genSiren = () => genNumber(9);
 export const genLocalityApi = () => {
   return <LocalityApi>{
     id: uuidv4(),
-    geoCode: randomstring.generate(),
+    geoCode: String(genNumber(5)),
     name: randomstring.generate(),
   };
 };
 
-export const genEstablishmentApi = (...localities: LocalityApi[]) => {
+export const genEstablishmentApi = (...geoCodes: string[]) => {
   return <EstablishmentApi>{
     id: uuidv4(),
     name: randomstring.generate(),
     siren: genSiren(),
-    localities,
+    geoCodes,
   };
 };
 

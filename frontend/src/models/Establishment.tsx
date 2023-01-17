@@ -1,10 +1,7 @@
-import { Locality } from './Locality';
-
 export interface Establishment {
   id: string;
   name: string;
   siren: number;
-  localities: Locality[];
   campaignIntent?: string;
 }
 

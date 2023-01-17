@@ -11,11 +11,11 @@ import localityRepository, {
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
-export const Locality1 = genLocalityApi();
-export const Locality2 = genLocalityApi();
+export const Locality1 = { ...genLocalityApi(), taxZone: 'C' };
+export const Locality2 = { ...genLocalityApi(), taxZone: 'B1' };
 
-export const Establishment1 = genEstablishmentApi(Locality1);
-export const Establishment2 = genEstablishmentApi(Locality2);
+export const Establishment1 = genEstablishmentApi(Locality1.geoCode);
+export const Establishment2 = genEstablishmentApi(Locality2.geoCode);
 
 exports.seed = function (knex: Knex) {
   return Promise.all([

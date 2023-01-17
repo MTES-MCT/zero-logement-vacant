@@ -3,7 +3,7 @@ import { Request as JWTRequest } from 'express-jwt';
 import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
 import { RequestUser } from '../models/UserApi';
 import geoRepository from '../repositories/geoRepository';
-import { body, param, validationResult } from 'express-validator';
+import { body, param } from 'express-validator';
 import { constants } from 'http2';
 
 const listGeoPerimeters = async (
@@ -54,13 +54,6 @@ const deleteGeoPerimeter = async (
   request: JWTRequest,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   const geoPerimeterId = request.params.geoPerimeterId;
   const establishmentId = (<RequestUser>request.auth).establishmentId;
 
@@ -87,13 +80,6 @@ const updateGeoPerimeter = async (
   request: JWTRequest,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   const geoPerimeterId = request.params.geoPerimeterId;
   const establishmentId = (<RequestUser>request.auth).establishmentId;
   const kind = request.body.kind;

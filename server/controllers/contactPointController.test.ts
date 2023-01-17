@@ -122,7 +122,7 @@ describe('ContactPoint controller', () => {
     });
 
     it('should be missing', async () => {
-      await withAccessToken(request(app).delete(testRoute(uuidv4()))).expect(
+      await withAccessToken(request(app).put(testRoute(uuidv4()))).expect(
         constants.HTTP_STATUS_NOT_FOUND
       );
     });

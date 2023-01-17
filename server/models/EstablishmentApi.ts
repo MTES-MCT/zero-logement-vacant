@@ -1,11 +1,9 @@
-import { LocalityApi } from './LocalityApi';
-
 export interface EstablishmentApi {
   id: string;
   name: string;
   siren: number;
   available: boolean;
-  localities: LocalityApi[];
+  geoCodes: string[];
   campaignIntent?: CampaignIntent;
 }
 

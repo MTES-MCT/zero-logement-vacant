@@ -185,7 +185,7 @@ describe('User controller', () => {
 
     it('should activate user establishment if needed', async () => {
       const Locality = genLocalityApi();
-      const establishment = genEstablishmentApi(Locality);
+      const establishment = genEstablishmentApi(Locality.geoCode);
       await db(localitiesTable).insert({
         id: uuidv4(),
         ...localityRepository.formatLocalityApi(Locality),

@@ -1,31 +1,24 @@
 import React from 'react';
 
 import { Col, Row, SearchableSelect, Title } from '@dataesr/react-dsfr';
-import { useSelector } from 'react-redux';
 import {
   housingAreaOptions,
   ownerAgeOptions,
   ownerKindOptions,
   vacancyDurationOptions,
 } from '../../models/HousingFilters';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from './HousingListFiltersSidemenu';
+import { useLocalityList } from '../../hooks/useLocalityList';
 
 const HousingListFilters = () => {
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
-  );
+  const { localityOptions } = useLocalityList();
   const { filters, length, onChangeFilters, setExpand } = useFilters();
-  const localities = establishment.localities
+  const localities = localityOptions
     // Remove those localities which are already selected
-    .filter((locality) => !filters.localities?.includes(locality.geoCode))
-    .map((locality) => ({
-      value: locality.geoCode,
-      label: locality.name,
-    }));
+    .filter((option) => !filters.localities?.includes(option.value));
 
   return (
     <>

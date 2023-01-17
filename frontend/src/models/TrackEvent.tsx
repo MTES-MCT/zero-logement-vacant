@@ -8,6 +8,7 @@ export const TrackEventCategories = {
   Campaigns: 'Logements suivis',
   GeoPerimeters: 'Périmètres',
   ContactPoints: 'Guichet contacts',
+  LocalityTaxes: 'Taxes locales',
 };
 
 export const TrackEventActions = {
@@ -48,5 +49,8 @@ export const TrackEventActions = {
     Create: 'Ajouter un guichet contact',
     Update: 'Modifier un guichet contact',
     Delete: 'Supprimer un guichet contact',
+  },
+  LocalityTaxes: {
+    Update: 'Modifier une taxe locale',
   },
 };

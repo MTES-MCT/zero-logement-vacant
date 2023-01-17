@@ -16,8 +16,7 @@ import {
 import * as yup from 'yup';
 import { ContactPoint, DraftContactPoint } from '../../../models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../../../store/reducers/applicationReducers';
+import { useLocalityList } from '../../../hooks/useLocalityList';
 
 interface Props {
   contactPoint?: ContactPoint;
@@ -37,9 +36,7 @@ const ContactPointEditionModal = ({
   const [email, setEmail] = useState(contactPoint?.email ?? undefined);
   const [phone, setPhone] = useState(contactPoint?.phone ?? undefined);
   const [notes, setNotes] = useState(contactPoint?.notes ?? undefined);
-  const { localities } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser.establishment
-  );
+  const { localityOptions } = useLocalityList();
 
   const schema = yup.object().shape({
     title: yup.string().required('Veuillez saisir le titre du guichet'),
@@ -132,10 +129,7 @@ const ContactPointEditionModal = ({
             <Row spacing="my-2w">
               <Col>
                 <SearchableSelect
-                  options={localities.map((locality) => ({
-                    value: locality.geoCode,
-                    label: locality.name,
-                  }))}
+                  options={localityOptions}
                   label="Commune"
                   placeholder="Rechercher une commune"
                   onChange={(value: string) => setGeoCode(value)}

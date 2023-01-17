@@ -1,5 +1,4 @@
 import db, { likeUnaccent } from './db';
-import { localitiesTable } from './localityRepository';
 import {
   EstablishmentApi,
   EstablishmentDataApi,
@@ -19,19 +18,8 @@ const get = async (
 ): Promise<EstablishmentApi | null> => {
   console.log('Get establishments by id', establishmentId);
 
-  const result = await db
-    .select(
-      `${establishmentsTable}.*`,
-      db.raw(
-        "json_agg(json_build_object('geo_code', l.geo_code, 'name', l.name) order by l.name) as localities"
-      )
-    )
-    .from(establishmentsTable)
-    .joinRaw(
-      `join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`
-    )
+  const result = await db(establishmentsTable)
     .where(`${establishmentsTable}.id`, establishmentId)
-    .groupBy(`${establishmentsTable}.id`)
     .first();
 
   return result ? parseEstablishmentApi(result) : null;
@@ -46,19 +34,9 @@ const findOne = async (
 ): Promise<EstablishmentApi | null> => {
   console.log('Find establishment by', options);
 
-  const result = await db
-    .select(
-      `${establishmentsTable}.*`,
-      db.raw(
-        "json_agg(json_build_object('geo_code', l.geo_code, 'name', l.name) order by l.name) as localities"
-      )
-    )
+  const result = await db(establishmentsTable)
     .from(establishmentsTable)
-    .joinRaw(
-      `join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`
-    )
     .where(`${establishmentsTable}.siren`, options.siren)
-    .groupBy(`${establishmentsTable}.id`)
     .first();
 
   return result ? parseEstablishmentApi(result) : null;
@@ -219,25 +197,36 @@ const listDataWithFilters = async (
   }
 };
 
-const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
+interface EstablishmentDbo {
+  id: string;
+  name: string;
+  siren: number;
+  available: boolean;
+  localities_geo_code: string[];
+  campaign_intent?: string;
+}
+
+const formatEstablishmentApi = (
+  establishmentApi: EstablishmentApi
+): EstablishmentDbo => ({
   id: establishmentApi.id,
   name: establishmentApi.name,
   siren: establishmentApi.siren,
   available: establishmentApi.available,
-  localities_geo_code: establishmentApi.localities.map((_) => _.geoCode),
+  localities_geo_code: establishmentApi.geoCodes,
   campaign_intent: establishmentApi.campaignIntent,
 });
 
-const parseEstablishmentApi = (result: any): EstablishmentApi =>
+const parseEstablishmentApi = (
+  establishmentDbo: EstablishmentDbo
+): EstablishmentApi =>
   <EstablishmentApi>{
-    id: result.id,
-    name: result.name,
-    siren: result.siren,
-    localities: result.localities.map((l: { geo_code: any; name: any }) => ({
-      geoCode: l.geo_code,
-      name: l.name,
-    })),
-    campaignIntent: result.campaign_intent,
+    id: establishmentDbo.id,
+    name: establishmentDbo.name,
+    siren: establishmentDbo.siren,
+    available: establishmentDbo.available,
+    geoCodes: establishmentDbo.localities_geo_code,
+    campaignIntent: establishmentDbo.campaign_intent,
   };
 
 export default {

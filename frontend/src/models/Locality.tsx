@@ -1,8 +1,8 @@
 export interface Locality {
   geoCode: string;
   name: string;
-  taxZone: string;
-  taxRate: number;
+  taxZone?: string;
+  taxRate?: number;
 }
 export enum LocalityKinds {
   ACV = 'ACV',

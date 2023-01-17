@@ -5,6 +5,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
+import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
 
 const EstablishmentView = () => {
   return (
@@ -30,6 +31,9 @@ const EstablishmentView = () => {
           </Tab>
           <Tab label="Vos guichets contact">
             <EstablishmentContactPoints />
+          </Tab>
+          <Tab label="Taxes sur les logements vacants">
+            <EstablishmentLocalityTaxes />
           </Tab>
         </Tabs>
       </Container>

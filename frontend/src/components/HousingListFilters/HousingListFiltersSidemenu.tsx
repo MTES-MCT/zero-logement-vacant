@@ -47,7 +47,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { SelectOption } from '../../models/SelectOption';
+import { useLocalityList } from '../../hooks/useLocalityList';
 
 interface TitleWithIconProps {
   icon: string;
@@ -68,19 +68,13 @@ function HousingListFiltersSidemenu() {
     useFilters();
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
-  );
   const { paginatedHousing } = useSelector(
     (state: ApplicationState) => state.housing
   );
-  const localities: SelectOption[] = establishment.localities
+  const { localityOptions } = useLocalityList();
+  const localities = localityOptions
     // Remove those localities which are already selected
-    .filter((locality) => !filters.localities?.includes(locality.geoCode))
-    .map((locality) => ({
-      value: locality.geoCode,
-      label: locality.name,
-    }));
+    .filter((option) => !filters.localities?.includes(option.value));
 
   function close(): void {
     setExpand(false);

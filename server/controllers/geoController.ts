@@ -73,7 +73,7 @@ const deleteGeoPerimeter = async (
 const updateGeoPerimeterValidators = [
   param('geoPerimeterId').notEmpty().isUUID(),
   body('kind').notEmpty().isString(),
-  body('kind').optional({ nullable: true }).isString(),
+  body('name').optional({ nullable: true }).isString(),
 ];
 
 const updateGeoPerimeter = async (

@@ -122,9 +122,11 @@ describe('ContactPoint controller', () => {
     });
 
     it('should be missing', async () => {
-      await withAccessToken(request(app).put(testRoute(uuidv4()))).expect(
-        constants.HTTP_STATUS_NOT_FOUND
-      );
+      await withAccessToken(
+        request(app)
+          .put(testRoute(uuidv4()))
+          .send(genContactPointApi(Establishment1.id))
+      ).expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should received valid parameters', async () => {

@@ -25,7 +25,7 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
   const { localities } = useLocalityList();
   return (
     <Card hasArrow={false} className="h-fit-content">
-      <CardTitle>
+      <CardTitle as="h2">
         <Row>
           <Col>
             <span className="card-title-icon">
@@ -52,9 +52,9 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
         <Title as="h2" look="h6" spacing="mb-1w">
           {contactPoint.title}
         </Title>
-        <hr />
       </CardTitle>
-      <CardDescription>
+      <CardDescription as="div">
+        <hr />
         {contactPoint.phone && (
           <div className="fr-p-1w bg-975">
             <Text size="sm" className="zlv-label">
@@ -83,7 +83,7 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
             </Text>
           </div>
         )}
-        {contactPoint.geoCode && (
+        {contactPoint.geoCode && localities?.length && (
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
               Commune

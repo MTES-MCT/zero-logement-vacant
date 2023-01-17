@@ -24,7 +24,7 @@ function LocalityTaxesCard({ locality, onEdit }: Props) {
 
   return (
     <Card hasArrow={false} className="h-fit-content">
-      <CardTitle>
+      <CardTitle as="h2">
         <Row>
           <Col>
             <span className="card-title-icon">
@@ -47,7 +47,7 @@ function LocalityTaxesCard({ locality, onEdit }: Props) {
           {locality.name}
         </Title>
       </CardTitle>
-      <CardDescription>
+      <CardDescription as="div">
         <Tag className="fr-mb-2w">
           {hasTLV(locality) ? 'Zone tendue' : 'Zone détendue'}
         </Tag>

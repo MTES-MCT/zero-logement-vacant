@@ -31,6 +31,8 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Alert from '../../components/Alert/Alert';
 import ButtonLink from '../../components/ButtonLink/ButtonLink';
 import GeoPerimeterUploadingModal from '../../components/modals/GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
+import GeoPerimeterCard from '../../components/GeoPerimeterCard/GeoPerimeterCard';
+import classNames from 'classnames';
 
 enum ActionSteps {
   Init,
@@ -59,6 +61,7 @@ const EstablishmentGeoPerimeters = () => {
   const [removingState, setRemovingState] = useState<
     GeoPerimeterActionState | undefined
   >();
+  const [isCardView, setIsCardView] = useState<boolean>(true);
 
   const onSubmitUploadingGeoPerimeter = (file: File) => {
     trackEvent({
@@ -115,77 +118,17 @@ const EstablishmentGeoPerimeters = () => {
     }
   };
 
-  const kindColumn = {
-    name: 'kind',
-    label: 'Filtre',
-    render: ({ kind }: GeoPerimeter) => (
-      <Tag className="bg-900">{kind ? kind : 'Non renseigné'}</Tag>
-    ),
-    sortable: true,
-  };
+  const initEditing = (geoPerimeter: GeoPerimeter) =>
+    setUpdatingState({
+      step: ActionSteps.Init,
+      geoPerimeter,
+    });
 
-  const nameColumn = {
-    name: 'name',
-    label: 'Nom du périmètre',
-    sortable: true,
-  };
-
-  const actionsColumn = {
-    name: 'actions',
-    headerRender: () => '',
-    render: (geoPerimeter: GeoPerimeter) => (
-      <>
-        <ButtonLink
-          onClick={() => {
-            setUpdatingState({
-              step: ActionSteps.Init,
-              geoPerimeter,
-            });
-          }}
-          isSimple
-          icon="ri-edit-2-fill"
-          iconSize="lg"
-          className="d-inline-block fr-mr-1w"
-        />
-        <ButtonLink
-          onClick={() => {
-            setRemovingState({
-              step: ActionSteps.Init,
-              geoPerimeter,
-            });
-          }}
-          isSimple
-          icon="ri-delete-bin-5-fill"
-          iconSize="lg"
-          className="d-inline-block"
-        />
-      </>
-    ),
-  };
-
-  const viewColumn = {
-    name: 'view',
-    headerRender: () => '',
-    render: ({ geoJson }: GeoPerimeter) => (
-      <Link
-        title="Afficher (.json)"
-        target="_blank"
-        isSimple
-        display="inline"
-        icon="ri-eye-fill"
-        iconPosition="left"
-        href={
-          'https://geojson.io/#data=data:application/json,' +
-          encodeURIComponent(JSON.stringify(geoJson))
-        }
-      >
-        Afficher (.json)
-      </Link>
-    ),
-  };
-
-  const columns = [nameColumn, kindColumn, viewColumn, actionsColumn];
-
+  const initRemoving = (geoPerimeter: GeoPerimeter) =>
+    setRemovingState({
+      step: ActionSteps.Init,
+      geoPerimeter,
+    });
   const invalidGeoFilters = geoPerimeters?.filter((_) => !_.kind?.length);
 
   return (
@@ -271,20 +214,140 @@ const EstablishmentGeoPerimeters = () => {
           className="fr-mb-2w"
         />
       )}
+      <Row justifyContent="right" spacing="my-3w">
+        <ButtonLink
+          onClick={() => setIsCardView(true)}
+          isSimple
+          icon="ri-function-fill"
+          iconSize="lg"
+          className={classNames(
+            'd-inline-block',
+            'fr-mr-1w',
+            'fr-p-1w',
+            'bg-975',
+            { 'fr-btn--secondary': isCardView }
+          )}
+        />
+        <ButtonLink
+          onClick={() => setIsCardView(false)}
+          isSimple
+          icon="ri-list-check"
+          iconSize="lg"
+          className={classNames('d-inline-block', 'fr-p-1w', 'bg-975', {
+            'fr-btn--secondary': !isCardView,
+          })}
+        />
+      </Row>
       {geoPerimeters && geoPerimeters.length > 0 && (
-        <Row>
-          <Table
-            caption="Périmètres"
-            captionPosition="none"
-            rowKey="id"
-            data={geoPerimeters}
-            columns={columns}
-            fixedLayout={true}
-            className="with-view"
-          />
-        </Row>
+        <>
+          {isCardView ? (
+            <Row gutters>
+              {geoPerimeters?.map((geoPerimeter) => (
+                <Col n="4" key={geoPerimeter.id}>
+                  <GeoPerimeterCard
+                    geoPerimeter={geoPerimeter}
+                    onEdit={initEditing}
+                    onRemove={initRemoving}
+                  />
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <Row>
+              <GeoPerimetersTable
+                geoPerimeters={geoPerimeters}
+                onEdit={initEditing}
+                onRemove={initRemoving}
+              />
+            </Row>
+          )}
+        </>
       )}
     </>
+  );
+};
+
+interface GeoPerimetersTableProps {
+  geoPerimeters: GeoPerimeter[];
+  onEdit: (geoPerimeter: GeoPerimeter) => void;
+  onRemove: (geoPerimeter: GeoPerimeter) => void;
+}
+
+const GeoPerimetersTable = ({
+  geoPerimeters,
+  onEdit,
+  onRemove,
+}: GeoPerimetersTableProps) => {
+  const kindColumn = {
+    name: 'kind',
+    label: 'Filtre',
+    render: ({ kind }: GeoPerimeter) => (
+      <Tag className="bg-900">{kind ? kind : 'Non renseigné'}</Tag>
+    ),
+    sortable: true,
+  };
+
+  const nameColumn = {
+    name: 'name',
+    label: 'Nom du périmètre',
+    sortable: true,
+  };
+
+  const actionsColumn = {
+    name: 'actions',
+    headerRender: () => '',
+    render: (geoPerimeter: GeoPerimeter) => (
+      <>
+        <ButtonLink
+          onClick={() => onEdit(geoPerimeter)}
+          isSimple
+          icon="ri-edit-2-fill"
+          iconSize="lg"
+          className="d-inline-block fr-mr-1w"
+        />
+        <ButtonLink
+          onClick={() => onRemove(geoPerimeter)}
+          isSimple
+          icon="ri-delete-bin-5-fill"
+          iconSize="lg"
+          className="d-inline-block"
+        />
+      </>
+    ),
+  };
+
+  const viewColumn = {
+    name: 'view',
+    headerRender: () => '',
+    render: ({ geoJson }: GeoPerimeter) => (
+      <Link
+        title="Afficher (.json)"
+        target="_blank"
+        isSimple
+        display="inline"
+        icon="ri-eye-fill"
+        iconPosition="left"
+        href={
+          'https://geojson.io/#data=data:application/json,' +
+          encodeURIComponent(JSON.stringify(geoJson))
+        }
+      >
+        Afficher (.json)
+      </Link>
+    ),
+  };
+
+  const columns = [nameColumn, kindColumn, viewColumn, actionsColumn];
+  return (
+    <Table
+      caption="Périmètres"
+      captionPosition="none"
+      rowKey="id"
+      data={geoPerimeters}
+      columns={columns}
+      fixedLayout={true}
+      className="with-view"
+    />
   );
 };
 

@@ -17,8 +17,8 @@ export interface EstablishmentState {
   loading: boolean;
   localities?: Locality[];
   geoPerimeters?: GeoPerimeter[];
-  file?: File;
-  filename?: string;
+  geoPerimeterFile?: File;
+  geoPerimeterFilename?: string;
   contactPoints?: ContactPoint[];
 }
 
@@ -63,15 +63,15 @@ const establishmentReducer = (
       return {
         ...state,
         loading: true,
-        file: action.file,
-        filename: action.filename,
+        geoPerimeterFile: action.file,
+        geoPerimeterFilename: action.filename,
       };
     case GEO_PERIMETER_FILE_UPLOADED: {
       return {
         ...state,
         loading: false,
-        file: undefined,
-        filename: undefined,
+        geoPerimeterFile: undefined,
+        geoPerimeterFilename: undefined,
       };
     }
     case FETCH_CONTACT_POINT_LIST: {

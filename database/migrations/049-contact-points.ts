@@ -22,11 +22,13 @@ exports.up = function (knex: Knex) {
         ['insee_code', 'data_years'],
         'housing_insee_code_data_years_idx'
       );
+      table.dropIndex(['insee_code'], 'housing_insee_code_idx');
       table.renameColumn('insee_code', 'geo_code');
       table.index(
         ['geo_code', 'data_years'],
         'housing_geo_code_data_years_idx'
       );
+      table.index(['insee_code'], 'housing_geo_code_idx');
     }),
   ]);
 };
@@ -39,11 +41,13 @@ exports.down = function (knex: Knex) {
         ['geo_code', 'data_years'],
         'housing_geo_code_data_years_idx'
       );
+      table.dropIndex(['insee_code'], 'housing_geo_code_idx');
       table.renameColumn('geo_code', 'insee_code');
       table.index(
         ['insee_code', 'data_years'],
         'housing_insee_code_data_years_idx'
       );
+      table.index(['insee_code'], 'housing_insee_code_idx');
     }),
   ]);
 };

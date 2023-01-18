@@ -22,7 +22,9 @@ export const useLocalityList = (forceReload = false) => {
   }));
 
   const hasTLV = (locality: Locality) =>
-    locality.taxZone !== undefined && locality.taxZone !== 'C';
+    locality.taxZone !== undefined &&
+    locality.taxZone !== '' &&
+    locality.taxZone !== 'C';
 
   const hasTHLV = (locality: Locality) => locality.taxRate !== null;
   const hasNoTax = (locality: Locality) =>

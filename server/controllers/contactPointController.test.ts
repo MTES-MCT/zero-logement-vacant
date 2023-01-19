@@ -12,7 +12,7 @@ import {
 } from '../../database/seeds/test/008-contact-points';
 import contactPointsRepository from '../repositories/contactPointsRepository';
 import { v4 as uuidv4 } from 'uuid';
-import { genContactPointApi } from '../test/testFixtures';
+import { genContactPointApi, genGeoCode } from '../test/testFixtures';
 import randomstring from 'randomstring';
 
 const { app } = createServer();
@@ -70,7 +70,20 @@ describe('ContactPoint controller', () => {
 
       await withAccessToken(request(app).post(testRoute))
         .send({
+          geoCodes: [genGeoCode()],
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await withAccessToken(request(app).post(testRoute))
+        .send({
           title: randomstring.generate(),
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await withAccessToken(request(app).post(testRoute))
+        .send({
+          title: randomstring.generate(),
+          geoCodes: [genGeoCode()],
           email: randomstring.generate(),
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);

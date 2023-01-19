@@ -6,14 +6,16 @@ import {
   Icon,
   Link,
   Row,
+  Tag,
   Text,
   Title,
 } from '@dataesr/react-dsfr';
 import { ContactPoint } from '../../models/ContactPoint';
 import React from 'react';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { mailto } from '../../utils/stringUtils';
+import { mailto, pluralize } from '../../utils/stringUtils';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import _ from 'lodash';
 
 interface Props {
   contactPoint: ContactPoint;
@@ -22,7 +24,7 @@ interface Props {
 }
 
 function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
-  const { localities } = useLocalityList();
+  const { localities, localitiesGeoCodes } = useLocalityList();
   return (
     <Card hasArrow={false} className="h-fit-content">
       <CardTitle as="h2">
@@ -83,16 +85,28 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
             </Text>
           </div>
         )}
-        {contactPoint.geoCode && localities?.length && (
+        {contactPoint.geoCodes && localities?.length && (
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
-              Commune
+              {pluralize(contactPoint.geoCodes.length)('Commune')}
             </Text>
             <Text spacing="mb-0" className="pre-wrap">
-              {
-                localities?.find((_) => _.geoCode === contactPoint.geoCode)
-                  ?.name
-              }
+              {_.isEqual(contactPoint.geoCodes, localitiesGeoCodes) ? (
+                <>
+                  <Tag>Toutes les communes du territoire</Tag>
+                </>
+              ) : (
+                <>
+                  {contactPoint.geoCodes.map((geoCode) => (
+                    <Tag
+                      key={contactPoint.id + '_' + geoCode}
+                      className="fr-mr-1w"
+                    >
+                      {localities?.find((_) => _.geoCode === geoCode)?.name}
+                    </Tag>
+                  ))}
+                </>
+              )}
             </Text>
           </div>
         )}

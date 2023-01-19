@@ -5,6 +5,7 @@ import { constants } from 'http2';
 import contactPointsRepository from '../repositories/contactPointsRepository';
 import { body, param } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
+import validator from 'validator';
 
 const listContactPoints = async (
   request: JWTRequest,
@@ -23,7 +24,7 @@ interface ContactPointBody {
   title: string;
   opening?: string;
   address?: string;
-  geoCode?: string;
+  geoCodes: string[];
   email?: string;
   phone?: string;
   notes?: string;
@@ -33,7 +34,14 @@ const createContactPointValidators = [
   body('title').isString().notEmpty(),
   body('opening').isString().optional(),
   body('address').isString().optional(),
-  body('geoCode').isString().optional(),
+  body('geoCodes')
+    .notEmpty()
+    .isArray()
+    .custom((value) =>
+      value.every((v: any) =>
+        validator.matches(v, /^(0[1-9]|[1-9][ABab\d])\d{3}$/)
+      )
+    ),
   body('email').isEmail().optional(),
   body('phone').isString().optional(),
   body('notes').isString().optional(),

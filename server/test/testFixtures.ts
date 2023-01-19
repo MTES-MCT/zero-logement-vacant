@@ -43,6 +43,13 @@ export const genEmail = () => {
   );
 };
 
+export const genGeoCode = () => {
+  return randomstring.generate({
+    length: 5,
+    charset: 'numeric',
+  });
+};
+
 export const genNumber = (length = 10) => {
   return Number(
     randomstring.generate({
@@ -220,5 +227,6 @@ export const genContactPointApi = (establishmentId: string) => {
     opening: randomstring.generate(),
     address: randomstring.generate(),
     email: genEmail(),
+    geoCodes: [genGeoCode()],
   };
 };

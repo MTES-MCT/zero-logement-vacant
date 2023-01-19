@@ -2,7 +2,7 @@ export interface DraftContactPoint {
   title: string;
   opening?: string;
   address?: string;
-  geoCode?: string;
+  geoCodes: string[];
   email?: string;
   phone?: string;
   notes?: string;

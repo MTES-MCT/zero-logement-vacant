@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../store/reducers/applicationReducers';
 import { fetchLocalities } from '../store/actions/establishmentAction';
@@ -16,10 +16,19 @@ export const useLocalityList = (forceReload = false) => {
     }
   }, [dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const localityOptions = (localities ?? []).map((l) => ({
-    value: l.geoCode,
-    label: l.name,
-  }));
+  const localitiesOptions = useMemo(
+    () =>
+      (localities ?? []).map((l) => ({
+        value: l.geoCode,
+        label: l.name,
+      })),
+    [localities]
+  );
+
+  const localitiesGeoCodes = useMemo(
+    () => (localities ?? []).map((_) => _.geoCode),
+    [localities]
+  );
 
   const hasTLV = (locality: Locality) =>
     locality.taxZone !== undefined &&
@@ -35,7 +44,8 @@ export const useLocalityList = (forceReload = false) => {
 
   return {
     localities,
-    localityOptions,
+    localitiesOptions,
+    localitiesGeoCodes,
     hasTLV,
     hasTHLV,
     hasNoTax,

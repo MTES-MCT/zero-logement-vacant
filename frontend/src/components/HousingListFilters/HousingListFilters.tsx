@@ -14,9 +14,9 @@ import HousingListFiltersSidemenu from './HousingListFiltersSidemenu';
 import { useLocalityList } from '../../hooks/useLocalityList';
 
 const HousingListFilters = () => {
-  const { localityOptions } = useLocalityList();
+  const { localitiesOptions } = useLocalityList();
   const { filters, length, onChangeFilters, setExpand } = useFilters();
-  const localities = localityOptions
+  const localities = localitiesOptions
     // Remove those localities which are already selected
     .filter((option) => !filters.localities?.includes(option.value));
 

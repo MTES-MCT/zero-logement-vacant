@@ -71,8 +71,8 @@ function HousingListFiltersSidemenu() {
   const { paginatedHousing } = useSelector(
     (state: ApplicationState) => state.housing
   );
-  const { localityOptions } = useLocalityList();
-  const localities = localityOptions
+  const { localitiesOptions } = useLocalityList();
+  const localities = localitiesOptions
     // Remove those localities which are already selected
     .filter((option) => !filters.localities?.includes(option.value));
 

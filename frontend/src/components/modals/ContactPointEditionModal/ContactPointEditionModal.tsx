@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useState } from 'react';
 import {
   Button,
+  Checkbox,
   Col,
   Container,
   Modal,
@@ -10,6 +11,7 @@ import {
   ModalTitle,
   Row,
   SearchableSelect,
+  Tag,
   TextInput,
 } from '@dataesr/react-dsfr';
 
@@ -17,6 +19,7 @@ import * as yup from 'yup';
 import { ContactPoint, DraftContactPoint } from '../../../models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
+import _ from 'lodash';
 
 interface Props {
   contactPoint?: ContactPoint;
@@ -29,17 +32,29 @@ const ContactPointEditionModal = ({
   onSubmit,
   onClose,
 }: Props) => {
+  const { localitiesOptions, localities, localitiesGeoCodes } =
+    useLocalityList();
   const [title, setTitle] = useState(contactPoint?.title ?? '');
   const [opening, setOpening] = useState(contactPoint?.opening ?? undefined);
   const [address, setAddress] = useState(contactPoint?.address ?? undefined);
-  const [geoCode, setGeoCode] = useState(contactPoint?.geoCode ?? undefined);
+  const [geoCodes, setGeoCodes] = useState(
+    contactPoint?.geoCodes ?? localitiesGeoCodes
+  );
   const [email, setEmail] = useState(contactPoint?.email ?? undefined);
   const [phone, setPhone] = useState(contactPoint?.phone ?? undefined);
   const [notes, setNotes] = useState(contactPoint?.notes ?? undefined);
-  const { localityOptions } = useLocalityList();
+
+  const filteredLocalityOptions = localitiesOptions.filter(
+    (option) => !geoCodes.includes(option.value)
+  );
 
   const schema = yup.object().shape({
     title: yup.string().required('Veuillez saisir le titre du guichet'),
+    geoCodes: yup
+      .array()
+      .of(yup.string())
+      .ensure()
+      .min(1, 'Veuillez sélectionner au moins une commune'),
     email: emailValidator.nullable().optional(),
   });
 
@@ -47,7 +62,7 @@ const ContactPointEditionModal = ({
     title,
     opening,
     address,
-    geoCode,
+    geoCodes,
     email,
     phone,
     notes,
@@ -60,13 +75,15 @@ const ContactPointEditionModal = ({
         title: title!,
         opening,
         address,
-        geoCode,
+        geoCodes,
         email,
         phone,
         notes,
       });
     }
   };
+
+  const isGlobal = _.isEqual(geoCodes, localitiesGeoCodes);
 
   return (
     <Modal isOpen={true} hide={() => onClose()}>
@@ -128,14 +145,46 @@ const ContactPointEditionModal = ({
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <SearchableSelect
-                  options={localityOptions}
-                  label="Commune"
-                  placeholder="Rechercher une commune"
-                  onChange={(value: string) => setGeoCode(value)}
+                <Checkbox
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setGeoCodes(e.target.checked ? localitiesGeoCodes : [])
+                  }
+                  checked={isGlobal}
+                  label="Ce guichet concerne l'ensemble des communes de votre territoire."
+                  hint="Décochez cette case si vous voulez sélectionner seulement une ou plusieurs communes"
                 />
               </Col>
             </Row>
+            {!isGlobal && (
+              <Row spacing="my-2w">
+                <Col>
+                  <SearchableSelect
+                    options={filteredLocalityOptions}
+                    label="Commune"
+                    placeholder="Rechercher une commune"
+                    onChange={(value: string) => {
+                      if (value) {
+                        setGeoCodes([...geoCodes, value]);
+                      }
+                    }}
+                  />
+                  {geoCodes.map((geoCode) => (
+                    <Tag
+                      key={geoCode}
+                      onClick={() =>
+                        setGeoCodes(geoCodes.filter((v) => v !== geoCode))
+                      }
+                      icon="ri-close-line"
+                    >
+                      {localities?.find((_) => _.geoCode === geoCode)?.name}
+                    </Tag>
+                  ))}
+                  {messageType('geoCodes') === 'error' && (
+                    <p className="fr-error-text">{message('geoCodes')}</p>
+                  )}
+                </Col>
+              </Row>
+            )}
             <Row spacing="my-2w">
               <Col n="6">
                 <TextInput

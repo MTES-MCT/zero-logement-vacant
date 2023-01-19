@@ -50,7 +50,7 @@ const HousingFiltersBadges = ({
 }: HousingFiltersBadgesProps) => {
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
-  const { localityOptions } = useLocalityList();
+  const { localitiesOptions } = useLocalityList();
 
   function reset() {
     onReset?.();
@@ -160,7 +160,7 @@ const HousingFiltersBadges = ({
         onChange={onChange && ((values) => onChange({ vacancyRates: values }))}
       />
       <FilterBadges
-        options={localityOptions}
+        options={localitiesOptions}
         filters={filters.localities}
         small={small}
         onChange={onChange && ((values) => onChange({ localities: values }))}

@@ -32,7 +32,7 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 
-const HomeView = () => {
+const EstablishmentHomeView = () => {
   const { trackEvent } = useMatomo();
 
   return (
@@ -334,4 +334,4 @@ const HomeView = () => {
   );
 };
 
-export default HomeView;
+export default EstablishmentHomeView;

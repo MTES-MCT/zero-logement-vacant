@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapProvider } from "react-map-gl";
+import { MapProvider } from 'react-map-gl';
 import './App.scss';
 import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
@@ -20,7 +20,6 @@ import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
-import HomeView from './views/Home/HomeView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
@@ -33,6 +32,8 @@ import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import EstablismentView from './views/Establishment/EstablismentView';
 import { useUser } from './hooks/useUser';
+import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
+import OwnerHomeView from './views/Home/OwnerHomeView';
 
 function AppWrapper() {
   const instance = createInstance({
@@ -116,16 +117,18 @@ function App() {
           </> :
           <Switch>
             <Route path="/inscription" component={AccountCreationView} />
-            <Route exact path="/" component={HomeView} />
+            <Route exact path="/collectivites/connexion" component={LoginView} />
+            <Route exact path="/collectivites" component={EstablishmentHomeView} />
+            <Route exact path="/proprietaires" component={OwnerHomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />
-            <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
             <Route exact path="/admin" component={LoginView} />
+            <Route exact path="/"> <Redirect to="/collectivites"/> </Route>
             <Route path="/*">
-              { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/" /> }
+              { isLoggedOut ? <Redirect to="/collectivites/connexion" /> : <Redirect to="/collectivites" /> }
             </Route>
           </Switch>
         }

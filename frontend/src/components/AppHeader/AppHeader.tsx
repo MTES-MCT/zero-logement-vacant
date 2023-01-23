@@ -112,7 +112,7 @@ function AppHeader() {
               <ToolItemGroup>
                 <ToolItem
                   icon="ri-user-fill"
-                  link="/connexion"
+                  link="/collectivites/connexion"
                   className="d-none d-lg-block fr-my-0"
                 >
                   Connexion
@@ -149,10 +149,19 @@ function AppHeader() {
             />
           </HeaderNav>
         ) : (
-          <HeaderNav className="d-lg-none">
+          <HeaderNav>
+            <div className="d-lg-none">
+              <AppNavItem
+                userNavItem={{
+                  url: '/collectivites/connexion',
+                  label: 'Connexion',
+                }}
+              />
+            </div>
             <AppNavItem
-              userNavItem={{ url: '/connexion', label: 'Connexion' }}
+              userNavItem={getUserNavItem(UserNavItems.EstablishmentHome)}
             />
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.OwnerHome)} />
           </HeaderNav>
         )}
       </Header>

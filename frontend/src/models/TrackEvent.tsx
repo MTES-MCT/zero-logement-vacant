@@ -7,6 +7,8 @@ export const TrackEventCategories = {
   HousingList: 'Base de données',
   Campaigns: 'Logements suivis',
   GeoPerimeters: 'Périmètres',
+  ContactPoints: 'Guichet contacts',
+  LocalityTaxes: 'Taxes locales',
 };
 
 export const TrackEventActions = {
@@ -42,5 +44,13 @@ export const TrackEventActions = {
     Upload: 'Déposer un fichier',
     Rename: 'Renommer un périmètre',
     Delete: 'Supprimer un périmètre',
+  },
+  ContactPoints: {
+    Create: 'Ajouter un guichet contact',
+    Update: 'Modifier un guichet contact',
+    Delete: 'Supprimer un guichet contact',
+  },
+  LocalityTaxes: {
+    Update: 'Modifier une taxe locale',
   },
 };

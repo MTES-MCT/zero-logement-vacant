@@ -9,7 +9,6 @@ import {
 import React, { ReactElement } from 'react';
 
 import { Owner } from '../../models/Owner';
-import styles from './owner-card.module.scss';
 import { differenceInYears, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -35,7 +34,7 @@ function OwnerCard({ owner, children }: OwnerCardProps) {
       className="fr-mb-1w fr-px-1w"
     >
       <CardTitle>
-        <span className={styles.icon}>
+        <span className="card-title-icon">
           <Icon name="ri-user-fill" iconPosition="center" size="1x" />
         </span>
         <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">

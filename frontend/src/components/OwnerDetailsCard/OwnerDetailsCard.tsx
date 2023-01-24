@@ -10,7 +10,7 @@ import {
 import { Owner } from '../../models/Owner';
 import styles from './owner-details-card.module.scss';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { capitalize } from '../../utils/stringUtils';
+import { capitalize, mailto } from '../../utils/stringUtils';
 
 interface OwnerDetailsCardProps {
   onModify?: () => any;
@@ -18,8 +18,6 @@ interface OwnerDetailsCardProps {
 }
 
 function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
-  const mailto = (email: string): string => `mailto:${email}`;
-
   return (
     <Card
       hasArrow={false}
@@ -65,7 +63,7 @@ function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
             <Text size="sm" className="zlv-label">
               Adresse mail
             </Text>
-            <Link className={styles.mailto} isSimple href={mailto(owner.email)}>
+            <Link className="mailto" isSimple href={mailto(owner.email)}>
               {owner.email}
             </Link>
           </div>

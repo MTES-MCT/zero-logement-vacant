@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history';
-import { render, screen, waitFor, logDOM } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Router } from 'react-router-dom';
 import { genProspect, genSignupLink } from '../../../../../test/fixtures.test';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';

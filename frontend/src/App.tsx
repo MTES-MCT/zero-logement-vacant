@@ -27,11 +27,11 @@ import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
 import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
-import GeoPerimeterView from './views/GeoPerimeter/GeoPerimeterView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
+import EstablismentView from './views/Establishment/EstablismentView';
 import { useUser } from './hooks/useUser';
 
 function AppWrapper() {
@@ -101,7 +101,7 @@ function App() {
               <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
               <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
               <Route exact path="*/logements/:housingId" component={HousingView} />
-              <Route exact path="*/perimetres" component={GeoPerimeterView} />
+              <Route exact path="*/territoire" component={EstablismentView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>

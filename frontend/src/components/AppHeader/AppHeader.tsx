@@ -128,9 +128,6 @@ function AppHeader() {
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.HousingList)}
             />
-            <AppNavItem
-              userNavItem={getUserNavItem(UserNavItems.GeoPerimeters)}
-            />
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
             {isAdmin ? (
               <>
@@ -147,6 +144,9 @@ function AppHeader() {
               />
             )}
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.Establishment)}
+            />
           </HeaderNav>
         ) : (
           <HeaderNav className="d-lg-none">

@@ -1,7 +1,7 @@
 import { createSubtitleOption, SelectOption } from './SelectOption';
-import { LocalityKindLabels, LocalityKinds } from './Establishment';
 import { HousingStates, HousingStatus } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
+import { LocalityKindLabels, LocalityKinds } from './Locality';
 
 export interface HousingFilters {
   establishmentIds?: string[];

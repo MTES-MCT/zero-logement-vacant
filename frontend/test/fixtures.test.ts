@@ -4,12 +4,12 @@ import { AuthUser, User } from '../src/models/User';
 import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
-import { LocalityKinds } from '../src/models/Establishment';
 import { SignupLink } from '../src/models/SignupLink';
 import { SIGNUP_LINK_EXPIRATION } from '../../server/models/SignupLinkApi';
 import { addHours } from 'date-fns';
 import { Prospect } from '../src/models/Prospect';
 import { genBoolean, genSiren } from '../../server/test/testFixtures';
+import { LocalityKinds } from '../src/models/Locality';
 
 const randomstring = require('randomstring');
 

@@ -109,7 +109,7 @@
 }
 
 .d-inline-block {
-  display: inline-block;
+  display: inline-block !important;
 }
 
 .d-none,
@@ -133,13 +133,16 @@
   background-color: var(--white-1000);
 }
 .bg-100 {
-  background-color: var(--grey-975);
+  background-color: var(--grey-975) !important;
 }
-.bg-975 {
-  background-color: var(--grey-975);
+.bg-900 {
+  background-color: var(--grey-900) !important;
 }
 .bg-925 {
-  background-color: var(--grey-925);
+  background-color: var(--grey-925) !important;
+}
+.bg-975 {
+  background-color: var(--grey-975) !important;
 }
 .bg-bf113 {
   background-color: var(--blue-france-113);
@@ -311,6 +314,20 @@ a.fr-btn[target='_blank']:after {
   }
 }
 
+.card-title-icon {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  color: var(--grey-625);
+  background-color: var(--grey-975);
+  border-radius: 50%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
 .zlv-label {
   margin-bottom: 0 !important;
   color: var(--grey-625);
@@ -329,4 +346,16 @@ a.fr-btn[target='_blank']:after {
   & > * {
     height: 100%;
   }
+}
+
+.mailto {
+  color: var(--blue-france-main-525);
+}
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+.h-fit-content {
+  height: fit-content !important;
 }

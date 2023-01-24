@@ -80,7 +80,7 @@ const listGeoPerimeters = async (
       .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
       .where('establishment_id', establishmentId)
       .orWhereNull('establishment_id')
-      .orderBy('kind')
+      .orderBy('name')
       .then((_) => _.map((_) => parseGeoPerimeterApi(_)));
   } catch (err) {
     console.error('Listing geo perimeter failed', err);

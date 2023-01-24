@@ -12,6 +12,35 @@ import localityRepository from '../repositories/localityRepository';
 const { app } = createServer();
 
 describe('Locality controller', () => {
+  describe('getLocality', () => {
+    const testRoute = (geoCode: string) => `/api/localities/${geoCode}`;
+
+    it('should received valid parameters', async () => {
+      await request(app)
+        .get(testRoute('id'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should be missing', async () => {
+      await request(app)
+        .get(testRoute(String(genNumber(5))))
+        .expect(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should retrieve the locality', async () => {
+      const res = await request(app)
+        .get(testRoute(Locality1.geoCode))
+        .expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject(
+        expect.objectContaining({
+          name: Locality1.name,
+          geoCode: Locality1.geoCode,
+        })
+      );
+    });
+  });
+
   describe('listLocalities', () => {
     const testRoute = '/api/localities';
 

@@ -24,10 +24,13 @@ const quickSearchService = (): {
       })
         .then((_) => _.json())
         .then((result) =>
-          result.features.map((a: any) => ({
-            label: a.properties.label,
-            postalCode: a.properties.citycode,
-          }))
+          result.features.map(
+            (a: any) =>
+              ({
+                label: a.properties.label,
+                geoCode: a.properties.citycode,
+              } as AddressSearchResult)
+          )
         ),
   };
 };

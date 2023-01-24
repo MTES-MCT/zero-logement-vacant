@@ -7,6 +7,27 @@ import { body, param } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import LocalityMissingError from '../errors/localityMissingError';
 
+const getLocalityValidators = [
+  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
+];
+
+const getLocality = async (
+  request: JWTRequest,
+  response: Response
+): Promise<Response> => {
+  const geoCode = request.params.geoCode;
+
+  console.log('Get locality with geoCode', geoCode);
+
+  const locality = await localityRepository.get(geoCode);
+
+  if (!locality) {
+    throw new LocalityMissingError(geoCode);
+  }
+
+  return response.status(constants.HTTP_STATUS_OK).json(locality);
+};
+
 const listLocalities = async (
   request: JWTRequest,
   response: Response
@@ -55,6 +76,8 @@ const updateLocalityTax = async (
 };
 
 const localityController = {
+  getLocalityValidators,
+  getLocality,
   listLocalities,
   updateLocalityTaxValidators,
   updateLocalityTax,

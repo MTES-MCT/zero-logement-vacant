@@ -1,5 +1,8 @@
 import React, { useRef, useState } from 'react';
 import {
+  Callout,
+  CalloutText,
+  CalloutTitle,
   Col,
   Container,
   Row,
@@ -16,9 +19,18 @@ import {
 import addressService, {
   AddressSearchResult,
 } from '../../services/address.service';
+import { getLocality } from '../../store/actions/ownerProspectAction';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { hasTHLV, hasTLV } from '../../models/Locality';
 
 const EstablishmentHomeView = () => {
+  const dispatch = useDispatch();
   const { trackEvent } = useMatomo();
+
+  const { locality } = useSelector(
+    (state: ApplicationState) => state.ownerProspect
+  );
 
   const [addressOptions, setAddressOptions] = useState<
     { value: string; label: string }[]
@@ -56,7 +68,9 @@ const EstablishmentHomeView = () => {
 
   const onSelectAddress = (value: string) => {
     if (value) {
-      setAddress(JSON.parse(value));
+      const address = JSON.parse(value) as AddressSearchResult;
+      setAddress(address);
+      dispatch(getLocality(address.geoCode));
     }
   };
 
@@ -69,7 +83,7 @@ const EstablishmentHomeView = () => {
               Vous êtes propriétaire d'un logement vacant ?
             </Title>
             <Title as="h2" look="h1">
-              Votre logement vcant est-il soumis à une taxe ?
+              Votre logement vacant est-il soumis à une taxe ?
             </Title>
             <Text size="lead" className="fr-py-4w">
               Le simulateur pour savoir si son logement vacant est soumis à une
@@ -92,6 +106,71 @@ const EstablishmentHomeView = () => {
             />
           </Col>
         </Row>
+        {locality && locality.taxZone && (
+          <Row gutters spacing="pt-5w">
+            <Col>
+              <Callout hasInfoIcon={false}>
+                <CalloutTitle as="h2" className="fr-h3 fr-mb-3w">
+                  Taxes sur la vacance sur la commune de {locality.name}
+                </CalloutTitle>
+                <CalloutText as="div">
+                  {hasTLV(locality) ? (
+                    <>
+                      <Text spacing="mb-2w">
+                        Votre logement vacant se situe dans une commune
+                        catégorisée en <b>zone tendue ({locality.taxZone}).</b>
+                      </Text>
+                      <Text spacing="mb-2w">
+                        La 
+                        <b>
+                          Taxe sur les Logements Vacants (TLV) est
+                          automatiquement appliquée.
+                        </b>
+                      </Text>
+                      <Text>
+                        Le taux pour la première année est de <b>17%</b> puis
+                        de 
+                        <b>34%</b> les années suivantes.
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text spacing="mb-2w">
+                        Votre logement vacant se situe dans une commune
+                        catégorisée en 
+                        <b>zone non tendue ({locality.taxZone}). </b>
+                      </Text>
+                      {hasTHLV(locality) ? (
+                        <>
+                          <Text spacing="mb-2w">
+                            La commune de {locality.name} applique la 
+                            <b>
+                              Taxe d’Habitation sur les Logements Vacants
+                              (THLV).
+                            </b>
+                          </Text>
+                          <Text>
+                            Le taux après 2 années de vacance est de 
+                            <b>{locality.taxRate}%</b>.
+                          </Text>
+                        </>
+                      ) : (
+                        <Text>
+                          La commune de {locality.name} n’a pas renseigné si
+                          elle appliquait la 
+                          <b>
+                            Taxe d’Habitation sur les Logements Vacants (THLV).
+                          </b>
+                        </Text>
+                      )}
+                    </>
+                  )}
+                </CalloutText>
+              </Callout>
+            </Col>
+            <Col>Vous souhaitez sortir votre logement de la vacance ?</Col>
+          </Row>
+        )}
       </Container>
     </>
   );

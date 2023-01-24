@@ -6,6 +6,7 @@ import userController from '../controllers/userController';
 import resetLinkController from '../controllers/resetLinkController';
 import signupLinkController from "../controllers/signupLinkController";
 import prospectController from "../controllers/prospectController";
+import localityController from '../controllers/localityController';
 
 const router = express.Router();
 
@@ -24,5 +25,7 @@ router.put('/signup-links/:id/prospect', prospectController.createProspectValida
 
 router.get('/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
 router.get('/establishments/available', establishmentController.listAvailableEstablishments);
+
+router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
 export default router;

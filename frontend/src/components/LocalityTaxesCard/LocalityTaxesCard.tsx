@@ -11,8 +11,7 @@ import {
 } from '@dataesr/react-dsfr';
 import React from 'react';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import { Locality } from '../../models/Locality';
-import { useLocalityList } from '../../hooks/useLocalityList';
+import { hasTLV, Locality } from '../../models/Locality';
 
 interface Props {
   locality: Locality;
@@ -20,8 +19,6 @@ interface Props {
 }
 
 function LocalityTaxesCard({ locality, onEdit }: Props) {
-  const { hasTLV } = useLocalityList();
-
   return (
     <Card hasArrow={false} className="h-fit-content">
       <CardTitle as="h2">

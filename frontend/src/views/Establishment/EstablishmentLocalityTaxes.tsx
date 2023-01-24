@@ -14,7 +14,7 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
-import { Locality } from '../../models/Locality';
+import { hasNoTax, hasTHLV, hasTLV, Locality } from '../../models/Locality';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -39,12 +39,11 @@ const EstablishmentLocalityTaxes = () => {
   const { loading } = useSelector(
     (state: ApplicationState) => state.establishment
   );
-  const { localities, hasTLV, hasTHLV, hasNoTax, filterCount } =
-    useLocalityList();
+  const { localities, filterCount } = useLocalityList();
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
   const [hasTHLVFilter, setHasTHLVFilter] = useState<boolean>(true);
-  const [hasNoTaxVFilter, setHasNoTaxFilter] = useState<boolean>(true);
+  const [hasNoTaxFilter, setHasNoTaxFilter] = useState<boolean>(true);
   const [filteredLocalities, setFilteredLocalities] = useState<
     Locality[] | undefined
   >(localities);
@@ -56,12 +55,12 @@ const EstablishmentLocalityTaxes = () => {
           (locality) =>
             (hasTLVFilter && hasTLV(locality)) ||
             (hasTHLVFilter && hasTHLV(locality)) ||
-            (hasNoTaxVFilter && hasNoTax(locality))
+            (hasNoTaxFilter && hasNoTax(locality))
         )
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxVFilter]
+    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
   );
 
   const [editingState, setEditingState] = useState<
@@ -135,8 +134,8 @@ const EstablishmentLocalityTaxes = () => {
         <Tag
           as="span"
           small
-          selected={hasNoTaxVFilter}
-          onClick={() => setHasNoTaxFilter(!hasNoTaxVFilter)}
+          selected={hasNoTaxFilter}
+          onClick={() => setHasNoTaxFilter(!hasNoTaxFilter)}
         >
           Taxe non appliquée ({filterCount(hasNoTax)})
         </Tag>

@@ -33,7 +33,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
   return (
     <Card hasArrow={false} className="fr-card--no-icon" href={href} size="sm">
       <CardTitle>
-        <span className={styles.icon}>
+        <span className="card-title-icon">
           <Icon name="ri-home-fill" iconPosition="center" size="1x" />
         </span>
         <Title as="h4" look="h6" spacing="mb-0">

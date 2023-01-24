@@ -8,7 +8,9 @@ import ownerReducer, { OwnerState } from './ownerReducer';
 import campaignReducer, { CampaignState } from './campaignReducer';
 import userReducer, { UserState } from './userReducer';
 import monitoringReducer, { MonitoringState } from './monitoringReducer';
-import geoReducer, { GeoState } from './geoReducer';
+import establishmentReducer, {
+  EstablishmentState,
+} from './establishmentReducer';
 
 const applicationReducer = combineReducers({
   authentication: authenticationReducer,
@@ -17,7 +19,7 @@ const applicationReducer = combineReducers({
   owner: ownerReducer,
   user: userReducer,
   monitoring: monitoringReducer,
-  geo: geoReducer,
+  establishment: establishmentReducer,
   loadingBar: loadingBarReducer,
 });
 
@@ -28,7 +30,7 @@ export interface ApplicationState {
   owner: OwnerState;
   user: UserState;
   monitoring: MonitoringState;
-  geo: GeoState;
+  establishment: EstablishmentState;
 }
 
 export default applicationReducer;

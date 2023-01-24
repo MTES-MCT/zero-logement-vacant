@@ -3,7 +3,7 @@ export interface EstablishmentApi {
   name: string;
   siren: number;
   available: boolean;
-  localities: LocalityApi[];
+  geoCodes: string[];
   campaignIntent?: CampaignIntent;
 }
 
@@ -25,10 +25,4 @@ export interface EstablishmentDataApi {
   lastCampaignSendingDate: Date;
   delayBetweenCampaigns: any;
   firstCampaignSentDelay: number;
-}
-
-export interface LocalityApi {
-  id: string;
-  geoCode: string;
-  name: string;
 }

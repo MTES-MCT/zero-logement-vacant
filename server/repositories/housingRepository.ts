@@ -113,7 +113,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
       .from(housingTable)
       .join(
         localitiesTable,
-        `${housingTable}.insee_code`,
+        `${housingTable}.geo_code`,
         `${localitiesTable}.geo_code`
       )
       .leftJoin(ownersHousingTable, ownersHousingJoinClause)
@@ -166,7 +166,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     queryBuilder.andWhereRaw('vacancy_start_year <= ?', ReferenceDataYear - 2);
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
-        `join ${establishmentsTable} e on insee_code  = any(e.localities_geo_code) and e.id in (?)`,
+        `join ${establishmentsTable} e on geo_code  = any(e.localities_geo_code) and e.id in (?)`,
         filters.establishmentIds
       );
     }
@@ -410,13 +410,13 @@ const filteredQuery = (filters: HousingFiltersApi) => {
       });
     }
     if (filters.localities?.length) {
-      queryBuilder.whereIn('insee_code', filters.localities);
+      queryBuilder.whereIn('geo_code', filters.localities);
     }
     if (filters.localityKinds?.length) {
       queryBuilder
         .join(
           localitiesTable,
-          `${housingTable}.insee_code`,
+          `${housingTable}.geo_code`,
           `${localitiesTable}.geo_code`
         )
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
@@ -740,7 +740,7 @@ const monitoringQueryFilter =
     if (filters.establishmentIds?.length) {
       queryBuilder
         .joinRaw(
-          `join ${establishmentsTable} e on insee_code  = any (e.localities_geo_code)`
+          `join ${establishmentsTable} e on geo_code  = any (e.localities_geo_code)`
         )
         .whereIn('e.id', filters.establishmentIds);
     }
@@ -755,7 +755,7 @@ const parseHousingApi = (result: any) =>
     invariant: result.invariant,
     cadastralReference: result.cadastral_reference,
     buildingLocation: result.building_location,
-    inseeCode: result.insee_code,
+    geoCode: result.geo_code,
     rawAddress: result.raw_address,
     latitude: result.latitude_ban ?? result.latitude,
     longitude: result.longitude_ban ?? result.longitude,
@@ -798,7 +798,7 @@ const formatHousingApi = (housingApi: HousingApi) => ({
   local_id: housingApi.localId,
   cadastral_reference: housingApi.cadastralReference,
   building_location: housingApi.buildingLocation,
-  insee_code: housingApi.inseeCode,
+  geo_code: housingApi.geoCode,
   raw_address: housingApi.rawAddress,
   latitude: housingApi.latitude,
   longitude: housingApi.longitude,

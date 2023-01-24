@@ -70,3 +70,5 @@ export function prependIf(condition: boolean) {
     return (str: string) => (condition ? prepend(prefix)(str) : str);
   };
 }
+
+export const mailto = (email: string): string => `mailto:${email}`;

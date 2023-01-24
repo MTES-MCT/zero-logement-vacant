@@ -8,7 +8,7 @@ export interface HousingApi {
   localId?: string;
   cadastralReference: string;
   buildingLocation: string;
-  inseeCode: string;
+  geoCode: string;
   rawAddress: string[];
   latitude?: number;
   longitude?: number;

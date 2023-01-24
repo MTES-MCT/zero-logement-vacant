@@ -61,7 +61,7 @@ AS $$
            ff_idlocal as local_id,
            ff_idbat as building_id,
            array[ltrim(trim(libvoie), '0'), trim(libcom)] as raw_address,
-           lpad(ccodep, 2, '0') || lpad(commune, 3, '0') as insee_code,
+           lpad(ccodep, 2, '0') || lpad(commune, 3, '0') as geo_code,
            replace(ff_y_4326, ',', '.')::double precision as latitude,
            replace(ff_x_4326, ',', '.')::double precision as longitude,
            ff_dcapec2 as cadastral_classification,
@@ -126,7 +126,7 @@ AS $$
         and upper(nature) in ('APPART','MAISON')
         and ff_idlocal is not null
         and owner is not null
-        group by invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
+        group by invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
                  housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, annee, ff_ndroit, ff_ndroit, batloc, vlcad, ff_ctpdl,
                  owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, ff_ddenom_1, owner_kind, owner_kind_detail,
                  full_name2, birth_date2, owner_raw_address2, full_name3, birth_date3, owner_raw_address3, full_name3, birth_date3, owner_raw_address3,
@@ -135,8 +135,8 @@ AS $$
     BEGIN
 
         -- Disabling useless indexes to improve perf
-        DROP INDEX housing_insee_code_idx;
-        DROP INDEX housing_insee_code_data_years_idx;
+        DROP INDEX housing_geo_code_idx;
+        DROP INDEX housing_geo_code_data_years_idx;
 
         OPEN housing_cursor;
 
@@ -156,11 +156,11 @@ AS $$
                 -- CASE NEW HOUSING
                 IF housing_var_id IS NULL THEN
 
-                    insert into housing (invariant, local_id, building_id, raw_address, insee_code, latitude, longitude, cadastral_classification,
+                    insert into housing (invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification,
                         uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
                         building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind)
                     values (housing_var.invariant, housing_var.local_id, housing_var.building_id, housing_var.raw_address,
-                            housing_var.insee_code, housing_var.latitude, housing_var.longitude, housing_var.cadastral_classification,
+                            housing_var.geo_code, housing_var.latitude, housing_var.longitude, housing_var.cadastral_classification,
                             housing_var.uncomfortable, housing_var.vacancy_start_year::INTEGER, housing_var.housing_kind, housing_var.rooms_count,
                             housing_var.living_area, housing_var.cadastral_reference, housing_var.building_year, housing_var.mutation_date,
                             housing_var.taxed, ARRAY[housing_var.data_year], housing_var.beneficiary_count, housing_var.building_location,
@@ -195,8 +195,8 @@ AS $$
         CLOSE housing_cursor;
 
         -- Restore indexes
-        CREATE INDEX housing_insee_code_idx on housing (insee_code);
-        CREATE INDEX housing_insee_code_data_years_idx on housing (insee_code, data_years);
+        CREATE INDEX housing_geo_code_idx on housing (geo_code);
+        CREATE INDEX housing_geo_code_data_years_idx on housing (geo_code, data_years);
 
     END;
 $$

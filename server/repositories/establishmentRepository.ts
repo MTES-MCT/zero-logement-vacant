@@ -1,9 +1,7 @@
 import db, { likeUnaccent } from './db';
-import { localitiesTable } from './localityRepository';
 import {
   EstablishmentApi,
   EstablishmentDataApi,
-  LocalityApi,
 } from '../models/EstablishmentApi';
 import { housingTable, ReferenceDataYear } from './housingRepository';
 import { usersTable } from './userRepository';
@@ -20,19 +18,8 @@ const get = async (
 ): Promise<EstablishmentApi | null> => {
   console.log('Get establishments by id', establishmentId);
 
-  const result = await db
-    .select(
-      `${establishmentsTable}.*`,
-      db.raw(
-        "json_agg(json_build_object('geo_code', l.geo_code, 'name', l.name) order by l.name) as localities"
-      )
-    )
-    .from(establishmentsTable)
-    .joinRaw(
-      `join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`
-    )
+  const result = await db(establishmentsTable)
     .where(`${establishmentsTable}.id`, establishmentId)
-    .groupBy(`${establishmentsTable}.id`)
     .first();
 
   return result ? parseEstablishmentApi(result) : null;
@@ -47,19 +34,9 @@ const findOne = async (
 ): Promise<EstablishmentApi | null> => {
   console.log('Find establishment by', options);
 
-  const result = await db
-    .select(
-      `${establishmentsTable}.*`,
-      db.raw(
-        "json_agg(json_build_object('geo_code', l.geo_code, 'name', l.name) order by l.name) as localities"
-      )
-    )
+  const result = await db(establishmentsTable)
     .from(establishmentsTable)
-    .joinRaw(
-      `join ${localitiesTable} as l on (l.geo_code = any(${establishmentsTable}.localities_geo_code))`
-    )
     .where(`${establishmentsTable}.siren`, options.siren)
-    .groupBy(`${establishmentsTable}.id`)
     .first();
 
   return result ? parseEstablishmentApi(result) : null;
@@ -151,7 +128,7 @@ const listDataWithFilters = async (
                 )as "contacted_housing_per_campaign"`)
       )
       .joinRaw(
-        `join ${housingTable} on insee_code  = any (${establishmentsTable}.localities_geo_code)`
+        `join ${housingTable} on geo_code  = any (${establishmentsTable}.localities_geo_code)`
       )
       .modify((queryBuilder: any) => {
         queryBuilder.andWhereRaw(
@@ -220,31 +197,36 @@ const listDataWithFilters = async (
   }
 };
 
-const formatLocalityApi = (localityApi: LocalityApi) => ({
-  id: localityApi.id,
-  geo_code: localityApi.geoCode,
-  name: localityApi.name,
-});
+interface EstablishmentDbo {
+  id: string;
+  name: string;
+  siren: number;
+  available: boolean;
+  localities_geo_code: string[];
+  campaign_intent?: string;
+}
 
-const formatEstablishmentApi = (establishmentApi: EstablishmentApi) => ({
+const formatEstablishmentApi = (
+  establishmentApi: EstablishmentApi
+): EstablishmentDbo => ({
   id: establishmentApi.id,
   name: establishmentApi.name,
   siren: establishmentApi.siren,
   available: establishmentApi.available,
-  localities_geo_code: establishmentApi.localities.map((_) => _.geoCode),
+  localities_geo_code: establishmentApi.geoCodes,
   campaign_intent: establishmentApi.campaignIntent,
 });
 
-const parseEstablishmentApi = (result: any): EstablishmentApi =>
+const parseEstablishmentApi = (
+  establishmentDbo: EstablishmentDbo
+): EstablishmentApi =>
   <EstablishmentApi>{
-    id: result.id,
-    name: result.name,
-    siren: result.siren,
-    localities: result.localities.map((l: { geo_code: any; name: any }) => ({
-      geoCode: l.geo_code,
-      name: l.name,
-    })),
-    campaignIntent: result.campaign_intent,
+    id: establishmentDbo.id,
+    name: establishmentDbo.name,
+    siren: establishmentDbo.siren,
+    available: establishmentDbo.available,
+    geoCodes: establishmentDbo.localities_geo_code,
+    campaignIntent: establishmentDbo.campaign_intent,
   };
 
 export default {
@@ -254,6 +236,5 @@ export default {
   search,
   listAvailable,
   listDataWithFilters,
-  formatLocalityApi,
   formatEstablishmentApi,
 };

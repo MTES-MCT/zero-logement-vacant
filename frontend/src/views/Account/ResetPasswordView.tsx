@@ -20,8 +20,10 @@ import authService from '../../services/auth.service';
 import { useEmailLink } from '../../hooks/useEmailLink';
 import Alert from '../../components/Alert/Alert';
 import resetLinkService from '../../services/reset-link.service';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function ResetPasswordView() {
+  useDocumentTitle('Nouveau mot de passe');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordReset, setPasswordReset] = useState(false);

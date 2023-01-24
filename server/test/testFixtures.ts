@@ -2,7 +2,7 @@ import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
-import { EstablishmentApi, LocalityApi } from '../models/EstablishmentApi';
+import { EstablishmentApi } from '../models/EstablishmentApi';
 import { addHours, formatISO } from 'date-fns';
 import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
@@ -14,11 +14,13 @@ import {
   RESET_LINK_LENGTH,
   ResetLinkApi,
 } from '../models/ResetLinkApi';
+import { ContactPointApi } from '../models/ContactPointApi';
 import {
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
   SignupLinkApi,
 } from '../models/SignupLinkApi';
+import { LocalityApi } from '../models/LocalityApi';
 
 const randomstring = require('randomstring');
 
@@ -41,6 +43,13 @@ export const genEmail = () => {
   );
 };
 
+export const genGeoCode = () => {
+  return randomstring.generate({
+    length: 5,
+    charset: 'numeric',
+  });
+};
+
 export const genNumber = (length = 10) => {
   return Number(
     randomstring.generate({
@@ -57,17 +66,17 @@ export const genSiren = () => genNumber(9);
 export const genLocalityApi = () => {
   return <LocalityApi>{
     id: uuidv4(),
-    geoCode: randomstring.generate(),
+    geoCode: String(genNumber(5)),
     name: randomstring.generate(),
   };
 };
 
-export const genEstablishmentApi = (...localities: LocalityApi[]) => {
+export const genEstablishmentApi = (...geoCodes: string[]) => {
   return <EstablishmentApi>{
     id: uuidv4(),
     name: randomstring.generate(),
     siren: genSiren(),
-    localities,
+    geoCodes,
   };
 };
 
@@ -118,14 +127,14 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (inseeCode: string) => {
+export const genHousingApi = (geoCode: string) => {
   return <HousingApi>{
     id: uuidv4(),
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
     cadastralReference: randomstring.generate(),
     buildingLocation: randomstring.generate(),
-    inseeCode,
+    geoCode,
     rawAddress: [randomstring.generate(), randomstring.generate()],
     address: genAddressApi(),
     localityKind: randomstring.generate(),
@@ -209,3 +218,15 @@ export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   prospectEmail,
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
 });
+
+export const genContactPointApi = (establishmentId: string) => {
+  return <ContactPointApi>{
+    id: uuidv4(),
+    establishmentId,
+    title: randomstring.generate(),
+    opening: randomstring.generate(),
+    address: randomstring.generate(),
+    email: genEmail(),
+    geoCodes: [genGeoCode()],
+  };
+};

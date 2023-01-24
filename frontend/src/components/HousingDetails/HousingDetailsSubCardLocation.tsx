@@ -5,8 +5,8 @@ import {
   hasGeoPerimeters,
   Housing,
 } from '../../models/Housing';
-import { LocalityKindLabels } from '../../models/Establishment';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
+import { LocalityKindLabels } from '../../models/Locality';
 
 interface Props {
   housing: Housing;

@@ -1,0 +1,34 @@
+import config from '../utils/config';
+import authService from './auth.service';
+import { Locality } from '../models/Locality';
+
+const listLocalities = async (): Promise<Locality> => {
+  return await fetch(`${config.apiEndpoint}/api/localities`, {
+    method: 'GET',
+    headers: {
+      ...authService.authHeader(),
+      'Content-Type': 'application/json',
+    },
+  }).then((_) => _.json());
+};
+
+const updateLocalityTax = async (
+  geoCode: string,
+  taxRate?: number
+): Promise<void> => {
+  return await fetch(`${config.apiEndpoint}/api/localities/${geoCode}/tax`, {
+    method: 'PUT',
+    headers: {
+      ...authService.authHeader(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ taxRate }),
+  }).then(() => {});
+};
+
+const localityService = {
+  listLocalities,
+  updateLocalityTax,
+};
+
+export default localityService;

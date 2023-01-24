@@ -1,6 +1,4 @@
 import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import {
   beneficiaryCountOptions,
   buildingPeriodOptions,
@@ -35,6 +33,7 @@ import {
 import { TagGroup } from '@dataesr/react-dsfr';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import styles from './housing-filters-badges.module.scss';
+import { useLocalityList } from '../../hooks/useLocalityList';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -51,9 +50,7 @@ const HousingFiltersBadges = ({
 }: HousingFiltersBadgesProps) => {
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
-  );
+  const { localitiesOptions } = useLocalityList();
 
   function reset() {
     onReset?.();
@@ -163,10 +160,7 @@ const HousingFiltersBadges = ({
         onChange={onChange && ((values) => onChange({ vacancyRates: values }))}
       />
       <FilterBadges
-        options={establishment.localities.map((l) => ({
-          value: l.geoCode,
-          label: l.name,
-        }))}
+        options={localitiesOptions}
         filters={filters.localities}
         small={small}
         onChange={onChange && ((values) => onChange({ localities: values }))}

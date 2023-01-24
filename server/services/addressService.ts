@@ -52,7 +52,7 @@ const normalizeHousingAddresses = (
     housingList.map((housing: HousingApi) => ({
       addressId: housing.id,
       rawAddress: housing.rawAddress,
-      inseeCode: housing.inseeCode,
+      geoCode: housing.geoCode,
     })),
     AddressKinds.Housing
   );
@@ -73,7 +73,7 @@ const normalizeOwnerAddresses = (
 };
 
 const normalizeAddresses = async (
-  addresses: { addressId: string; rawAddress: string[]; inseeCode?: string }[],
+  addresses: { addressId: string; rawAddress: string[]; geoCode?: string }[],
   addressKind: AddressKinds
 ): Promise<AddressApi[]> => {
   const workbook = new ExcelJS.Workbook();
@@ -82,7 +82,7 @@ const normalizeAddresses = async (
   worksheet.columns = [
     { header: 'addressId', key: 'addressId' },
     { header: 'rawAddress', key: 'rawAddress' },
-    { header: 'inseeCode', key: 'inseeCode' },
+    { header: 'geoCode', key: 'geoCode' },
   ];
 
   worksheet.addRows(
@@ -91,7 +91,7 @@ const normalizeAddresses = async (
       .map((address) => ({
         addressId: address.addressId,
         rawAddress: address.rawAddress.join(' '),
-        inseeCode: address.inseeCode,
+        geoCode: address.geoCode,
       }))
   );
 
@@ -102,7 +102,7 @@ const normalizeAddresses = async (
     .then(() => {
       const form = new FormData();
       form.append('data', fs.createReadStream(tmpCsvFileName));
-      form.append('citycode', 'inseeCode');
+      form.append('citycode', 'geoCode');
       form.append('columns', 'rawAddress');
       form.append('result_columns', 'result_type');
       form.append('result_columns', 'result_housenumber');

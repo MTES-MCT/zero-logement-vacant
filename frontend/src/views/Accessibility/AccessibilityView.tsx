@@ -1,7 +1,9 @@
 import React from 'react';
 import { Container, Title } from '@dataesr/react-dsfr';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const AccessibilityView = () => {
+  useDocumentTitle('Accessibilité');
   return (
     <Container as="section" spacing="py-4w mb-4w">
       <Title as="h1">Déclaration d’accessibilité</Title>

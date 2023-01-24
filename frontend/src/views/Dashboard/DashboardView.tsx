@@ -176,7 +176,7 @@ const DashboardView = () => {
                   </ul>
                   <Link
                     title="Voir mes campagnes en cours"
-                    href="/base-de-donnees"
+                    href="/campagnes"
                     className="fr-btn--md fr-btn"
                   >
                     Voir mes campagnes en cours

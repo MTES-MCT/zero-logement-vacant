@@ -27,8 +27,10 @@ import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { CampaignNotSentSteps, CampaignSteps } from '../../models/Campaign';
 import { pluralize } from '../../utils/stringUtils';
 import InternalLink from '../../components/InternalLink/InternalLink';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const DashboardView = () => {
+  useDocumentTitle('Accueil');
   const history = useHistory();
   const { trackEvent } = useMatomo();
 

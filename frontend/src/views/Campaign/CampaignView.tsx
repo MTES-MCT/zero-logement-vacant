@@ -24,12 +24,16 @@ import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleS
 import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
 import CampaignBundleTitle from '../../components/CampaignBundle/CampaignBundleTitle';
 import { hasFilters } from '../../models/HousingFilters';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const CampaignView = () => {
+  useDocumentTitle('Campagne');
   const dispatch = useDispatch();
   const campaignList = useCampaignList(true);
-  const { campaignNumber, reminderNumber } =
-    useParams<{ campaignNumber: string; reminderNumber: string }>();
+  const { campaignNumber, reminderNumber } = useParams<{
+    campaignNumber: string;
+    reminderNumber: string;
+  }>();
   const { trackEvent } = useMatomo();
 
   const { bundle, step, isDeletable } = useCampaignBundle();

@@ -17,8 +17,10 @@ import resetLinkService from '../../services/reset-link.service';
 import classNames from 'classnames';
 import styles from './forgotten-password-view.module.scss';
 import { useHide } from '../../hooks/useHide';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function ForgottenPasswordView() {
+  useDocumentTitle('Mot de passe oublié');
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);

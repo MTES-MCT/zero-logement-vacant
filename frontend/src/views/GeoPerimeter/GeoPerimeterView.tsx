@@ -35,8 +35,10 @@ import {
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Tab from '../../components/Tab/Tab';
 import Alert from '../../components/Alert/Alert';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const GeoPerimeterView = () => {
+  useDocumentTitle('Périmètres');
   const dispatch = useDispatch();
   const { trackEvent } = useMatomo();
   const geoPerimeters = useGeoPerimeterList();

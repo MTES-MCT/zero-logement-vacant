@@ -16,8 +16,10 @@ import { getCampaignBundle } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const CampaignsListView = () => {
+  useDocumentTitle('Logements suivis');
   const dispatch = useDispatch();
   const { campaignBundle: inProgressCampaignBundle } = useSelector(
     (state: ApplicationState) => state.campaign

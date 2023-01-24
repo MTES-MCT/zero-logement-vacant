@@ -46,11 +46,13 @@ import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
 import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Map from '../../components/Map/Map';
 
 type ViewMode = 'list' | 'map';
 
 const HousingListView = () => {
+  useDocumentTitle('Base de données');
   const dispatch = useDispatch();
   const { search } = useLocation();
   const { trackEvent } = useMatomo();

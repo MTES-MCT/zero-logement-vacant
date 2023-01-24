@@ -14,8 +14,10 @@ import buildingrent from '../../assets/images/buildingrent.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const ProprietaireView = () => {
+  useDocumentTitle('Propriétaire');
   return (
     <>
       <Container as="section" spacing="py-7w mb-4w">

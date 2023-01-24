@@ -27,10 +27,12 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import Help from '../../components/Help/Help';
 
 const UserListView = () => {
+  useDocumentTitle('Utilisateurs');
   const dispatch = useDispatch();
   const { isAdmin } = useUser();
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();

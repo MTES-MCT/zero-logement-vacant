@@ -23,8 +23,10 @@ import Alert from '../../components/Alert/Alert';
 import building from '../../assets/images/building.svg';
 import InternalLink from '../../components/InternalLink/InternalLink';
 import { emailValidator, useForm } from '../../hooks/useForm';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const LoginView = () => {
+  useDocumentTitle('Connexion');
   const dispatch = useDispatch();
   const { pathname } = useLocation();
 

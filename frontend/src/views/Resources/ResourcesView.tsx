@@ -4,8 +4,10 @@ import { Alert, Col, Container, Link, Row, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { HousingStates, HousingStatus } from '../../models/HousingState';
 import classNames from 'classnames';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const ResourcesView = () => {
+  useDocumentTitle('Ressources');
   const housingStatesSorted = [
     ...HousingStates.slice(
       0,

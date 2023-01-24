@@ -9,8 +9,10 @@ import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEd
 import { Owner } from '../../models/Owner';
 import { useDispatch } from 'react-redux';
 import { updateMainHousingOwner } from '../../store/actions/housingAction';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const HousingView = () => {
+  useDocumentTitle('Fiche logement');
   const dispatch = useDispatch();
   const { housing, mainHousingOwner, housingOwners, events } = useHousing();
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);

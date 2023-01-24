@@ -27,8 +27,10 @@ import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { CampaignNotSentSteps, CampaignSteps } from '../../models/Campaign';
 import { pluralize } from '../../utils/stringUtils';
 import InternalLink from '../../components/InternalLink/InternalLink';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const DashboardView = () => {
+  useDocumentTitle('Accueil');
   const history = useHistory();
   const { trackEvent } = useMatomo();
 
@@ -176,7 +178,7 @@ const DashboardView = () => {
                   </ul>
                   <Link
                     title="Voir mes campagnes en cours"
-                    href="/base-de-donnees"
+                    href="/campagnes"
                     className="fr-btn--md fr-btn"
                   >
                     Voir mes campagnes en cours

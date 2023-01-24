@@ -18,8 +18,10 @@ import HousingList, {
 } from '../../components/HousingList/HousingList';
 import { Housing } from '../../models/Housing';
 import { FirstContactToContactedSubStatus } from '../../models/HousingState';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const MonitoringView = () => {
+  useDocumentTitle('Suivi');
   const dispatch = useDispatch();
 
   const { establishmentId } = useParams<{ establishmentId: string }>();

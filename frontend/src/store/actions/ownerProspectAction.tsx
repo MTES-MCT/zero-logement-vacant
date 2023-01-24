@@ -2,6 +2,8 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { Locality } from '../../models/Locality';
 import localityService from '../../services/locality.service';
+import { OwnerProspect } from '../../models/OwnerProspect';
+import ownerProspectService from '../../services/owner-prospect.service';
 
 export const FETCHING_LOCALITY = 'FETCHING_LOCALITY';
 export const LOCALITY_FETCHED = 'LOCALITY_FETCHED';
@@ -34,5 +36,13 @@ export const getLocality = (geoCode: string) => {
         locality,
       });
     });
+  };
+};
+
+export const createOwnerProspect = (ownerProspect: OwnerProspect) => {
+  return async function (dispatch: Dispatch) {
+    dispatch(showLoading());
+    await ownerProspectService.createOwnerProspect(ownerProspect);
+    dispatch(hideLoading());
   };
 };

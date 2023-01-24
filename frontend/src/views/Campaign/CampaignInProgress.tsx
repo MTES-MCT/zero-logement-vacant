@@ -391,26 +391,28 @@ const CampaignInProgress = () => {
           </Col>
         </Row>
       )}
-      <Tabs className="campaignTabs">
-        <Tab label={getTabLabel(HousingStatus.Waiting)}>
-          <TabContent status={HousingStatus.Waiting} />
-        </Tab>
-        <Tab label={getTabLabel(HousingStatus.FirstContact)}>
-          <TabContent status={HousingStatus.FirstContact} />
-        </Tab>
-        <Tab label={getTabLabel(HousingStatus.InProgress)}>
-          <TabContent status={HousingStatus.InProgress} />
-        </Tab>
-        <Tab label={getTabLabel(HousingStatus.Exit)}>
-          <TabContent status={HousingStatus.Exit} />
-        </Tab>
-        <Tab label={getTabLabel(HousingStatus.NotVacant)}>
-          <TabContent status={HousingStatus.NotVacant} />
-        </Tab>
-        <Tab label={getTabLabel(HousingStatus.NoAction)}>
-          <TabContent status={HousingStatus.NoAction} />
-        </Tab>
-      </Tabs>
+      <Row>
+        <Tabs className="campaignTabs">
+          <Tab label={getTabLabel(HousingStatus.Waiting)}>
+            <TabContent status={HousingStatus.Waiting} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.FirstContact)}>
+            <TabContent status={HousingStatus.FirstContact} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.InProgress)}>
+            <TabContent status={HousingStatus.InProgress} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.Exit)}>
+            <TabContent status={HousingStatus.Exit} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.NotVacant)}>
+            <TabContent status={HousingStatus.NotVacant} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.NoAction)}>
+            <TabContent status={HousingStatus.NoAction} />
+          </Tab>
+        </Tabs>
+      </Row>
     </>
   );
 };

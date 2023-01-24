@@ -6,8 +6,10 @@ import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const EstablishmentView = () => {
+  useDocumentTitle('Votre territoire');
   return (
     <Container as="main" fluid>
       <div className="bg-100">

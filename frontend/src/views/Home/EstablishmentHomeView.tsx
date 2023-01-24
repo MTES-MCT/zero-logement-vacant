@@ -31,8 +31,10 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const EstablishmentHomeView = () => {
+  useDocumentTitle();
   const { trackEvent } = useMatomo();
 
   return (

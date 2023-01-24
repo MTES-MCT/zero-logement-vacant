@@ -13,8 +13,10 @@ import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard
 import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNoteModal';
 import { HousingNote, OwnerNote } from '../../models/Note';
 import { createHousingNote } from '../../store/actions/housingAction';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const OwnerView = () => {
+  useDocumentTitle('Fiche propriétaire');
   const dispatch = useDispatch();
 
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);

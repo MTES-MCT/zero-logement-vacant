@@ -70,6 +70,7 @@ export function createServer(): Server {
             "'self'",
             'https://stats.beta.gouv.fr',
             'https://stats.data.gouv.fr',
+            'https://api-adresse.data.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
             'https://openmaptiles.geo.data.gouv.fr',

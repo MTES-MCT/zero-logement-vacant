@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
+  Callout,
+  CalloutText,
   Col,
   Container,
   Row,
@@ -25,12 +27,13 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { hasTHLV, hasTLV } from '../../models/Locality';
 import OwnerProspectForm from './OwnerProspectForm';
 import { PartialOwnerProspect } from '../../models/OwnerProspect';
+import Alert from '../../components/Alert/Alert';
 
 const EstablishmentHomeView = () => {
   const dispatch = useDispatch();
   const { trackEvent } = useMatomo();
 
-  const { locality } = useSelector(
+  const { locality, ownerProspect } = useSelector(
     (state: ApplicationState) => state.ownerProspect
   );
 
@@ -189,13 +192,33 @@ const EstablishmentHomeView = () => {
                   Votre collectivité peut vous aider. Laissez vos coordonnées
                   pour être recontacté par votre collectivité.
                 </Text>
-                <OwnerProspectForm
-                  onCreateOwnerProspect={onCreateOwnerProspect}
-                />
+
+                {ownerProspect ? (
+                  <Alert
+                    title=""
+                    description="La creation du prospect a bien été effectuée"
+                    type="success"
+                    className="fr-mt-4w"
+                  />
+                ) : (
+                  <OwnerProspectForm
+                    onCreateOwnerProspect={onCreateOwnerProspect}
+                  />
+                )}
               </div>
             </Col>
           </Row>
         )}
+        <Callout hasInfoIcon={false} className="fr-mt-6w">
+          <CalloutText as="div">
+            <Text size="lead">
+              Zéro Logement Vacant est un <b>service public</b> qui aide{' '}
+              <b>les propriétaires de logement vacant</b> à rentrer en contact
+              avec les collectivités afin de bénéficier{' '}
+              <b>d’accompagnements et d’aides</b> pour la remise sur le marché
+            </Text>
+          </CalloutText>
+        </Callout>
       </Container>
     </>
   );

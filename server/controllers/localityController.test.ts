@@ -6,7 +6,7 @@ import {
   Locality2,
 } from '../../database/seeds/test/001-establishments';
 import { createServer } from '../server';
-import { genNumber } from '../test/testFixtures';
+import { genGeoCode } from '../test/testFixtures';
 import localityRepository from '../repositories/localityRepository';
 
 const { app } = createServer();
@@ -23,7 +23,7 @@ describe('Locality controller', () => {
 
     it('should be missing', async () => {
       await request(app)
-        .get(testRoute(String(genNumber(5))))
+        .get(testRoute(genGeoCode()))
         .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
@@ -92,9 +92,7 @@ describe('Locality controller', () => {
 
     it('should be missing', async () => {
       await withAccessToken(
-        request(app)
-          .put(testRoute(String(genNumber(5))))
-          .send({ taxRate: 10 })
+        request(app).put(testRoute(genGeoCode())).send({ taxRate: 10 })
       ).expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 

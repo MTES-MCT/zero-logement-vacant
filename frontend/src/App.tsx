@@ -117,7 +117,7 @@ function App() {
           </> :
           <Switch>
             <Route path="/inscription" component={AccountCreationView} />
-            <Route exact path="/collectivites/connexion" component={LoginView} />
+            <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/collectivites" component={EstablishmentHomeView} />
             <Route exact path="/proprietaires" component={OwnerHomeView} />
             <Route exact path="/stats" component={StatsView} />
@@ -128,7 +128,7 @@ function App() {
             <Route exact path="/admin" component={LoginView} />
             <Route exact path="/" component={EstablishmentHomeView} />
             <Route path="/*">
-              { isLoggedOut ? <Redirect to="/collectivites/connexion" /> : <Redirect to="/collectivites" /> }
+              { isLoggedOut ? <Redirect to="/connexion" /> : <Redirect to="/collectivites" /> }
             </Route>
           </Switch>
         }

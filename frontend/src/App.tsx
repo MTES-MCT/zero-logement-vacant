@@ -126,7 +126,7 @@ function App() {
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
             <Route exact path="/admin" component={LoginView} />
-            <Route exact path="/"> <Redirect to="/collectivites"/> </Route>
+            <Route exact path="/" component={EstablishmentHomeView} />
             <Route path="/*">
               { isLoggedOut ? <Redirect to="/collectivites/connexion" /> : <Redirect to="/collectivites" /> }
             </Route>

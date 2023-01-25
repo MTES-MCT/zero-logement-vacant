@@ -84,7 +84,6 @@ describe('Locality controller', () => {
     });
 
     it('should be forbidden for a user from another establishment', async () => {
-      console.log('route', testRoute(Locality2.geoCode));
       await withAccessToken(request(app).put(testRoute(Locality2.geoCode)))
         .send({ taxRate: 10 })
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);

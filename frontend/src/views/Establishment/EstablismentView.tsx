@@ -6,6 +6,7 @@ import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
 
 const EstablishmentView = () => {
   useDocumentTitle('Votre territoire');
@@ -33,9 +34,9 @@ const EstablishmentView = () => {
           <Tab label="Vos guichets contact">
             <EstablishmentContactPoints />
           </Tab>
-          {/* <Tab label="Taxes sur les logements vacants">
+          <Tab label="Taxes sur les logements vacants">
             <EstablishmentLocalityTaxes />
-          </Tab>*/}
+          </Tab>
         </Tabs>
       </Container>
     </Container>

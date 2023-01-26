@@ -6,6 +6,7 @@ import localityRepository from '../repositories/localityRepository';
 import { body, param } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import LocalityMissingError from '../errors/localityMissingError';
+import { TaxKindsApi } from '../models/LocalityApi';
 
 const getLocalityValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
@@ -43,7 +44,12 @@ const listLocalities = async (
 
 const updateLocalityTaxValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
-  body('taxRate').isNumeric().optional(),
+  body('taxKind').isIn([TaxKindsApi.THLV, TaxKindsApi.None]),
+  body('taxRate')
+    .if(body('taxKind').equals(TaxKindsApi.THLV))
+    .isNumeric()
+    .notEmpty(),
+  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists(),
 ];
 
 const updateLocalityTax = async (
@@ -53,6 +59,7 @@ const updateLocalityTax = async (
   const geoCode = request.params.geoCode;
   const establishmentId = (<RequestUser>request.auth).establishmentId;
   const taxRate = request.body.taxRate;
+  const taxKind = request.body.taxKind;
 
   console.log('Update locality tax', geoCode, taxRate);
 
@@ -65,13 +72,13 @@ const updateLocalityTax = async (
 
   if (
     !establishment?.geoCodes.includes(locality.geoCode) ||
-    locality.taxZone !== 'C'
+    locality.taxKind === TaxKindsApi.TLV
   ) {
     return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
   }
 
   return localityRepository
-    .update({ ...locality, taxRate })
+    .update({ ...locality, taxRate, taxKind })
     .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
 };
 

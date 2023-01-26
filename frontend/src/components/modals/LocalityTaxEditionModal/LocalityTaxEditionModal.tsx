@@ -16,7 +16,7 @@ import {
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
-import { Locality, TaxKinds } from '../../../models/Locality';
+import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import Help from '../../Help/Help';
 
 interface Props {
@@ -66,7 +66,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
       </ModalTitle>
       <ModalContent>
         <Container as="section" fluid>
-          <Tag>Zone détendue</Tag>
+          <Tag>{TaxKindsLabels[hasTHLV ? TaxKinds.THLV : TaxKinds.None]}</Tag>
           <form id="user_form">
             <Row spacing="my-2w">
               <Col>

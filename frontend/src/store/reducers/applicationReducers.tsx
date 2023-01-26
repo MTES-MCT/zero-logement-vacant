@@ -11,6 +11,9 @@ import monitoringReducer, { MonitoringState } from './monitoringReducer';
 import establishmentReducer, {
   EstablishmentState,
 } from './establishmentReducer';
+import ownerProspectReducer, {
+  OwnerProspectState,
+} from './ownerProspectReducer';
 
 const applicationReducer = combineReducers({
   authentication: authenticationReducer,
@@ -20,6 +23,7 @@ const applicationReducer = combineReducers({
   user: userReducer,
   monitoring: monitoringReducer,
   establishment: establishmentReducer,
+  ownerProspect: ownerProspectReducer,
   loadingBar: loadingBarReducer,
 });
 
@@ -31,6 +35,7 @@ export interface ApplicationState {
   user: UserState;
   monitoring: MonitoringState;
   establishment: EstablishmentState;
+  ownerProspect: OwnerProspectState;
 }
 
 export default applicationReducer;

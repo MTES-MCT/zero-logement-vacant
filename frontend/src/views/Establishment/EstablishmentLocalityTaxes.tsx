@@ -14,7 +14,9 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
-import { Locality } from '../../models/Locality';
+
+import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
+
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -39,12 +41,11 @@ const EstablishmentLocalityTaxes = () => {
   const { loading } = useSelector(
     (state: ApplicationState) => state.establishment
   );
-  const { localities, hasTLV, hasTHLV, hasNoTax, filterCount } =
-    useLocalityList();
+  const { localities, filterCount } = useLocalityList();
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
   const [hasTHLVFilter, setHasTHLVFilter] = useState<boolean>(true);
-  const [hasNoTaxVFilter, setHasNoTaxFilter] = useState<boolean>(true);
+  const [hasNoTaxFilter, setHasNoTaxFilter] = useState<boolean>(true);
   const [filteredLocalities, setFilteredLocalities] = useState<
     Locality[] | undefined
   >(localities);
@@ -54,14 +55,14 @@ const EstablishmentLocalityTaxes = () => {
       setFilteredLocalities(
         localities?.filter(
           (locality) =>
-            (hasTLVFilter && hasTLV(locality)) ||
-            (hasTHLVFilter && hasTHLV(locality)) ||
-            (hasNoTaxVFilter && hasNoTax(locality))
+            (hasTLVFilter && locality.taxKind === TaxKinds.TLV) ||
+            (hasTHLVFilter && locality.taxKind === TaxKinds.THLV) ||
+            (hasNoTaxFilter && locality.taxKind === TaxKinds.None)
         )
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxVFilter]
+    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
   );
 
   const [editingState, setEditingState] = useState<
@@ -77,7 +78,7 @@ const EstablishmentLocalityTaxes = () => {
     }
   }, [loading]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const onSubmitEditingLocalityTax = (taxRate?: number) => {
+  const onSubmitEditingLocalityTax = (taxKind: TaxKinds, taxRate?: number) => {
     if (editingState?.locality) {
       trackEvent({
         category: TrackEventCategories.LocalityTaxes,
@@ -87,7 +88,9 @@ const EstablishmentLocalityTaxes = () => {
         step: ActionSteps.InProgress,
         locality: { ...editingState.locality, taxRate },
       });
-      dispatch(updateLocalityTax(editingState.locality.geoCode, taxRate));
+      dispatch(
+        updateLocalityTax(editingState.locality.geoCode, taxKind, taxRate)
+      );
     }
   };
 
@@ -122,7 +125,8 @@ const EstablishmentLocalityTaxes = () => {
           selected={hasTLVFilter}
           onClick={() => setHasTLVFilter(!hasTLVFilter)}
         >
-          TLV appliquée ({filterCount(hasTLV)})
+          {TaxKindsLabels[TaxKinds.TLV]} (
+          {filterCount((l) => l.taxKind === TaxKinds.TLV)})
         </Tag>
         <Tag
           as="span"
@@ -130,15 +134,17 @@ const EstablishmentLocalityTaxes = () => {
           selected={hasTHLVFilter}
           onClick={() => setHasTHLVFilter(!hasTHLVFilter)}
         >
-          THLV appliquée ({filterCount(hasTHLV)})
+          {TaxKindsLabels[TaxKinds.THLV]} (
+          {filterCount((l) => l.taxKind === TaxKinds.THLV)})
         </Tag>
         <Tag
           as="span"
           small
-          selected={hasNoTaxVFilter}
-          onClick={() => setHasNoTaxFilter(!hasNoTaxVFilter)}
+          selected={hasNoTaxFilter}
+          onClick={() => setHasNoTaxFilter(!hasNoTaxFilter)}
         >
-          Taxe non appliquée ({filterCount(hasNoTax)})
+          {TaxKindsLabels[TaxKinds.None]} (
+          {filterCount((l) => l.taxKind === TaxKinds.None)})
         </Tag>
       </TagGroup>
       {filteredLocalities && !filteredLocalities.length ? (

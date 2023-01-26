@@ -20,7 +20,8 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi,
 } from '../models/SignupLinkApi';
-import { LocalityApi } from '../models/LocalityApi';
+import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
+import { OwnerProspectApi } from '../models/OwnerProspectApi';
 
 const randomstring = require('randomstring');
 
@@ -66,8 +67,9 @@ export const genSiren = () => genNumber(9);
 export const genLocalityApi = () => {
   return <LocalityApi>{
     id: uuidv4(),
-    geoCode: String(genNumber(5)),
+    geoCode: genGeoCode(),
     name: randomstring.generate(),
+    taxKind: TaxKindsApi.None,
   };
 };
 
@@ -103,6 +105,17 @@ export const genProspectApi = (establishment: EstablishmentApi) => {
     },
     hasAccount: true,
     hasCommitment: true,
+  };
+};
+
+export const genOwnerProspectApi = () => {
+  return <OwnerProspectApi>{
+    email: genEmail(),
+    firstName: randomstring.generate(),
+    lastName: randomstring.generate(),
+    address: randomstring.generate(),
+    geoCode: genGeoCode(),
+    phone: randomstring.generate(),
   };
 };
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr</loc>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/collectivites</loc>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/proprietaires</loc>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/connexion</loc>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/inscription</loc>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/stats</loc>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/accessibilite</loc>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://zerologementvacant.beta.gouv.fr/mot-de-passe/oublie</loc>
+        <priority>0.2</priority>
+    </url>
+</urlset>

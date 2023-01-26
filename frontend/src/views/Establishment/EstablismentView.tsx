@@ -6,6 +6,7 @@ import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
 
 const EstablishmentView = () => {
   useDocumentTitle('Votre territoire');

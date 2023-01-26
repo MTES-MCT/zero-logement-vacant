@@ -24,10 +24,10 @@ import {
 } from '../../store/actions/ownerProspectAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { hasTHLV, hasTLV } from '../../models/Locality';
 import OwnerProspectForm from './OwnerProspectForm';
 import { PartialOwnerProspect } from '../../models/OwnerProspect';
 import Alert from '../../components/Alert/Alert';
+import { TaxKinds } from '../../models/Locality';
 
 const EstablishmentHomeView = () => {
   const dispatch = useDispatch();
@@ -125,96 +125,93 @@ const EstablishmentHomeView = () => {
             />
           </Col>
         </Row>
-        {locality && locality.taxZone && (
+        {locality && (
           <Row gutters spacing="pt-5w">
             <Col>
               <div className="bg-bf975 border-bf-925-active fr-p-5w">
-                <Title as="h2" className="fr-h3 fr-mb-3w">
-                  Taxes sur la vacance sur la commune de {locality.name}
-                </Title>
-                {hasTLV(locality) ? (
+                {locality.taxKind === TaxKinds.None ? (
                   <>
+                    <Title as="h2" className="fr-h3 fr-mb-3w">
+                      Non, votre logement vacant n’est pas soumis à une taxe.
+                    </Title>
                     <Text spacing="mb-2w">
-                      Votre logement vacant se situe dans une commune
-                      catégorisée en <b>zone tendue ({locality.taxZone}).</b>
-                    </Text>
-                    <Text spacing="mb-2w">
-                      La
-                      <b>
-                        Taxe sur les Logements Vacants (TLV) est automatiquement
-                        appliquée.
-                      </b>
-                    </Text>
-                    <Text spacing="m-0">
-                      Le taux pour la première année est de <b>17%</b> puis de
-                      <b>34%</b> les années suivantes.
+                      La commune de {locality.name} n’applique pas de taxe
+                      spécifique sur les logements vacants.
                     </Text>
                   </>
                 ) : (
                   <>
-                    <Text spacing="mb-2w">
-                      Votre logement vacant se situe dans une commune
-                      catégorisée en
-                      <b>zone non tendue ({locality.taxZone}). </b>
-                    </Text>
-                    {hasTHLV(locality) ? (
+                    <Title as="h2" className="fr-h3 fr-mb-3w">
+                      Oui, votre logement vacant est soumis à une taxe.
+                    </Title>
+                    {locality.taxKind === TaxKinds.TLV && (
                       <>
                         <Text spacing="mb-2w">
-                          La commune de {locality.name} applique la
+                          La commune de {locality.name} applique la 
+                          <b>Taxe sur les Logements Vacants (TLV).</b>
+                        </Text>
+                        <Text spacing="m-0">
+                          Le taux pour la première année est de <b>17%</b> puis
+                          de <b>34%</b> les années suivantes.
+                        </Text>
+                      </>
+                    )}
+                    {locality.taxKind === TaxKinds.THLV && (
+                      <>
+                        <Text spacing="mb-2w">
+                          La commune de {locality.name} applique la 
                           <b>
                             Taxe d’Habitation sur les Logements Vacants (THLV).
                           </b>
                         </Text>
-                        <Text>
-                          Le taux après 2 années de vacance est de
-                          <b>{locality.taxRate}%</b>.
-                        </Text>
+                        {locality.taxRate ? (
+                          <Text>
+                            Le taux après 2 années de vacance est de 
+                            <b>{locality.taxRate}%</b>.
+                          </Text>
+                        ) : (
+                          <Text>
+                            Le taux appliqué est cependant inconnu. Veuillez
+                            vous rapprochez de votre commune pour en savoir
+                            plus.
+                          </Text>
+                        )}
                       </>
-                    ) : (
-                      <Text>
-                        La commune de {locality.name} n’a pas renseigné si elle
-                        appliquait la
-                        <b>
-                          Taxe d’Habitation sur les Logements Vacants (THLV).
-                        </b>
-                      </Text>
                     )}
                   </>
                 )}
               </div>
             </Col>
             <Col>
-              <div className="bordered fr-p-5w">
-                <Title as="h2" className="fr-h3 fr-mb-3w">
-                  Vous souhaitez sortir votre logement de la vacance ?
-                </Title>
-                <Text className="subtitle" spacing="mb-2w">
-                  Votre collectivité peut vous aider. Laissez vos coordonnées
-                  pour être recontacté par votre collectivité.
-                </Text>
-
-                {ownerProspect ? (
-                  <Alert
-                    title=""
-                    description="La creation du prospect a bien été effectuée"
-                    type="success"
-                    className="fr-mt-4w"
-                  />
-                ) : (
+              {ownerProspect ? (
+                <Alert
+                  title=""
+                  description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
+                  type="success"
+                />
+              ) : (
+                <div className="bordered fr-p-5w">
+                  <Title as="h2" className="fr-h3 fr-mb-3w">
+                    Vous souhaitez sortir votre logement de la vacance ?
+                  </Title>
+                  <Text className="subtitle" spacing="mb-2w">
+                    Votre collectivité peut vous aider. Laissez vos coordonnées
+                    pour être recontacté par votre collectivité.
+                  </Text>
                   <OwnerProspectForm
                     onCreateOwnerProspect={onCreateOwnerProspect}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </Col>
           </Row>
         )}
         <Callout hasInfoIcon={false} className="fr-mt-6w">
           <CalloutText as="div">
             <Text size="lead">
-              Zéro Logement Vacant est un <b>service public</b> qui aide{' '}
+              Zéro Logement Vacant est un <b>service public</b> qui aide 
               <b>les propriétaires de logement vacant</b> à rentrer en contact
-              avec les collectivités afin de bénéficier{' '}
+              avec les collectivités afin de bénéficier 
               <b>d’accompagnements et d’aides</b> pour la remise sur le marché
             </Text>
           </CalloutText>

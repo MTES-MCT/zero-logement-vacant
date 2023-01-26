@@ -86,7 +86,7 @@ const OwnerProspectForm = ({ onCreateOwnerProspect }: Props) => {
             onChange={(e) => setEmail(e.target.value)}
             messageType={messageType('email')}
             message={message('email')}
-            label="Mail : "
+            label="Email : "
             required
           />
         </Col>

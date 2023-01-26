@@ -110,19 +110,6 @@ L'application est accessible à l'adresse sur <http://localhost:3000>
 npm run frontend:test
 ```
 
-Tests e2e
-```bash
-export CYPRESS_API_URL=http://localhost:3001
-export CYPRESS_USER_EMAIL=test.saintlo@zlv.fr
-export CYPRESS_USER_PASSWORD=...
-export CYPRESS_BASE_URL=http://localhost:3000
-
-# Avec UI
-npx cypress open 
-# Sans UI
-npx cypress run --e2e
-```
-
 **Backend**
 
 ```bash

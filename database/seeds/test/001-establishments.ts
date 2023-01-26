@@ -10,9 +10,13 @@ import localityRepository, {
 } from '../../../server/repositories/localityRepository';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
+import { LocalityApi, TaxKindsApi } from '../../../server/models/LocalityApi';
 
-export const Locality1 = { ...genLocalityApi(), taxZone: 'C' };
-export const Locality2 = { ...genLocalityApi(), taxZone: 'B1' };
+export const Locality1: LocalityApi = genLocalityApi();
+export const Locality2: LocalityApi = {
+  ...genLocalityApi(),
+  taxKind: TaxKindsApi.TLV,
+};
 
 export const Establishment1 = genEstablishmentApi(Locality1.geoCode);
 export const Establishment2 = genEstablishmentApi(Locality2.geoCode);

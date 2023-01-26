@@ -19,6 +19,7 @@ const listByEstablishmentId = async (
       `join ${establishmentsTable} as e on (${localitiesTable}.geo_code = any(e.localities_geo_code))`
     )
     .where('e.id', establishmentId)
+    .orderBy(`${localitiesTable}.name`)
     .then((_) => _.map((_: LocalityDbo) => parseLocalityApi(_)));
 };
 
@@ -26,14 +27,25 @@ export interface LocalityDbo {
   id?: string;
   geo_code: string;
   name: string;
-  tax_zone?: string;
+  tax_kind?: string;
   tax_rate?: number;
 }
+
+const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
+  console.log('Update localityApi with geoCode', localityApi.geoCode);
+
+  const { geo_code, tax_rate, tax_kind } = formatLocalityApi(localityApi);
+  return db(localitiesTable)
+    .where('geo_code', geo_code)
+    .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind })
+    .returning('*')
+    .then((_) => parseLocalityApi(_[0]));
+};
 
 const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
   geo_code: localityApi.geoCode,
   name: localityApi.name,
-  tax_zone: localityApi.taxZone,
+  tax_kind: localityApi.taxKind,
   tax_rate: localityApi.taxRate,
 });
 
@@ -41,20 +53,9 @@ const parseLocalityApi = (localityDbo: LocalityDbo) =>
   <LocalityApi>{
     geoCode: localityDbo.geo_code,
     name: localityDbo.name,
-    taxZone: localityDbo.tax_zone,
+    taxKind: localityDbo.tax_kind,
     taxRate: localityDbo.tax_rate,
   };
-
-const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
-  console.log('Update localityApi with geoCode', localityApi.geoCode);
-
-  const { geo_code, tax_rate } = formatLocalityApi(localityApi);
-  return db(localitiesTable)
-    .where('geo_code', geo_code)
-    .update({ tax_rate: tax_rate ?? db.raw('null') })
-    .returning('*')
-    .then((_) => parseLocalityApi(_[0]));
-};
 
 export default {
   get,

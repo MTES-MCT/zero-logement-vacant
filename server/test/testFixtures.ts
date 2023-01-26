@@ -20,7 +20,7 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi,
 } from '../models/SignupLinkApi';
-import { LocalityApi } from '../models/LocalityApi';
+import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 
 const randomstring = require('randomstring');
 
@@ -66,8 +66,9 @@ export const genSiren = () => genNumber(9);
 export const genLocalityApi = () => {
   return <LocalityApi>{
     id: uuidv4(),
-    geoCode: String(genNumber(5)),
+    geoCode: String(genGeoCode()),
     name: randomstring.generate(),
+    taxKind: TaxKindsApi.None,
   };
 };
 

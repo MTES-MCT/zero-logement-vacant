@@ -32,6 +32,8 @@ docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -
 echo "Establishments loaded."
 docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/003-load-data.sql -v filePath=data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
 echo "Housings loaded."
+docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/005-load-locality-taxes.sql -v filePath=data/common/taxe.csv
+echo "Taxes loaded."
 
 npm run seed
 echo "Data loaded."

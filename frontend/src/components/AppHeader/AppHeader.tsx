@@ -25,7 +25,12 @@ import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 
-function AppNavItem({ userNavItem }: { userNavItem: UserNavItem }) {
+interface AppNavItemProps {
+  userNavItem: UserNavItem;
+  isCurrent?: () => boolean;
+}
+
+function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
   const location = useLocation();
   const [path, setPath] = useState(() => location.pathname || '');
 
@@ -37,7 +42,7 @@ function AppNavItem({ userNavItem }: { userNavItem: UserNavItem }) {
 
   return (
     <NavItem
-      current={path.indexOf(userNavItem.url) !== -1}
+      current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
       title={userNavItem.label}
       asLink={<Link to={userNavItem.url} className="d-md-none" />}
     />
@@ -81,6 +86,11 @@ function AppHeader() {
       onClick: () => logoutUser(),
     },
   ] as MenuAction[];
+
+  const withNavItems =
+    location.pathname === '/' ||
+    location.pathname.indexOf('/collectivites') === 0 ||
+    location.pathname.indexOf('/proprietaires') === 0;
 
   return (
     <>
@@ -149,10 +159,29 @@ function AppHeader() {
             />
           </HeaderNav>
         ) : (
-          <HeaderNav className="d-lg-none">
-            <AppNavItem
-              userNavItem={{ url: '/connexion', label: 'Connexion' }}
-            />
+          <HeaderNav>
+            <div className="d-lg-none">
+              <AppNavItem
+                userNavItem={{
+                  url: '/connexion',
+                  label: 'Connexion',
+                }}
+              />
+            </div>
+            {withNavItems && (
+              <AppNavItem
+                userNavItem={getUserNavItem(UserNavItems.EstablishmentHome)}
+                isCurrent={() =>
+                  location.pathname === '/' ||
+                  location.pathname.indexOf('/collectivites') === 0
+                }
+              />
+            )}
+            {withNavItems && (
+              <AppNavItem
+                userNavItem={getUserNavItem(UserNavItems.OwnerHome)}
+              />
+            )}
           </HeaderNav>
         )}
       </Header>

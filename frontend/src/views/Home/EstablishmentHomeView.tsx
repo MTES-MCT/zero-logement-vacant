@@ -33,7 +33,7 @@ import {
 } from '../../models/TrackEvent';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
-const HomeView = () => {
+const EstablishmentHomeView = () => {
   useDocumentTitle();
   const { trackEvent } = useMatomo();
 
@@ -336,4 +336,4 @@ const HomeView = () => {
   );
 };
 
-export default HomeView;
+export default EstablishmentHomeView;

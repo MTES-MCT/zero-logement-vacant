@@ -7,6 +7,8 @@ export enum UserNavItems {
   EstablishmentMonitoring,
   Establishment,
   Resources,
+  EstablishmentHome,
+  OwnerHome,
 }
 
 export interface UserNavItem {
@@ -21,6 +23,10 @@ export const getUserNavItem = (
   switch (userNavItem) {
     case UserNavItems.Dashboard:
       return { url: '/accueil', label: 'Accueil' };
+    case UserNavItems.EstablishmentHome:
+      return { url: '/collectivites', label: 'Collectivités' };
+    case UserNavItems.OwnerHome:
+      return { url: '/proprietaires', label: 'Propriétaires' };
     case UserNavItems.Campaign:
       return { url: '/campagnes', label: 'Logements suivis' };
     case UserNavItems.HousingList:

@@ -4,12 +4,16 @@ import establishmentController from '../controllers/establishmentController';
 import validator from '../middlewares/validator';
 import userController from '../controllers/userController';
 import resetLinkController from '../controllers/resetLinkController';
-import signupLinkController from "../controllers/signupLinkController";
-import prospectController from "../controllers/prospectController";
+import signupLinkController from '../controllers/signupLinkController';
+import prospectController from '../controllers/prospectController';
+import localityController from '../controllers/localityController';
+import ownerProspectController from '../controllers/ownerProspectController';
 
 const router = express.Router();
 
 router.get('/prospects/:email', prospectController.showProspectValidator, validator.validate, prospectController.show);
+
+router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.createOwnerProspect);
 
 router.post('/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
 router.post('/authenticate', accountController.signin);
@@ -24,5 +28,7 @@ router.put('/signup-links/:id/prospect', prospectController.createProspectValida
 
 router.get('/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
 router.get('/establishments/available', establishmentController.listAvailableEstablishments);
+
+router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
 export default router;

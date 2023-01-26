@@ -4,7 +4,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
 import contactPointService from '../../services/contact-point.service';
-import { Locality } from '../../models/Locality';
+import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
 
 export const FETCH_LOCALITY_LIST = 'FETCH_LOCALITY_LIST';
@@ -98,11 +98,15 @@ export const fetchGeoPerimeters = () => {
   };
 };
 
-export const updateLocalityTax = (geoCode: string, taxRate?: number) => {
+export const updateLocalityTax = (
+  geoCode: string,
+  taxKind: TaxKinds,
+  taxRate?: number
+) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    localityService.updateLocalityTax(geoCode, taxRate).then(() => {
+    localityService.updateLocalityTax(geoCode, taxKind, taxRate).then(() => {
       dispatch(hideLoading());
       fetchLocalities()(dispatch);
     });

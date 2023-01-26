@@ -67,7 +67,7 @@ cd database/scripts
 psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../data/common/epci.csv
 psql [DATABASE_URL] -f 002-load-municipalities-localities.sql -v filePath=../data/common/commune.csv
 psql [DATABASE_URL] -f 003-load-data.sql -v filePath=../data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
-psql [DATABASE_URL] -f 005-load-tax-zones.sql -v filePath=../data/common/zonage_commune.csv
+psql [DATABASE_URL] -f 005-load-locality-taxes.sql -v filePath=../data/common/taxe.csv
 npm run seed
 ```
 
@@ -90,7 +90,7 @@ psql [DATABASE_URL] -f 001-load-establishments-localities.sql -v filePath=../dat
 psql [DATABASE_URL] -f 002-load-municipalities-localities.sql -v filePath=../data/common/commune.csv
 psql [DATABASE_URL] -f 003-load-data.sql -v filePath=[DATA_CSV_FILE] -v dateFormat=[DATE_FORMAT]
 psql [DATABASE_URL] -f 004-load-buildings.sql -v filePath=[BUILDING_CSV_FILE]
-psql [DATABASE_URL] -f 005-load-tax-zones.sql -v filePath=../data/common/zonage_commune.csv
+psql [DATABASE_URL] -f 005-load-locality-taxes.sql -v filePath=../data/common/taxe.csv
 npm run seed
 ```
 
@@ -108,19 +108,6 @@ L'application est accessible à l'adresse sur <http://localhost:3000>
 
 ```bash
 npm run frontend:test
-```
-
-Tests e2e
-```bash
-export CYPRESS_API_URL=http://localhost:3001
-export CYPRESS_USER_EMAIL=test.saintlo@zlv.fr
-export CYPRESS_USER_PASSWORD=...
-export CYPRESS_BASE_URL=http://localhost:3000
-
-# Avec UI
-npx cypress open 
-# Sans UI
-npx cypress run --e2e
 ```
 
 **Backend**

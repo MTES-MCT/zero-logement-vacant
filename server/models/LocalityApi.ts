@@ -1,12 +1,6 @@
 export interface LocalityApi {
   geoCode: string;
   name: string;
-  taxKind: TaxKindsApi;
+  taxZone?: string;
   taxRate?: number;
-}
-
-export enum TaxKindsApi {
-  TLV = 'TLV',
-  THLV = 'THLV',
-  None = 'None',
 }

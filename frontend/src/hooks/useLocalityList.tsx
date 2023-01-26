@@ -30,6 +30,15 @@ export const useLocalityList = (forceReload = false) => {
     [localities]
   );
 
+  const hasTLV = (locality: Locality) =>
+    locality.taxZone !== undefined &&
+    locality.taxZone !== '' &&
+    locality.taxZone !== 'C';
+
+  const hasTHLV = (locality: Locality) => locality.taxRate !== null;
+  const hasNoTax = (locality: Locality) =>
+    !hasTLV(locality) && !hasTHLV(locality);
+
   const filterCount = (filter: (locality: Locality) => boolean) =>
     localities?.filter(filter).length;
 
@@ -37,6 +46,9 @@ export const useLocalityList = (forceReload = false) => {
     localities,
     localitiesOptions,
     localitiesGeoCodes,
+    hasTLV,
+    hasTHLV,
+    hasNoTax,
     filterCount,
   };
 };

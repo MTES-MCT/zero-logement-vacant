@@ -16,17 +16,17 @@ import {
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
-import { Locality, TaxKinds } from '../../../models/Locality';
+import { Locality } from '../../../models/Locality';
 import Help from '../../Help/Help';
 
 interface Props {
   locality: Locality;
-  onSubmit: (xKind: TaxKinds, taxRate?: number) => void;
+  onSubmit: (taxRate?: number) => void;
   onClose: () => void;
 }
 
 const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
-  const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
+  const [hasTHLV, setHasTHLV] = useState(locality.taxRate !== null);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
 
   const schema = yup.object().shape(
@@ -47,11 +47,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
 
   const submitContactPointForm = () => {
     if (isValid()) {
-      if (hasTHLV && taxRate) {
-        onSubmit(TaxKinds.THLV, Number(taxRate));
-      } else {
-        onSubmit(TaxKinds.None);
-      }
+      onSubmit(hasTHLV && taxRate ? Number(taxRate) : undefined);
     }
   };
 

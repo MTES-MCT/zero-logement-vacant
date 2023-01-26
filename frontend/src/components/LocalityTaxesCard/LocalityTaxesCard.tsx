@@ -63,7 +63,7 @@ function LocalityTaxesCard({ locality, onEdit }: Props) {
             </Col>
           </Row>
         )}
-        {locality.taxKind === TaxKinds.THLV && (
+        {locality.taxKind === TaxKinds.THLV && locality.taxRate && (
           <>
             <Text size="sm" className="zlv-label">
               Taux après 2 ans

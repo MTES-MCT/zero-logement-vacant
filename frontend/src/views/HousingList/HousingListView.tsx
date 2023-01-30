@@ -87,7 +87,10 @@ const HousingListView = () => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.CreateCampaign,
-      value: selectedHousingCount(selectedHousing, paginatedHousing.totalCount),
+      value: selectedHousingCount(
+        selectedHousing,
+        paginatedHousing.filteredCount
+      ),
     });
     if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
       setNoHousingAlert(true);
@@ -104,7 +107,7 @@ const HousingListView = () => {
         action: TrackEventActions.HousingList.SaveCampaign,
         value: selectedHousingCount(
           selectedHousing,
-          paginatedHousing.totalCount
+          paginatedHousing.filteredCount
         ),
       });
       dispatch(
@@ -238,7 +241,7 @@ const HousingListView = () => {
                 >
                   <HousingListHeader>
                     <HousingListHeaderActions>
-                      {paginatedHousing.totalCount > 0 && (
+                      {paginatedHousing.filteredCount > 0 && (
                         <Row justifyContent="right">
                           {!hasSelected() && (
                             <Col n="6" spacing="mr-2w">
@@ -259,14 +262,14 @@ const HousingListView = () => {
                             <CampaignCreationModal
                               housingCount={selectedHousingCount(
                                 selectedHousing,
-                                paginatedHousing.totalCount
+                                paginatedHousing.filteredCount
                               )}
                               filters={filters}
                               housingExcudedCount={
-                                paginatedHousing.totalCount -
+                                paginatedHousing.filteredCount -
                                 selectedHousingCount(
                                   selectedHousing,
-                                  paginatedHousing.totalCount
+                                  paginatedHousing.filteredCount
                                 )
                               }
                               onSubmit={(campaignTitle?: string) =>

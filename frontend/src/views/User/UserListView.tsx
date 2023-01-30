@@ -205,13 +205,13 @@ const UserListView = () => {
               <Row alignItems="middle" className="fr-py-1w">
                 <Col>
                   <b>
-                    {displayCount(paginatedUsers.totalCount, 'utilisateur')}
+                    {displayCount(paginatedUsers.filteredCount, 'utilisateur')}
                   </b>
                 </Col>
               </Row>
             )}
 
-            {paginatedUsers.totalCount > 0 && (
+            {paginatedUsers.filteredCount > 0 && (
               <Table
                 caption="Utilisateurs"
                 captionPosition="none"

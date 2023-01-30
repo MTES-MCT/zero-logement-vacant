@@ -24,6 +24,7 @@ const initialState: UserState = {
     page: 1,
     perPage: config.perPageDefault,
     totalCount: 0,
+    filteredCount: 0,
     loading: true,
   },
   filters: initialUserFilters,
@@ -37,6 +38,7 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
         paginatedUsers: {
           entities: [],
           totalCount: 0,
+          filteredCount: 0,
           page: action.page,
           perPage: action.perPage,
           loading: true,
@@ -55,6 +57,7 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
             paginatedUsers: {
               ...state.paginatedUsers,
               entities: action.paginatedUsers.entities,
+              filteredCount: action.paginatedUsers.filteredCount,
               totalCount: action.paginatedUsers.totalCount,
               loading: false,
             },
@@ -68,6 +71,7 @@ const userReducer = (state = initialState, action: UserActionTypes) => {
           entities: state.paginatedUsers.entities.filter(
             (user) => user.id !== action.id
           ),
+          filteredCount: state.paginatedUsers.filteredCount - 1,
           totalCount: state.paginatedUsers.totalCount - 1,
         },
       };

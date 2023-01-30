@@ -1,6 +1,9 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { HousingFilters } from '../models/HousingFilters';
+import {
+  HousingFilters,
+  HousingFiltersForTotalCount,
+} from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { PaginatedResult } from '../models/PaginatedResult';
 import ownerService from './owner.service';
@@ -24,6 +27,7 @@ const getHousing = async (id: string): Promise<Housing> => {
 
 const listHousing = async (
   filters: HousingFilters,
+  filtersForTotalCount: HousingFiltersForTotalCount,
   page: number,
   perPage: number,
   sort?: HousingSort
@@ -36,7 +40,7 @@ const listHousing = async (
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ filters, page, perPage }),
+    body: JSON.stringify({ filters, filtersForTotalCount, page, perPage }),
   })
     .then((_) => _.json())
     .then((result) => ({

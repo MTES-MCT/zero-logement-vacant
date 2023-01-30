@@ -1,6 +1,7 @@
 import config from '../utils/config';
 
 export interface PaginatedResult<T> {
+  filteredCount: number;
   totalCount: number;
   entities: Array<T>;
   page: number;
@@ -13,5 +14,6 @@ export const initialPaginatedResult = () => ({
   page: 1,
   perPage: config.perPageDefault,
   totalCount: 0,
+  filteredCount: 0,
   loading: true,
 });

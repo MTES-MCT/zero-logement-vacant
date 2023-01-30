@@ -112,6 +112,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
               {
                 entities: [],
                 totalCount: 0,
+                filteredCount: 0,
                 page: action.page,
                 perPage: action.perPage,
                 loading: true,
@@ -126,6 +127,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
           : {
               entities: [],
               totalCount: 0,
+              filteredCount: 0,
               page: action.page,
               perPage: action.perPage,
               loading: true,
@@ -156,6 +158,7 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
                   {
                     ...state.campaignBundleHousingByStatus[action.status],
                     entities: action.paginatedHousing.entities,
+                    filteredCount: action.paginatedHousing.filteredCount,
                     totalCount: action.paginatedHousing.totalCount,
                     loading: false,
                   },
@@ -169,7 +172,8 @@ const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
               : {
                   ...state.campaignBundleHousing,
                   entities: action.paginatedHousing.entities,
-                  totalCount: action.paginatedHousing.totalCount,
+                  filteredCount: action.paginatedHousing.filteredCount,
+                  totalCount: action.paginatedHousing.filteredCount,
                   loading: false,
                 },
           };

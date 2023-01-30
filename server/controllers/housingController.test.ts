@@ -61,7 +61,8 @@ describe('Housing controller', () => {
         ]),
         page: 1,
         perPage: 10,
-        totalCount: 1,
+        filteredCount: 1,
+        totalCount: 4,
       });
     });
   });

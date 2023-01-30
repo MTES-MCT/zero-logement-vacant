@@ -32,6 +32,15 @@ export interface HousingFilters {
   query?: string;
 }
 
+export type HousingFiltersForTotalCount = Pick<
+  HousingFilters,
+  | 'establishmentIds'
+  | 'dataYearsIncluded'
+  | 'dataYearsExcluded'
+  | 'status'
+  | 'campaignIds'
+>;
+
 export const ownerAgeOptions: SelectOption[] = [
   {
     value: 'lt40',

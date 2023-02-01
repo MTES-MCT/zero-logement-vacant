@@ -3,15 +3,15 @@ import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/userRepository';
-import { RequestUser } from '../models/UserApi';
 import establishmentRepository from '../repositories/establishmentRepository';
-import { Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
+import { TokenPayload } from '../models/UserApi';
 
 const signin = async (
   request: Request,
@@ -52,11 +52,11 @@ const signin = async (
       user: { ...user, password: undefined, establishmentId: undefined },
       establishment,
       accessToken: jwt.sign(
-        <RequestUser>{
+        {
           userId: user.id,
           establishmentId: establishment.id,
           role: user.role,
-        },
+        } as TokenPayload,
         config.auth.secret,
         { expiresIn: config.auth.expiresIn }
       ),
@@ -67,10 +67,10 @@ const signin = async (
 };
 
 const updatePassword = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
-  const userId = (<RequestUser>request.auth).userId;
+  const { userId } = (request as AuthenticatedRequest).auth;
 
   const currentPassword = request.body.currentPassword;
   const newPassword = request.body.newPassword;

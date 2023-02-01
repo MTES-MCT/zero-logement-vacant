@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { AuthenticatedRequest } from 'express-jwt';
 
 import eventRepository from '../repositories/eventRepository';
 import { constants } from 'http2';
@@ -59,7 +58,7 @@ const createEventValidators: ValidationChain[] = [
 ];
 
 const create = async (
-  request: AuthenticatedRequest,
+  request: Request,
   response: Response,
   next: NextFunction
 ): Promise<void> => {

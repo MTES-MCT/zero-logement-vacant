@@ -1,12 +1,9 @@
-import express, { NextFunction, Request, Response } from 'express';
-import { expressjwt, Request as JWTRequest } from 'express-jwt';
+import express from 'express';
 
 import housingController from '../controllers/housingController';
-import config from '../utils/config';
 import ownerController from '../controllers/ownerController';
 import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
-import { RequestUser } from '../models/UserApi';
 import userController from '../controllers/userController';
 import accountController from '../controllers/accountController';
 import monitoringController from '../controllers/monitoringController';
@@ -14,30 +11,12 @@ import geoController from '../controllers/geoController';
 import validator from '../middlewares/validator';
 import contactPointController from '../controllers/contactPointController';
 import localityController from '../controllers/localityController';
+import { jwtCheck, userCheck } from '../middlewares/auth';
 
 const router = express.Router();
 
-const jwtCheck = expressjwt({
-  secret: config.auth.secret,
-  algorithms: ['HS256'],
-  getToken: (request: Request) =>
-    (request.headers['x-access-token'] ??
-      request.query['x-access-token']) as string,
-});
-
-const userCheck = (
-  req: JWTRequest<RequestUser>,
-  res: Response,
-  next: NextFunction
-): void => {
-  if (req.auth?.userId && req.auth?.establishmentId) {
-    next();
-  } else {
-    res.sendStatus(401);
-  }
-};
-
-router.use(jwtCheck, userCheck);
+router.use(jwtCheck)
+router.use(userCheck);
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.list);

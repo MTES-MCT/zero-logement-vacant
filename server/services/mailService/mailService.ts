@@ -9,7 +9,20 @@ export interface SendOptions {
 }
 
 export interface MailService {
+  emit<E extends keyof MailEvent>(
+    event: E,
+    email: string,
+    data?: Partial<MailEvent[E]>
+  ): void;
   send(options: SendOptions): Promise<void>;
   sendPasswordReset(key: string, options: SendOptions): Promise<void>;
   sendAccountActivationEmail(key: string, options: SendOptions): Promise<void>;
+}
+
+export type Priority = 'normal' | 'high';
+
+export interface MailEvent {
+  'prospect:initialized': { link: string };
+  'prospect:activated': { createdAt: Date };
+  'housing:exported': { priority?: Priority };
 }

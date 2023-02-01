@@ -350,7 +350,8 @@ const exportHousingByCampaignBundle = async (
 
   const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
-  return await exportHousingList(housingList, fileName, response);
+  await exportHousingList(housingList, fileName, response);
+  mailService.emit('housing:exported', user.email);
 };
 
 const exportHousingList = async (

@@ -3,8 +3,7 @@ import { body, oneOf, validationResult } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
-import { RequestUser } from '../models/UserApi';
-import { Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest } from 'express-jwt';
 import { EventApi, EventKinds } from '../models/EventApi';
 import addressService from '../services/addressService';
 import { constants } from 'http2';
@@ -59,7 +58,7 @@ const listByHousing = async (
 };
 
 const create = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -71,7 +70,7 @@ const create = async (
 
   console.log('Create owner');
 
-  const userId = (<RequestUser>request.auth).userId;
+  const userId = (request as AuthenticatedRequest).auth.userId;
   const draftOwnerApi = <DraftOwnerApi>request.body.draftOwner;
 
   const createdOwnerApi = await ownerRepository.insert(draftOwnerApi);
@@ -99,7 +98,7 @@ const create = async (
 };
 
 const update = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -113,7 +112,7 @@ const update = async (
 
   console.log('Update owner', ownerId);
 
-  const userId = (<RequestUser>request.auth).userId;
+  const userId = (request as AuthenticatedRequest).auth.userId;
   const ownerApi = <OwnerApi>request.body.owner;
 
   const updatedOwnerApi = await ownerRepository.update(ownerApi);
@@ -141,7 +140,7 @@ const update = async (
 };
 
 const updateHousingOwners = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -155,7 +154,7 @@ const updateHousingOwners = async (
 
   console.log('Update housing owners', housingId);
 
-  const userId = (<RequestUser>request.auth).userId;
+  const userId = (request as AuthenticatedRequest).auth.userId;
   const housingOwnersApi = (<HousingOwnerApi[]>(
     request.body.housingOwners
   )).filter((_) => _.housingId === housingId);

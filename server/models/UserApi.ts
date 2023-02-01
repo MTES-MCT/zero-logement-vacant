@@ -9,10 +9,9 @@ export interface UserApi {
   activatedAt?: Date;
 }
 
-export interface RequestUser {
+export interface TokenPayload {
   userId: string;
   establishmentId: string;
-  role: UserRoles;
 }
 
 export enum UserRoles {

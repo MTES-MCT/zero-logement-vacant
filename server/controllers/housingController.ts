@@ -13,12 +13,12 @@ import {
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi, AddressKinds } from '../models/AddressApi';
-import { RequestUser, UserRoles } from '../models/UserApi';
+import { UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest } from 'express-jwt';
 import {
   getHousingStatusApiLabel,
   HousingStatusApi,
@@ -29,6 +29,7 @@ import { body, param, validationResult } from 'express-validator';
 import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import SortApi from '../models/SortApi';
+import mailService from '../services/mailService';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -41,16 +42,17 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 };
 
 const list = async (
-  request: JWTRequest,
+  request: Request,
   response: Response,
   next: NextFunction
 ) => {
   console.log('List housing');
 
-  const page = request.body.page;
-  const perPage = request.body.perPage;
-  const role = (<RequestUser>request.auth).role;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { auth, user } = request as AuthenticatedRequest;
+  const { page, perPage } = request.body;
+
+  const role = user.role;
+  const establishmentId = auth.establishmentId;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
   const filtersForTotalCount =
     <HousingFiltersForTotalCountApi>request.body.filtersForTotalCount ?? {};
@@ -102,11 +104,11 @@ const count = async (request: JWTRequest, response: Response) => {
 };
 
 const listByOwner = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const ownerId = request.params.ownerId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   console.log('List housing by owner', ownerId);
 
@@ -131,7 +133,7 @@ const updateHousingValidators = [
 ];
 
 const updateHousing = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -145,8 +147,7 @@ const updateHousing = async (
 
   console.log('Update housing', housingId);
 
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
-  const userId = (<RequestUser>request.auth).userId;
+  const { userId, establishmentId } = (request as AuthenticatedRequest).auth;
   const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
 
   const housing = await housingRepository.get(housingId);
@@ -205,7 +206,7 @@ const updateHousingListValidators = [
 ];
 
 const updateHousingList = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -217,8 +218,7 @@ const updateHousingList = async (
 
   console.log('Update campaign housing list');
 
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
-  const userId = (<RequestUser>request.auth).userId;
+  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
   const reqCampaignIds = request.body.campaignIds;
   const allHousing = <boolean>request.body.allHousing;
@@ -319,12 +319,13 @@ const getStatusLabel = (
 };
 
 const exportHousingByCampaignBundle = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
-): Promise<Response> => {
+) => {
   const campaignNumber = request.params.campaignNumber;
   const reminderNumber = request.params.reminderNumber;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { auth, user } = request as AuthenticatedRequest;
+  const { establishmentId } = auth;
 
   console.log(
     'Export housing by campaign bundle',
@@ -358,7 +359,7 @@ const exportHousingList = async (
   housingList: HousingApi[],
   fileName: string,
   response: Response
-): Promise<Response> => {
+) => {
   const housingAddresses = await banAddressesRepository.listByRefIds(
     housingList.map((_) => _.id),
     AddressKinds.Housing
@@ -496,7 +497,7 @@ const exportHousingList = async (
     }
   );
 
-  return exportFileService.sendWorkbook(workbook, fileName, response);
+  await exportFileService.sendWorkbook(workbook, fileName, response);
 };
 
 const normalizeAddresses = async (

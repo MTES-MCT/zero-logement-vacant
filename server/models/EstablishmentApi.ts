@@ -5,6 +5,13 @@ export interface EstablishmentApi {
   available: boolean;
   geoCodes: string[];
   campaignIntent?: CampaignIntent;
+  priority: EstablishmentPriority;
+}
+
+export type EstablishmentPriority = 'standard' | 'high';
+
+export function hasPriority(establishment: EstablishmentApi): boolean {
+  return establishment.campaignIntent === '0-2';
 }
 
 export type CampaignIntent = '0-2' | '2-4' | '4+';

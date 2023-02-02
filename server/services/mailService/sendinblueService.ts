@@ -89,7 +89,7 @@ class SendinblueService implements MailService {
   private housingExported(email: string, data: MailEvent['housing:exported']) {
     this.events
       .trackEvent(email, 'housing:exported', {
-        priority: data.priority ?? 'normal',
+        priority: data.priority,
       })
       .catch(console.error);
   }

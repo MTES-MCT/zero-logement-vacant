@@ -1,3 +1,5 @@
+import { EstablishmentPriority } from '../../models/EstablishmentApi';
+
 export type TemplateId = string | number;
 
 export interface SendOptions {
@@ -19,10 +21,8 @@ export interface MailService {
   sendAccountActivationEmail(key: string, options: SendOptions): Promise<void>;
 }
 
-export type Priority = 'normal' | 'high';
-
 export interface MailEvent {
   'prospect:initialized': { link: string };
   'prospect:activated': { createdAt: Date };
-  'housing:exported': { priority?: Priority };
+  'housing:exported': { priority: EstablishmentPriority };
 }

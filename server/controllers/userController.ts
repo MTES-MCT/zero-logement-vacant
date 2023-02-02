@@ -4,7 +4,11 @@ import { UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { CampaignIntent, INTENTS } from '../models/EstablishmentApi';
+import {
+  CampaignIntent,
+  hasPriority,
+  INTENTS,
+} from '../models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import establishmentService from '../services/establishmentService';
@@ -89,6 +93,9 @@ const createUser = async (request: JWTRequest, response: Response) => {
 
   if (!userEstablishment.campaignIntent && body.campaignIntent) {
     userEstablishment.campaignIntent = body.campaignIntent;
+    userEstablishment.priority = hasPriority(userEstablishment)
+      ? 'high'
+      : 'standard';
     await establishmentRepository.update(userEstablishment);
   }
 

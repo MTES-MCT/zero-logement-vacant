@@ -30,6 +30,7 @@ import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import SortApi from '../models/SortApi';
 import mailService from '../services/mailService';
+import establishmentRepository from '../repositories/establishmentRepository';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -85,11 +86,10 @@ const list = async (
   }
 };
 
-const count = async (request: JWTRequest, response: Response) => {
+const count = async (request: Request, response: Response) => {
   console.log('Count housing');
 
-  const role = (<RequestUser>request.auth).role;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId, role } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
 
   return housingRepository
@@ -334,13 +334,16 @@ const exportHousingByCampaignBundle = async (
     reminderNumber
   );
 
-  const campaignApi = await campaignRepository.getCampaignBundle(
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  const [campaignApi, establishment] = await Promise.all([
+    campaignRepository.getCampaignBundle(
+      establishmentId,
+      campaignNumber,
+      reminderNumber
+    ),
+    establishmentRepository.get(establishmentId),
+  ]);
 
-  if (!campaignApi) {
+  if (!campaignApi || !establishment) {
     return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
   }
 
@@ -352,7 +355,9 @@ const exportHousingByCampaignBundle = async (
   const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
   await exportHousingList(housingList, fileName, response);
-  mailService.emit('housing:exported', user.email);
+  mailService.emit('housing:exported', user.email, {
+    priority: establishment.priority,
+  });
 };
 
 const exportHousingList = async (

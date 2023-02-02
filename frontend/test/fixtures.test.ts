@@ -5,13 +5,15 @@ import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
 import { SignupLink } from '../src/models/SignupLink';
-import { SIGNUP_LINK_EXPIRATION } from '../../server/models/SignupLinkApi';
 import { addHours } from 'date-fns';
 import { Prospect } from '../src/models/Prospect';
-import { genBoolean, genSiren } from '../../server/test/testFixtures';
 import { LocalityKinds } from '../src/models/Locality';
 
 const randomstring = require('randomstring');
+
+export const genBoolean = () => Math.random() < 0.5;
+
+export const genSiren = () => genNumber(9);
 
 export function genEmail() {
   return (
@@ -122,7 +124,7 @@ export function genSignupLink(email: string): SignupLink {
       charset: 'alphanumeric',
     }),
     prospectEmail: email,
-    expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+    expiresAt: addHours(new Date(), 24 * 7),
   };
 }
 
@@ -131,7 +133,7 @@ export function genProspect(): Prospect {
     email: genEmail(),
     establishment: {
       id: randomstring.generate(),
-      siren: genSiren(),
+      siren: randomstring.generate(),
       campaignIntent: '0-2',
     },
     hasAccount: genBoolean(),

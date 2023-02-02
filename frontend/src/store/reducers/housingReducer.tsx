@@ -60,6 +60,8 @@ export const initialHousingFilters = {
   geoPerimetersExcluded: [],
   dataYearsIncluded: [config.dataYear + 1],
   dataYearsExcluded: [],
+  energyConsumptions: [],
+  energyConsumptionsWorst: [],
   query: '',
 } as HousingFilters;
 

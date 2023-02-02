@@ -7,7 +7,13 @@ export interface SelectOption {
   disabled?: boolean;
   hidden?: boolean;
   badgeLabel?: string;
-  markup?: ReactElement;
+  markup?: (props: SelectOptionProps) => ReactElement;
+}
+
+interface SelectOptionProps {
+  key?: string;
+  onChangeValue?: (value: string, isChecked: boolean) => void;
+  size?: 'sm' | 'md';
 }
 
 export const DefaultOption: SelectOption = {
@@ -19,7 +25,7 @@ export const DefaultOption: SelectOption = {
 export const Separator: SelectOption = {
   label: '',
   value: '',
-  markup: <hr className="fr-mt-1w" />,
+  markup: () => <hr className="fr-mt-1w" />,
 };
 
 // We might have to transform options in components in the future,
@@ -29,7 +35,7 @@ export function createSubtitleOption(label: string): SelectOption {
   return {
     label,
     value: '',
-    markup: (
+    markup: () => (
       <div>
         <Text as="span" bold size="md">
           {label}

@@ -34,6 +34,8 @@ export interface Housing {
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
+  energyConsumption?: string;
+  energyConsumptionWorst?: string;
 }
 
 export interface SelectedHousing {

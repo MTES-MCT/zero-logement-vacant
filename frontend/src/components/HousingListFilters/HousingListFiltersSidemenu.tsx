@@ -19,6 +19,8 @@ import {
   campaignsCountOptions,
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
+  energyConsumptionOptions,
+  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   housingKindOptions,
@@ -338,6 +340,32 @@ function HousingListFiltersSidemenu() {
                       onChangeFilters(
                         { vacancyRates: values },
                         'Taux de vacance'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Étiquette DPE (majoritaire)"
+                    options={energyConsumptionOptions}
+                    initialValues={filters.energyConsumptions}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { energyConsumptions: values },
+                        'Étiquette DPE (majoritaire)'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Étiquette DPE (+ mauvaise)"
+                    options={energyConsumptionWorstOptions}
+                    initialValues={filters.energyConsumptionsWorst}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { energyConsumptionsWorst: values },
+                        'Étiquette DPE (+ mauvaise)'
                       )
                     }
                   />

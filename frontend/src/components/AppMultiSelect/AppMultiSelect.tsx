@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
-import Checkbox from '../Checkbox/Checkbox';
+import AppMultiSelectOption from './AppMultiSelectOption';
 
 interface AppMultiSelectProps {
   label: string;
@@ -54,6 +54,10 @@ const AppMultiSelect = ({
 
   const id = uuidv4();
 
+  function key(index: number): string {
+    return `${label}-${index}`;
+  }
+
   return (
     <>
       {options.length > 0 && (
@@ -89,22 +93,21 @@ const AppMultiSelect = ({
               legend=""
               data-testid={`${label.toLowerCase()}-checkbox-group`}
             >
-              {options.map((option, index) =>
-                option.markup ? (
-                  option.markup
-                ) : (
-                  <Checkbox
-                    label={option.label}
-                    disabled={option.disabled}
-                    onChange={(e: any) =>
-                      onChangeValue(option.value, e.target.checked)
-                    }
-                    value={option.value}
-                    size={size ?? 'sm'}
-                    key={label + '-' + index}
-                    checked={(initialValues ?? []).indexOf(option.value) !== -1}
-                  />
-                )
+              {options.map(
+                (option, index) =>
+                  option.markup?.({
+                    key: key(index),
+                    onChangeValue,
+                    size,
+                  }) ?? (
+                    <AppMultiSelectOption
+                      {...option}
+                      checked={(initialValues ?? []).includes(option.value)}
+                      key={key(index)}
+                      onChangeValue={onChangeValue}
+                      size={size}
+                    />
+                  )
               )}
             </CheckboxGroup>
           </div>

@@ -3,6 +3,7 @@ import {
   getOwnershipKindFromValue,
   HousingApi,
   HousingSortApi,
+  OccupancyKindApi,
   OwnershipKindsApi,
   OwnershipKindValues,
 } from '../models/HousingApi';
@@ -166,7 +167,15 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: any) => {
-    queryBuilder.andWhereRaw('vacancy_start_year <= ?', ReferenceDataYear - 2);
+    if (filters.occupancy) {
+      queryBuilder.andWhere('occupancy', filters.occupancy);
+    }
+    if (filters.occupancy === OccupancyKindApi.Vacant) {
+      queryBuilder.andWhereRaw(
+        'vacancy_start_year <= ?',
+        ReferenceDataYear - 2
+      );
+    }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
         `join ${establishmentsTable} e on geo_code  = any(e.localities_geo_code) and e.id in (?)`,
@@ -540,7 +549,9 @@ const paginatedListWithFilters = async (
 
   return Promise.all([
     filterQuery.modify((queryBuilder: any) => {
-      queryBuilder.offset((page - 1) * perPage).limit(perPage);
+      if (page && perPage) {
+        queryBuilder.offset((page - 1) * perPage).limit(perPage);
+      }
     }),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),

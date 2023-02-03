@@ -120,7 +120,7 @@ AS $$
         from _extract_zlv_, lateral (
                 select (case when trim(proprietaire) <> '' then trim(proprietaire) else trim(gestre_ppre) end) as owner,
                        (case when trim(proprietaire) <> '' then trim(gestre_ppre) end) as administrator) var
-        where ff_ccthp in ('V', 'L', 'P')
+        where ff_ccthp in ('V')
         and groupe not in ('1','2','3','4','5','6','9')
         and aff='H'
         and upper(nature) in ('APPART','MAISON')

@@ -167,13 +167,26 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: any) => {
-    if (filters.occupancy) {
-      queryBuilder.andWhere('occupancy', filters.occupancy);
+    if (filters.occupancies?.length) {
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
+          whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
+            OccupancyKindApi.Vacant,
+            ReferenceDataYear - 2,
+          ]);
+        }
+        if (filters.occupancies?.includes(OccupancyKindApi.Rent)) {
+          whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
+        }
+      });
     }
-    if (filters.occupancy === OccupancyKindApi.Vacant) {
-      queryBuilder.andWhereRaw(
-        'vacancy_start_year <= ?',
-        ReferenceDataYear - 2
+    if (filters.energyConsumption?.length) {
+      queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
+    }
+    if (filters.energyConsumptionWorst?.length) {
+      queryBuilder.whereIn(
+        'energy_consumption_worst',
+        filters.energyConsumptionWorst
       );
     }
     if (filters.establishmentIds?.length) {

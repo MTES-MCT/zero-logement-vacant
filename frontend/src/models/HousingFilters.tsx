@@ -48,11 +48,11 @@ export type HousingFiltersForTotalCount = Pick<
 export const occupancyOptions: SelectOption[] = [
   {
     value: 'L',
-    label: 'Logement vacant',
+    label: 'Logement locatif',
   },
   {
     value: 'V',
-    label: 'Logement locatif',
+    label: 'Logement vacant',
   },
 ];
 
@@ -352,6 +352,9 @@ export const hasFilters = (housingFilters: HousingFilters) => {
       housingFilters.geoPerimetersExcluded?.length ||
       housingFilters.dataYearsIncluded?.length ||
       housingFilters.dataYearsExcluded?.length ||
-      housingFilters.query?.length
+      housingFilters.query?.length ||
+      housingFilters.energyConsumptions?.length ||
+      housingFilters.energyConsumptionsWorst?.length ||
+      housingFilters.occupancies?.length
   );
 };

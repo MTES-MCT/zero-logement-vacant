@@ -10,6 +10,7 @@
     "frontend:test": "npm --prefix frontend test",
     "server-local": "npm run migrate-latest && ts-node-dev --respawn --transpile-only -r dotenv/config server/index.ts",
     "start-local": "run-p frontend:start server-local",
+    "prebuild": "ts-node database/procedures/register-procedures.ts",
     "build": "npm run migrate-latest && tsc && npm run frontend:build",
     "start": "node ./dist/server/index.js",
     "test": "jest --maxWorkers=1",

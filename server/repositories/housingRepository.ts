@@ -3,6 +3,7 @@ import {
   getOwnershipKindFromValue,
   HousingApi,
   HousingSortApi,
+  OccupancyKindApi,
   OwnershipKindsApi,
   OwnershipKindValues,
 } from '../models/HousingApi';
@@ -166,7 +167,28 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: any) => {
-    queryBuilder.andWhereRaw('vacancy_start_year <= ?', ReferenceDataYear - 2);
+    if (filters.occupancies?.length) {
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
+          whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
+            OccupancyKindApi.Vacant,
+            ReferenceDataYear - 2,
+          ]);
+        }
+        if (filters.occupancies?.includes(OccupancyKindApi.Rent)) {
+          whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
+        }
+      });
+    }
+    if (filters.energyConsumption?.length) {
+      queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
+    }
+    if (filters.energyConsumptionWorst?.length) {
+      queryBuilder.whereIn(
+        'energy_consumption_worst',
+        filters.energyConsumptionWorst
+      );
+    }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
         `join ${establishmentsTable} e on geo_code  = any(e.localities_geo_code) and e.id in (?)`,
@@ -540,7 +562,9 @@ const paginatedListWithFilters = async (
 
   return Promise.all([
     filterQuery.modify((queryBuilder: any) => {
-      queryBuilder.offset((page - 1) * perPage).limit(perPage);
+      if (page && perPage) {
+        queryBuilder.offset((page - 1) * perPage).limit(perPage);
+      }
     }),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),

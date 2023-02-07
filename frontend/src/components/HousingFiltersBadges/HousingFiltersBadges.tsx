@@ -6,12 +6,15 @@ import {
   campaignsCountOptions,
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
+  energyConsumptionOptions,
+  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
+  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -34,10 +37,11 @@ import { TagGroup } from '@dataesr/react-dsfr';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import { OwnershipKinds } from '../../models/Housing';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
-  onChange?: (value: any) => void;
+  onChange?: (values: HousingFilters) => void;
   onReset?: () => void;
   small?: boolean;
 }
@@ -137,7 +141,10 @@ const HousingFiltersBadges = ({
         options={taxedOptions}
         filters={filters.isTaxedValues}
         small={small}
-        onChange={onChange && ((values) => onChange({ isTaxedValues: values }))}
+        onChange={
+          onChange &&
+          ((values) => onChange({ isTaxedValues: values as OwnershipKinds[] }))
+        }
       />
       <FilterBadges
         options={ownershipKindsOptions}
@@ -212,7 +219,7 @@ const HousingFiltersBadges = ({
           onChange &&
           ((values) =>
             onChange({
-              status: values,
+              status: values.map(Number),
               subStatus: filters.subStatus?.filter(
                 (_) => getSubStatusList(values).indexOf(_) !== -1
               ),
@@ -241,7 +248,8 @@ const HousingFiltersBadges = ({
         filters={(filters.dataYearsIncluded ?? []).map((_) => String(_))}
         small={small}
         onChange={
-          onChange && ((values) => onChange({ dataYearsIncluded: values }))
+          onChange &&
+          ((values) => onChange({ dataYearsIncluded: values.map(Number) }))
         }
       />
       <FilterBadges
@@ -249,8 +257,29 @@ const HousingFiltersBadges = ({
         filters={(filters.dataYearsExcluded ?? []).map((_) => String(_))}
         small={small}
         onChange={
-          onChange && ((values) => onChange({ dataYearsExcluded: values }))
+          onChange &&
+          ((values) => onChange({ dataYearsExcluded: values.map(Number) }))
         }
+      />
+      <FilterBadges
+        options={occupancyOptions}
+        filters={filters.occupancies}
+        small={small}
+        onChange={onChange && ((values) => onChange({ occupancies: values }))}
+      />
+      <FilterBadges
+        options={energyConsumptionOptions}
+        filters={filters.energyConsumption}
+        small={small}
+        onChange={
+          onChange && ((values) => onChange({ energyConsumption: values }))
+        }
+      />
+      <FilterBadges
+        options={energyConsumptionWorstOptions}
+        filters={filters.energyConsumptionWorst}
+        small={small}
+        onChange={(values) => onChange?.({ energyConsumptionWorst: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}

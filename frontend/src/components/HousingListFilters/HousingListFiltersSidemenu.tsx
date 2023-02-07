@@ -462,7 +462,7 @@ function HousingListFiltersSidemenu() {
             </Col>
             <Col className="align-right">
               <Text as="span" className="color-grey-625">
-                <b>{paginatedHousing.totalCount}</b> résultats
+                <b>{paginatedHousing.filteredCount}</b> résultats
               </Text>
             </Col>
           </Row>

@@ -194,14 +194,14 @@ const MonitoringView = () => {
               )}
           </li>
         </ul>
-        {paginatedHousingToContact.totalCount > 0 && (
+        {paginatedHousingToContact.filteredCount > 0 && (
           <>
             <hr />
             <Text>
               <b>
                 Il y a{' '}
                 {displayCount(
-                  paginatedHousingToContact.totalCount,
+                  paginatedHousingToContact.filteredCount,
                   'logement',
                   false
                 )}{' '}

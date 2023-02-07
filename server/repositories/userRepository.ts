@@ -76,21 +76,30 @@ const insert = async (userApi: UserApi): Promise<UserApi> => {
 
 const listWithFilters = async (
   filters: UserFiltersApi,
+  filtersForTotalCount: UserFiltersApi,
   page?: number,
   perPage?: number
 ): Promise<PaginatedResultApi<UserApi>> => {
   try {
-    const filter = (queryBuilder: any) => {
+    const filter = (filters: UserFiltersApi) => (queryBuilder: any) => {
       if (filters.establishmentIds?.length) {
         queryBuilder.whereIn('establishment_id', filters.establishmentIds);
       }
     };
 
-    const housingCount: number = await db(usersTable)
-      .count('id')
-      .modify(filter)
+    const filteredCount: number = await db(usersTable)
       .where(notDeleted)
-      .then((_) => Number(_[0].count));
+      .modify(filter(filters))
+      .count('id')
+      .first()
+      .then((_) => Number(_.count));
+
+    const totalCount: number = await db(usersTable)
+      .where(notDeleted)
+      .modify(filter(filtersForTotalCount))
+      .count('id')
+      .first()
+      .then((_) => Number(_?.count));
 
     const results = await db(usersTable)
       .where(notDeleted)
@@ -101,11 +110,12 @@ const listWithFilters = async (
           queryBuilder.offset((page - 1) * perPage).limit(perPage);
         }
       })
-      .modify(filter);
+      .modify(filter(filters));
 
     return <PaginatedResultApi<UserApi>>{
       entities: results.map((result: any) => parseUserApi(result)),
-      totalCount: housingCount,
+      filteredCount,
+      totalCount,
       page,
       perPage,
     };

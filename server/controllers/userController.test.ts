@@ -265,7 +265,7 @@ describe('User controller', () => {
         request(app).post(testRoute)
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 3, totalCount: 3 });
     });
 
     it('should filter users', async () => {
@@ -277,15 +277,15 @@ describe('User controller', () => {
           })
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ totalCount: 2 });
+      expect(res.body).toMatchObject({ filteredCount: 2, totalCount: 3 });
     });
 
-    it('should list only establishmen users when authenticated user has not admin role', async () => {
+    it('should list only establishment users when authenticated user has not admin role', async () => {
       const res = await withAccessToken(request(app).post(testRoute)).expect(
         constants.HTTP_STATUS_OK
       );
 
-      expect(res.body).toMatchObject({ totalCount: 2 });
+      expect(res.body).toMatchObject({ filteredCount: 2, totalCount: 2 });
     });
   });
 

@@ -125,6 +125,10 @@ describe('housing view', () => {
             ...initialHousingFilters,
             ownerKinds: [ownerKindOptions[0].value],
           },
+          filtersForTotalCount: {
+            dataYearsExcluded: [],
+            dataYearsIncluded: [2022],
+          },
           page: 1,
           perPage: config.perPageDefault,
         }),
@@ -175,6 +179,10 @@ describe('housing view', () => {
         },
         body: JSON.stringify({
           filters: { ...initialHousingFilters, query: 'my search' },
+          filtersForTotalCount: {
+            dataYearsExcluded: [],
+            dataYearsIncluded: [2022],
+          },
           page: 1,
           perPage: config.perPageDefault,
         }),

@@ -18,9 +18,9 @@ export const displayCount = (
   totalCount: number,
   label: string,
   capitalize = true,
-  count?: number
+  filteredCount?: number
 ) => {
-  if (totalCount === 0) {
+  if (!totalCount || totalCount === 0) {
     return `${capitalize ? 'Aucun' : 'aucun'} ${label}`;
   }
 
@@ -28,11 +28,13 @@ export const displayCount = (
     return `${capitalize ? 'Un' : 'un'} ${label}`;
   }
 
-  if (count) {
-    return `${count} ${label
+  if (filteredCount !== undefined && filteredCount !== totalCount) {
+    return `${filteredCount} ${label
       .split(' ')
-      .map((_) => `${_}s`)
-      .join(' ')} sur un total de ${totalCount}`;
+      .map((_) => pluralize(filteredCount)(_))
+      .join(' ')} ${pluralize(filteredCount)(
+      'filtré'
+    )} sur un total de ${totalCount}`;
   }
 
   return `${totalCount} ${label

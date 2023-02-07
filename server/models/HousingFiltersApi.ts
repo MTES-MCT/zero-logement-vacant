@@ -1,4 +1,8 @@
-import { OwnershipKindsApi } from './HousingApi';
+import {
+  EnergyConsumptionGradesApi,
+  OccupancyKindApi,
+  OwnershipKindsApi,
+} from './HousingApi';
 
 export interface HousingFiltersApi {
   establishmentIds?: string[];
@@ -28,4 +32,16 @@ export interface HousingFiltersApi {
   status?: number[];
   subStatus?: string[];
   query?: string;
+  energyConsumption?: EnergyConsumptionGradesApi[];
+  energyConsumptionWorst?: EnergyConsumptionGradesApi[];
+  occupancies?: OccupancyKindApi[];
 }
+
+export type HousingFiltersForTotalCountApi = Pick<
+  HousingFiltersApi,
+  | 'establishmentIds'
+  | 'dataYearsIncluded'
+  | 'dataYearsExcluded'
+  | 'status'
+  | 'campaignIds'
+>;

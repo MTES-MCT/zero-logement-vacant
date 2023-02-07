@@ -172,6 +172,7 @@ export const fetchHousingToContact = (
           status: [HousingStatus.FirstContact],
           subStatus: [FirstContactToContactedSubStatus],
         },
+        {},
         page,
         perPage
       )

@@ -41,6 +41,7 @@ router.use(jwtCheck, userCheck);
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.list);
+router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
 router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);

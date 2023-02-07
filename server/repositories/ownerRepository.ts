@@ -18,7 +18,7 @@ const searchOwners = async (
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
   try {
-    const query = db(ownerTable)
+    const filterQuery = db(ownerTable)
       .whereRaw(
         `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
         q
@@ -28,7 +28,7 @@ const searchOwners = async (
         q?.split(' ').reverse().join(' ')
       );
 
-    const ownersCount: number = await db(ownerTable)
+    const filteredCount: number = await db(ownerTable)
       .whereRaw(
         `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
         q
@@ -38,18 +38,27 @@ const searchOwners = async (
         q?.split(' ').reverse().join(' ')
       )
       .count('id')
-      .then((_) => Number(_[0].count));
+      .first()
+      .then((_) => Number(_?.count));
 
-    const results = await query.modify((queryBuilder: any) => {
+    const totalCount = await db(ownerTable)
+      .count('id')
+      .first()
+      .then((_) => Number(_?.count));
+
+    const results = await filterQuery.modify((queryBuilder: any) => {
       queryBuilder.orderBy('full_name');
       if (page && perPage) {
         queryBuilder.offset((page - 1) * perPage).limit(perPage);
       }
     });
 
+    console.log('filteredCount', filteredCount);
+
     return <PaginatedResultApi<OwnerApi>>{
       entities: results.map((result: any) => parseOwnerApi(result)),
-      totalCount: ownersCount,
+      totalCount,
+      filteredCount,
       page,
       perPage,
     };

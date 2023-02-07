@@ -67,3 +67,18 @@ export const OwnershipKindValues = {
   [OwnershipKindsApi.CoOwnership]: ['CL'],
   [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF'],
 };
+
+export enum OccupancyKindApi {
+  Vacant = 'V',
+  Rent = 'L',
+}
+
+export enum EnergyConsumptionGradesApi {
+  A = 'A',
+  B = 'B',
+  C = 'C',
+  D = 'D',
+  E = 'E',
+  F = 'F',
+  G = 'G',
+}

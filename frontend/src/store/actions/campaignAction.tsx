@@ -186,16 +186,13 @@ export const listCampaignBundleHousing = (
       perPage,
     });
 
+    const filters = {
+      campaignIds: campaignBundle.campaignIds,
+      status: status ? [status] : [],
+    };
+
     housingService
-      .listHousing(
-        {
-          campaignIds: campaignBundle.campaignIds,
-          status: status ? [status] : [],
-          query,
-        },
-        page,
-        perPage
-      )
+      .listHousing({ ...filters, query }, filters, page, perPage)
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
         dispatch({
@@ -228,14 +225,16 @@ export const changeCampaignHousingPagination = (
         perPage,
       });
 
+      const filters = {
+        campaignIds: campaignBundle.campaignIds,
+        status: status ? [status] : [],
+      };
+
       housingService
         .listHousing(
-          {
-            campaignIds: campaignBundle.campaignIds,
-            status: status ? [status] : [],
-            query: searchQuery,
-          },
-          page,
+          { ...filters, query: searchQuery },
+          filters,
+          perPage,
           perPage
         )
         .then((result: PaginatedResult<Housing>) => {
@@ -270,13 +269,15 @@ export const changeCampaignHousingSort = (
         perPage: campaignBundleHousing.perPage,
       });
 
+      const filters = {
+        campaignIds: campaignBundle.campaignIds,
+        status: status ? [status] : [],
+      };
+
       housingService
         .listHousing(
-          {
-            campaignIds: campaignBundle.campaignIds,
-            status: status ? [status] : [],
-            query: searchQuery,
-          },
+          { ...filters, query: searchQuery },
+          filters,
           1,
           campaignBundleHousing.perPage,
           sort

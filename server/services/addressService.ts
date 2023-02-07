@@ -24,7 +24,8 @@ const normalizeEstablishmentAddresses = async (establishmentId: string) => {
       .fill(0)
       .map((_: any, index: any) =>
         housingRepository
-          .listWithFilters(
+          .paginatedListWithFilters(
+            { establishmentIds: [establishmentId] },
             { establishmentIds: [establishmentId] },
             page + index,
             perPage

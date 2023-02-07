@@ -137,7 +137,7 @@ const HousingList = ({
         onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
         checked={
           (allChecked && checkedIds.length === 0) ||
-          (!allChecked && checkedIds.length === paginatedHousing.totalCount)
+          (!allChecked && checkedIds.length === paginatedHousing.filteredCount)
         }
         className={checkedIds.length !== 0 ? styles.indeterminate : ''}
         label=""
@@ -316,10 +316,10 @@ const HousingList = ({
         <HousingListHeader
           selected={
             allChecked
-              ? paginatedHousing.totalCount - checkedIds.length
+              ? paginatedHousing.filteredCount - checkedIds.length
               : checkedIds.length
           }
-          count={paginatedHousing.entities.length}
+          count={paginatedHousing.filteredCount}
           total={paginatedHousing.totalCount}
           onUnselectAll={unselectAll}
           {...header?.props}

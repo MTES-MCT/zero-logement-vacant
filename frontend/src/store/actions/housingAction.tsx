@@ -106,7 +106,7 @@ export type HousingActionTypes =
   | HousingEventsFetchedAction;
 
 export const expandFilters = (value: boolean) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch) {
     dispatch({
       type: EXPAND_FILTERS,
       value,
@@ -128,8 +128,15 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       filters,
     });
 
+    const { dataYearsExcluded, dataYearsIncluded } = filters;
+
     housingService
-      .listHousing(filters, page, perPage)
+      .listHousing(
+        filters,
+        { dataYearsExcluded, dataYearsIncluded },
+        page,
+        perPage
+      )
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
         dispatch({
@@ -154,8 +161,15 @@ export const changeHousingPagination = (page: number, perPage: number) => {
       filters,
     });
 
+    const { dataYearsExcluded, dataYearsIncluded } = filters;
+
     housingService
-      .listHousing(getState().housing.filters, page, perPage)
+      .listHousing(
+        getState().housing.filters,
+        { dataYearsExcluded, dataYearsIncluded },
+        page,
+        perPage
+      )
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
         dispatch({
@@ -180,14 +194,24 @@ export const changeHousingSort = (sort: HousingSort) => {
       filters,
     });
 
-    housingService.listHousing(filters, page, perPage, sort).then((result) => {
-      dispatch(hideLoading());
-      dispatch({
-        type: HOUSING_LIST_FETCHED,
-        paginatedHousing: result,
+    const { dataYearsExcluded, dataYearsIncluded } = filters;
+
+    housingService
+      .listHousing(
         filters,
+        { dataYearsExcluded, dataYearsIncluded },
+        page,
+        perPage,
+        sort
+      )
+      .then((result) => {
+        dispatch(hideLoading());
+        dispatch({
+          type: HOUSING_LIST_FETCHED,
+          paginatedHousing: result,
+          filters,
+        });
       });
-    });
   };
 };
 

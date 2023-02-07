@@ -58,13 +58,16 @@ const HousingAdditionalOwnerSearchResults = ({
         <Row alignItems="middle" className="fr-py-1w">
           <Col>
             <b>
-              {displayCount(paginatedOwners.totalCount, 'propriétaire trouvé')}
+              {displayCount(
+                paginatedOwners.filteredCount,
+                'propriétaire trouvé'
+              )}
             </b>
           </Col>
         </Row>
       )}
 
-      {paginatedOwners.totalCount > 0 && (
+      {paginatedOwners.filteredCount > 0 && (
         <>
           <Table
             caption="Propriétaires"

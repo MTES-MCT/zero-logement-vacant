@@ -41,6 +41,7 @@ const initialState: MonitoringState = {
     page: 1,
     perPage: config.perPageDefault,
     totalCount: 0,
+    filteredCount: 0,
     loading: true,
   },
   housingByStatusCountFilters: initialMonitoringFilters,
@@ -90,6 +91,7 @@ const monitoringReducer = (
         paginatedHousingToContact: {
           entities: [],
           totalCount: 0,
+          filteredCount: 0,
           page: action.page,
           perPage: action.perPage,
           loading: true,
@@ -111,6 +113,7 @@ const monitoringReducer = (
               ...state.paginatedHousingToContact,
               entities: action.paginatedHousing.entities,
               totalCount: action.paginatedHousing.totalCount,
+              filteredCount: action.paginatedHousing.filteredCount,
               loading: false,
             },
           };

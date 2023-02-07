@@ -69,6 +69,7 @@ const initialState: HousingState = {
     page: 1,
     perPage: config.perPageDefault,
     totalCount: 0,
+    filteredCount: 0,
     loading: true,
   },
   filters: initialHousingFilters,
@@ -130,6 +131,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
               paginatedOwners: {
                 ...state.additionalOwners?.paginatedOwners,
                 entities: action.paginatedOwners.entities,
+                filteredCount: action.paginatedOwners.filteredCount,
                 totalCount: action.paginatedOwners.totalCount,
                 loading: false,
               },
@@ -157,6 +159,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         paginatedHousing: {
           entities: [],
           totalCount: 0,
+          filteredCount: 0,
           page: action.page,
           perPage: action.perPage,
           loading: true,
@@ -175,6 +178,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
             paginatedHousing: {
               ...state.paginatedHousing,
               entities: action.paginatedHousing.entities,
+              filteredCount: action.paginatedHousing.filteredCount,
               totalCount: action.paginatedHousing.totalCount,
               loading: false,
             },

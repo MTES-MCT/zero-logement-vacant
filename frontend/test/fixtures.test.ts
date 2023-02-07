@@ -108,7 +108,7 @@ export function genCampaign() {
 
 export function genPaginatedResult<T>(results: Array<T>) {
   return {
-    totalCount: genNumber(2),
+    filteredCount: genNumber(2),
     entities: results,
     page: 1,
     perPage: 50,

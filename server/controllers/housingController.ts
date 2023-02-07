@@ -6,7 +6,10 @@ import {
   HousingSortableApi,
   HousingUpdateApi,
 } from '../models/HousingApi';
-import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import {
+  HousingFiltersApi,
+  HousingFiltersForTotalCountApi,
+} from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS from 'exceljs';
 import { AddressApi, AddressKinds } from '../models/AddressApi';
@@ -49,18 +52,26 @@ const list = async (
   const role = (<RequestUser>request.auth).role;
   const establishmentId = (<RequestUser>request.auth).establishmentId;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
+  const filtersForTotalCount =
+    <HousingFiltersForTotalCountApi>request.body.filtersForTotalCount ?? {};
   const sort = SortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
 
+  const establishmentIds =
+    role === UserRoles.Admin && filters.establishmentIds?.length
+      ? filters.establishmentIds
+      : [establishmentId];
+
   try {
-    const housing = await housingRepository.listWithFilters(
+    const housing = await housingRepository.paginatedListWithFilters(
       {
         ...filters,
-        establishmentIds:
-          role === UserRoles.Admin && filters.establishmentIds?.length
-            ? filters.establishmentIds
-            : [establishmentId],
+        establishmentIds,
+      },
+      {
+        ...filtersForTotalCount,
+        establishmentIds,
       },
       page,
       perPage,
@@ -70,6 +81,24 @@ const list = async (
   } catch (err) {
     next(err);
   }
+};
+
+const count = async (request: JWTRequest, response: Response) => {
+  console.log('Count housing');
+
+  const role = (<RequestUser>request.auth).role;
+  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const filters = <HousingFiltersApi>request.body.filters ?? {};
+
+  return housingRepository
+    .countWithFilters({
+      ...filters,
+      establishmentIds:
+        role === UserRoles.Admin && filters.establishmentIds?.length
+          ? filters.establishmentIds
+          : [establishmentId],
+    })
+    .then((count) => response.status(constants.HTTP_STATUS_OK).json({ count }));
 };
 
 const listByOwner = async (
@@ -90,7 +119,7 @@ const listByOwner = async (
   ]).then(([list, totalCount]) =>
     response
       .status(constants.HTTP_STATUS_OK)
-      .json({ entities: list.entities, totalCount })
+      .json({ entities: list, totalCount })
   );
 };
 
@@ -211,7 +240,7 @@ const updateHousingList = async (
       query,
     })
     .then((_) =>
-      _.entities.filter((housing) =>
+      _.filter((housing) =>
         allHousing
           ? housingIds.indexOf(housing.id) === -1
           : housingIds.indexOf(housing.id) !== -1
@@ -314,12 +343,10 @@ const exportHousingByCampaignBundle = async (
     return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
   }
 
-  const housingList = await housingRepository
-    .listWithFilters({
-      establishmentIds: [establishmentId],
-      campaignIds: campaignApi.campaignIds,
-    })
-    .then((_) => _.entities);
+  const housingList = await housingRepository.listWithFilters({
+    establishmentIds: [establishmentId],
+    campaignIds: campaignApi.campaignIds,
+  });
 
   const fileName = `C${campaignApi.campaignNumber}.xlsx`;
 
@@ -506,6 +533,7 @@ const reduceRawAddress = (rawAddress?: string[]) => {
 const housingController = {
   get,
   list,
+  count,
   listByOwner,
   updateHousingValidators,
   updateHousing,

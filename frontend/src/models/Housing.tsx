@@ -90,10 +90,10 @@ export const getBuildingLocation = (housing: Housing) => {
 
 export const selectedHousingCount = (
   selectedHousing: SelectedHousing,
-  totalCount: number
+  filteredCount: number
 ) => {
   return selectedHousing.all
-    ? totalCount - selectedHousing.ids.length
+    ? filteredCount - selectedHousing.ids.length
     : selectedHousing.ids.length;
 };
 

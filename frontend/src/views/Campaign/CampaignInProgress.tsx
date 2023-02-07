@@ -75,7 +75,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
 
   const selectedCount = selectedHousingCount(
     selectedHousing,
-    paginatedCampaignHousing.totalCount
+    paginatedCampaignHousing.filteredCount
   );
 
   const modifyColumn = {
@@ -152,7 +152,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
       action: TrackEventActions.Campaigns.UpdateHousing,
       value: selectedHousingCount(
         selectedHousing,
-        paginatedCampaignHousing.totalCount
+        paginatedCampaignHousing.filteredCount
       ),
     });
     dispatch(
@@ -365,7 +365,7 @@ const CampaignInProgress = () => {
     return `${getHousingState(status).title} (${
       campaignBundleHousingByStatus[status].loading
         ? '...'
-        : campaignBundleHousingByStatus[status].totalCount
+        : campaignBundleHousingByStatus[status].filteredCount
     })`;
   };
 

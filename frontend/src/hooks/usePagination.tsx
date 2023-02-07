@@ -3,8 +3,8 @@ import { PaginatedResult } from '../models/PaginatedResult';
 
 export function usePagination<T>(paginatedResult: PaginatedResult<T>) {
   const pageCount = useMemo<number>(
-    () => Math.ceil(paginatedResult.totalCount / paginatedResult.perPage),
-    [paginatedResult.totalCount, paginatedResult.perPage]
+    () => Math.ceil(paginatedResult.filteredCount / paginatedResult.perPage),
+    [paginatedResult.filteredCount, paginatedResult.perPage]
   );
 
   const rowNumber = useMemo<(index: number) => number>(
@@ -14,8 +14,8 @@ export function usePagination<T>(paginatedResult: PaginatedResult<T>) {
   );
 
   const hasPagination = useMemo<boolean>(() => {
-    return paginatedResult.totalCount > paginatedResult.perPage;
-  }, [paginatedResult.totalCount, paginatedResult.perPage]);
+    return paginatedResult.filteredCount > paginatedResult.perPage;
+  }, [paginatedResult.filteredCount, paginatedResult.perPage]);
 
   return {
     pageCount,

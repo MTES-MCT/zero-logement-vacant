@@ -122,7 +122,12 @@ const list = async (
   };
 
   return userRepository
-    .listWithFilters(filters, page, perPage)
+    .listWithFilters(
+      filters,
+      role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
+      page,
+      perPage
+    )
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 

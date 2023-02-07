@@ -29,3 +29,12 @@ export interface HousingFiltersApi {
   subStatus?: string[];
   query?: string;
 }
+
+export type HousingFiltersForTotalCountApi = Pick<
+  HousingFiltersApi,
+  | 'establishmentIds'
+  | 'dataYearsIncluded'
+  | 'dataYearsExcluded'
+  | 'status'
+  | 'campaignIds'
+>;

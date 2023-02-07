@@ -269,17 +269,17 @@ const HousingFiltersBadges = ({
       />
       <FilterBadges
         options={energyConsumptionOptions}
-        filters={filters.energyConsumptions}
+        filters={filters.energyConsumption}
         small={small}
         onChange={
-          onChange && ((values) => onChange({ energyConsumptions: values }))
+          onChange && ((values) => onChange({ energyConsumption: values }))
         }
       />
       <FilterBadges
         options={energyConsumptionWorstOptions}
-        filters={filters.energyConsumptionsWorst}
+        filters={filters.energyConsumptionWorst}
         small={small}
-        onChange={(values) => onChange?.({ energyConsumptionsWorst: values })}
+        onChange={(values) => onChange?.({ energyConsumptionWorst: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}

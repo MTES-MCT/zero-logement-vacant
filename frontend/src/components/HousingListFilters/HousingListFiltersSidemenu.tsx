@@ -263,10 +263,10 @@ function HousingListFiltersSidemenu() {
                   <AppMultiSelect
                     label="Étiquette DPE (majoritaire)"
                     options={energyConsumptionOptions}
-                    initialValues={filters.energyConsumptions}
+                    initialValues={filters.energyConsumption}
                     onChange={(values) =>
                       onChangeFilters(
-                        { energyConsumptions: values },
+                        { energyConsumption: values },
                         'Étiquette DPE (majoritaire)'
                       )
                     }
@@ -276,10 +276,10 @@ function HousingListFiltersSidemenu() {
                   <AppMultiSelect
                     label="Étiquette DPE (+ mauvaise)"
                     options={energyConsumptionWorstOptions}
-                    initialValues={filters.energyConsumptionsWorst}
+                    initialValues={filters.energyConsumptionWorst}
                     onChange={(values) =>
                       onChangeFilters(
-                        { energyConsumptionsWorst: values },
+                        { energyConsumptionWorst: values },
                         'Étiquette DPE (+ mauvaise)'
                       )
                     }

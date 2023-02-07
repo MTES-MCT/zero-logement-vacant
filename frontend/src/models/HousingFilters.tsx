@@ -31,8 +31,8 @@ export interface HousingFilters {
   status?: number[];
   subStatus?: string[];
   query?: string;
-  energyConsumptions?: string[];
-  energyConsumptionsWorst?: string[];
+  energyConsumption?: string[];
+  energyConsumptionWorst?: string[];
   occupancies?: string[];
 }
 
@@ -353,8 +353,8 @@ export const hasFilters = (housingFilters: HousingFilters) => {
       housingFilters.dataYearsIncluded?.length ||
       housingFilters.dataYearsExcluded?.length ||
       housingFilters.query?.length ||
-      housingFilters.energyConsumptions?.length ||
-      housingFilters.energyConsumptionsWorst?.length ||
+      housingFilters.energyConsumption?.length ||
+      housingFilters.energyConsumptionWorst?.length ||
       housingFilters.occupancies?.length
   );
 };

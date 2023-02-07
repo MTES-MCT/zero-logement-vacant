@@ -31,6 +31,7 @@ export interface HousingFilters {
   status?: number[];
   subStatus?: string[];
   query?: string;
+  occupancy?: string[];
   energyConsumptions?: string[];
   energyConsumptionsWorst?: string[];
 }
@@ -43,6 +44,17 @@ export type HousingFiltersForTotalCount = Pick<
   | 'status'
   | 'campaignIds'
 >;
+
+export const occupancyOptions: SelectOption[] = [
+  {
+    value: 'L',
+    label: 'Logement vacant',
+  },
+  {
+    value: 'V',
+    label: 'Logement locatif',
+  },
+];
 
 export const ownerAgeOptions: SelectOption[] = [
   {

@@ -6,12 +6,15 @@ import {
   campaignsCountOptions,
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
+  energyConsumptionOptions,
+  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
+  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -34,6 +37,7 @@ import { TagGroup } from '@dataesr/react-dsfr';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import { fil } from 'date-fns/locale';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -251,6 +255,24 @@ const HousingFiltersBadges = ({
         onChange={
           onChange && ((values) => onChange({ dataYearsExcluded: values }))
         }
+      />
+      <FilterBadges
+        options={occupancyOptions}
+        filters={filters.occupancy}
+        small={small}
+        onChange={(values) => onChange?.({ occupancy: values })}
+      />
+      <FilterBadges
+        options={energyConsumptionOptions}
+        filters={filters.energyConsumptions}
+        small={small}
+        onChange={(values) => onChange?.({ energyConsumption: values })}
+      />
+      <FilterBadges
+        options={energyConsumptionWorstOptions}
+        filters={filters.energyConsumptionsWorst}
+        small={small}
+        onChange={(values) => onChange?.({ energyConsumptionWorst: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}

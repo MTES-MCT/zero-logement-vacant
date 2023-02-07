@@ -26,6 +26,7 @@ import {
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
+  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -50,6 +51,7 @@ import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import { useFeature } from '../../hooks/useFeature';
 
 interface TitleWithIconProps {
   icon: string;
@@ -66,6 +68,12 @@ function TitleWithIcon(props: TitleWithIconProps) {
 }
 
 function HousingListFiltersSidemenu() {
+  const { establishment } = useSelector(
+    (state: ApplicationState) => state.authentication.authUser
+  );
+  const feature = useFeature({
+    establishmentId: establishment.id,
+  });
   const { expand, filters, onChangeFilters, onResetFilters, setExpand } =
     useFilters();
   const campaignList = useCampaignList();
@@ -89,6 +97,31 @@ function HousingListFiltersSidemenu() {
       title="Tous les filtres"
       content={
         <Accordion>
+          {feature.isEnabled('occupancy') && (
+            <AccordionItem
+              title={
+                <TitleWithIcon icon="ri-map-pin-user-fill" title="Occupation" />
+              }
+            >
+              <Container as="section" fluid>
+                <Row gutters>
+                  <Col>
+                    <AppMultiSelect
+                      label="Statut d’occupation"
+                      options={occupancyOptions}
+                      initialValues={filters.occupancy}
+                      onChange={(values) =>
+                        onChangeFilters(
+                          { occupancy: values },
+                          'Statut d’occupation'
+                        )
+                      }
+                    />
+                  </Col>
+                </Row>
+              </Container>
+            </AccordionItem>
+          )}
           <AccordionItem
             title={<TitleWithIcon icon="ri-home-fill" title="Logement" />}
           >
@@ -196,63 +229,59 @@ function HousingListFiltersSidemenu() {
             </Container>
           </AccordionItem>
           <AccordionItem
-            title={<TitleWithIcon icon="ri-hand-coin-fill" title="Suivi" />}
+            title={<TitleWithIcon icon="ri-building-4-fill" title="Immeuble" />}
           >
             <Container as="section" fluid className={styles.category}>
               <Row gutters>
                 <Col n="6">
                   <AppMultiSelect
-                    label="Prise de contact"
-                    options={campaignsCountOptions}
-                    initialValues={filters.campaignsCounts}
+                    label="Nombre de logements"
+                    options={housingCountOptions}
+                    initialValues={filters.housingCounts}
                     onChange={(values) =>
                       onChangeFilters(
-                        { campaignsCounts: values },
-                        'Prise de contact'
-                      )
-                    }
-                  />
-                </Col>
-                {campaignList && filters.campaignIds && (
-                  <Col n="6">
-                    <AppMultiSelect
-                      label="Campagne"
-                      options={campaignList.map((c) => ({
-                        value: c.id,
-                        label: campaignFullName(c),
-                      }))}
-                      initialValues={filters.campaignIds}
-                      onChange={(values) =>
-                        onChangeFilters({ campaignIds: values }, 'Campagne')
-                      }
-                    />
-                  </Col>
-                )}
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Statut"
-                    options={statusOptions()}
-                    initialValues={filters.status?.map((_) => _.toString())}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        {
-                          status: values.map(Number),
-                          subStatus: filters.subStatus?.filter(
-                            (_) => getSubStatusList(values).indexOf(_) !== -1
-                          ),
-                        },
-                        'Statut'
+                        { housingCounts: values },
+                        'Nombre de logements'
                       )
                     }
                   />
                 </Col>
                 <Col n="6">
                   <AppMultiSelect
-                    label="Sous-statut"
-                    options={getSubStatusListOptions(filters.status)}
-                    initialValues={filters.subStatus}
+                    label="Taux de vacance"
+                    options={vacancyRateOptions}
+                    initialValues={filters.vacancyRates}
                     onChange={(values) =>
-                      onChangeFilters({ subStatus: values }, 'Sous-statut')
+                      onChangeFilters(
+                        { vacancyRates: values },
+                        'Taux de vacance'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Étiquette DPE (majoritaire)"
+                    options={energyConsumptionOptions}
+                    initialValues={filters.energyConsumptions}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { energyConsumptions: values },
+                        'Étiquette DPE (majoritaire)'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Étiquette DPE (+ mauvaise)"
+                    options={energyConsumptionWorstOptions}
+                    initialValues={filters.energyConsumptionsWorst}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { energyConsumptionsWorst: values },
+                        'Étiquette DPE (+ mauvaise)'
+                      )
                     }
                   />
                 </Col>
@@ -306,66 +335,6 @@ function HousingListFiltersSidemenu() {
                       onChangeFilters(
                         { beneficiaryCounts: values },
                         'Ayants droit'
-                      )
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-building-4-fill" title="Immeuble" />}
-          >
-            <Container as="section" fluid className={styles.category}>
-              <Row gutters>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Nombre de logements"
-                    options={housingCountOptions}
-                    initialValues={filters.housingCounts}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { housingCounts: values },
-                        'Nombre de logements'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Taux de vacance"
-                    options={vacancyRateOptions}
-                    initialValues={filters.vacancyRates}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { vacancyRates: values },
-                        'Taux de vacance'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Étiquette DPE (majoritaire)"
-                    options={energyConsumptionOptions}
-                    initialValues={filters.energyConsumptions}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { energyConsumptions: values },
-                        'Étiquette DPE (majoritaire)'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Étiquette DPE (+ mauvaise)"
-                    options={energyConsumptionWorstOptions}
-                    initialValues={filters.energyConsumptionsWorst}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { energyConsumptionsWorst: values },
-                        'Étiquette DPE (+ mauvaise)'
                       )
                     }
                   />
@@ -428,6 +397,70 @@ function HousingListFiltersSidemenu() {
                         { geoPerimetersExcluded: values },
                         'Périmètre exclu'
                       )
+                    }
+                  />
+                </Col>
+              </Row>
+            </Container>
+          </AccordionItem>
+          <AccordionItem
+            title={<TitleWithIcon icon="ri-hand-coin-fill" title="Suivi" />}
+          >
+            <Container as="section" fluid className={styles.category}>
+              <Row gutters>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Prise de contact"
+                    options={campaignsCountOptions}
+                    initialValues={filters.campaignsCounts}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { campaignsCounts: values },
+                        'Prise de contact'
+                      )
+                    }
+                  />
+                </Col>
+                {campaignList && filters.campaignIds && (
+                  <Col n="6">
+                    <AppMultiSelect
+                      label="Campagne"
+                      options={campaignList.map((c) => ({
+                        value: c.id,
+                        label: campaignFullName(c),
+                      }))}
+                      initialValues={filters.campaignIds}
+                      onChange={(values) =>
+                        onChangeFilters({ campaignIds: values }, 'Campagne')
+                      }
+                    />
+                  </Col>
+                )}
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Statut"
+                    options={statusOptions()}
+                    initialValues={filters.status?.map((_) => _.toString())}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        {
+                          status: values.map(Number),
+                          subStatus: filters.subStatus?.filter(
+                            (_) => getSubStatusList(values).indexOf(_) !== -1
+                          ),
+                        },
+                        'Statut'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Sous-statut"
+                    options={getSubStatusListOptions(filters.status)}
+                    initialValues={filters.subStatus}
+                    onChange={(values) =>
+                      onChangeFilters({ subStatus: values }, 'Sous-statut')
                     }
                   />
                 </Col>

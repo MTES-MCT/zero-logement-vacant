@@ -2,6 +2,7 @@ import { createSubtitleOption, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
+import EnergyConsumptionOption from '../components/AppMultiSelect/EnergyConsumptionOption';
 
 export interface HousingFilters {
   establishmentIds?: string[];
@@ -30,6 +31,9 @@ export interface HousingFilters {
   status?: number[];
   subStatus?: string[];
   query?: string;
+  energyConsumption?: string[];
+  energyConsumptionWorst?: string[];
+  occupancies?: string[];
 }
 
 export type HousingFiltersForTotalCount = Pick<
@@ -40,6 +44,17 @@ export type HousingFiltersForTotalCount = Pick<
   | 'status'
   | 'campaignIds'
 >;
+
+export const occupancyOptions: SelectOption[] = [
+  {
+    value: 'L',
+    label: 'Logement locatif',
+  },
+  {
+    value: 'V',
+    label: 'Logement vacant',
+  },
+];
 
 export const ownerAgeOptions: SelectOption[] = [
   {
@@ -125,6 +140,29 @@ export const vacancyRateOptions: SelectOption[] = [
   },
   { value: 'gt80', label: 'Plus de 80%', badgeLabel: 'Plus de 80% de vacance' },
 ];
+
+const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+// @ts-ignore: label is defined as a string but passed as a component
+export const energyConsumptionOptions: SelectOption[] =
+  energyConsumptionGrades.map((grade) => ({
+    value: grade,
+    label: grade,
+    markup: (props) => (
+      <EnergyConsumptionOption {...props} label={grade} value={grade} />
+    ),
+    badgeLabel: `DPE ${grade} (majoritaire)`,
+  }));
+
+// @ts-ignore: label is defined as a string but passed as a component
+export const energyConsumptionWorstOptions: SelectOption[] =
+  energyConsumptionGrades.map((grade) => ({
+    value: grade,
+    label: grade,
+    markup: (props) => (
+      <EnergyConsumptionOption {...props} label={grade} value={grade} />
+    ),
+    badgeLabel: `DPE ${grade} (+ mauvaise)`,
+  }));
 
 export const housingKindOptions: SelectOption[] = [
   { value: 'APPART', label: 'Appartement' },
@@ -314,6 +352,9 @@ export const hasFilters = (housingFilters: HousingFilters) => {
       housingFilters.geoPerimetersExcluded?.length ||
       housingFilters.dataYearsIncluded?.length ||
       housingFilters.dataYearsExcluded?.length ||
-      housingFilters.query?.length
+      housingFilters.query?.length ||
+      housingFilters.energyConsumption?.length ||
+      housingFilters.energyConsumptionWorst?.length ||
+      housingFilters.occupancies?.length
   );
 };

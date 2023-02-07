@@ -16,6 +16,16 @@ convict.addFormat({
 const MAIL_PROVIDERS = ['sendinblue', 'nodemailer'];
 
 convict.addFormat({
+  name: 'comma-separated string',
+  validate(val: any) {
+    return typeof val === 'string';
+  },
+  coerce(val: string): string[] {
+    return val.split(',').map((str) => str.trim());
+  },
+});
+
+convict.addFormat({
   name: 'mail-provider',
   validate(val: any) {
     return typeof val === 'string' && MAIL_PROVIDERS.includes(val);
@@ -43,6 +53,9 @@ interface Config {
   maxRate: number;
   application: {
     host: string;
+  };
+  feature: {
+    occupancy: string[];
   };
   mailer: {
     provider: 'sendinblue' | 'nodemailer';
@@ -135,6 +148,13 @@ const config = convict<Config>({
       env: 'APPLICATION_HOST',
       format: 'url',
       default: 'http://localhost:3000',
+    },
+  },
+  feature: {
+    occupancy: {
+      env: 'REACT_APP_FEATURE_OCCUPANCY',
+      format: 'comma-separated string',
+      default: [],
     },
   },
   mailer: {

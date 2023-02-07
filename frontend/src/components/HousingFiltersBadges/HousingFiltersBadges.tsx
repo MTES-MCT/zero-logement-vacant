@@ -258,7 +258,7 @@ const HousingFiltersBadges = ({
       />
       <FilterBadges
         options={occupancyOptions}
-        filters={filters.occupancy}
+        filters={filters.occupancies}
         small={small}
         onChange={(values) => onChange?.({ occupancy: values })}
       />

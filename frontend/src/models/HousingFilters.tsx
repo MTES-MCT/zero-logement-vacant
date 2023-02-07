@@ -31,9 +31,9 @@ export interface HousingFilters {
   status?: number[];
   subStatus?: string[];
   query?: string;
-  occupancy?: string[];
   energyConsumptions?: string[];
   energyConsumptionsWorst?: string[];
+  occupancies?: string[];
 }
 
 export type HousingFiltersForTotalCount = Pick<

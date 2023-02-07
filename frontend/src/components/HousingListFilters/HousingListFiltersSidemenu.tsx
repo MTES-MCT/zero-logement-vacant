@@ -109,10 +109,10 @@ function HousingListFiltersSidemenu() {
                     <AppMultiSelect
                       label="Statut d’occupation"
                       options={occupancyOptions}
-                      initialValues={filters.occupancy}
+                      initialValues={filters.occupancies}
                       onChange={(values) =>
                         onChangeFilters(
-                          { occupancy: values },
+                          { occupancies: values },
                           'Statut d’occupation'
                         )
                       }

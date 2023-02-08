@@ -4,7 +4,12 @@ import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
 import { addHours, formatISO } from 'date-fns';
-import { HousingApi, OwnershipKindsApi } from '../models/HousingApi';
+import {
+  EnergyConsumptionGradesApi,
+  HousingApi,
+  OccupancyKindApi,
+  OwnershipKindsApi,
+} from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 import { ProspectApi } from '../models/ProspectApi';
@@ -165,6 +170,9 @@ export const genHousingApi = (geoCode: string) => {
     taxed: false,
     ownershipKind: OwnershipKindsApi.Single,
     buildingVacancyRate: genNumber(2),
+    occupancy: OccupancyKindApi.Vacant,
+    energyConsumption: EnergyConsumptionGradesApi.A,
+    energyConsumptionWorst: EnergyConsumptionGradesApi.B,
   };
 };
 

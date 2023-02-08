@@ -30,7 +30,7 @@ class SendinblueService implements MailService {
       ContactsApiApiKeys.apiKey,
       config.mailer.apiKey as string
     );
-    this.events = new EventsApi(config.mailer.apiKey as string);
+    this.events = new EventsApi(config.mailer.eventApiKey as string);
   }
 
   emit<E extends keyof MailEvent>(event: E, email: string, data: MailEvent[E]) {

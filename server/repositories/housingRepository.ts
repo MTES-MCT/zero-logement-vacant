@@ -824,6 +824,9 @@ const parseHousingApi = (result: any) =>
     subStatus: result.sub_status,
     precisions: result.precisions,
     lastContact: result.last_contact,
+    occupancy: result.occupancy,
+    energyConsumption: result.energy_consumption,
+    energyConsumptionWorst: result.energy_consumption_worst,
   };
 
 const formatHousingApi = (housingApi: HousingApi) => ({

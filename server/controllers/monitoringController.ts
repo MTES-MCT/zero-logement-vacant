@@ -3,8 +3,8 @@ import housingRepository from '../repositories/housingRepository';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
-import { Request as JWTRequest } from 'express-jwt';
-import { RequestUser, UserRoles } from '../models/UserApi';
+import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
+import { UserRoles } from '../models/UserApi';
 import ExcelJS from 'exceljs';
 import exportFileService from '../services/exportFileService';
 import { constants } from 'http2';
@@ -167,8 +167,7 @@ const exportMonitoring = async (
 };
 
 const getFiltersFromRequest = (request: JWTRequest) => {
-  const role = (<RequestUser>request.auth).role;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId, role } = (request as AuthenticatedRequest).auth;
 
   const filters = <MonitoringFiltersApi>request.body.filters ?? {};
 

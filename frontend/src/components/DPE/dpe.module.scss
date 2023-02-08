@@ -1,11 +1,12 @@
 .dpe {
   display: inline-block;
+  color: #1e1e1e;
   clip-path: polygon(0% 0%, 80% 0, 100% 50%, 80% 100%, 0% 100%);
   width: 2.5rem;
   height: 1.5rem;
   text-align: center;
   padding-right: 0.5rem;
-  line-height: initial;
+  line-height: inherit;
   font-weight: 700;
 }
 

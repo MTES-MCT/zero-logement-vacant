@@ -67,6 +67,7 @@ interface Config {
      * Provide this if the provider is sendinblue
      */
     apiKey: string | null;
+    eventApiKey: string | null;
     secure: boolean;
   };
   mail: {
@@ -190,6 +191,13 @@ const config = convict<Config>({
     },
     apiKey: {
       env: 'MAILER_API_KEY',
+      format: String,
+      sensitive: true,
+      default: null,
+      nullable: true,
+    },
+    eventApiKey: {
+      env: 'MAILER_EVENT_API_KEY',
       format: String,
       sensitive: true,
       default: null,

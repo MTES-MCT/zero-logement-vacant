@@ -35,24 +35,24 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
       </div>
       {features.isEnabled('occupancy') ? (
         <>
-          <div>
+          <div className="fr-mb-3w">
             <Text size="sm" className="zlv-label">
               Étiquette DPE (majoritaire)
             </Text>
             {housing.energyConsumption ? (
               <DPE value={housing.energyConsumption} />
             ) : (
-              <Text>Non fournie</Text>
+              <Text spacing="mb-0">Non fournie</Text>
             )}
           </div>
-          <div>
+          <div className="fr-mb-3w">
             <Text size="sm" className="zlv-label">
               Étiquette DPE (+ mauvaise)
             </Text>
             {housing.energyConsumptionWorst ? (
               <DPE value={housing.energyConsumptionWorst} />
             ) : (
-              <Text>Non fournie</Text>
+              <Text spacing="mb-0">Non fournie</Text>
             )}
           </div>
         </>

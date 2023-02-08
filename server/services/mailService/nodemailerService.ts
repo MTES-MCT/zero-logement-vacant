@@ -1,4 +1,4 @@
-import { MailService, SendOptions } from './mailService';
+import { MailEvent, MailService, SendOptions } from './mailService';
 import nodemailer from 'nodemailer';
 import config from '../../utils/config';
 
@@ -14,6 +14,18 @@ class NodemailerService implements MailService {
         user: config.mailer.user ?? undefined,
         pass: config.mailer.password ?? undefined,
       },
+    });
+  }
+
+  emit<E extends keyof MailEvent>(
+    event: E,
+    email: string,
+    data?: Partial<MailEvent[E]>
+  ) {
+    console.log('Emit mail event', {
+      event,
+      email,
+      data,
     });
   }
 

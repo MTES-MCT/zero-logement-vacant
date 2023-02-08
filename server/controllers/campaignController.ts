@@ -1,14 +1,13 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
-import { RequestUser } from '../models/UserApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 
@@ -18,7 +17,7 @@ const getCampaignBundleValidators = [
 ];
 
 const getCampaignBundle = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -30,7 +29,8 @@ const getCampaignBundle = async (
 
   const campaignNumber = request.params.campaignNumber;
   const reminderNumber = request.params.reminderNumber;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const query = <string>request.query.q;
 
   console.log(
@@ -50,12 +50,13 @@ const getCampaignBundle = async (
 };
 
 const listCampaigns = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   console.log('List campaigns');
 
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   return campaignRepository
     .listCampaigns(establishmentId)
@@ -63,12 +64,13 @@ const listCampaigns = async (
 };
 
 const listCampaignBundles = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   console.log('List campaign bundles');
 
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   return campaignRepository
     .listCampaignBundles(establishmentId)
@@ -76,13 +78,12 @@ const listCampaignBundles = async (
 };
 
 const createCampaign = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   console.log('Create campaign');
 
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
-  const userId = (<RequestUser>request.auth).userId;
+  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
 
   const kind = request.body.draftCampaign.kind;
   const filters = request.body.draftCampaign.filters;
@@ -150,12 +151,12 @@ const removeHousingFromDefaultCampaign = (
 };
 
 const createReminderCampaign = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const campaignNumber = request.params.campaignNumber;
   const reminderNumber = request.params.reminderNumber;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
 
   console.log(
     'Create a reminder campaign for',
@@ -163,8 +164,6 @@ const createReminderCampaign = async (
     campaignNumber,
     reminderNumber
   );
-
-  const userId = (<RequestUser>request.auth).userId;
 
   const kind = request.body.kind;
   const allHousing = request.body.allHousing;
@@ -239,7 +238,7 @@ const validateStepValidators = [
 ];
 
 const validateStep = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -251,8 +250,7 @@ const validateStep = async (
 
   const campaignId = request.params.campaignId;
   const step = request.body.step;
-  const userId = (<RequestUser>request.auth).userId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const skipConfirmation: boolean = request.body.skipConfirmation;
 
   console.log('Validate campaign step', campaignId, step);
@@ -318,14 +316,14 @@ const validateStep = async (
 };
 
 const updateCampaignBundle = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const campaignNumber = Number(request.params.campaignNumber);
   const reminderNumber = request.params.reminderNumber
     ? Number(request.params.reminderNumber)
     : undefined;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   console.log(
     'Update campaign bundle infos for establishment',
@@ -365,7 +363,7 @@ const deleteCampaignBundleValidators = [
 ];
 
 const deleteCampaignBundle = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const errors = validationResult(request);
@@ -379,7 +377,7 @@ const deleteCampaignBundle = async (
   const reminderNumber = request.params.reminderNumber
     ? Number(request.params.reminderNumber)
     : undefined;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   const campaigns = await campaignRepository.listCampaigns(establishmentId);
 
@@ -485,7 +483,7 @@ const resetNotWaitingHousingWithoutCampaigns = async (
 };
 
 const removeHousingList = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   console.log('Remove campaign housing list');
@@ -493,7 +491,7 @@ const removeHousingList = async (
   const campaignId = request.params.campaignId;
   const campaignHousingStatusApi = <HousingStatusApi>request.body.status;
   const allHousing = <boolean>request.body.allHousing;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   const housingIds = await housingRepository
     .listWithFilters({

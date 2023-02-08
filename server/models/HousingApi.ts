@@ -33,6 +33,9 @@ export interface HousingApi {
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
+  occupancy: OccupancyKindApi;
+  energyConsumption?: EnergyConsumptionGradesApi;
+  energyConsumptionWorst?: EnergyConsumptionGradesApi;
 }
 
 export interface HousingUpdateApi {

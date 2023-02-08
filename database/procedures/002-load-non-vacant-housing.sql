@@ -67,7 +67,7 @@ AS $$
             etiquette_pire as energy_consumption_worst
         from _extract_zlv_
         where ff_ccthp in ('L')
-        and ff_ccogrm not in ('1','2','3','4','5','6','9')
+        and (ff_ccogrm not in ('1','2','3','4','5','6','9') or ff_ccogrm is null)
         and ff_dteloc in ('1','2')
         and ff_idlocal is not null
         group by invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
@@ -146,6 +146,3 @@ AS $$
 
     END;
 $$
-
-
-

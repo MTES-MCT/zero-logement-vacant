@@ -1,6 +1,5 @@
-import { Response } from 'express';
-import { Request as JWTRequest } from 'express-jwt';
-import { RequestUser } from '../models/UserApi';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import localityRepository from '../repositories/localityRepository';
 import { body, param } from 'express-validator';
@@ -13,7 +12,7 @@ const getLocalityValidators = [
 ];
 
 const getLocality = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const geoCode = request.params.geoCode;
@@ -30,10 +29,11 @@ const getLocality = async (
 };
 
 const listLocalities = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   console.log('List localities', establishmentId);
 
@@ -53,11 +53,12 @@ const updateLocalityTaxValidators = [
 ];
 
 const updateLocalityTax = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const geoCode = request.params.geoCode;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const taxRate = request.body.taxRate;
   const taxKind = request.body.taxKind;
 

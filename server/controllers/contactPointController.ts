@@ -1,6 +1,5 @@
-import { Response } from 'express';
-import { Request as JWTRequest } from 'express-jwt';
-import { RequestUser } from '../models/UserApi';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import contactPointsRepository from '../repositories/contactPointsRepository';
 import { body, param } from 'express-validator';
@@ -8,10 +7,11 @@ import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
 
 const listContactPoints = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   console.log('List contact points', establishmentId);
 
@@ -51,7 +51,8 @@ const createContactPoint = async (
   request: any,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const body = request.body as ContactPointBody;
 
   console.log('Create contact point', establishmentId, body.title);
@@ -66,11 +67,12 @@ const deleteContactPointValidators = [
 ];
 
 const deleteContactPoint = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const contactPointId = request.params.contactPointId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   console.log('Delete contact point', contactPointId);
 
@@ -95,11 +97,12 @@ const updateContactPointValidators = [
 ];
 
 const updateContactPoint = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const contactPointId = request.params.contactPointId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const body = request.body as ContactPointBody;
 
   console.log('Update contact point with id', contactPointId);

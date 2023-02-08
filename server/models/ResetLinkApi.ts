@@ -1,4 +1,5 @@
 import { isPast } from 'date-fns';
+import config from '../utils/config';
 
 export interface ResetLinkApi {
   id: string;
@@ -24,4 +25,8 @@ export const RESET_LINK_LENGTH = 100;
  */
 export function hasExpired(link: ResetLinkApi): boolean {
   return isPast(link.expiresAt) || !!link.usedAt;
+}
+
+export function getPasswordResetLink(id: string): string {
+  return `${config.application.host}/mot-de-passe/nouveau#${id}`;
 }

@@ -6,6 +6,7 @@ import thunk from 'redux-thunk';
 import {
   genAuthUser,
   genProspect,
+  genSiren,
   genUser,
 } from '../../../../../test/fixtures.test';
 import { render, screen } from '@testing-library/react';
@@ -14,7 +15,6 @@ import { Router } from 'react-router-dom';
 import * as randomstring from 'randomstring';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import { Prospect } from '../../../../models/Prospect';
-import { genSiren } from '../../../../../../server/test/testFixtures';
 import userService from '../../../../services/user.service';
 import authService from '../../../../services/auth.service';
 

@@ -1,4 +1,5 @@
 import { isPast } from 'date-fns';
+import config from '../utils/config';
 
 export interface SignupLinkApi {
   id: string;
@@ -22,4 +23,8 @@ export const SIGNUP_LINK_LENGTH = 100;
  */
 export function hasExpired(link: SignupLinkApi): boolean {
   return isPast(link.expiresAt);
+}
+
+export function getAccountActivationLink(id: string): string {
+  return `${config.application.host}/inscription/mot-de-passe#${id}`;
 }

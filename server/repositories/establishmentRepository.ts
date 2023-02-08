@@ -204,6 +204,7 @@ interface EstablishmentDbo {
   available: boolean;
   localities_geo_code: string[];
   campaign_intent?: string;
+  priority?: string;
 }
 
 const formatEstablishmentApi = (
@@ -215,6 +216,7 @@ const formatEstablishmentApi = (
   available: establishmentApi.available,
   localities_geo_code: establishmentApi.geoCodes,
   campaign_intent: establishmentApi.campaignIntent,
+  priority: establishmentApi.priority,
 });
 
 const parseEstablishmentApi = (
@@ -227,6 +229,7 @@ const parseEstablishmentApi = (
     available: establishmentDbo.available,
     geoCodes: establishmentDbo.localities_geo_code,
     campaignIntent: establishmentDbo.campaign_intent,
+    priority: establishmentDbo.priority ?? 'standard',
   };
 
 export default {

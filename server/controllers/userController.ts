@@ -1,10 +1,14 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { RequestUser, UserApi, UserRoles } from '../models/UserApi';
+import { UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
-import { Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { CampaignIntent, INTENTS } from '../models/EstablishmentApi';
+import {
+  CampaignIntent,
+  hasPriority,
+  INTENTS,
+} from '../models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import establishmentService from '../services/establishmentService';
@@ -89,6 +93,9 @@ const createUser = async (request: JWTRequest, response: Response) => {
 
   if (!userEstablishment.campaignIntent && body.campaignIntent) {
     userEstablishment.campaignIntent = body.campaignIntent;
+    userEstablishment.priority = hasPriority(userEstablishment)
+      ? 'high'
+      : 'standard';
     await establishmentRepository.update(userEstablishment);
   }
 
@@ -102,15 +109,16 @@ const createUser = async (request: JWTRequest, response: Response) => {
 };
 
 const list = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   console.log('List users');
 
   const page = request.body.page;
   const perPage = request.body.perPage;
-  const role = (<RequestUser>request.auth).role;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const role = (request as AuthenticatedRequest).user.role;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const bodyFilters = <UserFiltersApi>request.body.filters ?? {};
 
   const filters = {
@@ -132,14 +140,14 @@ const list = async (
 };
 
 const removeUser = async (
-  request: JWTRequest,
+  request: Request,
   response: Response,
   next: NextFunction
 ) => {
   try {
     console.log('Remove user');
 
-    const role = (<RequestUser>request.auth).role;
+    const role = (request as AuthenticatedRequest).user.role;
     if (role !== UserRoles.Admin) {
       return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
     }

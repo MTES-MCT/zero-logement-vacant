@@ -12,6 +12,7 @@ import SignupLinkExpiredError from '../errors/signupLinkExpiredError';
 import { ProspectApi } from '../models/ProspectApi';
 import ceremaService from '../services/ceremaService';
 import establishmentRepository from '../repositories/establishmentRepository';
+import mailService from '../services/mailService';
 
 async function upsert(request: Request, response: Response) {
   const id = request.params.id as string;
@@ -47,9 +48,11 @@ async function upsert(request: Request, response: Response) {
   };
   await prospectRepository.upsert(prospect);
 
-  response
-    .status(exists ? constants.HTTP_STATUS_OK : constants.HTTP_STATUS_CREATED)
-    .json(prospect);
+  if (!exists) {
+    mailService.emit('prospect:activated', email, { createdAt: new Date() });
+    return response.status(constants.HTTP_STATUS_CREATED).json(prospect);
+  }
+  response.status(constants.HTTP_STATUS_OK).json(prospect);
 }
 
 const createProspectValidator: ValidationChain[] = [

@@ -1,16 +1,16 @@
-import { Response } from 'express';
-import { Request as JWTRequest } from 'express-jwt';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
 import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
-import { RequestUser } from '../models/UserApi';
 import geoRepository from '../repositories/geoRepository';
 import { body, param } from 'express-validator';
 import { constants } from 'http2';
 
 const listGeoPerimeters = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   console.log('List geo perimeters', establishmentId);
 
@@ -20,11 +20,11 @@ const listGeoPerimeters = async (
 };
 
 const createGeoPerimeter = async (
+  // TODO: type this
   request: any,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
-  const userId = (<RequestUser>request.auth).userId;
+  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
   console.log('Create geo perimeter', establishmentId, file.name);
@@ -51,11 +51,12 @@ const deleteGeoPerimeterValidators = [
 ];
 
 const deleteGeoPerimeter = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const geoPerimeterId = request.params.geoPerimeterId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
   console.log('Delete geo perimeter', geoPerimeterId);
 
@@ -77,11 +78,12 @@ const updateGeoPerimeterValidators = [
 ];
 
 const updateGeoPerimeter = async (
-  request: JWTRequest,
+  request: Request,
   response: Response
 ): Promise<Response> => {
   const geoPerimeterId = request.params.geoPerimeterId;
-  const establishmentId = (<RequestUser>request.auth).establishmentId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
   const kind = request.body.kind;
   const name = request.body.name;
 

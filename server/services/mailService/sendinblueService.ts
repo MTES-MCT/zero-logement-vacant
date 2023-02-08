@@ -124,6 +124,7 @@ class SendinblueService implements MailService {
           EMAIL_VALIDE: true,
         },
       })
+      .then(() => this.events.trackEvent(email, 'prospect:activated'))
       .catch(console.error);
   }
 }

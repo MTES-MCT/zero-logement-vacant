@@ -184,10 +184,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
               <Col spacing="mx-1w">
                 <HousingDetailsSubCardLocation housing={housing} />
                 <HousingDetailsSubCardProperties housing={housing} />
-                {housing.buildingHousingCount &&
-                  housing.buildingHousingCount > 1 && (
-                    <HousingDetailsSubCardBuilding housing={housing} />
-                  )}
+                <HousingDetailsSubCardBuilding housing={housing} />
               </Col>
               <Col spacing="mx-1w">
                 <HousingDetailsSubCardSituation housing={housing} />

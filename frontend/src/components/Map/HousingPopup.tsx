@@ -1,6 +1,10 @@
+import { Icon, Text } from '@dataesr/react-dsfr';
+import React from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
+
 import { HousingWithCoordinates, toLink } from '../../models/Housing';
-import { Link } from '@dataesr/react-dsfr';
+import InternalLink from '../InternalLink/InternalLink';
+import styles from './housing-popup.module.scss';
 
 interface HousingPopupProps {
   housing: HousingWithCoordinates;
@@ -8,6 +12,14 @@ interface HousingPopupProps {
 }
 
 function HousingPopup(props: HousingPopupProps) {
+  function address(rawAddress: string[]) {
+    return rawAddress.map((raw) => (
+      <Text bold spacing="mb-0" size="md">
+        {raw}
+      </Text>
+    ));
+  }
+
   return (
     <Popup
       anchor="bottom"
@@ -15,15 +27,34 @@ function HousingPopup(props: HousingPopupProps) {
       latitude={props.housing.latitude}
       offset={32}
       onClose={props.onClose}
+      maxWidth="600px"
     >
-      <Link isSimple href={toLink(props.housing)} target="_blank">
-        {props.housing.rawAddress.map((address) => (
-          <>
-            {address}
-            <br />
-          </>
-        ))}
-      </Link>
+      <article>
+        <header className={styles.header}>
+          <span className="card-title-icon">
+            <Icon name="ri-home-fill" iconPosition="center" size="lg" />
+          </span>
+          <div className="fr-px-2w">
+            {address(props.housing.rawAddress)}
+            <Text as="span" size="sm">
+              Invariant fiscal : 
+            </Text>
+            <Text as="span">{props.housing.invariant}</Text>
+          </div>
+        </header>
+        <section>{/* TODO */}</section>
+        <footer>
+          <InternalLink
+            display="flex"
+            isSimple
+            icon="ri-arrow-right-line"
+            iconSize="1x"
+            to={toLink(props.housing)}
+          >
+            Afficher le logement
+          </InternalLink>
+        </footer>
+      </article>
     </Popup>
   );
 }

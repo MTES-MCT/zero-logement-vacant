@@ -12,6 +12,7 @@ import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
 import { toQuery } from '../models/Sort';
+import { PaginationApi } from '../../../server/models/PaginationApi';
 
 const getHousing = async (id: string): Promise<Housing> => {
   return await fetch(`${config.apiEndpoint}/api/housing/${id}`, {
@@ -28,8 +29,7 @@ const getHousing = async (id: string): Promise<Housing> => {
 const listHousing = async (
   filters: HousingFilters,
   filtersForTotalCount: HousingFiltersForTotalCount,
-  page: number,
-  perPage: number,
+  pagination?: PaginationApi,
   sort?: HousingSort
 ): Promise<PaginatedResult<Housing>> => {
   const query = toQuery(sort).length > 0 ? `?sort=${toQuery(sort)}` : '';
@@ -40,7 +40,7 @@ const listHousing = async (
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ filters, filtersForTotalCount, page, perPage }),
+    body: JSON.stringify({ filters, filtersForTotalCount, ...pagination }),
   })
     .then((_) => _.json())
     .then((result) => ({

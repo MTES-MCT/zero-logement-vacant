@@ -22,6 +22,7 @@ import { Event } from '../../models/Event';
 import { FormState } from '../actions/FormState';
 
 export interface HousingState {
+  paginate: boolean;
   paginatedHousing: PaginatedResult<Housing>;
   filters: HousingFilters;
   filtersExpanded: boolean;
@@ -66,6 +67,7 @@ export const initialHousingFilters = {
 } as HousingFilters;
 
 const initialState: HousingState = {
+  paginate: true,
   paginatedHousing: {
     entities: [],
     page: 1,
@@ -158,12 +160,13 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
     case FETCHING_HOUSING_LIST:
       return {
         ...state,
+        paginate: action.pagination.pagination,
         paginatedHousing: {
           entities: [],
           totalCount: 0,
           filteredCount: 0,
-          page: action.page,
-          perPage: action.perPage,
+          page: action.pagination.page,
+          perPage: action.pagination.perPage,
           loading: true,
         },
         filters: action.filters,
@@ -171,12 +174,16 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
     case HOUSING_LIST_FETCHED: {
       const isCurrentFetching =
         action.filters === state.filters &&
-        action.paginatedHousing.page === state.paginatedHousing.page &&
-        action.paginatedHousing.perPage === state.paginatedHousing.perPage;
+        action.paginate === state.paginate &&
+        action.paginate
+          ? action.paginatedHousing.page === state.paginatedHousing.page &&
+            action.paginatedHousing.perPage === state.paginatedHousing.perPage
+          : true;
       return !isCurrentFetching
         ? state
         : {
             ...state,
+            paginate: action.paginate,
             paginatedHousing: {
               ...state.paginatedHousing,
               entities: action.paginatedHousing.entities,

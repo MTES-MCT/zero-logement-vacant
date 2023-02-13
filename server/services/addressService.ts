@@ -1,98 +1,34 @@
-import { AddressApi, AddressKinds } from '../models/AddressApi';
+import { AddressApi } from '../models/AddressApi';
 import FormData from 'form-data';
 import fs from 'fs';
 import fetch, { Response as FetchResponse } from 'node-fetch';
 import ExcelJS from 'exceljs';
-import housingRepository from '../repositories/housingRepository';
-import { HousingApi } from '../models/HousingApi';
 import config from '../utils/config';
 import banAddressesRepository from '../repositories/banAddressesRepository';
+import db from '../repositories/db';
 
-const normalizeEstablishmentAddresses = async (establishmentId: string) => {
-  console.log('Normalize establishment addresses', establishmentId);
+const run = async (): Promise<void> => {
+  const addressesToNormalize =
+    await banAddressesRepository.listAddressesToNormalize();
 
-  const page = 1;
-  const perPage = 1000;
-  const tempo = 60000;
-
-  const housingCount = await housingRepository.countWithFilters({
-    establishmentIds: [establishmentId],
-  });
-
-  return Promise.all(
-    new Array(Math.floor(housingCount / perPage) + 1)
-      .fill(0)
-      .map((_: any, index: any) =>
-        housingRepository
-          .paginatedListWithFilters(
-            { establishmentIds: [establishmentId] },
-            { establishmentIds: [establishmentId] },
-            page + index,
-            perPage
-          )
-          .then((housingList) => {
-            setTimeout(
-              () => normalizeHousingAddresses(housingList.entities),
-              index * tempo
-            );
-            setTimeout(
-              () => normalizeOwnerAddresses(housingList.entities),
-              (index + 0.5) * tempo
-            );
-          })
-      )
-  );
-};
-
-const normalizeHousingAddresses = (
-  housingList: HousingApi[]
-): Promise<AddressApi[]> => {
-  console.log('Normalize housing addresses', housingList.length);
-
-  return normalizeAddresses(
-    housingList.map((housing: HousingApi) => ({
-      addressId: housing.id,
-      rawAddress: housing.rawAddress,
-      geoCode: housing.geoCode,
-    })),
-    AddressKinds.Housing
-  );
-};
-
-const normalizeOwnerAddresses = (
-  housingList: HousingApi[]
-): Promise<AddressApi[]> => {
-  console.log('Normalize owner addresses', housingList.length);
-
-  return normalizeAddresses(
-    housingList.map((housing: HousingApi) => ({
-      addressId: housing.owner.id,
-      rawAddress: housing.owner.rawAddress,
-    })),
-    AddressKinds.Owner
-  );
-};
-
-const normalizeAddresses = async (
-  addresses: { addressId: string; rawAddress: string[]; geoCode?: string }[],
-  addressKind: AddressKinds
-): Promise<AddressApi[]> => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet();
 
   worksheet.columns = [
     { header: 'addressId', key: 'addressId' },
+    { header: 'addressKind', key: 'addressKind' },
     { header: 'rawAddress', key: 'rawAddress' },
     { header: 'geoCode', key: 'geoCode' },
   ];
 
   worksheet.addRows(
-    addresses
+    addressesToNormalize
       .filter((value, index, self) => self.indexOf(value) === index)
       .map((address) => ({
-        addressId: address.addressId,
+        addressId: address.refId,
+        addressKind: address.addressKind,
         rawAddress: address.rawAddress.join(' '),
-        geoCode: address.geoCode,
+        geoCode: address.geoCode ?? '',
       }))
   );
 
@@ -125,7 +61,7 @@ const normalizeAddresses = async (
 
   const headers = csvText.split('\n')[0].split(',');
 
-  return banAddressesRepository.upsertList(
+  await banAddressesRepository.upsertList(
     csvText
       .split('\n')
       .slice(1)
@@ -133,7 +69,7 @@ const normalizeAddresses = async (
         const columns = line.split(',');
         return <AddressApi>{
           refId: columns[headers.indexOf('addressId')],
-          addressKind,
+          addressKind: columns[headers.indexOf('addressKind')],
           houseNumber: columns[headers.indexOf('result_housenumber')],
           street:
             ['street', 'housenumber'].indexOf(
@@ -154,12 +90,10 @@ const normalizeAddresses = async (
             : undefined,
         };
       })
+      .filter((_) => _.refId)
   );
 };
 
-export default {
-  normalizeAddresses,
-  normalizeHousingAddresses,
-  normalizeOwnerAddresses,
-  normalizeEstablishmentAddresses,
-};
+run()
+  .catch(console.error)
+  .finally(() => db.destroy());

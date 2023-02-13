@@ -1,0 +1,9 @@
+{
+    "jobs": [
+        {
+            "command": "*/2 * * * * npm run normalize-addresses"
+        }
+    ]
+}
+
+

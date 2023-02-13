@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "command": "*/2 * * * * npm run normalize-addresses"
+      "command": "*/2 * * * * ts-node server/services/addressService.ts"
     }
   ]
 }

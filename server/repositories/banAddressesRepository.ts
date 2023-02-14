@@ -25,9 +25,20 @@ const listByRefIds = async (
 };
 
 const pageSize = 1000;
+const updateDelay = '1 months';
 
 const orderWithLimit = (query: any) => {
   query.orderByRaw('last_updated_at asc nulls first').limit(pageSize);
+};
+
+const lastUpdatedClause = (query: any) => {
+  query
+    .whereNull('last_updated_at')
+    .orWhere(
+      'last_updated_at',
+      '>',
+      db.raw(`current_timestamp  - interval '${updateDelay}'`)
+    );
 };
 
 const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
@@ -47,6 +58,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
               .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
               .andOnVal('address_kind', AddressKinds.Housing);
           })
+          .modify(lastUpdatedClause)
           .modify(orderWithLimit),
         db(ownerTable)
           .select(
@@ -61,11 +73,13 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
               .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
               .andOnVal('address_kind', AddressKinds.Owner);
           })
+          .modify(lastUpdatedClause)
           .modify(orderWithLimit),
       ],
       true
     )
     .modify(orderWithLimit)
+    .debug(true)
     .then((_) =>
       _.map(
         (result: any) =>

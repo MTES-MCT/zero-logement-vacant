@@ -561,7 +561,7 @@ const addHousingLightWorksheet = (
 
   housingWorksheet.columns = housingLightColumns;
 
-  housingList.map((housing: HousingApi) => {
+  housingList.forEach((housing: HousingApi) => {
     housingWorksheet.addRow(
       getHousingLightRow(housing, housingAddresses, ownerAddresses)
     );
@@ -590,7 +590,7 @@ const addHousingCompleteWorksheet = async (
     { header: 'Date de dernière mise à jour', key: 'lastContact' },
   ];
 
-  housingList.map((housing: HousingApi) => {
+  housingList.forEach((housing: HousingApi) => {
     housingWorksheet.addRow({
       ...getHousingLightRow(housing, housingAddresses, ownerAddresses),
       latitude: housing.latitude,

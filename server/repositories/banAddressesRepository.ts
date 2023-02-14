@@ -79,7 +79,6 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
       true
     )
     .modify(orderWithLimit)
-    .debug(true)
     .then((_) =>
       _.map(
         (result: any) =>

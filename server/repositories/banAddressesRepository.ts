@@ -36,7 +36,7 @@ const lastUpdatedClause = (query: any) => {
     .whereNull('last_updated_at')
     .orWhere(
       'last_updated_at',
-      '>',
+      '<',
       db.raw(`current_timestamp  - interval '${updateDelay}'`)
     );
 };

@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "command": "*/2 * * * * ts-node server/services/addressService.ts"
+      "command": "*/10 * * * * ts-node server/services/addressService.ts"
     }
   ]
 }

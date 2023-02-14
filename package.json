@@ -19,8 +19,7 @@
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",
     "migrate-rollback-all": "knex migrate:rollback --all --knexfile=./server/knex.ts",
-    "seed": "knex seed:run --knexfile=./server/knex.ts",
-    "normalize-addresses": "ts-node server/services/addressService.ts"
+    "seed": "knex seed:run --knexfile=./server/knex.ts"
   },
   "keywords": [],
   "author": "",

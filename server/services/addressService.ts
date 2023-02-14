@@ -65,7 +65,7 @@ const run = async (): Promise<void> => {
     csvText
       .split('\n')
       .slice(1)
-      .map((line) => {
+      .map((line: any) => {
         const columns = line.split(',');
         return <AddressApi>{
           refId: columns[headers.indexOf('addressId')],
@@ -90,7 +90,7 @@ const run = async (): Promise<void> => {
             : undefined,
         };
       })
-      .filter((_) => _.refId)
+      .filter((_: AddressApi) => _.refId)
   );
 };
 

@@ -1,8 +1,8 @@
 import * as turf from '@turf/turf';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Layer, MapRef, Source } from 'react-map-gl';
+
 import { deserialize } from '../../utils/jsonUtils';
-import { HousingWithCoordinates } from '../../models/Housing';
 
 interface Props<T> {
   id: string;
@@ -71,20 +71,8 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         type="circle"
         interactive
         paint={{
-          'circle-color': [
-            'step',
-            ['get', 'point_count'],
-            '#000091',
-            5,
-            'rgba(227, 227, 253, 0.8)',
-          ],
-          'circle-stroke-color': [
-            'step',
-            ['get', 'point_count'],
-            '#fff',
-            5,
-            '#000091',
-          ],
+          'circle-color': 'rgba(227, 227, 253, 0.8)',
+          'circle-stroke-color': '#000091',
           'circle-stroke-width': 2,
           'circle-radius': ['step', ['get', 'point_count'], ...radius],
         }}
@@ -98,7 +86,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
           'text-size': 16,
         }}
         paint={{
-          'text-color': ['step', ['get', 'point_count'], '#fff', 5, '#000091'],
+          'text-color': '#000091',
         }}
       />
       <Layer

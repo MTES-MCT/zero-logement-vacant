@@ -1,10 +1,12 @@
-import { Icon, Text } from '@dataesr/react-dsfr';
+import { Col, Icon, Row, Text } from '@dataesr/react-dsfr';
 import React from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
 
 import { HousingWithCoordinates, toLink } from '../../models/Housing';
 import InternalLink from '../InternalLink/InternalLink';
 import styles from './housing-popup.module.scss';
+import { age } from '../../utils/dateUtils';
+import Collapse from '../Collapse/Collapse';
 
 interface HousingPopupProps {
   housing: HousingWithCoordinates;
@@ -20,14 +22,16 @@ function HousingPopup(props: HousingPopupProps) {
     ));
   }
 
+  const { owner } = props.housing;
+
   return (
     <Popup
       anchor="bottom"
       longitude={props.housing.longitude}
       latitude={props.housing.latitude}
-      offset={32}
+      offset={16}
       onClose={props.onClose}
-      maxWidth="600px"
+      maxWidth="30rem"
     >
       <article>
         <header className={styles.header}>
@@ -42,8 +46,50 @@ function HousingPopup(props: HousingPopupProps) {
             <Text as="span">{props.housing.invariant}</Text>
           </div>
         </header>
-        <section>{/* TODO */}</section>
-        <footer>
+        <section>
+          <Row>
+            <Col n="12">
+              <Collapse
+                title={
+                  <>
+                    <Icon
+                      className="color-grey-625"
+                      name="ri-user-fill"
+                      size="lg"
+                      verticalAlign="middle"
+                    />
+                    <Text as="span" bold spacing="mb-0">
+                      {owner.fullName} {owner.birthDate && age(owner.birthDate)}
+                    </Text>
+                  </>
+                }
+                content={
+                  owner.email || owner.phone ? (
+                    <Row>
+                      <Col n="6">
+                        <Text className="zlv-label weight-400" size="sm">
+                          Adresse mail
+                        </Text>
+                        <Text className="weight-500" size="sm" spacing="mb-0">
+                          {owner.email}
+                        </Text>
+                      </Col>
+                      <Col n="6">
+                        <Text className="zlv-label weight-400" size="sm">
+                          Numéro de téléphone
+                        </Text>
+                        <Text className="weight-500" size="sm" spacing="mb-0">
+                          {owner.phone}
+                        </Text>
+                      </Col>
+                    </Row>
+                  ) : null
+                }
+              />
+            </Col>
+          </Row>
+        </section>
+        <footer className={styles.footer}>
           <InternalLink
             display="flex"
             isSimple

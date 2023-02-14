@@ -1,0 +1,32 @@
+.article {
+  background-color: var(--grey-975);
+  padding: 0.5rem;
+  margin: 1rem 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  overflow-x: hidden;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.content:not(.hidden) {
+  margin-top: 0.5rem;
+  white-space: nowrap;
+}
+
+.hidden {
+  height: 0;
+  visibility: hidden;
+}
+
+.title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

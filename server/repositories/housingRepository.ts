@@ -500,6 +500,8 @@ const listQuery = (establishmentIds?: string[]) =>
       'o.raw_address as owner_raw_address',
       'o.full_name',
       'o.administrator',
+      'o.email',
+      'o.phone',
       db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
       db.raw(`count(${eventsTable}) as contact_count`),
       db.raw(`max(${eventsTable}.created_at) as last_contact`)
@@ -807,6 +809,8 @@ const parseHousingApi = (result: any) =>
       rawAddress: result.owner_raw_address,
       fullName: result.full_name,
       administrator: result.administrator,
+      email: result.email,
+      phone: result.phone,
     },
     livingArea: result.living_area,
     housingKind: result.housing_kind,

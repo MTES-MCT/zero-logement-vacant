@@ -1,3 +1,5 @@
+import fp from 'lodash/fp';
+
 /**
  * Arrays in GeoJSON features get stringified for some reason.
  * We need to parse them back to array.
@@ -6,12 +8,7 @@
 export function deserialize(
   obj: Record<string, unknown>
 ): Record<string, unknown> {
-  return Object.keys(obj).reduce<Record<string, unknown>>((acc, key) => {
-    return {
-      ...acc,
-      [key]: parse(obj[key]),
-    };
-  }, {});
+  return fp.mapValues(parse)(obj);
 }
 
 function parse(value: unknown): any {

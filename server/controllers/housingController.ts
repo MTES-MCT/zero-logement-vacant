@@ -89,7 +89,7 @@ const listValidators: ValidationChain[] = [
     .default([])
     .custom(isArrayOf(isString)),
   body('filters.occupancies').default([]).custom(isArrayOf(isString)),
-  body('filtersForTotalCount').isObject({ strict: true }),
+  body('filtersForTotalCount').default({}).isObject({ strict: true }),
   body('filtersForTotalCount.establishmentIds')
     .default([])
     .custom(isArrayOf(isString)),
@@ -99,7 +99,7 @@ const listValidators: ValidationChain[] = [
   body('filtersForTotalCount.dataYearsExcluded')
     .default([])
     .custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isString)),
+  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isInteger)),
   body('filtersForTotalCount.campaignIds')
     .default([])
     .custom(isArrayOf(isString)),

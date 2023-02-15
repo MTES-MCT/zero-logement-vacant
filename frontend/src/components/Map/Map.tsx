@@ -9,6 +9,11 @@ import {
 } from '../../models/Housing';
 import HousingPopup from './HousingPopup';
 import Clusters from './Clusters';
+import {
+  Building,
+  groupByBuilding,
+  HousingByBuilding,
+} from '../../models/Building';
 
 const STYLE = {
   title: 'Carte',
@@ -46,12 +51,17 @@ function Map(props: MapProps) {
     [props.housingList]
   );
 
+  const buildingsById = useMemo<HousingByBuilding>(
+    () => groupByBuilding(housingList),
+    [housingList]
+  );
+
   const points = useMemo(
     () =>
-      housingList.map((housing) =>
-        turf.point([housing.longitude, housing.latitude], housing)
+      Object.values(buildingsById).map((building) =>
+        turf.point([building.longitude, building.latitude], building)
       ),
-    [housingList]
+    [buildingsById]
   );
 
   useEffect(() => {
@@ -65,29 +75,40 @@ function Map(props: MapProps) {
     }
   }, [housingMap, housingList, points]);
 
-  function popUp(housing: HousingWithCoordinates): void {
+  useEffect(() => {
+    const map = housingMap?.getMap();
+    if (map && !map.hasImage('building')) {
+      map.loadImage('/icons/building/building-4-fill.png', (error, image) => {
+        if (image) {
+          map.addImage('building', image);
+        }
+      });
+    }
+  }, [housingMap]);
+
+  function popUp(building: Building): void {
     setOpenPopups((state) => ({
       ...state,
-      [housing.id]: true,
+      [building.id]: true,
     }));
   }
 
-  function popOut(housing: HousingWithCoordinates) {
+  function popOut(building: Building) {
     return (): void => {
       setOpenPopups((state) => ({
         ...state,
-        [housing.id]: false,
+        [building.id]: false,
       }));
     };
   }
 
-  const popups = housingList
-    .filter((housing) => openPopups[housing.id])
-    .map((housing) => (
+  const popups = Object.values(buildingsById)
+    .filter((building) => openPopups[building.id])
+    .map((building) => (
       <HousingPopup
-        key={`popup-${housing.id}`}
-        housing={housing}
-        onClose={popOut(housing)}
+        key={`popup-${building.id}`}
+        building={building}
+        onClose={popOut(building)}
       />
     ));
 

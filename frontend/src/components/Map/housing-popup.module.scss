@@ -1,10 +1,25 @@
 .header {
   display: flex;
-  flex-flow: row nowrap
+  flex-flow: row nowrap;
+  padding: 1rem 1rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.content {
+  padding: 0 1rem;
 }
 
 .footer {
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-end;
+  padding: 0.5rem ;
+  color: var(--white-1000);
+  background-color: var(--blue-france-113);
+}
+
+.icon {
+  margin-left: 0.25rem;
+  padding: 0 0.37rem;
+  min-height: 0;
 }

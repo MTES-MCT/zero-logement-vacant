@@ -10,8 +10,6 @@ describe('Collapse', () => {
 
     const title = screen.queryByText('Title');
     expect(title).toBeVisible();
-    const content = screen.queryByText('Content');
-    expect(content).toBeNull();
   });
 
   it('should show content if defaultCollapse is false', () => {

@@ -22,10 +22,10 @@ interface Props<T> {
 }
 
 function Clusters<T extends turf.Properties>(props: Props<T>) {
-  const maxZoom = props.maxZoom ?? 14;
+  const maxZoom = props.maxZoom ?? 16;
   // Flatten and remove the zero
   const radius = !props.radius
-    ? [20, 5, 30]
+    ? [24, 5, 36]
     : Object.entries(props.radius).flat().splice(1).map(Number);
 
   const clusters = useMemo(
@@ -95,9 +95,33 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         filter={['!', ['has', 'point_count']]}
         paint={{
           'circle-color': '#000091',
-          'circle-radius': 10,
+          'circle-radius': 16,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff',
+        }}
+      />
+      <Layer
+        id="buildings"
+        type="symbol"
+        filter={['!', ['has', 'point_count']]}
+        layout={{
+          'icon-image': [
+            'case',
+            ['>=', ['get', 'housingCount'], 2],
+            'building',
+            '',
+          ],
+          'icon-size': 0.75,
+          'text-field': [
+            'case',
+            ['==', ['get', 'housingCount'], 1],
+            ['get', 'order', ['at', 0, ['get', 'housingList']]],
+            '',
+          ],
+          'text-size': 12,
+        }}
+        paint={{
+          'text-color': '#fff',
         }}
       />
     </Source>

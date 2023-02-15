@@ -34,27 +34,32 @@ import EstablismentView from './views/Establishment/EstablismentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
 import OwnerHomeView from './views/Home/OwnerHomeView';
+import config from './utils/config';
 
 function AppWrapper() {
-  const instance = createInstance({
-    urlBase: 'https://stats.data.gouv.fr/',
-    siteId: 212,
-    srcUrl: 'https://stats.data.gouv.fr/js/container_1DHkPTZd.js',
-    linkTracking: true,
-  });
 
   const store = createStore(applicationReducer, applyMiddleware(thunk));
 
-  return (
-    // @ts-ignore
-    <MatomoProvider value={instance}>
+  const AppMapProvider = () =>
       <MapProvider>
         <Provider store={store}>
           <App />
         </Provider>
       </MapProvider>
-    </MatomoProvider>
-  );
+
+  if (config.matomo.urlBase && config.matomo.siteId) {
+    return (
+        // @ts-ignore
+        <MatomoProvider value={createInstance(config.matomo)}>
+          <AppMapProvider />
+        </MatomoProvider>
+    );
+  } else {
+    return <AppMapProvider />;
+  }
+
+
+
 }
 
 function App() {

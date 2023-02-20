@@ -46,45 +46,46 @@ export const queryOwnerHousingWhereClause = (
 ) => {
   if (query?.length) {
     queryBuilder.where(function (whereBuilder: any) {
-      whereBuilder.orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        query
-      );
-      whereBuilder.orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        query?.split(' ').reverse().join(' ')
-      );
-      whereBuilder.orWhereRaw(
-        `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-        query
-      );
-      whereBuilder.orWhereRaw(
-        `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-        query?.split(' ').reverse().join(' ')
-      );
-      whereBuilder.orWhereRaw(
-        `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
-        query
-      );
-      whereBuilder.orWhereRaw(
-        `upper(unaccent(array_to_string(o.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`,
-        query
-      );
+      //With more than 20 tokens, the query is likely nor a name neither an address
+      if (query.replaceAll(' ', ',').split(',').length < 20) {
+        whereBuilder.orWhereRaw(
+          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+          query
+        );
+        whereBuilder.orWhereRaw(
+          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+          query?.split(' ').reverse().join(' ')
+        );
+        whereBuilder.orWhereRaw(
+          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+          query
+        );
+        whereBuilder.orWhereRaw(
+          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+          query?.split(' ').reverse().join(' ')
+        );
+        whereBuilder.orWhereRaw(
+          `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+          query
+        );
+        whereBuilder.orWhereRaw(
+          `upper(unaccent(array_to_string(o.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`,
+          query
+        );
+      }
       whereBuilder.orWhereIn(
         'invariant',
-        query?.split(',').map((_) => _.trim())
-      );
-      whereBuilder.orWhereIn(
-        'invariant',
-        query?.split(' ').map((_) => _.trim())
+        query
+          ?.replaceAll(' ', ',')
+          .split(',')
+          .map((_) => _.trim())
       );
       whereBuilder.orWhereIn(
         'cadastral_reference',
-        query?.split(',').map((_) => _.trim())
-      );
-      whereBuilder.orWhereIn(
-        'cadastral_reference',
-        query?.split(' ').map((_) => _.trim())
+        query
+          ?.replaceAll(' ', ',')
+          .split(',')
+          .map((_) => _.trim())
       );
     });
   }
@@ -168,19 +169,23 @@ const get = async (housingId: string): Promise<HousingApi> => {
 
 const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: any) => {
-    if (filters.occupancies?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
-          whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
-            OccupancyKindApi.Vacant,
-            ReferenceDataYear - 2,
-          ]);
-        }
-        if (filters.occupancies?.includes(OccupancyKindApi.Rent)) {
-          whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
-        }
-      });
-    }
+    queryBuilder.where(function (whereBuilder: any) {
+      if (
+        !filters.occupancies?.length ||
+        filters.occupancies?.includes(OccupancyKindApi.Vacant)
+      ) {
+        whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
+          OccupancyKindApi.Vacant,
+          ReferenceDataYear - 2,
+        ]);
+      }
+      if (
+        !filters.occupancies?.length ||
+        filters.occupancies?.includes(OccupancyKindApi.Rent)
+      ) {
+        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
+      }
+    });
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }

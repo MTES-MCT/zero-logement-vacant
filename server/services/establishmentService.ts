@@ -1,5 +1,4 @@
 import { EstablishmentApi } from '../models/EstablishmentApi';
-import addressService from './addressService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import campaignRepository from '../repositories/campaignRepository';
 import { DefaultCampaign } from '../models/CampaignApi';
@@ -9,7 +8,6 @@ const makeEstablishmentAvailable = async (
 ): Promise<void> => {
   await establishmentRepository.update({ ...establishment, available: true });
   await createDefaultCampaign(establishment.id);
-  await addressService.normalizeEstablishmentAddresses(establishment.id);
 };
 
 const createDefaultCampaign = async (

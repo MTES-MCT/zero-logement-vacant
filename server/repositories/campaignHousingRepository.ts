@@ -14,6 +14,8 @@ const insertHousingList = async (
           housing_id: housingId,
         }))
       )
+      .onConflict(['campaign_id', 'housing_id'])
+      .ignore()
       .returning('housing_id');
   } catch (err) {
     console.error('Inserting housing list failed', err, campaignId);

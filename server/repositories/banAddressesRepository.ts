@@ -1,5 +1,11 @@
-import { AddressApi, AddressKinds } from '../models/AddressApi';
+import {
+  AddressApi,
+  AddressKinds,
+  AddressToNormalize,
+} from '../models/AddressApi';
 import db from './db';
+import { housingTable } from './housingRepository';
+import { ownerTable } from './ownerRepository';
 
 export const banAddressesTable = 'ban_addresses';
 
@@ -16,6 +22,74 @@ const listByRefIds = async (
     console.error('Listing addresses failed', err);
     throw new Error('Listing addresses failed');
   }
+};
+
+const pageSize = 1000;
+const updateDelay = '1 months';
+
+const orderWithLimit = (query: any) => {
+  query.orderByRaw('last_updated_at asc nulls first').limit(pageSize);
+};
+
+const lastUpdatedClause = (query: any) => {
+  query
+    .whereNull('last_updated_at')
+    .orWhere(
+      'last_updated_at',
+      '<',
+      db.raw(`current_timestamp  - interval '${updateDelay}'`)
+    );
+};
+
+const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
+  return db
+    .union(
+      [
+        db(housingTable)
+          .select(
+            'id',
+            'raw_address',
+            db.raw(`'${AddressKinds.Housing}' as address_kind`),
+            'last_updated_at',
+            'geo_code'
+          )
+          .leftJoin(banAddressesTable, (query: any) => {
+            query
+              .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
+              .andOnVal('address_kind', AddressKinds.Housing);
+          })
+          .modify(lastUpdatedClause)
+          .modify(orderWithLimit),
+        db(ownerTable)
+          .select(
+            'id',
+            'raw_address',
+            db.raw(`'${AddressKinds.Owner}' as address_kind`),
+            'last_updated_at',
+            db.raw('null as geo_code')
+          )
+          .leftJoin(banAddressesTable, (query: any) => {
+            query
+              .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+              .andOnVal('address_kind', AddressKinds.Owner);
+          })
+          .modify(lastUpdatedClause)
+          .modify(orderWithLimit),
+      ],
+      true
+    )
+    .modify(orderWithLimit)
+    .then((_) =>
+      _.map(
+        (result: any) =>
+          <AddressToNormalize>{
+            refId: result.id,
+            addressKind: result.address_kind,
+            rawAddress: result.raw_address,
+            geoCode: result.geo_code,
+          }
+      )
+    );
 };
 
 const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
@@ -57,6 +131,16 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
   }
 };
 
+const markAddressToBeNormalized = async (
+  addressId: string,
+  addressKind: AddressKinds
+) => {
+  db(banAddressesTable)
+    .where('ref_id', addressId)
+    .andWhere('address_kind', addressKind)
+    .update({ last_updated_at: null });
+};
+
 export const parseAddressApi = (result: any) =>
   <AddressApi>{
     refId: result.ref_id,
@@ -88,5 +172,7 @@ const formatAddressApi = (addressApi: AddressApi) => ({
 
 export default {
   listByRefIds,
+  listAddressesToNormalize,
+  markAddressToBeNormalized,
   upsertList,
 };

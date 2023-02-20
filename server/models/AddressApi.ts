@@ -14,3 +14,10 @@ export enum AddressKinds {
   Housing = 'Housing',
   Owner = 'Owner',
 }
+
+export interface AddressToNormalize {
+  refId: string;
+  addressKind: AddressKinds;
+  rawAddress: string[];
+  geoCode?: string;
+}

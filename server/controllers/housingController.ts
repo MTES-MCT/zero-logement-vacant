@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
 import {
   HousingApi,
@@ -610,19 +609,6 @@ const addHousingCompleteWorksheet = async (
   });
 };
 
-const normalizeAddresses = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const establishmentId = request.params.establishmentId;
-
-  console.log('Normalize address for establishment', establishmentId);
-
-  return addressService
-    .normalizeEstablishmentAddresses(establishmentId)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
-};
-
 const reduceAddressApi = (addressApi?: AddressApi) => {
   return addressApi
     ? [
@@ -652,7 +638,6 @@ const housingController = {
   updateHousingListValidators,
   updateHousingList,
   exportHousingByCampaignBundle,
-  normalizeAddresses,
 };
 
 export default housingController;

@@ -5,10 +5,10 @@ import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { EventApi, EventKinds } from '../models/EventApi';
-import addressService from '../services/addressService';
 import { constants } from 'http2';
 import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
+import banAddressesRepository from '../repositories/banAddressesRepository';
 
 const get = async (
   request: Request,
@@ -75,13 +75,8 @@ const create = async (
 
   const createdOwnerApi = await ownerRepository.insert(draftOwnerApi);
 
-  await addressService.normalizeAddresses(
-    [
-      {
-        addressId: createdOwnerApi.id,
-        rawAddress: createdOwnerApi.rawAddress,
-      },
-    ],
+  await banAddressesRepository.markAddressToBeNormalized(
+    createdOwnerApi.id,
     AddressKinds.Owner
   );
 
@@ -117,13 +112,8 @@ const update = async (
 
   const updatedOwnerApi = await ownerRepository.update(ownerApi);
 
-  await addressService.normalizeAddresses(
-    [
-      {
-        addressId: updatedOwnerApi.id,
-        rawAddress: updatedOwnerApi.rawAddress,
-      },
-    ],
+  await banAddressesRepository.markAddressToBeNormalized(
+    updatedOwnerApi.id,
     AddressKinds.Owner
   );
 

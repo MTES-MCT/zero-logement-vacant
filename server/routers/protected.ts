@@ -24,7 +24,8 @@ router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
 router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);
-router.get('/housing/campaigns/bundles/number/:campaignNumber?/:reminderNumber?/export', housingController.exportHousingByCampaignBundle);
+router.get('/housing/campaigns/bundles/number/:campaignNumber?/export', housingController.exportHousingByCampaignBundle);
+router.get('/housing/campaigns/bundles/number/:campaignNumber/:reminderNumber?/export', housingController.exportHousingByCampaignBundle);
 
 router.get('/campaigns', campaignController.listCampaigns);
 router.post('/campaigns/creation', campaignController.createCampaign);

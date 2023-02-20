@@ -32,6 +32,7 @@ export interface HousingApi {
   status?: HousingStatusApi;
   subStatus?: string;
   precisions?: string[];
+  contactCount: number;
   lastContact?: Date;
   occupancy: OccupancyKindApi;
   energyConsumption?: EnergyConsumptionGradesApi;

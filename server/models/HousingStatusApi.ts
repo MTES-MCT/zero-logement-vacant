@@ -9,7 +9,7 @@ export enum HousingStatusApi {
 }
 
 export const getHousingStatusApiLabel = (
-  housingStatusApi: HousingStatusApi
+  housingStatusApi?: HousingStatusApi
 ) => {
   switch (housingStatusApi) {
     case HousingStatusApi.NeverContacted:
@@ -26,6 +26,8 @@ export const getHousingStatusApiLabel = (
       return 'Bloqué';
     case HousingStatusApi.Exit:
       return 'Sortie de la vacance';
+    default:
+      return '';
   }
 };
 

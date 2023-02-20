@@ -171,7 +171,9 @@ export const returnRate = (campaignBundle: CampaignBundle) => {
 export const campaignBundleIdApiFragment = (
   campaignBundleId: CampaignBundleId
 ) => {
-  return `number/${campaignBundleId.campaignNumber ?? ''}${
+  return `number${
+    campaignBundleId.campaignNumber ? `/${campaignBundleId.campaignNumber}` : ''
+  }${
     (campaignBundleId.reminderNumber ?? -1) >= 0
       ? `/${campaignBundleId.reminderNumber}`
       : ''

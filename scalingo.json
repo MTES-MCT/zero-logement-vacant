@@ -10,6 +10,6 @@
     }
   },
   "scripts": {
-    "first-deploy": "npm install --production=false && npm run migrate-latest && psql $DATABASE_URL -f database/scripts/001-load-establishments_epci.sql -v filePath=database/data/common/epci.csv && psql $DATABASE_URL -f database/scripts/002-load-establishments_commune.sql -v filePath=database/data/common/commune.csv && psql $DATABASE_URL -f database/scripts/003-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv && psql $DATABASE_URL -f database/scripts/004-load-data.sql -v filePath=database/data/dummy/dummy_data.csv -v dateFormat=\"'MM/DD/YY'\" && psql $DATABASE_URL -f database/scripts/006-load-locality-taxes.sql -v filePath=database/data/common/taxe.csv && npm run seed"
+    "first-deploy": "npm install --production=false && npm run migrate-latest && psql $DATABASE_URL -f database/scripts/001-load-establishments-localities.sql -v filePath=database/data/common/epci.csv && psql $DATABASE_URL -f database/scripts/002-load-municipalities-localities.sql -v filePath=database/data/common/commune.csv && psql $DATABASE_URL -f database/scripts/003-load-data.sql -v filePath=database/data/dummy/dummy_data.csv -v dateFormat=\"'MM/DD/YY'\" && psql $DATABASE_URL -f database/scripts/005-load-locality-taxes.sql -v filePath=database/data/common/taxe.csv && npm run seed"
   }
 }

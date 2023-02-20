@@ -170,6 +170,7 @@ export const genHousingApi = (geoCode: string) => {
     taxed: false,
     ownershipKind: OwnershipKindsApi.Single,
     buildingVacancyRate: genNumber(2),
+    contactCount: genNumber(1),
     occupancy: OccupancyKindApi.Vacant,
     energyConsumption: EnergyConsumptionGradesApi.A,
     energyConsumptionWorst: EnergyConsumptionGradesApi.B,

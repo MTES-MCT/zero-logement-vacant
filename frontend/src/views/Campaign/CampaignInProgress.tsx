@@ -379,6 +379,18 @@ const CampaignInProgress = () => {
             }}
           />
         </Col>
+        {campaignBundle && !campaignBundle?.campaignNumber && (
+          <Col>
+            <Button
+              secondary
+              onClick={() => window.open(campaignBundle?.exportURL, '_self')}
+              className="float-right"
+              icon="ri-download-line"
+            >
+              Exporter
+            </Button>
+          </Col>
+        )}
       </Row>
       {searchQuery && (
         <Row className="fr-pb-2w">

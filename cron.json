@@ -1,0 +1,7 @@
+{
+  "jobs": [
+    {
+      "command": "*/10 * * * * node dist/server/services/addressService.js"
+    }
+  ]
+}

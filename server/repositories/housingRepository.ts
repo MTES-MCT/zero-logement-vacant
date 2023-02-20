@@ -107,6 +107,7 @@ const get = async (housingId: string): Promise<HousingApi> => {
         `${buildingTable}.housing_count`,
         `${buildingTable}.vacant_housing_count`,
         `${localitiesTable}.locality_kind`,
+        db.raw(`count(${eventsTable}) as contact_count`),
         db.raw(`max(${eventsTable}.created_at) as last_contact`),
         db.raw(
           `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
@@ -500,6 +501,7 @@ const listQuery = (establishmentIds?: string[]) =>
       'o.full_name',
       'o.administrator',
       db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+      db.raw(`count(${eventsTable}) as contact_count`),
       db.raw(`max(${eventsTable}.created_at) as last_contact`)
     )
     .from(housingTable)
@@ -828,6 +830,7 @@ const parseHousingApi = (result: any) =>
     status: result.status,
     subStatus: result.sub_status,
     precisions: result.precisions,
+    contactCount: result.contact_count,
     lastContact: result.last_contact,
     occupancy: result.occupancy,
     energyConsumption: result.energy_consumption,

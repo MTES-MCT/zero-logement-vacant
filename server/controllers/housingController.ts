@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import addressService from '../services/addressService';
 import housingRepository from '../repositories/housingRepository';
 import {
   HousingApi,
@@ -11,7 +10,7 @@ import {
   HousingFiltersForTotalCountApi,
 } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
-import ExcelJS from 'exceljs';
+import ExcelJS, { Workbook } from 'exceljs';
 import { AddressApi, AddressKinds } from '../models/AddressApi';
 import { UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
@@ -31,6 +30,7 @@ import banAddressesRepository from '../repositories/banAddressesRepository';
 import SortApi from '../models/SortApi';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
+import { CampaignApi } from '../models/CampaignApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -334,12 +334,13 @@ const exportHousingByCampaignBundle = async (
     reminderNumber
   );
 
-  const [campaignApi, establishment] = await Promise.all([
+  const [campaignApi, campaignList, establishment] = await Promise.all([
     campaignRepository.getCampaignBundle(
       establishmentId,
       campaignNumber,
       reminderNumber
     ),
+    campaignRepository.listCampaigns(establishmentId),
     establishmentRepository.get(establishmentId),
   ]);
 
@@ -352,9 +353,17 @@ const exportHousingByCampaignBundle = async (
     campaignIds: campaignApi.campaignIds,
   });
 
-  const fileName = `C${campaignApi.campaignNumber}.xlsx`;
+  const fileName = campaignNumber
+    ? `C${campaignApi.campaignNumber}.xlsx`
+    : 'LogementSuivis.xlsx';
 
-  await exportHousingList(housingList, fileName, response);
+  await exportHousingList(
+    housingList,
+    fileName,
+    campaignNumber ? ['owner', 'housing:light'] : ['housing:complete'],
+    campaignList,
+    response
+  );
   mailService.emit('housing:exported', user.email, {
     priority: establishment.priority,
   });
@@ -363,6 +372,8 @@ const exportHousingByCampaignBundle = async (
 const exportHousingList = async (
   housingList: HousingApi[],
   fileName: string,
+  worksheets: ('owner' | 'housing:light' | 'housing:complete')[],
+  campaignList: CampaignApi[],
   response: Response
 ) => {
   const housingAddresses = await banAddressesRepository.listByRefIds(
@@ -375,51 +386,38 @@ const exportHousingList = async (
   );
 
   const workbook = new ExcelJS.Workbook();
-  const ownerWorksheet = workbook.addWorksheet('Propriétaires');
-  const housingWorksheet = workbook.addWorksheet('Logements');
 
-  housingWorksheet.columns = [
-    { header: 'Invariant', key: 'invariant' },
-    { header: 'Référence cadastrale', key: 'cadastralReference' },
-    { header: 'Propriétaire', key: 'owner' },
-    { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-    {
-      header: 'Adresse BAN du propriétaire - Numéro',
-      key: 'ownerAddressHouseNumber',
-    },
-    { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
-    {
-      header: 'Adresse BAN du propriétaire - Code postal',
-      key: 'ownerAddressPostalCode',
-    },
-    { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
-    {
-      header: 'Adresse BAN du propriétaire - Fiabilité',
-      key: 'ownerAddressScore',
-    },
-    { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-    { header: 'Adresse BAN du logement', key: 'housingAddress' },
-  ];
-
-  housingList.map((housing: HousingApi) => {
-    const housingAddress = housingAddresses.find((_) => _.refId === housing.id);
-    const ownerAddress = ownerAddresses.find(
-      (_) => _.refId === housing.owner.id
+  if (worksheets.includes('owner')) {
+    addOwnerWorksheet(workbook, housingList, housingAddresses, ownerAddresses);
+  }
+  if (worksheets.includes('housing:light')) {
+    addHousingLightWorksheet(
+      workbook,
+      housingList,
+      housingAddresses,
+      ownerAddresses
     );
-    housingWorksheet.addRow({
-      invariant: housing.invariant,
-      cadastralReference: housing.cadastralReference,
-      owner: housing.owner.fullName,
-      ownerRawAddress: reduceRawAddress(housing.owner.rawAddress),
-      ownerAddressHouseNumber: ownerAddress?.houseNumber,
-      ownerAddressStreet: ownerAddress?.street,
-      ownerAddressPostalCode: ownerAddress?.postalCode,
-      ownerAddressCity: ownerAddress?.city,
-      ownerAddressScore: ownerAddress?.score,
-      housingRawAddress: reduceRawAddress(housing.rawAddress),
-      housingAddress: reduceAddressApi(housingAddress),
-    });
-  });
+  }
+  if (worksheets.includes('housing:complete')) {
+    await addHousingCompleteWorksheet(
+      workbook,
+      housingList,
+      housingAddresses,
+      ownerAddresses,
+      campaignList
+    );
+  }
+
+  await exportFileService.sendWorkbook(workbook, fileName, response);
+};
+
+const addOwnerWorksheet = (
+  workbook: Workbook,
+  housingList: HousingApi[],
+  housingAddresses: AddressApi[],
+  ownerAddresses: AddressApi[]
+) => {
+  const ownerWorksheet = workbook.addWorksheet('Propriétaires');
 
   const housingListByOwner = housingList.reduce(
     (
@@ -481,7 +479,7 @@ const exportHousingList = async (
       );
       const row: any = {
         owner: ownerHousing.owner.fullName,
-        ownerRawAddress: reduceRawAddress(ownerHousing.owner.rawAddress),
+        ownerRawAddress: reduceStringArray(ownerHousing.owner.rawAddress),
         ownerAddressHouseNumber: ownerAddress?.houseNumber,
         ownerAddressStreet: ownerAddress?.street,
         ownerAddressPostalCode: ownerAddress?.postalCode,
@@ -490,7 +488,7 @@ const exportHousingList = async (
       };
 
       ownerHousing.housingList.forEach((housing, index) => {
-        row[`housingRawAddress_${index}`] = reduceRawAddress(
+        row[`housingRawAddress_${index}`] = reduceStringArray(
           ownerHousing.housingList[index]?.rawAddress
         );
         row[`housingAddress_${index}`] = reduceAddressApi(
@@ -501,21 +499,114 @@ const exportHousingList = async (
       ownerWorksheet.addRow(row);
     }
   );
-
-  await exportFileService.sendWorkbook(workbook, fileName, response);
 };
 
-const normalizeAddresses = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const establishmentId = request.params.establishmentId;
+const getHousingLightRow = (
+  housingApi: HousingApi,
+  housingAddresses: AddressApi[],
+  ownerAddresses: AddressApi[]
+) => {
+  const housingAddress = housingAddresses.find(
+    (_) => _.refId === housingApi.id
+  );
+  const ownerAddress = ownerAddresses.find(
+    (_) => _.refId === housingApi.owner.id
+  );
+  return {
+    invariant: housingApi.invariant,
+    cadastralReference: housingApi.cadastralReference,
+    owner: housingApi.owner.fullName,
+    ownerRawAddress: reduceStringArray(housingApi.owner.rawAddress),
+    ownerAddressHouseNumber: ownerAddress?.houseNumber,
+    ownerAddressStreet: ownerAddress?.street,
+    ownerAddressPostalCode: ownerAddress?.postalCode,
+    ownerAddressCity: ownerAddress?.city,
+    ownerAddressScore: ownerAddress?.score,
+    housingRawAddress: reduceStringArray(housingApi.rawAddress),
+    housingAddress: reduceAddressApi(housingAddress),
+  };
+};
 
-  console.log('Normalize address for establishment', establishmentId);
+const housingLightColumns = [
+  { header: 'Invariant', key: 'invariant' },
+  { header: 'Référence cadastrale', key: 'cadastralReference' },
+  { header: 'Propriétaire', key: 'owner' },
+  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+  {
+    header: 'Adresse BAN du propriétaire - Numéro',
+    key: 'ownerAddressHouseNumber',
+  },
+  { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
+  {
+    header: 'Adresse BAN du propriétaire - Code postal',
+    key: 'ownerAddressPostalCode',
+  },
+  { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
+  {
+    header: 'Adresse BAN du propriétaire - Fiabilité',
+    key: 'ownerAddressScore',
+  },
+  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+  { header: 'Adresse BAN du logement', key: 'housingAddress' },
+];
 
-  return addressService
-    .normalizeEstablishmentAddresses(establishmentId)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+const addHousingLightWorksheet = (
+  workbook: Workbook,
+  housingList: HousingApi[],
+  housingAddresses: AddressApi[],
+  ownerAddresses: AddressApi[]
+) => {
+  const housingWorksheet = workbook.addWorksheet('Logements');
+
+  housingWorksheet.columns = housingLightColumns;
+
+  housingList.forEach((housing: HousingApi) => {
+    housingWorksheet.addRow(
+      getHousingLightRow(housing, housingAddresses, ownerAddresses)
+    );
+  });
+};
+
+const addHousingCompleteWorksheet = async (
+  workbook: Workbook,
+  housingList: HousingApi[],
+  housingAddresses: AddressApi[],
+  ownerAddresses: AddressApi[],
+  campaignList: CampaignApi[]
+) => {
+  const housingWorksheet = workbook.addWorksheet('Logements');
+
+  housingWorksheet.columns = [
+    ...housingLightColumns,
+    { header: 'latitude', key: 'latitude' },
+    { header: 'Longitude', key: 'longitude' },
+    { header: 'Cause de la vacance', key: 'vacancyReasons' },
+    { header: 'Campagne(s)', key: 'campaigns' },
+    { header: 'Statut', key: 'status' },
+    { header: 'Sous-statut', key: 'subStatus' },
+    { header: 'Précision(s)', key: 'precisions' },
+    { header: "Nombre d'événements", key: 'contactCount' },
+    { header: 'Date de dernière mise à jour', key: 'lastContact' },
+  ];
+
+  housingList.forEach((housing: HousingApi) => {
+    housingWorksheet.addRow({
+      ...getHousingLightRow(housing, housingAddresses, ownerAddresses),
+      latitude: housing.latitude,
+      longitude: housing.longitude,
+      vacancyReasons: reduceStringArray(housing.vacancyReasons),
+      campaigns: reduceStringArray(
+        housing.campaignIds.map(
+          (campaignId) => campaignList.find((c) => c.id === campaignId)?.title
+        )
+      ),
+      status: getHousingStatusApiLabel(housing.status),
+      subStatus: housing.subStatus,
+      precisions: reduceStringArray(housing.precisions),
+      contactCount: housing.contactCount,
+      lastContact: housing.lastContact,
+    });
+  });
 };
 
 const reduceAddressApi = (addressApi?: AddressApi) => {
@@ -531,10 +622,10 @@ const reduceAddressApi = (addressApi?: AddressApi) => {
     : addressApi;
 };
 
-const reduceRawAddress = (rawAddress?: string[]) => {
-  return rawAddress
-    ? rawAddress.filter((_) => _).join(String.fromCharCode(10))
-    : rawAddress;
+const reduceStringArray = (stringArray?: (string | undefined)[]) => {
+  return stringArray?.map((_) => !!_)
+    ? stringArray.filter((_) => _).join(String.fromCharCode(10))
+    : stringArray;
 };
 
 const housingController = {
@@ -547,7 +638,6 @@ const housingController = {
   updateHousingListValidators,
   updateHousingList,
   exportHousingByCampaignBundle,
-  normalizeAddresses,
 };
 
 export default housingController;

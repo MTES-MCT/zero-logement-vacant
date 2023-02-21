@@ -221,7 +221,7 @@ export const changeCampaignHousingPagination = (
         type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
         campaignHousingFetchingIds: campaignBundle.campaignIds,
         status,
-        page: page,
+        page,
         perPage,
       });
 
@@ -231,12 +231,7 @@ export const changeCampaignHousingPagination = (
       };
 
       housingService
-        .listHousing(
-          { ...filters, query: searchQuery },
-          filters,
-          perPage,
-          perPage
-        )
+        .listHousing({ ...filters, query: searchQuery }, filters, page, perPage)
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
           dispatch({

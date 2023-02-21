@@ -65,15 +65,15 @@ function Map(props: MapProps) {
   );
 
   useEffect(() => {
-    if (!housingMap || !housingList) {
+    if (!housingMap || !points) {
       return;
     }
 
-    if (housingList.length) {
+    if (points.length) {
       const bbox = turf.bbox(turf.featureCollection(points));
       housingMap.fitBounds(bbox as [number, number, number, number]);
     }
-  }, [housingMap, housingList, points]);
+  }, [housingMap, points]);
 
   useEffect(() => {
     const map = housingMap?.getMap();
@@ -120,6 +120,7 @@ function Map(props: MapProps) {
       mapLib={maplibregl}
       mapStyle={STYLE.uri}
       padding={padding}
+      reuseMaps
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />

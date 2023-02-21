@@ -13,6 +13,11 @@ import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
 import { toQuery } from '../models/Sort';
 import { PaginationApi } from '../../../server/models/PaginationApi';
+import { createHttpService, toJSON } from '../utils/fetchUtils';
+
+const http = createHttpService('housing', {
+  host: config.apiEndpoint,
+});
 
 const getHousing = async (id: string): Promise<Housing> => {
   return await fetch(`${config.apiEndpoint}/api/housing/${id}`, {
@@ -34,15 +39,17 @@ const listHousing = async (
 ): Promise<PaginatedResult<Housing>> => {
   const query = toQuery(sort).length > 0 ? `?sort=${toQuery(sort)}` : '';
 
-  return await fetch(`${config.apiEndpoint}/api/housing${query}`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ filters, filtersForTotalCount, ...pagination }),
-  })
-    .then((_) => _.json())
+  return http
+    .fetch(`${config.apiEndpoint}/api/housing${query}`, {
+      method: 'POST',
+      headers: {
+        ...authService.authHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ filters, filtersForTotalCount, ...pagination }),
+      abortId: 'list-housing',
+    })
+    .then(toJSON)
     .then((result) => ({
       ...result,
       entities: result.entities.map((e: any) => parseHousing(e)),

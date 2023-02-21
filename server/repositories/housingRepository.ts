@@ -597,6 +597,11 @@ const countWithFilters = async (
       .countDistinct(`${housingTable}.id`)
       .join(ownersHousingTable, ownersHousingJoinClause)
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+      .leftJoin(
+        buildingTable,
+        `${housingTable}.building_id`,
+        `${buildingTable}.id`
+      )
       .joinRaw(
         `left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count
@@ -610,11 +615,6 @@ const countWithFilters = async (
                     }
                 ) campaigns on true`,
         filters.establishmentIds ?? []
-      )
-      .leftJoin(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
       )
       .modify(filteredQuery(filters))
       .then((_) => Number(_[0].count));

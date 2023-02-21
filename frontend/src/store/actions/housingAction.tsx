@@ -13,6 +13,7 @@ import { FormState } from './FormState';
 import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
+import { handleAbort } from '../../utils/fetchUtils';
 
 export const EXPAND_FILTERS = 'EXPAND_FILTERS';
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
@@ -141,12 +142,15 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
         pagination
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };
@@ -169,16 +173,20 @@ export const changeHousingPagination = (pagination: PaginationApi) => {
       .listHousing(
         getState().housing.filters,
         { dataYearsExcluded, dataYearsIncluded },
-        pagination
+        pagination,
+        {}
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
           paginate: pagination.pagination,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };
@@ -209,12 +217,15 @@ export const changeHousingSort = (sort: HousingSort) => {
         sort
       )
       .then((result) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };

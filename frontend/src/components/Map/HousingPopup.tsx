@@ -10,7 +10,10 @@ import { Building } from '../../models/Building';
 
 import styles from './housing-popup.module.scss';
 import classNames from 'classnames';
-import { getHousingState } from '../../models/HousingState';
+import {
+  getHousingState,
+  getHousingSubStatus,
+} from '../../models/HousingState';
 
 interface HousingPopupProps {
   building: Building;
@@ -33,6 +36,11 @@ function HousingPopup(props: HousingPopupProps) {
   const housingState = useMemo(
     () => (housing.status ? getHousingState(housing.status) : undefined),
     [housing.status]
+  );
+
+  const housingSubState = useMemo(
+    () => (housing.subStatus ? getHousingSubStatus(housing) : undefined),
+    [housing]
   );
 
   function address(rawAddress: string[]) {
@@ -91,6 +99,17 @@ function HousingPopup(props: HousingPopupProps) {
                 >
                   {housingState.title}
                 </span>
+                {housing.subStatus && (
+                  <span
+                    style={{
+                      backgroundColor: `var(${housingSubState?.bgcolor})`,
+                      color: `var(${housingSubState?.color})`,
+                    }}
+                    className="status-label"
+                  >
+                    {housing.subStatus}
+                  </span>
+                )}
               </Col>
             </Row>
           )}

@@ -162,36 +162,26 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
         ...state,
         paginate: action.pagination.pagination,
         paginatedHousing: {
-          entities: [],
-          totalCount: 0,
-          filteredCount: 0,
-          page: action.pagination.page,
-          perPage: action.pagination.perPage,
+          ...state.paginatedHousing,
           loading: true,
         },
         filters: action.filters,
       };
     case HOUSING_LIST_FETCHED: {
-      const isCurrentFetching =
-        action.filters === state.filters &&
-        action.paginate === state.paginate &&
-        action.paginate
-          ? action.paginatedHousing.page === state.paginatedHousing.page &&
-            action.paginatedHousing.perPage === state.paginatedHousing.perPage
-          : true;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            paginate: action.paginate,
-            paginatedHousing: {
-              ...state.paginatedHousing,
-              entities: action.paginatedHousing.entities,
-              filteredCount: action.paginatedHousing.filteredCount,
-              totalCount: action.paginatedHousing.totalCount,
-              loading: false,
-            },
-          };
+      return {
+        ...state,
+        paginate: action.paginate,
+        paginatedHousing: {
+          page: state.paginatedHousing.page ?? action.paginatedHousing.page,
+          perPage:
+            state.paginatedHousing.perPage ?? action.paginatedHousing.perPage,
+          entities: action.paginatedHousing.entities,
+          filteredCount: action.paginatedHousing.filteredCount,
+          totalCount: action.paginatedHousing.totalCount,
+          loading: false,
+        },
+        filters: action.filters,
+      };
     }
     default:
       return state;

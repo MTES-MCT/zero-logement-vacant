@@ -10,7 +10,7 @@ interface UseSortOptions<Sortable extends object> {
 export function useSort<Sortable extends object>(
   options?: UseSortOptions<Sortable>
 ) {
-  const [sort, setSort] = useState<Sort<Sortable>>({});
+  const [sort, setSort] = useState<Sort<Sortable>>();
 
   function getIcon(key: keyof Sortable): JSX.Element {
     const direction = sort?.[key];
@@ -37,10 +37,13 @@ export function useSort<Sortable extends object>(
     if (!next) {
       // Filter out undefined values
       setSort(
-        Object.keys(sort)
+        Object.keys(sort ?? {})
           .filter((k) => k !== key)
           .reduce<Sort<Sortable>>((acc, k) => {
-            return { ...acc, [k]: sort[k as keyof Sortable] };
+            return {
+              ...acc,
+              [k]: sort ? sort[k as keyof Sortable] : undefined,
+            };
           }, {})
       );
       return;

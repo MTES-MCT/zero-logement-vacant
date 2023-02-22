@@ -20,6 +20,6 @@
 
 .icon {
   margin-left: 0.25rem;
-  padding: 0 0.37rem;
-  min-height: 0;
+  padding: 0 0.37rem !important;
+  min-height: initial !important;
 }

@@ -91,7 +91,7 @@ const OwnerView = () => {
             </header>
             <Row gutters>
               {housingList.map((housing) => (
-                <Col n="6">
+                <Col n="6" key={`col-${housing.id}`}>
                   <OwnerHousingCard housing={housing} />
                 </Col>
               ))}

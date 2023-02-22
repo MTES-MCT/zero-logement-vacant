@@ -132,6 +132,8 @@ describe('housing view', () => {
           page: 1,
           perPage: config.perPageDefault,
         }),
+        abortId: 'list-housing',
+        signal: expect.anything(),
       }
     );
   });
@@ -186,6 +188,8 @@ describe('housing view', () => {
           page: 1,
           perPage: config.perPageDefault,
         }),
+        abortId: 'list-housing',
+        signal: expect.anything(),
       }
     );
   });

@@ -11,7 +11,11 @@ import {
 } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS, { Workbook } from 'exceljs';
-import { AddressApi, AddressKinds } from '../models/AddressApi';
+import {
+  AddressApi,
+  AddressKinds,
+  formatAddressApi,
+} from '../models/AddressApi';
 import { UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
@@ -31,6 +35,7 @@ import SortApi from '../models/SortApi';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { CampaignApi } from '../models/CampaignApi';
+import { reduceStringArray } from '../utils/stringUtils';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -445,6 +450,23 @@ const addOwnerWorksheet = (
     { header: 'Propriétaire', key: 'owner' },
     { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
     {
+      header: 'Adresse LOVAC du propriétaire - Ligne 1',
+      key: 'ownerRawAddress1',
+    },
+    {
+      header: 'Adresse LOVAC du propriétaire - Ligne 2',
+      key: 'ownerRawAddress2',
+    },
+    {
+      header: 'Adresse LOVAC du propriétaire - Ligne 3',
+      key: 'ownerRawAddress3',
+    },
+    {
+      header: 'Adresse LOVAC du propriétaire - Ligne 4',
+      key: 'ownerRawAddress4',
+    },
+    { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+    {
       header: 'Adresse BAN du propriétaire - Numéro',
       key: 'ownerAddressHouseNumber',
     },
@@ -477,9 +499,15 @@ const addOwnerWorksheet = (
       const ownerAddress = ownerAddresses.find(
         (_) => _.refId === ownerHousing.owner.id
       );
+      const rawAddress = ownerHousing.owner.rawAddress;
       const row: any = {
         owner: ownerHousing.owner.fullName,
-        ownerRawAddress: reduceStringArray(ownerHousing.owner.rawAddress),
+        ownerRawAddress: reduceStringArray(rawAddress),
+        ownerRawAddress1: rawAddress[0],
+        ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
+        ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
+        ownerRawAddress4: rawAddress[rawAddress.length - 1],
+        ownerAddress: formatAddressApi(ownerAddress),
         ownerAddressHouseNumber: ownerAddress?.houseNumber,
         ownerAddressStreet: ownerAddress?.street,
         ownerAddressPostalCode: ownerAddress?.postalCode,
@@ -512,11 +540,17 @@ const getHousingLightRow = (
   const ownerAddress = ownerAddresses.find(
     (_) => _.refId === housingApi.owner.id
   );
+  const rawAddress = housingApi.owner.rawAddress;
   return {
     invariant: housingApi.invariant,
     cadastralReference: housingApi.cadastralReference,
     owner: housingApi.owner.fullName,
     ownerRawAddress: reduceStringArray(housingApi.owner.rawAddress),
+    ownerRawAddress1: rawAddress[0],
+    ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
+    ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
+    ownerRawAddress4: rawAddress[rawAddress.length - 1],
+    ownerAddress: formatAddressApi(ownerAddress),
     ownerAddressHouseNumber: ownerAddress?.houseNumber,
     ownerAddressStreet: ownerAddress?.street,
     ownerAddressPostalCode: ownerAddress?.postalCode,
@@ -532,6 +566,23 @@ const housingLightColumns = [
   { header: 'Référence cadastrale', key: 'cadastralReference' },
   { header: 'Propriétaire', key: 'owner' },
   { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+  {
+    header: 'Adresse LOVAC du propriétaire - Ligne 1',
+    key: 'ownerRawAddress1',
+  },
+  {
+    header: 'Adresse LOVAC du propriétaire - Ligne 2',
+    key: 'ownerRawAddress2',
+  },
+  {
+    header: 'Adresse LOVAC du propriétaire - Ligne 3',
+    key: 'ownerRawAddress3',
+  },
+  {
+    header: 'Adresse LOVAC du propriétaire - Ligne 4',
+    key: 'ownerRawAddress4',
+  },
+  { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
   {
     header: 'Adresse BAN du propriétaire - Numéro',
     key: 'ownerAddressHouseNumber',
@@ -620,12 +671,6 @@ const reduceAddressApi = (addressApi?: AddressApi) => {
         .filter((_) => _)
         .join(' ')
     : addressApi;
-};
-
-const reduceStringArray = (stringArray?: (string | undefined)[]) => {
-  return stringArray?.map((_) => !!_)
-    ? stringArray.filter((_) => _).join(String.fromCharCode(10))
-    : stringArray;
 };
 
 const housingController = {

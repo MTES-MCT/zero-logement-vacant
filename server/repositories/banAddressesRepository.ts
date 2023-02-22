@@ -6,6 +6,7 @@ import {
 import db from './db';
 import { housingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
+import config from '../utils/config';
 
 export const banAddressesTable = 'ban_addresses';
 
@@ -24,11 +25,10 @@ const listByRefIds = async (
   }
 };
 
-const pageSize = 1000;
-const updateDelay = '1 months';
-
 const orderWithLimit = (query: any) => {
-  query.orderByRaw('last_updated_at asc nulls first').limit(pageSize);
+  query
+    .orderByRaw('last_updated_at asc nulls first')
+    .limit(config.ban.update.pageSize);
 };
 
 const lastUpdatedClause = (query: any) => {
@@ -37,7 +37,7 @@ const lastUpdatedClause = (query: any) => {
     .orWhere(
       'last_updated_at',
       '<',
-      db.raw(`current_timestamp  - interval '${updateDelay}'`)
+      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
     );
 };
 

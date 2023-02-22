@@ -84,6 +84,10 @@ interface Config {
     api: {
       endpoint: string;
     };
+    update: {
+      pageSize: number;
+      delay: string;
+    };
   };
 }
 
@@ -242,6 +246,18 @@ const config = convict<Config>({
         env: 'BAN_API_ENDPOINT',
         format: 'url',
         default: 'https://api-adresse.data.gouv.fr',
+      },
+    },
+    update: {
+      pageSize: {
+        env: 'BAN_UPDATE_PAGE_SIZE',
+        format: Number,
+        default: 2000,
+      },
+      delay: {
+        env: 'BAN_UPDATE_DELAY',
+        format: String,
+        default: '1 months',
       },
     },
   },

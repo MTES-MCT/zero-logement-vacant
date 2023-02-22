@@ -1,4 +1,10 @@
-import { add, differenceInMilliseconds, format, parse } from 'date-fns';
+import {
+  add,
+  differenceInMilliseconds,
+  differenceInYears,
+  format,
+  parse,
+} from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export const dateSort = (d1?: Date, d2?: Date) =>
@@ -18,3 +24,11 @@ export const dateShortFormat = (d: Date) =>
 
 export const parseDateInput = (s: string) =>
   s.length ? parse(s, 'yyyy-MM-dd', new Date()) : undefined;
+
+export function birthdate(date: Date): string {
+  return format(date, 'dd/MM/yyyy', { locale: fr });
+}
+
+export function age(date: Date): number {
+  return differenceInYears(new Date(), date);
+}

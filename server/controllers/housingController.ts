@@ -24,13 +24,21 @@ import {
 } from '../models/HousingStatusApi';
 import exportFileService from '../services/exportFileService';
 import { constants } from 'http2';
-import { body, param, validationResult } from 'express-validator';
+import {
+  body,
+  param,
+  ValidationChain,
+  validationResult,
+} from 'express-validator';
 import validator from 'validator';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import SortApi from '../models/SortApi';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { CampaignApi } from '../models/CampaignApi';
+import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
+import paginationApi, { PaginationApi } from '../models/PaginationApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -42,6 +50,62 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
+const listValidators: ValidationChain[] = [
+  body('filters').isObject({ strict: true }),
+  body('filters.establishmentIds')
+    .default([])
+    .custom(isArrayOf(isUUID))
+    .withMessage('Must be an array of UUIDs'),
+  body('filters.ownerKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.ownerAges').default([]).custom(isArrayOf(isString)),
+  body('filters.multiOwners').default([]).custom(isArrayOf(isString)),
+  body('filters.beneficiaryCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.housingKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.cadastralClassificiations')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filters.housingAreas').default([]).custom(isArrayOf(isString)),
+  body('filters.roomsCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.buildingPeriods').default([]).custom(isArrayOf(isString)),
+  body('filters.vacancyDurations').default([]).custom(isArrayOf(isString)),
+  body('filters.isTaxedValues').default([]).custom(isArrayOf(isString)),
+  body('filters.ownershipKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.housingCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.vacancyRates').default([]).custom(isArrayOf(isString)),
+  body('filters.campaignsCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.campaignIds').default([]).custom(isArrayOf(isString)),
+  body('filters.ownerIds').default([]).custom(isArrayOf(isString)),
+  body('filters.localities').default([]).custom(isArrayOf(isString)),
+  body('filters.localityKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.geoPerimetersIncluded').default([]).custom(isArrayOf(isString)),
+  body('filters.geoPerimetersExcluded').default([]).custom(isArrayOf(isString)),
+  body('filters.dataYearsIncluded').default([]).custom(isArrayOf(isInteger)),
+  body('filters.dataYearsExcluded').default([]).custom(isArrayOf(isInteger)),
+  body('filters.status').default([]).custom(isArrayOf(isInteger)),
+  body('filters.subStatus').default([]).custom(isArrayOf(isString)),
+  body('filters.query').default('').isString(),
+  body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),
+  body('filters.energyConsumptionWorst')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filters.occupancies').default([]).custom(isArrayOf(isString)),
+  body('filtersForTotalCount').default({}).isObject({ strict: true }),
+  body('filtersForTotalCount.establishmentIds')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filtersForTotalCount.dataYearsIncluded')
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.dataYearsExcluded')
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.campaignIds')
+    .default([])
+    .custom(isArrayOf(isString)),
+  ...paginationApi.validators,
+];
+
 const list = async (
   request: Request,
   response: Response,
@@ -50,13 +114,14 @@ const list = async (
   console.log('List housing');
 
   const { auth, user } = request as AuthenticatedRequest;
-  const { page, perPage } = request.body;
+  // TODO: type the whole body
+  const { paginate, page, perPage } = request.body as Required<PaginationApi>;
+  const filters = request.body.filters as HousingFiltersApi;
+  const filtersForTotalCount = request.body
+    .filtersForTotalCount as HousingFiltersForTotalCountApi;
 
   const role = user.role;
   const establishmentId = auth.establishmentId;
-  const filters = <HousingFiltersApi>request.body.filters ?? {};
-  const filtersForTotalCount =
-    <HousingFiltersForTotalCountApi>request.body.filtersForTotalCount ?? {};
   const sort = SortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
@@ -67,19 +132,33 @@ const list = async (
       : [establishmentId];
 
   try {
-    const housing = await housingRepository.paginatedListWithFilters(
-      {
-        ...filters,
-        establishmentIds,
-      },
-      {
-        ...filtersForTotalCount,
-        establishmentIds,
-      },
-      page,
-      perPage,
-      sort
-    );
+    const housing: PaginatedResultApi<HousingApi> = paginate
+      ? await housingRepository.paginatedListWithFilters(
+          {
+            ...filters,
+            establishmentIds,
+          },
+          {
+            ...filtersForTotalCount,
+            establishmentIds,
+          },
+          page,
+          perPage,
+          sort
+        )
+      : await housingRepository
+          .listWithFilters({
+            ...filters,
+            establishmentIds,
+          })
+          .then((housing) => ({
+            entities: housing,
+            page: 1,
+            perPage: housing.length,
+            filteredCount: housing.length,
+            // Wrong but not used
+            totalCount: housing.length,
+          }));
     return response.status(constants.HTTP_STATUS_OK).json(housing);
   } catch (err) {
     next(err);
@@ -630,6 +709,7 @@ const reduceStringArray = (stringArray?: (string | undefined)[]) => {
 
 const housingController = {
   get,
+  listValidators,
   list,
   count,
   listByOwner,

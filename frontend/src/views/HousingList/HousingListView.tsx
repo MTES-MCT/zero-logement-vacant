@@ -48,6 +48,7 @@ import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Map from '../../components/Map/Map';
+import { PaginationApi } from '../../../../server/models/PaginationApi';
 
 type ViewMode = 'list' | 'map';
 
@@ -82,6 +83,17 @@ const HousingListView = () => {
       dispatch(changeHousingFiltering(filters));
     }
   }, [search, dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const pagination: PaginationApi =
+      view === 'map'
+        ? { paginate: false }
+        : {
+            page: paginatedHousing.page,
+            perPage: paginatedHousing.perPage,
+          };
+    dispatch(changeHousingPagination(pagination));
+  }, [dispatch, view, paginatedHousing.page, paginatedHousing.perPage]);
 
   const create = () => {
     trackEvent({
@@ -232,7 +244,7 @@ const HousingListView = () => {
                 <HousingList
                   paginatedHousing={paginatedHousing}
                   onChangePagination={(page, perPage) =>
-                    dispatch(changeHousingPagination(page, perPage))
+                    dispatch(changeHousingPagination({ page, perPage }))
                   }
                   filters={filters}
                   displayKind={HousingDisplayKey.Housing}

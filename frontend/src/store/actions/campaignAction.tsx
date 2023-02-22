@@ -17,6 +17,7 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import housingService from '../../services/housing.service';
+import { PaginationApi } from '../../../../server/models/PaginationApi';
 
 export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
 export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
@@ -192,7 +193,7 @@ export const listCampaignBundleHousing = (
     };
 
     housingService
-      .listHousing({ ...filters, query }, filters, page, perPage)
+      .listHousing({ ...filters, query }, filters, { page, perPage })
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
         dispatch({
@@ -231,7 +232,10 @@ export const changeCampaignHousingPagination = (
       };
 
       housingService
-        .listHousing({ ...filters, query: searchQuery }, filters, page, perPage)
+        .listHousing({ ...filters, query: searchQuery }, filters, {
+          page,
+          perPage,
+        })
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
           dispatch({
@@ -256,12 +260,16 @@ export const changeCampaignHousingSort = (
     if (campaignBundle) {
       dispatch(showLoading());
 
+      const pagination: PaginationApi = {
+        page: 1,
+        perPage: campaignBundleHousing.perPage,
+      };
+
       dispatch({
         type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
         campaignHousingFetchingIds: campaignBundle.campaignIds,
         status,
-        page: 1,
-        perPage: campaignBundleHousing.perPage,
+        ...pagination,
       });
 
       const filters = {
@@ -273,8 +281,7 @@ export const changeCampaignHousingSort = (
         .listHousing(
           { ...filters, query: searchQuery },
           filters,
-          1,
-          campaignBundleHousing.perPage,
+          pagination,
           sort
         )
         .then((result: PaginatedResult<Housing>) => {

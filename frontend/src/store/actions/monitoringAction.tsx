@@ -13,6 +13,7 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import config from '../../utils/config';
+import { PaginationApi } from '../../../../server/models/PaginationApi';
 
 export const FETCH_HOUSING_BY_STATUS_COUNT = 'FETCH_HOUSING_BY_STATUS_COUNT';
 export const HOUSING_BY_STATUS_COUNT_FETCHED =
@@ -158,11 +159,12 @@ export const fetchHousingToContact = (
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
+    const pagination: PaginationApi = { page, perPage };
+
     dispatch({
       type: FETCH_HOUSING_TO_CONTACT,
       filters,
-      page: page,
-      perPage,
+      ...pagination,
     });
 
     housingService
@@ -173,8 +175,7 @@ export const fetchHousingToContact = (
           subStatus: [FirstContactToContactedSubStatus],
         },
         {},
-        page,
-        perPage
+        pagination
       )
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());

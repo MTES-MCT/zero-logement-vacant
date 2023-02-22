@@ -330,7 +330,7 @@ const HousingList = ({
           <Table
             caption="Logements"
             captionPosition="none"
-            rowKey="id"
+            rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
             data={paginatedHousing.entities.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),

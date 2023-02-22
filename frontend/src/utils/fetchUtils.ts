@@ -1,7 +1,3 @@
-interface HttpServiceOptions {
-  host?: string;
-}
-
 interface HttpService {
   name: string;
   fetch(input: string, init: RequestOptions): ReturnType<typeof fetch>;
@@ -11,10 +7,7 @@ interface RequestOptions extends Omit<RequestInit, 'signal'> {
   abortId?: string;
 }
 
-export function createHttpService(
-  name: string,
-  options?: HttpServiceOptions
-): HttpService {
+export function createHttpService(name: string): HttpService {
   return {
     name,
     fetch: (input, init) => {

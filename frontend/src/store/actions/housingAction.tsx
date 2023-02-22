@@ -173,13 +173,12 @@ export const changeHousingPagination = (pagination: PaginationApi) => {
       .listHousing(
         getState().housing.filters,
         { dataYearsExcluded, dataYearsIncluded },
-        pagination,
-        {}
+        pagination
       )
       .then((result: PaginatedResult<Housing>) => {
         dispatch({
           type: HOUSING_LIST_FETCHED,
-          paginate: pagination.pagination,
+          paginate: pagination.paginate,
           paginatedHousing: result,
           filters,
         });

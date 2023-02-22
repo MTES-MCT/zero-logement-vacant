@@ -38,7 +38,7 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import { CampaignApi } from '../models/CampaignApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
-import paginationApi from '../models/PaginationApi';
+import paginationApi, { PaginationApi } from '../models/PaginationApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -115,7 +115,7 @@ const list = async (
 
   const { auth, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const { pagination, page, perPage } = request.body;
+  const { paginate, page, perPage } = request.body as Required<PaginationApi>;
   const filters = request.body.filters as HousingFiltersApi;
   const filtersForTotalCount = request.body
     .filtersForTotalCount as HousingFiltersForTotalCountApi;
@@ -132,7 +132,7 @@ const list = async (
       : [establishmentId];
 
   try {
-    const housing: PaginatedResultApi<HousingApi> = pagination
+    const housing: PaginatedResultApi<HousingApi> = paginate
       ? await housingRepository.paginatedListWithFilters(
           {
             ...filters,
@@ -146,14 +146,19 @@ const list = async (
           perPage,
           sort
         )
-      : await housingRepository.listWithFilters(filters).then((housing) => ({
-          entities: housing,
-          page: 1,
-          perPage: housing.length,
-          filteredCount: housing.length,
-          // Wrong but not used
-          totalCount: housing.length,
-        }));
+      : await housingRepository
+          .listWithFilters({
+            ...filters,
+            establishmentIds,
+          })
+          .then((housing) => ({
+            entities: housing,
+            page: 1,
+            perPage: housing.length,
+            filteredCount: housing.length,
+            // Wrong but not used
+            totalCount: housing.length,
+          }));
     return response.status(constants.HTTP_STATUS_OK).json(housing);
   } catch (err) {
     next(err);

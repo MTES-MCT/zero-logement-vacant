@@ -570,11 +570,12 @@ const paginatedListWithFilters = async (
   }
 
   return Promise.all([
-    filterQuery.modify((queryBuilder: any) => {
-      if (page && perPage) {
-        queryBuilder.offset((page - 1) * perPage).limit(perPage);
-      }
-    }),
+    filterQuery,
+    // filterQuery.modify((queryBuilder: any) => {
+    //   if (page && perPage) {
+    //     queryBuilder.offset((page - 1) * perPage).limit(perPage);
+    //   }
+    // }),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),
   ]).then(

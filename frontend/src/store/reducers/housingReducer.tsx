@@ -160,7 +160,7 @@ const housingReducer = (state = initialState, action: HousingActionTypes) => {
     case FETCHING_HOUSING_LIST:
       return {
         ...state,
-        paginate: action.pagination.pagination,
+        paginate: action.pagination.paginate,
         paginatedHousing: {
           ...state.paginatedHousing,
           loading: true,

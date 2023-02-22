@@ -87,7 +87,7 @@ const HousingListView = () => {
   useEffect(() => {
     const pagination: PaginationApi =
       view === 'map'
-        ? { pagination: false }
+        ? { paginate: false }
         : {
             page: paginatedHousing.page,
             perPage: paginatedHousing.perPage,

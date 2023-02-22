@@ -15,9 +15,7 @@ import { toQuery } from '../models/Sort';
 import { PaginationApi } from '../../../server/models/PaginationApi';
 import { createHttpService, toJSON } from '../utils/fetchUtils';
 
-const http = createHttpService('housing', {
-  host: config.apiEndpoint,
-});
+const http = createHttpService('housing');
 
 const getHousing = async (id: string): Promise<Housing> => {
   return await fetch(`${config.apiEndpoint}/api/housing/${id}`, {

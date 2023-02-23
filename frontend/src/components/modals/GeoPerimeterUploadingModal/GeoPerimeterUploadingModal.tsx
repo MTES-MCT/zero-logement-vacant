@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import {
   Button,
-  Container,
+  Col,
   File,
   Modal,
   ModalClose,
   ModalContent,
   ModalFooter,
   ModalTitle,
+  Row,
 } from '@dataesr/react-dsfr';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
+import Help from '../../Help/Help';
+import styles from './geo-perimeter-uploading-modal.module.scss';
 
 interface Props {
   onSubmit: (file: File) => void;
@@ -40,7 +43,7 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
   };
 
   return (
-    <Modal isOpen={true} hide={() => onClose()}>
+    <Modal size="lg" isOpen={true} hide={() => onClose()}>
       <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
         Fermer
       </ModalClose>
@@ -49,15 +52,24 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
         Déposer un périmètre
       </ModalTitle>
       <ModalContent>
-        <Container as="section" fluid>
-          <File
-            onChange={(event: any) => selectFile(event)}
-            multiple={false}
-            label="Ajouter un fichier"
-            hint="Sélectionner un fichier zip uniquement qui contient un ou plusieurs périmètres"
-            errorMessage={message('file')}
-          />
-        </Container>
+        <Help className={styles.help}>
+          Pour utiliser le filtre “Périmètre” dans la base de données, vous
+          pouvez déposer le ou les périmètres géographiques* qui vous
+          intéressent : il peut s’agir d’un périmètre correspondant à un
+          dispositif de type OPAH ou ORT, mais également d’un quartier en
+          particulier, selon vos besoins.
+        </Help>
+        <Row spacing="my-2w">
+          <Col n="8">
+            <File
+              onChange={(event: any) => selectFile(event)}
+              multiple={false}
+              label="Ajouter un fichier"
+              hint="*fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "
+              errorMessage={message('file')}
+            />
+          </Col>
+        </Row>
       </ModalContent>
       <ModalFooter>
         <Button

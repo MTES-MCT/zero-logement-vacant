@@ -28,9 +28,6 @@ import {
 } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
-import mailService from '../services/mailService';
-import establishmentRepository from '../repositories/establishmentRepository';
-import { CampaignApi } from '../models/CampaignApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';

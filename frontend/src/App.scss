@@ -1,5 +1,6 @@
 @use "colors";
 @use "dsfr-fix";
+@use "src/components/Map/housing-popup-overrides";
 
 @import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css';
 @import '@gouvfr/dsfr/dist/utility/icons/icons-map/icons-map.min.css';

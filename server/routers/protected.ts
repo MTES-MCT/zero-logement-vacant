@@ -20,7 +20,7 @@ router.use(jwtCheck)
 router.use(userCheck);
 
 router.get('/housing/:id', housingController.get);
-router.post('/housing', housingController.list);
+router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
 router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);

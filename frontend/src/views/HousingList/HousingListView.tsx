@@ -256,10 +256,11 @@ const HousingListView = () => {
                       {paginatedHousing.filteredCount > 0 && (
                         <Row justifyContent="right">
                           {!hasSelected() && (
-                            <Col n="6" spacing="mr-2w">
+                            <Col n="8" spacing="mr-2w">
                               <AppSearchBar
                                 onSearch={searchWithQuery}
                                 initialQuery={filters.query}
+                                placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
                               />
                             </Col>
                           )}

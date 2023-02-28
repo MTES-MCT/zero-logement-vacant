@@ -1,3 +1,5 @@
+import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
+
 export interface EstablishmentApi {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface EstablishmentApi {
   geoCodes: string[];
   campaignIntent?: CampaignIntent;
   priority: EstablishmentPriority;
+  kind: EstablishmentKind;
 }
 
 export type EstablishmentPriority = 'standard' | 'high';

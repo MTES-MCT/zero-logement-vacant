@@ -1,12 +1,28 @@
 import authService from '../services/auth.service';
 
+type FetchURL = Pick<URL, 'host' | 'searchParams'>;
 interface HttpService {
   name: string;
-  fetch(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
-  get(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
-  post(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
-  put(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
-  delete(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
+  fetch(
+    input: string | FetchURL,
+    init?: RequestOptions
+  ): ReturnType<typeof fetch>;
+  get(
+    input: string | FetchURL,
+    init?: RequestOptions
+  ): ReturnType<typeof fetch>;
+  post(
+    input: string | FetchURL,
+    init?: RequestOptions
+  ): ReturnType<typeof fetch>;
+  put(
+    input: string | FetchURL,
+    init?: RequestOptions
+  ): ReturnType<typeof fetch>;
+  delete(
+    input: string | FetchURL,
+    init?: RequestOptions
+  ): ReturnType<typeof fetch>;
 }
 
 interface RequestOptions extends Omit<RequestInit, 'signal'> {
@@ -26,7 +42,10 @@ export function createHttpService(
   options?: HttpOptions
 ): HttpService {
   function doFetch(method?: HttpMethod) {
-    return (input: string, init?: RequestOptions): Promise<Response> => {
+    return (
+      input: string | FetchURL,
+      init?: RequestOptions
+    ): Promise<Response> => {
       const authHeaders: Record<string, string> = options?.authenticated
         ? authService.authHeader() ?? {}
         : {};
@@ -37,7 +56,10 @@ export function createHttpService(
           }
         : {};
 
-      const uri = options?.host ? `${options.host}${input}` : input;
+      const uri =
+        typeof input === 'string'
+          ? `${options?.host}${input}`
+          : `${input.host}?${input.searchParams.toString()}`;
       return fetch(uri, {
         ...init,
         method: method ?? init?.method,
@@ -88,3 +110,20 @@ export function toJSON(response: Response): any {
 export interface AbortOptions {
   abortable?: boolean;
 }
+
+export const getURLSearchParams = (params: Object) => {
+  const searchParams = new URLSearchParams(
+    Object.entries(params).filter(
+      ([_, v]) => v != null && !(v instanceof Array)
+    )
+  );
+
+  Object.entries(params)
+    .filter(([_, v]) => v instanceof Array && v.length)
+    .forEach(([k, v]) => {
+      searchParams.set(k, v[0]);
+      (v as Array<string>).forEach((_) => searchParams.append(k, _));
+    });
+
+  return searchParams;
+};

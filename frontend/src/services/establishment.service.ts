@@ -1,40 +1,53 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { Establishment } from '../models/Establishment';
+import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
+import {
+  createHttpService,
+  getURLSearchParams,
+  toJSON,
+} from '../utils/fetchUtils';
 
-const listAvailableEstablishments = async (): Promise<Establishment[]> => {
-  return await fetch(`${config.apiEndpoint}/api/establishments/available`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  }).then((_) => _.json());
+const http = createHttpService('establishment');
+
+const listEstablishments = async (
+  filters: EstablishmentFilterApi
+): Promise<Establishment[]> => {
+  return await http
+    .fetch(
+      {
+        host: `${config.apiEndpoint}/api/establishments`,
+        searchParams: getURLSearchParams(filters),
+      },
+      {
+        method: 'GET',
+        headers: {
+          ...authService.authHeader(),
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    .then(toJSON);
 };
 
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<Establishment[]>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
-
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(
-        `${config.apiEndpoint}/api/establishments${query ? `?q=${query}` : ''}`,
-        {
-          method: 'GET',
-          signal,
-        }
-      ).then((_) => _.json()),
-  };
+const quickSearch = (query: string): Promise<Establishment[]> => {
+  return http
+    .fetch(
+      {
+        host: `${config.apiEndpoint}/api/establishments`,
+        searchParams: new URLSearchParams({ query }),
+      },
+      {
+        method: 'GET',
+        abortId: 'search-establishment',
+      }
+    )
+    .then(toJSON);
 };
 
 const establishmentService = {
-  listAvailableEstablishments,
-  quickSearchService,
+  listEstablishments,
+  quickSearch,
 };
 
 export default establishmentService;

@@ -26,8 +26,7 @@ router.post('/signup-links', signupLinkController.createValidators, validator.va
 router.get('/signup-links/:id', signupLinkController.showValidators, validator.validate, signupLinkController.show);
 router.put('/signup-links/:id/prospect', prospectController.createProspectValidator, validator.validate, prospectController.upsert);
 
-router.get('/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
-router.get('/establishments/available', establishmentController.listAvailableEstablishments);
+router.get('/establishments', establishmentController.listValidators, validator.validate, establishmentController.list);
 
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 

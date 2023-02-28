@@ -74,3 +74,6 @@ export function prependIf(condition: boolean) {
 }
 
 export const mailto = (email: string): string => `mailto:${email}`;
+
+export const toKebabCase = (str: string) =>
+  str.toLowerCase().replaceAll(/'|\s/g, '-');

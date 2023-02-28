@@ -5,9 +5,15 @@ import localityService from '../../services/locality.service';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import ownerProspectService from '../../services/owner-prospect.service';
 import ownerProspectSlice from '../reducers/ownerProspectReducer';
+import { Establishment } from '../../models/Establishment';
 
 export interface LocalityFetchedAction {
   locality: Locality;
+}
+
+export interface EstablishmentsFetchedAction {
+  localityEstablishment: Establishment;
+  nearbyEstablishments: Establishment[];
 }
 
 export interface OwnerProspectCreatedAction {

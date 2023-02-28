@@ -20,7 +20,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { displayCount, stringSort } from '../../utils/stringUtils';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { useEstablishments } from '../../hooks/useEstablishments';
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
@@ -34,7 +34,7 @@ const UserListView = () => {
   useDocumentTitle('Utilisateurs');
   const dispatch = useAppDispatch();
   const { isAdmin } = useUser();
-  const availableEstablishmentOptions = useAvailableEstablishmentOptions();
+  const { availableEstablishmentOptions } = useEstablishments();
 
   const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] =
     useState<string>();

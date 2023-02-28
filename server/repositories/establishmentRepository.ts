@@ -10,6 +10,7 @@ import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 
 export const establishmentsTable = 'establishments';
 
@@ -55,44 +56,28 @@ const update = async (
   }
 };
 
-const listAvailable = async (): Promise<EstablishmentApi[]> => {
-  try {
-    return db(establishmentsTable)
-      .where('available', true)
-      .orderBy('name')
-      .then((_) =>
-        _.map(
-          (result) =>
-            <EstablishmentApi>{
-              id: result.id,
-              name: result.name,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Listing available establishment failed', err);
-    throw new Error('Listing available establishment failed');
-  }
-};
+const listWithFilters = async (
+  filters: EstablishmentFilterApi
+): Promise<EstablishmentApi[]> => {
+  const filter = (filters: EstablishmentFilterApi) => (queryBuilder: any) => {
+    if (filters.available) {
+      queryBuilder.where('available', true);
+    }
+    if (filters.query?.length) {
+      queryBuilder.whereRaw(likeUnaccent('name', filters.query));
+    }
+    if (filters.geoCodes) {
+      queryBuilder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
+    }
+    if (filters.kind) {
+      queryBuilder.where('kind', filters.kind);
+    }
+  };
 
-const search = async (searchQuery: string): Promise<EstablishmentApi[]> => {
-  try {
-    return db(establishmentsTable)
-      .whereRaw(likeUnaccent('name', searchQuery))
-      .orderBy('name')
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <EstablishmentApi>{
-              id: result.id,
-              name: result.name,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Search available establishment failed', err, searchQuery);
-    throw new Error('Search available establishment failed');
-  }
+  return db(establishmentsTable)
+    .modify(filter(filters))
+    .orderBy('name')
+    .then((_) => _.map(parseEstablishmentApi));
 };
 
 const listDataWithFilters = async (
@@ -205,6 +190,7 @@ interface EstablishmentDbo {
   localities_geo_code: string[];
   campaign_intent?: string;
   priority?: string;
+  kind: string;
 }
 
 const formatEstablishmentApi = (
@@ -217,6 +203,7 @@ const formatEstablishmentApi = (
   localities_geo_code: establishmentApi.geoCodes,
   campaign_intent: establishmentApi.campaignIntent,
   priority: establishmentApi.priority,
+  kind: establishmentApi.kind,
 });
 
 const parseEstablishmentApi = (
@@ -230,14 +217,14 @@ const parseEstablishmentApi = (
     geoCodes: establishmentDbo.localities_geo_code,
     campaignIntent: establishmentDbo.campaign_intent,
     priority: establishmentDbo.priority ?? 'standard',
+    kind: establishmentDbo.kind,
   };
 
 export default {
   get,
   findOne,
   update,
-  search,
-  listAvailable,
+  listWithFilters,
   listDataWithFilters,
   formatEstablishmentApi,
 };

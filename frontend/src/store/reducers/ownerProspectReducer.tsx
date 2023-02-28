@@ -5,9 +5,12 @@ import {
 } from '../actions/ownerProspectAction';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Establishment } from '../../models/Establishment';
 
 export interface OwnerProspectState {
   locality?: Locality;
+  localityEstablishment?: Establishment;
+  nearbyEstablishments?: Establishment[];
   ownerProspect?: OwnerProspect;
 }
 

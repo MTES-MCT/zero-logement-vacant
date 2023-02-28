@@ -1,8 +1,12 @@
+import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
+
 export interface Establishment {
   id: string;
   name: string;
   siren: number;
   campaignIntent?: string;
+  kind: EstablishmentKind;
+  geoCodes: string[];
 }
 
 export interface EstablishmentData {

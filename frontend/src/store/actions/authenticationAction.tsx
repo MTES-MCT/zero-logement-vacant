@@ -128,7 +128,7 @@ export const changePassword = (
 export const fetchAvailableEstablishments = () => {
   return function (dispatch: Dispatch) {
     establishmentService
-      .listAvailableEstablishments()
+      .listEstablishments({ available: true })
       .then((availableEstablishments) => {
         dispatch(
           availableEstablishmentsFetched({

@@ -8,4 +8,6 @@ exports.up = function (knex: Knex) {
   ]);
 };
 
-exports.down = function () {};
+exports.down = function () {
+  return Promise.resolve();
+};

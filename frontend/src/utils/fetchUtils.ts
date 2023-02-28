@@ -1,3 +1,5 @@
+import { kebabCase } from 'lodash';
+
 import authService from '../services/auth.service';
 
 type FetchURL = Pick<URL, 'host' | 'searchParams'>;
@@ -127,3 +129,8 @@ export const getURLSearchParams = (params: Object) => {
 
   return searchParams;
 };
+
+export const normalizeUrlSegment = (segment: string) =>
+  kebabCase(segment)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');

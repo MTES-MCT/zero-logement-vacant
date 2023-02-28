@@ -3,10 +3,12 @@ import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
 export interface Establishment {
   id: string;
   name: string;
+  shortName: string;
   siren: number;
+  available: boolean;
+  geoCodes: string[];
   campaignIntent?: string;
   kind: EstablishmentKind;
-  geoCodes: string[];
 }
 
 export interface EstablishmentData {

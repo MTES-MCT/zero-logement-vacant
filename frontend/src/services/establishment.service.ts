@@ -5,6 +5,7 @@ import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilt
 import {
   createHttpService,
   getURLSearchParams,
+  normalizeUrlSegment,
   toJSON,
 } from '../utils/fetchUtils';
 
@@ -17,7 +18,10 @@ const listEstablishments = async (
     .fetch(
       {
         host: `${config.apiEndpoint}/api/establishments`,
-        searchParams: getURLSearchParams(filters),
+        searchParams: getURLSearchParams({
+          ...filters,
+          name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
+        }),
       },
       {
         method: 'GET',

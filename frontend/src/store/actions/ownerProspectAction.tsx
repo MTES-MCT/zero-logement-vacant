@@ -13,6 +13,9 @@ export interface LocalityFetchedAction {
 
 export interface EstablishmentsFetchedAction {
   localityEstablishment: Establishment;
+}
+
+export interface NearbyEstablishmentsFetchedAction {
   nearbyEstablishments: Establishment[];
 }
 

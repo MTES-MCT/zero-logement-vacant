@@ -9,7 +9,7 @@ const createOwnerProspectValidators = [
   body('email').isEmail().withMessage('Must be an email'),
   body('firstName').isString().notEmpty(),
   body('lastName').isString().notEmpty(),
-  body('address').isString().notEmpty(),
+  body('address').isString().optional(),
   body('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
   body('phone').isString().notEmpty(),
   body('notes').isString().optional(),

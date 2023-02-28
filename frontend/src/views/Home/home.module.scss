@@ -8,3 +8,34 @@
 .quote_author {
   display: inline-block;
 }
+
+.ownerContainer {
+  background-color: var(--blue-france-113);
+  outline: 1px solid var(--white-1000);
+  outline-offset: -10px;
+
+  a {
+    color: var(--blue-france-113) !important;
+    background-color: var(--white-1000) !important;
+  }
+
+  h1,
+  p {
+    color: var(--white-1000);
+  }
+}
+
+.cardCol {
+  text-align: center;
+
+  div {
+    height: 100%;
+    background-color: var(--blue-france-925);
+    padding-top: 1rem;
+
+    img {
+      max-width: 75%;
+      height: 100%;
+    }
+  }
+}

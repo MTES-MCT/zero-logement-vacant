@@ -26,25 +26,17 @@ export const useEstablishments = (establishments?: Establishment[]) => {
     [availableEstablishments]
   );
 
-  const establishmentShortNamesByKinds = useMemo(
+  const establishmentWithKinds = useMemo(
     () => (kinds: EstablishmentKind[]) =>
       (establishments ?? availableEstablishments ?? [])
         .filter((establishment) => kinds.includes(establishment.kind))
-        .map((establishment) =>
-          kinds.includes('Commune')
-            ? establishment.name.replaceAll(/^Commune d(e\s|')/g, '')
-            : establishment.name
-        )
-        .map((shortName) =>
-          shortName.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        )
-        .sort(),
+        .sort((e1, e2) => e1.shortName.localeCompare(e2.shortName)),
     [establishments, availableEstablishments]
   );
 
   return {
     availableEstablishments,
     availableEstablishmentOptions,
-    establishmentShortNamesByKinds,
+    establishmentWithKinds,
   };
 };

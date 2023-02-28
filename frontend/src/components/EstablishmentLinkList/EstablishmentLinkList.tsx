@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link, Title } from '@dataesr/react-dsfr';
+import { Button, Title } from '@dataesr/react-dsfr';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import { Establishment } from '../../models/Establishment';
-import { toKebabCase } from '../../utils/stringUtils';
 import styles from './establisment-link-list.module.scss';
+import { normalizeUrlSegment } from '../../utils/fetchUtils';
+import { useHistory } from 'react-router-dom';
 
 interface Props {
   establishments: Establishment[];
@@ -11,7 +12,9 @@ interface Props {
 }
 
 const EstablishmentLinkList = ({ establishments, title }: Props) => {
-  const { establishmentShortNamesByKinds } = useEstablishments(establishments);
+  const { establishmentWithKinds } = useEstablishments(establishments);
+
+  const history = useHistory();
 
   return (
     <section className="fr-mt-6w">
@@ -21,24 +24,42 @@ const EstablishmentLinkList = ({ establishments, title }: Props) => {
         </Title>
       )}
       <div>
-        {establishmentShortNamesByKinds(['Commune'])?.map((shortName) => (
-          <Link href={toKebabCase(shortName)} className={styles.linkButton}>
-            {shortName}
-          </Link>
+        {establishmentWithKinds(['Commune'])?.map((establishment) => (
+          <Button
+            onClick={() =>
+              history.push(
+                `communes/${normalizeUrlSegment(establishment.shortName)}-${
+                  establishment.geoCodes[0]
+                }`
+              )
+            }
+            className={styles.establishmentButton}
+            key={establishment.id}
+          >
+            {establishment.shortName}
+          </Button>
         ))}
       </div>
       <div>
-        {establishmentShortNamesByKinds([
+        {establishmentWithKinds([
           'EPCI',
           'DDT',
           'DDTM',
           'DREAL',
           'DRIHL',
           'DRIEAT',
-        ])?.map((shortName) => (
-          <Link href={toKebabCase(shortName)} className={styles.linkButton}>
-            {shortName}
-          </Link>
+        ])?.map((establishment) => (
+          <Button
+            onClick={() =>
+              history.push(
+                `collectivites/${normalizeUrlSegment(establishment.shortName)}`
+              )
+            }
+            className={styles.establishmentButton}
+            key={establishment.id}
+          >
+            {establishment.shortName}
+          </Button>
         ))}
       </div>
     </section>

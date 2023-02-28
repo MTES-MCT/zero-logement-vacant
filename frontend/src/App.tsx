@@ -30,10 +30,11 @@ import ResetPasswordView from './views/Account/ResetPasswordView';
 import EstablismentView from './views/Establishment/EstablismentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import OwnerHomeView from './views/Home/OwnerHomeView';
+import OwnerEstablishmentHomeView from './views/Home/OwnerEstablishmentHomeView';
 import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
+import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
 import StatusView from './views/Resources/StatusView';
 
 function AppWrapper() {
@@ -121,7 +122,9 @@ function App() {
             <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/collectivites" component={EstablishmentHomeView} />
-            <Route exact path="/proprietaires" component={OwnerHomeView} />
+            <Route exact path="/proprietaires" component={OwnerGenericHomeView} />
+            <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView} />
+            <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
             <Route exact path="/proprietaire" component={ProprietaireView} />

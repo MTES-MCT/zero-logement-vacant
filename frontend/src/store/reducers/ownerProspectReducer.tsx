@@ -6,10 +6,12 @@ import {
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Establishment } from '../../models/Establishment';
+import { AddressSearchResult } from '../../services/address.service';
 
 export interface OwnerProspectState {
+  addressSearchResult?: AddressSearchResult;
   locality?: Locality;
-  localityEstablishment?: Establishment;
+  establishment?: Establishment;
   nearbyEstablishments?: Establishment[];
   ownerProspect?: OwnerProspect;
 }

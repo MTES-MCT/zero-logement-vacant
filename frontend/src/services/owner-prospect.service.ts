@@ -1,16 +1,21 @@
 import config from '../utils/config';
 import { OwnerProspect } from '../models/OwnerProspect';
+import { toJSON } from '../utils/fetchUtils';
 
 const createOwnerProspect = async (
   ownerProspect: OwnerProspect
 ): Promise<OwnerProspect> => {
-  return await fetch(`${config.apiEndpoint}/api/owner-prospects`, {
+  const response = await fetch(`${config.apiEndpoint}/api/owner-prospects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(ownerProspect),
-  }).then((_) => _.json());
+  });
+  if (!response.ok) {
+    throw new Error('Une erreur s’est produite.');
+  }
+  return toJSON(response);
 };
 
 const ownerProspectService = {

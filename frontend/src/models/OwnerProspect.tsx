@@ -7,6 +7,6 @@ export interface PartialOwnerProspect {
 }
 
 export interface OwnerProspect extends PartialOwnerProspect {
-  address: string;
+  address?: string;
   geoCode: string;
 }

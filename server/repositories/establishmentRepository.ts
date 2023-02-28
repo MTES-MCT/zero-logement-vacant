@@ -72,6 +72,12 @@ const listWithFilters = async (
     if (filters.kind) {
       queryBuilder.where('kind', filters.kind);
     }
+    if (filters.name) {
+      queryBuilder.whereRaw(
+        `lower(unaccent(regexp_replace(name, ' ', '-', 'g'))) like '%' || ?`,
+        filters.name
+      );
+    }
   };
 
   return db(establishmentsTable)
@@ -212,6 +218,10 @@ const parseEstablishmentApi = (
   <EstablishmentApi>{
     id: establishmentDbo.id,
     name: establishmentDbo.name,
+    shortName:
+      establishmentDbo.kind === 'Commune'
+        ? establishmentDbo.name.replaceAll(/^Commune d(e\s|')/g, '')
+        : establishmentDbo.name,
     siren: establishmentDbo.siren,
     available: establishmentDbo.available,
     geoCodes: establishmentDbo.localities_geo_code,

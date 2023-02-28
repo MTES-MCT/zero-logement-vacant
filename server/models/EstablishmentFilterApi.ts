@@ -5,4 +5,5 @@ export interface EstablishmentFilterApi {
   query?: string;
   geoCodes?: string[];
   kind?: EstablishmentKind;
+  name?: string;
 }

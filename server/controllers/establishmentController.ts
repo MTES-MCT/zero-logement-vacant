@@ -9,6 +9,7 @@ const listValidators: ValidationChain[] = [
   query('available').optional({ nullable: true }).isBoolean(),
   query('query').optional({ nullable: true }).isString(),
   query('kind').optional({ nullable: true }).isString(),
+  query('name').optional({ nullable: true }).isString(),
   query('geoCodes')
     .optional({ nullable: true })
     .isArray()
@@ -31,15 +32,21 @@ const list = async (
     ? Boolean(request.query.available)
     : undefined;
   const searchQuery = <string>request.query.query;
+  const name = <string>request.query.name;
   const geoCodes = <string[]>request.query.geoCodes;
   const kind = <EstablishmentKind>request.query.kind;
 
-  if (available === undefined && !searchQuery?.length && !geoCodes?.length) {
+  if (
+    available === undefined &&
+    !searchQuery?.length &&
+    !geoCodes?.length &&
+    !name?.length
+  ) {
     return response.sendStatus(constants.HTTP_STATUS_BAD_REQUEST);
   }
 
   return establishmentRepository
-    .listWithFilters({ available, query: searchQuery, geoCodes, kind })
+    .listWithFilters({ available, query: searchQuery, geoCodes, kind, name })
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 

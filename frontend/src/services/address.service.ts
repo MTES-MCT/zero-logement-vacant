@@ -1,42 +1,44 @@
 import config from '../utils/config';
+import { createHttpService, toJSON } from '../utils/fetchUtils';
 
 export interface AddressSearchResult {
   label: string;
   geoCode: string;
+  city: string;
 }
 
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<AddressSearchResult[]>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
+const http = createHttpService('address');
 
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(`${config.banEndpoint}/search/?q=${query}`, {
+const quickSearch = (query: string): Promise<AddressSearchResult[]> => {
+  return http
+    .fetch(
+      {
+        host: `${config.banEndpoint}/search`,
+        searchParams: new URLSearchParams({ q: query }),
+      },
+      {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        signal,
-      })
-        .then((_) => _.json())
-        .then((result) =>
-          result.features.map(
-            (a: any) =>
-              ({
-                label: a.properties.label,
-                geoCode: a.properties.citycode,
-              } as AddressSearchResult)
-          )
-        ),
-  };
+        abortId: 'search-address',
+      }
+    )
+    .then(toJSON)
+    .then((result) =>
+      result.features.map(
+        (a: any) =>
+          ({
+            label: a.properties.label,
+            geoCode: a.properties.citycode,
+            city: a.properties.city,
+          } as AddressSearchResult)
+      )
+    );
 };
 
-const housingService = {
-  quickSearchService,
+const addressService = {
+  quickSearch,
 };
 
-export default housingService;
+export default addressService;

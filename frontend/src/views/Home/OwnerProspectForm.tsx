@@ -90,8 +90,6 @@ const OwnerProspectForm = ({ onCreateOwnerProspect }: Props) => {
             required
           />
         </Col>
-      </Row>
-      <Row gutters>
         <Col>
           <TextInput
             value={phone}

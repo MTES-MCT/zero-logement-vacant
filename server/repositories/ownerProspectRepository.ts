@@ -18,7 +18,7 @@ interface OwnerProspectDbo {
   email: string;
   first_name: string;
   last_name: string;
-  address: string;
+  address?: string;
   geo_code: string;
   phone: string;
   notes?: string;

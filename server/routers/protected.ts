@@ -13,6 +13,7 @@ import contactPointController from '../controllers/contactPointController';
 import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import housingExportController from '../controllers/housingExportController';
+import settingsController from '../controllers/settingsController';
 import { isUUIDParam } from '../utils/validators';
 
 const router = express.Router();
@@ -73,5 +74,8 @@ router.put('/contact-points/:contactPointId', contactPointController.updateConta
 router.delete('/contact-points/:contactPointId', contactPointController.deleteContactPointValidators, validator.validate, contactPointController.deleteContactPoint);
 
 router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValidators, validator.validate, localityController.updateLocalityTax);
+
+router.get('/establishments/:id/settings', settingsController.getSettingsValidators, validator.validate, settingsController.getSettings);
+router.put('/establishments/:id/settings', settingsController.updateSettingsValidators, validator.validate, settingsController.updateSettings);
 
 export default router;

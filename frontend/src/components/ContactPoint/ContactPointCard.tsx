@@ -137,7 +137,7 @@ function ContactPointCard({
         {contactPoint.notes && (
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
-              Téléphone
+              Notes
             </Text>
             <Text spacing="mb-0" className="pre-wrap">
               {contactPoint.notes}

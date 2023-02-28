@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-
-import { Button, Col, Row, Text, Title } from '@dataesr/react-dsfr';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, Col, Row, Text, Title, Toggle } from '@dataesr/react-dsfr';
 import {
   ContactPoint,
   DraftContactPoint,
@@ -18,9 +17,12 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import ContactPointCard from '../../components/ContactPointCard/ContactPointCard';
+import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import Help from '../../components/Help/Help';
+import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { useSettings } from '../../hooks/useSettings';
 
 enum ActionSteps {
   Init,
@@ -44,8 +46,27 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
   const { loading, contactPoints } = useAppSelector(
     (state) => state.establishment
   );
+  const { settings, togglePublishContactPoints } = useSettings();
+
   const [editingState, setEditingState] = useState<ContactPointActionState>();
   const [removingState, setRemovingState] = useState<ContactPointActionState>();
+  const [query, setQuery] = useState<string>();
+
+  function search(query: string): void {
+    setQuery(query);
+  }
+
+  async function searchAsync(query: string): Promise<void> {
+    search(query);
+  }
+
+  const points = useMemo<ContactPoint[] | undefined>(
+    () =>
+      query
+        ? contactPoints?.filter((cp) => cp.title.search(query) !== -1)
+        : contactPoints,
+    [query, contactPoints]
+  );
 
   useEffect(() => {
     dispatch(fetchContactPoints(establishmentId));
@@ -120,17 +141,28 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
         </ConfirmationModal>
       )}
       <Row>
-        <Col>
-          <Title look="h5" as="h2" className="fr-mt-1w">
+        <Col className="flex-left flex-align-center">
+          <Title look="h5" as="h2" spacing="mr-2w">
             Vos guichets contacts ({contactPoints?.length})
           </Title>
+          {settings && (
+            <Toggle
+              checked={settings.contactPoints.public}
+              label="Informations publiées"
+              onChange={togglePublishContactPoints}
+              className="fr-mt-0"
+            />
+          )}
         </Col>
-        <Col>
+        <Col className="flex-right flex-align-center">
+          <div className="fr-mx-2w">
+            <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
+          </div>
           <Button
             onClick={() => setEditingState({ step: ActionSteps.Init })}
             className="float-right"
           >
-            Ajouter un guichet contact
+            Ajouter un guichet
           </Button>
         </Col>
       </Row>
@@ -156,8 +188,12 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           className="fr-mb-2w"
         />
       )}
-      <Row gutters>
-        {contactPoints?.map((contactPoint) => (
+      <Help className="fr-mb-4w">
+        Renseignez vos guichets contact ici. Ce sont les points de contact qui
+        seront affichés sur votre page publique.
+      </Help>
+      <Row gutters spacing="mb-2w">
+        {points?.map((contactPoint) => (
           <Col n="4" key={contactPoint.id}>
             <ContactPointCard
               contactPoint={contactPoint}

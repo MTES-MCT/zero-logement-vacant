@@ -378,3 +378,17 @@ a.fr-btn[target='_blank']:after {
 .italic {
   font-style: italic;
 }
+
+.flex-left {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.flex-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flex-align-center {
+  align-items: center
+}

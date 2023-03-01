@@ -43,7 +43,7 @@ const run = async (): Promise<void> => {
       form.append('columns', 'rawAddress');
       form.append('result_columns', 'result_type');
       form.append('result_columns', 'result_housenumber');
-      form.append('result_columns', 'result_name');
+      form.append('result_columns', 'result_street');
       form.append('result_columns', 'result_postcode');
       form.append('result_columns', 'result_city');
       form.append('result_columns', 'latitude');
@@ -71,12 +71,7 @@ const run = async (): Promise<void> => {
           refId: columns[headers.indexOf('addressId')],
           addressKind: columns[headers.indexOf('addressKind')],
           houseNumber: columns[headers.indexOf('result_housenumber')],
-          street:
-            ['street', 'housenumber'].indexOf(
-              columns[headers.indexOf('result_type')]
-            ) !== -1
-              ? columns[headers.indexOf('result_name')]
-              : undefined,
+          street: columns[headers.indexOf('result_street')],
           postalCode: columns[headers.indexOf('result_postcode')],
           city: columns[headers.indexOf('result_city')],
           latitude: columns[headers.indexOf('latitude')]

@@ -10,10 +10,7 @@ import {
   HousingFiltersForTotalCountApi,
 } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
-import ExcelJS, { Workbook } from 'exceljs';
-import { AddressApi, AddressKinds } from '../models/AddressApi';
 import { UserRoles } from '../models/UserApi';
-import { OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { EventApi, EventKinds } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
@@ -22,15 +19,18 @@ import {
   getHousingStatusApiLabel,
   HousingStatusApi,
 } from '../models/HousingStatusApi';
-import exportFileService from '../services/exportFileService';
 import { constants } from 'http2';
-import { body, param, validationResult } from 'express-validator';
+import {
+  body,
+  param,
+  ValidationChain,
+  validationResult,
+} from 'express-validator';
 import validator from 'validator';
-import banAddressesRepository from '../repositories/banAddressesRepository';
 import SortApi from '../models/SortApi';
-import mailService from '../services/mailService';
-import establishmentRepository from '../repositories/establishmentRepository';
-import { CampaignApi } from '../models/CampaignApi';
+import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
+import paginationApi, { PaginationApi } from '../models/PaginationApi';
 
 const get = async (request: Request, response: Response): Promise<Response> => {
   const id = request.params.id;
@@ -42,6 +42,62 @@ const get = async (request: Request, response: Response): Promise<Response> => {
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
+const listValidators: ValidationChain[] = [
+  body('filters').isObject({ strict: true }),
+  body('filters.establishmentIds')
+    .default([])
+    .custom(isArrayOf(isUUID))
+    .withMessage('Must be an array of UUIDs'),
+  body('filters.ownerKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.ownerAges').default([]).custom(isArrayOf(isString)),
+  body('filters.multiOwners').default([]).custom(isArrayOf(isString)),
+  body('filters.beneficiaryCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.housingKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.cadastralClassificiations')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filters.housingAreas').default([]).custom(isArrayOf(isString)),
+  body('filters.roomsCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.buildingPeriods').default([]).custom(isArrayOf(isString)),
+  body('filters.vacancyDurations').default([]).custom(isArrayOf(isString)),
+  body('filters.isTaxedValues').default([]).custom(isArrayOf(isString)),
+  body('filters.ownershipKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.housingCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.vacancyRates').default([]).custom(isArrayOf(isString)),
+  body('filters.campaignsCounts').default([]).custom(isArrayOf(isString)),
+  body('filters.campaignIds').default([]).custom(isArrayOf(isString)),
+  body('filters.ownerIds').default([]).custom(isArrayOf(isString)),
+  body('filters.localities').default([]).custom(isArrayOf(isString)),
+  body('filters.localityKinds').default([]).custom(isArrayOf(isString)),
+  body('filters.geoPerimetersIncluded').default([]).custom(isArrayOf(isString)),
+  body('filters.geoPerimetersExcluded').default([]).custom(isArrayOf(isString)),
+  body('filters.dataYearsIncluded').default([]).custom(isArrayOf(isInteger)),
+  body('filters.dataYearsExcluded').default([]).custom(isArrayOf(isInteger)),
+  body('filters.status').default([]).custom(isArrayOf(isInteger)),
+  body('filters.subStatus').default([]).custom(isArrayOf(isString)),
+  body('filters.query').default('').isString(),
+  body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),
+  body('filters.energyConsumptionWorst')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filters.occupancies').default([]).custom(isArrayOf(isString)),
+  body('filtersForTotalCount').default({}).isObject({ strict: true }),
+  body('filtersForTotalCount.establishmentIds')
+    .default([])
+    .custom(isArrayOf(isString)),
+  body('filtersForTotalCount.dataYearsIncluded')
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.dataYearsExcluded')
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isInteger)),
+  body('filtersForTotalCount.campaignIds')
+    .default([])
+    .custom(isArrayOf(isString)),
+  ...paginationApi.validators,
+];
+
 const list = async (
   request: Request,
   response: Response,
@@ -50,13 +106,14 @@ const list = async (
   console.log('List housing');
 
   const { auth, user } = request as AuthenticatedRequest;
-  const { page, perPage } = request.body;
+  // TODO: type the whole body
+  const { paginate, page, perPage } = request.body as Required<PaginationApi>;
+  const filters = request.body.filters as HousingFiltersApi;
+  const filtersForTotalCount = request.body
+    .filtersForTotalCount as HousingFiltersForTotalCountApi;
 
   const role = user.role;
   const establishmentId = auth.establishmentId;
-  const filters = <HousingFiltersApi>request.body.filters ?? {};
-  const filtersForTotalCount =
-    <HousingFiltersForTotalCountApi>request.body.filtersForTotalCount ?? {};
   const sort = SortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
@@ -67,19 +124,33 @@ const list = async (
       : [establishmentId];
 
   try {
-    const housing = await housingRepository.paginatedListWithFilters(
-      {
-        ...filters,
-        establishmentIds,
-      },
-      {
-        ...filtersForTotalCount,
-        establishmentIds,
-      },
-      page,
-      perPage,
-      sort
-    );
+    const housing: PaginatedResultApi<HousingApi> = paginate
+      ? await housingRepository.paginatedListWithFilters(
+          {
+            ...filters,
+            establishmentIds,
+          },
+          {
+            ...filtersForTotalCount,
+            establishmentIds,
+          },
+          page,
+          perPage,
+          sort
+        )
+      : await housingRepository
+          .listWithFilters({
+            ...filters,
+            establishmentIds,
+          })
+          .then((housing) => ({
+            entities: housing,
+            page: 1,
+            perPage: housing.length,
+            filteredCount: housing.length,
+            // Wrong but not used
+            totalCount: housing.length,
+          }));
     return response.status(constants.HTTP_STATUS_OK).json(housing);
   } catch (err) {
     next(err);
@@ -318,318 +389,9 @@ const getStatusLabel = (
     : undefined;
 };
 
-const exportHousingByCampaignBundle = async (
-  request: Request,
-  response: Response
-) => {
-  const campaignNumber = request.params.campaignNumber;
-  const reminderNumber = request.params.reminderNumber;
-  const { auth, user } = request as AuthenticatedRequest;
-  const { establishmentId } = auth;
-
-  console.log(
-    'Export housing by campaign bundle',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
-
-  const [campaignApi, campaignList, establishment] = await Promise.all([
-    campaignRepository.getCampaignBundle(
-      establishmentId,
-      campaignNumber,
-      reminderNumber
-    ),
-    campaignRepository.listCampaigns(establishmentId),
-    establishmentRepository.get(establishmentId),
-  ]);
-
-  if (!campaignApi || !establishment) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-  }
-
-  const housingList = await housingRepository.listWithFilters({
-    establishmentIds: [establishmentId],
-    campaignIds: campaignApi.campaignIds,
-  });
-
-  const fileName = campaignNumber
-    ? `C${campaignApi.campaignNumber}.xlsx`
-    : 'LogementSuivis.xlsx';
-
-  await exportHousingList(
-    housingList,
-    fileName,
-    campaignNumber ? ['owner', 'housing:light'] : ['housing:complete'],
-    campaignList,
-    response
-  );
-  mailService.emit('housing:exported', user.email, {
-    priority: establishment.priority,
-  });
-};
-
-const exportHousingList = async (
-  housingList: HousingApi[],
-  fileName: string,
-  worksheets: ('owner' | 'housing:light' | 'housing:complete')[],
-  campaignList: CampaignApi[],
-  response: Response
-) => {
-  const housingAddresses = await banAddressesRepository.listByRefIds(
-    housingList.map((_) => _.id),
-    AddressKinds.Housing
-  );
-  const ownerAddresses = await banAddressesRepository.listByRefIds(
-    housingList.map((_) => _.owner.id),
-    AddressKinds.Owner
-  );
-
-  const workbook = new ExcelJS.Workbook();
-
-  if (worksheets.includes('owner')) {
-    addOwnerWorksheet(workbook, housingList, housingAddresses, ownerAddresses);
-  }
-  if (worksheets.includes('housing:light')) {
-    addHousingLightWorksheet(
-      workbook,
-      housingList,
-      housingAddresses,
-      ownerAddresses
-    );
-  }
-  if (worksheets.includes('housing:complete')) {
-    await addHousingCompleteWorksheet(
-      workbook,
-      housingList,
-      housingAddresses,
-      ownerAddresses,
-      campaignList
-    );
-  }
-
-  await exportFileService.sendWorkbook(workbook, fileName, response);
-};
-
-const addOwnerWorksheet = (
-  workbook: Workbook,
-  housingList: HousingApi[],
-  housingAddresses: AddressApi[],
-  ownerAddresses: AddressApi[]
-) => {
-  const ownerWorksheet = workbook.addWorksheet('Propriétaires');
-
-  const housingListByOwner = housingList.reduce(
-    (
-      ownersHousing: { owner: OwnerApi; housingList: HousingApi[] }[],
-      housing
-    ) => [
-      ...ownersHousing.filter((_) => _.owner.id !== housing.owner.id),
-      {
-        owner: housing.owner,
-        housingList: [
-          ...(ownersHousing.find((_) => _.owner.id === housing.owner.id)
-            ?.housingList ?? []),
-          housing,
-        ],
-      },
-    ],
-    []
-  );
-
-  const maxHousingCount = Math.max(
-    ...housingListByOwner.map((_) => _.housingList.length)
-  );
-
-  ownerWorksheet.columns = [
-    { header: 'Propriétaire', key: 'owner' },
-    { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-    {
-      header: 'Adresse BAN du propriétaire - Numéro',
-      key: 'ownerAddressHouseNumber',
-    },
-    { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
-    {
-      header: 'Adresse BAN du propriétaire - Code postal',
-      key: 'ownerAddressPostalCode',
-    },
-    { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
-    {
-      header: 'Adresse BAN du propriétaire - Fiabilité',
-      key: 'ownerAddressScore',
-    },
-    ...[...Array(maxHousingCount).keys()]
-      .map((index) => [
-        {
-          header: `Adresse LOVAC du logement ${index + 1}`,
-          key: `housingRawAddress_${index}`,
-        },
-        {
-          header: `Adresse BAN du logement ${index + 1}`,
-          key: `housingAddress_${index}`,
-        },
-      ])
-      .flat(),
-  ];
-
-  housingListByOwner.forEach(
-    (ownerHousing: { owner: OwnerApi; housingList: HousingApi[] }) => {
-      const ownerAddress = ownerAddresses.find(
-        (_) => _.refId === ownerHousing.owner.id
-      );
-      const row: any = {
-        owner: ownerHousing.owner.fullName,
-        ownerRawAddress: reduceStringArray(ownerHousing.owner.rawAddress),
-        ownerAddressHouseNumber: ownerAddress?.houseNumber,
-        ownerAddressStreet: ownerAddress?.street,
-        ownerAddressPostalCode: ownerAddress?.postalCode,
-        ownerAddressCity: ownerAddress?.city,
-        ownerAddressScore: ownerAddress?.score,
-      };
-
-      ownerHousing.housingList.forEach((housing, index) => {
-        row[`housingRawAddress_${index}`] = reduceStringArray(
-          ownerHousing.housingList[index]?.rawAddress
-        );
-        row[`housingAddress_${index}`] = reduceAddressApi(
-          housingAddresses.find((_) => _.refId === housing.id)
-        );
-      });
-
-      ownerWorksheet.addRow(row);
-    }
-  );
-};
-
-const getHousingLightRow = (
-  housingApi: HousingApi,
-  housingAddresses: AddressApi[],
-  ownerAddresses: AddressApi[]
-) => {
-  const housingAddress = housingAddresses.find(
-    (_) => _.refId === housingApi.id
-  );
-  const ownerAddress = ownerAddresses.find(
-    (_) => _.refId === housingApi.owner.id
-  );
-  return {
-    invariant: housingApi.invariant,
-    cadastralReference: housingApi.cadastralReference,
-    owner: housingApi.owner.fullName,
-    ownerRawAddress: reduceStringArray(housingApi.owner.rawAddress),
-    ownerAddressHouseNumber: ownerAddress?.houseNumber,
-    ownerAddressStreet: ownerAddress?.street,
-    ownerAddressPostalCode: ownerAddress?.postalCode,
-    ownerAddressCity: ownerAddress?.city,
-    ownerAddressScore: ownerAddress?.score,
-    housingRawAddress: reduceStringArray(housingApi.rawAddress),
-    housingAddress: reduceAddressApi(housingAddress),
-  };
-};
-
-const housingLightColumns = [
-  { header: 'Invariant', key: 'invariant' },
-  { header: 'Référence cadastrale', key: 'cadastralReference' },
-  { header: 'Propriétaire', key: 'owner' },
-  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-  {
-    header: 'Adresse BAN du propriétaire - Numéro',
-    key: 'ownerAddressHouseNumber',
-  },
-  { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
-  {
-    header: 'Adresse BAN du propriétaire - Code postal',
-    key: 'ownerAddressPostalCode',
-  },
-  { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
-  {
-    header: 'Adresse BAN du propriétaire - Fiabilité',
-    key: 'ownerAddressScore',
-  },
-  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-  { header: 'Adresse BAN du logement', key: 'housingAddress' },
-];
-
-const addHousingLightWorksheet = (
-  workbook: Workbook,
-  housingList: HousingApi[],
-  housingAddresses: AddressApi[],
-  ownerAddresses: AddressApi[]
-) => {
-  const housingWorksheet = workbook.addWorksheet('Logements');
-
-  housingWorksheet.columns = housingLightColumns;
-
-  housingList.forEach((housing: HousingApi) => {
-    housingWorksheet.addRow(
-      getHousingLightRow(housing, housingAddresses, ownerAddresses)
-    );
-  });
-};
-
-const addHousingCompleteWorksheet = async (
-  workbook: Workbook,
-  housingList: HousingApi[],
-  housingAddresses: AddressApi[],
-  ownerAddresses: AddressApi[],
-  campaignList: CampaignApi[]
-) => {
-  const housingWorksheet = workbook.addWorksheet('Logements');
-
-  housingWorksheet.columns = [
-    ...housingLightColumns,
-    { header: 'latitude', key: 'latitude' },
-    { header: 'Longitude', key: 'longitude' },
-    { header: 'Cause de la vacance', key: 'vacancyReasons' },
-    { header: 'Campagne(s)', key: 'campaigns' },
-    { header: 'Statut', key: 'status' },
-    { header: 'Sous-statut', key: 'subStatus' },
-    { header: 'Précision(s)', key: 'precisions' },
-    { header: "Nombre d'événements", key: 'contactCount' },
-    { header: 'Date de dernière mise à jour', key: 'lastContact' },
-  ];
-
-  housingList.forEach((housing: HousingApi) => {
-    housingWorksheet.addRow({
-      ...getHousingLightRow(housing, housingAddresses, ownerAddresses),
-      latitude: housing.latitude,
-      longitude: housing.longitude,
-      vacancyReasons: reduceStringArray(housing.vacancyReasons),
-      campaigns: reduceStringArray(
-        housing.campaignIds.map(
-          (campaignId) => campaignList.find((c) => c.id === campaignId)?.title
-        )
-      ),
-      status: getHousingStatusApiLabel(housing.status),
-      subStatus: housing.subStatus,
-      precisions: reduceStringArray(housing.precisions),
-      contactCount: housing.contactCount,
-      lastContact: housing.lastContact,
-    });
-  });
-};
-
-const reduceAddressApi = (addressApi?: AddressApi) => {
-  return addressApi
-    ? [
-        addressApi.houseNumber,
-        addressApi.street,
-        addressApi.postalCode,
-        addressApi.city,
-      ]
-        .filter((_) => _)
-        .join(' ')
-    : addressApi;
-};
-
-const reduceStringArray = (stringArray?: (string | undefined)[]) => {
-  return stringArray?.map((_) => !!_)
-    ? stringArray.filter((_) => _).join(String.fromCharCode(10))
-    : stringArray;
-};
-
 const housingController = {
   get,
+  listValidators,
   list,
   count,
   listByOwner,
@@ -637,7 +399,6 @@ const housingController = {
   updateHousing,
   updateHousingListValidators,
   updateHousingList,
-  exportHousingByCampaignBundle,
 };
 
 export default housingController;

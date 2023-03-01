@@ -5,7 +5,7 @@ import {
   CardTitle,
   Col,
   Icon,
-  Link as DSFRLink,
+  Link,
   Row,
   Tabs,
   Title,
@@ -71,7 +71,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
         </span>
         <Title as="h1" look="h4" spacing="mb-1w">
           {housing.rawAddress.join(' - ')}
-          <DSFRLink
+          <Link
             title="Voir sur la carte - nouvelle fenêtre"
             href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
             target="_blank"
@@ -80,7 +80,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
             className={classNames(styles.link, 'fr-link', 'fr-ml-3w')}
           >
             Voir sur la carte
-          </DSFRLink>
+          </Link>
         </Title>
       </CardTitle>
       <CardDescription>

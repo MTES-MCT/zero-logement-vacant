@@ -500,6 +500,8 @@ const listQuery = (establishmentIds?: string[]) =>
       'o.raw_address as owner_raw_address',
       'o.full_name',
       'o.administrator',
+      'o.email',
+      'o.phone',
       db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
       db.raw(`count(${eventsTable}) as contact_count`),
       db.raw(`max(${eventsTable}.created_at) as last_contact`)
@@ -595,6 +597,11 @@ const countWithFilters = async (
       .countDistinct(`${housingTable}.id`)
       .join(ownersHousingTable, ownersHousingJoinClause)
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+      .leftJoin(
+        buildingTable,
+        `${housingTable}.building_id`,
+        `${buildingTable}.id`
+      )
       .joinRaw(
         `left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count
@@ -608,11 +615,6 @@ const countWithFilters = async (
                     }
                 ) campaigns on true`,
         filters.establishmentIds ?? []
-      )
-      .leftJoin(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
       )
       .modify(filteredQuery(filters))
       .then((_) => Number(_[0].count));
@@ -807,6 +809,8 @@ const parseHousingApi = (result: any) =>
       rawAddress: result.owner_raw_address,
       fullName: result.full_name,
       administrator: result.administrator,
+      email: result.email,
+      phone: result.phone,
     },
     livingArea: result.living_area,
     housingKind: result.housing_kind,

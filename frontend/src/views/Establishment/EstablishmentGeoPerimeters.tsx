@@ -33,6 +33,8 @@ import ButtonLink from '../../components/ButtonLink/ButtonLink';
 import GeoPerimeterUploadingModal from '../../components/modals/GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../components/GeoPerimeterCard/GeoPerimeterCard';
 import classNames from 'classnames';
+import Help from '../../components/Help/Help';
+import styles from './establishment-geo-perimeters.module.scss';
 
 enum ActionSteps {
   Init,
@@ -171,6 +173,19 @@ const EstablishmentGeoPerimeters = () => {
           </Button>
         </Col>
       </Row>
+      <Help className={styles.help}>
+        <Text>
+          Pour utiliser le filtre “Périmètre” dans la base de données, vous
+          pouvez déposer le ou les périmètres géographiques* qui vous
+          intéressent : il peut s’agir d’un périmètre correspondant à un
+          dispositif de type OPAH ou ORT, mais également d’un quartier en
+          particulier, selon vos besoins.
+        </Text>
+        <Text spacing="mb-0" className="italic">
+          *fichier géographique (SIG) au format .zip comprenant l'ensemble des
+          extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
+        </Text>
+      </Help>
       {uploadingState === ActionSteps.Done && (
         <Alert
           type="success"

@@ -53,6 +53,7 @@ describe('Housing controller', () => {
         })
         .expect(constants.HTTP_STATUS_OK);
 
+      expect(res.status).toBe(constants.HTTP_STATUS_OK);
       expect(res.body).toMatchObject({
         entities: expect.arrayContaining([
           expect.objectContaining({

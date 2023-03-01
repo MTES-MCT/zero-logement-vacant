@@ -12,6 +12,7 @@ import validator from '../middlewares/validator';
 import contactPointController from '../controllers/contactPointController';
 import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
+import housingExportController from '../controllers/housingExportController';
 
 const router = express.Router();
 
@@ -19,13 +20,14 @@ router.use(jwtCheck)
 router.use(userCheck);
 
 router.get('/housing/:id', housingController.get);
-router.post('/housing', housingController.list);
+router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
 router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);
-router.get('/housing/campaigns/bundles/number/:campaignNumber?/export', housingController.exportHousingByCampaignBundle);
-router.get('/housing/campaigns/bundles/number/:campaignNumber/:reminderNumber?/export', housingController.exportHousingByCampaignBundle);
+
+router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
+router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);
 
 router.get('/campaigns', campaignController.listCampaigns);
 router.post('/campaigns/creation', campaignController.createCampaign);

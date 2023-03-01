@@ -1,9 +1,19 @@
 import maplibregl from 'maplibre-gl';
 import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
-import ReactiveMap, { Marker, NavigationControl, useMap } from 'react-map-gl';
-import { hasCoordinates, Housing } from '../../models/Housing';
+import ReactiveMap, { NavigationControl, useMap } from 'react-map-gl';
+import {
+  hasCoordinates,
+  Housing,
+  HousingWithCoordinates,
+} from '../../models/Housing';
 import HousingPopup from './HousingPopup';
+import Clusters from './Clusters';
+import {
+  Building,
+  groupByBuilding,
+  HousingByBuilding,
+} from '../../models/Building';
 
 const STYLE = {
   title: 'Carte',
@@ -36,24 +46,71 @@ function Map(props: MapProps) {
   const { housingMap } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
-  const housingList = useMemo(
-    () => props.housingList?.filter(hasCoordinates),
+  const housingList = useMemo<HousingWithCoordinates[]>(
+    () => props.housingList?.filter(hasCoordinates) ?? [],
     [props.housingList]
   );
 
+  const buildingsById = useMemo<HousingByBuilding>(
+    () => groupByBuilding(housingList),
+    [housingList]
+  );
+
+  const points = useMemo(
+    () =>
+      Object.values(buildingsById).map((building) =>
+        turf.point([building.longitude, building.latitude], building)
+      ),
+    [buildingsById]
+  );
+
   useEffect(() => {
-    if (!housingMap || !housingList) {
+    if (!housingMap || !points) {
       return;
     }
 
-    if (housingList.length) {
-      const points = housingList
-        .map((housing) => [housing.longitude, housing.latitude])
-        .map((coords) => turf.point(coords));
+    if (points.length) {
       const bbox = turf.bbox(turf.featureCollection(points));
       housingMap.fitBounds(bbox as [number, number, number, number]);
     }
-  }, [housingMap, housingList]);
+  }, [housingMap, points]);
+
+  useEffect(() => {
+    const map = housingMap?.getMap();
+    if (map && !map.hasImage('building')) {
+      map.loadImage('/icons/building/building-4-fill.png', (error, image) => {
+        if (image) {
+          map.addImage('building', image);
+        }
+      });
+    }
+  }, [housingMap]);
+
+  function popUp(building: Building): void {
+    setOpenPopups((state) => ({
+      ...state,
+      [building.id]: true,
+    }));
+  }
+
+  function popOut(building: Building) {
+    return (): void => {
+      setOpenPopups((state) => ({
+        ...state,
+        [building.id]: false,
+      }));
+    };
+  }
+
+  const popups = Object.values(buildingsById)
+    .filter((building) => openPopups[building.id])
+    .map((building) => (
+      <HousingPopup
+        key={`popup-${building.id}`}
+        building={building}
+        onClose={popOut(building)}
+      />
+    ));
 
   return (
     <ReactiveMap
@@ -63,40 +120,19 @@ function Map(props: MapProps) {
       mapLib={maplibregl}
       mapStyle={STYLE.uri}
       padding={padding}
+      reuseMaps
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {housingList?.map((housing) => {
-        return (
-          <div key={housing.id}>
-            <Marker
-              key={`marker-${housing.id}`}
-              longitude={housing.longitude}
-              latitude={housing.latitude}
-              color="var(--blue-france-main-525)"
-              onClick={(e) => {
-                e.originalEvent.stopPropagation();
-                setOpenPopups((state) => ({
-                  ...state,
-                  [housing.id]: true,
-                }));
-              }}
-            />
-            {openPopups[housing.id] && (
-              <HousingPopup
-                key={`popup-${housing.id}`}
-                housing={housing}
-                onClose={() =>
-                  setOpenPopups((state) => ({
-                    ...state,
-                    [housing.id]: false,
-                  }))
-                }
-              />
-            )}
-          </div>
-        );
-      })}
+      {points.length && (
+        <Clusters
+          id="housing"
+          points={points}
+          map={housingMap}
+          onClick={popUp}
+        />
+      )}
+      {popups}
     </ReactiveMap>
   );
 }

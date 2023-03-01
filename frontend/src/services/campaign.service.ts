@@ -178,9 +178,9 @@ const removeHousingList = async (
 const getExportURL = (campaignBundleId: CampaignBundleId) => {
   return `${
     config.apiEndpoint
-  }/api/housing/campaigns/bundles/${campaignBundleIdApiFragment(
+  }/api/housing/export/campaigns/bundles/${campaignBundleIdApiFragment(
     campaignBundleId
-  )}/export?x-access-token=${authService.authHeader()?.['x-access-token']}`;
+  )}?x-access-token=${authService.authHeader()?.['x-access-token']}`;
 };
 
 const parseCampaign = (c: any): Campaign =>

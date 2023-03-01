@@ -28,7 +28,7 @@ AS $$
             (case when (ff_jannath > 100) then ff_jannath end) as building_year,
             to_date(lpad(ff_jdatat::text, 8, '0'), 'DDMMYYYY') as mutation_date,
             trim(txtlv) <> '' as taxed,
-            2021 as data_year,
+            2022 as data_year,
             ff_ndroit as beneficiary_count,
             trim(batloc) as building_location,
             trim(vlcad) as rental_value,

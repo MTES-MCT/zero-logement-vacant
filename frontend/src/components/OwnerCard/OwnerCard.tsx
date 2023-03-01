@@ -9,8 +9,7 @@ import {
 import React, { ReactElement } from 'react';
 
 import { Owner } from '../../models/Owner';
-import { differenceInYears, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { age, birthdate } from '../../utils/dateUtils';
 
 interface OwnerCardProps {
   owner: Owner;
@@ -18,14 +17,6 @@ interface OwnerCardProps {
 }
 
 function OwnerCard({ owner, children }: OwnerCardProps) {
-  function birthdate(date: Date): string {
-    return format(date, 'dd/MM/yyyy', { locale: fr });
-  }
-
-  function age(date: Date): number {
-    return differenceInYears(new Date(), date);
-  }
-
   return (
     <Card
       hasArrow={false}

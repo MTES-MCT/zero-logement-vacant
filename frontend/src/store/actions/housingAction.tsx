@@ -12,6 +12,8 @@ import eventService from '../../services/event.service';
 import { FormState } from './FormState';
 import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
+import { PaginationApi } from '../../../../server/models/PaginationApi';
+import { handleAbort } from '../../utils/fetchUtils';
 
 export const EXPAND_FILTERS = 'EXPAND_FILTERS';
 export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
@@ -79,13 +81,13 @@ export interface HousingEventsFetchedAction {
 export interface FetchHousingListAction {
   type: typeof FETCHING_HOUSING_LIST;
   filters: HousingFilters;
-  page: number;
-  perPage: number;
+  pagination: PaginationApi;
   sort: HousingSort;
 }
 
 export interface HousingListFetchedAction {
   type: typeof HOUSING_LIST_FETCHED;
+  paginate: boolean;
   paginatedHousing: PaginatedResult<Housing>;
   filters: HousingFilters;
   sort: HousingSort;
@@ -120,11 +122,14 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
 
     const page = 1;
     const perPage = getState().housing.paginatedHousing.perPage;
+    const pagination: PaginationApi = {
+      page,
+      perPage,
+    };
 
     dispatch({
       type: FETCHING_HOUSING_LIST,
-      page,
-      perPage,
+      pagination,
       filters,
     });
 
@@ -134,21 +139,23 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       .listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
-        page,
-        perPage
+        pagination
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };
 
-export const changeHousingPagination = (page: number, perPage: number) => {
+export const changeHousingPagination = (pagination: PaginationApi) => {
   return function (dispatch: Dispatch, getState: () => ApplicationState) {
     dispatch(showLoading());
 
@@ -156,8 +163,7 @@ export const changeHousingPagination = (page: number, perPage: number) => {
 
     dispatch({
       type: FETCHING_HOUSING_LIST,
-      page: page,
-      perPage,
+      pagination,
       filters,
     });
 
@@ -167,16 +173,19 @@ export const changeHousingPagination = (page: number, perPage: number) => {
       .listHousing(
         getState().housing.filters,
         { dataYearsExcluded, dataYearsIncluded },
-        page,
-        perPage
+        pagination
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
+          paginate: pagination.paginate,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };
@@ -185,12 +194,15 @@ export const changeHousingSort = (sort: HousingSort) => {
   return function (dispatch: Dispatch, getState: () => ApplicationState) {
     const { filters, paginatedHousing } = getState().housing;
     const { page, perPage } = paginatedHousing;
+    const pagination: PaginationApi = {
+      page,
+      perPage,
+    };
 
     dispatch(showLoading());
     dispatch({
       type: FETCHING_HOUSING_LIST,
-      page,
-      perPage,
+      pagination,
       filters,
     });
 
@@ -200,17 +212,19 @@ export const changeHousingSort = (sort: HousingSort) => {
       .listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
-        page,
-        perPage,
+        pagination,
         sort
       )
       .then((result) => {
-        dispatch(hideLoading());
         dispatch({
           type: HOUSING_LIST_FETCHED,
           paginatedHousing: result,
           filters,
         });
+      })
+      .catch(handleAbort)
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };

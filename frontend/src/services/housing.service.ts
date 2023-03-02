@@ -11,9 +11,9 @@ import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
-import { toQuery } from '../models/Sort';
-import { PaginationApi } from '../../../server/models/PaginationApi';
-import { createHttpService, toJSON } from '../utils/fetchUtils';
+import { SortOptions, toQuery } from '../models/Sort';
+import { AbortOptions, createHttpService, toJSON } from '../utils/fetchUtils';
+import { PaginationOptions } from '../../../shared/models/Pagination';
 
 const http = createHttpService('housing');
 
@@ -29,13 +29,17 @@ const getHousing = async (id: string): Promise<Housing> => {
     .then((_) => parseHousing(_));
 };
 
+type ListHousingOptions = PaginationOptions &
+  SortOptions<HousingSort> &
+  AbortOptions;
+
 const listHousing = async (
   filters: HousingFilters,
   filtersForTotalCount: HousingFiltersForTotalCount,
-  pagination?: PaginationApi,
-  sort?: HousingSort
+  options?: ListHousingOptions
 ): Promise<PaginatedResult<Housing>> => {
-  const query = toQuery(sort).length > 0 ? `?sort=${toQuery(sort)}` : '';
+  const query =
+    toQuery(options?.sort).length > 0 ? `?sort=${toQuery(options?.sort)}` : '';
 
   return http
     .fetch(`${config.apiEndpoint}/api/housing${query}`, {
@@ -44,8 +48,12 @@ const listHousing = async (
         ...authService.authHeader(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ filters, filtersForTotalCount, ...pagination }),
-      abortId: 'list-housing',
+      body: JSON.stringify({
+        filters,
+        filtersForTotalCount,
+        ...options?.pagination,
+      }),
+      abortId: options?.abortable ? 'list-housing' : undefined,
     })
     .then(toJSON)
     .then((result) => ({

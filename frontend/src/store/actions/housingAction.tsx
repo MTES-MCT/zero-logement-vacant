@@ -139,7 +139,10 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       .listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
-        pagination
+        {
+          pagination,
+          abortable: true,
+        }
       )
       .then((result: PaginatedResult<Housing>) => {
         dispatch({
@@ -173,7 +176,10 @@ export const changeHousingPagination = (pagination: PaginationApi) => {
       .listHousing(
         getState().housing.filters,
         { dataYearsExcluded, dataYearsIncluded },
-        pagination
+        {
+          pagination,
+          abortable: true,
+        }
       )
       .then((result: PaginatedResult<Housing>) => {
         dispatch({
@@ -212,8 +218,11 @@ export const changeHousingSort = (sort: HousingSort) => {
       .listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
-        pagination,
-        sort
+        {
+          sort,
+          pagination,
+          abortable: true,
+        }
       )
       .then((result) => {
         dispatch({

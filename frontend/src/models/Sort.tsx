@@ -17,3 +17,7 @@ export function toQuery(sort?: Sort): string {
     )
     .join(',');
 }
+
+export interface SortOptions<Sortable extends object> {
+  sort?: Sort<Sortable>;
+}

@@ -175,7 +175,7 @@ export const fetchHousingToContact = (
           subStatus: [FirstContactToContactedSubStatus],
         },
         {},
-        pagination
+        { pagination }
       )
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());

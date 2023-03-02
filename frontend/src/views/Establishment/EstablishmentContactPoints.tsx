@@ -33,9 +33,14 @@ interface ContactPointActionState {
   contactPoint?: ContactPoint;
 }
 
-const EstablishmentContactPoints = () => {
+interface Props {
+  establishmentId: string;
+}
+
+const EstablishmentContactPoints = ({ establishmentId }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
+
   const { loading, contactPoints } = useAppSelector(
     (state) => state.establishment
   );
@@ -43,8 +48,8 @@ const EstablishmentContactPoints = () => {
   const [removingState, setRemovingState] = useState<ContactPointActionState>();
 
   useEffect(() => {
-    dispatch(fetchContactPoints());
-  }, [dispatch]);
+    dispatch(fetchContactPoints(establishmentId));
+  }, [dispatch, establishmentId]);
 
   useEffect(() => {
     if (editingState?.step === ActionSteps.InProgress && !loading) {
@@ -92,7 +97,7 @@ const EstablishmentContactPoints = () => {
         step: ActionSteps.InProgress,
         contactPoint: removingState.contactPoint,
       });
-      dispatch(deleteContactPoint(removingState.contactPoint.id));
+      dispatch(deleteContactPoint(removingState.contactPoint));
     }
   };
 
@@ -100,6 +105,7 @@ const EstablishmentContactPoints = () => {
     <>
       {editingState?.step === ActionSteps.Init && (
         <ContactPointEditionModal
+          establishmentId={establishmentId}
           contactPoint={editingState.contactPoint}
           onSubmit={onSubmitEditingContactPoint}
           onClose={() => setEditingState(undefined)}
@@ -161,6 +167,7 @@ const EstablishmentContactPoints = () => {
               onRemove={(contactPoint) =>
                 setRemovingState({ step: ActionSteps.Init, contactPoint })
               }
+              isPublicDisplay={false}
             />
           </Col>
         ))}

@@ -1,19 +1,32 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fetchLocalities } from '../store/actions/establishmentAction';
 import { Locality } from '../models/Locality';
 import { useAppDispatch, useAppSelector } from './useStore';
 
-export const useLocalityList = (forceReload = false) => {
+export const useLocalityList = (
+  establishmentId?: string,
+  forceReload = false
+) => {
   const dispatch = useAppDispatch();
   const { localities, loading } = useAppSelector(
     (state) => state.establishment
   );
+  const [localitiesEstablishmentId, setLocalitiesEstablishmentId] = useState<
+    string | undefined
+  >(establishmentId);
 
   useEffect(() => {
-    if (forceReload || (!localities && !loading)) {
-      dispatch(fetchLocalities());
+    if (
+      establishmentId &&
+      !loading &&
+      (forceReload ||
+        !localities ||
+        localitiesEstablishmentId !== establishmentId)
+    ) {
+      setLocalitiesEstablishmentId(establishmentId);
+      dispatch(fetchLocalities(establishmentId));
     }
-  }, [dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, establishmentId, forceReload]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const localitiesOptions = useMemo(
     () =>

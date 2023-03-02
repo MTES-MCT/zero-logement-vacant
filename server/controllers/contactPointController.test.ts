@@ -19,18 +19,21 @@ describe('ContactPoint controller', () => {
   const { app } = createServer();
 
   describe('listContactPoints', () => {
-    const testRoute = '/api/contact-points';
+    const testRoute = (establishmentId?: string) =>
+      `/api/contact-points${
+        establishmentId ? '?establishmentId=' + establishmentId : ''
+      }`;
 
-    it('should be forbidden for a not authenticated user', async () => {
+    it('should received a valid establishmentId', async () => {
       await request(app)
-        .get(testRoute)
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        .get(testRoute('id'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should list the contact points for the authenticated user', async () => {
-      const res = await withAccessToken(request(app).get(testRoute)).expect(
-        constants.HTTP_STATUS_OK
-      );
+    it('should list the contact points', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment1.id))
+        .expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.arrayContaining([

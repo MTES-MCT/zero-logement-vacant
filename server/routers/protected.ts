@@ -68,12 +68,10 @@ router.post('/geo/perimeters', geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, validator.validate, geoController.updateGeoPerimeter);
 router.delete('/geo/perimeters/:geoPerimeterId', geoController.deleteGeoPerimeterValidators, validator.validate, geoController.deleteGeoPerimeter);
 
-router.get('/contact-points', contactPointController.listContactPoints);
 router.post('/contact-points', contactPointController.createContactPointValidators, validator.validate, contactPointController.createContactPoint);
 router.put('/contact-points/:contactPointId', contactPointController.updateContactPointValidators, validator.validate, contactPointController.updateContactPoint);
 router.delete('/contact-points/:contactPointId', contactPointController.deleteContactPointValidators, validator.validate, contactPointController.deleteContactPoint);
 
-router.get('/localities', localityController.listLocalities);
 router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValidators, validator.validate, localityController.updateLocalityTax);
 
 export default router;

@@ -1,4 +1,5 @@
 export interface DraftContactPoint {
+  establishmentId: string;
   title: string;
   opening?: string;
   address?: string;

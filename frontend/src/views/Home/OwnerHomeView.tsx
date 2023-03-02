@@ -16,7 +16,6 @@ import {
 import addressService, {
   AddressSearchResult,
 } from '../../services/address.service';
-import { getLocality } from '../../store/actions/ownerProspectAction';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';

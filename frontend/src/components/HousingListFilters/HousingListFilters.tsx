@@ -12,9 +12,13 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from './HousingListFiltersSidemenu';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import { useAppSelector } from '../../hooks/useStore';
 
 const HousingListFilters = () => {
-  const { localitiesOptions } = useLocalityList();
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
+  );
+  const { localitiesOptions } = useLocalityList(establishment?.id);
   const { filters, length, onChangeFilters, setExpand } = useFilters();
   const localities = localitiesOptions
     // Remove those localities which are already selected

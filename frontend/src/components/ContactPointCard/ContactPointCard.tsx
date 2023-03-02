@@ -19,38 +19,52 @@ import _ from 'lodash';
 
 interface Props {
   contactPoint: ContactPoint;
-  onEdit: (contactPoint: ContactPoint) => void;
-  onRemove: (contactPoint: ContactPoint) => void;
+  onEdit?: (contactPoint: ContactPoint) => void;
+  onRemove?: (contactPoint: ContactPoint) => void;
+  isPublicDisplay: boolean;
 }
 
-function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
-  const { localities, localitiesGeoCodes } = useLocalityList();
+function ContactPointCard({
+  contactPoint,
+  onEdit,
+  onRemove,
+  isPublicDisplay,
+}: Props) {
+  const { localities, localitiesGeoCodes } = useLocalityList(
+    contactPoint.establishmentId
+  );
   return (
     <Card hasArrow={false} className="h-fit-content">
       <CardTitle as="h2">
-        <Row>
-          <Col>
-            <span className="card-title-icon">
-              <Icon name="ri-contacts-fill" iconPosition="center" size="1x" />
-            </span>
-          </Col>
-          <Col className="align-right">
-            <ButtonLink
-              onClick={() => onEdit(contactPoint)}
-              isSimple
-              icon="ri-edit-2-fill"
-              iconSize="lg"
-              className="d-inline-block fr-mr-1w"
-            />
-            <ButtonLink
-              onClick={() => onRemove(contactPoint)}
-              isSimple
-              icon="ri-delete-bin-5-fill"
-              iconSize="lg"
-              className="d-inline-block"
-            />
-          </Col>
-        </Row>
+        {!isPublicDisplay && (
+          <Row>
+            <Col>
+              <span className="card-title-icon">
+                <Icon name="ri-contacts-fill" iconPosition="center" size="1x" />
+              </span>
+            </Col>
+            <Col className="align-right">
+              {onEdit && (
+                <ButtonLink
+                  onClick={() => onEdit(contactPoint)}
+                  isSimple
+                  icon="ri-edit-2-fill"
+                  iconSize="lg"
+                  className="d-inline-block fr-mr-1w"
+                />
+              )}
+              {onRemove && (
+                <ButtonLink
+                  onClick={() => onRemove(contactPoint)}
+                  isSimple
+                  icon="ri-delete-bin-5-fill"
+                  iconSize="lg"
+                  className="d-inline-block"
+                />
+              )}
+            </Col>
+          </Row>
+        )}
         <Title as="h2" look="h6" spacing="mb-1w">
           {contactPoint.title}
         </Title>
@@ -85,7 +99,7 @@ function ContactPointCard({ contactPoint, onEdit, onRemove }: Props) {
             </Text>
           </div>
         )}
-        {contactPoint.geoCodes && localities?.length && (
+        {isPublicDisplay && contactPoint.geoCodes && localities?.length && (
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
               {pluralize(contactPoint.geoCodes.length)('Commune')}

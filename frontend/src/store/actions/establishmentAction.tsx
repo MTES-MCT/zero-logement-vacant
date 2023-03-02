@@ -10,6 +10,16 @@ import contactPointService from '../../services/contact-point.service';
 import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
 import establishmentSlice from '../reducers/establishmentReducer';
+import { Establishment } from '../../models/Establishment';
+import establishmentService from '../../services/establishment.service';
+
+export interface EstablishmentFetchedAction {
+  establishment: Establishment;
+}
+
+export interface NearbyEstablishmentsFetchedAction {
+  nearbyEstablishments: Establishment[];
+}
 
 export interface LocalityListFetchedAction {
   localities: Locality[];
@@ -29,6 +39,10 @@ export interface ContactPointListFetchedAction {
 }
 
 const {
+  fetchEstablishment,
+  establishmentFetched,
+  fetchNearbyEstablishments,
+  nearbyEstablishmentFetched,
   fetchLocalityList,
   contactPointListFetched,
   fetchContactPointList,
@@ -39,13 +53,80 @@ const {
   localityListFetched,
 } = establishmentSlice.actions;
 
-export const fetchLocalities = () => {
+export const getEstablishment = (name: string, geoCode?: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    dispatch(fetchEstablishment());
+
+    establishmentService
+      .listEstablishments({
+        geoCodes: geoCode ? [geoCode] : undefined,
+        name,
+      })
+      .then((establishments) => {
+        dispatch(hideLoading());
+        dispatch(
+          establishmentFetched({
+            establishment: establishments[0],
+          })
+        );
+      });
+  };
+};
+
+export const getNearbyEstablishments = (establishment: Establishment) => {
+  return async function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    dispatch(fetchNearbyEstablishments());
+
+    const epci =
+      establishment.kind === 'Commune'
+        ? await establishmentService
+            .listEstablishments({
+              geoCodes: [establishment.geoCodes[0]],
+              kind: 'EPCI',
+            })
+            .then((establishments) => establishments[0])
+        : establishment.kind === 'EPCI'
+        ? establishment
+        : undefined;
+
+    if (epci) {
+      establishmentService
+        .listEstablishments({
+          geoCodes: epci.geoCodes,
+          kind: 'Commune',
+        })
+        .then((establishments) => {
+          dispatch(hideLoading());
+          dispatch(
+            nearbyEstablishmentFetched({
+              nearbyEstablishments: establishments.filter((_) =>
+                establishment.kind === 'Commune'
+                  ? !_.geoCodes.includes(establishment.geoCodes[0])
+                  : true
+              ),
+            })
+          );
+        });
+    } else {
+      dispatch(
+        nearbyEstablishmentFetched({
+          nearbyEstablishments: [],
+        })
+      );
+    }
+  };
+};
+export const fetchLocalities = (establishmentId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchLocalityList());
 
-    localityService.listLocalities().then((localities) => {
+    localityService.listLocalities(establishmentId).then((localities) => {
       dispatch(hideLoading());
       dispatch(
         localityListFetched({
@@ -74,6 +155,7 @@ export const fetchGeoPerimeters = () => {
 };
 
 export const updateLocalityTax = (
+  establishmentId: string,
   geoCode: string,
   taxKind: TaxKinds,
   taxRate?: number
@@ -83,7 +165,7 @@ export const updateLocalityTax = (
 
     localityService.updateLocalityTax(geoCode, taxKind, taxRate).then(() => {
       dispatch(hideLoading());
-      fetchLocalities()(dispatch);
+      fetchLocalities(establishmentId)(dispatch);
     });
   };
 };
@@ -128,13 +210,13 @@ export const uploadFile = (file: File) => {
   };
 };
 
-export const fetchContactPoints = () => {
+export const fetchContactPoints = (establishmentId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchContactPointList());
 
-    contactPointService.find().then((contactPoints) => {
+    contactPointService.find(establishmentId).then((contactPoints) => {
       dispatch(hideLoading());
       dispatch(
         contactPointListFetched({
@@ -151,7 +233,7 @@ export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
 
     contactPointService.create(draftContactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(draftContactPoint.establishmentId)(dispatch);
     });
   };
 };
@@ -162,18 +244,18 @@ export const updateContactPoint = (contactPoint: ContactPoint) => {
 
     contactPointService.update(contactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(contactPoint.establishmentId)(dispatch);
     });
   };
 };
 
-export const deleteContactPoint = (contactPointId: string) => {
+export const deleteContactPoint = (contactPoint: ContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.remove(contactPointId).then(() => {
+    contactPointService.remove(contactPoint.id).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(contactPoint.establishmentId)(dispatch);
     });
   };
 };

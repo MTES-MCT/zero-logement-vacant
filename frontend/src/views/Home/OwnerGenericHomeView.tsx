@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Col,
   Container,
@@ -16,23 +16,27 @@ import {
 import addressService, {
   AddressSearchResult,
 } from '../../services/address.service';
-import {
-  getEstablishment,
-  getNearbyEstablishments,
-  selectAddressSearchResult,
-} from '../../store/actions/ownerProspectAction';
+import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
+import {
+  getEstablishment,
+  getNearbyEstablishments,
+} from '../../store/actions/establishmentAction';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useDispatch();
   const { trackEvent } = useMatomo();
-  const { availableEstablishments } = useEstablishments();
+  const { establishmentWithKinds } = useEstablishments();
+
+  const { addressSearchResult } = useSelector(
+    (state: ApplicationState) => state.ownerProspect
+  );
 
   const { establishment, nearbyEstablishments } = useSelector(
-    (state: ApplicationState) => state.ownerProspect
+    (state: ApplicationState) => state.establishment
   );
 
   const [addressOptions, setAddressOptions] = useState<
@@ -67,9 +71,14 @@ const OwnerGenericHomeView = () => {
       });
       dispatch(selectAddressSearchResult(address));
       dispatch(getEstablishment(address.city, address.geoCode));
-      dispatch(getNearbyEstablishments(address.geoCode));
     }
   };
+
+  useEffect(() => {
+    if (establishment) {
+      dispatch(getNearbyEstablishments(establishment));
+    }
+  }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -100,7 +109,7 @@ const OwnerGenericHomeView = () => {
             />
           </Col>
         </Row>
-        {establishment ? (
+        {addressSearchResult && establishment ? (
           <>
             <EstablishmentLinkList
               establishments={[establishment]}
@@ -115,9 +124,14 @@ const OwnerGenericHomeView = () => {
           </>
         ) : (
           <>
-            {availableEstablishments && (
-              <EstablishmentLinkList establishments={availableEstablishments} />
-            )}
+            <EstablishmentLinkList
+              establishments={establishmentWithKinds(['Commune'])}
+              title="Communes"
+            />
+            <EstablishmentLinkList
+              establishments={establishmentWithKinds(['EPCI'])}
+              title="Collectivités"
+            />
           </>
         )}
       </Container>

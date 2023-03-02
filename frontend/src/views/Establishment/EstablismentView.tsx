@@ -7,9 +7,13 @@ import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
+import { useAppSelector } from '../../hooks/useStore';
 
 const EstablishmentView = () => {
   useDocumentTitle('Votre territoire');
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
+  );
   return (
     <Container as="main" fluid>
       <div className="bg-100">
@@ -26,19 +30,21 @@ const EstablishmentView = () => {
           </Text>
         </Container>
       </div>
-      <Container as="section" spacing="py-4w">
-        <Tabs>
-          <Tab label="Vos périmètres géographiques">
-            <EstablishmentGeoPerimeters />
-          </Tab>
-          <Tab label="Vos guichets contact">
-            <EstablishmentContactPoints />
-          </Tab>
-          <Tab label="Taxes sur les logements vacants">
-            <EstablishmentLocalityTaxes />
-          </Tab>
-        </Tabs>
-      </Container>
+      {establishment && (
+        <Container as="section" spacing="py-4w">
+          <Tabs>
+            <Tab label="Vos périmètres géographiques">
+              <EstablishmentGeoPerimeters />
+            </Tab>
+            <Tab label="Vos guichets contact">
+              <EstablishmentContactPoints establishmentId={establishment.id} />
+            </Tab>
+            <Tab label="Taxes sur les logements vacants">
+              <EstablishmentLocalityTaxes establishmentId={establishment.id} />
+            </Tab>
+          </Tabs>
+        </Container>
+      )}
     </Container>
   );
 };

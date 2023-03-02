@@ -1,13 +1,15 @@
-.establishmentButton {
+.establishmentLink {
   justify-content: center;
   padding: 16px 24px !important;
   background-color: var(--white-1000) !important;
+  background-image: none;
   border-bottom: 3px solid var(--blue-france-113);
   box-shadow: 0 2px 6px rgba(0, 0, 18, 0.16);
   min-width: 194px;
   height: 60px;
+  width: fit-content;
+  display: inline-flex;
   margin-top: 1.5rem;
-  color: var(--black-50) !important;
 
   &:not(:last-of-type) {
     margin-right: 1.5rem;

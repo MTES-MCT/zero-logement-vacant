@@ -34,11 +34,15 @@ interface LocalityTaxActionState {
   locality: Locality;
 }
 
-const EstablishmentLocalityTaxes = () => {
+interface Props {
+  establishmentId: string;
+}
+
+const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { loading } = useAppSelector((state) => state.establishment);
-  const { localities, filterCount } = useLocalityList();
+  const { localities, filterCount } = useLocalityList(establishmentId);
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
   const [hasTHLVFilter, setHasTHLVFilter] = useState<boolean>(true);
@@ -86,7 +90,12 @@ const EstablishmentLocalityTaxes = () => {
         locality: { ...editingState.locality, taxRate },
       });
       dispatch(
-        updateLocalityTax(editingState.locality.geoCode, taxKind, taxRate)
+        updateLocalityTax(
+          establishmentId,
+          editingState.locality.geoCode,
+          taxKind,
+          taxRate
+        )
       );
     }
   };
@@ -155,6 +164,7 @@ const EstablishmentLocalityTaxes = () => {
                 onEdit={(locality) =>
                   setEditingState({ step: ActionSteps.Init, locality })
                 }
+                isPublicDisplay={false}
               />
             </Col>
           ))}

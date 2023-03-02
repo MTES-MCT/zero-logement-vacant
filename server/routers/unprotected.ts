@@ -8,6 +8,7 @@ import signupLinkController from '../controllers/signupLinkController';
 import prospectController from '../controllers/prospectController';
 import localityController from '../controllers/localityController';
 import ownerProspectController from '../controllers/ownerProspectController';
+import contactPointController from '../controllers/contactPointController';
 
 const router = express.Router();
 
@@ -28,6 +29,8 @@ router.put('/signup-links/:id/prospect', prospectController.createProspectValida
 
 router.get('/establishments', establishmentController.listValidators, validator.validate, establishmentController.list);
 
+router.get('/localities', localityController.listLocalitiesValidators, validator.validate, localityController.listLocalities);
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
+router.get('/contact-points', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints);
 export default router;

@@ -1,45 +1,28 @@
 import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { Locality } from '../../models/Locality';
-import localityService from '../../services/locality.service';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import ownerProspectService from '../../services/owner-prospect.service';
 import ownerProspectSlice from '../reducers/ownerProspectReducer';
-import { Establishment } from '../../models/Establishment';
-
-export interface LocalityFetchedAction {
-  locality: Locality;
-}
-
-export interface EstablishmentsFetchedAction {
-  localityEstablishment: Establishment;
-}
-
-export interface NearbyEstablishmentsFetchedAction {
-  nearbyEstablishments: Establishment[];
-}
+import { AddressSearchResult } from '../../services/address.service';
 
 export interface OwnerProspectCreatedAction {
   ownerProspect: OwnerProspect;
 }
+export interface AddressSelectedAction {
+  addressSearchResult: AddressSearchResult;
+}
 
-const { localityFetched, fetchingLocality, ownerProspectCreated } =
-  ownerProspectSlice.actions;
+const { ownerProspectCreated, addressSelected } = ownerProspectSlice.actions;
 
-export const getLocality = (geoCode: string) => {
+export const selectAddressSearchResult = (
+  addressSearchResult: AddressSearchResult
+) => {
   return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchingLocality());
-
-    localityService.getLocality(geoCode).then((locality) => {
-      dispatch(hideLoading());
-      dispatch(
-        localityFetched({
-          locality,
-        })
-      );
-    });
+    dispatch(
+      addressSelected({
+        addressSearchResult,
+      })
+    );
   };
 };
 

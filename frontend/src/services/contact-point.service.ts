@@ -11,8 +11,10 @@ const http = createHttpService('contact-points', {
   json: true,
 });
 
-const find = async (): Promise<ContactPoint[]> => {
-  const response = await http.get('/api/contact-points');
+const find = async (establishmentId: string): Promise<ContactPoint[]> => {
+  const response = await http.get(
+    `/api/contact-points?establishmentId=${establishmentId}`
+  );
   return toJSON(response);
 };
 

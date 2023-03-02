@@ -3,13 +3,21 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import contactPointsRepository from '../repositories/contactPointsRepository';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
 import { ContactPointApi, toContactPointDTO } from '../models/ContactPointApi';
 
-const listContactPoints = async (request: Request, response: Response) => {
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
+const listContactPointsValidators = [
+  query('establishmentId').notEmpty().isUUID(),
+];
+
+const listContactPoints = async (
+  request: Request,
+  response: Response
+): Promise<void> => {
+  const establishmentId = request.query.establishmentId as string;
+
   console.log('List contact points', establishmentId);
 
   const contactPoints = await contactPointsRepository.find(establishmentId);
@@ -115,6 +123,7 @@ const updateContactPoint = async (request: Request, response: Response) => {
 
 const geoController = {
   createContactPoint,
+  listContactPointsValidators,
   listContactPoints,
   deleteContactPointValidators,
   deleteContactPoint,

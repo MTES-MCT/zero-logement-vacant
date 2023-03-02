@@ -47,8 +47,9 @@ import HousingListHeaderActions from '../../components/HousingList/HousingListHe
 import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import Map from '../../components/Map/Map';
+import Map, { MapProps } from '../../components/Map/Map';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
+import { ViewState } from 'react-map-gl';
 
 type ViewMode = 'list' | 'map';
 
@@ -66,6 +67,12 @@ const HousingListView = () => {
     all: false,
     ids: [],
   });
+
+  const [mapViewState, setMapViewState] = useState<MapProps['viewState']>();
+
+  function onMove(viewState: ViewState): void {
+    setMapViewState(viewState);
+  }
 
   function hasSelected(): boolean {
     return selectedHousing.all || selectedHousing.ids.length > 0;
@@ -232,7 +239,11 @@ const HousingListView = () => {
               />
             </ButtonGroup>
             {view === 'map' ? (
-              <Map housingList={paginatedHousing.entities} />
+              <Map
+                housingList={paginatedHousing.entities}
+                onMove={onMove}
+                viewState={mapViewState}
+              />
             ) : (
               <>
                 {!hasSelected() && (

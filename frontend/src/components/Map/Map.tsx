@@ -1,7 +1,12 @@
 import maplibregl from 'maplibre-gl';
 import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
-import ReactiveMap, { NavigationControl, useMap } from 'react-map-gl';
+import ReactiveMap, {
+  NavigationControl,
+  useMap,
+  ViewState,
+  ViewStateChangeEvent,
+} from 'react-map-gl';
 import {
   hasCoordinates,
   Housing,
@@ -20,28 +25,33 @@ const STYLE = {
   uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json',
 };
 
-interface MapProps {
+export interface MapProps {
   housingList?: Housing[];
-  lng?: number;
-  lat?: number;
-  zoom?: number;
+  viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
+  onMove?: (viewState: ViewState) => void;
 }
 
 function Map(props: MapProps) {
-  const options = {
-    longitude: props.lng ?? 2,
-    latitude: props.lat ?? 47,
-    zoom: props.zoom ?? 5,
-    ...props,
-  };
-  const padding = {
-    left: 16,
-    top: 64,
-    right: 16,
-    bottom: 16,
-  };
+  const [viewState, setViewState] = useState<ViewState>({
+    longitude: props.viewState?.longitude ?? 2,
+    latitude: props.viewState?.latitude ?? 47,
+    zoom: props.viewState?.zoom ?? 5,
+    bearing: 0,
+    pitch: 0,
+    padding: {
+      left: 16,
+      top: 64,
+      right: 16,
+      bottom: 16,
+    },
+  });
+
+  function onMove(event: ViewStateChangeEvent): void {
+    setViewState(event.viewState);
+    props.onMove?.(event.viewState);
+  }
 
   const { housingMap } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
@@ -63,17 +73,6 @@ function Map(props: MapProps) {
       ),
     [buildingsById]
   );
-
-  useEffect(() => {
-    if (!housingMap || !points) {
-      return;
-    }
-
-    if (points.length) {
-      const bbox = turf.bbox(turf.featureCollection(points));
-      housingMap.fitBounds(bbox as [number, number, number, number]);
-    }
-  }, [housingMap, points]);
 
   useEffect(() => {
     const map = housingMap?.getMap();
@@ -114,12 +113,12 @@ function Map(props: MapProps) {
 
   return (
     <ReactiveMap
+      {...viewState}
       attributionControl={false}
       id="housingMap"
-      initialViewState={options}
       mapLib={maplibregl}
       mapStyle={STYLE.uri}
-      padding={padding}
+      onMove={onMove}
       reuseMaps
       style={{ minHeight: '600px' }}
     >

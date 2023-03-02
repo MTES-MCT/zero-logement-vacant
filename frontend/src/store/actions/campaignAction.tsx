@@ -193,7 +193,9 @@ export const listCampaignBundleHousing = (
     };
 
     housingService
-      .listHousing({ ...filters, query }, filters, { page, perPage })
+      .listHousing({ ...filters, query }, filters, {
+        pagination: { page, perPage },
+      })
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
         dispatch({
@@ -233,8 +235,10 @@ export const changeCampaignHousingPagination = (
 
       housingService
         .listHousing({ ...filters, query: searchQuery }, filters, {
-          page,
-          perPage,
+          pagination: {
+            page,
+            perPage,
+          },
         })
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
@@ -278,12 +282,10 @@ export const changeCampaignHousingSort = (
       };
 
       housingService
-        .listHousing(
-          { ...filters, query: searchQuery },
-          filters,
+        .listHousing({ ...filters, query: searchQuery }, filters, {
           pagination,
-          sort
-        )
+          sort,
+        })
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
           dispatch({

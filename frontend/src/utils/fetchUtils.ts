@@ -42,3 +42,7 @@ export function handleAbort(error: Error) {
 export function toJSON(response: Response): any {
   return response.json();
 }
+
+export interface AbortOptions {
+  abortable?: boolean;
+}

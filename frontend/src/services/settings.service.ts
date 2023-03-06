@@ -10,6 +10,12 @@ interface FindOneOptions {
   establishmentId: string;
 }
 
+const DEFAULT_SETTINGS: Settings = {
+  contactPoints: {
+    public: false,
+  },
+};
+
 async function findOne(options: FindOneOptions): Promise<Settings> {
   return http
     .fetch(
@@ -22,12 +28,20 @@ async function findOne(options: FindOneOptions): Promise<Settings> {
         },
       }
     )
-    .then(toJSON);
+    .then((response) => {
+      if (response.status === 404) {
+        return DEFAULT_SETTINGS;
+      }
+      return toJSON(response);
+    });
 }
 
-async function upsert(settings: DeepPartial<Settings>): Promise<void> {
+async function upsert(
+  establishmentId: string,
+  settings: DeepPartial<Settings>
+): Promise<void> {
   await http.fetch(
-    `${config.apiEndpoint}/api/establishments/${settings.establishmentId}/settings`,
+    `${config.apiEndpoint}/api/establishments/${establishmentId}/settings`,
     {
       method: 'PUT',
       headers: {

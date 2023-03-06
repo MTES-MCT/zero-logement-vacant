@@ -27,7 +27,7 @@ import {
 } from '../models/SignupLinkApi';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
-import { Settings } from '../../shared/models/Settings';
+import { SettingsApi } from '../models/SettingsApi';
 
 const randomstring = require('randomstring');
 
@@ -254,7 +254,7 @@ export const genContactPointApi = (establishmentId: string) => {
   };
 };
 
-export const genSettingsApi = (establishmentId: string): Settings => {
+export const genSettingsApi = (establishmentId: string): SettingsApi => {
   return {
     id: uuidv4(),
     establishmentId,

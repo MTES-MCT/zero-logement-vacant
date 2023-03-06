@@ -1,5 +1,5 @@
-import { Settings } from '../../shared/models/Settings';
 import db from './db';
+import { SettingsApi } from '../models/SettingsApi';
 
 export const settingsTable = 'settings';
 
@@ -7,7 +7,7 @@ interface FindOneOptions {
   establishmentId: string;
 }
 
-async function findOne(options: FindOneOptions): Promise<Settings | null> {
+async function findOne(options: FindOneOptions): Promise<SettingsApi | null> {
   console.log('Get settings', options);
 
   const settings = await db(settingsTable)
@@ -22,7 +22,7 @@ interface SettingsDBO {
   contact_points_public: boolean;
 }
 
-async function upsert(settings: Settings): Promise<void> {
+async function upsert(settings: SettingsApi): Promise<void> {
   console.log('Upsert settings', settings);
 
   await db(settingsTable)
@@ -31,7 +31,7 @@ async function upsert(settings: Settings): Promise<void> {
     .merge(['contact_points_public']);
 }
 
-function parseSettingsApi(settings: SettingsDBO): Settings {
+function parseSettingsApi(settings: SettingsDBO): SettingsApi {
   return {
     id: settings.id,
     establishmentId: settings.establishment_id,
@@ -41,7 +41,7 @@ function parseSettingsApi(settings: SettingsDBO): Settings {
   };
 }
 
-function formatSettingsApi(settings: Settings): SettingsDBO {
+function formatSettingsApi(settings: SettingsApi): SettingsDBO {
   return {
     id: settings.id,
     establishment_id: settings.establishmentId,

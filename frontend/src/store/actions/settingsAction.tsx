@@ -39,14 +39,10 @@ export const updateSettings = (settings: DeepPartial<Settings>) => {
   return function (dispatch: Dispatch, getState: () => ApplicationState) {
     dispatch(showLoading());
 
-    const state = getState().settings;
+    const establishmentId = getState().authentication.authUser.establishment.id;
 
     settingsService
-      .upsert({
-        ...settings,
-        id: state.settings?.id,
-        establishmentId: state.settings?.establishmentId,
-      })
+      .upsert(establishmentId, settings)
       .then(() => {
         dispatch({
           type: SETTINGS_FETCHED,

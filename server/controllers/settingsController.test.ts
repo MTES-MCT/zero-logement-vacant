@@ -23,7 +23,9 @@ describe('Settings controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<Settings>(Settings1);
+      expect(body).toStrictEqual<Settings>({
+        contactPoints: Settings1.contactPoints,
+      });
     });
   });
 
@@ -49,8 +51,6 @@ describe('Settings controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toStrictEqual<Settings>({
-        id: expect.any(String),
-        establishmentId: User2.establishmentId as string,
         contactPoints: {
           public: true,
         },
@@ -68,7 +68,6 @@ describe('Settings controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<Settings>({
-        ...Settings1,
         contactPoints: {
           public: !Settings1.contactPoints.public,
         },

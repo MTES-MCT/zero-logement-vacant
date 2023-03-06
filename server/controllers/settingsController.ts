@@ -7,7 +7,7 @@ import settingsRepository from '../repositories/settingsRepository';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
-import { Settings } from '../../shared/models/Settings';
+import { SettingsApi, toDBO } from '../models/SettingsApi';
 
 const getSettings = async (request: Request, response: Response) => {
   const { auth } = request as AuthenticatedRequest;
@@ -22,7 +22,7 @@ const getSettings = async (request: Request, response: Response) => {
   if (!settings) {
     throw new SettingsMissingError({ establishmentId: auth.establishmentId });
   }
-  response.status(constants.HTTP_STATUS_OK).json(settings);
+  response.status(constants.HTTP_STATUS_OK).json(toDBO(settings));
 };
 
 const getSettingsValidators: ValidationChain[] = [
@@ -49,7 +49,7 @@ const updateSettings = async (request: Request, response: Response) => {
     ? constants.HTTP_STATUS_OK
     : constants.HTTP_STATUS_CREATED;
 
-  const newSettings: Settings = {
+  const newSettings: SettingsApi = {
     id: existingSettings?.id ?? uuidv4(),
     establishmentId,
     contactPoints: {
@@ -57,7 +57,7 @@ const updateSettings = async (request: Request, response: Response) => {
     },
   };
   await settingsRepository.upsert(newSettings);
-  response.status(status).json(newSettings);
+  response.status(status).json(toDBO(newSettings));
 };
 
 const updateSettingsValidators: ValidationChain[] = [

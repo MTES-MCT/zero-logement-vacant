@@ -131,6 +131,10 @@ export const getURLSearchParams = (params: Object) => {
 };
 
 export const normalizeUrlSegment = (segment: string) =>
-  kebabCase(segment)
+  kebabCase(segment.replaceAll(/\(.*\)/g, ''))
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+
+export interface AbortOptions {
+  abortable?: boolean;
+}

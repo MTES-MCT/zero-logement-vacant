@@ -74,7 +74,7 @@ const listWithFilters = async (
     }
     if (filters.name) {
       queryBuilder.whereRaw(
-        `lower(unaccent(regexp_replace(regexp_replace(name, ' ', '-', 'g'), '''', '', 'g'))) like '%' || ?`,
+        `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
         filters.name
       );
     }

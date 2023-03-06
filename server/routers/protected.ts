@@ -18,8 +18,8 @@ import { isUUIDParam } from '../utils/validators';
 
 const router = express.Router();
 
-router.use(jwtCheck)
-router.use(userCheck);
+router.use(jwtCheck(true))
+router.use(userCheck(true));
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);

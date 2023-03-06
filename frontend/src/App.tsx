@@ -113,6 +113,8 @@ function App() {
               {isAdmin &&
                 <Route exact path="/suivi" component={MonitoringView}/>
               }
+              <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView} />
+              <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView} />
               <Route path="/*">
                 <Redirect to="/accueil" />
               </Route>

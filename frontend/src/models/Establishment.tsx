@@ -28,7 +28,7 @@ export interface EstablishmentData {
   firstCampaignSentDelay: number;
 }
 
-export const getEstablishmentRelativeUrl = (establishment: Establishment) =>
+export const getEstablishmentUrl = (establishment: Establishment) =>
   establishment.kind === 'Commune'
     ? `/communes/${normalizeUrlSegment(establishment.shortName)}-${
         establishment.geoCodes[0]

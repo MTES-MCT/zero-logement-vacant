@@ -9,8 +9,11 @@ import prospectController from '../controllers/prospectController';
 import localityController from '../controllers/localityController';
 import ownerProspectController from '../controllers/ownerProspectController';
 import contactPointController from '../controllers/contactPointController';
+import { jwtCheck, userCheck } from '../middlewares/auth';
 
 const router = express.Router();
+router.use(jwtCheck(false))
+router.use(userCheck(false));
 
 router.get('/prospects/:email', prospectController.showProspectValidator, validator.validate, prospectController.show);
 

@@ -16,11 +16,17 @@ const listContactPoints = async (
   request: Request,
   response: Response
 ): Promise<void> => {
-  const establishmentId = request.query.establishmentId as string;
+  const { auth, user } = request as AuthenticatedRequest;
+  const establishmentId =
+    auth?.establishmentId ?? request.query.establishmentId as string;
 
-  console.log('List contact points', establishmentId);
+  console.log(
+    'List contact points %s with role %s',
+    establishmentId,
+    user?.role
+  );
 
-  const contactPoints = await contactPointsRepository.find(establishmentId);
+  const contactPoints = await contactPointsRepository.find(establishmentId, user?.role);
   response
     .status(constants.HTTP_STATUS_OK)
     .json(contactPoints.map(toContactPointDTO));

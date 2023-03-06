@@ -147,7 +147,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           </Title>
           {settings && (
             <Toggle
-              checked={settings.contactPoints.public}
+              checked={settings.contactPoints?.public}
               label="Informations publiées"
               onChange={togglePublishContactPoints}
               className="fr-mt-0"

@@ -3,12 +3,13 @@ import {
   Col,
   Container,
   Icon,
+  Link,
   Row,
   Text,
   Title,
 } from '@dataesr/react-dsfr';
 
-import { Establishment } from '../../models/Establishment';
+import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';
 import { useClipboard } from '../../hooks/useClipboard';
 
@@ -16,8 +17,10 @@ interface Props {
   establishment: Establishment;
 }
 
-function ContactPointPublicPage(props: Props) {
-  const link = 'https://zerologementvacant.beta.gouv.fr/dunkerque';
+function ContactPointPublicPage({ establishment }: Props) {
+  const link = `${window.location.protocol}//${
+    window.location.hostname
+  }${getEstablishmentUrl(establishment)}`;
 
   const clipboard = useClipboard();
 
@@ -32,7 +35,7 @@ function ContactPointPublicPage(props: Props) {
           Image
         </Col>
         <Col n="9" spacing="pl-4w">
-          <Title as="h5">Page publique de {props.establishment.name}</Title>
+          <Title as="h5">Page publique de {establishment.name}</Title>
           <Text>
             Cette page publique sert à communiquer les informations relatives la
             vacance sur votre territoire. Elle permettra aux propriétaires de
@@ -51,10 +54,10 @@ function ContactPointPublicPage(props: Props) {
               <Icon name="ri-file-copy-line" iconPosition="left" size="1x" />
               {clipboard.copied ? 'Copié !' : 'Copier le lien'}
             </Button>
-            <Button>
+            <Link href={link} className="fr-btn">
               <Icon name="ri-eye-fill" iconPosition="left" size="1x" />
               S’y rendre
-            </Button>
+            </Link>
           </Row>
         </Col>
       </Row>

@@ -1,9 +1,6 @@
 import React from 'react';
 import { Link, Title } from '@dataesr/react-dsfr';
-import {
-  Establishment,
-  getEstablishmentRelativeUrl,
-} from '../../models/Establishment';
+import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';
 
 interface Props {
@@ -20,7 +17,7 @@ const EstablishmentLinkList = ({ establishments, title }: Props) => {
       <div>
         {establishments.map((establishment) => (
           <Link
-            href={getEstablishmentRelativeUrl(establishment)}
+            href={getEstablishmentUrl(establishment)}
             className={styles.establishmentLink}
             key={establishment.id}
           >

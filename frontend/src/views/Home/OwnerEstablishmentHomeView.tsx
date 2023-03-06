@@ -22,7 +22,7 @@ import handsShow from '../../assets/images/hands-show.svg';
 import { unCapitalize } from '../../utils/stringUtils';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './home.module.scss';
-import ContactPointCard from '../../components/ContactPointCard/ContactPointCard';
+import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import {
   fetchContactPoints,
   fetchLocalities,

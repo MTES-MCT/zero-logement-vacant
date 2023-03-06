@@ -99,7 +99,7 @@ function ContactPointCard({
             </Text>
           </div>
         )}
-        {isPublicDisplay && contactPoint.geoCodes && localities?.length && (
+        {!isPublicDisplay && contactPoint.geoCodes && localities?.length && (
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
               {pluralize(contactPoint.geoCodes.length)('Commune')}

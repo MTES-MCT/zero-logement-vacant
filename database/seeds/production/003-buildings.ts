@@ -19,6 +19,7 @@ exports.seed = function (knex: Knex) {
         [OccupancyKindApi.Vacant, ReferenceDataYear - 2]
       ),
     })
+    .whereNotNull('building_id')
     .groupBy('building_id')
     .then((results: any[]) => {
       if (results.length) {

@@ -17,11 +17,12 @@ exports.seed = function (knex: Knex) {
     .sum({
       vacant_housing_count: knex.raw(
         `
-        (CASE WHEN occupancy = ? and vacancy_start_year <= ? THEN 1 ELSE 0)
+        (CASE WHEN occupancy = ? and vacancy_start_year <= ? THEN 1 ELSE 0 END)
       `,
         [OccupancyKindApi.Vacant, ReferenceDataYear - 2]
       ),
     })
+    .whereNotNull('building_id')
     .groupBy('building_id')
     .then((results: any[]) =>
       knex

@@ -43,6 +43,7 @@ const find = async (
     establishmentId
   );
   const contactPoints = await ContactPoints()
+    .select(`${contactPointsTable}.*`)
     .where({ establishment_id: establishmentId })
     .modify(builder => {
       if (userRole === undefined) {

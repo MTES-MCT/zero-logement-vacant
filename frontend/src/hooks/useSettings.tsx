@@ -16,7 +16,7 @@ export function useSettings() {
       dispatch(
         updateSettings({
           contactPoints: {
-            public: !state.settings.contactPoints.public,
+            public: !state.settings.contactPoints?.public,
           },
         })
       );

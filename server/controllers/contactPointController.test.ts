@@ -14,6 +14,7 @@ import contactPointsRepository from '../repositories/contactPointsRepository';
 import { v4 as uuidv4 } from 'uuid';
 import { genContactPointApi, genGeoCode } from '../test/testFixtures';
 import randomstring from 'randomstring';
+import { User1 } from '../../database/seeds/test/003-users';
 
 describe('ContactPoint controller', () => {
   const { app } = createServer();
@@ -30,10 +31,10 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should list the contact points', async () => {
-      const res = await request(app)
-        .get(testRoute(Establishment1.id))
-        .expect(constants.HTTP_STATUS_OK);
+    it('should list the contact points for an authenticated user', async () => {
+      const res = await withAccessToken(
+        request(app).get(testRoute(Establishment1.id))
+      ).expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.arrayContaining([
@@ -53,6 +54,29 @@ describe('ContactPoint controller', () => {
           }),
         ])
       );
+    });
+
+    it('should not list the contact points to public when establishment settings do not allow it', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment1.id))
+        .expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: ContactPoint1.id,
+            establishmentId: Establishment1.id,
+          }),
+        ])
+      );
+    });
+
+    it('should list the contact points to public when establishment settings allow it', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment2.id))
+        .expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject([]);
     });
   });
 
@@ -102,7 +126,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, User1.role)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -171,7 +195,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, User1.role)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -225,7 +249,7 @@ describe('ContactPoint controller', () => {
       ).expect(constants.HTTP_STATUS_NO_CONTENT);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, User1.role)
         .then((result) => {
           expect(result).toEqual([]);
         });

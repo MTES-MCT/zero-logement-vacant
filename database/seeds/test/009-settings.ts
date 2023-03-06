@@ -5,7 +5,10 @@ import settingsRepository, {
 } from '../../../server/repositories/settingsRepository';
 import { genSettingsApi } from '../../../server/test/testFixtures';
 
-export const Settings1 = genSettingsApi(Establishment1.id);
+export const Settings1 = {
+  ...genSettingsApi(Establishment1.id),
+  contactPoints: { public: true },
+};
 
 exports.seed = function (knex: Knex) {
   return Promise.all([

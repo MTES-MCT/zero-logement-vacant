@@ -92,8 +92,8 @@ function AppHeader() {
 
   const withNavItems =
     location.pathname === '/' ||
-    location.pathname.indexOf('/collectivites') === 0 ||
-    location.pathname.indexOf('/proprietaires') === 0;
+    location.pathname === '/collectivites' ||
+    location.pathname === '/proprietaires';
 
   return (
     <>

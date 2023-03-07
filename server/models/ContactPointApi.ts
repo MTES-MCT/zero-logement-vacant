@@ -1,4 +1,5 @@
-export interface DraftContactPointApi {
+export interface ContactPointApi {
+  id: string;
   establishmentId: string;
   title: string;
   opening?: string;
@@ -7,8 +8,4 @@ export interface DraftContactPointApi {
   email?: string;
   phone?: string;
   notes?: string;
-}
-
-export interface ContactPointApi extends DraftContactPointApi {
-  id: string;
 }

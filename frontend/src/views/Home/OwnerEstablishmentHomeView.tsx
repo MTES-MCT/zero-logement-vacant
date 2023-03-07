@@ -113,7 +113,7 @@ const OwnerEstablishmentHomeView = () => {
               {establishment.available ? (
                 <>
                   <Tag className="fr-mb-2w bg-bf925">
-                    {isLocality ? 'Commune' : 'Collectivités'} engagée contre la
+                    {isLocality ? 'Commune' : 'Collectivité'} engagée contre la
                     vacance
                   </Tag>
                   <Text>
@@ -124,7 +124,7 @@ const OwnerEstablishmentHomeView = () => {
                         establishment.name
                       )}
                     </b>
-                      s’engage à lutter contre la vacance au coté de l’outil 
+                      s’engage à lutter contre la vacance au côté de l’outil 
                     <span className="color-bf113 weight-400">
                       Zéro Logement Vacant.
                     </span>
@@ -207,7 +207,7 @@ const OwnerEstablishmentHomeView = () => {
                       ) : (
                         <Text spacing="m-0">
                           Le taux appliqué est cependant inconnu. Veuillez vous
-                          rapprochez de votre commune pour en savoir plus.
+                          rapprocher de votre commune pour en savoir plus.
                         </Text>
                       )}
                     </>
@@ -256,8 +256,8 @@ const OwnerEstablishmentHomeView = () => {
               Rentabilité financière accrue
             </Title>
             <Text>
-              Louez votre logements vacants vous rapportera un revenu
-              supplémentaire en passant par de l’intermediation locative.
+              Louez votre logement vacant vous rapportera un revenu
+              supplémentaire en passant par de l’intermédiation locative.
             </Text>
           </Col>
           <Col n="4">

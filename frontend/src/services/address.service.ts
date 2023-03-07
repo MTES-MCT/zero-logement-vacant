@@ -1,5 +1,6 @@
 import config from '../utils/config';
 import { createHttpService, toJSON } from '../utils/fetchUtils';
+import { Feature } from 'maplibre-gl';
 
 export interface AddressSearchResult {
   label: string;
@@ -27,12 +28,11 @@ const quickSearch = (query: string): Promise<AddressSearchResult[]> => {
     .then(toJSON)
     .then((result) =>
       result.features.map(
-        (a: any) =>
-          ({
-            label: a.properties.label,
-            geoCode: a.properties.citycode,
-            city: a.properties.city,
-          } as AddressSearchResult)
+        (a: Feature): AddressSearchResult => ({
+          label: a.properties.label,
+          geoCode: a.properties.citycode,
+          city: a.properties.city,
+        })
       )
     );
 };

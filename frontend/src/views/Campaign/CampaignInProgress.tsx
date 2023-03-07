@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Col, Row, Tabs } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   changeCampaignHousingPagination,
   changeCampaignHousingSort,
@@ -8,7 +7,6 @@ import {
   listCampaignBundleHousing,
   updateCampaignHousingList,
 } from '../../store/actions/campaignAction';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingList, {
   HousingDisplayKey,
 } from '../../components/HousingList/HousingList';
@@ -40,9 +38,10 @@ import HousingListHeader from '../../components/HousingList/HousingListHeader';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const TabContent = ({ status }: { status: HousingStatus }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle();
 
@@ -63,8 +62,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     return selectedHousing.all || selectedHousing.ids.length > 0;
   }
 
-  const { campaignBundleHousingByStatus, campaignBundle } = useSelector(
-    (state: ApplicationState) => state.campaign
+  const { campaignBundleHousingByStatus, campaignBundle } = useAppSelector(
+    (state) => state.campaign
   );
 
   if (!campaignBundle) {
@@ -307,10 +306,10 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
 };
 
 const CampaignInProgress = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const { campaignBundleHousingByStatus, campaignBundle } = useSelector(
-    (state: ApplicationState) => state.campaign
+  const { campaignBundleHousingByStatus, campaignBundle } = useAppSelector(
+    (state) => state.campaign
   );
   const [searchQuery, setSearchQuery] = useState<string>();
 

@@ -2,9 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
-import thunk from 'redux-thunk';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../store/reducers/applicationReducers';
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
@@ -19,6 +16,8 @@ import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
+import { configureStore } from '@reduxjs/toolkit';
+import { applicationReducer } from '../../store/store';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -56,11 +55,10 @@ describe('housing view', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    store = createStore(
-      applicationReducer,
-      { authentication: { authUser: genAuthUser() } },
-      applyMiddleware(thunk)
-    );
+    store = configureStore({
+      reducer: applicationReducer,
+      preloadedState: { authentication: { authUser: genAuthUser() } },
+    });
   });
 
   test('should only show owner filters initially', async () => {

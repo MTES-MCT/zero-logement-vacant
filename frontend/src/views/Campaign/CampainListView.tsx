@@ -11,18 +11,17 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const CampaignsListView = () => {
   useDocumentTitle('Logements suivis');
-  const dispatch = useDispatch();
-  const { campaignBundle: inProgressCampaignBundle } = useSelector(
-    (state: ApplicationState) => state.campaign
+  const dispatch = useAppDispatch();
+  const { campaignBundle: inProgressCampaignBundle } = useAppSelector(
+    (state) => state.campaign
   );
 
   useEffect(() => {

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
@@ -19,10 +17,11 @@ import HousingList, {
 import { Housing } from '../../models/Housing';
 import { FirstContactToContactedSubStatus } from '../../models/HousingState';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const MonitoringView = () => {
   useDocumentTitle('Suivi');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { establishmentId } = useParams<{ establishmentId: string }>();
 
@@ -30,7 +29,7 @@ const MonitoringView = () => {
     establishmentData,
     paginatedHousingToContact,
     paginatedHousingToContactFilters,
-  } = useSelector((state: ApplicationState) => state.monitoring);
+  } = useAppSelector((state) => state.monitoring);
   const [establishmentDetailData, setEstablishmentDetailData] =
     useState<EstablishmentData>();
 

@@ -2,9 +2,6 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
-import thunk from 'redux-thunk';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../store/reducers/applicationReducers';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import OwnerView from './OwnerView';
@@ -18,13 +15,11 @@ import {
 } from '../../../test/fixtures.test';
 import { format } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
+import { store } from '../../store/store';
 
 describe('housing view', () => {
-  let store: any;
-
   beforeEach(() => {
     fetchMock.resetMocks();
-    store = createStore(applicationReducer, applyMiddleware(thunk));
   });
 
   test('should display owner infos', async () => {

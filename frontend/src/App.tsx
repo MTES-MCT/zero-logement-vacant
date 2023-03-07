@@ -1,15 +1,12 @@
 import React from 'react';
 import { MapProvider } from 'react-map-gl';
 import './App.scss';
-import { applyMiddleware, createStore } from 'redux';
 import AppHeader from './components/AppHeader/AppHeader';
 import AppFooter from './components/AppFooter/AppFooter';
 import LoginView from './views/Login/LoginView';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
-import { Provider, useSelector } from 'react-redux';
-import thunk from 'redux-thunk';
-import applicationReducer, { ApplicationState } from './store/reducers/applicationReducers';
+import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
@@ -35,10 +32,10 @@ import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
 import OwnerHomeView from './views/Home/OwnerHomeView';
 import config from './utils/config';
+import { store } from './store/store';
+import { useAppSelector } from './hooks/useStore';
 
 function AppWrapper() {
-
-  const store = createStore(applicationReducer, applyMiddleware(thunk));
 
   const AppMapProvider = () =>
       <MapProvider>
@@ -58,17 +55,15 @@ function AppWrapper() {
     return <AppMapProvider />;
   }
 
-
-
 }
 
 function App() {
   const { isAdmin, isAuthenticated } = useUser();
-  const { isLoggedOut } = useSelector(
-    (state: ApplicationState) => state.authentication
+  const { isLoggedOut } = useAppSelector(
+    (state) => state.authentication
   );
-  const { campaignBundleFetchingId, campaignCreated } = useSelector(
-    (state: ApplicationState) => state.campaign
+  const { campaignBundleFetchingId, campaignCreated } = useAppSelector(
+    (state) => state.campaign
   );
 
   FetchInterceptor();

@@ -10,8 +10,8 @@ import { Redirect, useHistory } from 'react-router-dom';
 import { createUser } from '../../../store/actions/userAction';
 import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
-import { useDispatch } from 'react-redux';
 import InternalLink from '../../../components/InternalLink/InternalLink';
+import { useAppDispatch } from '../../../hooks/useStore';
 
 interface State {
   prospect: Prospect;
@@ -19,7 +19,7 @@ interface State {
 }
 
 function AccountCampaignIntentCreationView() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useHistory<State | undefined>();
   const { location } = router;
   const prospect = location.state?.prospect;

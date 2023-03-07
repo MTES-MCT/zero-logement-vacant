@@ -5,39 +5,25 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import establishmentService from '../../services/establishment.service';
 import { Establishment } from '../../models/Establishment';
 import { FormState } from './FormState';
-
-export const LOGIN = 'LOGIN';
-export const LOGIN_FAIL = 'LOGIN_FAIL';
-export const LOGOUT = 'LOGOUT';
-export const AVAILABLE_ESTABLISHMENTS_FETCHED =
-  'AVAILABLE_ESTABLISHMENTS_FETCHED';
-export const PASSWORD_CHANGE = 'PASSWORD_CHANGE';
+import authenticationSlice from '../reducers/authenticationReducer';
 
 export interface LoginAction {
-  type: typeof LOGIN;
   authUser: AuthUser;
 }
-export interface LoginFailAction {
-  type: typeof LOGIN_FAIL;
-}
-export interface LogoutAction {
-  type: typeof LOGOUT;
-}
 export interface AvailableEstablishmentsFetchedAction {
-  type: typeof AVAILABLE_ESTABLISHMENTS_FETCHED;
   availableEstablishments: Establishment[];
 }
 export interface PasswordChangeAction {
-  type: typeof PASSWORD_CHANGE;
-  formState: typeof FormState;
+  formState: FormState;
 }
 
-export type AuthenticationActionTypes =
-  | LoginAction
-  | LoginFailAction
-  | LogoutAction
-  | AvailableEstablishmentsFetchedAction
-  | PasswordChangeAction;
+const {
+  passwordChange,
+  availableEstablishmentsFetched,
+  logoutUser,
+  loginUser,
+  loginFail,
+} = authenticationSlice.actions;
 
 export const login = (
   email: string,
@@ -51,20 +37,17 @@ export const login = (
       .login(email, password, establishmentId)
       .then((authUser) => {
         if (authUser.accessToken) {
-          dispatch({
-            type: LOGIN,
-            authUser,
-          });
+          dispatch(
+            loginUser({
+              authUser,
+            })
+          );
         } else {
-          dispatch({
-            type: LOGIN_FAIL,
-          });
+          dispatch(loginFail());
         }
       })
       .catch(() => {
-        dispatch({
-          type: LOGIN_FAIL,
-        });
+        dispatch(loginFail());
       })
       .finally(() => {
         dispatch(hideLoading());
@@ -74,17 +57,16 @@ export const login = (
 
 export const logout = () => (dispatch: Dispatch) => {
   authService.logout();
-  dispatch({
-    type: LOGOUT,
-  });
+  dispatch(logoutUser());
 };
 
 export const initPasswordChange = () => {
   return function (dispatch: Dispatch) {
-    dispatch({
-      type: PASSWORD_CHANGE,
-      formState: FormState.Init,
-    });
+    dispatch(
+      passwordChange({
+        formState: FormState.Init,
+      })
+    );
   };
 };
 
@@ -98,16 +80,18 @@ export const changePassword = (
     authService
       .changePassword(currentPassword, newPassword)
       .then(() => {
-        dispatch({
-          type: PASSWORD_CHANGE,
-          formState: FormState.Succeed,
-        });
+        dispatch(
+          passwordChange({
+            formState: FormState.Succeed,
+          })
+        );
       })
       .catch(() => {
-        dispatch({
-          type: PASSWORD_CHANGE,
-          formState: FormState.Error,
-        });
+        dispatch(
+          passwordChange({
+            formState: FormState.Error,
+          })
+        );
       })
       .finally(() => {
         dispatch(hideLoading());
@@ -120,10 +104,11 @@ export const fetchAvailableEstablishments = () => {
     establishmentService
       .listAvailableEstablishments()
       .then((availableEstablishments) => {
-        dispatch({
-          type: AVAILABLE_ESTABLISHMENTS_FETCHED,
-          availableEstablishments,
-        });
+        dispatch(
+          availableEstablishmentsFetched({
+            availableEstablishments,
+          })
+        );
       });
   };
 };

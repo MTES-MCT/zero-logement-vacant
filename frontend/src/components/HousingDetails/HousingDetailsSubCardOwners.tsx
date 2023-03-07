@@ -13,11 +13,11 @@ import {
   createAdditionalOwner,
   updateHousingOwners,
 } from '../../store/actions/housingAction';
-import { useDispatch } from 'react-redux';
 import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import HousingOwnersModal from '../modals/HousingOwnersModal/HousingOwnersModal';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingAdditionalOwnerModal from '../modals/HousingAdditionnalOwnerModal/HousingAdditionalOwnerModal';
+import { useAppDispatch } from '../../hooks/useStore';
 
 interface Props {
   housingId: string;
@@ -25,7 +25,7 @@ interface Props {
 }
 
 function HousingDetailsSubCardOwners({ housingId, housingOwners }: Props) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [isModalOwnersOpen, setIsModalOwnersOpen] = useState(false);
   const [isModalAdditionalOwnerOpen, setIsModalAdditionalOwnerOpen] =

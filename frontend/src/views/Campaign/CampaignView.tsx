@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Col, Container, Row, Text } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
 import { CampaignSteps } from '../../models/Campaign';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
@@ -25,10 +24,11 @@ import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleI
 import CampaignBundleTitle from '../../components/CampaignBundle/CampaignBundleTitle';
 import { hasFilters } from '../../models/HousingFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch } from '../../hooks/useStore';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const campaignList = useCampaignList(true);
   const { campaignNumber, reminderNumber } = useParams<{
     campaignNumber: string;
@@ -62,7 +62,9 @@ const CampaignView = () => {
 
   return (
     <>
-      {bundle && (
+      {!bundle ? (
+        <>totoz</>
+      ) : (
         <>
           {campaignRemovalModalOpen && (
             <ConfirmationModal

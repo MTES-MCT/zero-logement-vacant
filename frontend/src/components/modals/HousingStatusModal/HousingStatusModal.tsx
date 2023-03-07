@@ -11,9 +11,9 @@ import {
 } from '@dataesr/react-dsfr';
 import { Housing, HousingUpdate } from '../../../models/Housing';
 import { DefaultOption } from '../../../models/SelectOption';
-import { useDispatch } from 'react-redux';
 import HousingStatusForm from './HousingStatusForm';
 import { useCampaignList } from '../../../hooks/useCampaignList';
+import { useAppDispatch } from '../../../hooks/useStore';
 
 const HousingStatusModal = ({
   housingList,
@@ -24,7 +24,7 @@ const HousingStatusModal = ({
   onSubmit: (housing: Housing, housingUpdate: HousingUpdate) => void;
   onClose: () => void;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const campaignList = useCampaignList();
   const statusFormRef = useRef<{ validate: () => void }>();
 

@@ -2,19 +2,25 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Router } from 'react-router-dom';
-import { genProspect, genSignupLink } from '../../../../../test/fixtures.test';
+import {
+  genAuthUser,
+  genProspect,
+  genSignupLink,
+} from '../../../../../test/fixtures.test';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import { Provider } from 'react-redux';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../../../store/reducers/applicationReducers';
-import thunk from 'redux-thunk';
 import prospectService from '../../../../services/prospect.service';
 import { Prospect } from '../../../../models/Prospect';
+import { configureStore } from '@reduxjs/toolkit';
+import { applicationReducer } from '../../../../store/store';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
   const history = createMemoryHistory();
-  const store = createStore(applicationReducer, {}, applyMiddleware(thunk));
+  const store = configureStore({
+    reducer: applicationReducer,
+    preloadedState: { authentication: { authUser: genAuthUser() } },
+  });
   const email = 'ok@beta.gouv.fr';
   const link = genSignupLink(email);
   const prospect: Prospect = {

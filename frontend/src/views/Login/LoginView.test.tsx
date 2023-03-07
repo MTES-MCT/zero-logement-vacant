@@ -6,18 +6,13 @@ import fetchMock from 'jest-fetch-mock';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { Provider } from 'react-redux';
-import thunk from 'redux-thunk';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../store/reducers/applicationReducers';
+import { store } from '../../store/store';
 
 describe('login view', () => {
   const user = userEvent.setup();
 
-  let store: any;
-
   beforeEach(() => {
     fetchMock.resetMocks();
-    store = createStore(applicationReducer, applyMiddleware(thunk));
   });
 
   test('should render login form', () => {

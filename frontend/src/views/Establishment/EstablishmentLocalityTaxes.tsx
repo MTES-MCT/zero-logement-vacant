@@ -9,8 +9,6 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -23,6 +21,7 @@ import {
 } from '../../models/TrackEvent';
 import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 import { updateLocalityTax } from '../../store/actions/establishmentAction';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 enum ActionSteps {
   Init,
@@ -36,11 +35,9 @@ interface LocalityTaxActionState {
 }
 
 const EstablishmentLocalityTaxes = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { loading } = useSelector(
-    (state: ApplicationState) => state.establishment
-  );
+  const { loading } = useAppSelector((state) => state.establishment);
   const { localities, filterCount } = useLocalityList();
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);

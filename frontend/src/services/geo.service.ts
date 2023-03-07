@@ -2,7 +2,7 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { GeoPerimeter } from '../models/GeoPerimeter';
 
-const listGeoPerimeters = async (): Promise<GeoPerimeter> => {
+const listGeoPerimeters = async (): Promise<GeoPerimeter[]> => {
   return await fetch(`${config.apiEndpoint}/api/geo/perimeters`, {
     method: 'GET',
     headers: {

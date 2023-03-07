@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from './useStore';
 
 interface LinkService<T> {
   get(id: string): Promise<T>;
@@ -14,7 +14,7 @@ interface EmailLinkOptions<T> {
 export function useEmailLink<T>(options: EmailLinkOptions<T>) {
   // Get the hash value without "#"
   const hash = useLocation().hash.slice(1);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<T>();
   const [error, setError] = useState('');

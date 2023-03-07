@@ -11,7 +11,7 @@ const getLocality = async (localityId: string): Promise<Locality> => {
   }).then((_) => _.json());
 };
 
-const listLocalities = async (): Promise<Locality> => {
+const listLocalities = async (): Promise<Locality[]> => {
   return await fetch(`${config.apiEndpoint}/api/localities`, {
     method: 'GET',
     headers: {

@@ -1,11 +1,10 @@
 import { Locality } from '../../models/Locality';
 import {
-  FETCHING_LOCALITY,
-  LOCALITY_FETCHED,
-  OWNER_PROSPECT_CREATED,
-  OwnerLocalityActionTypes,
+  LocalityFetchedAction,
+  OwnerProspectCreatedAction,
 } from '../actions/ownerProspectAction';
 import { OwnerProspect } from '../../models/OwnerProspect';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface OwnerProspectState {
   locality?: Locality;
@@ -14,29 +13,26 @@ export interface OwnerProspectState {
 
 const initialState: OwnerProspectState = {};
 
-const ownerProspectReducer = (
-  state = initialState,
-  action: OwnerLocalityActionTypes
-) => {
-  switch (action.type) {
-    case FETCHING_LOCALITY:
-      return {
-        ...state,
-        locality: undefined,
-      };
-    case LOCALITY_FETCHED:
-      return {
-        ...state,
-        locality: action.locality,
-      };
-    case OWNER_PROSPECT_CREATED:
-      return {
-        ...state,
-        ownerProspect: action.ownerProspect,
-      };
-    default:
-      return state;
-  }
-};
+const ownerProspectSlice = createSlice({
+  name: 'ownerProspect',
+  initialState,
+  reducers: {
+    fetchingLocality: (state: OwnerProspectState) => {
+      state.locality = undefined;
+    },
+    localityFetched: (
+      state: OwnerProspectState,
+      action: PayloadAction<LocalityFetchedAction>
+    ) => {
+      state.locality = action.payload.locality;
+    },
+    ownerProspectCreated: (
+      state: OwnerProspectState,
+      action: PayloadAction<OwnerProspectCreatedAction>
+    ) => {
+      state.ownerProspect = action.payload.ownerProspect;
+    },
+  },
+});
 
-export default ownerProspectReducer;
+export default ownerProspectSlice;

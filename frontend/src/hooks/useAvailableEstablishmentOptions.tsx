@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { fetchAvailableEstablishments } from '../store/actions/authenticationAction';
 import { SelectOption } from '../models/SelectOption';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export const useAvailableEstablishmentOptions = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [availableEstablishmentOptions, setAvailableEstablishmentOptions] =
     useState<SelectOption[]>([]);
-  const { availableEstablishments } = useSelector(
-    (state: ApplicationState) => state.authentication
+  const { availableEstablishments } = useAppSelector(
+    (state) => state.authentication
   );
 
   useEffect(() => {

@@ -24,6 +24,48 @@ beforeEach(() => {
 });
 
 describe('Account controller', () => {
+  describe('Sign in', () => {
+    const testRoute = '/api/authenticate';
+
+    it('should receive valid email and password', async () => {
+      await request(app)
+        .post(testRoute)
+        .send({
+          email: 'test',
+          password: '123Valid',
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          email: 'test@test.test',
+          password: '',
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should fail if the user is missing', async () => {
+      await request(app)
+        .post(testRoute)
+        .send({
+          email: 'test@test.test',
+          password: '123Valid',
+        })
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail if the password is wrong', async () => {
+      await request(app)
+        .post(testRoute)
+        .send({
+          email: User1.email,
+          password: '123ValidButWrong',
+        })
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+  });
+
   describe('resetPassword', () => {
     const testRoute = '/api/account/reset-password';
 

@@ -1,4 +1,5 @@
 import validator from 'validator';
+import { body, ValidationChain } from 'express-validator';
 
 type Refinement = (value: unknown) => boolean;
 
@@ -35,3 +36,21 @@ export function isNumber(value: unknown): boolean {
 export function isUUID(value: unknown): boolean {
   return isString(value) && validator.isUUID(value);
 }
+
+export const emailValidator = () =>
+  body('email').isEmail().withMessage('Must be an email');
+
+export const PASSWORD_MIN_LENGTH = 8;
+
+export const passwordCreationValidator = (): ValidationChain =>
+  body('password')
+    .isStrongPassword({
+      minLength: PASSWORD_MIN_LENGTH,
+      minNumbers: 1,
+      minUppercase: 1,
+      minSymbols: 0,
+      minLowercase: 1,
+    })
+    .withMessage(
+      `Must be at least ${PASSWORD_MIN_LENGTH} characters long, have 1 number, 1 uppercase, 1 lowercase`
+    );

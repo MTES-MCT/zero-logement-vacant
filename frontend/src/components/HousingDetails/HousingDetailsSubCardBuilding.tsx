@@ -29,7 +29,7 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
       </div>
       <div>
         <Text size="sm" className="zlv-label">
-          Taux de vacances
+          Taux de vacance
         </Text>
         <Text>{housing.buildingVacancyRate}%</Text>
       </div>

@@ -14,9 +14,18 @@ import { body, param, ValidationChain } from 'express-validator';
 import SignupLinkMissingError from '../errors/signupLinkMissingError';
 import { constants } from 'http2';
 import SignupLinkExpiredError from '../errors/signupLinkExpiredError';
+import userRepository from '../repositories/userRepository';
 
 const create = async (request: Request, response: Response) => {
   const { email } = request.body;
+
+  const user = await userRepository.getByEmail(email);
+  if (user) {
+    // Return a success code to avoid giving information to an attacker
+    // that an account already exists with the given email
+    response.sendStatus(constants.HTTP_STATUS_CREATED);
+    return;
+  }
 
   const link: SignupLinkApi = {
     id: randomstring.generate({

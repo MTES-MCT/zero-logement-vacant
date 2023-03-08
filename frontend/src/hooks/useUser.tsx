@@ -16,7 +16,7 @@ export const useUser = () => {
 
   const isAdmin = useMemo<boolean>(
     () => isAuthenticated && authUser?.user.role === UserRoles.Admin,
-    [authUser] //eslint-disable-line react-hooks/exhaustive-deps
+    [authUser, isAuthenticated]
   );
 
   return {

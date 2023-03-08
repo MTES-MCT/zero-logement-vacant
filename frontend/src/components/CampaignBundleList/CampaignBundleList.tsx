@@ -24,7 +24,6 @@ import {
   CampaignSteps,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { useDispatch } from 'react-redux';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -46,6 +45,7 @@ import CampaignBundleTitle from '../CampaignBundle/CampaignBundleTitle';
 import { dateShortFormat, parseDateInput } from '../../utils/dateUtils';
 import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { useAppDispatch } from '../../hooks/useStore';
 
 interface ItemProps {
   campaignBundle: CampaignBundle;
@@ -56,7 +56,7 @@ const CampaignBundleItem = ({
   campaignBundle,
   withDeletion = false,
 }: ItemProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const history = useHistory();
   const {
@@ -440,7 +440,7 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
         <Text>Aucune campagne</Text>
       )}
       {filteredCampaignBundles &&
-        filteredCampaignBundles
+        [...filteredCampaignBundles]
           .sort(CampaignNumberSort)
           .map((campaignBundle) => (
             <CampaignBundleItem

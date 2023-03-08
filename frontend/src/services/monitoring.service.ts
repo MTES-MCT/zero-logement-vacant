@@ -47,7 +47,7 @@ const listEstablishmentData = async (
 
 const getHousingByStatusCount = async (
   filters: MonitoringFilters
-): Promise<HousingStatusCount> => {
+): Promise<HousingStatusCount[]> => {
   return await fetch(
     `${config.apiEndpoint}/api/monitoring/housing/status/count`,
     {
@@ -63,7 +63,7 @@ const getHousingByStatusCount = async (
 
 const getHousingByStatusDuration = async (
   filters: MonitoringFilters
-): Promise<HousingStatusDuration> => {
+): Promise<HousingStatusDuration[]> => {
   return await fetch(
     `${config.apiEndpoint}/api/monitoring/housing/status/duration`,
     {

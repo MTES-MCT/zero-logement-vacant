@@ -10,8 +10,6 @@ import {
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchAvailableEstablishments,
   login,
@@ -24,18 +22,19 @@ import building from '../../assets/images/building.svg';
 import InternalLink from '../../components/InternalLink/InternalLink';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [establishmentId, setEstablishmentId] = useState<string>('');
 
-  const { loginError, isLoggedOut } = useSelector(
-    (state: ApplicationState) => state.authentication
+  const { loginError, isLoggedOut } = useAppSelector(
+    (state) => state.authentication
   );
 
   const loginForm = yup.object().shape({

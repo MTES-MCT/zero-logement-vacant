@@ -16,8 +16,6 @@ import {
   updateGeoPerimeter,
   uploadFile,
 } from '../../store/actions/establishmentAction';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { displayCount } from '../../utils/stringUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
@@ -35,6 +33,7 @@ import GeoPerimeterCard from '../../components/GeoPerimeterCard/GeoPerimeterCard
 import classNames from 'classnames';
 import Help from '../../components/Help/Help';
 import styles from './establishment-geo-perimeters.module.scss';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 enum ActionSteps {
   Init,
@@ -48,12 +47,10 @@ interface GeoPerimeterActionState {
 }
 
 const EstablishmentGeoPerimeters = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const geoPerimeters = useGeoPerimeterList();
-  const { loading } = useSelector(
-    (state: ApplicationState) => state.establishment
-  );
+  const { loading } = useAppSelector((state) => state.establishment);
   const [uploadingState, setUploadingState] = useState<
     ActionSteps | undefined
   >();

@@ -1,15 +1,14 @@
-import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { useEffect } from 'react';
 import {
   getHousing,
   getHousingEvents,
   getHousingOwners,
 } from '../store/actions/housingAction';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export function useHousing() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { housingId } = useParams<{ housingId: string }>();
 
   useEffect(() => {
@@ -18,8 +17,8 @@ export function useHousing() {
     dispatch(getHousingEvents(housingId));
   }, [housingId, dispatch]);
 
-  const { housing, housingOwners, events } = useSelector(
-    (state: ApplicationState) => state.housing
+  const { housing, housingOwners, events } = useAppSelector(
+    (state) => state.housing
   );
 
   const mainHousingOwner = housingOwners?.filter((_) => _.rank === 1)[0];

@@ -9,8 +9,6 @@ import {
   Table,
   Title,
 } from '@dataesr/react-dsfr';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { useDispatch, useSelector } from 'react-redux';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
   changeUserFiltering,
@@ -30,21 +28,20 @@ import ConfirmationModal from '../../components/modals/ConfirmationModal/Confirm
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import Help from '../../components/Help/Help';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const UserListView = () => {
   useDocumentTitle('Utilisateurs');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { isAdmin } = useUser();
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
   const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] =
     useState<string>();
-  const { availableEstablishments } = useSelector(
-    (state: ApplicationState) => state.authentication
+  const { availableEstablishments } = useAppSelector(
+    (state) => state.authentication
   );
-  const { paginatedUsers, filters } = useSelector(
-    (state: ApplicationState) => state.user
-  );
+  const { paginatedUsers, filters } = useAppSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(changeUserPagination(0, 500));

@@ -1,15 +1,13 @@
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { UserRoles } from '../models/User';
 import { useMemo } from 'react';
+import { useAppSelector } from './useStore';
 
 export const useUser = () => {
-  const { authUser } = useSelector(
-    (state: ApplicationState) => state.authentication
-  );
+  const { authUser } = useAppSelector((state) => state.authentication);
 
   const isAuthenticated = useMemo<boolean>(
     () =>
+      authUser !== undefined &&
       authUser?.accessToken !== undefined &&
       authUser?.establishment !== undefined &&
       authUser?.user !== undefined,
@@ -17,8 +15,8 @@ export const useUser = () => {
   );
 
   const isAdmin = useMemo<boolean>(
-    () => isAuthenticated && authUser.user.role === UserRoles.Admin,
-    [authUser] //eslint-disable-line react-hooks/exhaustive-deps
+    () => isAuthenticated && authUser?.user.role === UserRoles.Admin,
+    [authUser, isAuthenticated]
   );
 
   return {

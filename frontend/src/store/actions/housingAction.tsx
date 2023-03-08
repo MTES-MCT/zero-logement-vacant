@@ -2,7 +2,6 @@ import { Dispatch } from 'redux';
 import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { ApplicationState } from '../reducers/applicationReducers';
 import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
@@ -14,110 +13,80 @@ import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
 import { handleAbort } from '../../utils/fetchUtils';
-
-export const EXPAND_FILTERS = 'EXPAND_FILTERS';
-export const FETCHING_HOUSING_LIST = 'FETCHING_HOUSING_LIST';
-export const HOUSING_LIST_FETCHED = 'HOUSING_LIST_FETCHED';
-export const FETCHING_HOUSING = 'FETCHING_HOUSING';
-export const HOUSING_FETCHED = 'HOUSING_FETCHED';
-export const FETCHING_HOUSING_OWNERS = 'FETCHING_HOUSING_OWNERS';
-export const HOUSING_OWNERS_FETCHED = 'HOUSING_OWNERS_FETCHED';
-export const FETCHING_ADDITIONAL_OWNERS = 'FETCHING_ADDITIONAL_OWNERS';
-export const ADDITIONAL_OWNERS_FETCHED = 'ADDITIONAL_OWNERS_FETCHED';
-export const HOUSING_OWNERS_UPDATE = 'HOUSING_OWNERS_UPDATE';
-export const FETCHING_HOUSING_EVENTS = 'FETCHING_HOUSING_EVENTS';
-export const HOUSING_EVENTS_FETCHED = 'HOUSING_EVENTS_FETCHED';
+import housingReducer from '../reducers/housingReducer';
+import { AppState } from '../store';
 
 export interface ExpandFiltersAction {
-  type: typeof EXPAND_FILTERS;
   value: boolean;
 }
 
-export interface FetchingHousingAction {
-  type: typeof FETCHING_HOUSING;
-}
-
 export interface HousingFetchedAction {
-  type: typeof HOUSING_FETCHED;
   housing: Housing;
 }
 
-export interface FetchingHousingOwnersAction {
-  type: typeof FETCHING_HOUSING_OWNERS;
-}
-
 export interface HousingOwnersFetchedAction {
-  type: typeof HOUSING_OWNERS_FETCHED;
   housingOwners: HousingOwner[];
 }
 
 export interface FetchingAdditionalOwnersAction {
-  type: typeof FETCHING_ADDITIONAL_OWNERS;
   q: string;
   page: number;
   perPage: number;
 }
 
 export interface AdditionalOwnersFetchedAction {
-  type: typeof ADDITIONAL_OWNERS_FETCHED;
   paginatedOwners: PaginatedResult<Owner>;
   q: string;
 }
 
 export interface HousingOwnersUpdateAction {
-  type: typeof HOUSING_OWNERS_UPDATE;
-  formState: typeof FormState;
-}
-
-export interface FetchingHousingEventsAction {
-  type: typeof FETCHING_HOUSING_EVENTS;
+  formState: FormState;
 }
 
 export interface HousingEventsFetchedAction {
-  type: typeof HOUSING_EVENTS_FETCHED;
   events: Event[];
 }
 
-export interface FetchHousingListAction {
-  type: typeof FETCHING_HOUSING_LIST;
+export interface FetchingHousingListAction {
   filters: HousingFilters;
   pagination: PaginationApi;
-  sort: HousingSort;
+  sort?: HousingSort;
 }
 
 export interface HousingListFetchedAction {
-  type: typeof HOUSING_LIST_FETCHED;
-  paginate: boolean;
+  paginate?: boolean;
   paginatedHousing: PaginatedResult<Housing>;
   filters: HousingFilters;
-  sort: HousingSort;
+  sort?: HousingSort;
 }
 
-export type HousingActionTypes =
-  | ExpandFiltersAction
-  | FetchingHousingAction
-  | HousingFetchedAction
-  | FetchHousingListAction
-  | HousingListFetchedAction
-  | FetchingHousingOwnersAction
-  | HousingOwnersFetchedAction
-  | FetchingAdditionalOwnersAction
-  | AdditionalOwnersFetchedAction
-  | HousingOwnersUpdateAction
-  | FetchingHousingEventsAction
-  | HousingEventsFetchedAction;
+const {
+  fetchingHousingEvents,
+  fetchingHousingOwners,
+  additionalOwnersFetched,
+  fetchingAdditionalOwners,
+  fetchingHousingList,
+  housingEventsFetched,
+  fetchingHousing,
+  housingListFetched,
+  housingOwnersFetched,
+  housingOwnersUpdate,
+  housingFetched,
+  expandingFilters,
+} = housingReducer.actions;
 
 export const expandFilters = (value: boolean) => {
   return function (dispatch: Dispatch) {
-    dispatch({
-      type: EXPAND_FILTERS,
-      value,
-    });
+    dispatch(
+      expandingFilters({
+        value,
+      })
+    );
   };
 };
 
 export const changeHousingFiltering = (filters: HousingFilters) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const page = 1;
@@ -127,11 +96,12 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       perPage,
     };
 
-    dispatch({
-      type: FETCHING_HOUSING_LIST,
-      pagination,
-      filters,
-    });
+    dispatch(
+      fetchingHousingList({
+        pagination,
+        filters,
+      })
+    );
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
@@ -145,11 +115,12 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
         }
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch({
-          type: HOUSING_LIST_FETCHED,
-          paginatedHousing: result,
-          filters,
-        });
+        dispatch(
+          housingListFetched({
+            paginatedHousing: result,
+            filters,
+          })
+        );
       })
       .catch(handleAbort)
       .finally(() => {
@@ -159,16 +130,17 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
 };
 
 export const changeHousingPagination = (pagination: PaginationApi) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const filters = getState().housing.filters;
 
-    dispatch({
-      type: FETCHING_HOUSING_LIST,
-      pagination,
-      filters,
-    });
+    dispatch(
+      fetchingHousingList({
+        pagination,
+        filters,
+      })
+    );
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
@@ -182,12 +154,13 @@ export const changeHousingPagination = (pagination: PaginationApi) => {
         }
       )
       .then((result: PaginatedResult<Housing>) => {
-        dispatch({
-          type: HOUSING_LIST_FETCHED,
-          paginate: pagination.paginate,
-          paginatedHousing: result,
-          filters,
-        });
+        dispatch(
+          housingListFetched({
+            paginate: pagination.paginate,
+            paginatedHousing: result,
+            filters,
+          })
+        );
       })
       .catch(handleAbort)
       .finally(() => {
@@ -197,7 +170,7 @@ export const changeHousingPagination = (pagination: PaginationApi) => {
 };
 
 export const changeHousingSort = (sort: HousingSort) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const { filters, paginatedHousing } = getState().housing;
     const { page, perPage } = paginatedHousing;
     const pagination: PaginationApi = {
@@ -206,11 +179,12 @@ export const changeHousingSort = (sort: HousingSort) => {
     };
 
     dispatch(showLoading());
-    dispatch({
-      type: FETCHING_HOUSING_LIST,
-      pagination,
-      filters,
-    });
+    dispatch(
+      fetchingHousingList({
+        pagination,
+        filters,
+      })
+    );
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
@@ -225,11 +199,12 @@ export const changeHousingSort = (sort: HousingSort) => {
         }
       )
       .then((result) => {
-        dispatch({
-          type: HOUSING_LIST_FETCHED,
-          paginatedHousing: result,
-          filters,
-        });
+        dispatch(
+          housingListFetched({
+            paginatedHousing: result,
+            filters,
+          })
+        );
       })
       .catch(handleAbort)
       .finally(() => {
@@ -242,16 +217,15 @@ export const getHousing = (id: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_HOUSING,
-    });
+    dispatch(fetchingHousing());
 
     housingService.getHousing(id).then((housing) => {
       dispatch(hideLoading());
-      dispatch({
-        type: HOUSING_FETCHED,
-        housing,
-      });
+      dispatch(
+        housingFetched({
+          housing,
+        })
+      );
     });
   };
 };
@@ -260,16 +234,15 @@ export const getHousingOwners = (housingId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_HOUSING_OWNERS,
-    });
+    dispatch(fetchingHousingOwners());
 
     ownerService.listByHousing(housingId).then((housingOwners) => {
       dispatch(hideLoading());
-      dispatch({
-        type: HOUSING_OWNERS_FETCHED,
-        housingOwners,
-      });
+      dispatch(
+        housingOwnersFetched({
+          housingOwners,
+        })
+      );
     });
   };
 };
@@ -278,16 +251,15 @@ export const getHousingEvents = (housingId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_HOUSING_EVENTS,
-    });
+    dispatch(fetchingHousingEvents());
 
     eventService.listByHousing(housingId).then((events) => {
       dispatch(hideLoading());
-      dispatch({
-        type: HOUSING_EVENTS_FETCHED,
-        events,
-      });
+      dispatch(
+        housingEventsFetched({
+          events,
+        })
+      );
     });
   };
 };
@@ -312,7 +284,7 @@ export const createAdditionalOwner = (
   draftOwner: DraftOwner,
   ownerRank: number
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     ownerService
@@ -331,7 +303,7 @@ export const updateMainHousingOwner = (
   modifiedOwner: Owner,
   housingId: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
       dispatch(showLoading());
 
@@ -353,7 +325,7 @@ export const addHousingOwner = (
   owner: Owner,
   ownerRank: number
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const { housingOwners } = getState().housing;
 
     updateHousingOwners(housingId, [
@@ -379,17 +351,19 @@ export const updateHousingOwners = (
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: HOUSING_OWNERS_UPDATE,
-      formState: FormState.Init,
-    });
+    dispatch(
+      housingOwnersUpdate({
+        formState: FormState.Init,
+      })
+    );
 
     ownerService.updateHousingOwners(housingId, housingOwners).then(() => {
       dispatch(hideLoading());
-      dispatch({
-        type: HOUSING_OWNERS_UPDATE,
-        formState: FormState.Succeed,
-      });
+      dispatch(
+        housingOwnersUpdate({
+          formState: FormState.Succeed,
+        })
+      );
       getHousingOwners(housingId)(dispatch);
       getHousingEvents(housingId)(dispatch);
     });
@@ -397,29 +371,31 @@ export const updateHousingOwners = (
 };
 
 export const changeAdditionalOwnersSearching = (q: string) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const page = 1;
     const perPage =
       getState().housing.additionalOwners?.paginatedOwners?.perPage ?? 5;
 
-    dispatch({
-      type: FETCHING_ADDITIONAL_OWNERS,
-      page,
-      perPage,
-      q,
-    });
+    dispatch(
+      fetchingAdditionalOwners({
+        page,
+        perPage,
+        q,
+      })
+    );
 
     ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());
-        dispatch({
-          type: ADDITIONAL_OWNERS_FETCHED,
-          paginatedOwners: result,
-          q,
-        });
+        dispatch(
+          additionalOwnersFetched({
+            paginatedOwners: result,
+            q,
+          })
+        );
       });
   };
 };
@@ -428,27 +404,29 @@ export const changeAdditionalOwnersPagination = (
   page: number,
   perPage: number
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const q = getState().housing.additionalOwners?.q ?? '';
 
-    dispatch({
-      type: FETCHING_ADDITIONAL_OWNERS,
-      page: page,
-      perPage,
-      q,
-    });
+    dispatch(
+      fetchingAdditionalOwners({
+        page: page,
+        perPage,
+        q,
+      })
+    );
 
     ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());
-        dispatch({
-          type: ADDITIONAL_OWNERS_FETCHED,
-          paginatedOwners: result,
-          q,
-        });
+        dispatch(
+          additionalOwnersFetched({
+            paginatedOwners: result,
+            q,
+          })
+        );
       });
   };
 };

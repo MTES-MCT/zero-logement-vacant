@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button, Col, Container, Row, Tag, Title } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
 import styles from './owner.module.scss';
 import { createOwnerNote, update } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
@@ -14,10 +13,11 @@ import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNo
 import { HousingNote, OwnerNote } from '../../models/Note';
 import { createHousingNote } from '../../store/actions/housingAction';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch } from '../../hooks/useStore';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);

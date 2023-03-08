@@ -22,7 +22,6 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
-import { useDispatch } from 'react-redux';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
@@ -30,6 +29,7 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 import Help from '../Help/Help';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
+import { useAppDispatch } from '../../hooks/useStore';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -39,7 +39,7 @@ interface Props {
 }
 
 const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle(campaignBundle);
 

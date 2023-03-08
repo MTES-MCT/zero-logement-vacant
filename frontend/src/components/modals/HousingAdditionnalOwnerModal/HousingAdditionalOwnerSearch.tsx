@@ -1,21 +1,18 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../../store/reducers/applicationReducers';
 import { changeAdditionalOwnersSearching } from '../../../store/actions/housingAction';
 import { Owner } from '../../../models/Owner';
 import AppSearchBar from '../../AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
 
 interface Props {
   onSelect: (owner: Owner) => void;
 }
 
 const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const { additionalOwners } = useSelector(
-    (state: ApplicationState) => state.housing
-  );
+  const { additionalOwners } = useAppSelector((state) => state.housing);
 
   const searchAdditionalOwners = (q: string) => {
     dispatch(changeAdditionalOwnersSearching(q));

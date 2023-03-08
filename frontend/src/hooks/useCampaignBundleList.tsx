@@ -4,19 +4,16 @@ import {
   CampaignSteps,
   mainCampaign,
 } from '../models/Campaign';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { useEffect } from 'react';
 import { listCampaignBundles } from '../store/actions/campaignAction';
 import { useCampaignList } from './useCampaignList';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export function useCampaignBundleList() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const campaignList = useCampaignList(true);
 
-  const { campaignBundleList } = useSelector(
-    (state: ApplicationState) => state.campaign
-  );
+  const { campaignBundleList } = useAppSelector((state) => state.campaign);
 
   useEffect(() => {
     dispatch(listCampaignBundles());

@@ -1,10 +1,10 @@
 import fetchIntercept from 'fetch-intercept';
-import { useDispatch } from 'react-redux';
 import { logout } from '../../store/actions/authenticationAction';
+import { useAppDispatch } from '../../hooks/useStore';
 
 const FetchInterceptor = () => {
-  const dispatch = useDispatch();
-  const unregister = fetchIntercept.register({
+  const dispatch = useAppDispatch();
+  return fetchIntercept.register({
     request: function (url, config) {
       return [url, config];
     },
@@ -24,7 +24,6 @@ const FetchInterceptor = () => {
       return Promise.reject(error);
     },
   });
-  return unregister;
 };
 
 export default FetchInterceptor;

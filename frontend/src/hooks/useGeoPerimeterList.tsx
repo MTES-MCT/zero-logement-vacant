@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { fetchGeoPerimeters } from '../store/actions/establishmentAction';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export const useGeoPerimeterList = (forceReload = false) => {
-  const dispatch = useDispatch();
-  const { geoPerimeters, loading } = useSelector(
-    (state: ApplicationState) => state.establishment
+  const dispatch = useAppDispatch();
+  const { geoPerimeters, loading } = useAppSelector(
+    (state) => state.establishment
   );
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import config from '../utils/config';
 
 export interface FeatureOptions {
-  establishmentId: string;
+  establishmentId?: string;
 }
 
 type Features = Record<Feature, Establishment['id'][]>;
@@ -23,7 +23,10 @@ export function useFeature(options: FeatureOptions) {
 
   function isEnabled(feature: Feature): boolean {
     const establishments = features[feature] ?? [];
-    return establishments.includes(options.establishmentId);
+    return (
+      options.establishmentId !== undefined &&
+      establishments.includes(options.establishmentId)
+    );
   }
 
   return {

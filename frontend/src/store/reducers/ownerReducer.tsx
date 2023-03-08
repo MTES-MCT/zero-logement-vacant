@@ -1,67 +1,62 @@
 import { Owner } from '../../models/Owner';
 import {
-  FETCHING_OWNER,
-  FETCHING_OWNER_EVENTS,
-  FETCHING_OWNER_HOUSING,
-  OWNER_EVENTS_FETCHED,
-  OWNER_FETCHED,
-  OWNER_HOUSING_FETCHED,
-  OWNER_UPDATED,
-  OwnerActionTypes,
+  OwnerEventsFetchedAction,
+  OwnerFetchedAction,
+  OwnerHousingFetchedAction,
+  OwnerUpdatedAction,
 } from '../actions/ownerAction';
 import { Event } from '../../models/Event';
 import { Housing, housingSort } from '../../models/Housing';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface OwnerState {
-  owner: Owner;
-  housingList: Housing[];
-  housingTotalCount: number;
-  events: Event[];
+  owner?: Owner;
+  housingList?: Housing[];
+  housingTotalCount?: number;
+  events?: Event[];
 }
 
-const initialState = {};
+const initialState: OwnerState = {};
 
-const ownerReducer = (state = initialState, action: OwnerActionTypes) => {
-  switch (action.type) {
-    case FETCHING_OWNER:
-      return {
-        ...state,
-        owner: undefined,
-      };
-    case OWNER_FETCHED:
-      return {
-        ...state,
-        owner: action.owner,
-      };
-    case FETCHING_OWNER_HOUSING:
-      return {
-        ...state,
-        housingList: [],
-      };
-    case OWNER_HOUSING_FETCHED:
-      return {
-        ...state,
-        housingList: action.housingList.sort(housingSort),
-        housingTotalCount: action.housingTotalCount,
-      };
-    case OWNER_UPDATED:
-      return {
-        ...state,
-        owner: action.owner,
-      };
-    case FETCHING_OWNER_EVENTS:
-      return {
-        ...state,
-        events: [],
-      };
-    case OWNER_EVENTS_FETCHED:
-      return {
-        ...state,
-        events: action.events,
-      };
-    default:
-      return state;
-  }
-};
+const ownerSlice = createSlice({
+  name: 'owner',
+  initialState,
+  reducers: {
+    fetchingOwner: (state: OwnerState) => {
+      state.owner = undefined;
+    },
+    ownerFetched: (
+      state: OwnerState,
+      action: PayloadAction<OwnerFetchedAction>
+    ) => {
+      state.owner = action.payload.owner;
+    },
+    fetchingOwnerHousing: (state: OwnerState) => {
+      state.housingList = [];
+    },
+    ownerHousingFetched: (
+      state: OwnerState,
+      action: PayloadAction<OwnerHousingFetchedAction>
+    ) => {
+      state.housingList = action.payload.housingList.sort(housingSort);
+      state.housingTotalCount = action.payload.housingTotalCount;
+    },
+    ownerUpdated: (
+      state: OwnerState,
+      action: PayloadAction<OwnerUpdatedAction>
+    ) => {
+      state.owner = action.payload.owner;
+    },
+    fetchingOwnerEvents: (state: OwnerState) => {
+      state.events = [];
+    },
+    ownerEventsFetched: (
+      state: OwnerState,
+      action: PayloadAction<OwnerEventsFetchedAction>
+    ) => {
+      state.events = action.payload.events;
+    },
+  },
+});
 
-export default ownerReducer;
+export default ownerSlice;

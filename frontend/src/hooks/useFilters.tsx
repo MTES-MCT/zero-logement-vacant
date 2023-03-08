@@ -1,6 +1,4 @@
 import { useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import {
   changeHousingFiltering,
   expandFilters,
@@ -9,15 +7,16 @@ import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { HousingFilters } from '../models/HousingFilters';
 import { TrackEventActions, TrackEventCategories } from '../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export function useFilters() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { filters, filtersExpanded: expand } = useSelector(
-    (state: ApplicationState) => state.housing
+  const { filters, filtersExpanded: expand } = useAppSelector(
+    (state) => state.housing
   );
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
   );
 
   function setExpand(value: boolean): void {
@@ -55,7 +54,7 @@ export function useFilters() {
         category: TrackEventCategories.Filter,
         action: TrackEventActions.Filter(filterLabel),
         name: newValues.toString(),
-        value: establishment.siren,
+        value: establishment?.siren,
       });
     }
   }

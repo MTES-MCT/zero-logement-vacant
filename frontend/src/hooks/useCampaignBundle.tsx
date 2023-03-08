@@ -6,13 +6,12 @@ import {
   campaignStep,
   CampaignSteps,
 } from '../models/Campaign';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { useMemo } from 'react';
+import { useAppSelector } from './useStore';
 
 export function useCampaignBundle(initialBundle?: CampaignBundle) {
-  const { campaignBundle: defaultBundle, campaignList } = useSelector(
-    (state: ApplicationState) => state.campaign
+  const { campaignBundle: defaultBundle, campaignList } = useAppSelector(
+    (state) => state.campaign
   );
   const bundle = initialBundle ?? defaultBundle;
 

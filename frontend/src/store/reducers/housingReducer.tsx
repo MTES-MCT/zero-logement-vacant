@@ -1,28 +1,28 @@
 import { Housing, HousingSort } from '../../models/Housing';
 import {
-  ADDITIONAL_OWNERS_FETCHED,
-  EXPAND_FILTERS,
-  FETCHING_ADDITIONAL_OWNERS,
-  FETCHING_HOUSING,
-  FETCHING_HOUSING_EVENTS,
-  FETCHING_HOUSING_LIST,
-  FETCHING_HOUSING_OWNERS,
-  HOUSING_EVENTS_FETCHED,
-  HOUSING_FETCHED,
-  HOUSING_LIST_FETCHED,
-  HOUSING_OWNERS_FETCHED,
-  HOUSING_OWNERS_UPDATE,
-  HousingActionTypes,
+  AdditionalOwnersFetchedAction,
+  ExpandFiltersAction,
+  FetchingAdditionalOwnersAction,
+  FetchingHousingListAction,
+  HousingEventsFetchedAction,
+  HousingFetchedAction,
+  HousingListFetchedAction,
+  HousingOwnersFetchedAction,
+  HousingOwnersUpdateAction,
 } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
-import { PaginatedResult } from '../../models/PaginatedResult';
+import {
+  initialPaginatedResult,
+  PaginatedResult,
+} from '../../models/PaginatedResult';
 import config from '../../utils/config';
 import { HousingOwner, Owner } from '../../models/Owner';
 import { Event } from '../../models/Event';
 import { FormState } from '../actions/FormState';
+import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface HousingState {
-  paginate: boolean;
+  paginate?: boolean;
   paginatedHousing: PaginatedResult<Housing>;
   filters: HousingFilters;
   filtersExpanded: boolean;
@@ -30,7 +30,7 @@ export interface HousingState {
   housingOwners?: HousingOwner[];
   additionalOwners?: {
     paginatedOwners: PaginatedResult<Owner>;
-    q: string;
+    q?: string;
   };
   events?: Event[];
   checkedHousingIds?: string[];
@@ -80,112 +80,117 @@ const initialState: HousingState = {
   filtersExpanded: false,
 };
 
-const housingReducer = (state = initialState, action: HousingActionTypes) => {
-  switch (action.type) {
-    case EXPAND_FILTERS:
-      return {
-        ...state,
-        filtersExpanded: action.value,
-      };
-    case FETCHING_HOUSING:
-      return {
-        ...state,
-        housing: undefined,
-      };
-    case HOUSING_FETCHED:
-      return {
-        ...state,
-        housing: action.housing,
-      };
-    case FETCHING_HOUSING_OWNERS:
-      return {
-        ...state,
-        housingOwners: undefined,
-      };
-    case HOUSING_OWNERS_FETCHED:
-      return {
-        ...state,
-        housingOwners: action.housingOwners,
-      };
-    case FETCHING_ADDITIONAL_OWNERS:
-      return {
-        ...state,
-        additionalOwners: {
-          paginatedOwners: {
-            page: action.page,
-            perPage: action.perPage,
-            loading: true,
-          },
-          q: action.q,
-        },
-      };
-    case ADDITIONAL_OWNERS_FETCHED: {
-      const isCurrentFetching =
-        action.q === state.additionalOwners?.q &&
-        action.paginatedOwners.page ===
-          state.additionalOwners?.paginatedOwners.page &&
-        action.paginatedOwners.perPage ===
-          state.additionalOwners.paginatedOwners.perPage;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            additionalOwners: {
-              ...state.additionalOwners,
-              paginatedOwners: {
-                ...state.additionalOwners?.paginatedOwners,
-                entities: action.paginatedOwners.entities,
-                filteredCount: action.paginatedOwners.filteredCount,
-                totalCount: action.paginatedOwners.totalCount,
-                loading: false,
-              },
-            },
-          };
-    }
-    case FETCHING_HOUSING_EVENTS:
-      return {
-        ...state,
-        events: [],
-      };
-    case HOUSING_OWNERS_UPDATE:
-      return {
-        ...state,
-        housingOwnersUpdateFormState: action.formState,
-      };
-    case HOUSING_EVENTS_FETCHED:
-      return {
-        ...state,
-        events: action.events,
-      };
-    case FETCHING_HOUSING_LIST:
-      return {
-        ...state,
-        paginate: action.pagination.paginate,
-        paginatedHousing: {
-          ...state.paginatedHousing,
+const housingSlice = createSlice({
+  name: 'housing',
+  initialState,
+  reducers: {
+    expandingFilters: (
+      state: HousingState,
+      action: PayloadAction<ExpandFiltersAction>
+    ) => {
+      state.filtersExpanded = action.payload.value;
+    },
+    fetchingHousing: (state: HousingState) => {
+      state.housing = undefined;
+    },
+    housingFetched: (
+      state: HousingState,
+      action: PayloadAction<HousingFetchedAction>
+    ) => {
+      state.housing = action.payload.housing;
+    },
+    fetchingHousingOwners: (state: HousingState) => {
+      state.housingOwners = undefined;
+    },
+    housingOwnersFetched: (
+      state: HousingState,
+      action: PayloadAction<HousingOwnersFetchedAction>
+    ) => {
+      state.housingOwners = action.payload.housingOwners;
+    },
+    fetchingAdditionalOwners: (
+      state: HousingState,
+      action: PayloadAction<FetchingAdditionalOwnersAction>
+    ) => {
+      state.additionalOwners = {
+        paginatedOwners: {
+          ...initialPaginatedResult(),
+          page: action.payload.page,
+          perPage: action.payload.perPage,
           loading: true,
         },
-        filters: action.filters,
+        q: action.payload.q,
       };
-    case HOUSING_LIST_FETCHED: {
-      return {
-        ...state,
-        paginate: action.paginate,
-        paginatedHousing: {
-          page: state.paginatedHousing.page ?? action.paginatedHousing.page,
-          perPage:
-            state.paginatedHousing.perPage ?? action.paginatedHousing.perPage,
-          entities: action.paginatedHousing.entities,
-          filteredCount: action.paginatedHousing.filteredCount,
-          totalCount: action.paginatedHousing.totalCount,
-          loading: false,
-        },
-        filters: action.filters,
+    },
+    additionalOwnersFetched: (
+      state: HousingState,
+      action: PayloadAction<AdditionalOwnersFetchedAction>
+    ) => {
+      const isCurrentFetching =
+        action.payload.q === current(state).additionalOwners?.q &&
+        action.payload.paginatedOwners.page ===
+          current(state).additionalOwners?.paginatedOwners.page &&
+        action.payload.paginatedOwners.perPage ===
+          current(state).additionalOwners?.paginatedOwners.perPage;
+      if (isCurrentFetching) {
+        state.additionalOwners = {
+          ...current(state).additionalOwners,
+          paginatedOwners: {
+            ...(current(state).additionalOwners?.paginatedOwners ??
+              initialPaginatedResult()),
+            entities: action.payload.paginatedOwners.entities,
+            filteredCount: action.payload.paginatedOwners.filteredCount,
+            totalCount: action.payload.paginatedOwners.totalCount,
+            loading: false,
+          },
+        };
+      }
+    },
+    fetchingHousingEvents: (state: HousingState) => {
+      state.events = [];
+    },
+    housingEventsFetched: (
+      state: HousingState,
+      action: PayloadAction<HousingEventsFetchedAction>
+    ) => {
+      state.events = action.payload.events;
+    },
+    housingOwnersUpdate: (
+      state: HousingState,
+      action: PayloadAction<HousingOwnersUpdateAction>
+    ) => {
+      state.housingOwnersUpdateFormState = action.payload.formState;
+    },
+    fetchingHousingList: (
+      state: HousingState,
+      action: PayloadAction<FetchingHousingListAction>
+    ) => {
+      state.paginate = action.payload.pagination.paginate;
+      state.paginatedHousing = {
+        ...state.paginatedHousing,
+        loading: true,
       };
-    }
-    default:
-      return state;
-  }
-};
+      state.filters = action.payload.filters;
+    },
+    housingListFetched: (
+      state: HousingState,
+      action: PayloadAction<HousingListFetchedAction>
+    ) => {
+      state.paginate = action.payload.paginate;
+      state.paginatedHousing = {
+        page:
+          state.paginatedHousing.page ?? action.payload.paginatedHousing.page,
+        perPage:
+          state.paginatedHousing.perPage ??
+          action.payload.paginatedHousing.perPage,
+        entities: action.payload.paginatedHousing.entities,
+        filteredCount: action.payload.paginatedHousing.filteredCount,
+        totalCount: action.payload.paginatedHousing.totalCount,
+        loading: false,
+      };
+      state.filters = action.payload.filters;
+    },
+  },
+});
 
-export default housingReducer;
+export default housingSlice;

@@ -22,19 +22,18 @@ import {
   createOwnerProspect,
   getLocality,
 } from '../../store/actions/ownerProspectAction';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import OwnerProspectForm from './OwnerProspectForm';
 import { PartialOwnerProspect } from '../../models/OwnerProspect';
 import Alert from '../../components/Alert/Alert';
 import { TaxKinds } from '../../models/Locality';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const EstablishmentHomeView = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
-  const { locality, ownerProspect } = useSelector(
-    (state: ApplicationState) => state.ownerProspect
+  const { locality, ownerProspect } = useAppSelector(
+    (state) => state.ownerProspect
   );
 
   const [addressOptions, setAddressOptions] = useState<

@@ -1,12 +1,12 @@
 import React from 'react';
 import { Col, Pagination, Row, Table } from '@dataesr/react-dsfr';
-import { useDispatch } from 'react-redux';
 import { changeAdditionalOwnersPagination } from '../../../store/actions/housingAction';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
 import { usePagination } from '../../../hooks/usePagination';
 import { PaginatedResult } from '../../../models/PaginatedResult';
+import { useAppDispatch } from '../../../hooks/useStore';
 
 interface Props {
   paginatedOwners: PaginatedResult<Owner>;
@@ -17,7 +17,7 @@ const HousingAdditionalOwnerSearchResults = ({
   paginatedOwners,
   onSelect,
 }: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { pageCount, rowNumber, hasPagination } =
     usePagination(paginatedOwners);

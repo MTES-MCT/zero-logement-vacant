@@ -12,6 +12,8 @@ import {
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';
 import { useClipboard } from '../../hooks/useClipboard';
+import homepage_thumbnail from '../../assets/images/homepage_thumbnail.png';
+import React from 'react';
 
 interface Props {
   establishment: Establishment;
@@ -32,7 +34,7 @@ function ContactPointPublicPage({ establishment }: Props) {
     <Container as="section" fluid className={styles.container}>
       <Row gutters>
         <Col n="3" className={styles.frame}>
-          Image
+          <img src={homepage_thumbnail} alt="" />
         </Col>
         <Col n="9" spacing="pl-4w">
           <Title as="h5">Page publique de {establishment.name}</Title>

@@ -6,76 +6,49 @@ import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
 import contactPointService from '../../services/contact-point.service';
 import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
-
-export const FETCH_LOCALITY_LIST = 'FETCH_LOCALITY_LIST';
-export const LOCALITY_LIST_FETCHED = 'LOCALITY_LIST_FETCHED';
-export const FETCH_GEO_PERIMETER_LIST = 'FETCH_GEO_PERIMETER_LIST';
-export const GEO_PERIMETER_LIST_FETCHED = 'GEO_PERIMETER_LIST_FETCHED';
-export const GEO_PERIMETER_FILE_UPLOADING = 'GEO_PERIMETER_FILE_UPLOADING';
-export const GEO_PERIMETER_FILE_UPLOADED = 'GEO_PERIMETER_FILE_UPLOADED';
-export const FETCH_CONTACT_POINT_LIST = 'FETCH_CONTACT_POINT_LIST';
-export const CONTACT_POINT_LIST_FETCHED = 'CONTACT_POINT_LIST_FETCHED';
-
-export interface FetchLocalityListAction {
-  type: typeof FETCH_LOCALITY_LIST;
-}
+import establishmentSlice from '../reducers/establishmentReducer';
 
 export interface LocalityListFetchedAction {
-  type: typeof LOCALITY_LIST_FETCHED;
   localities: Locality[];
-}
-export interface FetchGeoPerimeterListAction {
-  type: typeof FETCH_GEO_PERIMETER_LIST;
 }
 
 export interface GeoPerimeterListFetchedAction {
-  type: typeof GEO_PERIMETER_LIST_FETCHED;
   geoPerimeters: GeoPerimeter[];
 }
 
 export interface GeoPerimeterFileUploadingAction {
-  type: typeof GEO_PERIMETER_FILE_UPLOADING;
   file: File;
   filename: string;
 }
 
-export interface GeoPerimeterFileUploadedAction {
-  type: typeof GEO_PERIMETER_FILE_UPLOADED;
-}
-
-export interface FetchContactPointListAction {
-  type: typeof FETCH_CONTACT_POINT_LIST;
-}
-
 export interface ContactPointListFetchedAction {
-  type: typeof CONTACT_POINT_LIST_FETCHED;
   contactPoints: ContactPoint[];
 }
 
-export type EstablishmentActionTypes =
-  | GeoPerimeterFileUploadingAction
-  | GeoPerimeterFileUploadedAction
-  | FetchLocalityListAction
-  | LocalityListFetchedAction
-  | FetchGeoPerimeterListAction
-  | GeoPerimeterListFetchedAction
-  | FetchContactPointListAction
-  | ContactPointListFetchedAction;
+const {
+  fetchLocalityList,
+  contactPointListFetched,
+  fetchContactPointList,
+  fetchGeoPerimeterList,
+  geoPerimeterListFetched,
+  geoPerimeterFileUploading,
+  geoPerimeterFileUploaded,
+  localityListFetched,
+} = establishmentSlice.actions;
 
 export const fetchLocalities = () => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCH_LOCALITY_LIST,
-    });
+    dispatch(fetchLocalityList());
 
     localityService.listLocalities().then((localities) => {
       dispatch(hideLoading());
-      dispatch({
-        type: LOCALITY_LIST_FETCHED,
-        localities,
-      });
+      dispatch(
+        localityListFetched({
+          localities,
+        })
+      );
     });
   };
 };
@@ -84,16 +57,15 @@ export const fetchGeoPerimeters = () => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCH_GEO_PERIMETER_LIST,
-    });
+    dispatch(fetchGeoPerimeterList());
 
     geoService.listGeoPerimeters().then((geoPerimeters) => {
       dispatch(hideLoading());
-      dispatch({
-        type: GEO_PERIMETER_LIST_FETCHED,
-        geoPerimeters,
-      });
+      dispatch(
+        geoPerimeterListFetched({
+          geoPerimeters,
+        })
+      );
     });
   };
 };
@@ -143,15 +115,11 @@ export const uploadFile = (file: File) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: GEO_PERIMETER_FILE_UPLOADING,
-    });
+    dispatch(geoPerimeterFileUploading({ file, filename: file.name }));
 
     geoService.uploadGeoPerimeterFile(file).then(() => {
       dispatch(hideLoading());
-      dispatch({
-        type: GEO_PERIMETER_FILE_UPLOADED,
-      });
+      dispatch(geoPerimeterFileUploaded());
       fetchGeoPerimeters()(dispatch);
     });
   };
@@ -161,16 +129,15 @@ export const fetchContactPoints = () => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCH_CONTACT_POINT_LIST,
-    });
+    dispatch(fetchContactPointList());
 
     contactPointService.listContactPoints().then((contactPoints) => {
       dispatch(hideLoading());
-      dispatch({
-        type: CONTACT_POINT_LIST_FETCHED,
-        contactPoints,
-      });
+      dispatch(
+        contactPointListFetched({
+          contactPoints,
+        })
+      );
     });
   };
 };

@@ -26,7 +26,6 @@ import {
   createHousingNote,
   updateHousing,
 } from '../../store/actions/housingAction';
-import { useDispatch } from 'react-redux';
 import { HousingOwner } from '../../models/Owner';
 import HousingDetailsSubCardOwners from './HousingDetailsSubCardOwners';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -37,6 +36,7 @@ import HousingNoteModal from '../modals/HousingNoteModal/HousingNoteModal';
 import { HousingNote } from '../../models/Note';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
+import { useAppDispatch } from '../../hooks/useStore';
 
 interface Props {
   housing: Housing;
@@ -45,7 +45,7 @@ interface Props {
 }
 
 function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);

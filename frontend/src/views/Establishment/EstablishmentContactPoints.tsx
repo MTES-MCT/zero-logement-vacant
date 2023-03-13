@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { Button, Col, Row, Text, Title } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Alert from '../../components/Alert/Alert';
@@ -19,6 +17,7 @@ import {
 } from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPointCard/ContactPointCard';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 enum ActionSteps {
   Init,
@@ -32,10 +31,10 @@ interface ContactPointActionState {
 }
 
 const EstablishmentContactPoints = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { loading, contactPoints } = useSelector(
-    (state: ApplicationState) => state.establishment
+  const { loading, contactPoints } = useAppSelector(
+    (state) => state.establishment
   );
   const [editingState, setEditingState] = useState<
     ContactPointActionState | undefined

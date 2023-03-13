@@ -1,13 +1,11 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Button, Col, Link, Row, Text, TextInput } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   changeCampaignHousingPagination,
   listCampaignBundleHousing,
   removeCampaignHousingList,
   validCampaignStep,
 } from '../../store/actions/campaignAction';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';
 import * as yup from 'yup';
@@ -33,18 +31,18 @@ import Help from '../../components/Help/Help';
 import { useCampaignHousingSearch } from '../../hooks/useCampaignHousingSearch';
 import { prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
 }
 
 function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
-  const { campaignBundle, campaignBundleHousing, campaignList } = useSelector(
-    (state: ApplicationState) => state.campaign
-  );
+  const { campaignBundle, campaignBundleHousing, campaignList } =
+    useAppSelector((state) => state.campaign);
   const campaign = campaignList?.find(
     (_) => _.id === campaignBundle?.campaignIds[0]
   );

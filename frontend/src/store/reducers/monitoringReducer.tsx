@@ -1,14 +1,13 @@
 import { EstablishmentData } from '../../models/Establishment';
 import {
-  ESTABLISHMENT_DATA_FETCHED,
-  FETCH_HOUSING_BY_STATUS_COUNT,
-  FETCH_HOUSING_BY_STATUS_DURATION,
-  FETCH_HOUSING_TO_CONTACT,
-  FETCHING_ESTABLISHMENT_DATA,
-  HOUSING_BY_STATUS_COUNT_FETCHED,
-  HOUSING_BY_STATUS_DURATION_FETCHED,
-  HOUSING_TO_CONTACT_FETCHED,
-  MonitoringActionTypes,
+  EstablishmentDataFetchedAction,
+  FetchHousingByStatusCountAction,
+  FetchHousingByStatusDurationAction,
+  FetchHousingToContactAction,
+  FetchingEstablishmentDataAction,
+  HousingByStatusCountFetchedAction,
+  HousingByStatusDurationFetchedAction,
+  HousingToContactFetchedAction,
 } from '../actions/monitoringAction';
 import {
   HousingStatusCount,
@@ -18,6 +17,7 @@ import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
 import config from '../../utils/config';
+import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface MonitoringState {
   housingByStatusCount?: HousingStatusCount[];
@@ -50,92 +50,95 @@ const initialState: MonitoringState = {
   paginatedHousingToContactFilters: initialMonitoringFilters,
 };
 
-const monitoringReducer = (
-  state = initialState,
-  action: MonitoringActionTypes
-) => {
-  switch (action.type) {
-    case FETCH_HOUSING_BY_STATUS_COUNT:
-      return {
-        ...state,
-        housingByStatusCountFilters: action.filters,
-      };
-    case HOUSING_BY_STATUS_COUNT_FETCHED: {
+const monitoringSlice = createSlice({
+  name: 'monitoring',
+  initialState,
+  reducers: {
+    fetchingHousingByStatusCount: (
+      state: MonitoringState,
+      action: PayloadAction<FetchHousingByStatusCountAction>
+    ) => {
+      state.housingByStatusCountFilters = action.payload.filters;
+    },
+    housingByStatusCountFetched: (
+      state: MonitoringState,
+      action: PayloadAction<HousingByStatusCountFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.filters === state.housingByStatusCountFilters;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            housingByStatusCount: action.housingByStatusCount,
-          };
-    }
-    case FETCH_HOUSING_BY_STATUS_DURATION:
-      return {
-        ...state,
-        housingByStatusDurationFilters: action.filters,
-      };
-    case HOUSING_BY_STATUS_DURATION_FETCHED: {
+        action.payload.filters === current(state).housingByStatusCountFilters;
+      if (isCurrentFetching) {
+        state.housingByStatusCount = action.payload.housingByStatusCount;
+      }
+    },
+    fetchingHousingByStatusDuration: (
+      state: MonitoringState,
+      action: PayloadAction<FetchHousingByStatusDurationAction>
+    ) => {
+      state.housingByStatusDurationFilters = action.payload.filters;
+    },
+    housingByStatusDurationFetched: (
+      state: MonitoringState,
+      action: PayloadAction<HousingByStatusDurationFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.filters === state.housingByStatusDurationFilters;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            housingByStatusDuration: action.housingByStatusDuration,
-          };
-    }
-    case FETCH_HOUSING_TO_CONTACT:
-      return {
-        ...state,
-        paginatedHousingToContact: {
-          entities: [],
-          totalCount: 0,
-          filteredCount: 0,
-          page: action.page,
-          perPage: action.perPage,
-          loading: true,
-        },
-        paginatedHousingToContactFilters: action.filters,
+        action.payload.filters ===
+        current(state).housingByStatusDurationFilters;
+      if (isCurrentFetching) {
+        state.housingByStatusDuration = action.payload.housingByStatusDuration;
+      }
+    },
+    fetchingHousingToContact: (
+      state: MonitoringState,
+      action: PayloadAction<FetchHousingToContactAction>
+    ) => {
+      state.paginatedHousingToContact = {
+        entities: [],
+        totalCount: 0,
+        filteredCount: 0,
+        page: action.payload.page,
+        perPage: action.payload.perPage,
+        loading: true,
       };
-    case HOUSING_TO_CONTACT_FETCHED: {
+      state.paginatedHousingToContactFilters = action.payload.filters;
+    },
+    housingToContactFetchedAction: (
+      state: MonitoringState,
+      action: PayloadAction<HousingToContactFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.filters === state.paginatedHousingToContactFilters &&
-        action.paginatedHousing.page ===
-          state.paginatedHousingToContact?.page &&
-        action.paginatedHousing.perPage ===
-          state.paginatedHousingToContact?.perPage;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            paginatedHousingToContact: {
-              ...state.paginatedHousingToContact,
-              entities: action.paginatedHousing.entities,
-              totalCount: action.paginatedHousing.totalCount,
-              filteredCount: action.paginatedHousing.filteredCount,
-              loading: false,
-            },
-          };
-    }
-    case FETCHING_ESTABLISHMENT_DATA:
-      return {
-        ...state,
-        establishmentDataFilters: action.filters,
-      };
-    case ESTABLISHMENT_DATA_FETCHED: {
+        action.payload.filters ===
+          current(state).paginatedHousingToContactFilters &&
+        action.payload.paginatedHousing.page ===
+          current(state).paginatedHousingToContact?.page &&
+        action.payload.paginatedHousing.perPage ===
+          current(state).paginatedHousingToContact?.perPage;
+      if (isCurrentFetching) {
+        state.paginatedHousingToContact = {
+          ...current(state).paginatedHousingToContact,
+          entities: action.payload.paginatedHousing.entities,
+          totalCount: action.payload.paginatedHousing.totalCount,
+          filteredCount: action.payload.paginatedHousing.filteredCount,
+          loading: false,
+        };
+      }
+    },
+    fetchingEstablishmentData: (
+      state: MonitoringState,
+      action: PayloadAction<FetchingEstablishmentDataAction>
+    ) => {
+      state.establishmentDataFilters = action.payload.filters;
+    },
+    establishmentDataFetched: (
+      state: MonitoringState,
+      action: PayloadAction<EstablishmentDataFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.filters === state.establishmentDataFilters;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            establishmentData: action.establishmentData,
-          };
-    }
-    default:
-      return state;
-  }
-};
+        action.payload.filters === current(state).establishmentDataFilters;
+      if (isCurrentFetching) {
+        state.establishmentData = action.payload.establishmentData;
+      }
+    },
+  },
+});
 
-export default monitoringReducer;
+export default monitoringSlice;

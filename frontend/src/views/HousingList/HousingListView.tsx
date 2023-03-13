@@ -10,8 +10,6 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import HousingListFilters from '../../components/HousingListFilters/HousingListFilters';
 import HousingList, {
   HousingDisplayKey,
@@ -50,12 +48,13 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Map, { MapProps } from '../../components/Map/Map';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
 import { ViewState } from 'react-map-gl';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 type ViewMode = 'list' | 'map';
 
 const HousingListView = () => {
   useDocumentTitle('Base de données');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { search } = useLocation();
   const { trackEvent } = useMatomo();
   const { onResetFilters } = useFilters();
@@ -78,8 +77,8 @@ const HousingListView = () => {
     return selectedHousing.all || selectedHousing.ids.length > 0;
   }
 
-  const { paginatedHousing, filters } = useSelector(
-    (state: ApplicationState) => state.housing
+  const { paginatedHousing, filters } = useAppSelector(
+    (state) => state.housing
   );
 
   useEffect(() => {

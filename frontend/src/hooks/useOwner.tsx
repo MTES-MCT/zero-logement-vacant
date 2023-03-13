@@ -1,15 +1,14 @@
-import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { useEffect } from 'react';
 import {
   getOwner,
   getOwnerEvents,
   getOwnerHousing,
 } from '../store/actions/ownerAction';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export function useOwner() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { ownerId } = useParams<{ ownerId: string }>();
 
   useEffect(() => {
@@ -18,8 +17,8 @@ export function useOwner() {
     dispatch(getOwnerEvents(ownerId));
   }, [ownerId, dispatch]);
 
-  const { events, housingList, housingTotalCount, owner } = useSelector(
-    (state: ApplicationState) => state.owner
+  const { events, housingList, housingTotalCount, owner } = useAppSelector(
+    (state) => state.owner
   );
 
   return {

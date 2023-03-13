@@ -9,6 +9,7 @@ import { genEmail, genSignupLinkApi } from '../test/testFixtures';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
 import { SignupLinkApi } from '../models/SignupLinkApi';
 import { subHours } from 'date-fns';
+import { User1 } from '../../database/seeds/test/003-users';
 
 describe('Signup link controller', () => {
   const { app } = createServer();
@@ -35,6 +36,16 @@ describe('Signup link controller', () => {
         .post(testRoute)
         .send({ email: 'wrong-format' })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should send no email if the account already exists', async () => {
+      const { status } = await request(app).post(testRoute).send({
+        email: User1.email,
+      });
+
+      // Return a success code to avoid giving information to an attacker
+      // that an account already exists with the given email
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
     });
 
     it('should create a signup link', async () => {

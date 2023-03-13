@@ -12,58 +12,34 @@ import campaignService, {
   ValidateCampaignStepParams,
 } from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { ApplicationState } from '../reducers/applicationReducers';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import housingService from '../../services/housing.service';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
-
-export const FETCH_CAMPAIGN_LIST = 'FETCH_CAMPAIGN_LIST';
-export const CAMPAIGN_LIST_FETCHED = 'CAMPAIGN_LIST_FETCHED';
-export const FETCH_CAMPAIGN_BUNDLE_LIST = 'FETCH_CAMPAIGN_BUNDLE_LIST';
-export const CAMPAIGN_BUNDLE_LIST_FETCHED = 'CAMPAIGN_BUNDLE_LIST_FETCHED';
-export const FETCH_CAMPAIGN_BUNDLE = 'FETCH_CAMPAIGN_BUNDLE';
-export const CAMPAIGN_BUNDLE_FETCHED = 'CAMPAIGN_BUNDLE_FETCHED';
-export const FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST =
-  'FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST';
-export const CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED =
-  'CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED';
-export const CAMPAIGN_CREATED = 'CAMPAIGN_CREATED';
-export const CAMPAIGN_UPDATED = 'CAMPAIGN_UPDATED';
-
-export interface FetchCampaignListAction {
-  type: typeof FETCH_CAMPAIGN_LIST;
-}
+import campaignSlice from '../reducers/campaignReducer';
+import { AppState } from '../store';
 
 export interface CampaignListFetchedAction {
-  type: typeof CAMPAIGN_LIST_FETCHED;
   campaignList: Campaign[];
-}
-export interface FetchCampaignBundleListAction {
-  type: typeof FETCH_CAMPAIGN_BUNDLE_LIST;
 }
 
 export interface CampaignBundleListFetchedAction {
-  type: typeof CAMPAIGN_BUNDLE_LIST_FETCHED;
   campaignBundleList: CampaignBundle[];
 }
 
-export interface FetchCampaignAction {
-  type: typeof FETCH_CAMPAIGN_BUNDLE;
+export interface FetchCampaignBundleAction {
   campaignBundleFetchingId: CampaignBundleId;
   searchQuery?: string;
 }
 
 export interface CampaignBundleFetchedAction {
-  type: typeof CAMPAIGN_BUNDLE_FETCHED;
-  campaignBundle: Campaign[];
+  campaignBundle: CampaignBundle;
   campaignBundleFetchingId: CampaignBundleId;
   searchQuery?: string;
 }
 
 export interface FetchCampaignBundleHousingListAction {
-  type: typeof FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST;
   campaignIds: string[];
   status?: HousingStatus;
   page: number;
@@ -71,49 +47,46 @@ export interface FetchCampaignBundleHousingListAction {
 }
 
 export interface CampaignBundleHousingListFetchedAction {
-  type: typeof CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED;
   campaignIds: string[];
   status?: HousingStatus;
   paginatedHousing: PaginatedResult<Housing>;
 }
 
 export interface CampaignCreatedAction {
-  type: typeof CAMPAIGN_CREATED;
-  campaignBundleFetchingId: CampaignBundleId;
+  campaignBundleFetchingId?: CampaignBundleId;
 }
 
 export interface CampaignUpdatedAction {
-  type: typeof CAMPAIGN_UPDATED;
-  campaignBundleFetchingId: CampaignBundleId;
+  campaignBundleFetchingId?: CampaignBundleId;
 }
 
-export type CampaignActionTypes =
-  | FetchCampaignListAction
-  | CampaignListFetchedAction
-  | FetchCampaignBundleListAction
-  | CampaignBundleListFetchedAction
-  | FetchCampaignAction
-  | CampaignBundleFetchedAction
-  | FetchCampaignBundleHousingListAction
-  | CampaignBundleHousingListFetchedAction
-  | CampaignCreatedAction
-  | CampaignUpdatedAction;
+const {
+  campaignUpdated,
+  campaignCreated,
+  campaignBundleListFetched,
+  campaignBundleHousingListFetched,
+  fetchCampaignBundle,
+  campaignBundleFetched,
+  campaignListFetched,
+  fetchCampaignBundleHousingList,
+  fetchCampaignBundleList,
+  fetchCampaignList,
+} = campaignSlice.actions;
 
 export const listCampaigns = () => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     if (!getState().campaign.loading) {
       dispatch(showLoading());
 
-      dispatch({
-        type: FETCH_CAMPAIGN_LIST,
-      });
+      dispatch(fetchCampaignList());
 
       campaignService.listCampaigns().then((campaignList) => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_LIST_FETCHED,
-          campaignList,
-        });
+        dispatch(
+          campaignListFetched({
+            campaignList,
+          })
+        );
       });
     }
   };
@@ -123,16 +96,15 @@ export const listCampaignBundles = () => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCH_CAMPAIGN_BUNDLE_LIST,
-    });
+    dispatch(fetchCampaignBundleList());
 
     campaignService.listCampaignBundles().then((campaignBundleList) => {
       dispatch(hideLoading());
-      dispatch({
-        type: CAMPAIGN_BUNDLE_LIST_FETCHED,
-        campaignBundleList,
-      });
+      dispatch(
+        campaignBundleListFetched({
+          campaignBundleList,
+        })
+      );
     });
   };
 };
@@ -144,22 +116,24 @@ export const getCampaignBundle = (
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCH_CAMPAIGN_BUNDLE,
-      campaignBundleFetchingId: campaignBundleId,
-      searchQuery,
-    });
+    dispatch(
+      fetchCampaignBundle({
+        campaignBundleFetchingId: campaignBundleId,
+        searchQuery,
+      })
+    );
 
     campaignService
       .getCampaignBundle(campaignBundleId, searchQuery)
       .then((campaignBundle) => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_BUNDLE_FETCHED,
-          campaignBundleFetchingId: campaignBundleId,
-          campaignBundle,
-          searchQuery,
-        });
+        dispatch(
+          campaignBundleFetched({
+            campaignBundleFetchingId: campaignBundleId,
+            campaignBundle,
+            searchQuery,
+          })
+        );
       });
   };
 };
@@ -169,7 +143,7 @@ export const listCampaignBundleHousing = (
   status?: HousingStatus,
   query?: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const page = 1;
@@ -179,13 +153,14 @@ export const listCampaignBundleHousing = (
         : getState().campaign.campaignBundleHousing
     ).perPage;
 
-    dispatch({
-      type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
-      campaignIds: campaignBundle.campaignIds,
-      status,
-      page,
-      perPage,
-    });
+    dispatch(
+      fetchCampaignBundleHousingList({
+        campaignIds: campaignBundle.campaignIds,
+        status,
+        page,
+        perPage,
+      })
+    );
 
     const filters = {
       campaignIds: campaignBundle.campaignIds,
@@ -198,12 +173,13 @@ export const listCampaignBundleHousing = (
       })
       .then((result: PaginatedResult<Housing>) => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
-          campaignIds: campaignBundle.campaignIds,
-          status,
-          paginatedHousing: result,
-        });
+        dispatch(
+          campaignBundleHousingListFetched({
+            campaignIds: campaignBundle.campaignIds,
+            status,
+            paginatedHousing: result,
+          })
+        );
       });
   };
 };
@@ -213,20 +189,21 @@ export const changeCampaignHousingPagination = (
   perPage: number,
   status?: HousingStatus
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const campaignBundle = getState().campaign.campaignBundle;
     const searchQuery = getState().campaign.searchQuery;
 
     if (campaignBundle) {
       dispatch(showLoading());
 
-      dispatch({
-        type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
-        campaignHousingFetchingIds: campaignBundle.campaignIds,
-        status,
-        page,
-        perPage,
-      });
+      dispatch(
+        fetchCampaignBundleHousingList({
+          campaignIds: campaignBundle.campaignIds,
+          status,
+          page,
+          perPage,
+        })
+      );
 
       const filters = {
         campaignIds: campaignBundle.campaignIds,
@@ -242,12 +219,13 @@ export const changeCampaignHousingPagination = (
         })
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
-          dispatch({
-            type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
-            campaignHousingFetchingIds: campaignBundle.campaignIds,
-            status,
-            paginatedHousing: result,
-          });
+          dispatch(
+            campaignBundleHousingListFetched({
+              campaignIds: campaignBundle.campaignIds,
+              status,
+              paginatedHousing: result,
+            })
+          );
         });
     }
   };
@@ -257,7 +235,7 @@ export const changeCampaignHousingSort = (
   sort: HousingSort,
   status?: HousingStatus
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const { campaignBundle, searchQuery, campaignBundleHousing } =
       getState().campaign;
 
@@ -269,12 +247,14 @@ export const changeCampaignHousingSort = (
         perPage: campaignBundleHousing.perPage,
       };
 
-      dispatch({
-        type: FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
-        campaignHousingFetchingIds: campaignBundle.campaignIds,
-        status,
-        ...pagination,
-      });
+      dispatch(
+        fetchCampaignBundleHousingList({
+          campaignIds: campaignBundle.campaignIds,
+          status,
+          page: 1,
+          perPage: campaignBundleHousing.perPage,
+        })
+      );
 
       const filters = {
         campaignIds: campaignBundle.campaignIds,
@@ -288,12 +268,13 @@ export const changeCampaignHousingSort = (
         })
         .then((result: PaginatedResult<Housing>) => {
           dispatch(hideLoading());
-          dispatch({
-            type: CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
-            campaignHousingFetchingIds: campaignBundle.campaignIds,
-            status,
-            paginatedHousing: result,
-          });
+          dispatch(
+            campaignBundleHousingListFetched({
+              campaignIds: campaignBundle.campaignIds,
+              status,
+              paginatedHousing: result,
+            })
+          );
         });
     }
   };
@@ -304,17 +285,18 @@ export const createCampaign = (
   allHousing: boolean,
   housingIds: string[]
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     campaignService
       .createCampaign(draftCampaign, allHousing, housingIds)
       .then((campaign) => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_CREATED,
-          campaignBundleFetchingId: getCampaignBundleId(campaign),
-        });
+        dispatch(
+          campaignCreated({
+            campaignBundleFetchingId: getCampaignBundleId(campaign),
+          })
+        );
         listCampaigns()(dispatch, getState);
       });
   };
@@ -325,7 +307,7 @@ export const createCampaignBundleReminder = (
   allHousing: boolean,
   housingIds: string[]
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const campaignBundleId = getCampaignBundleId(
       getState().campaign.campaignBundle
     );
@@ -342,10 +324,11 @@ export const createCampaignBundleReminder = (
         )
         .then((campaign) => {
           dispatch(hideLoading());
-          dispatch({
-            type: CAMPAIGN_CREATED,
-            campaignBundleFetchingId: getCampaignBundleId(campaign),
-          });
+          dispatch(
+            campaignCreated({
+              campaignBundleFetchingId: getCampaignBundleId(campaign),
+            })
+          );
           listCampaigns()(dispatch, getState);
         });
     }
@@ -356,17 +339,18 @@ export const updateCampaignBundleTitle = (
   campaignBundleId: CampaignBundleId,
   title?: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     campaignService
       .updateCampaignBundleTitle(campaignBundleId, title)
       .then(() => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_UPDATED,
-          campaignBundleFetchingId: campaignBundleId,
-        });
+        dispatch(
+          campaignUpdated({
+            campaignBundleFetchingId: campaignBundleId,
+          })
+        );
         if (getState().campaign.campaignBundle) {
           getCampaignBundle(
             getState().campaign.campaignBundle as CampaignBundleId,
@@ -385,17 +369,18 @@ export const validCampaignStep = (
   step: CampaignSteps,
   params?: ValidateCampaignStepParams
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     campaignService
       .validCampaignStep(campaignId, step, params)
       .then((campaign) => {
         dispatch(hideLoading());
-        dispatch({
-          type: CAMPAIGN_UPDATED,
-          campaignBundleFetchingId: getCampaignBundleId(campaign),
-        });
+        dispatch(
+          campaignUpdated({
+            campaignBundleFetchingId: getCampaignBundleId(campaign),
+          })
+        );
         listCampaigns()(dispatch, getState);
       });
   };
@@ -407,7 +392,7 @@ export const updateCampaignHousingList = (
   allHousing: boolean,
   housingIds: string[]
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     const campaignIds = getState().campaign.campaignBundle?.campaignIds;
     const searchQuery = getState().campaign.searchQuery;
 
@@ -454,7 +439,7 @@ export const removeCampaignHousingList = (
   housingIds: string[],
   currentStatus?: HousingStatus
 ) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const paginatedHousing = currentStatus
@@ -480,7 +465,7 @@ export const removeCampaignHousingList = (
 };
 
 export const deleteCampaignBundle = (campaignBundleId: CampaignBundleId) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     campaignService.deleteCampaignBundle(campaignBundleId).then(() => {

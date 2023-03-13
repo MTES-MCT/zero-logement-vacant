@@ -8,8 +8,6 @@ import {
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   changePassword,
   initPasswordChange,
@@ -23,18 +21,17 @@ import {
   useForm,
 } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const AccountPasswordView = () => {
   useDocumentTitle('Mot de passe');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
 
-  const { passwordFormState } = useSelector(
-    (state: ApplicationState) => state.authentication
-  );
+  const { passwordFormState } = useAppSelector((state) => state.authentication);
 
   const form = yup.object().shape({
     currentPassword: yup

@@ -2,12 +2,12 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { User } from '../../models/User';
 import config from '../../utils/config';
 import {
-  FETCH_USER_LIST,
-  USER_LIST_FETCHED,
-  USER_REMOVED,
-  UserActionTypes,
+  FetchUserListAction,
+  UserListFetchedAction,
+  UserRemovedAction,
 } from '../actions/userAction';
 import { UserFilters } from '../../models/UserFilters';
+import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface UserState {
   paginatedUsers: PaginatedResult<User>;
@@ -30,55 +30,58 @@ const initialState: UserState = {
   filters: initialUserFilters,
 };
 
-const userReducer = (state = initialState, action: UserActionTypes) => {
-  switch (action.type) {
-    case FETCH_USER_LIST:
-      return {
-        ...state,
-        paginatedUsers: {
-          entities: [],
-          totalCount: 0,
-          filteredCount: 0,
-          page: action.page,
-          perPage: action.perPage,
-          loading: true,
-        },
-        filters: action.filters,
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    fetchUserList: (
+      state: UserState,
+      action: PayloadAction<FetchUserListAction>
+    ) => {
+      state.paginatedUsers = {
+        entities: [],
+        totalCount: 0,
+        filteredCount: 0,
+        page: action.payload.page,
+        perPage: action.payload.perPage,
+        loading: true,
       };
-    case USER_LIST_FETCHED: {
+      state.filters = action.payload.filters;
+    },
+    userListFetched: (
+      state: UserState,
+      action: PayloadAction<UserListFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.filters === state.filters &&
-        action.paginatedUsers.page === state.paginatedUsers.page &&
-        action.paginatedUsers.perPage === state.paginatedUsers.perPage;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            paginatedUsers: {
-              ...state.paginatedUsers,
-              entities: action.paginatedUsers.entities,
-              filteredCount: action.paginatedUsers.filteredCount,
-              totalCount: action.paginatedUsers.totalCount,
-              loading: false,
-            },
-          };
-    }
-    case USER_REMOVED: {
-      return {
-        ...state,
-        paginatedUsers: {
-          ...state.paginatedUsers,
-          entities: state.paginatedUsers.entities.filter(
-            (user) => user.id !== action.id
-          ),
-          filteredCount: state.paginatedUsers.filteredCount - 1,
-          totalCount: state.paginatedUsers.totalCount - 1,
-        },
+        action.payload.filters === current(state).filters &&
+        action.payload.paginatedUsers.page ===
+          current(state).paginatedUsers.page &&
+        action.payload.paginatedUsers.perPage ===
+          current(state).paginatedUsers.perPage;
+      if (isCurrentFetching) {
+        state.paginatedUsers = {
+          ...current(state).paginatedUsers,
+          entities: action.payload.paginatedUsers.entities,
+          filteredCount: action.payload.paginatedUsers.filteredCount,
+          totalCount: action.payload.paginatedUsers.totalCount,
+          loading: false,
+        };
+      }
+    },
+    userRemoved: (
+      state: UserState,
+      action: PayloadAction<UserRemovedAction>
+    ) => {
+      state.paginatedUsers = {
+        ...state.paginatedUsers,
+        entities: state.paginatedUsers.entities.filter(
+          (user) => user.id !== action.payload.id
+        ),
+        filteredCount: state.paginatedUsers.filteredCount - 1,
+        totalCount: state.paginatedUsers.totalCount - 1,
       };
-    }
-    default:
-      return state;
-  }
-};
+    },
+  },
+});
 
-export default userReducer;
+export default userSlice;

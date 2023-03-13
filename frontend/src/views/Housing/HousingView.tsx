@@ -7,13 +7,13 @@ import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import { Owner } from '../../models/Owner';
-import { useDispatch } from 'react-redux';
 import { updateMainHousingOwner } from '../../store/actions/housingAction';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch } from '../../hooks/useStore';
 
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { housing, mainHousingOwner, housingOwners, events } = useHousing();
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 

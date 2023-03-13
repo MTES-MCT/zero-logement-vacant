@@ -2,13 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../../store/reducers/applicationReducers';
-import thunk from 'redux-thunk';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
 import userEvent from '@testing-library/user-event';
+import { configureStore } from '@reduxjs/toolkit';
+import { applicationReducer } from '../../../store/store';
 
 describe('Campagne creation modal', () => {
   const user = userEvent.setup();
@@ -27,11 +26,10 @@ describe('Campagne creation modal', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    store = createStore(
-      applicationReducer,
-      { authentication: { authUser: genAuthUser() } },
-      applyMiddleware(thunk)
-    );
+    store = configureStore({
+      reducer: applicationReducer,
+      preloadedState: { authentication: { authUser: genAuthUser() } },
+    });
   });
 
   test('should display housing count, campaign title input and submit button', () => {

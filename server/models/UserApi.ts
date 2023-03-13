@@ -1,3 +1,5 @@
+import { User } from '../../shared/models/User';
+
 export interface UserApi {
   id: string;
   email: string;
@@ -7,6 +9,16 @@ export interface UserApi {
   establishmentId?: string;
   role: number;
   activatedAt?: Date;
+}
+
+export function toUserDTO(user: UserApi): User {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    activatedAt: user.activatedAt,
+  };
 }
 
 export interface TokenPayload {

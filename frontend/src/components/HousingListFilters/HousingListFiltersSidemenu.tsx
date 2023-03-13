@@ -36,7 +36,6 @@ import {
   vacancyDurationOptions,
   vacancyRateOptions,
 } from '../../models/HousingFilters';
-import { useSelector } from 'react-redux';
 import styles from './housing-list-filters.module.scss';
 import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
@@ -46,12 +45,12 @@ import {
 } from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
+import { useAppSelector } from '../../hooks/useStore';
 
 interface TitleWithIconProps {
   icon: string;
@@ -68,23 +67,23 @@ function TitleWithIcon(props: TitleWithIconProps) {
 }
 
 function HousingListFiltersSidemenu() {
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
   );
   const feature = useFeature({
-    establishmentId: establishment.id,
+    establishmentId: establishment?.id,
   });
   const { expand, filters, onChangeFilters, onResetFilters, setExpand } =
     useFilters();
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
-  const { paginatedHousing } = useSelector(
-    (state: ApplicationState) => state.housing
-  );
+  const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList();
   const localities = localitiesOptions
     // Remove those localities which are already selected
-    .filter((option) => !filters.localities?.includes(option.value));
+    .filter(
+      (option: { value: any }) => !filters.localities?.includes(option.value)
+    );
 
   function close(): void {
     setExpand(false);

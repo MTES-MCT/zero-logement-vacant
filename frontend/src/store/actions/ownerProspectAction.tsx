@@ -4,44 +4,32 @@ import { Locality } from '../../models/Locality';
 import localityService from '../../services/locality.service';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import ownerProspectService from '../../services/owner-prospect.service';
-
-export const FETCHING_LOCALITY = 'FETCHING_LOCALITY';
-export const LOCALITY_FETCHED = 'LOCALITY_FETCHED';
-export const OWNER_PROSPECT_CREATED = 'OWNER_PROSPECT_CREATED';
-
-export interface FetchingLocalityAction {
-  type: typeof FETCHING_LOCALITY;
-}
+import ownerProspectSlice from '../reducers/ownerProspectReducer';
 
 export interface LocalityFetchedAction {
-  type: typeof LOCALITY_FETCHED;
   locality: Locality;
 }
 
 export interface OwnerProspectCreatedAction {
-  type: typeof OWNER_PROSPECT_CREATED;
   ownerProspect: OwnerProspect;
 }
 
-export type OwnerLocalityActionTypes =
-  | FetchingLocalityAction
-  | LocalityFetchedAction
-  | OwnerProspectCreatedAction;
+const { localityFetched, fetchingLocality, ownerProspectCreated } =
+  ownerProspectSlice.actions;
 
 export const getLocality = (geoCode: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_LOCALITY,
-    });
+    dispatch(fetchingLocality());
 
     localityService.getLocality(geoCode).then((locality) => {
       dispatch(hideLoading());
-      dispatch({
-        type: LOCALITY_FETCHED,
-        locality,
-      });
+      dispatch(
+        localityFetched({
+          locality,
+        })
+      );
     });
   };
 };
@@ -51,10 +39,11 @@ export const createOwnerProspect = (ownerProspect: OwnerProspect) => {
     dispatch(showLoading());
     ownerProspectService.createOwnerProspect(ownerProspect).then((o) => {
       dispatch(hideLoading());
-      dispatch({
-        type: OWNER_PROSPECT_CREATED,
-        ownerProspect: o,
-      });
+      dispatch(
+        ownerProspectCreated({
+          ownerProspect: o,
+        })
+      );
     });
   };
 };

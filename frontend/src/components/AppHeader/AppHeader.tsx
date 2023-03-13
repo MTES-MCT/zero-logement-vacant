@@ -11,8 +11,6 @@ import {
   ToolItemGroup,
 } from '@dataesr/react-dsfr';
 import { Link, useHistory, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import {
@@ -24,6 +22,7 @@ import { logout } from '../../store/actions/authenticationAction';
 import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
@@ -51,14 +50,12 @@ function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
 
 function AppHeader() {
   const location = useLocation();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const history = useHistory();
   const { trackPageView } = useMatomo();
   const { isAdmin, isAuthenticated } = useUser();
 
-  const { authUser } = useSelector(
-    (state: ApplicationState) => state.authentication
-  );
+  const { authUser } = useAppSelector((state) => state.authentication);
 
   useEffect(() => {
     trackPageView({});
@@ -69,9 +66,11 @@ function AppHeader() {
   };
 
   function displayName(): string {
-    return authUser.user.firstName && authUser.user.lastName
-      ? `${authUser.user.firstName} ${authUser.user.lastName}`
-      : authUser.user.email;
+    return authUser
+      ? authUser.user.firstName && authUser.user.lastName
+        ? `${authUser.user.firstName} ${authUser.user.lastName}`
+        : authUser.user.email
+      : '';
   }
 
   const menuActions = [
@@ -102,7 +101,7 @@ function AppHeader() {
           </Logo>
           <Service
             title="Zéro Logement Vacant"
-            description={isAuthenticated ? authUser.establishment.name : ''}
+            description={isAuthenticated ? authUser?.establishment.name : ''}
           />
           {isAuthenticated ? (
             <Tool>
@@ -149,7 +148,7 @@ function AppHeader() {
               <AppNavItem
                 userNavItem={getUserNavItem(
                   UserNavItems.EstablishmentMonitoring,
-                  authUser.establishment.id
+                  authUser?.establishment.id
                 )}
               />
             )}

@@ -4,19 +4,18 @@ import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';
 import { useFeature } from '../../hooks/useFeature';
-import { useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
+import { useAppSelector } from '../../hooks/useStore';
 
 interface Props {
   housing: Housing;
 }
 
 function HousingDetailsSubCardBuilding({ housing }: Props) {
-  const { establishment } = useSelector(
-    (state: ApplicationState) => state.authentication.authUser
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
   );
   const features = useFeature({
-    establishmentId: establishment.id,
+    establishmentId: establishment?.id,
   });
 
   return (

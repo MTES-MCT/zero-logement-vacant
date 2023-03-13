@@ -16,7 +16,7 @@ router.get('/prospects/:email', prospectController.showProspectValidator, valida
 router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.createOwnerProspect);
 
 router.post('/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
-router.post('/authenticate', accountController.signin);
+router.post('/authenticate', accountController.signInValidators, validator.validate, accountController.signIn);
 router.post('/account/reset-password', accountController.resetPasswordValidators, validator.validate, accountController.resetPassword);
 
 router.post('/reset-links', resetLinkController.createValidators, validator.validate, resetLinkController.create);

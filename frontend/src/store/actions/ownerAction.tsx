@@ -4,75 +4,53 @@ import { Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import housingService from '../../services/housing.service';
 import eventService from '../../services/event.service';
-import { ApplicationState } from '../reducers/applicationReducers';
 import _ from 'lodash';
 import { Housing } from '../../models/Housing';
 import { OwnerNote } from '../../models/Note';
-
-export const FETCHING_OWNER = 'FETCHING_OWNER';
-export const OWNER_FETCHED = 'OWNER_FETCHED';
-export const FETCHING_OWNER_HOUSING = 'FETCHING_OWNER_HOUSING';
-export const OWNER_HOUSING_FETCHED = 'OWNER_HOUSING_FETCHED';
-export const OWNER_UPDATED = 'OWNER_UPDATED';
-export const FETCHING_OWNER_EVENTS = 'FETCHING_OWNER_EVENTS';
-export const OWNER_EVENTS_FETCHED = 'OWNER_EVENTS_FETCHED';
-
-export interface FetchingOwnerAction {
-  type: typeof FETCHING_OWNER;
-}
+import { Event } from '../../models/Event';
+import ownerSlice from '../reducers/ownerReducer';
+import { AppState } from '../store';
 
 export interface OwnerFetchedAction {
-  type: typeof OWNER_FETCHED;
   owner: Owner;
 }
 
-export interface FetchingOwnerHousingAction {
-  type: typeof FETCHING_OWNER_HOUSING;
-}
-
 export interface OwnerHousingFetchedAction {
-  type: typeof OWNER_HOUSING_FETCHED;
   housingList: Housing[];
   housingTotalCount: number;
 }
 
 export interface OwnerUpdatedAction {
-  type: typeof OWNER_UPDATED;
   owner: Owner;
 }
 
-export interface FetchingOwnerEventsAction {
-  type: typeof FETCHING_OWNER_EVENTS;
-}
-
 export interface OwnerEventsFetchedAction {
-  type: typeof OWNER_EVENTS_FETCHED;
   events: Event[];
 }
 
-export type OwnerActionTypes =
-  | FetchingOwnerAction
-  | OwnerFetchedAction
-  | FetchingOwnerHousingAction
-  | OwnerHousingFetchedAction
-  | OwnerUpdatedAction
-  | FetchingOwnerEventsAction
-  | OwnerEventsFetchedAction;
+const {
+  fetchingOwnerEvents,
+  ownerEventsFetched,
+  ownerHousingFetched,
+  fetchingOwner,
+  ownerFetched,
+  ownerUpdated,
+  fetchingOwnerHousing,
+} = ownerSlice.actions;
 
 export const getOwner = (id: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_OWNER,
-    });
+    dispatch(fetchingOwner());
 
     ownerService.getOwner(id).then((owner) => {
       dispatch(hideLoading());
-      dispatch({
-        type: OWNER_FETCHED,
-        owner,
-      });
+      dispatch(
+        ownerFetched({
+          owner,
+        })
+      );
     });
   };
 };
@@ -81,17 +59,16 @@ export const getOwnerHousing = (ownerId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_OWNER_HOUSING,
-    });
+    dispatch(fetchingOwnerHousing());
 
     housingService.listByOwner(ownerId).then((result) => {
       dispatch(hideLoading());
-      dispatch({
-        type: OWNER_HOUSING_FETCHED,
-        housingList: result.entities,
-        housingTotalCount: result.totalCount,
-      });
+      dispatch(
+        ownerHousingFetched({
+          housingList: result.entities,
+          housingTotalCount: result.totalCount,
+        })
+      );
     });
   };
 };
@@ -100,22 +77,21 @@ export const getOwnerEvents = (ownerId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    dispatch({
-      type: FETCHING_OWNER_EVENTS,
-    });
+    dispatch(fetchingOwnerEvents());
 
     eventService.listByOwner(ownerId).then((events) => {
       dispatch(hideLoading());
-      dispatch({
-        type: OWNER_EVENTS_FETCHED,
-        events,
-      });
+      dispatch(
+        ownerEventsFetched({
+          events,
+        })
+      );
     });
   };
 };
 
 export const update = (modifiedOwner: Owner) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
       dispatch(showLoading());
 
@@ -123,10 +99,11 @@ export const update = (modifiedOwner: Owner) => {
         .updateOwner(modifiedOwner)
         .then(() => {
           dispatch(hideLoading());
-          dispatch({
-            type: OWNER_UPDATED,
-            owner: modifiedOwner,
-          });
+          dispatch(
+            ownerUpdated({
+              owner: modifiedOwner,
+            })
+          );
           getOwnerEvents(modifiedOwner.id)(dispatch);
         })
         .catch((error) => {

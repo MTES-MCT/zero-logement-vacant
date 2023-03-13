@@ -4,15 +4,12 @@ import AppHeader from './AppHeader';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { Provider } from 'react-redux';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../store/reducers/applicationReducers';
-import thunk from 'redux-thunk';
 import { genAuthUser } from '../../../test/fixtures.test';
+import { applicationReducer, store } from '../../store/store';
+import { configureStore } from '@reduxjs/toolkit';
 
 describe('AppHeader', () => {
   test('should not display navbar when no user is logged', () => {
-    const store = createStore(applicationReducer, applyMiddleware(thunk));
-
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
@@ -26,11 +23,10 @@ describe('AppHeader', () => {
   });
 
   test('should display navbar when a user is logged', () => {
-    const store = createStore(
-      applicationReducer,
-      { authentication: { authUser: genAuthUser() } },
-      applyMiddleware(thunk)
-    );
+    const store = configureStore({
+      reducer: applicationReducer,
+      preloadedState: { authentication: { authUser: genAuthUser() } },
+    });
 
     render(
       <Provider store={store}>

@@ -1,8 +1,5 @@
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history';
-import { applyMiddleware, createStore } from 'redux';
-import applicationReducer from '../../../../store/reducers/applicationReducers';
-import thunk from 'redux-thunk';
 import {
   genAuthUser,
   genProspect,
@@ -17,11 +14,16 @@ import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationV
 import { Prospect } from '../../../../models/Prospect';
 import userService from '../../../../services/user.service';
 import authService from '../../../../services/auth.service';
+import { configureStore } from '@reduxjs/toolkit';
+import { applicationReducer } from '../../../../store/store';
 
 describe('AccountCampaignIntentCreationView', () => {
   const user = userEvent.setup();
   const history = createMemoryHistory();
-  const store = createStore(applicationReducer, {}, applyMiddleware(thunk));
+  const store = configureStore({
+    reducer: applicationReducer,
+    preloadedState: { authentication: { authUser: genAuthUser() } },
+  });
   const password = randomstring.generate();
 
   function setup(prospect: Prospect = genProspect()) {

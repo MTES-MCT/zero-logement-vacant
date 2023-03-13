@@ -2,7 +2,7 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { ContactPoint, DraftContactPoint } from '../models/ContactPoint';
 
-const listContactPoints = async (): Promise<ContactPoint> => {
+const listContactPoints = async (): Promise<ContactPoint[]> => {
   return await fetch(`${config.apiEndpoint}/api/contact-points`, {
     method: 'GET',
     headers: {

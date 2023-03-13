@@ -19,7 +19,7 @@ import {
 } from '../../../models/TrackEvent';
 import { validCampaignStep } from '../../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../../../hooks/useStore';
 
 interface Props {
   campaignBundle: CampaignBundle;
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
   const onSubmit = () => {

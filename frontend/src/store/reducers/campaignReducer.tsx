@@ -4,23 +4,21 @@ import {
   CampaignBundleId,
 } from '../../models/Campaign';
 import {
-  CAMPAIGN_BUNDLE_FETCHED,
-  CAMPAIGN_BUNDLE_LIST_FETCHED,
-  CAMPAIGN_CREATED,
-  CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED,
-  CAMPAIGN_LIST_FETCHED,
-  CAMPAIGN_UPDATED,
-  CampaignActionTypes,
-  FETCH_CAMPAIGN_BUNDLE,
-  FETCH_CAMPAIGN_BUNDLE_LIST,
-  FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST,
-  FETCH_CAMPAIGN_LIST,
+  CampaignBundleFetchedAction,
+  CampaignBundleHousingListFetchedAction,
+  CampaignBundleListFetchedAction,
+  CampaignCreatedAction,
+  CampaignListFetchedAction,
+  CampaignUpdatedAction,
+  FetchCampaignBundleAction,
+  FetchCampaignBundleHousingListAction,
 } from '../actions/campaignAction';
 import {
   initialPaginatedResult,
   PaginatedResult,
 } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
+import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface CampaignState {
   campaignList?: Campaign[];
@@ -50,150 +48,159 @@ const initialState: CampaignState = {
   campaignCreated: false,
 };
 
-const campaignReducer = (state = initialState, action: CampaignActionTypes) => {
-  switch (action.type) {
-    case FETCH_CAMPAIGN_LIST:
-      return {
-        ...state,
-        campaignList: [],
-        loading: true,
-      };
-    case CAMPAIGN_LIST_FETCHED:
-      return {
-        ...state,
-        campaignList: action.campaignList,
-        loading: false,
-      };
-    case FETCH_CAMPAIGN_BUNDLE_LIST:
-      return {
-        ...state,
-        campaignBundleList: [],
-        loading: true,
-      };
-    case CAMPAIGN_BUNDLE_LIST_FETCHED:
-      return {
-        ...state,
-        campaignBundleList: action.campaignBundleList,
-        loading: false,
-      };
-    case FETCH_CAMPAIGN_BUNDLE:
-      return {
-        ...state,
-        campaignBundleFetchingId: action.campaignBundleFetchingId,
-        campaignBundle:
-          action.campaignBundleFetchingId === state.campaignBundleFetchingId
-            ? state.campaignBundle
-            : undefined,
-        loading: true,
-        campaignCreated: false,
-        searchQuery: action.searchQuery,
-      };
-    case CAMPAIGN_BUNDLE_FETCHED: {
+const campaignSlice = createSlice({
+  name: 'campaign',
+  initialState,
+  reducers: {
+    fetchCampaignList: (state: CampaignState) => {
+      state.campaignList = [];
+      state.loading = true;
+    },
+    campaignListFetched: (
+      state: CampaignState,
+      action: PayloadAction<CampaignListFetchedAction>
+    ) => {
+      state.campaignList = action.payload.campaignList;
+      state.loading = false;
+    },
+    fetchCampaignBundleList: (state: CampaignState) => {
+      state.campaignBundleList = [];
+      state.loading = true;
+    },
+    campaignBundleListFetched: (
+      state: CampaignState,
+      action: PayloadAction<CampaignBundleListFetchedAction>
+    ) => {
+      state.campaignBundleList = action.payload.campaignBundleList;
+      state.loading = false;
+    },
+    fetchCampaignBundle: (
+      state: CampaignState,
+      action: PayloadAction<FetchCampaignBundleAction>
+    ) => {
+      state.campaignBundleFetchingId = action.payload.campaignBundleFetchingId;
+      state.campaignBundle =
+        action.payload.campaignBundleFetchingId ===
+        state.campaignBundleFetchingId
+          ? state.campaignBundle
+          : undefined;
+      state.loading = true;
+      state.campaignCreated = false;
+      state.searchQuery = action.payload.searchQuery;
+    },
+    campaignBundleFetched: (
+      state: CampaignState,
+      action: PayloadAction<CampaignBundleFetchedAction>
+    ) => {
       const isCurrentFetching =
-        action.campaignBundleFetchingId === state.campaignBundleFetchingId &&
-        action.searchQuery === state.searchQuery;
-      return !isCurrentFetching
-        ? state
-        : {
-            ...state,
-            campaignBundle: action.campaignBundle,
-            loading: false,
-          };
-    }
-    case FETCH_CAMPAIGN_BUNDLE_HOUSING_LIST:
-      return {
-        ...state,
-        campaignIds: action.campaignIds,
-        campaignBundleHousingByStatus: action.status
-          ? [
-              ...state.campaignBundleHousingByStatus.filter(
-                (_, index) => index < action.status!
-              ),
-              {
-                entities: [],
-                totalCount: 0,
-                filteredCount: 0,
-                page: action.page,
-                perPage: action.perPage,
-                loading: true,
-              },
-              ...state.campaignBundleHousingByStatus.filter(
-                (_, index) => index > action.status!
-              ),
-            ]
-          : state.campaignBundleHousingByStatus,
-        campaignBundleHousing: action.status
-          ? state.campaignBundleHousing
-          : {
+        action.payload.campaignBundleFetchingId ===
+          current(state).campaignBundleFetchingId &&
+        action.payload.searchQuery === current(state).searchQuery;
+      if (isCurrentFetching) {
+        state.campaignBundle = action.payload.campaignBundle;
+        state.loading = false;
+      }
+    },
+    fetchCampaignBundleHousingList: (
+      state: CampaignState,
+      action: PayloadAction<FetchCampaignBundleHousingListAction>
+    ) => {
+      state.campaignIds = action.payload.campaignIds;
+      state.campaignBundleHousingByStatus = action.payload.status
+        ? [
+            ...state.campaignBundleHousingByStatus.filter(
+              (_, index) => index < action.payload.status!
+            ),
+            {
               entities: [],
               totalCount: 0,
               filteredCount: 0,
-              page: action.page,
-              perPage: action.perPage,
+              page: action.payload.page,
+              perPage: action.payload.perPage,
               loading: true,
             },
-      };
-    case CAMPAIGN_BUNDLE_HOUSING_LIST_FETCHED: {
-      const isCurrentFetching =
-        action.campaignIds === state.campaignIds &&
-        action.paginatedHousing.page ===
-          (action.status
-            ? state.campaignBundleHousingByStatus[action.status]
-            : state.campaignBundleHousing
-          ).page &&
-        action.paginatedHousing.perPage ===
-          (action.status
-            ? state.campaignBundleHousingByStatus[action.status]
-            : state.campaignBundleHousing
-          ).perPage;
-      return !isCurrentFetching
-        ? state
+            ...state.campaignBundleHousingByStatus.filter(
+              (_, index) => index > action.payload.status!
+            ),
+          ]
+        : state.campaignBundleHousingByStatus;
+      state.campaignBundleHousing = action.payload.status
+        ? state.campaignBundleHousing
         : {
-            ...state,
-            campaignBundleHousingByStatus: action.status
-              ? [
-                  ...state.campaignBundleHousingByStatus.filter(
-                    (_, index) => index < action.status!
-                  ),
-                  {
-                    ...state.campaignBundleHousingByStatus[action.status],
-                    entities: action.paginatedHousing.entities,
-                    filteredCount: action.paginatedHousing.filteredCount,
-                    totalCount: action.paginatedHousing.totalCount,
-                    loading: false,
-                  },
-                  ...state.campaignBundleHousingByStatus.filter(
-                    (_, index) => index > action.status!
-                  ),
-                ]
-              : state.campaignBundleHousingByStatus,
-            campaignBundleHousing: action.status
-              ? state.campaignBundleHousing
-              : {
-                  ...state.campaignBundleHousing,
-                  entities: action.paginatedHousing.entities,
-                  filteredCount: action.paginatedHousing.filteredCount,
-                  totalCount: action.paginatedHousing.filteredCount,
-                  loading: false,
-                },
+            entities: [],
+            totalCount: 0,
+            filteredCount: 0,
+            page: action.payload.page,
+            perPage: action.payload.perPage,
+            loading: true,
           };
-    }
-    case CAMPAIGN_CREATED:
-      return {
-        ...state,
-        campaignBundleFetchingId: action.campaignBundleFetchingId,
-        campaignBundle: undefined,
-        campaignHousingList: [],
-        campaignCreated: true,
-      };
-    case CAMPAIGN_UPDATED:
-      return {
-        ...state,
-        campaignBundleFetchingId: action.campaignBundleFetchingId,
-      };
-    default:
-      return state;
-  }
-};
+    },
+    campaignBundleHousingListFetched: (
+      state: CampaignState,
+      action: PayloadAction<CampaignBundleHousingListFetchedAction>
+    ) => {
+      const isCurrentFetching =
+        action.payload.campaignIds === current(state).campaignIds &&
+        action.payload.paginatedHousing.page ===
+          (action.payload.status
+            ? current(state).campaignBundleHousingByStatus[
+                action.payload.status
+              ]
+            : current(state).campaignBundleHousing
+          ).page &&
+        action.payload.paginatedHousing.perPage ===
+          (action.payload.status
+            ? current(state).campaignBundleHousingByStatus[
+                action.payload.status
+              ]
+            : current(state).campaignBundleHousing
+          ).perPage;
+      if (isCurrentFetching) {
+        state.campaignBundleHousingByStatus = action.payload.status
+          ? [
+              ...current(state).campaignBundleHousingByStatus.filter(
+                (_, index) => index < action.payload.status!
+              ),
+              {
+                ...current(state).campaignBundleHousingByStatus[
+                  action.payload.status
+                ],
+                entities: action.payload.paginatedHousing.entities,
+                filteredCount: action.payload.paginatedHousing.filteredCount,
+                totalCount: action.payload.paginatedHousing.totalCount,
+                loading: false,
+              },
+              ...current(state).campaignBundleHousingByStatus.filter(
+                (_, index) => index > action.payload.status!
+              ),
+            ]
+          : current(state).campaignBundleHousingByStatus;
+        state.campaignBundleHousing = action.payload.status
+          ? current(state).campaignBundleHousing
+          : {
+              ...current(state).campaignBundleHousing,
+              entities: action.payload.paginatedHousing.entities,
+              filteredCount: action.payload.paginatedHousing.filteredCount,
+              totalCount: action.payload.paginatedHousing.filteredCount,
+              loading: false,
+            };
+      }
+    },
+    campaignCreated: (
+      state: CampaignState,
+      action: PayloadAction<CampaignCreatedAction>
+    ) => {
+      state.campaignBundleFetchingId = action.payload.campaignBundleFetchingId;
+      state.campaignBundle = undefined;
+      state.campaignCreated = true;
+    },
+    campaignUpdated: (
+      state: CampaignState,
+      action: PayloadAction<CampaignUpdatedAction>
+    ) => {
+      state.campaignBundleFetchingId = action.payload.campaignBundleFetchingId;
+    },
+  },
+});
 
-export default campaignReducer;
+export default campaignSlice;

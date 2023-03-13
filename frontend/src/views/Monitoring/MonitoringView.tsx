@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
@@ -23,10 +21,11 @@ import { Link } from 'react-router-dom';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import monitoringService from '../../services/monitoring.service';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const MonitoringView = () => {
   useDocumentTitle('Suivi');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();
 
   const {
@@ -34,7 +33,7 @@ const MonitoringView = () => {
     housingByStatusCount,
     housingByStatusCountFilters,
     housingByStatusDuration,
-  } = useSelector((state: ApplicationState) => state.monitoring);
+  } = useAppSelector((state) => state.monitoring);
   const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>(
     housingByStatusCountFilters
   );
@@ -498,7 +497,7 @@ const MonitoringView = () => {
             {housingByStatusCount
               ? housingByStatusCount
                   ?.map((_) => _.count)
-                  .reduce((c1: number, c2) => Number(c1) + Number(c2))
+                  .reduce((c1: number, c2) => Number(c1) + Number(c2), 0)
               : '...'}
           </Col>
         </Row>

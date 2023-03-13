@@ -14,11 +14,7 @@ import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 import { TokenPayload, toUserDTO } from '../models/UserApi';
 import AuthenticationFailedError from '../errors/authenticationFailedError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
-import {
-  emailValidator,
-  PASSWORD_MIN_LENGTH,
-  passwordCreationValidator,
-} from '../utils/validators';
+import { emailValidator, passwordCreationValidator } from '../utils/validators';
 
 async function signIn(request: Request, response: Response) {
   const { email, password } = request.body;

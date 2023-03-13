@@ -59,7 +59,7 @@ async function signIn(request: Request, response: Response) {
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
-  body('password').isString().isLength({ min: PASSWORD_MIN_LENGTH }),
+  body('password').isString(),
   body('establishmentId').isString().optional(),
 ];
 

@@ -11,60 +11,57 @@ import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
-import { TokenPayload } from '../models/UserApi';
+import { TokenPayload, toUserDTO } from '../models/UserApi';
+import AuthenticationFailedError from '../errors/authenticationFailedError';
+import EstablishmentMissingError from '../errors/establishmentMissingError';
+import {
+  emailValidator,
+  PASSWORD_MIN_LENGTH,
+  passwordCreationValidator,
+} from '../utils/validators';
 
-const signin = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('signin');
+async function signIn(request: Request, response: Response) {
+  const { email, password } = request.body;
 
-  const email = request.body.email;
-  const password = request.body.password;
-
-  try {
-    const user = await userRepository.getByEmail(email);
-
-    if (!user) {
-      console.log('User not found for email', email);
-      return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      console.log('Invalid password for email', email);
-      return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
-    }
-
-    await userRepository.updateLastAuthentication(user.id);
-
-    const establishmentId =
-      user.establishmentId ?? request.body.establishmentId;
-    const establishment = await establishmentRepository.get(establishmentId);
-
-    if (!establishment) {
-      console.log('Establishment not found for id', establishmentId);
-      return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-    }
-
-    return response.status(constants.HTTP_STATUS_OK).send({
-      user: { ...user, password: undefined, establishmentId: undefined },
-      establishment,
-      accessToken: jwt.sign(
-        {
-          userId: user.id,
-          establishmentId: establishment.id,
-          role: user.role,
-        } as TokenPayload,
-        config.auth.secret,
-        { expiresIn: config.auth.expiresIn }
-      ),
-    });
-  } catch {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
+  const user = await userRepository.getByEmail(email);
+  if (!user) {
+    throw new AuthenticationFailedError();
   }
-};
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new AuthenticationFailedError();
+  }
+
+  await userRepository.updateLastAuthentication(user.id);
+  const establishmentId = user.establishmentId ?? request.body.establishmentId;
+  const establishment = await establishmentRepository.get(establishmentId);
+  if (!establishment) {
+    throw new EstablishmentMissingError(establishmentId);
+  }
+
+  const accessToken = jwt.sign(
+    {
+      userId: user.id,
+      establishmentId: establishment.id,
+      role: user.role,
+    } as TokenPayload,
+    config.auth.secret,
+    { expiresIn: config.auth.expiresIn }
+  );
+
+  response.status(constants.HTTP_STATUS_OK).json({
+    user: toUserDTO(user),
+    establishment,
+    accessToken,
+  });
+}
+
+const signInValidators: ValidationChain[] = [
+  emailValidator(),
+  body('password').isString().isLength({ min: PASSWORD_MIN_LENGTH }),
+  body('establishmentId').isString().optional(),
+];
 
 const updatePassword = async (
   request: Request,
@@ -123,21 +120,12 @@ const resetPassword = async (
 };
 const resetPasswordValidators: ValidationChain[] = [
   body('key').isString().isAlphanumeric(),
-  body('password')
-    .isStrongPassword({
-      minLength: 8,
-      minNumbers: 1,
-      minUppercase: 1,
-      minSymbols: 0,
-      minLowercase: 1,
-    })
-    .withMessage(
-      'Must have at least 8 characters, 1 number, 1 uppercase, 1 lowercase.'
-    ),
+  passwordCreationValidator(),
 ];
 
 export default {
-  signin,
+  signIn,
+  signInValidators,
   updatePassword,
   resetPassword,
   resetPasswordValidators,

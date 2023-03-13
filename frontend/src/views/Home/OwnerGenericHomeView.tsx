@@ -3,8 +3,6 @@ import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import handsPoints from '../../assets/images/hands-point.svg';
 import { AddressSearchResult } from '../../services/address.service';
 import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
 import {
@@ -12,17 +10,18 @@ import {
   getNearbyEstablishments,
 } from '../../store/actions/establishmentAction';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const OwnerGenericHomeView = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { establishmentWithKinds } = useEstablishments();
 
-  const { addressSearchResult } = useSelector(
-    (state: ApplicationState) => state.ownerProspect
+  const { addressSearchResult } = useAppSelector(
+    (state) => state.ownerProspect
   );
 
-  const { establishment, nearbyEstablishments } = useSelector(
-    (state: ApplicationState) => state.establishment
+  const { establishment, nearbyEstablishments } = useAppSelector(
+    (state) => state.establishment
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {

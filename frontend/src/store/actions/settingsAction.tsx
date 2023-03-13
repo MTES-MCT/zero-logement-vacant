@@ -2,55 +2,57 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { DeepPartial } from 'ts-essentials';
 
-import { ApplicationState } from '../reducers/applicationReducers';
 import { Settings } from '../../../../shared/models/Settings';
 import settingsService from '../../services/settings.service';
-
-export const SETTINGS_FETCHED = 'SETTINGS_FETCHED';
+import settingsSlice from '../reducers/settingsReducer';
+import { AppState } from '../store';
 
 export interface SettingsFetchedAction {
-  type: typeof SETTINGS_FETCHED;
   settings: Settings;
 }
 
-export type SettingsActionTypes = SettingsFetchedAction;
+const { settingsFetched } = settingsSlice.actions;
 
 export const fetchSettings = () => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const establishmentId = getState().authentication.authUser.establishment.id;
+    const establishmentId =
+      getState().authentication.authUser?.establishment.id;
 
-    settingsService
-      .findOne({ establishmentId })
-      .then((settings) => {
-        dispatch({
-          type: SETTINGS_FETCHED,
-          settings,
+    if (establishmentId) {
+      settingsService
+        .findOne({ establishmentId })
+        .then((settings) => {
+          dispatch(
+            settingsFetched({
+              settings,
+            })
+          );
+        })
+        .finally(() => {
+          dispatch(hideLoading());
         });
-      })
-      .finally(() => {
-        dispatch(hideLoading());
-      });
+    }
   };
 };
 
 export const updateSettings = (settings: DeepPartial<Settings>) => {
-  return function (dispatch: Dispatch, getState: () => ApplicationState) {
+  return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const establishmentId = getState().authentication.authUser.establishment.id;
+    const establishmentId =
+      getState().authentication.authUser?.establishment.id;
 
-    settingsService
-      .upsert(establishmentId, settings)
-      .then(() => {
-        dispatch({
-          type: SETTINGS_FETCHED,
-          settings,
+    if (establishmentId) {
+      settingsService
+        .upsert(establishmentId, settings)
+        .then(() => {
+          fetchSettings()(dispatch, getState);
+        })
+        .finally(() => {
+          dispatch(hideLoading());
         });
-      })
-      .finally(() => {
-        dispatch(hideLoading());
-      });
+    }
   };
 };

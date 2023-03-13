@@ -1,90 +1,41 @@
-import React, { useRef, useState } from 'react';
-import {
-  Col,
-  Container,
-  Row,
-  SearchableSelect,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
-import handPoints from '../../assets/images/hands-point.svg';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
-import addressService, {
-  AddressSearchResult,
-} from '../../services/address.service';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import React, { useEffect } from 'react';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import handsPoints from '../../assets/images/hands-point.svg';
+import { AddressSearchResult } from '../../services/address.service';
+import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
+import {
+  getEstablishment,
+  getNearbyEstablishments,
+} from '../../store/actions/establishmentAction';
+import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
-const EstablishmentHomeView = () => {
+const OwnerGenericHomeView = () => {
   const dispatch = useAppDispatch();
-  const { trackEvent } = useMatomo();
-  const { availableEstablishments } = useEstablishments();
+  const { establishmentWithKinds } = useEstablishments();
 
-  const { locality, ownerProspect } = useAppSelector(
+  const { addressSearchResult } = useAppSelector(
     (state) => state.ownerProspect
   );
 
-  const [addressOptions, setAddressOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-  const quickSearchAbortRef = useRef<() => void | null>();
+  const { establishment, nearbyEstablishments } = useAppSelector(
+    (state) => state.establishment
+  );
 
-  const [address, setAddress] = useState<AddressSearchResult | undefined>(); //eslint-disable-line @typescript-eslint/no-unused-vars
-
-  const quickSearch = (query: string) => {
-    if (quickSearchAbortRef.current) {
-      quickSearchAbortRef.current();
-    }
-    const quickSearchService = addressService.quickSearchService();
-    quickSearchAbortRef.current = quickSearchService.abort;
-
-    if (query.length > 2) {
-      trackEvent({
-        category: TrackEventCategories.Dashboard,
-        action: TrackEventActions.Dashboard.QuickSearch,
-      });
-      return quickSearchService
-        .fetch(query)
-        .then((_) => {
-          setAddressOptions(
-            _.map((address) => ({
-              value: JSON.stringify(address),
-              label: address.label,
-            }))
-          );
-        })
-        .catch((err) => console.log('error', err));
-    } else {
-      return setAddressOptions([]);
-    }
+  const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
+    dispatch(selectAddressSearchResult(addressSearchResult));
+    dispatch(
+      getEstablishment(addressSearchResult.city, addressSearchResult.geoCode)
+    );
   };
 
-  const onSelectAddress = (value: string) => {
-    if (value) {
-      const address = JSON.parse(value) as AddressSearchResult;
-      setAddress(address);
-      dispatch(getLocality(address.geoCode));
+  useEffect(() => {
+    if (establishment) {
+      dispatch(getNearbyEstablishments(establishment));
     }
-  };
-
-  // const onCreateOwnerProspect = (
-  //   partialOwnerProspect: PartialOwnerProspect
-  // ) => {
-  //   if (address) {
-  //     dispatch(
-  //       createOwnerProspect({
-  //         ...partialOwnerProspect,
-  //         address: address?.label,
-  //         geoCode: address?.geoCode,
-  //       })
-  //     );
-  //   }
-  // };
+  }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -98,114 +49,20 @@ const EstablishmentHomeView = () => {
             <Text size="lead">
               Zéro Logement Vacant est un outil de lutte contre la vacance.
             </Text>
-            <SearchableSelect
-              options={addressOptions}
-              label="Indiquer l'adresse de votre logement vacant"
-              placeholder="Indiquer l'adresse de votre logement vacant"
-              required={true}
-              onTextChange={(q: string) => quickSearch(q)}
-              onChange={onSelectAddress}
-            />
+            <AddressSearchableSelect onSelectAddress={onSelectAddress} />
           </Col>
           <Col className="align-right">
             <img
-              src={handPoints}
+              src={handsPoints}
               style={{ maxWidth: '100%', height: '100%' }}
               alt=""
             />
           </Col>
         </Row>
-        {/*{locality ? (*/}
-        {/*  <Row gutters spacing="pt-5w">*/}
-        {/*    <Col>*/}
-        {/*      <div className="bg-bf975 border-bf-925-active fr-p-5w">*/}
-        {/*        {locality.taxKind === TaxKinds.None ? (*/}
-        {/*          <>*/}
-        {/*            <Title as="h2" className="fr-h3 fr-mb-3w">*/}
-        {/*              Non, votre logement vacant n’est pas soumis à une taxe.*/}
-        {/*            </Title>*/}
-        {/*            <Text spacing="mb-2w">*/}
-        {/*              La commune de {locality.name} n’applique pas de taxe*/}
-        {/*              spécifique sur les logements vacants.*/}
-        {/*            </Text>*/}
-        {/*          </>*/}
-        {/*        ) : (*/}
-        {/*          <>*/}
-        {/*            <Title as="h2" className="fr-h3 fr-mb-3w">*/}
-        {/*              Oui, votre logement vacant est soumis à une taxe.*/}
-        {/*            </Title>*/}
-        {/*            {locality.taxKind === TaxKinds.TLV && (*/}
-        {/*              <>*/}
-        {/*                <Text spacing="mb-2w">*/}
-        {/*                  La commune de {locality.name} applique la */}
-        {/*                  <b>Taxe sur les Logements Vacants (TLV).</b>*/}
-        {/*                </Text>*/}
-        {/*                <Text spacing="m-0">*/}
-        {/*                  Le taux pour la première année est de <b>17%</b> puis*/}
-        {/*                  de <b>34%</b> les années suivantes.*/}
-        {/*                </Text>*/}
-        {/*              </>*/}
-        {/*            )}*/}
-        {/*            {locality.taxKind === TaxKinds.THLV && (*/}
-        {/*              <>*/}
-        {/*                <Text spacing="mb-2w">*/}
-        {/*                  La commune de {locality.name} applique la */}
-        {/*                  <b>*/}
-        {/*                    Taxe d’Habitation sur les Logements Vacants (THLV).*/}
-        {/*                  </b>*/}
-        {/*                </Text>*/}
-        {/*                {locality.taxRate ? (*/}
-        {/*                  <Text>*/}
-        {/*                    Le taux après 2 années de vacance est de */}
-        {/*                    <b>{locality.taxRate}%</b>.*/}
-        {/*                  </Text>*/}
-        {/*                ) : (*/}
-        {/*                  <Text>*/}
-        {/*                    Le taux appliqué est cependant inconnu. Veuillez*/}
-        {/*                    vous rapprochez de votre commune pour en savoir*/}
-        {/*                    plus.*/}
-        {/*                  </Text>*/}
-        {/*                )}*/}
-        {/*              </>*/}
-        {/*            )}*/}
-        {/*          </>*/}
-        {/*        )}*/}
-        {/*      </div>*/}
-        {/*    </Col>*/}
-        {/*    <Col>*/}
-        {/*      {ownerProspect ? (*/}
-        {/*        <Alert*/}
-        {/*          title=""*/}
-        {/*          description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."*/}
-        {/*          type="success"*/}
-        {/*        />*/}
-        {/*      ) : (*/}
-        {/*        <div className="bordered fr-p-5w">*/}
-        {/*          <Title as="h2" className="fr-h3 fr-mb-3w">*/}
-        {/*            Vous souhaitez sortir votre logement de la vacance ?*/}
-        {/*          </Title>*/}
-        {/*          <Text className="subtitle" spacing="mb-2w">*/}
-        {/*            Votre collectivité peut vous aider. Laissez vos coordonnées*/}
-        {/*            pour être recontacté par votre collectivité.*/}
-        {/*          </Text>*/}
-        {/*          <OwnerProspectForm*/}
-        {/*            onCreateOwnerProspect={onCreateOwnerProspect}*/}
-        {/*          />*/}
-        {/*        </div>*/}
-        {/*      )}*/}
-        {/*    </Col>*/}
-        {/*  </Row>*/}
-        {/*) : (*/}
-        {/*  <>*/}
-        {/*    {availableEstablishments && (*/}
-        {/*      <EstablishmentLinkList establishments={availableEstablishments} />*/}
-        {/*    )}*/}
-        {/*  </>*/}
-        {/*)}*/}
-        {localityEstablishment ? (
+        {addressSearchResult && establishment ? (
           <>
             <EstablishmentLinkList
-              establishments={[localityEstablishment]}
+              establishments={[establishment]}
               title="Résultat de la recherche"
             />
             {nearbyEstablishments && (
@@ -217,9 +74,14 @@ const EstablishmentHomeView = () => {
           </>
         ) : (
           <>
-            {availableEstablishments && (
-              <EstablishmentLinkList establishments={availableEstablishments} />
-            )}
+            <EstablishmentLinkList
+              establishments={establishmentWithKinds(['Commune'])}
+              title="Communes"
+            />
+            <EstablishmentLinkList
+              establishments={establishmentWithKinds(['EPCI'])}
+              title="Collectivités"
+            />
           </>
         )}
       </Container>
@@ -227,4 +89,4 @@ const EstablishmentHomeView = () => {
   );
 };
 
-export default EstablishmentHomeView;
+export default OwnerGenericHomeView;

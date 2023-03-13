@@ -1,8 +1,6 @@
 import { Settings } from '../../../../shared/models/Settings';
-import {
-  SETTINGS_FETCHED,
-  SettingsActionTypes,
-} from '../actions/settingsAction';
+import { SettingsFetchedAction } from '../actions/settingsAction';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface SettingsState {
   settings?: Settings;
@@ -10,16 +8,17 @@ export interface SettingsState {
 
 const initialState: SettingsState = {};
 
-const settingsReducer = (state = initialState, action: SettingsActionTypes) => {
-  switch (action.type) {
-    case SETTINGS_FETCHED:
-      return {
-        ...state,
-        settings: action.settings,
-      };
-    default:
-      return state;
-  }
-};
+const settingsSlice = createSlice({
+  name: 'settings',
+  initialState,
+  reducers: {
+    settingsFetched: (
+      state: SettingsState,
+      action: PayloadAction<SettingsFetchedAction>
+    ) => {
+      state.settings = action.payload.settings;
+    },
+  },
+});
 
-export default settingsReducer;
+export default settingsSlice;

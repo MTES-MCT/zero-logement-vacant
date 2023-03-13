@@ -9,8 +9,6 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useLocation, useParams } from 'react-router-dom';
 import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';
@@ -32,19 +30,20 @@ import EstablishmentLinkList from '../../components/EstablishmentLinkList/Establ
 import LocalityTaxesCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
 const OwnerEstablishmentHomeView = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
 
   const { establishmentRef } = useParams<{ establishmentRef: string }>();
 
-  const { ownerProspect, addressSearchResult } = useSelector(
-    (state: ApplicationState) => state.ownerProspect
+  const { ownerProspect, addressSearchResult } = useAppSelector(
+    (state) => state.ownerProspect
   );
 
   const { establishment, contactPoints, localities, nearbyEstablishments } =
-    useSelector((state: ApplicationState) => state.establishment);
+    useAppSelector((state) => state.establishment);
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),

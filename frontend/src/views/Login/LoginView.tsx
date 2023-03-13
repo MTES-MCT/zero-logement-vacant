@@ -10,16 +10,7 @@ import {
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
-<<<<<<< HEAD
-import {
-  fetchAvailableEstablishments,
-  login,
-} from '../../store/actions/authenticationAction';
-=======
-import { ApplicationState } from '../../store/reducers/applicationReducers';
-import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../store/actions/authenticationAction';
->>>>>>> 6fcd85e (Handle links to establishments on owner homepage)
 
 import * as yup from 'yup';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';

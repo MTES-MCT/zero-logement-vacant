@@ -1,14 +1,13 @@
 import { useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ApplicationState } from '../store/reducers/applicationReducers';
 import { fetchAvailableEstablishments } from '../store/actions/authenticationAction';
 import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
 import { Establishment } from '../models/Establishment';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export const useEstablishments = (establishments?: Establishment[]) => {
-  const dispatch = useDispatch();
-  const { availableEstablishments } = useSelector(
-    (state: ApplicationState) => state.authentication
+  const dispatch = useAppDispatch();
+  const { availableEstablishments } = useAppSelector(
+    (state) => state.authentication
   );
 
   useEffect(() => {

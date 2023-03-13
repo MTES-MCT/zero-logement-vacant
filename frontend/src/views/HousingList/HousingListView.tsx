@@ -195,7 +195,7 @@ const HousingListView = () => {
         </Container>
       </div>
       <Container as="section" spacing="py-4w">
-        <HousingListFilters establishmentId={} />
+        <HousingListFilters />
         <HousingFiltersBadges
           filters={filters}
           onChange={(values) => removeFilter(values)}

@@ -1,8 +1,7 @@
 import knex, { Knex } from 'knex';
 import knexConfig from '../knex';
-import QueryCallback = Knex.QueryCallback;
 
-export const notDeleted: QueryCallback = (builder) =>
+export const notDeleted: Knex.QueryCallback = (builder) =>
   builder.whereNull('deleted_at');
 
 export const likeUnaccent = (column: string, query: string) => {

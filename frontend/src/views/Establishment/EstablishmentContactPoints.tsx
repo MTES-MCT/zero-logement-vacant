@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { Button, Col, Row, Text, Title } from '@dataesr/react-dsfr';
-import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../shared/models/ContactPoint';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Alert from '../../components/Alert/Alert';
 import {
@@ -36,12 +39,8 @@ const EstablishmentContactPoints = () => {
   const { loading, contactPoints } = useAppSelector(
     (state) => state.establishment
   );
-  const [editingState, setEditingState] = useState<
-    ContactPointActionState | undefined
-  >();
-  const [removingState, setRemovingState] = useState<
-    ContactPointActionState | undefined
-  >();
+  const [editingState, setEditingState] = useState<ContactPointActionState>();
+  const [removingState, setRemovingState] = useState<ContactPointActionState>();
 
   useEffect(() => {
     dispatch(fetchContactPoints());

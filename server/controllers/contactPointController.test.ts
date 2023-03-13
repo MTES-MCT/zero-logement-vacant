@@ -15,9 +15,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { genContactPointApi, genGeoCode } from '../test/testFixtures';
 import randomstring from 'randomstring';
 
-const { app } = createServer();
-
 describe('ContactPoint controller', () => {
+  const { app } = createServer();
+
   describe('listContactPoints', () => {
     const testRoute = '/api/contact-points';
 
@@ -36,7 +36,6 @@ describe('ContactPoint controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: ContactPoint1.id,
-            establishmentId: Establishment1.id,
             title: ContactPoint1.title,
             opening: ContactPoint1.opening,
             address: ContactPoint1.address,

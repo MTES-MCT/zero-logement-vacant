@@ -2,7 +2,10 @@ import { Dispatch } from 'redux';
 import geoService from '../../services/geo.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../shared/models/ContactPoint';
 import contactPointService from '../../services/contact-point.service';
 import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
@@ -131,7 +134,7 @@ export const fetchContactPoints = () => {
 
     dispatch(fetchContactPointList());
 
-    contactPointService.listContactPoints().then((contactPoints) => {
+    contactPointService.find().then((contactPoints) => {
       dispatch(hideLoading());
       dispatch(
         contactPointListFetched({
@@ -146,7 +149,7 @@ export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.createContactPoint(draftContactPoint).then(() => {
+    contactPointService.create(draftContactPoint).then(() => {
       dispatch(hideLoading());
       fetchContactPoints()(dispatch);
     });
@@ -157,7 +160,7 @@ export const updateContactPoint = (contactPoint: ContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.updateContactPoint(contactPoint).then(() => {
+    contactPointService.update(contactPoint).then(() => {
       dispatch(hideLoading());
       fetchContactPoints()(dispatch);
     });
@@ -168,7 +171,7 @@ export const deleteContactPoint = (contactPointId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.deleteContactPoint(contactPointId).then(() => {
+    contactPointService.remove(contactPointId).then(() => {
       dispatch(hideLoading());
       fetchContactPoints()(dispatch);
     });

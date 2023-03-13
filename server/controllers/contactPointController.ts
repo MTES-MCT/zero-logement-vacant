@@ -6,14 +6,16 @@ import contactPointsRepository from '../repositories/contactPointsRepository';
 import { body, param } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
-import { ContactPointApi } from '../models/ContactPointApi';
+import { ContactPointApi, toContactPointDTO } from '../models/ContactPointApi';
 
 const listContactPoints = async (request: Request, response: Response) => {
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   console.log('List contact points', establishmentId);
 
   const contactPoints = await contactPointsRepository.find(establishmentId);
-  response.status(constants.HTTP_STATUS_OK).json(contactPoints);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(contactPoints.map(toContactPointDTO));
 };
 
 interface ContactPointBody {
@@ -55,7 +57,9 @@ const createContactPoint = async (request: Request, response: Response) => {
     establishmentId,
   };
   await contactPointsRepository.insert(contactPoint);
-  response.status(constants.HTTP_STATUS_OK).json(contactPoint);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(toContactPointDTO(contactPoint));
 };
 
 const deleteContactPointValidators = [
@@ -72,7 +76,6 @@ const deleteContactPoint = async (request: Request, response: Response) => {
     id,
     establishmentId,
   });
-
   if (!contactPoint) {
     throw new ContactPointMissingError(id);
   }
@@ -107,7 +110,7 @@ const updateContactPoint = async (request: Request, response: Response) => {
     id: contactPointId,
   };
   await contactPointsRepository.update(updated);
-  response.status(constants.HTTP_STATUS_OK).json(updated);
+  response.status(constants.HTTP_STATUS_OK).json(toContactPointDTO(updated));
 };
 
 const geoController = {

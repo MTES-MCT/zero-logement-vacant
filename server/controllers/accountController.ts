@@ -55,7 +55,7 @@ async function signIn(request: Request, response: Response) {
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
-  body('password').isString(),
+  body('password').isString().notEmpty({ ignore_whitespace: true }),
   body('establishmentId').isString().optional(),
 ];
 

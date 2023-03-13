@@ -40,7 +40,7 @@ describe('Account controller', () => {
         .post(testRoute)
         .send({
           email: 'test@test.test',
-          password: '',
+          password: '   ',
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });

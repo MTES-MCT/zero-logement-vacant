@@ -39,6 +39,14 @@ describe('Owner prospect controller', () => {
         .post(testRoute)
         .send({
           ...ownerProspect,
+          address: undefined,
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      await request(app)
+        .post(testRoute)
+        .send({
+          ...ownerProspect,
           firstName: undefined,
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);

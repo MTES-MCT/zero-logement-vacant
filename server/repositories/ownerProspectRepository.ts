@@ -15,11 +15,12 @@ const insert = async (
 };
 
 interface OwnerProspectDbo {
+  address: string;
+  invariant?: string;
+  geo_code: string;
   email: string;
   first_name: string;
   last_name: string;
-  address?: string;
-  geo_code: string;
   phone: string;
   notes?: string;
 }
@@ -27,11 +28,12 @@ interface OwnerProspectDbo {
 const parseOwnerProspectApi = (
   ownerProspectDbo: OwnerProspectDbo
 ): OwnerProspectApi => ({
+  address: ownerProspectDbo.address,
+  invariant: ownerProspectDbo.invariant,
+  geoCode: ownerProspectDbo.geo_code,
   email: ownerProspectDbo.email,
   firstName: ownerProspectDbo.first_name,
   lastName: ownerProspectDbo.last_name,
-  address: ownerProspectDbo.address,
-  geoCode: ownerProspectDbo.geo_code,
   phone: ownerProspectDbo.phone,
   notes: ownerProspectDbo.notes,
 });
@@ -39,11 +41,12 @@ const parseOwnerProspectApi = (
 const formatOwnerProspectApi = (
   ownerProspectApi: OwnerProspectApi
 ): OwnerProspectDbo => ({
+  address: ownerProspectApi.address,
+  invariant: ownerProspectApi.invariant,
+  geo_code: ownerProspectApi.geoCode,
   email: ownerProspectApi.email,
   first_name: ownerProspectApi.firstName,
   last_name: ownerProspectApi.lastName,
-  address: ownerProspectApi.address,
-  geo_code: ownerProspectApi.geoCode,
   phone: ownerProspectApi.phone,
   notes: ownerProspectApi.notes,
 });

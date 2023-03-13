@@ -1,14 +1,16 @@
 import React from 'react';
-import { Link, Title } from '@dataesr/react-dsfr';
+import { Title } from '@dataesr/react-dsfr';
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';
+import { Link } from 'react-router-dom';
 
 interface Props {
   establishments: Establishment[];
   title: string;
+  address?: string;
 }
 
-const EstablishmentLinkList = ({ establishments, title }: Props) => {
+const EstablishmentLinkList = ({ establishments, title, address }: Props) => {
   return (
     <section className="fr-mt-6w">
       <Title as="h2" look="h4" spacing="mb-0">
@@ -17,7 +19,9 @@ const EstablishmentLinkList = ({ establishments, title }: Props) => {
       <div>
         {establishments.map((establishment) => (
           <Link
-            href={getEstablishmentUrl(establishment)}
+            to={`${getEstablishmentUrl(establishment)}${
+              address ? `?address=${address}` : ''
+            }`}
             className={styles.establishmentLink}
             key={establishment.id}
           >

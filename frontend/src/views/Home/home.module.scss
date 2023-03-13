@@ -39,3 +39,14 @@
     }
   }
 }
+
+.editableInput {
+  display: inline-block;
+  width: 85%;
+
+  & + button {
+    display: inline-block;
+    border: none;
+    box-shadow: none;
+  }
+}

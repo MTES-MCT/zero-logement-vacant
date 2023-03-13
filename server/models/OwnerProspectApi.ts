@@ -1,9 +1,10 @@
 export interface OwnerProspectApi {
+  address: string;
+  invariant?: string;
+  geoCode: string;
   email: string;
   firstName: string;
   lastName: string;
-  address?: string;
-  geoCode: string;
   phone: string;
   notes?: string;
 }

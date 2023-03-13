@@ -14,7 +14,6 @@ import { ApplicationState } from '../../store/reducers/applicationReducers';
 import { useLocation, useParams } from 'react-router-dom';
 import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';
-import { PartialOwnerProspect } from '../../models/OwnerProspect';
 import handsPoints from '../../assets/images/hands-point.svg';
 import handsGrip from '../../assets/images/hands-grip.svg';
 import handsPinch from '../../assets/images/hands-pinch.svg';
@@ -32,6 +31,7 @@ import {
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
 import LocalityTaxesCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { TaxKinds } from '../../models/Locality';
+import { OwnerProspect } from '../../models/OwnerProspect';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useDispatch();
@@ -39,9 +39,12 @@ const OwnerEstablishmentHomeView = () => {
 
   const { establishmentRef } = useParams<{ establishmentRef: string }>();
 
-  const { nearbyEstablishments } = useSelector(
-    (state: ApplicationState) => state.establishment
+  const { ownerProspect, addressSearchResult } = useSelector(
+    (state: ApplicationState) => state.ownerProspect
   );
+
+  const { establishment, contactPoints, localities, nearbyEstablishments } =
+    useSelector((state: ApplicationState) => state.establishment);
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
@@ -60,14 +63,6 @@ const OwnerEstablishmentHomeView = () => {
     [establishmentRef, isLocality]
   );
 
-  const { ownerProspect, addressSearchResult } = useSelector(
-    (state: ApplicationState) => state.ownerProspect
-  );
-
-  const { establishment, contactPoints, localities } = useSelector(
-    (state: ApplicationState) => state.establishment
-  );
-
   useDocumentTitle(establishment?.name);
 
   useEffect(() => {
@@ -84,18 +79,12 @@ const OwnerEstablishmentHomeView = () => {
     }
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const onCreateOwnerProspect = (
-    partialOwnerProspect: PartialOwnerProspect
-  ) => {
-    if (geoCode) {
-      dispatch(
-        createOwnerProspect({
-          ...partialOwnerProspect,
-          address: addressSearchResult?.label,
-          geoCode,
-        })
-      );
-    }
+  const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
+    dispatch(
+      createOwnerProspect({
+        ...ownerProspect,
+      })
+    );
   };
 
   return (
@@ -323,6 +312,7 @@ const OwnerEstablishmentHomeView = () => {
                 ) : (
                   <OwnerProspectForm
                     onCreateOwnerProspect={onCreateOwnerProspect}
+                    addressSearchResult={addressSearchResult}
                   />
                 )}
               </Col>

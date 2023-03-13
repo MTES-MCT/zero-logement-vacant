@@ -1,21 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Col,
-  Container,
-  Row,
-  SearchableSelect,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import React, { useEffect } from 'react';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import handsPoints from '../../assets/images/hands-point.svg';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
-import addressService, {
-  AddressSearchResult,
-} from '../../services/address.service';
+import { AddressSearchResult } from '../../services/address.service';
 import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationState } from '../../store/reducers/applicationReducers';
@@ -25,10 +11,10 @@ import {
   getEstablishment,
   getNearbyEstablishments,
 } from '../../store/actions/establishmentAction';
+import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useDispatch();
-  const { trackEvent } = useMatomo();
   const { establishmentWithKinds } = useEstablishments();
 
   const { addressSearchResult } = useSelector(
@@ -39,39 +25,11 @@ const OwnerGenericHomeView = () => {
     (state: ApplicationState) => state.establishment
   );
 
-  const [addressOptions, setAddressOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-
-  const quickSearch = (query: string) => {
-    if (query.length > 2) {
-      return addressService
-        .quickSearch(query)
-        .then((_) => {
-          setAddressOptions(
-            _.map((address) => ({
-              value: JSON.stringify(address),
-              label: address.label,
-            }))
-          );
-        })
-        .catch((err) => console.log('error', err));
-    } else {
-      return setAddressOptions([]);
-    }
-  };
-
-  const onSelectAddress = (value: string) => {
-    if (value) {
-      const address = JSON.parse(value) as AddressSearchResult;
-      trackEvent({
-        category: TrackEventCategories.Home,
-        action: TrackEventActions.Home.SelectAddress,
-        name: address.label,
-      });
-      dispatch(selectAddressSearchResult(address));
-      dispatch(getEstablishment(address.city, address.geoCode));
-    }
+  const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
+    dispatch(selectAddressSearchResult(addressSearchResult));
+    dispatch(
+      getEstablishment(addressSearchResult.city, addressSearchResult.geoCode)
+    );
   };
 
   useEffect(() => {
@@ -92,14 +50,7 @@ const OwnerGenericHomeView = () => {
             <Text size="lead">
               Zéro Logement Vacant est un outil de lutte contre la vacance.
             </Text>
-            <SearchableSelect
-              options={addressOptions}
-              label="Indiquer l'adresse de votre logement vacant"
-              placeholder="Indiquer l'adresse de votre logement vacant"
-              required={true}
-              onTextChange={(q: string) => quickSearch(q)}
-              onChange={onSelectAddress}
-            />
+            <AddressSearchableSelect onSelectAddress={onSelectAddress} />
           </Col>
           <Col className="align-right">
             <img

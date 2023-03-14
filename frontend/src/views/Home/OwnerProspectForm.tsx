@@ -41,18 +41,23 @@ const OwnerProspectForm = ({
       .oneOf([true], 'Veuillez accepter les conditions générales.'),
   });
 
-  const { isValid, message, messageType } = useForm(schema, {
-    address,
-    invariant,
-    firstName,
-    lastName,
-    email,
-    phone,
-    notes,
-    agreement,
-  });
+  const { isValid, message, messageType, validate } = useForm(
+    schema,
+    {
+      address,
+      invariant,
+      firstName,
+      lastName,
+      email,
+      phone,
+      notes,
+      agreement,
+    },
+    { disableValidationOnTouch: true }
+  );
 
   const submitForm = () => {
+    validate();
     if (isValid()) {
       onCreateOwnerProspect({
         address,

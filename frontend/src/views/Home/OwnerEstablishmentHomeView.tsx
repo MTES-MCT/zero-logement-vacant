@@ -68,7 +68,7 @@ const OwnerEstablishmentHomeView = () => {
     if (refName) {
       dispatch(getEstablishment(refName, geoCode));
     }
-  }, [dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, refName, geoCode]);
 
   useEffect(() => {
     if (establishment) {

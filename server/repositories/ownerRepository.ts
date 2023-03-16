@@ -1,8 +1,8 @@
 import db from './db';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
-import { HousingApi } from '../models/HousingApi';
-import { ownersHousingTable } from './housingRepository';
+import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
+import { ownersHousingTable, ReferenceDataYear } from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 
 export const ownerTable = 'owners';
@@ -75,9 +75,16 @@ const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
         '*',
         db.raw(
           '(select count(*)\n' +
-            '        from owners_housing oh2\n' +
-            '        where oh1.owner_id = oh2."owner_id"\n' +
-            '          and current_date between coalesce(oh2.start_date, current_date) and coalesce(oh2.end_date, current_date)) as housing_count'
+            '        from owners_housing oh2, housing h\n' +
+            '        where oh1.owner_id = oh2.owner_id\n' +
+            '          and oh2.housing_id = h.id\n' +
+            '          and ((h.occupancy = ? and h.vacancy_start_year <= ?) or h.occupancy = ?)\n' +
+            '          and current_date between coalesce(oh2.start_date, current_date) and coalesce(oh2.end_date, current_date)) as housing_count',
+          [
+            OccupancyKindApi.Vacant,
+            ReferenceDataYear - 2,
+            OccupancyKindApi.Rent,
+          ]
         )
       )
       .join({ oh1: ownersHousingTable }, `${ownerTable}.id`, 'oh1.owner_id')

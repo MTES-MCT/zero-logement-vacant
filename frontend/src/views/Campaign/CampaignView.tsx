@@ -25,6 +25,7 @@ import CampaignBundleTitle from '../../components/CampaignBundle/CampaignBundleT
 import { hasFilters } from '../../models/HousingFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch } from '../../hooks/useStore';
+import { numberOption } from '../../utils/numberUtils';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
@@ -41,8 +42,8 @@ const CampaignView = () => {
   useEffect(() => {
     dispatch(
       getCampaignBundle({
-        campaignNumber: campaignNumber ? Number(campaignNumber) : undefined,
-        reminderNumber: reminderNumber ? Number(reminderNumber) : undefined,
+        campaignNumber: numberOption(campaignNumber),
+        reminderNumber: numberOption(reminderNumber),
       })
     );
   }, [dispatch, campaignNumber, reminderNumber]);
@@ -60,7 +61,9 @@ const CampaignView = () => {
     setCampaignRemovalModalOpen(false);
   }
 
-  return bundle ? (
+  return bundle &&
+    bundle.campaignNumber === numberOption(campaignNumber) &&
+    bundle.reminderNumber === numberOption(reminderNumber) ? (
     <>
       {campaignRemovalModalOpen && (
         <ConfirmationModal

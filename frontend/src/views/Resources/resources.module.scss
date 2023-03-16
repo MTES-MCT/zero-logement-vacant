@@ -1,0 +1,36 @@
+.tile {
+  border: 1px solid var(--grey-925);
+  box-shadow: none;
+  display: block;
+}
+
+.tileBody {
+  text-align: left;
+  align-items: flex-start;
+  padding-top: 0;
+}
+
+.tileIcon {
+  margin-left: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.iconResource {
+  background-color: var(--grey-950);
+  color: var(--green-tilleul-verveine-850);
+}
+
+.iconCommunity {
+  background-color: var(--blue-ecume-950);
+  color: var(--blue-ecume-sun-247-hover);
+}
+
+.iconHelp {
+  background-color: var(--green-bourgeon-975);
+  color: var(--green-bourgeon-850-hover);
+}
+
+.iconAgenda {
+  background-color: var(--pink-macaron-975);
+  color: var(--pink-macaron-850-active);
+}

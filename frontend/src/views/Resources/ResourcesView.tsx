@@ -32,7 +32,7 @@ const ResourceTile = ({
   iconStyle,
 }: Props) => {
   return (
-    <Tile verticalMedium={true} className={styles.tile}>
+    <Tile verticalMedium={true} className={styles.tile} color="transparent">
       <span
         className={classNames(styles.tileIcon, iconStyle, 'card-title-icon')}
       >

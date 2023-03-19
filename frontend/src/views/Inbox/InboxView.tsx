@@ -38,7 +38,10 @@ function InboxView() {
 
   return (
     <Container as="main" fluid>
-      <PageIntro description="Lorem ipsum dolor sit amet consectetur. Amet sem enim diam ultricies tortor.Lorem ipsum dolor sit amet consectetur. Amet sem enim diam ultricies tortor." />
+      <PageIntro
+        description="Lorem ipsum dolor sit amet consectetur. Amet sem enim diam ultricies tortor.Lorem ipsum dolor sit amet consectetur. Amet sem enim diam ultricies tortor."
+        title="Boite de réception"
+      />
       <Container as="article" spacing="py-4w">
         <InboxMessageList
           messages={messages}

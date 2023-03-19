@@ -5,7 +5,7 @@ import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InternalLink from '../InternalLink/InternalLink';
 import AppSearchBar from '../AppSearchBar/AppSearchBar';
 import styles from './inbox-message-list.module.scss';
-import { dateShortFormat } from '../../utils/dateUtils';
+import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
 import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
@@ -104,7 +104,7 @@ function InboxMessageList(props: Props) {
         <>
           {owner.createdAt && (
             <Text className={styles.subtitle}>
-              Reçu le {dateShortFormat(new Date(owner.createdAt))}
+              Reçu le {dateShortFormatWithMinutes(new Date(owner.createdAt))}
             </Text>
           )}
         </>

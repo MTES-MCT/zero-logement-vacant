@@ -156,6 +156,10 @@ const AppBreadcrumb = () => {
               return getUserNavItem(UserNavItems.Resources);
             } else if (value === 'statuts') {
               return { url: '', label: 'Arborescence des status' };
+            } else if (
+              value === getUserNavItem(UserNavItems.Inbox).url.substring(1)
+            ) {
+              return getUserNavItem(UserNavItems.Inbox);
             } else {
               return { url: '', label: '' };
             }

@@ -6,16 +6,21 @@ import styles from './page-intro.module.scss';
 
 export interface PageIntroProps {
   description?: string;
+  /**
+   * @deprecated
+   * Shall be replaced by automatic retrieval from the breadcrumb.
+   */
+  title?: string;
 }
 
-function PageIntro(props?: PageIntroProps) {
+function PageIntro(props: PageIntroProps) {
   return (
     <Container as="section" className={styles.container} fluid spacing="py-4w">
       <Container as="article">
         <AppBreadcrumb />
         <Row>
           <Col>
-            <Title as="h1">Title</Title>
+            <Title as="h1">{props.title}</Title>
           </Col>
         </Row>
       </Container>

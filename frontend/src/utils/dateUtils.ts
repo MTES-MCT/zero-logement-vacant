@@ -22,6 +22,9 @@ export const durationSort = (d1?: Duration, d2?: Duration) =>
 export const dateShortFormat = (d: Date) =>
   format(d, 'dd/MM/yy', { locale: fr });
 
+export const dateShortFormatWithMinutes = (d: Date) =>
+  format(d, 'dd/MM/yy à k:mm', { locale: fr });
+
 export const parseDateInput = (s: string) =>
   s.length ? parse(s, 'yyyy-MM-dd', new Date()) : undefined;
 

@@ -178,6 +178,7 @@ function AppHeader() {
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.Establishment)}
             />
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Inbox)} />
           </HeaderNav>
         ) : (
           <HeaderNav>

@@ -34,6 +34,7 @@ import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
 import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
+import InboxView from "./views/Inbox/InboxView";
 import StatusView from './views/Resources/StatusView';
 
 function AppWrapper() {
@@ -103,6 +104,7 @@ function App() {
               <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
               <Route exact path="*/logements/:housingId" component={HousingView} />
               <Route exact path="*/territoire" component={EstablismentView} />
+              <Route exact path="/boite-de-reception" component={InboxView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/ressources/statuts" component={StatusView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>

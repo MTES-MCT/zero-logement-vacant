@@ -14,6 +14,7 @@ import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import housingExportController from '../controllers/housingExportController';
 import settingsController from '../controllers/settingsController';
+import ownerProspectController from "../controllers/ownerProspectController";
 import { isUUIDParam } from '../utils/validators';
 
 const router = express.Router();
@@ -48,6 +49,9 @@ router.post('/owners/creation', ownerController.create);
 router.put('/owners/:ownerId', ownerController.ownerValidators, ownerController.update);
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
 router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
+
+router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find)
+router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update)
 
 router.get('/events/owner/:ownerId', eventController.listByOwnerId);
 router.get('/events/housing/:housingId', eventController.listByHousingId);

@@ -114,14 +114,19 @@ export const genProspectApi = (establishment: EstablishmentApi) => {
   };
 };
 
-export const genOwnerProspectApi = () => {
-  return <OwnerProspectApi>{
+export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
+  return {
+    id: uuidv4(),
     email: genEmail(),
     firstName: randomstring.generate(),
     lastName: randomstring.generate(),
     address: randomstring.generate(),
-    geoCode: genGeoCode(),
+    geoCode: geoCode ?? genGeoCode(),
+    notes: randomstring.generate(),
     phone: randomstring.generate(),
+    invariant: randomstring.generate(),
+    callBack: genBoolean(),
+    createdAt: new Date(),
   };
 };
 

@@ -19,6 +19,7 @@ import housingService from '../../services/housing.service';
 import { PaginationApi } from '../../../../server/models/PaginationApi';
 import campaignSlice from '../reducers/campaignReducer';
 import { AppState } from '../store';
+import { Pagination } from '../../../../shared/models/Pagination';
 
 export interface CampaignListFetchedAction {
   campaignList: Campaign[];
@@ -242,7 +243,7 @@ export const changeCampaignHousingSort = (
     if (campaignBundle) {
       dispatch(showLoading());
 
-      const pagination: PaginationApi = {
+      const pagination: Pagination = {
         page: 1,
         perPage: campaignBundleHousing.perPage,
       };

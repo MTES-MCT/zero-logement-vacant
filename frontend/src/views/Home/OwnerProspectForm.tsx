@@ -68,6 +68,7 @@ const OwnerProspectForm = ({
         lastName,
         phone,
         notes,
+        callBack: true,
       });
     }
   };

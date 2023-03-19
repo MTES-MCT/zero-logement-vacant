@@ -11,6 +11,11 @@ export const likeUnaccent = (column: string, query: string) => {
   );
 };
 
+export async function countQuery(query: Knex.QueryInterface): Promise<number> {
+  const result = await query.count().first();
+  return Number(result.count);
+}
+
 export default knex(knexConfig);
 // .on( 'query', function( queryData ) {
 //     console.log( queryData );

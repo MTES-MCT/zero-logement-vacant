@@ -17,7 +17,6 @@ import { capitalize } from '../../utils/stringUtils';
 
 import { useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -135,7 +134,7 @@ const HousingList = ({
           (allChecked && checkedIds.length === 0) ||
           (!allChecked && checkedIds.length === paginatedHousing.filteredCount)
         }
-        className={checkedIds.length !== 0 ? styles.indeterminate : ''}
+        className={checkedIds.length !== 0 ? 'indeterminate' : ''}
         label=""
       ></Checkbox>
     ),

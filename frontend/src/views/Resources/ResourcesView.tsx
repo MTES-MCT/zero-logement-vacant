@@ -77,8 +77,7 @@ const ResourcesView = () => {
               Zéro Logement Vacant vous propose une sélection de ressources pour
               comprendre les données LOVAC, connaître le profil des
               propriétaires et échanger avec eux, mais aussi s’informer sur les
-              dispositifs d’aides ou encore proposer des missions de service
-              civique.
+              dispositifs d’aides ou proposer des missions de service civique.
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -91,7 +90,7 @@ const ResourcesView = () => {
               Utiliser Zéro Logement Vacant, c’est aussi faire partie d’une
               communauté de collectivités utilisatrices de la solution... Pour
               échanger sur la plateforme Rencontre des Territoires et participer
-              aux points inter-collectivités, c’est par ici !
+              au club des collectivités utilisatrices de ZLV, c’est par ici !
             </ResourceTile>
           </Col>
           <Col n="6">

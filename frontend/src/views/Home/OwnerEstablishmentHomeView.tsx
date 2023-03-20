@@ -31,6 +31,7 @@ import LocalityTaxesCard from '../../components/LocalityTaxesCard/LocalityTaxesC
 import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import classNames from 'classnames';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -101,7 +102,7 @@ const OwnerEstablishmentHomeView = () => {
   return (
     <main>
       {establishment && (
-        <Container as="section" spacing="py-7w mb-4w">
+        <Container as="section" spacing="py-7w" className="py-xs-3w">
           <Row gutters>
             <Col>
               <Title as="h1" look="h2" className="color-bf525" spacing="mb-1w">
@@ -157,7 +158,7 @@ const OwnerEstablishmentHomeView = () => {
                 </Text>
               )}
             </Col>
-            <Col className="align-right">
+            <Col className="align-right d-none d-sm-block">
               <img
                 src={handsPoints}
                 style={{ maxWidth: '100%', height: '100%' }}
@@ -168,7 +169,7 @@ const OwnerEstablishmentHomeView = () => {
         </Container>
       )}
       {localities && localities.length > 0 && (
-        <Container as="section" spacing="my-6w">
+        <Container as="section" spacing="py-6w" className="py-xs-3w">
           <Title as="h2" look="h3">
             Les taxes sur la vacance
           </Title>
@@ -228,7 +229,7 @@ const OwnerEstablishmentHomeView = () => {
           ) : (
             <Row gutters>
               {localities?.map((locality) => (
-                <Col n="4" key={locality.geoCode}>
+                <Col className="fr-col-12 fr-col-sm-4" key={locality.geoCode}>
                   <LocalityTaxesCard
                     locality={locality}
                     isPublicDisplay={true}
@@ -239,30 +240,16 @@ const OwnerEstablishmentHomeView = () => {
           )}
         </Container>
       )}
-      <Container as="section" spacing="my-6w">
+      <Container as="section" spacing="py-6w" className="py-xs-3w">
         <Title as="h2" look="h3">
           Pourquoi sortir de la vacance ?
         </Title>
         <Row gutters>
-          <Col className={styles.cardCol}>
+          <Col className={classNames(styles.cardCol, 'fr-col-12 fr-col-sm-4')}>
             <div>
               <img src={handsGrip} alt="" />
             </div>
-          </Col>
-          <Col className={styles.cardCol}>
-            <div>
-              <img src={handsShow} style={{ maxWidth: '100%' }} alt="" />
-            </div>
-          </Col>
-          <Col className={styles.cardCol}>
-            <div>
-              <img src={handsPinch} alt="" />
-            </div>
-          </Col>
-        </Row>
-        <Row gutters>
-          <Col n="4">
-            <Title as="h4" look="h6" spacing="mb-1w">
+            <Title as="h4" look="h6" spacing="my-1w">
               Ne plus être assujetti à la taxe
             </Title>
             <Text>
@@ -272,8 +259,11 @@ const OwnerEstablishmentHomeView = () => {
               le nouveau portail des impôts : Gérer Mes Biens Immobiliers.
             </Text>
           </Col>
-          <Col n="4">
-            <Title as="h4" look="h6" spacing="mb-1w">
+          <Col className={classNames(styles.cardCol, 'fr-col-12 fr-col-sm-4')}>
+            <div>
+              <img src={handsShow} style={{ maxWidth: '100%' }} alt="" />
+            </div>
+            <Title as="h4" look="h6" spacing="my-1w">
               Protéger votre patrimoine
             </Title>
             <Text>
@@ -283,8 +273,11 @@ const OwnerEstablishmentHomeView = () => {
               aussi bénéficier d’avantages fiscaux tels que le Loc’Avantages.
             </Text>
           </Col>
-          <Col n="4">
-            <Title as="h4" look="h6" spacing="mb-1w">
+          <Col className={classNames(styles.cardCol, 'fr-col-12 fr-col-sm-4')}>
+            <div>
+              <img src={handsPinch} alt="" />
+            </div>
+            <Title as="h4" look="h6" spacing="my-1w">
               Contribuez à réduire la crise du logement
             </Title>
             <Text>
@@ -297,13 +290,13 @@ const OwnerEstablishmentHomeView = () => {
         </Row>
       </Container>
       {contactPoints && contactPoints.length > 0 && (
-        <Container as="section" spacing="my-6w">
+        <Container as="section" spacing="py-6w" className="py-xs-3w">
           <Title as="h2" look="h3">
             Les guichets contacts
           </Title>
           <Row gutters>
             {contactPoints?.map((contactPoint) => (
-              <Col n="4" key={contactPoint.id}>
+              <Col className="fr-col-12 fr-col-sm-4" key={contactPoint.id}>
                 <ContactPointCard
                   contactPoint={contactPoint}
                   isPublicDisplay={true}
@@ -314,10 +307,16 @@ const OwnerEstablishmentHomeView = () => {
         </Container>
       )}
       <div className="bg-bf950">
-        <Container as="section" spacing="py-11w">
+        <Container as="section" spacing="py-11w" className="py-xs-0">
           <Row gutters>
             {(establishment?.available || epciEstablishment?.available) && (
-              <Col n="7" className="bg-white" spacing="p-8w mr-2w">
+              <Col
+                className={classNames(
+                  styles.ownerFormContainer,
+                  'fr-col-12',
+                  'fr-col-sm-7'
+                )}
+              >
                 <Text className="color-bf525" spacing="mb-1w">
                   PROPRIÉTAIRE DE LOGEMENT VACANT
                 </Text>
@@ -342,7 +341,9 @@ const OwnerEstablishmentHomeView = () => {
                 )}
               </Col>
             )}
-            <Col className="bg-white h-fit-content" spacing="p-8w">
+            <Col
+              className={classNames(styles.ownerFormContainer, 'h-fit-content')}
+            >
               <Title as="h2" look="h2" spacing="mb-1w">
                 Votre logement n’est pas vacant ?
               </Title>

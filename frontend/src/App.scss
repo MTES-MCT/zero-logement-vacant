@@ -118,6 +118,18 @@
   display: none !important;
 }
 
+.d-sm-block {
+  @media (min-width: 576px) {
+    display: block !important;
+  }
+}
+
+.d-md-block {
+  @media (min-width: 768px) {
+    display: block !important;
+  }
+}
+
 .d-lg-block {
   @media (min-width: 992px) {
     display: block !important;
@@ -127,6 +139,19 @@
 .d-lg-none {
   @media (min-width: 992px) {
     display: none !important;
+  }
+}
+
+.py-xs-0.fr-py-7w, .py-xs-0.fr-py-6w, .py-xs-0.fr-py-11w {
+  @media (max-width: 575px) {
+    padding: 0 !important;
+  }
+}
+
+
+.py-xs-3w.fr-py-7w, .py-xs-3w.fr-py-6w, .py-xs-3w.fr-py-11w {
+  @media (max-width: 575px) {
+    padding: 1.5rem !important;
   }
 }
 

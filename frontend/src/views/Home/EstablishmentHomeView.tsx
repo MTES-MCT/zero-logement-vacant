@@ -58,7 +58,7 @@ const EstablishmentHomeView = () => {
               <Button>Créer un compte</Button>
             </InternalLink>
           </Col>
-          <Col className="align-right">
+          <Col className="align-right d-none d-sm-block">
             <img
               src={building}
               style={{ maxWidth: '100%', height: '100%' }}

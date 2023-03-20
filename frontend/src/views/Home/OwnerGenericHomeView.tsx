@@ -51,7 +51,7 @@ const OwnerGenericHomeView = () => {
             </Text>
             <AddressSearchableSelect onSelectAddress={onSelectAddress} />
           </Col>
-          <Col className="align-right">
+          <Col className="align-right d-none d-sm-block">
             <img
               src={handsPoints}
               style={{ maxWidth: '100%', height: '100%' }}

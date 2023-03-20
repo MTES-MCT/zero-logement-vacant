@@ -11,6 +11,10 @@
   display: inline-flex;
   margin-top: 1.5rem;
 
+  @media (max-width: 575px) {
+    width: 100%;
+  }
+
   &:not(:last-of-type) {
     margin-right: 1.5rem;
   }

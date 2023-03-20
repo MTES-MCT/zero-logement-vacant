@@ -26,10 +26,15 @@
 }
 
 .cardCol {
-  text-align: center;
 
   div {
-    height: 100%;
+
+    @media (max-width: 575px) {
+      height: 130px;
+    }
+
+    text-align: center;
+    height: 225px;
     background-color: var(--blue-france-925);
     padding-top: 1rem;
 
@@ -48,5 +53,15 @@
     display: inline-block;
     border: none;
     box-shadow: none;
+  }
+}
+
+.ownerFormContainer {
+  background-color: var(--white-1000);
+  padding: 1.5rem !important;
+
+  @media (min-width: 576px) {
+    padding: 4rem !important;
+    margin-right: 1rem;
   }
 }

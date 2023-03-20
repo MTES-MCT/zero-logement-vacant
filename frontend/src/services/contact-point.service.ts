@@ -11,9 +11,13 @@ const http = createHttpService('contact-points', {
   json: true,
 });
 
-const find = async (establishmentId: string): Promise<ContactPoint[]> => {
+const find = async (establishmentId: string,
+  publicOnly: boolean
+): Promise<ContactPoint[]> => {
   const response = await http.get(
-    `/api/contact-points?establishmentId=${establishmentId}`
+    `/api/contact-points${
+      publicOnly ? '/public' : ''
+    }?establishmentId=${establishmentId}`
   );
   return toJSON(response);
 };

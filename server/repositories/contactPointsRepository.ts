@@ -1,7 +1,6 @@
 import db from './db';
 import { ContactPointApi } from '../models/ContactPointApi';
-import { UserRoles } from '../models/UserApi';
-import { settingsTable } from "./settingsRepository";
+import { settingsTable } from './settingsRepository';
 
 type ContactPointsUniqueProperties = Pick<
   ContactPointApi,
@@ -36,7 +35,7 @@ const update = async (contactPointApi: ContactPointApi): Promise<void> => {
 
 const find = async (
   establishmentId: string,
-  userRole: UserRoles
+  publicOnly?: boolean
 ): Promise<ContactPointApi[]> => {
   console.log(
     'List contactPointApi for establishment with id',
@@ -46,7 +45,7 @@ const find = async (
     .select(`${contactPointsTable}.*`)
     .where({ establishment_id: establishmentId })
     .modify(builder => {
-      if (userRole === undefined) {
+      if (publicOnly) {
         builder
           .join(
             settingsTable,

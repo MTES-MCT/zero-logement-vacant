@@ -15,6 +15,7 @@ import { Establishment } from '../../models/Establishment';
 export interface EstablishmentState {
   loading: boolean;
   establishment?: Establishment;
+  epciEstablishment?: Establishment;
   nearbyEstablishments?: Establishment[];
   localities?: Locality[];
   geoPerimeters?: GeoPerimeter[];
@@ -42,12 +43,14 @@ const establishmentSlice = createSlice({
     },
     fetchNearbyEstablishments: (state: EstablishmentState) => {
       state.nearbyEstablishments = undefined;
+      state.epciEstablishment = undefined;
     },
     nearbyEstablishmentFetched: (
       state: EstablishmentState,
       action: PayloadAction<NearbyEstablishmentsFetchedAction>
     ) => {
       state.nearbyEstablishments = action.payload.nearbyEstablishments;
+      state.epciEstablishment = action.payload.epciEstablishment;
     },
     fetchLocalityList: (state: EstablishmentState) => {
       state.loading = true;

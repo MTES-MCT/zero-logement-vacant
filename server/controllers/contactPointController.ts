@@ -12,25 +12,19 @@ const listContactPointsValidators = [
   query('establishmentId').notEmpty().isUUID(),
 ];
 
-const listContactPoints = async (
-  request: Request,
-  response: Response
-): Promise<void> => {
-  const { auth, user } = request as AuthenticatedRequest;
-  const establishmentId =
-    auth?.establishmentId ?? request.query.establishmentId as string;
+const listContactPoints =
+  (publicOnly: boolean) =>
+  async (request: Request, response: Response): Promise<void> => {
+    const establishmentId = request.query.establishmentId as string;
 
-  console.log(
-    'List contact points %s with role %s',
-    establishmentId,
-    user?.role
-  );
+    console.log('List contact points for establishment', establishmentId);
 
-  const contactPoints = await contactPointsRepository.find(establishmentId, user?.role);
-  response
+    const contactPoints = await contactPointsRepository
+      .find(establishmentId, publicOnly);
+      response
     .status(constants.HTTP_STATUS_OK)
     .json(contactPoints.map(toContactPointDTO));
-};
+  };
 
 interface ContactPointBody {
   title: string;

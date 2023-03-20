@@ -49,17 +49,19 @@ function ContactPointPublicPage({ establishment }: Props) {
             soient mises à jour et lisibles.
           </Text>
           <Row>
-            <Col>
+            <Col n="6">
               <Text className={styles.disabled}>{link}</Text>
             </Col>
-            <Button secondary className="fr-mr-1w" onClick={copyLink}>
-              <Icon name="ri-file-copy-line" iconPosition="left" size="1x" />
-              {clipboard.copied ? 'Copié !' : 'Copier le lien'}
-            </Button>
-            <Link href={link} className="fr-btn">
-              <Icon name="ri-eye-fill" iconPosition="left" size="1x" />
-              S’y rendre
-            </Link>
+            <Col n="6" className="align-right">
+              <Button secondary className="fr-mr-1w" onClick={copyLink}>
+                <Icon name="ri-file-copy-line" iconPosition="left" size="1x" />
+                {clipboard.copied ? 'Copié !' : 'Copier le lien'}
+              </Button>
+              <Link href={link} className="fr-btn">
+                <Icon name="ri-eye-fill" iconPosition="left" size="1x" />
+                S’y rendre
+              </Link>
+            </Col>
           </Row>
         </Col>
       </Row>

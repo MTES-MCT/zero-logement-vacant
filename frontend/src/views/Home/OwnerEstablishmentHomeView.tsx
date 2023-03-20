@@ -42,8 +42,13 @@ const OwnerEstablishmentHomeView = () => {
     (state) => state.ownerProspect
   );
 
-  const { establishment, contactPoints, localities, nearbyEstablishments } =
-    useAppSelector((state) => state.establishment);
+  const {
+    establishment,
+    contactPoints,
+    localities,
+    nearbyEstablishments,
+    epciEstablishment,
+  } = useAppSelector((state) => state.establishment);
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
@@ -73,10 +78,17 @@ const OwnerEstablishmentHomeView = () => {
   useEffect(() => {
     if (establishment) {
       dispatch(getNearbyEstablishments(establishment));
-      dispatch(fetchContactPoints(establishment.id));
       dispatch(fetchLocalities(establishment.id));
     }
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (establishment?.available) {
+      dispatch(fetchContactPoints(establishment?.id, true));
+    } else if (epciEstablishment?.available) {
+      dispatch(fetchContactPoints(epciEstablishment?.id, true));
+    }
+  }, [establishment, epciEstablishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
     dispatch(
@@ -96,14 +108,24 @@ const OwnerEstablishmentHomeView = () => {
                 {establishment.shortName.toUpperCase()}
               </Title>
               <Title as="h2" look="h1">
-                Bienvenue sur le site d’information sur la vacance du territoire
+                Bienvenue sur le site d’information pour les propriétaires de
+                logements vacants
               </Title>
               {establishment.available ? (
-                <>
+                <Tag className="fr-mb-2w bg-bf925">
+                  {isLocality ? 'Commune' : 'Collectivité'} engagée contre la
+                  vacance
+                </Tag>
+              ) : (
+                epciEstablishment?.available && (
                   <Tag className="fr-mb-2w bg-bf925">
-                    {isLocality ? 'Commune' : 'Collectivité'} engagée contre la
+                    Commune au sein d’une intercommunalité engagée contre la
                     vacance
                   </Tag>
+                )
+              )}
+              {establishment.available || epciEstablishment?.available ? (
+                <>
                   <Text>
                     <b>
                       {isLocality ? (
@@ -241,31 +263,35 @@ const OwnerEstablishmentHomeView = () => {
         <Row gutters>
           <Col n="4">
             <Title as="h4" look="h6" spacing="mb-1w">
-              Rentabilité financière accrue
+              Ne plus être assujetti à la taxe
             </Title>
             <Text>
-              Louez votre logement vacant vous rapportera un revenu
-              supplémentaire en passant par de l’intermédiation locative.
+              En remettant votre logement sur le marché, par la réoccupation, la
+              location ou la vente, vous ne serez plus soumis à la taxation sur
+              la vacance. Vous pourrez instantanément déclarer ce changement via
+              le nouveau portail des impôts : Gérer Mes Biens Immobiliers.
             </Text>
           </Col>
           <Col n="4">
             <Title as="h4" look="h6" spacing="mb-1w">
-              Durabilité à long terme
+              Protéger votre patrimoine
             </Title>
             <Text>
-              En prévenant les dommages causés par l'inoccupation à long terme,
-              la location de logements vacants peut aider à prolonger la
-              durabilité et la vie utile des bâtiments.
+              L’inoccupation à long terme accroit les risques de dégradations et
+              de squats. Louer ou vendre vous protégera de ces dommages tout en
+              générant des revenus complémentaires. En louant, vous pourrez
+              aussi bénéficier d’avantages fiscaux tels que le Loc’Avantages.
             </Text>
           </Col>
           <Col n="4">
             <Title as="h4" look="h6" spacing="mb-1w">
-              Stimulez de l'économie locale & atténuez de la pénurie de
-              logements
+              Contribuez à réduire la crise du logement
             </Title>
             <Text>
-              Contribuer à améliorer la qualité de vie des personnes en quête
-              d'un logement.
+              En mettant votre bien en location ou en le vendant pour qu’il soit
+              réoccupé, vous aiderez les personnes en quête d'un logement. Vous
+              contribuerez aussi à la vitalité ou à la revitalisation de votre
+              territoire.
             </Text>
           </Col>
         </Row>
@@ -290,7 +316,7 @@ const OwnerEstablishmentHomeView = () => {
       <div className="bg-bf950">
         <Container as="section" spacing="py-11w">
           <Row gutters>
-            {establishment?.available && (
+            {(establishment?.available || epciEstablishment?.available) && (
               <Col n="7" className="bg-white" spacing="p-8w mr-2w">
                 <Text className="color-bf525" spacing="mb-1w">
                   PROPRIÉTAIRE DE LOGEMENT VACANT
@@ -325,7 +351,7 @@ const OwnerEstablishmentHomeView = () => {
                 pour les usagers propriétaires.
               </Text>
               <Link
-                href="https://www.economie.gouv.fr/ouverture-service-en-ligne-gerer-mes-biens-immobiliers"
+                href="https://www.impots.gouv.fr/actualite/gerer-mes-biens-immobiliers-un-nouveau-service-en-ligne-pour-les-usagers-proprietaires-1"
                 target="_blank"
                 className="fr-btn"
               >

@@ -69,7 +69,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
   );
 
   useEffect(() => {
-    dispatch(fetchContactPoints(establishmentId));
+    dispatch(fetchContactPoints(establishmentId, false));
   }, [dispatch, establishmentId]);
 
   useEffect(() => {

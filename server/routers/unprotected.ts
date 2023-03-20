@@ -35,5 +35,5 @@ router.get('/establishments', establishmentController.listValidators, validator.
 router.get('/localities', localityController.listLocalitiesValidators, validator.validate, localityController.listLocalities);
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
-router.get('/contact-points', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints);
+router.get('/contact-points/public', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(true));
 export default router;

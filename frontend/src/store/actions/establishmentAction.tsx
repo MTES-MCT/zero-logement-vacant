@@ -19,6 +19,7 @@ export interface EstablishmentFetchedAction {
 
 export interface NearbyEstablishmentsFetchedAction {
   nearbyEstablishments: Establishment[];
+  epciEstablishment?: Establishment;
 }
 
 export interface LocalityListFetchedAction {
@@ -108,6 +109,7 @@ export const getNearbyEstablishments = (establishment: Establishment) => {
                   ? !_.geoCodes.includes(establishment.geoCodes[0])
                   : true
               ),
+              epciEstablishment: epci,
             })
           );
         });
@@ -115,6 +117,7 @@ export const getNearbyEstablishments = (establishment: Establishment) => {
       dispatch(
         nearbyEstablishmentFetched({
           nearbyEstablishments: [],
+          epciEstablishment: epci,
         })
       );
     }
@@ -210,13 +213,16 @@ export const uploadFile = (file: File) => {
   };
 };
 
-export const fetchContactPoints = (establishmentId: string) => {
+export const fetchContactPoints = (
+  establishmentId: string,
+  publicOnly: boolean
+) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchContactPointList());
 
-    contactPointService.find(establishmentId).then((contactPoints) => {
+    contactPointService.find(establishmentId, publicOnly).then((contactPoints) => {
       dispatch(hideLoading());
       dispatch(
         contactPointListFetched({
@@ -233,7 +239,7 @@ export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
 
     contactPointService.create(draftContactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints(draftContactPoint.establishmentId)(dispatch);
+      fetchContactPoints(draftContactPoint.establishmentId, false)(dispatch);
     });
   };
 };
@@ -244,7 +250,7 @@ export const updateContactPoint = (contactPoint: ContactPoint) => {
 
     contactPointService.update(contactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints(contactPoint.establishmentId)(dispatch);
+      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
     });
   };
 };
@@ -255,7 +261,7 @@ export const deleteContactPoint = (contactPoint: ContactPoint) => {
 
     contactPointService.remove(contactPoint.id).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints(contactPoint.establishmentId)(dispatch);
+      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
     });
   };
 };

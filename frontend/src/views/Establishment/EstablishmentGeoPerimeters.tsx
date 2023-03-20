@@ -156,12 +156,15 @@ const EstablishmentGeoPerimeters = () => {
         </ConfirmationModal>
       )}
       <Row>
-        <Col>
-          <Title look="h5" as="h2" className="fr-mt-1w">
+        <Col n="9">
+          <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
             Vos périmètres géographiques ({geoPerimeters?.length})
           </Title>
+          <Help className="d-inline-block bg-white">
+            Informations actuellement non publiables
+          </Help>
         </Col>
-        <Col>
+        <Col n="3">
           <Button
             onClick={() => setUploadingState(ActionSteps.Init)}
             className="float-right"

@@ -16,7 +16,6 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import housingService from '../../services/housing.service';
-import { PaginationApi } from '../../../../server/models/PaginationApi';
 import campaignSlice from '../reducers/campaignReducer';
 import { AppState } from '../store';
 import { Pagination } from '../../../../shared/models/Pagination';

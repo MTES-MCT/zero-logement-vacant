@@ -13,7 +13,6 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import config from '../../utils/config';
-import { PaginationApi } from '../../../../server/models/PaginationApi';
 import monitoringSlice from '../reducers/monitoringReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 

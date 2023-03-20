@@ -8,8 +8,6 @@ import { OwnerProspect } from '../../models/OwnerProspect';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AddressSearchResult } from '../../services/address.service';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
-import { findIndex } from 'lodash';
 
 export interface OwnerProspectState {
   addressSearchResult?: AddressSearchResult;

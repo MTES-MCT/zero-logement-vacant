@@ -46,7 +46,6 @@ import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Map, { MapProps } from '../../components/Map/Map';
-import { PaginationApi } from '../../../../server/models/PaginationApi';
 import { ViewState } from 'react-map-gl';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { Pagination } from '../../../../shared/models/Pagination';

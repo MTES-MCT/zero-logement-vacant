@@ -26,7 +26,7 @@ import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
-import EstablismentView from './views/Establishment/EstablismentView';
+import EstablishmentView from './views/Establishment/EstablishmentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
 import OwnerEstablishmentHomeView from './views/Home/OwnerEstablishmentHomeView';
@@ -103,8 +103,8 @@ function App() {
               <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
               <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
               <Route exact path="*/logements/:housingId" component={HousingView} />
-              <Route exact path="*/territoire" component={EstablismentView} />
               <Route exact path="/boite-de-reception" component={InboxView} />
+              <Route exact path="*/territoire" component={EstablishmentView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/ressources/statuts" component={StatusView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>

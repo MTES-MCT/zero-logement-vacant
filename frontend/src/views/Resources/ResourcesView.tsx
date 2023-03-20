@@ -128,7 +128,7 @@ const ResourcesView = () => {
         <Row gutters>
           <Col n="4">
             <ResourceTile
-              title="Déposer vos périmètres"
+              title="Ajouter un filtre géographique"
               linkHref="https://zlv.notion.site/Int-grer-un-p-rim-tre-5c7cf0d51f20448bb1316405adbb4a37"
               icon="ri-map-fill"
             >

@@ -89,12 +89,12 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const page = 1;
-    const perPage = getState().housing.paginatedHousing.perPage;
-    const pagination: PaginationApi = {
-      page,
-      perPage,
-    };
+    const pagination: PaginationApi = getState().housing.paginate
+      ? {
+          page: 1,
+          perPage: getState().housing.paginatedHousing.perPage,
+        }
+      : { paginate: false };
 
     dispatch(
       fetchingHousingList({

@@ -97,6 +97,7 @@ const HousingListView = () => {
         : {
             page: paginatedHousing.page,
             perPage: paginatedHousing.perPage,
+            paginate: true,
           };
     dispatch(changeHousingPagination(pagination));
   }, [dispatch, view, paginatedHousing.page, paginatedHousing.perPage]);

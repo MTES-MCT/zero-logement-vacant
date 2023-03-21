@@ -178,14 +178,7 @@ const housingSlice = createSlice({
     ) => {
       state.paginate = action.payload.paginate;
       state.paginatedHousing = {
-        page:
-          state.paginatedHousing.page ?? action.payload.paginatedHousing.page,
-        perPage:
-          state.paginatedHousing.perPage ??
-          action.payload.paginatedHousing.perPage,
-        entities: action.payload.paginatedHousing.entities,
-        filteredCount: action.payload.paginatedHousing.filteredCount,
-        totalCount: action.payload.paginatedHousing.totalCount,
+        ...action.payload.paginatedHousing,
         loading: false,
       };
       state.filters = action.payload.filters;

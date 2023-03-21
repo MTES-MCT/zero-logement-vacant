@@ -165,7 +165,7 @@ const housingSlice = createSlice({
       state: HousingState,
       action: PayloadAction<FetchingHousingListAction>
     ) => {
-      state.paginate = action.payload.pagination.paginate;
+      state.paginate = action.payload.pagination.paginate ?? state.paginate;
       state.paginatedHousing = {
         ...state.paginatedHousing,
         loading: true,
@@ -176,13 +176,15 @@ const housingSlice = createSlice({
       state: HousingState,
       action: PayloadAction<HousingListFetchedAction>
     ) => {
-      state.paginate = action.payload.paginate;
+      const paginate = action.payload.paginate ?? state.paginate;
+      state.paginate = paginate;
       state.paginatedHousing = {
-        page:
-          state.paginatedHousing.page ?? action.payload.paginatedHousing.page,
-        perPage:
-          state.paginatedHousing.perPage ??
-          action.payload.paginatedHousing.perPage,
+        page: paginate
+          ? action.payload.paginatedHousing.page
+          : state.paginatedHousing.page,
+        perPage: paginate
+          ? action.payload.paginatedHousing.perPage
+          : state.paginatedHousing.perPage,
         entities: action.payload.paginatedHousing.entities,
         filteredCount: action.payload.paginatedHousing.filteredCount,
         totalCount: action.payload.paginatedHousing.totalCount,

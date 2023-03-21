@@ -149,21 +149,16 @@ const getCampaignBundle = async (
             .andWhereRaw(`${campaignsTable}.archived_at is null`);
         }
         if (reminderNumber) {
-          queryBuilder.andWhere(
-            `${campaignsTable}.reminder_number`,
-            reminderNumber
-          );
+          queryBuilder
+            .select(`${campaignsTable}.reminder_number`)
+            .andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
+            .groupBy(`${campaignsTable}.reminder_number`);
         }
         queryOwnerHousingWhereClause(queryBuilder, query);
       })
       .first()
       .then((result: any) =>
-        result
-          ? parseCampaignBundleApi({
-              ...result,
-              reminder_number: reminderNumber,
-            })
-          : result
+        result ? parseCampaignBundleApi(result) : result
       );
   } catch (err) {
     console.error(

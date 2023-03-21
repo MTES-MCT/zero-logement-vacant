@@ -66,7 +66,7 @@ describe('Campaign controller', () => {
         expect.objectContaining({
           campaignIds: [Campaign1.id],
           campaignNumber: Campaign1.campaignNumber,
-          reminderNumber: String(Campaign1.reminderNumber),
+          reminderNumber: Campaign1.reminderNumber,
           filters: expect.objectContaining(Campaign1.filters),
         })
       );

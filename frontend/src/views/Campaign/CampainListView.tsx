@@ -6,7 +6,6 @@ import {
   Col,
   Container,
   Link,
-  Link as DSFRLink,
   Row,
   Text,
   Title,
@@ -16,6 +15,7 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import InternalLink from '../../components/InternalLink/InternalLink';
 
 const CampaignsListView = () => {
   useDocumentTitle('Logements suivis');
@@ -51,16 +51,15 @@ const CampaignsListView = () => {
       <Container as="section" spacing="py-4w">
         <Title as="h2" look="h5">
           Vos logements suivis ({inProgressCampaignBundle?.housingCount})
-          <DSFRLink
-            title="Voir tout"
-            isSimple
+          <InternalLink
+            className="fr-ml-2w fr-link"
             icon="ri-arrow-right-line"
             iconPosition="right"
-            href="/campagnes/C"
-            className="fr-ml-2w fr-link"
+            isSimple
+            to="/campagnes/C"
           >
             Voir tout
-          </DSFRLink>
+          </InternalLink>
         </Title>
 
         <CampaignBundleList withDeletion={true} />
@@ -75,13 +74,12 @@ const CampaignsListView = () => {
                 Vous pouvez également en créer une nouvelle directement dans une
                 campagne existante (pour une relance par exemple)
               </CalloutText>
-              <Link
-                title="Créer votre nouvelle campagne"
-                href="/base-de-donnees?campagne=true"
+              <InternalLink
+                to="/base-de-donnees?campagne=true"
                 className="fr-btn--md fr-btn fr-btn--secondary"
               >
                 Créer votre nouvelle campagne
-              </Link>
+              </InternalLink>
             </Callout>
           </Col>
           <Col>

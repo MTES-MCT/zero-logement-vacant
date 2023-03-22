@@ -16,6 +16,7 @@ import { getOwner } from '../../store/actions/ownerAction';
 import { getHousing } from '../../store/actions/housingAction';
 import { UserRoles } from '../../models/User';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import InternalLink from '../InternalLink/InternalLink';
 
 interface BreadcrumbParams {
   campaignNumber: string;
@@ -185,6 +186,7 @@ const AppBreadcrumb = () => {
             href={item.url}
             key={item.label}
             data-testid="nav-item"
+            asLink={<InternalLink to={item.url} />}
           >
             {item.label}
           </BreadcrumbItem>

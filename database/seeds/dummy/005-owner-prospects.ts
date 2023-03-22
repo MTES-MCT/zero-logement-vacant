@@ -12,7 +12,6 @@ exports.seed = async function (knex: Knex) {
     .where('siren', SirenStrasbourg)
     .first();
 
-  console.log(establishment);
   const ownerProspects = [
     genOwnerProspectApi(establishment.localities_geo_code[0]),
     genOwnerProspectApi(establishment.localities_geo_code[1]),

@@ -13,6 +13,7 @@ import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 interface Props {
   messages: OwnerProspect[];
   onChange?: (ownerProspect: OwnerProspect) => void;
+  onDisplay?: (ownerProspect: OwnerProspect) => void;
   onSelect?: (selection: Selection) => void;
   onSearch?: (value: string) => void;
   onSort?: (sort: OwnerProspectSort) => void | Promise<void>;
@@ -52,7 +53,9 @@ function InboxMessageList(props: Props) {
         </div>
       ),
       render: (owner: OwnerProspect) => (
-        <Text className={styles.ellipsis}>{owner.address}</Text>
+        <Text bold={!owner.read} className={styles.ellipsis}>
+          {owner.address}
+        </Text>
       ),
     },
     {
@@ -120,6 +123,7 @@ function InboxMessageList(props: Props) {
           iconSize="1x"
           iconPosition="right"
           isSimple
+          onClick={() => props.onDisplay?.({ ...owner, read: true })}
           to="logements"
         >
           Afficher la fiche contact

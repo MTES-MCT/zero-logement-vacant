@@ -93,6 +93,7 @@ const findOne = async (
 const update = async (ownerProspect: OwnerProspectApi): Promise<void> => {
   await OwnerProspects().where({ id: ownerProspect.id }).update({
     call_back: ownerProspect.callBack,
+    read: ownerProspect.read,
   });
 };
 
@@ -107,6 +108,7 @@ interface OwnerProspectDbo {
   phone: string;
   notes?: string;
   call_back: boolean;
+  read: boolean;
   created_at: string;
 }
 
@@ -123,6 +125,7 @@ const parseOwnerProspectApi = (
   phone: ownerProspectDbo.phone,
   notes: ownerProspectDbo.notes,
   callBack: ownerProspectDbo.call_back,
+  read: ownerProspectDbo.read,
   createdAt: new Date(ownerProspectDbo.created_at),
 });
 
@@ -139,6 +142,7 @@ const formatOwnerProspectApi = (
   phone: ownerProspectApi.phone,
   notes: ownerProspectApi.notes,
   call_back: ownerProspectApi.callBack,
+  read: ownerProspectApi.read,
   created_at: ownerProspectApi.createdAt.toISOString(),
 });
 

@@ -22,15 +22,16 @@ const createOwnerProspectValidators: ValidationChain[] = [
   body('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
   body('phone').isString().notEmpty(),
   body('notes').isString().optional(),
-  body('callBack').default(true).isBoolean({ strict: true }),
 ];
 
 const createOwnerProspect = async (request: Request, response: Response) => {
   const ownerProspectApi = request.body as OwnerProspectApi;
 
-  const createdOwnerProspect = await ownerProspectRepository.insert(
-    ownerProspectApi
-  );
+  const createdOwnerProspect = await ownerProspectRepository.insert({
+    ...ownerProspectApi,
+    callBack: true,
+    read: false,
+  });
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdOwnerProspect);
 };
@@ -69,6 +70,7 @@ const find = async (request: Request, response: Response) => {
 const updateOwnerProspectValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
   body('callBack').isBoolean().withMessage('Must be a boolean'),
+  body('read').isBoolean().withMessage('Must be a boolean'),
 ];
 
 const update = async (request: Request, response: Response) => {
@@ -86,6 +88,7 @@ const update = async (request: Request, response: Response) => {
   const updated: OwnerProspectApi = {
     ...ownerProspect,
     callBack: body.callBack,
+    read: body.read,
   };
   await ownerProspectRepository.update(updated);
 

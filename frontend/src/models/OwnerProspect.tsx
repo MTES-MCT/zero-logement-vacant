@@ -11,6 +11,7 @@ export interface OwnerProspect {
   phone: string;
   notes?: string;
   callBack: boolean;
+  read: boolean;
   createdAt?: string;
 }
 

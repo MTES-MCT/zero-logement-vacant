@@ -31,9 +31,10 @@ import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/Esta
 interface AppNavItemProps {
   userNavItem: UserNavItem;
   isCurrent?: () => boolean;
+  count?: number;
 }
 
-function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
+function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
   const location = useLocation();
   const [path, setPath] = useState(() => location.pathname || '');
 
@@ -47,7 +48,12 @@ function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
     <NavItem
       current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
       title={userNavItem.label}
-      asLink={<Link to={userNavItem.url} className="d-md-none" />}
+      asLink={
+        <Link to={userNavItem.url} className="d-md-none">
+          {userNavItem.label}
+          {count && <span className={styles.count}>{count}</span>}
+        </Link>
+      }
     />
   );
 }
@@ -60,6 +66,11 @@ function AppHeader() {
   const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
+  const { ownerProspects } = useAppSelector((state) => state.ownerProspect);
+
+  const unreadMessages = ownerProspects?.entities.filter(
+    (entity) => !entity.read
+  );
 
   useEffect(() => {
     trackPageView({});
@@ -178,7 +189,10 @@ function AppHeader() {
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.Establishment)}
             />
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Inbox)} />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.Inbox)}
+              count={unreadMessages?.length}
+            />
           </HeaderNav>
         ) : (
           <HeaderNav>

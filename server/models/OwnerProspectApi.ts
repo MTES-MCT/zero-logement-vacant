@@ -11,6 +11,7 @@ export interface OwnerProspectApi {
   phone: string;
   notes?: string;
   callBack: boolean;
+  read: boolean;
   createdAt: Date;
 }
 
@@ -20,4 +21,7 @@ export type OwnerProspectSortableApi = Pick<
 >;
 export type OwnerProspectSortApi = Sort<OwnerProspectSortableApi>;
 
-export type OwnerProspectUpdateApi = Pick<OwnerProspectApi, 'callBack'>;
+export type OwnerProspectUpdateApi = Pick<
+  OwnerProspectApi,
+  'callBack' | 'read'
+>;

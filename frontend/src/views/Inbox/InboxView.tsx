@@ -20,6 +20,10 @@ function InboxView() {
     dispatch(updateOwnerProspect(ownerProspect));
   }
 
+  function onDisplay(ownerProspect: OwnerProspect): void {
+    dispatch(updateOwnerProspect(ownerProspect));
+  }
+
   function onSelect(selection: Selection): void {
     console.log(selection);
   }
@@ -46,6 +50,7 @@ function InboxView() {
         <InboxMessageList
           messages={messages}
           onChange={onChange}
+          onDisplay={onDisplay}
           onSelect={onSelect}
           onSort={onSort}
         />

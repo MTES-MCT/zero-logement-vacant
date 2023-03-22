@@ -258,32 +258,38 @@ function HousingListFiltersSidemenu() {
                     }
                   />
                 </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Étiquette DPE (majoritaire)"
-                    options={energyConsumptionOptions}
-                    initialValues={filters.energyConsumption}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { energyConsumption: values },
-                        'Étiquette DPE (majoritaire)'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Étiquette DPE (+ mauvaise)"
-                    options={energyConsumptionWorstOptions}
-                    initialValues={filters.energyConsumptionWorst}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { energyConsumptionWorst: values },
-                        'Étiquette DPE (+ mauvaise)'
-                      )
-                    }
-                  />
-                </Col>
+                {feature.isEnabled('occupancy') ? (
+                  <>
+                    <Col n="6">
+                      <AppMultiSelect
+                        label="Étiquette DPE (majoritaire)"
+                        options={energyConsumptionOptions}
+                        initialValues={filters.energyConsumption}
+                        onChange={(values) =>
+                          onChangeFilters(
+                            { energyConsumption: values },
+                            'Étiquette DPE (majoritaire)'
+                          )
+                        }
+                      />
+                    </Col>
+                    <Col n="6">
+                      <AppMultiSelect
+                        label="Étiquette DPE (+ mauvaise)"
+                        options={energyConsumptionWorstOptions}
+                        initialValues={filters.energyConsumptionWorst}
+                        onChange={(values) =>
+                          onChangeFilters(
+                            { energyConsumptionWorst: values },
+                            'Étiquette DPE (+ mauvaise)'
+                          )
+                        }
+                      />
+                    </Col>
+                  </>
+                ) : (
+                  <></>
+                )}
               </Row>
             </Container>
           </AccordionItem>

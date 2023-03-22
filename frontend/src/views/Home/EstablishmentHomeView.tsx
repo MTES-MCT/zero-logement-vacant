@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  Button,
-  Col,
-  Container,
-  Link as DSLink,
-  Row,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
@@ -32,6 +24,7 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import InternalLink from '../../components/InternalLink/InternalLink';
 
 const EstablishmentHomeView = () => {
   useDocumentTitle();
@@ -53,18 +46,18 @@ const EstablishmentHomeView = () => {
               propriétaires de logements vacants et à mieux les accompagner dans
               la remise sur le marché de leur logement.
             </Text>
-            <DSLink
-              title="Créer un compte"
+            <InternalLink
+              className="internal-link--btn"
               onClick={() =>
                 trackEvent({
                   category: TrackEventCategories.Home,
                   action: TrackEventActions.Home.Connection,
                 })
               }
-              as={<Link to="/inscription/email" />}
+              to="/inscription/email"
             >
               <Button>Créer un compte</Button>
-            </DSLink>
+            </InternalLink>
           </Col>
           <Col className="align-right">
             <img
@@ -279,18 +272,18 @@ const EstablishmentHomeView = () => {
             </Col>
           </Row>
           <Row gutters justifyContent="center" className="fr-pt-2w">
-            <DSLink
-              title="Rejoindre la communauté"
+            <InternalLink
+              className="internal-link--btn"
               onClick={() =>
                 trackEvent({
                   category: TrackEventCategories.Home,
                   action: TrackEventActions.Home.Join,
                 })
               }
-              as={<Link to={{ pathname: '/inscription' }} />}
+              to="/inscription"
             >
               <Button>Rejoindre la communauté</Button>
-            </DSLink>
+            </InternalLink>
           </Row>
         </Container>
       </div>
@@ -323,12 +316,6 @@ const EstablishmentHomeView = () => {
                 Rectifier la situation
               </Link>
             </Col>
-            {/*<Col>*/}
-            {/*    Votre logement est inoccupé et vous souhaitez connaître les aides financières disponibles ?*/}
-            {/*</Col>*/}
-            {/*<Col>*/}
-            {/*    Vous souhaitez bénéficier d’un accompagnement personnalisé pour remettre votre logement sur le marché ?*/}
-            {/*</Col>*/}
           </Row>
         </Container>
       </div>

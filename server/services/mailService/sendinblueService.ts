@@ -40,6 +40,8 @@ class SendinblueService implements MailService {
           email,
           data as MailEvent['housing:exported']
         );
+      case 'owner-prospect:created':
+        return this.ownerProspectCreated(email);
       case 'prospect:initialized':
         return this.prospectInitialized(
           email,
@@ -91,6 +93,12 @@ class SendinblueService implements MailService {
       .trackEvent(email, 'housing:exported', {
         priority: data.priority,
       })
+      .catch(console.error);
+  }
+
+  private ownerProspectCreated(email: string) {
+    this.events
+      .trackEvent(email, 'owner-prospect:created')
       .catch(console.error);
   }
 

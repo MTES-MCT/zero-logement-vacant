@@ -22,7 +22,8 @@ export interface MailService {
 }
 
 export interface MailEvent {
+  'housing:exported': { priority: EstablishmentPriority };
+  'owner-prospect:created': Record<string, never>;
   'prospect:initialized': { link: string };
   'prospect:activated': { createdAt: Date };
-  'housing:exported': { priority: EstablishmentPriority };
 }

@@ -12,6 +12,7 @@ import pagination, { createPagination } from '../models/PaginationApi';
 import { isPartial } from '../models/PaginatedResultApi';
 import SortApi from '../models/SortApi';
 import OwnerProspectMissingError from '../errors/ownerProspectMissingError';
+import mailService from '../services/mailService';
 
 const createOwnerProspectValidators: ValidationChain[] = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -32,6 +33,7 @@ const createOwnerProspect = async (request: Request, response: Response) => {
     callBack: true,
     read: false,
   });
+  mailService.emit('owner-prospect:created', ownerProspectApi.email);
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdOwnerProspect);
 };

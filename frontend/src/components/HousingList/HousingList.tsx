@@ -6,12 +6,7 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  Button,
-  Link as DSFRLink,
-  Pagination,
-  Table,
-} from '@dataesr/react-dsfr';
+import { Button, Pagination, Table } from '@dataesr/react-dsfr';
 import {
   Housing,
   HousingSort,
@@ -20,7 +15,7 @@ import {
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -40,6 +35,7 @@ import { findChild } from '../../utils/elementUtils';
 import Checkbox from '../Checkbox/Checkbox';
 import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
+import InternalLink from '../InternalLink/InternalLink';
 
 export enum HousingDisplayKey {
   Housing,
@@ -192,13 +188,13 @@ const HousingList = ({
     ),
     render: ({ owner }: Housing) => (
       <>
-        <DSFRLink
-          title={owner.fullName}
+        <InternalLink
           isSimple
-          as={<Link to={`/proprietaires/${owner.id}`} />}
+          title={owner.fullName}
+          to={`/proprietaires/${owner.id}`}
         >
           {owner.fullName}
-        </DSFRLink>
+        </InternalLink>
         {owner.administrator && <div>({owner.administrator})</div>}
       </>
     ),
@@ -264,7 +260,7 @@ const HousingList = ({
       actions ? (
         <>{actions(housing)}</>
       ) : (
-        <DSFRLink
+        <InternalLink
           display="flex"
           icon="ri-arrow-right-line"
           iconSize="1x"
@@ -276,10 +272,10 @@ const HousingList = ({
               action: TrackEventActions.HousingList.DisplayHousing,
             })
           }
-          as={<Link to={location.pathname + '/logements/' + housing.id} />}
+          to={`${location.pathname}/logements/${housing.id}`}
         >
           Afficher
-        </DSFRLink>
+        </InternalLink>
       ),
   };
 

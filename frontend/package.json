@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@craco/craco": "^7.0.0",
-    "@dataesr/react-dsfr": "3.5.2",
+    "@dataesr/react-dsfr": "3.5.6",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@reduxjs/toolkit": "^1.9.3",
     "@testing-library/jest-dom": "^5.16.4",
@@ -36,7 +36,7 @@
     "@turf/turf": "^6.5.0",
     "@typeform/embed-react": "^2.4.0",
     "@types/jest": "^28.1.4",
-    "@types/node": "^16.11.43",
+    "@types/node": "^16.18.11",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
     "@types/react-router-dom": "^5.3.3",

@@ -153,6 +153,8 @@ const AppBreadcrumb = () => {
               value === getUserNavItem(UserNavItems.Resources).url.substring(1)
             ) {
               return getUserNavItem(UserNavItems.Resources);
+            } else if (value === 'statuts') {
+              return { url: '', label: 'Arborescence des status' };
             } else {
               return { url: '', label: '' };
             }

@@ -13,11 +13,8 @@ interface Props extends ComponentPropsWithoutRef<typeof Toggle> {
 }
 
 function ExtendedToggle(props: Props) {
-  const [checked, setChecked] = useState(props.checked);
-
   function toggleChecked() {
-    setChecked(!checked);
-    props.onChange?.(!checked);
+    props.onChange?.(!props.checked);
   }
 
   const id = useRef(props.id || uuidv4());
@@ -54,7 +51,7 @@ function ExtendedToggle(props: Props) {
     <div className={classes}>
       <div className={styles.inputContainer} onClick={toggleChecked}>
         <input
-          checked={checked}
+          checked={props.checked}
           onChange={toggleChecked}
           type="checkbox"
           className={classNames(styles.input)}

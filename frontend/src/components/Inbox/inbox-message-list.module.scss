@@ -1,8 +1,27 @@
-.table {
-  th:last-child,
-  tr > td:last-child {
-    padding: 1rem 0.5rem;
+.address {
+  align-items: center;
+  display: inline-flex;
+  flex-flow: row wrap;
+  max-width: 100%;
+}
+
+.chip {
+  background-color: var(--blue-france-113);
+  border-radius: 50%;
+  display: inline-block;
+  height: 1rem;
+  margin-right: 1rem;
+  width: 1rem;
+
+  & + .addressLines {
+    width: calc(100% - 2rem)
   }
+}
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .subtitle {
@@ -11,8 +30,10 @@
   font-weight: 400;
 }
 
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.table {
+  th:last-child,
+  tr > td:last-child {
+    padding: 1rem 0.5rem;
+  }
 }
+

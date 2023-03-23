@@ -78,3 +78,7 @@ export function prependIf(condition: boolean) {
 }
 
 export const mailto = (email: string): string => `mailto:${email}`;
+
+export function initials(firstName: string, lastName: string): string {
+  return `${firstName[0]}${lastName[0]}`.toUpperCase();
+}

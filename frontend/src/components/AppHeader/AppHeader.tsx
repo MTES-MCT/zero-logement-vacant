@@ -26,6 +26,7 @@ import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
 interface AppNavItemProps {
@@ -49,10 +50,14 @@ function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
       current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
       title={userNavItem.label}
       asLink={
-        <Link to={userNavItem.url} className="d-md-none">
-          {userNavItem.label}
-          {count && <span className={styles.count}>{count}</span>}
-        </Link>
+        count ? (
+          <Link to={userNavItem.url} className="d-md-none">
+            {userNavItem.label}
+            <span className={styles.count}>{count}</span>
+          </Link>
+        ) : (
+          <Link to={userNavItem.url} className="d-md-none" />
+        )
       }
     />
   );
@@ -68,7 +73,11 @@ function AppHeader() {
   const { authUser } = useAppSelector((state) => state.authentication);
   const { ownerProspects } = useAppSelector((state) => state.ownerProspect);
 
-  const unreadMessages = ownerProspects?.entities.filter(
+  useEffect(() => {
+    dispatch(findOwnerProspects());
+  }, [dispatch]);
+
+  const unreadMessages = ownerProspects?.entities?.filter(
     (entity) => !entity.read
   );
 

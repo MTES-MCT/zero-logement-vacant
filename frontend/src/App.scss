@@ -417,3 +417,14 @@ a.fr-btn[target='_blank']:after {
 .flex-align-center {
   align-items: center
 }
+
+.word-wrap {
+  hyphens: auto;
+  word-wrap: break-word;
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}

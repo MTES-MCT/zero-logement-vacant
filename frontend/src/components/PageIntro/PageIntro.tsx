@@ -1,11 +1,11 @@
-import { Col, Container, Row, Title } from '@dataesr/react-dsfr';
-import React from 'react';
+import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import React, { ReactNode } from 'react';
 
 import AppBreadcrumb from '../AppBreadcrumb/AppBreadcrumb';
 import styles from './page-intro.module.scss';
 
 export interface PageIntroProps {
-  description?: string;
+  description?: ReactNode | ReactNode[];
   /**
    * @deprecated
    * Shall be replaced by automatic retrieval from the breadcrumb.
@@ -19,10 +19,16 @@ function PageIntro(props: PageIntroProps) {
       <Container as="article">
         <AppBreadcrumb />
         <Row>
-          <Col>
-            <Title as="h1">{props.title}</Title>
+          <Col n="8">
+            <Title as="h1" spacing="mb-1w">
+              {props.title}
+            </Title>
+            <Text size="lead" className="subtitle">
+              {props.description}
+            </Text>
           </Col>
         </Row>
+        <Row></Row>
       </Container>
     </Container>
   );

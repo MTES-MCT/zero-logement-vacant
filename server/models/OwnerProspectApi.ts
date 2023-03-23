@@ -21,6 +21,11 @@ export type OwnerProspectSortableApi = Pick<
 >;
 export type OwnerProspectSortApi = Sort<OwnerProspectSortableApi>;
 
+export type OwnerProspectCreateApi = Omit<
+  OwnerProspectApi,
+  'id' | 'callBack' | 'read' | 'createdAt'
+>;
+
 export type OwnerProspectUpdateApi = Pick<
   OwnerProspectApi,
   'callBack' | 'read'

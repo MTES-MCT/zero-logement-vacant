@@ -4,7 +4,6 @@
   cursor: pointer;
   display: flex;
   flex-wrap: wrap;
-  padding: 1rem 0;
   position: relative;
 
   input[type=checkbox] {
@@ -77,7 +76,7 @@
   padding-left: 2rem;
 
   :not(.vertical) & {
-    padding-left: 1rem;
+    padding-left: 0.5rem;
   }
 
   ::after {

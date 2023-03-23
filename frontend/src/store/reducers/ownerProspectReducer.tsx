@@ -5,7 +5,7 @@ import {
   OwnerProspectUpdatedAction,
 } from '../actions/ownerProspectAction';
 import { OwnerProspect } from '../../models/OwnerProspect';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 import { AddressSearchResult } from '../../services/address.service';
 import { PaginatedResult } from '../../models/PaginatedResult';
 
@@ -46,10 +46,10 @@ const ownerProspectSlice = createSlice({
       if (state.ownerProspects?.entities) {
         state.ownerProspects.entities = state.ownerProspects.entities.map(
           (entity) => {
-            if (entity.id !== action.payload.ownerProspect.id) {
-              return entity;
+            if (entity.id === action.payload.ownerProspect.id) {
+              return action.payload.ownerProspect;
             }
-            return action.payload.ownerProspect;
+            return entity;
           }
         );
       }

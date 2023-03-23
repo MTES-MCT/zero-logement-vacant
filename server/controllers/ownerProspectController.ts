@@ -2,8 +2,10 @@ import { body, param, query, ValidationChain } from 'express-validator';
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 import { AuthenticatedRequest } from 'express-jwt';
+import { v4 as uuidv4 } from 'uuid';
 import {
   OwnerProspectApi,
+  OwnerProspectCreateApi,
   OwnerProspectSortableApi,
   OwnerProspectUpdateApi,
 } from '../models/OwnerProspectApi';
@@ -26,14 +28,16 @@ const createOwnerProspectValidators: ValidationChain[] = [
 ];
 
 const createOwnerProspect = async (request: Request, response: Response) => {
-  const ownerProspectApi = request.body as OwnerProspectApi;
+  const body = request.body as OwnerProspectCreateApi;
 
   const createdOwnerProspect = await ownerProspectRepository.insert({
-    ...ownerProspectApi,
+    ...body,
+    id: uuidv4(),
+    createdAt: new Date(),
     callBack: true,
     read: false,
   });
-  mailService.emit('owner-prospect:created', ownerProspectApi.email);
+  mailService.emit('owner-prospect:created', body.email);
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdOwnerProspect);
 };

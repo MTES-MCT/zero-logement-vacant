@@ -2,20 +2,19 @@ import { Checkbox, Col, Row, Table, Text } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 import { Selection, useSelection } from '../../hooks/useSelection';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
-import InternalLink from '../InternalLink/InternalLink';
-import AppSearchBar from '../AppSearchBar/AppSearchBar';
 import styles from './inbox-message-list.module.scss';
 import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
 import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import { pluralize } from '../../utils/stringUtils';
 
 interface Props {
   messages: OwnerProspect[];
   onChange?: (ownerProspect: OwnerProspect) => void;
   onDisplay?: (ownerProspect: OwnerProspect) => void;
   onSelect?: (selection: Selection) => void;
-  onSearch?: (value: string) => void;
   onSort?: (sort: OwnerProspectSort) => void | Promise<void>;
 }
 
@@ -24,6 +23,16 @@ function InboxMessageList(props: Props) {
   const { cycleSort, getIcon } = useSort<OwnerProspectSort>({
     onSort: props.onSort,
   });
+
+  const total = props.messages.length;
+  const unread = props.messages.filter((message) => !message.read).length;
+
+  function splitAddress(fullAddress: string): string[] {
+    const zipcode = fullAddress.search(/\d{5}/);
+    return zipcode >= 0
+      ? [fullAddress.substring(0, zipcode), fullAddress.substring(zipcode)]
+      : [fullAddress];
+  }
 
   const columns = [
     {
@@ -53,9 +62,14 @@ function InboxMessageList(props: Props) {
         </div>
       ),
       render: (owner: OwnerProspect) => (
-        <Text bold={!owner.read} className={styles.ellipsis}>
-          {owner.address}
-        </Text>
+        <div className={classNames(styles.address, 'ellipsis')}>
+          {!owner.read && <span className={styles.chip} />}
+          <div className={styles.addressLines}>
+            {splitAddress(owner.address).map((address) => (
+              <Text bold={!owner.read}>{address}</Text>
+            ))}
+          </div>
+        </div>
       ),
     },
     {
@@ -67,10 +81,10 @@ function InboxMessageList(props: Props) {
       ),
       render: (owner: OwnerProspect) => (
         <>
-          <Text className={styles.ellipsis}>
+          <Text className="ellipsis">
             {owner.firstName} {owner.lastName}
           </Text>
-          <Text className={classNames(styles.ellipsis, styles.subtitle)}>
+          <Text className={classNames('ellipsis', styles.subtitle)}>
             {owner.email}
           </Text>
         </>
@@ -117,35 +131,30 @@ function InboxMessageList(props: Props) {
       name: 'action',
       headerRender: () => '',
       render: (owner: OwnerProspect) => (
-        <InternalLink
+        <ButtonLink
           display="flex"
           icon="ri-arrow-right-line"
           iconSize="1x"
           iconPosition="right"
           isSimple
           onClick={() => props.onDisplay?.({ ...owner, read: true })}
-          to="logements"
         >
           Afficher la fiche contact
-        </InternalLink>
+        </ButtonLink>
       ),
     },
   ];
 
-  function onSearch(value: string): void {
-    props.onSearch?.(value);
-  }
-
-  async function onKeySearch(value: string): Promise<void> {
-    props.onSearch?.(value);
-  }
-
   return (
     <>
-      <Row spacing="my-2w">
-        <Col></Col>
-        <Col n="3">
-          <AppSearchBar onKeySearch={onKeySearch} onSearch={onSearch} />
+      <Row spacing="mb-2w">
+        <Col>
+          <Text as="span">
+            {props.messages.length} {pluralize(total)('message')} dont 
+            <Text as="span" bold>
+              {unread} non {pluralize(unread)('lu')}
+            </Text>
+          </Text>
         </Col>
       </Row>
       <Row>

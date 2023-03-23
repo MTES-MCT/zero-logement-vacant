@@ -56,7 +56,7 @@ const find = async (
           },
         });
       } else {
-        builder.orderBy('created_at');
+        builder.orderBy('created_at', 'desc');
       }
     });
 

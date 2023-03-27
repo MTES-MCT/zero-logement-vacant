@@ -1,25 +1,32 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Row, Select, Text, TextInput } from '@dataesr/react-dsfr';
-import { HousingUpdate } from '../../../models/Housing';
 import {
-  getHousingState,
-  getPrecision,
+  Col,
+  Row,
+  Select,
+  Tag,
+  TagGroup,
+  Text,
+  TextInput,
+} from '@dataesr/react-dsfr';
+import { HousingUpdate } from '../../models/Housing';
+import {
   getStatusPrecisionOptions,
-  getSubStatus,
   getSubStatusOptions,
   HousingStatus,
-} from '../../../models/HousingState';
-import { DefaultOption, SelectOption } from '../../../models/SelectOption';
+} from '../../models/HousingState';
+import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
 import { ValidationError } from 'yup/es';
-import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
-import {
-  statusOptions,
-  vacancyReasonsOptions,
-} from '../../../models/HousingFilters';
+import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
+import { statusOptions } from '../../models/HousingFilters';
+import HousingStatusSelect from './HousingStatusSelect';
+import ButtonLink from '../ButtonLink/ButtonLink';
+import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal';
+import styles from './housing-edition-form.module.scss';
+import classNames from 'classnames';
 
-const HousingStatusForm = (
+const HousingEditionForm = (
   {
     currentStatus,
     currentSubStatus,
@@ -44,14 +51,13 @@ const HousingStatusForm = (
   const [precisions, setPrecisions] = useState<string[] | undefined>(
     currentPrecisions
   );
-  const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(
-    currentVacancyReasons
-  );
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
   const [contactKind, setContactKind] = useState<string>();
   const [comment, setComment] = useState<string>();
   const [formErrors, setFormErrors] = useState<any>({});
+  const [isVacancyReasonsModalOpen, setIsVacancyReasonsModalOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
     selectStatus(currentStatus ?? HousingStatus.Waiting);
@@ -62,9 +68,6 @@ const HousingStatusForm = (
   useEffect(() => {
     setPrecisions(currentPrecisions);
   }, [currentPrecisions]);
-  useEffect(() => {
-    setVacancyReasons(currentVacancyReasons);
-  }, [currentVacancyReasons]);
 
   const selectStatus = (newStatus: HousingStatus) => {
     setFormErrors({});
@@ -95,20 +98,44 @@ const HousingStatusForm = (
   };
 
   const contactKindOptions = [
-    DefaultOption,
-    { value: 'Appel entrant', label: 'Appel entrant' },
-    { value: 'Appel sortant - relance', label: 'Appel sortant - relance' },
-    { value: 'Courrier entrant', label: 'Courrier entrant' },
-    { value: 'Courrier sortant', label: 'Courrier sortant' },
-    { value: 'Formulaire en ligne', label: 'Formulaire en ligne' },
-    { value: 'Mail entrant', label: 'Mail entrant' },
-    { value: 'Mail sortant', label: 'Mail sortant' },
+    { value: 'Appel entrant', label: 'Appel entrant', icon: 'ri-phone-fill' },
+    {
+      value: 'Appel sortant - relance',
+      label: 'Appel sortant - relance',
+      icon: 'ri-phone-fill',
+    },
+    {
+      value: 'Courrier entrant',
+      label: 'Courrier entrant',
+      icon: 'ri-mail-fill',
+    },
+    {
+      value: 'Courrier sortant',
+      label: 'Courrier sortant',
+      icon: 'ri-mail-send-fill',
+    },
+    {
+      value: 'Formulaire en ligne',
+      label: 'Formulaire en ligne',
+      icon: 'ri-survey-fill',
+    },
+    { value: 'Mail entrant', label: 'Mail entrant', icon: 'ri-message-2-fill' },
+    { value: 'Mail sortant', label: 'Mail sortant', icon: 'ri-message-2-fill' },
     {
       value: 'Retour indirect - via acteur terrain',
       label: 'Retour indirect - via acteur terrain',
+      icon: 'ri-footprint-fill',
     },
-    { value: 'Retour poste - NPAI', label: 'Retour poste - NPAI' },
-    { value: 'Visite - Rencontre', label: 'Visite - Rencontre' },
+    {
+      value: 'Retour poste - NPAI',
+      label: 'Retour poste - NPAI',
+      icon: 'ri-mail-close-fill',
+    },
+    {
+      value: 'Visite - Rencontre',
+      label: 'Visite - Rencontre',
+      icon: 'ri-service-fill',
+    },
   ];
 
   const updatingForm = yup.object().shape({
@@ -163,7 +190,6 @@ const HousingStatusForm = (
               status === HousingStatus.NeverContacted
                 ? 'Jamais contacté'
                 : contactKind,
-            vacancyReasons,
             comment,
           })
         )
@@ -181,86 +207,26 @@ const HousingStatusForm = (
 
   return (
     <>
+      <Text size="lg" bold spacing="mb-2w">
+        CHANGEMENT DE STATUT
+      </Text>
       <Row gutters>
-        <Col n="4">
-          <b>CHANGEMENT DE STATUT</b>
-        </Col>
-        <Col>
-          {currentStatus != null && (
-            <span
-              style={{
-                backgroundColor: `var(${
-                  getHousingState(currentStatus).bgcolor
-                })`,
-                color: `var(${getHousingState(currentStatus).color})`,
-              }}
-              className="status-label"
-            >
-              {getHousingState(currentStatus).title}
-            </span>
-          )}
-          {currentStatus != null && currentSubStatus && (
-            <span
-              style={{
-                backgroundColor: `var(${
-                  getSubStatus(currentStatus, currentSubStatus)?.bgcolor
-                })`,
-                color: `var(${
-                  getSubStatus(currentStatus, currentSubStatus)?.color
-                })`,
-              }}
-              className="status-label"
-            >
-              {currentSubStatus}
-            </span>
-          )}
-          {currentStatus != null && currentSubStatus && currentPrecisions && (
-            <div>
-              {currentPrecisions.map((currentPrecision, index) => (
-                <span
-                  key={'precision_' + index}
-                  style={{
-                    backgroundColor: `var(${
-                      getPrecision(
-                        currentStatus,
-                        currentSubStatus,
-                        currentPrecision
-                      )?.bgcolor
-                    })`,
-                    color: `var(${
-                      getPrecision(
-                        currentStatus,
-                        currentSubStatus,
-                        currentPrecision
-                      )?.color
-                    })`,
-                  }}
-                  className="status-label"
-                >
-                  {currentPrecision}
-                </span>
-              ))}
-            </div>
-          )}
-        </Col>
-      </Row>
-      <Row gutters>
-        <Col n="4">
-          <Select
-            label="Nouveau statut"
+        <Col n="12">
+          <HousingStatusSelect
+            selected={status}
             options={statusOptions(
-              fromDefaultCampaign || !currentStatus
+              fromDefaultCampaign ||
+                !currentStatus ||
+                +currentStatus === HousingStatus.NeverContacted
                 ? []
                 : [HousingStatus.NeverContacted]
             )}
-            selected={String(status)}
-            messageType={formErrors['status'] ? 'error' : undefined}
-            message={formErrors['status']}
-            onChange={(e: any) => selectStatus(e.target.value)}
-            required
+            onChange={(e: HousingStatus) => {
+              selectStatus(e);
+            }}
           />
         </Col>
-        <Col n="4">
+        <Col n="6">
           {subStatusOptions && (
             <Select
               label="Sous-statut"
@@ -273,7 +239,7 @@ const HousingStatusForm = (
             />
           )}
         </Col>
-        <Col n="4">
+        <Col n="6">
           {precisionOptions && (
             <AppMultiSelect
               label="Précision(s)"
@@ -285,47 +251,49 @@ const HousingStatusForm = (
           )}
         </Col>
       </Row>
-      {status !== undefined && status !== HousingStatus.NeverContacted && (
-        <>
-          <Text className="fr-mb-2w fr-mt-4w">
-            <b>INFORMATIONS COMPLÉMENTAIRES</b>
-          </Text>
-          <Row gutters>
-            <Col n="4">
-              <Select
-                label="Type d'interaction"
-                options={contactKindOptions}
-                selected={contactKind}
-                messageType={formErrors['contactKind'] ? 'error' : undefined}
-                message={formErrors['contactKind']}
-                onChange={(e: any) => setContactKind(e.target.value)}
-                required
-              />
-            </Col>
-            <Col n="8">
-              <AppMultiSelect
-                label="Cause(s) de la vacance"
-                defaultOption="Aucune"
-                options={vacancyReasonsOptions}
-                initialValues={vacancyReasons}
-                onChange={(values) => setVacancyReasons(values)}
-              />
-            </Col>
-          </Row>
-          <Row gutters>
-            <Col n="12">
-              <TextInput
-                textarea
-                label="Commentaire"
-                rows={3}
-                onChange={(e) => setComment(e.target.value)}
-              />
-            </Col>
-          </Row>
-        </>
+      <Text className="fr-my-0">Causes de la vacance </Text>
+      <ButtonLink isSimple onClick={() => setIsVacancyReasonsModalOpen(true)}>
+        Sélectionnez une ou plusieurs options
+      </ButtonLink>
+      {isVacancyReasonsModalOpen && (
+        <VacancyReasonModal
+          onClose={() => setIsVacancyReasonsModalOpen(false)}
+        />
       )}
+      <Text className="fr-mb-2w fr-mt-4w">
+        <b>INFORMATIONS COMPLÉMENTAIRES</b>
+      </Text>
+      <Text className="fr-mb-1w">Sélectionnez le type d'interaction</Text>
+      <TagGroup>
+        {contactKindOptions.map((contactKindOption) => (
+          <Tag
+            small
+            icon={contactKindOption.icon}
+            iconPosition="left"
+            onClick={() => setContactKind(contactKindOption.value)}
+            selected={contactKind === contactKindOption.value}
+            key={contactKindOption.value}
+            className={classNames({
+              [styles.tagNotSelected]: contactKind !== contactKindOption.value,
+            })}
+          >
+            {contactKindOption.label}
+          </Tag>
+        ))}
+      </TagGroup>
+      {formErrors['contactKind'] && (
+        <span className="fr-error-text fr-mt-0 fr-mb-2w">
+          {formErrors['contactKind']}
+        </span>
+      )}
+      <TextInput
+        textarea
+        label="Ajouter une note"
+        rows={3}
+        onChange={(e) => setComment(e.target.value)}
+      />
     </>
   );
 };
 
-export default React.forwardRef(HousingStatusForm);
+export default React.forwardRef(HousingEditionForm);

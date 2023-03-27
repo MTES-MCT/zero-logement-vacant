@@ -8,6 +8,8 @@ export interface SelectOption {
   hidden?: boolean;
   badgeLabel?: string;
   markup?: (props: SelectOptionProps) => ReactElement;
+  hint?: ReactElement;
+  icon?: string;
 }
 
 interface SelectOptionProps {

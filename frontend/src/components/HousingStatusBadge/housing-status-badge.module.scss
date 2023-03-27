@@ -1,0 +1,31 @@
+.statusBadgeLabel {
+  border-radius: 3px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 20px;
+  width: fit-content;
+  font-weight: 700;
+  text-wrap: none;
+  vertical-align: middle;
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+
+.statusBadgeContainer {
+
+  & + .statusBadgeContainer {
+    margin-top: 8px;
+  }
+
+  &.inline {
+    display: inline-block;
+
+    & + .inline {
+      margin-left: 8px;
+    }
+  }
+
+  width: fit-content
+}

@@ -222,6 +222,10 @@
   display: flex;
 }
 
+.d-block {
+  display: block !important;
+}
+
 .float-right {
   float: right;
 }
@@ -274,10 +278,10 @@ button.fr-select {
   }
 }
 
-.select-multi-input {
+.select-multi-input, .select-single-input {
   position: relative;
 
-  .select-multi-options {
+  .select-multi-options, .select-single-options {
     background-color: var(--white-1000);
     box-shadow: 0 0 10px var(--grey-925);
     position: absolute;
@@ -290,6 +294,12 @@ button.fr-select {
       display: inherit;
       max-height: 250px;
       overflow: auto;
+    }
+
+    &.select-single-options__visible {
+      display: block;
+      position: sticky;
+      padding: 0;
     }
 
     .fr-checkbox-group:first-child {

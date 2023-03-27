@@ -17,13 +17,7 @@ import {
   SelectedHousing,
   selectedHousingCount,
 } from '../../models/Housing';
-import HousingStatusModal from '../../components/modals/HousingStatusModal/HousingStatusModal';
-import {
-  getHousingState,
-  getSubStatus,
-  HousingStatus,
-} from '../../models/HousingState';
-import HousingListStatusModal from '../../components/modals/HousingStatusModal/HousingListStatusModal';
+import { getHousingState, HousingStatus } from '../../models/HousingState';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -39,6 +33,10 @@ import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import HousingEditionSideMenu from '../../components/HousingEdition/HousingEditionSideMenu';
+import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
+import HousingStatusBadge from '../../components/HousingStatusBadge/HousingStatusBadge';
+import HousingSubStatusBadge from '../../components/HousingStatusBadge/HousingSubStatusBadge';
 
 const TabContent = ({ status }: { status: HousingStatus }) => {
   const dispatch = useAppDispatch();
@@ -49,11 +47,10 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     all: false,
     ids: [],
   });
-  const [updatingModalHousing, setUpdatingModalHousing] = useState<
-    Housing | undefined
+  const [updatingHousing, setUpdatingHousing] = useState<Housing | undefined>();
+  const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
+    SelectedHousing | undefined
   >();
-  const [updatingModalSelectedHousing, setUpdatingModalSelectedHousing] =
-    useState<SelectedHousing | undefined>();
   const [reminderModalSelectedHousing, setReminderModalSelectedHousing] =
     useState<SelectedHousing | undefined>();
   const [actionAlert, setActionAlert] = useState(false);
@@ -86,7 +83,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
           title="Mettre à jour"
           size="sm"
           secondary
-          onClick={() => setUpdatingModalHousing(housing)}
+          onClick={() => setUpdatingHousing(housing)}
         >
           Mettre à jour &nbsp;
           <span className="ri-edit-fill" aria-hidden="true" />
@@ -100,32 +97,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     label: 'Statut',
     render: ({ status, subStatus }: Housing) => (
       <>
-        {status != null && (
-          <div
-            style={{
-              backgroundColor: `var(${getHousingState(status).bgcolor})`,
-              color: `var(${getHousingState(status).color})`,
-            }}
-            className="status-label"
-          >
-            {getHousingState(status).title}
-          </div>
-        )}
-        {status != null &&
-          subStatus &&
-          subStatus !== getHousingState(status).title && (
-            <div
-              style={{
-                backgroundColor: `var(${
-                  getSubStatus(status, subStatus)?.bgcolor
-                })`,
-                color: `var(${getSubStatus(status, subStatus)?.color})`,
-              }}
-              className="status-label"
-            >
-              {subStatus}
-            </div>
-          )}
+        <HousingStatusBadge status={status} />
+        <HousingSubStatusBadge status={status} subStatus={subStatus} />
       </>
     ),
   };
@@ -142,7 +115,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     dispatch(
       updateCampaignHousingList(housingUpdate, status, false, [housing.id])
     );
-    setUpdatingModalHousing(undefined);
+    setUpdatingHousing(undefined);
   };
 
   const submitSelectedHousingUpdate = (housingUpdate: HousingUpdate) => {
@@ -162,7 +135,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
         selectedHousing.ids
       )
     );
-    setUpdatingModalSelectedHousing(undefined);
+    setUpdatingSelectedHousing(undefined);
   };
 
   const handleCampaignReminder = () => {
@@ -193,20 +166,9 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
       {!hasSelected() && (
         <Row>
           <Col>
-            <Help>
+            <Help className="d-block">
               <b>{getHousingState(status).title} : </b>
-              {status === HousingStatus.Waiting
-                ? 'Le propriétaire n’a pas répondu à la campagne.'
-                : status === HousingStatus.FirstContact
-                ? 'Il y a eu un retour ou un échange avec le propriétaire.'
-                : status === HousingStatus.InProgress
-                ? 'La vacance du bien est confirmée et celui-ci fait l’objet d’un projet de travaux, d’une vente en cours ou est accompagné par un partenaire pour une remise sur le marché.'
-                : status === HousingStatus.Exit
-                ? 'Le bien était vacant dans les 2 dernières années et est sorti de la vacance avec ou sans accompagnement (à renseigner dans sous-statut).'
-                : status === HousingStatus.NotVacant
-                ? 'Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a jamais été vacant ou qu’il a été vendu ou loué il y a plus de 2 ans. Retour traduisant une erreur dans la base de données.'
-                : status === HousingStatus.NoAction &&
-                  'La vacance du bien est confirmée mais la situation est complexe et le propriétaire ne semble pas être dans une dynamique de sortie de vacance.'}
+              {getHousingState(status).hint}
               <Link to="/ressources" className="float-right">
                 En savoir plus sur les statuts
               </Link>
@@ -263,9 +225,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
                 </Button>
                 <Button
                   title="Mettre à jour le statut"
-                  onClick={() =>
-                    setUpdatingModalSelectedHousing(selectedHousing)
-                  }
+                  onClick={() => setUpdatingSelectedHousing(selectedHousing)}
                 >
                   Mettre à jour le statut
                 </Button>
@@ -274,24 +234,22 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
           </HousingListHeaderActions>
         </HousingListHeader>
       </HousingList>
-      {updatingModalHousing && (
-        <HousingStatusModal
-          housingList={[updatingModalHousing]}
-          onSubmit={submitHousingUpdate}
-          onClose={() => setUpdatingModalHousing(undefined)}
-        />
-      )}
-      {updatingModalSelectedHousing && (
-        <HousingListStatusModal
-          housingCount={selectedCount}
-          initialStatus={status}
-          fromDefaultCampaign={campaignBundle.campaignNumber === 0}
-          onSubmit={(campaignHousingUpdate) =>
-            submitSelectedHousingUpdate(campaignHousingUpdate)
-          }
-          onClose={() => setUpdatingModalSelectedHousing(undefined)}
-        />
-      )}
+      <HousingEditionSideMenu
+        housing={updatingHousing}
+        expand={!!updatingHousing}
+        onSubmit={submitHousingUpdate}
+        onClose={() => setUpdatingHousing(undefined)}
+      />
+      <HousingListEditionSideMenu
+        housingCount={selectedCount}
+        open={!!updatingSelectedHousing}
+        initialStatus={status}
+        fromDefaultCampaign={campaignBundle.campaignNumber === 0}
+        onSubmit={(campaignHousingUpdate) =>
+          submitSelectedHousingUpdate(campaignHousingUpdate)
+        }
+        onClose={() => setUpdatingSelectedHousing(undefined)}
+      />
       {reminderModalSelectedHousing && (
         <CampaignCreationModal
           housingCount={selectedCount}

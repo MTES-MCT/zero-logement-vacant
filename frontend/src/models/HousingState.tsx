@@ -1,5 +1,7 @@
 import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
+import { ReactElement } from 'react';
+import { Text } from '@dataesr/react-dsfr';
 
 export interface HousingState {
   status: HousingStatus;
@@ -7,6 +9,7 @@ export interface HousingState {
   subStatusList?: HousingSubStatus[];
   color?: string;
   bgcolor?: string;
+  hint?: ReactElement;
 }
 
 export interface HousingSubStatus {
@@ -66,12 +69,22 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.Waiting,
     title: 'En attente de retour',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        Le propriétaire <b>n’a pas répondu à la campagne.</b>
+      </Text>
+    ),
     color: '--green-tilleul-verveine-sun-418',
     bgcolor: '--green-tilleul-verveine-975',
   },
   {
     status: HousingStatus.FirstContact,
     title: 'Premier contact',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        Il y a eu <b>un retour ou un échange</b> avec le propriétaire.
+      </Text>
+    ),
     color: '--purple-glycine-main-494',
     bgcolor: '--purple-glycine-975',
     subStatusList: [
@@ -144,6 +157,13 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.InProgress,
     title: 'Suivi en cours',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        La vacance du bien est confirmée et celui-ci fait l’objet d’un 
+        <b>projet de travaux</b>, d’une <b>vente en cours</b> ou est 
+        <b>accompagné par un partenaire</b> pour une remise sur le marché.
+      </Text>
+    ),
     color: '--purple-glycine-main-494',
     bgcolor: '--purple-glycine-975',
     subStatusList: [
@@ -268,6 +288,13 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.NotVacant,
     title: 'Non-vacant',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a 
+        <b>jamais été vacant</b> ou qu’il a été vendu ou loué il y a plus de 2
+        ans. Retour traduisant une erreur dans la base de données.
+      </Text>
+    ),
     color: '--yellow-tournesol-975',
     bgcolor: '--yellow-moutarde-sun-348-hover',
     subStatusList: [
@@ -360,6 +387,13 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.NoAction,
     title: 'Bloqué',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        La vacance du bien est confirmée mais la <b>situation est complexe</b> 
+        et le propriétaire ne semble 
+        <b>pas être dans une dynamique de sortie de vacance.</b>
+      </Text>
+    ),
     color: '--blue-cumulus-975',
     bgcolor: '--blue-cumulus-main-526',
     subStatusList: [
@@ -869,6 +903,13 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.Exit,
     title: 'Sortie de la vacance',
+    hint: (
+      <Text spacing="mb-0" as="span">
+        Le bien <b>était vacant</b> dans les 2 dernières années et 
+        <b>est sorti de la vacance</b> avec ou sans accompagnement (à renseigner
+        dans sous-statut).
+      </Text>
+    ),
     color: '--blue-ecume-sun-247',
     bgcolor: '--blue-ecume-950',
     subStatusList: [

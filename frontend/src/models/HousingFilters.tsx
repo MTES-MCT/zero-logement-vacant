@@ -87,10 +87,16 @@ export const campaignsCountOptions: SelectOption[] = [
   { value: 'gt3', label: 'Déjà contacté 3 fois ou plus' },
 ];
 
-export const statusOptions = (statusExcuded?: HousingStatus[]) => [
+export const statusOptions = (
+  statusExcuded?: HousingStatus[]
+): SelectOption[] => [
   ...HousingStates.filter(
     (_) => (statusExcuded ?? []).indexOf(_.status) === -1
-  ).map((status) => ({ value: String(status.status), label: status.title })),
+  ).map((status) => ({
+    value: String(status.status),
+    label: status.title,
+    hint: status.hint,
+  })),
 ];
 
 export const beneficiaryCountOptions: SelectOption[] = [
@@ -271,15 +277,6 @@ export const dataYearsExcludedOptions = [
 ];
 
 export const vacancyReasonsOptions: SelectOption[] = [
-  createSubtitleOption('Vacance volontaire'),
-  {
-    value: 'Vacance volontaire - réserve personnelle',
-    label: 'réserve personnelle',
-  },
-  {
-    value: 'Vacance volontaire - réserve pour une autre personne',
-    label: 'réserve pour une autre personne',
-  },
   createSubtitleOption('Liée au logement'),
   {
     value: 'Liée au logement - pas d’accès indépendant',
@@ -290,18 +287,22 @@ export const vacancyReasonsOptions: SelectOption[] = [
     label: 'nuisances à proximité',
   },
   {
+    value: 'Liée au logement - logement trop énergivore',
+    label: 'logement trop énergivore',
+  },
+  {
+    value: 'Liée au logement - nécessité de travaux',
+    label: 'nécessité de travaux',
+  },
+  {
     value: 'Liée au logement - montant travaux trop important',
     label: 'montant travaux trop important',
   },
   { value: 'Liée au logement - ruine / à démolir', label: 'ruine / à démolir' },
-  createSubtitleOption('Mauvaise expérience locative'),
+  createSubtitleOption('Liée à l’immeuble'),
   {
-    value: 'Mauvaise expérience locative - dégradations',
-    label: 'dégradations',
-  },
-  {
-    value: 'Mauvaise expérience locative - impayés de loyer',
-    label: 'impayés de loyer',
+    value: 'Liée à l’immeuble - blocage lié à la copropriété',
+    label: 'blocage lié à la copropriété',
   },
   createSubtitleOption('Blocage juridique'),
   {
@@ -316,6 +317,24 @@ export const vacancyReasonsOptions: SelectOption[] = [
     value: 'Blocage juridique - procédure contre les entrepreneurs',
     label: 'procédure contre les entrepreneurs',
   },
+  createSubtitleOption('Vacance volontaire'),
+  {
+    value: 'Vacance volontaire - réserve personnelle',
+    label: 'réserve personnelle',
+  },
+  {
+    value: 'Vacance volontaire - réserve pour une autre personne',
+    label: 'réserve pour une autre personne',
+  },
+  createSubtitleOption('Mauvaise expérience locative'),
+  {
+    value: 'Mauvaise expérience locative - dégradations',
+    label: 'dégradations',
+  },
+  {
+    value: 'Mauvaise expérience locative - impayés de loyer',
+    label: 'impayés de loyer',
+  },
   createSubtitleOption('Liée au propriétaire'),
   {
     value: 'Liée au propriétaire - âge du propriétaire',
@@ -325,7 +344,8 @@ export const vacancyReasonsOptions: SelectOption[] = [
     value: 'Liée au propriétaire - difficultés de gestion',
     label: 'difficultés de gestion',
   },
-  { value: 'Autre', label: 'Autre (à préciser en notes)' },
+  createSubtitleOption('Autre cause'),
+  { value: 'Autre cause', label: 'Autre (à préciser en notes)' },
 ];
 
 export const hasFilters = (housingFilters: HousingFilters) => {

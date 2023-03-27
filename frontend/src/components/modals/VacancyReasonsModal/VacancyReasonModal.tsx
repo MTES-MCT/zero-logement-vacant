@@ -9,17 +9,56 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
+  Text,
 } from '@dataesr/react-dsfr';
-import React from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { vacancyReasonsOptions } from '../../../models/HousingFilters';
 import styles from './vacancy-reason-modal.module.scss';
+import { SelectOption } from '../../../models/SelectOption';
 
 interface Props {
+  currentVacancyReasons?: string[];
   onClose: () => void;
+  onSubmit: (vacancyReasons: string[]) => void;
 }
 
-const VacancyReasonsModal = ({ onClose }: Props) => {
-  const submit = (): void => {};
+const VacancyReasonsModal = ({
+  currentVacancyReasons,
+  onClose,
+  onSubmit,
+}: Props) => {
+  const [vacancyReasons, setVacancyReasons] = useState<string[]>(
+    currentVacancyReasons ?? []
+  );
+
+  const OptionCheckboxes = (
+    vacancyReasonOptions: {
+      subHeader: string;
+      options: SelectOption[];
+    }[]
+  ) => {
+    return vacancyReasonOptions.map(({ subHeader, options }, index) => (
+      <div key={`vacancy_reason_sub_header_${index}`} className="fr-mb-3w">
+        <Text as="span" bold size="md">
+          {subHeader}
+        </Text>
+        <hr className="fr-pb-1w" />
+        {options.map((option) => (
+          <Checkbox
+            key={`vacancy_reason_${option.value}`}
+            label={option.label}
+            checked={vacancyReasons?.includes(option.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setVacancyReasons([
+                ...vacancyReasons.filter((_) => _ !== option.value),
+                ...(e.target.checked ? [option.value] : []),
+              ])
+            }
+          />
+        ))}
+      </div>
+    ));
+  };
 
   return (
     <div>
@@ -40,39 +79,10 @@ const VacancyReasonsModal = ({ onClose }: Props) => {
           <Container as="section" fluid>
             <Row gutters>
               <Col n="6">
-                {vacancyReasonsOptions
-                  .slice(
-                    0,
-                    vacancyReasonsOptions.findIndex(
-                      (_) => _.label === 'Vacance volontaire'
-                    )
-                  )
-                  .map(
-                    (option, index) =>
-                      option.markup?.({}) ?? (
-                        <Checkbox
-                          label={option.label}
-                          key={`vacancy_reason_${index}`}
-                        />
-                      )
-                  )}
+                {OptionCheckboxes(vacancyReasonsOptions.slice(0, 3))}
               </Col>
               <Col n="6">
-                {vacancyReasonsOptions
-                  .slice(
-                    vacancyReasonsOptions.findIndex(
-                      (_) => _.label === 'Vacance volontaire'
-                    )
-                  )
-                  .map(
-                    (option, index) =>
-                      option.markup?.({}) ?? (
-                        <Checkbox
-                          label={option.label}
-                          key={`vacancy_reason_${index}`}
-                        />
-                      )
-                  )}
+                {OptionCheckboxes(vacancyReasonsOptions.slice(3))}
               </Col>
             </Row>
           </Container>
@@ -81,7 +91,7 @@ const VacancyReasonsModal = ({ onClose }: Props) => {
           <Button secondary className="fr-mr-2w" onClick={onClose}>
             Annuler
           </Button>
-          <Button onClick={() => submit()}>Enregistrer</Button>
+          <Button onClick={() => onSubmit(vacancyReasons)}>Valider</Button>
         </ModalFooter>
       </Modal>
     </div>

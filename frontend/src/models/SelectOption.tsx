@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import { Text } from '@dataesr/react-dsfr';
 
 export interface SelectOption {
   label: string;
@@ -29,21 +28,3 @@ export const Separator: SelectOption = {
   value: '',
   markup: () => <hr className="fr-mt-1w" />,
 };
-
-// We might have to transform options in components in the future,
-// having all of them implement a single SelectOption interface
-
-export function createSubtitleOption(label: string): SelectOption {
-  return {
-    label,
-    value: '',
-    markup: () => (
-      <div>
-        <Text as="span" bold size="md">
-          {label}
-        </Text>
-        <hr className="fr-pb-1w" />
-      </div>
-    ),
-  };
-}

@@ -26,6 +26,15 @@ import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal
 import styles from './housing-edition-form.module.scss';
 import classNames from 'classnames';
 
+interface Props {
+  currentStatus?: HousingStatus;
+  currentSubStatus?: string;
+  currentPrecisions?: string[];
+  currentVacancyReasons?: string[];
+  fromDefaultCampaign?: boolean;
+  onValidate: (housingUpdate: HousingUpdate) => void;
+}
+
 const HousingEditionForm = (
   {
     currentStatus,
@@ -34,14 +43,7 @@ const HousingEditionForm = (
     currentVacancyReasons,
     fromDefaultCampaign,
     onValidate,
-  }: {
-    currentStatus?: HousingStatus;
-    currentSubStatus?: string;
-    currentPrecisions?: string[];
-    currentVacancyReasons?: string[];
-    fromDefaultCampaign?: boolean;
-    onValidate: (housingUpdate: HousingUpdate) => void;
-  },
+  }: Props,
   ref: any
 ) => {
   const [status, setStatus] = useState<HousingStatus>();
@@ -50,6 +52,9 @@ const HousingEditionForm = (
   );
   const [precisions, setPrecisions] = useState<string[] | undefined>(
     currentPrecisions
+  );
+  const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(
+    currentVacancyReasons
   );
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
@@ -68,6 +73,9 @@ const HousingEditionForm = (
   useEffect(() => {
     setPrecisions(currentPrecisions);
   }, [currentPrecisions]);
+  useEffect(() => {
+    setVacancyReasons(currentVacancyReasons);
+  }, [currentVacancyReasons]);
 
   const selectStatus = (newStatus: HousingStatus) => {
     setFormErrors({});
@@ -190,6 +198,7 @@ const HousingEditionForm = (
               status === HousingStatus.NeverContacted
                 ? 'Jamais contacté'
                 : contactKind,
+            vacancyReasons,
             comment,
           })
         )
@@ -251,13 +260,20 @@ const HousingEditionForm = (
           )}
         </Col>
       </Row>
-      <Text className="fr-my-0">Causes de la vacance </Text>
+      <Text className="fr-mt-3w fr-mb-0">
+        Causes de la vacance ({vacancyReasons?.length ?? 0})
+      </Text>
       <ButtonLink isSimple onClick={() => setIsVacancyReasonsModalOpen(true)}>
         Sélectionnez une ou plusieurs options
       </ButtonLink>
       {isVacancyReasonsModalOpen && (
         <VacancyReasonModal
+          currentVacancyReasons={vacancyReasons}
           onClose={() => setIsVacancyReasonsModalOpen(false)}
+          onSubmit={(vacancyReasons) => {
+            setVacancyReasons(vacancyReasons);
+            setIsVacancyReasonsModalOpen(false);
+          }}
         />
       )}
       <Text className="fr-mb-2w fr-mt-4w">

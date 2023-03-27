@@ -1,4 +1,4 @@
-import { createSubtitleOption, SelectOption } from './SelectOption';
+import { SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import { OwnershipKindLabels, OwnershipKinds } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
@@ -276,76 +276,109 @@ export const dataYearsExcludedOptions = [
   { value: '2022', label: '2022', badgeLabel: 'Millésime 2022 exclu' },
 ];
 
-export const vacancyReasonsOptions: SelectOption[] = [
-  createSubtitleOption('Liée au logement'),
+export const vacancyReasonsOptions: {
+  subHeader: string;
+  options: SelectOption[];
+}[] = [
   {
-    value: 'Liée au logement - pas d’accès indépendant',
-    label: 'pas d’accès indépendant',
+    subHeader: 'Liée au logement',
+    options: [
+      {
+        value: 'Liée au logement - pas d’accès indépendant',
+        label: 'pas d’accès indépendant',
+      },
+      {
+        value: 'Liée au logement - nuisances à proximité',
+        label: 'nuisances à proximité',
+      },
+      {
+        value: 'Liée au logement - logement trop énergivore',
+        label: 'logement trop énergivore',
+      },
+      {
+        value: 'Liée au logement - nécessité de travaux',
+        label: 'nécessité de travaux',
+      },
+      {
+        value: 'Liée au logement - montant travaux trop important',
+        label: 'montant travaux trop important',
+      },
+      {
+        value: 'Liée au logement - ruine / à démolir',
+        label: 'ruine / à démolir',
+      },
+    ],
   },
   {
-    value: 'Liée au logement - nuisances à proximité',
-    label: 'nuisances à proximité',
+    subHeader: 'Liée à l’immeuble',
+    options: [
+      {
+        value: 'Liée à l’immeuble - blocage lié à la copropriété',
+        label: 'blocage lié à la copropriété',
+      },
+    ],
   },
   {
-    value: 'Liée au logement - logement trop énergivore',
-    label: 'logement trop énergivore',
+    subHeader: 'Blocage juridique',
+    options: [
+      {
+        value:
+          'Blocage juridique - succession difficile, indivision en désaccord',
+        label: 'succession difficile, indivision en désaccord',
+      },
+      {
+        value: 'Blocage juridique - expertise judiciaire',
+        label: 'expertise judiciaire',
+      },
+      {
+        value: 'Blocage juridique - procédure contre les entrepreneurs',
+        label: 'procédure contre les entrepreneurs',
+      },
+    ],
   },
   {
-    value: 'Liée au logement - nécessité de travaux',
-    label: 'nécessité de travaux',
+    subHeader: 'Vacance volontaire',
+    options: [
+      {
+        value: 'Vacance volontaire - réserve personnelle',
+        label: 'réserve personnelle',
+      },
+      {
+        value: 'Vacance volontaire - réserve pour une autre personne',
+        label: 'réserve pour une autre personne',
+      },
+    ],
   },
   {
-    value: 'Liée au logement - montant travaux trop important',
-    label: 'montant travaux trop important',
-  },
-  { value: 'Liée au logement - ruine / à démolir', label: 'ruine / à démolir' },
-  createSubtitleOption('Liée à l’immeuble'),
-  {
-    value: 'Liée à l’immeuble - blocage lié à la copropriété',
-    label: 'blocage lié à la copropriété',
-  },
-  createSubtitleOption('Blocage juridique'),
-  {
-    value: 'Blocage juridique - succession difficile, indivision en désaccord',
-    label: 'succession difficile, indivision en désaccord',
+    subHeader: 'Mauvaise expérience locative',
+    options: [
+      {
+        value: 'Mauvaise expérience locative - dégradations',
+        label: 'dégradations',
+      },
+      {
+        value: 'Mauvaise expérience locative - impayés de loyer',
+        label: 'impayés de loyer',
+      },
+    ],
   },
   {
-    value: 'Blocage juridique - expertise judiciaire',
-    label: 'expertise judiciaire',
+    subHeader: 'Liée au propriétaire',
+    options: [
+      {
+        value: 'Liée au propriétaire - âge du propriétaire',
+        label: 'âge du propriétaire',
+      },
+      {
+        value: 'Liée au propriétaire - difficultés de gestion',
+        label: 'difficultés de gestion',
+      },
+    ],
   },
   {
-    value: 'Blocage juridique - procédure contre les entrepreneurs',
-    label: 'procédure contre les entrepreneurs',
+    subHeader: 'Autre cause',
+    options: [{ value: 'Autre cause', label: 'Autre (à préciser en notes)' }],
   },
-  createSubtitleOption('Vacance volontaire'),
-  {
-    value: 'Vacance volontaire - réserve personnelle',
-    label: 'réserve personnelle',
-  },
-  {
-    value: 'Vacance volontaire - réserve pour une autre personne',
-    label: 'réserve pour une autre personne',
-  },
-  createSubtitleOption('Mauvaise expérience locative'),
-  {
-    value: 'Mauvaise expérience locative - dégradations',
-    label: 'dégradations',
-  },
-  {
-    value: 'Mauvaise expérience locative - impayés de loyer',
-    label: 'impayés de loyer',
-  },
-  createSubtitleOption('Liée au propriétaire'),
-  {
-    value: 'Liée au propriétaire - âge du propriétaire',
-    label: 'âge du propriétaire',
-  },
-  {
-    value: 'Liée au propriétaire - difficultés de gestion',
-    label: 'difficultés de gestion',
-  },
-  createSubtitleOption('Autre cause'),
-  { value: 'Autre cause', label: 'Autre (à préciser en notes)' },
 ];
 
 export const hasFilters = (housingFilters: HousingFilters) => {

@@ -1,6 +1,7 @@
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
+import _ from 'lodash';
 
 export interface HousingApi {
   id: string;
@@ -47,6 +48,16 @@ export interface HousingUpdateApi {
   vacancyReasons?: string[];
   comment: string;
 }
+
+export const isHousingUpdated = (
+  housing: HousingApi,
+  housingUpdate: HousingUpdateApi
+) =>
+  housing.status !== housingUpdate.status ||
+  housing.subStatus !== housingUpdate.subStatus ||
+  !_.isEqual(housing.precisions, housingUpdate.precisions) ||
+  !_.isEqual(housing.vacancyReasons, housingUpdate.vacancyReasons) ||
+  housingUpdate.comment?.length;
 
 export type HousingSortableApi = Pick<HousingApi, 'owner' | 'rawAddress'>;
 export type HousingSortApi = Sort<HousingSortableApi>;

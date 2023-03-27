@@ -147,15 +147,7 @@ const HousingEditionForm = (
   ];
 
   const updatingForm = yup.object().shape({
-    status: yup
-      .string()
-      .required('Veuillez sélectionner un statut.')
-      .when('noStatusChange', {
-        is: true,
-        then: yup
-          .string()
-          .notOneOf(['0'], 'Veuillez sélectionner un statut différent.'),
-      }),
+    status: yup.string().required('Veuillez sélectionner un statut.'),
     subStatus: yup
       .string()
       .nullable()
@@ -182,7 +174,6 @@ const HousingEditionForm = (
           {
             hasSubStatus: subStatusOptions !== undefined,
             hasContactKind: status !== HousingStatus.NeverContacted,
-            noStatusChange: currentStatus === status,
             status,
             subStatus,
             contactKind,

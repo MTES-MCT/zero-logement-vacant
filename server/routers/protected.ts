@@ -13,6 +13,7 @@ import contactPointController from '../controllers/contactPointController';
 import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import housingExportController from '../controllers/housingExportController';
+import { isUUIDParam } from '../utils/validators';
 
 const router = express.Router();
 
@@ -52,6 +53,7 @@ router.get('/events/housing/:housingId', eventController.listByHousingId);
 router.post('/events', eventController.eventValidator, validator.validate, eventController.create);
 
 router.post('/account/password', accountController.updatePassword);
+router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
 router.post('/users', userController.list);
 router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);

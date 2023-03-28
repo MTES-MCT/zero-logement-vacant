@@ -286,28 +286,23 @@ export const HousingStates: HousingState[] = [
     ],
   },
   {
-    status: HousingStatus.NotVacant,
-    title: 'Non-vacant',
+    status: HousingStatus.Exit,
+    title: 'Sortie de la vacance',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a 
-        <b>jamais été vacant</b> ou qu’il a été vendu ou loué il y a plus de 2
-        ans. Retour traduisant une erreur dans la base de données.
+        Le bien <b>était vacant</b> dans les 2 dernières années et 
+        <b>est sorti de la vacance</b> (loué, vendu...) avec ou sans
+        accompagnement (à renseigner dans sous-statut).
       </Text>
     ),
-    color: '--yellow-tournesol-975',
-    bgcolor: '--yellow-moutarde-sun-348-hover',
+    color: '--blue-ecume-sun-247',
+    bgcolor: '--blue-ecume-950',
     subStatusList: [
       {
-        title: 'Déclaré non-vacant',
-        color: '--green-emeraude-sun-425',
-        bgcolor: '--green-emeraude-925',
+        title: ExitWithSupportSubStatus,
+        color: '--green-menthe-975',
+        bgcolor: '--green-menthe-sun-373',
         precisions: [
-          {
-            title: 'Occupé par le propriétaire ou proche',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247-active',
-          },
           {
             title: 'Loué',
             color: '--blue-ecume-975',
@@ -319,37 +314,17 @@ export const HousingStates: HousingState[] = [
             bgcolor: '--green-archipel-975',
           },
           {
-            title: 'Cause inconnue',
-            color: '--blue-ecume-sun-247-active',
-            bgcolor: '--purple-glycine-975',
-          },
-          {
-            title: "N'est pas une résidence principale",
-            color: '--brown-caramel-975',
-            bgcolor: '--yellow-moutarde-sun-348-hover',
-          },
-          {
-            title: 'Autre que logement',
-            color: '--brown-caramel-975',
-            bgcolor: '--brown-caramel-sun-425',
-          },
-          {
-            title: "N'est plus un logement",
-            color: '--grey-1000',
-            bgcolor: '--beige-gris-galet-moon-821-hover',
+            title: 'Occupation personnelle ou pour un proche',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247-active',
           },
         ],
       },
       {
-        title: 'Constaté non-vacant',
-        color: '--green-bourgeon-975',
-        bgcolor: '--green-bourgeon-sun-425-active',
+        title: ExitWithPublicSupportSubStatus,
+        color: '--green-emeraude-sun-425',
+        bgcolor: '--green-emeraude-925',
         precisions: [
-          {
-            title: 'Occupé par le propriétaire ou proche',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247-active',
-          },
           {
             title: 'Loué',
             color: '--blue-ecume-975',
@@ -361,26 +336,38 @@ export const HousingStates: HousingState[] = [
             bgcolor: '--green-archipel-975',
           },
           {
-            title: 'Cause inconnue',
-            color: '--blue-ecume-sun-247-active',
-            bgcolor: '--purple-glycine-975',
-          },
-          {
-            title: "N'est pas une résidence principale",
-            color: '--brown-caramel-975',
-            bgcolor: '--yellow-moutarde-sun-348-hover',
-          },
-          {
-            title: 'Autre que logement',
-            color: '--brown-caramel-975',
-            bgcolor: '--brown-caramel-sun-425',
-          },
-          {
-            title: "N'est plus un logement",
-            color: '--grey-1000',
-            bgcolor: '--beige-gris-galet-moon-821-hover',
+            title: 'Occupation personnelle ou pour un proche',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247-active',
           },
         ],
+      },
+      {
+        title: ExitWithoutSupportSubStatus,
+        color: '--green-menthe-sun-373',
+        bgcolor: '--green-menthe-975',
+        precisions: [
+          {
+            title: 'Loué',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247',
+          },
+          {
+            title: 'Vendu',
+            color: '--blue-ecume-main-400',
+            bgcolor: '--green-archipel-975',
+          },
+          {
+            title: 'Occupation personnelle ou pour un proche',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247-active',
+          },
+        ],
+      },
+      {
+        title: ExitAbsentFollowingYear,
+        color: '--blue-ecume-200',
+        bgcolor: '--yellow-tournesol-moon-922-active',
       },
     ],
   },
@@ -901,46 +888,29 @@ export const HousingStates: HousingState[] = [
     ],
   },
   {
-    status: HousingStatus.Exit,
-    title: 'Sortie de la vacance',
+    status: HousingStatus.NotVacant,
+    title: 'Non-vacant',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le bien <b>était vacant</b> dans les 2 dernières années et 
-        <b>est sorti de la vacance</b> avec ou sans accompagnement (à renseigner
-        dans sous-statut).
+        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a 
+        <b>jamais été vacant</b> ou qu’il a été vendu ou loué il y a plus de 2
+        ans. Retour traduisant une erreur dans la base de données.
       </Text>
     ),
-    color: '--blue-ecume-sun-247',
-    bgcolor: '--blue-ecume-950',
+    color: '--yellow-tournesol-975',
+    bgcolor: '--yellow-moutarde-sun-348-hover',
     subStatusList: [
       {
-        title: ExitWithSupportSubStatus,
-        color: '--green-menthe-975',
-        bgcolor: '--green-menthe-sun-373',
-        precisions: [
-          {
-            title: 'Loué',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247',
-          },
-          {
-            title: 'Vendu',
-            color: '--blue-ecume-main-400',
-            bgcolor: '--green-archipel-975',
-          },
-          {
-            title: 'Occupation personnelle ou pour un proche',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247-active',
-          },
-        ],
-      },
-      {
-        title: ExitWithPublicSupportSubStatus,
+        title: 'Déclaré non-vacant',
         color: '--green-emeraude-sun-425',
         bgcolor: '--green-emeraude-925',
         precisions: [
           {
+            title: 'Occupé par le propriétaire ou proche',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247-active',
+          },
+          {
             title: 'Loué',
             color: '--blue-ecume-975',
             bgcolor: '--blue-ecume-sun-247',
@@ -951,18 +921,38 @@ export const HousingStates: HousingState[] = [
             bgcolor: '--green-archipel-975',
           },
           {
-            title: 'Occupation personnelle ou pour un proche',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247-active',
+            title: 'Cause inconnue',
+            color: '--blue-ecume-sun-247-active',
+            bgcolor: '--purple-glycine-975',
+          },
+          {
+            title: "N'est pas une résidence principale",
+            color: '--brown-caramel-975',
+            bgcolor: '--yellow-moutarde-sun-348-hover',
+          },
+          {
+            title: 'Autre que logement',
+            color: '--brown-caramel-975',
+            bgcolor: '--brown-caramel-sun-425',
+          },
+          {
+            title: "N'est plus un logement",
+            color: '--grey-1000',
+            bgcolor: '--beige-gris-galet-moon-821-hover',
           },
         ],
       },
       {
-        title: ExitWithoutSupportSubStatus,
-        color: '--green-menthe-sun-373',
-        bgcolor: '--green-menthe-975',
+        title: 'Constaté non-vacant',
+        color: '--green-bourgeon-975',
+        bgcolor: '--green-bourgeon-sun-425-active',
         precisions: [
           {
+            title: 'Occupé par le propriétaire ou proche',
+            color: '--blue-ecume-975',
+            bgcolor: '--blue-ecume-sun-247-active',
+          },
+          {
             title: 'Loué',
             color: '--blue-ecume-975',
             bgcolor: '--blue-ecume-sun-247',
@@ -973,16 +963,26 @@ export const HousingStates: HousingState[] = [
             bgcolor: '--green-archipel-975',
           },
           {
-            title: 'Occupation personnelle ou pour un proche',
-            color: '--blue-ecume-975',
-            bgcolor: '--blue-ecume-sun-247-active',
+            title: 'Cause inconnue',
+            color: '--blue-ecume-sun-247-active',
+            bgcolor: '--purple-glycine-975',
+          },
+          {
+            title: "N'est pas une résidence principale",
+            color: '--brown-caramel-975',
+            bgcolor: '--yellow-moutarde-sun-348-hover',
+          },
+          {
+            title: 'Autre que logement',
+            color: '--brown-caramel-975',
+            bgcolor: '--brown-caramel-sun-425',
+          },
+          {
+            title: "N'est plus un logement",
+            color: '--grey-1000',
+            bgcolor: '--beige-gris-galet-moon-821-hover',
           },
         ],
-      },
-      {
-        title: ExitAbsentFollowingYear,
-        color: '--blue-ecume-200',
-        bgcolor: '--yellow-tournesol-moon-922-active',
       },
     ],
   },

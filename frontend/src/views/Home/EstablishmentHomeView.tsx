@@ -16,7 +16,6 @@ import logo_saint_lo_agglo from '../../assets/images/logo_saint_lo_agglo.png';
 import logo_strasbourg from '../../assets/images/logo_strasbourg.png';
 import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
 import collaboration from '../../assets/images/collaboration.svg';
-import { Link } from 'react-router-dom';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import {
@@ -284,38 +283,6 @@ const EstablishmentHomeView = () => {
             >
               <Button>Rejoindre la communauté</Button>
             </InternalLink>
-          </Row>
-        </Container>
-      </div>
-      <div className={styles.ownerContainer}>
-        <Container as="section" spacing="py-7w">
-          <Title as="h1" look="h4">
-            Vous êtes propriétaire ?
-          </Title>
-          <Row gutters>
-            <Col>
-              <Text>
-                Vous avez reçu un courrier alors que votre logement n’est pas
-                vacant ?
-              </Text>
-              <Link
-                title="Rectifier la situation"
-                to={{
-                  pathname:
-                    'https://startupdetat.typeform.com/rectification#source=homepage',
-                }}
-                target="_blank"
-                className="fr-btn--md fr-btn"
-                onClick={() =>
-                  trackEvent({
-                    category: TrackEventCategories.Home,
-                    action: TrackEventActions.Home.Rectify,
-                  })
-                }
-              >
-                Rectifier la situation
-              </Link>
-            </Col>
           </Row>
         </Container>
       </div>

@@ -19,6 +19,7 @@ import { isTestAccount, isValid } from '../models/ProspectApi';
 import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
+import mailService from '../services/mailService';
 
 const SALT = 10;
 
@@ -103,9 +104,12 @@ const createUser = async (request: JWTRequest, response: Response) => {
     await establishmentService.makeEstablishmentAvailable(userEstablishment);
   }
   // Remove associated prospect
-  await prospectRepository.remove(body.email);
+  await prospectRepository.remove(prospect.email);
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
+  mailService.emit('user:created', prospect.email, {
+    createdAt: new Date(),
+  });
 };
 
 const list = async (

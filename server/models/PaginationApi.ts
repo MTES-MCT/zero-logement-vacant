@@ -3,7 +3,17 @@ import { Knex } from 'knex';
 
 import { Pagination } from '../../shared/models/Pagination';
 
-export type PaginationApi = Required<Pagination>;
+export type PaginationApi = PaginationEnabled | PaginationDisabled;
+
+interface PaginationEnabled {
+  paginate: true;
+  page: number;
+  perPage: number;
+}
+
+interface PaginationDisabled {
+  paginate: false;
+}
 
 export const MAX_PER_PAGE = 500;
 
@@ -24,17 +34,20 @@ export const queryValidators: ValidationChain[] = [
  * Validate input before using this function!
  * @param query
  */
-export function createPagination(query: Pagination): PaginationApi {
-  return {
-    paginate: query.paginate,
-    page: query.page,
-    perPage: query.perPage,
-  } as PaginationApi;
+export function createPagination(query: Required<Pagination>): PaginationApi {
+  return query.paginate
+    ? {
+        paginate: true,
+        page: query.page,
+        perPage: query.perPage,
+      }
+    : { paginate: false };
 }
 
-export function paginationQuery({ paginate, page, perPage }: PaginationApi) {
+export function paginationQuery(pagination: PaginationApi) {
   return (builder: Knex.QueryBuilder): void => {
-    if (paginate && page && perPage) {
+    if (pagination.paginate) {
+      const { page, perPage } = pagination;
       builder.offset((page - 1) * perPage).limit(perPage);
     }
   };

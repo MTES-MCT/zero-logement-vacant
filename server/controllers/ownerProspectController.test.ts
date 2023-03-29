@@ -32,11 +32,12 @@ describe('Owner prospect controller', () => {
     return { ...genOwnerProspectApi(), geoCode };
   }
 
-  describe('createOwnerProspect', () => {
+  describe('create', () => {
     const testRoute = '/api/owner-prospects';
-    const ownerProspect = genOwnerProspectApi();
 
     it('should received a valid owner prospect', async () => {
+      const ownerProspect = genOwnerProspectApi();
+
       await request(app)
         .post(testRoute)
         .send({
@@ -95,12 +96,17 @@ describe('Owner prospect controller', () => {
     });
 
     it('should create a new owner prospect', async () => {
+      const ownerProspect = OwnerProspect1;
       const { body, status } = await request(app)
         .post(testRoute)
         .send(ownerProspect);
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject(ownerProspect);
+      expect(body).toMatchObject({
+        ...ownerProspect,
+        createdAt: expect.any(String),
+        id: expect.any(String),
+      });
 
       await db(ownerProspectsTable)
         .where('email', ownerProspect.email)
@@ -197,6 +203,7 @@ describe('Owner prospect controller', () => {
       const { status } = await withAccessToken(
         request(app).put(testRoute(OwnerProspect2.id)).send({
           callBack: true,
+          read: false,
         })
       );
 
@@ -208,6 +215,7 @@ describe('Owner prospect controller', () => {
         request(app).put(testRoute(OwnerProspect1.id)).send({
           id: uuidv4(),
           callBack: !OwnerProspect1.callBack,
+          read: true,
         })
       );
 
@@ -216,6 +224,7 @@ describe('Owner prospect controller', () => {
         ...OwnerProspect1,
         createdAt: OwnerProspect1.createdAt.toJSON(),
         callBack: !OwnerProspect1.callBack,
+        read: true,
       });
     });
   });

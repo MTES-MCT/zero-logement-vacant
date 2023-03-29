@@ -4,10 +4,9 @@ import {
   OwnerProspectSortableApi,
   OwnerProspectSortApi,
 } from '../models/OwnerProspectApi';
-import { Pagination } from '../../shared/models/Pagination';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { establishmentsTable } from './establishmentRepository';
-import { paginationQuery } from '../models/PaginationApi';
+import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import SortApi from '../models/SortApi';
 
 export const ownerProspectsTable = 'owner_prospects';
@@ -27,7 +26,7 @@ const insert = async (
 
 interface FindOptions {
   establishmentId: string;
-  pagination: Required<Pagination>;
+  pagination: PaginationApi;
   sort?: OwnerProspectSortApi;
 }
 
@@ -64,8 +63,10 @@ const find = async (
     entities: ownerProspects.map(parseOwnerProspectApi),
     filteredCount: ownerProspects.length,
     totalCount,
-    page: options.pagination.page,
-    perPage: options.pagination.perPage,
+    page: options.pagination.paginate ? options.pagination.page : 1,
+    perPage: options.pagination.paginate
+      ? options.pagination.perPage
+      : ownerProspects.length,
   };
 };
 

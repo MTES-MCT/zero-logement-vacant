@@ -5,7 +5,7 @@ import {
   OwnerProspectUpdatedAction,
 } from '../actions/ownerProspectAction';
 import { OwnerProspect } from '../../models/OwnerProspect';
-import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AddressSearchResult } from '../../services/address.service';
 import { PaginatedResult } from '../../models/PaginatedResult';
 

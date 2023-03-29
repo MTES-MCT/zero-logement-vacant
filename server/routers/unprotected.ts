@@ -17,7 +17,7 @@ router.use(userCheck(false));
 
 router.get('/prospects/:email', prospectController.showProspectValidator, validator.validate, prospectController.show);
 
-router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.createOwnerProspect);
+router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.create);
 
 router.post('/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
 router.post('/authenticate', accountController.signInValidators, validator.validate, accountController.signIn);

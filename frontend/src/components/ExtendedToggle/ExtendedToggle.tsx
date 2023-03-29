@@ -1,6 +1,6 @@
 import { Icon, Toggle } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
-import { ComponentPropsWithoutRef, useEffect, useRef, useState } from 'react';
+import { ComponentPropsWithoutRef, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import styles from './extended-toggle.module.scss';

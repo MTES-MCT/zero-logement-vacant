@@ -125,7 +125,8 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
     notes: randomstring.generate(),
     phone: randomstring.generate(),
     invariant: randomstring.generate(),
-    callBack: genBoolean(),
+    callBack: true,
+    read: false,
     createdAt: new Date(),
   };
 };

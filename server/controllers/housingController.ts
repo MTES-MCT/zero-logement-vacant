@@ -107,7 +107,7 @@ const list = async (
 
   const { auth, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const { paginate, page, perPage } = request.body as Required<PaginationApi>;
+  const pagination = request.body as Required<PaginationApi>;
   const filters = request.body.filters as HousingFiltersApi;
   const filtersForTotalCount = request.body
     .filtersForTotalCount as HousingFiltersForTotalCountApi;
@@ -124,7 +124,7 @@ const list = async (
       : [establishmentId];
 
   try {
-    const housing: PaginatedResultApi<HousingApi> = paginate
+    const housing: PaginatedResultApi<HousingApi> = pagination.paginate
       ? await housingRepository.paginatedListWithFilters(
           {
             ...filters,
@@ -134,8 +134,8 @@ const list = async (
             ...filtersForTotalCount,
             establishmentIds,
           },
-          page,
-          perPage,
+          pagination.page,
+          pagination.perPage,
           sort
         )
       : await housingRepository

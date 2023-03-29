@@ -6,6 +6,6 @@ describe('ExtendedToggle', () => {
     render(<ExtendedToggle label="Label" vertical />);
 
     const hint = screen.queryByDisplayValue('Activé');
-    expect(hint).not.toBeVisible();
+    expect(hint).toBeNull();
   });
 });

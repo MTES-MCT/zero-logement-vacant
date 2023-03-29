@@ -2,6 +2,7 @@ import { body, param, query, ValidationChain } from 'express-validator';
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 import { AuthenticatedRequest } from 'express-jwt';
+import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import {
   OwnerProspectApi,
@@ -15,6 +16,10 @@ import { isPartial } from '../models/PaginatedResultApi';
 import SortApi from '../models/SortApi';
 import OwnerProspectMissingError from '../errors/ownerProspectMissingError';
 import mailService from '../services/mailService';
+import establishmentRepository from '../repositories/establishmentRepository';
+import userRepository from '../repositories/userRepository';
+import { UserApi } from '../models/UserApi';
+import { Pagination } from '../../shared/models/Pagination';
 
 const createOwnerProspectValidators: ValidationChain[] = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -27,7 +32,7 @@ const createOwnerProspectValidators: ValidationChain[] = [
   body('notes').isString().optional(),
 ];
 
-const createOwnerProspect = async (request: Request, response: Response) => {
+const create = async (request: Request, response: Response) => {
   const body = request.body as OwnerProspectCreateApi;
 
   const createdOwnerProspect = await ownerProspectRepository.insert({
@@ -37,9 +42,37 @@ const createOwnerProspect = async (request: Request, response: Response) => {
     callBack: true,
     read: false,
   });
-  mailService.emit('owner-prospect:created', body.email);
-
   response.status(constants.HTTP_STATUS_CREATED).json(createdOwnerProspect);
+
+  try {
+    // Optional steps
+    const establishments = await establishmentRepository.listWithFilters({
+      available: true,
+      geoCodes: [body.geoCode],
+    });
+    if (establishments.length > 0) {
+      const byEstablishment = {
+        establishmentIds: establishments.map((_) => _.id),
+      };
+      const users = await userRepository.listWithFilters(
+        byEstablishment,
+        byEstablishment,
+        { paginate: false }
+      );
+
+      const sendEmails = fp.pipe(
+        fp.groupBy('establishmentId'),
+        fp.mapValues(
+          (users: UserApi[]): Promise<void> =>
+            mailService.sendOwnerProspectCreatedEmail(users)
+        ),
+        Object.values
+      );
+      await Promise.all(sendEmails(users.entities));
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const findOwnerProspectsValidators: ValidationChain[] = [
@@ -63,7 +96,7 @@ const find = async (request: Request, response: Response) => {
 
   const ownerProspects = await ownerProspectRepository.find({
     establishmentId: auth.establishmentId,
-    pagination: createPagination(query),
+    pagination: createPagination(query as unknown as Required<Pagination>),
     sort,
   });
 
@@ -103,7 +136,7 @@ const update = async (request: Request, response: Response) => {
 
 export default {
   createOwnerProspectValidators,
-  createOwnerProspect,
+  create,
   findOwnerProspectsValidators,
   find,
   updateOwnerProspectValidators,

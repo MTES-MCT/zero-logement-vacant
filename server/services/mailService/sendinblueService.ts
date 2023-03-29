@@ -10,9 +10,11 @@ import { MailEvent, MailService, SendOptions } from './mailService';
 import config from '../../utils/config';
 import { getAccountActivationLink } from '../../models/SignupLinkApi';
 import { getPasswordResetLink } from '../../models/ResetLinkApi';
+import { UserApi } from '../../models/UserApi';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
+const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 
 class SendinblueService implements MailService {
   private emails: TransactionalEmailsApi;
@@ -85,6 +87,13 @@ class SendinblueService implements MailService {
       params: {
         link: getAccountActivationLink(key),
       },
+    });
+  }
+
+  async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
+    await this.send({
+      templateId: OWNER_PROSPECT_CREATED_TEMPLATE_ID,
+      recipients: users.map((user) => user.email),
     });
   }
 

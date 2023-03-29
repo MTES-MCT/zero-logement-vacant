@@ -5,6 +5,7 @@ import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import styles from './housing-edition-form.module.scss';
 
 interface Props {
   selected?: HousingStatus;
@@ -61,9 +62,9 @@ const HousingStatusSelect = ({
         >
           {options.map((option) => (
             <Radio
-              label={option.label}
+              label={option.label.toUpperCase()}
               value={option.value}
-              className="bordered-b fr-p-1w"
+              className={classNames(styles.radioLabel, 'bordered-b', 'fr-p-1w')}
               hint={option.hint}
               key={option.label}
             />

@@ -144,6 +144,11 @@ const HousingEditionForm = (
       label: 'Visite - Rencontre',
       icon: 'ri-service-fill',
     },
+    {
+      value: 'Note personnelle',
+      label: 'Note personnelle',
+      icon: 'ri-phone-fill',
+    },
   ];
 
   const updatingForm = yup.object().shape({
@@ -252,10 +257,25 @@ const HousingEditionForm = (
         </Col>
       </Row>
       <Text className="fr-mt-3w fr-mb-0">
-        Causes de la vacance ({vacancyReasons?.length ?? 0})
+        Causes de la vacance{' '}
+        {vacancyReasons?.length !== undefined && vacancyReasons?.length > 0 && (
+          <>({vacancyReasons.length})</>
+        )}
       </Text>
-      <ButtonLink isSimple onClick={() => setIsVacancyReasonsModalOpen(true)}>
-        Sélectionnez une ou plusieurs options
+      <Text className="fr-my-0">
+        {vacancyReasons?.map((reason, index) => (
+          <div key={`vacancy_reason_${index}`}>{reason}</div>
+        ))}
+      </Text>
+      <ButtonLink
+        isSimple
+        onClick={() => setIsVacancyReasonsModalOpen(true)}
+        icon={vacancyReasons?.length ? 'ri-edit-2-fill' : ''}
+        iconPosition="left"
+      >
+        {vacancyReasons?.length !== undefined && vacancyReasons?.length > 0
+          ? 'Modifier'
+          : 'Sélectionnez une ou plusieurs options'}
       </ButtonLink>
       {isVacancyReasonsModalOpen && (
         <VacancyReasonModal

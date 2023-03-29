@@ -1,4 +1,7 @@
-export interface DraftContactPointApi {
+import { ContactPoint } from '../../shared/models/ContactPoint';
+
+export interface ContactPointApi {
+  id: string;
   establishmentId: string;
   title: string;
   opening?: string;
@@ -9,6 +12,15 @@ export interface DraftContactPointApi {
   notes?: string;
 }
 
-export interface ContactPointApi extends DraftContactPointApi {
-  id: string;
+export function toContactPointDTO(contactPoint: ContactPointApi): ContactPoint {
+  return {
+    id: contactPoint.id,
+    title: contactPoint.title,
+    opening: contactPoint.opening,
+    address: contactPoint.address,
+    geoCodes: contactPoint.geoCodes,
+    email: contactPoint.email,
+    phone: contactPoint.phone,
+    notes: contactPoint.notes,
+  };
 }

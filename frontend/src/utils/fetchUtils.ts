@@ -1,21 +1,63 @@
+import authService from '../services/auth.service';
+
 interface HttpService {
   name: string;
-  fetch(input: string, init: RequestOptions): ReturnType<typeof fetch>;
+  fetch(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
+  get(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
+  post(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
+  put(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
+  delete(input: string, init?: RequestOptions): ReturnType<typeof fetch>;
 }
 
 interface RequestOptions extends Omit<RequestInit, 'signal'> {
   abortId?: string;
 }
 
-export function createHttpService(name: string): HttpService {
+interface HttpOptions {
+  authenticated?: boolean;
+  host?: string;
+  json?: boolean;
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+export function createHttpService(
+  name: string,
+  options?: HttpOptions
+): HttpService {
+  function doFetch(method?: HttpMethod) {
+    return (input: string, init?: RequestOptions): Promise<Response> => {
+      const authHeaders: Record<string, string> = options?.authenticated
+        ? authService.authHeader() ?? {}
+        : {};
+      const jsonHeaders: Record<string, string> = options?.json
+        ? {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          }
+        : {};
+
+      const uri = options?.host ? `${options.host}${input}` : input;
+      return fetch(uri, {
+        ...init,
+        method: method ?? init?.method,
+        headers: {
+          ...authHeaders,
+          ...jsonHeaders,
+          ...init?.headers,
+        },
+        signal: init?.abortId ? allowAbort(init.abortId) : undefined,
+      });
+    };
+  }
+
   return {
     name,
-    fetch: (input, init) => {
-      return fetch(input, {
-        ...init,
-        signal: init.abortId ? allowAbort(init.abortId) : undefined,
-      });
-    },
+    fetch: doFetch(),
+    get: doFetch('GET'),
+    post: doFetch('POST'),
+    put: doFetch('PUT'),
+    delete: doFetch('DELETE'),
   };
 }
 

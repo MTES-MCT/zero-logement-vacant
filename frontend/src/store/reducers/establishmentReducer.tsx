@@ -5,7 +5,7 @@ import {
   LocalityListFetchedAction,
 } from '../actions/establishmentAction';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { ContactPoint } from '../../models/ContactPoint';
+import { ContactPoint } from '../../../../shared/models/ContactPoint';
 import { Locality } from '../../models/Locality';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 

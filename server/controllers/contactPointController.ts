@@ -1,23 +1,21 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
 import contactPointsRepository from '../repositories/contactPointsRepository';
 import { body, param } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
+import { ContactPointApi, toContactPointDTO } from '../models/ContactPointApi';
 
-const listContactPoints = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
-
+const listContactPoints = async (request: Request, response: Response) => {
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
   console.log('List contact points', establishmentId);
 
-  return contactPointsRepository
-    .listContactPoints(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const contactPoints = await contactPointsRepository.find(establishmentId);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(contactPoints.map(toContactPointDTO));
 };
 
 interface ContactPointBody {
@@ -47,48 +45,43 @@ const createContactPointValidators = [
   body('notes').isString().optional(),
 ];
 
-const createContactPoint = async (
-  request: any,
-  response: Response
-): Promise<Response> => {
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+const createContactPoint = async (request: Request, response: Response) => {
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
   console.log('Create contact point', establishmentId, body.title);
 
-  return contactPointsRepository
-    .insert({ establishmentId, ...body })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const contactPoint: ContactPointApi = {
+    ...body,
+    id: uuidv4(),
+    establishmentId,
+  };
+  await contactPointsRepository.insert(contactPoint);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(toContactPointDTO(contactPoint));
 };
 
 const deleteContactPointValidators = [
   param('contactPointId').notEmpty().isUUID(),
 ];
 
-const deleteContactPoint = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const contactPointId = request.params.contactPointId;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+const deleteContactPoint = async (request: Request, response: Response) => {
+  const id = request.params.contactPointId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  console.log('Delete contact point', contactPointId);
+  console.log('Delete contact point', id);
 
-  const contactPoint = await contactPointsRepository.get(contactPointId);
-
+  const contactPoint = await contactPointsRepository.findOne({
+    id,
+    establishmentId,
+  });
   if (!contactPoint) {
-    throw new ContactPointMissingError(contactPointId);
+    throw new ContactPointMissingError(id);
   }
 
-  if (contactPoint.establishmentId !== establishmentId) {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
-  }
-
-  return contactPointsRepository
-    .deleteContactPoint(contactPointId)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+  await contactPointsRepository.remove(id);
+  response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
 };
 
 const updateContactPointValidators = [
@@ -96,33 +89,28 @@ const updateContactPointValidators = [
   ...createContactPointValidators,
 ];
 
-const updateContactPoint = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const updateContactPoint = async (request: Request, response: Response) => {
   const contactPointId = request.params.contactPointId;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
   console.log('Update contact point with id', contactPointId);
 
-  const contactPoint = await contactPointsRepository.get(contactPointId);
+  const contactPoint = await contactPointsRepository.findOne({
+    id: contactPointId,
+    establishmentId,
+  });
   if (!contactPoint) {
     throw new ContactPointMissingError(contactPointId);
   }
 
-  if (contactPoint.establishmentId !== establishmentId) {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
-  }
-
-  return contactPointsRepository
-    .update({
-      id: contactPointId,
-      establishmentId,
-      ...body,
-    })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const updated: ContactPointApi = {
+    ...body,
+    establishmentId,
+    id: contactPointId,
+  };
+  await contactPointsRepository.update(updated);
+  response.status(constants.HTTP_STATUS_OK).json(toContactPointDTO(updated));
 };
 
 const geoController = {

@@ -15,9 +15,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { genContactPointApi, genGeoCode } from '../test/testFixtures';
 import randomstring from 'randomstring';
 
-const { app } = createServer();
-
 describe('ContactPoint controller', () => {
+  const { app } = createServer();
+
   describe('listContactPoints', () => {
     const testRoute = '/api/contact-points';
 
@@ -36,7 +36,6 @@ describe('ContactPoint controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: ContactPoint1.id,
-            establishmentId: Establishment1.id,
             title: ContactPoint1.title,
             opening: ContactPoint1.opening,
             address: ContactPoint1.address,
@@ -100,7 +99,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .listContactPoints(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -128,10 +127,10 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should be forbidden for a user from another establishment', async () => {
+    it('should be missing for a user from another establishment', async () => {
       await withAccessToken(request(app).put(testRoute(ContactPoint2.id)))
         .send(genContactPointApi(Establishment2.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should be missing', async () => {
@@ -169,7 +168,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .listContactPoints(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -201,10 +200,10 @@ describe('ContactPoint controller', () => {
       );
     });
 
-    it('should be forbidden for a user from another establishment', async () => {
+    it('should be missing for a user from another establishment', async () => {
       await withAccessToken(
         request(app).delete(testRoute(ContactPoint2.id))
-      ).expect(constants.HTTP_STATUS_UNAUTHORIZED);
+      ).expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should received a valid contact point id', async () => {
@@ -220,10 +219,10 @@ describe('ContactPoint controller', () => {
     it('should delete the contact point', async () => {
       await withAccessToken(
         request(app).delete(testRoute(ContactPoint1.id))
-      ).expect(constants.HTTP_STATUS_OK);
+      ).expect(constants.HTTP_STATUS_NO_CONTENT);
 
       await contactPointsRepository
-        .listContactPoints(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId)
         .then((result) => {
           expect(result).toEqual([]);
         });

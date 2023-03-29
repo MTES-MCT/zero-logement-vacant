@@ -16,7 +16,10 @@ import {
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
-import { ContactPoint, DraftContactPoint } from '../../../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../../shared/models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';

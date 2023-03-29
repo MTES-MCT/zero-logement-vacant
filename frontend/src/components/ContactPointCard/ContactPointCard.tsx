@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import { ContactPoint } from '../../models/ContactPoint';
+import { ContactPoint } from '../../../../shared/models/ContactPoint';
 import React from 'react';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { mailto, pluralize } from '../../utils/stringUtils';

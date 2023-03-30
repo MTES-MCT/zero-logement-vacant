@@ -91,7 +91,7 @@ export const statusOptions = (
   statusExcluded?: HousingStatus[]
 ): SelectOption[] => [
   ...HousingStates.filter(
-    (_) => (statusExcluded ?? []).indexOf(_.status) === -1
+    (_) => !(statusExcluded ?? []).includes(_.status)
   ).map((status) => ({
     value: String(status.status),
     label: status.title,

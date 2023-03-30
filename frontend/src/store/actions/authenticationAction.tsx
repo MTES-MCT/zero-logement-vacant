@@ -54,6 +54,32 @@ export const login = (
       });
   };
 };
+export const changeEstablishment = (establishmentId: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    authService
+      .changeEstablishment(establishmentId)
+      .then((authUser) => {
+        if (authUser.accessToken) {
+          dispatch(
+            loginUser({
+              authUser,
+            })
+          );
+          window.location.reload();
+        } else {
+          dispatch(loginFail());
+        }
+      })
+      .catch(() => {
+        dispatch(loginFail());
+      })
+      .finally(() => {
+        dispatch(hideLoading());
+      });
+  };
+};
 
 export const logout = () => (dispatch: Dispatch) => {
   authService.logout();

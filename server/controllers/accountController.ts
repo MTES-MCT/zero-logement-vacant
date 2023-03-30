@@ -11,12 +11,18 @@ import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
-import { TokenPayload, toUserDTO } from '../models/UserApi';
+import { TokenPayload, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
 import AuthenticationFailedError from '../errors/authenticationFailedError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { emailValidator, passwordCreationValidator } from '../utils/validators';
 
-async function signIn(request: Request, response: Response) {
+const signInValidators: ValidationChain[] = [
+  emailValidator(),
+  body('password').isString().notEmpty({ ignore_whitespace: true }),
+  body('establishmentId').isString().optional(),
+];
+
+const signIn = async (request: Request, response: Response) => {
   const { email, password } = request.body;
 
   const user = await userRepository.getByEmail(email);
@@ -31,6 +37,15 @@ async function signIn(request: Request, response: Response) {
 
   await userRepository.updateLastAuthentication(user.id);
   const establishmentId = user.establishmentId ?? request.body.establishmentId;
+
+  signInToEstablishment(user, establishmentId, response);
+};
+
+const signInToEstablishment = async (
+  user: UserApi,
+  establishmentId: string,
+  response: Response
+) => {
   const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {
     throw new EstablishmentMissingError(establishmentId);
@@ -51,13 +66,19 @@ async function signIn(request: Request, response: Response) {
     establishment,
     accessToken,
   });
-}
+};
 
-const signInValidators: ValidationChain[] = [
-  emailValidator(),
-  body('password').isString().notEmpty({ ignore_whitespace: true }),
-  body('establishmentId').isString().optional(),
-];
+const changeEstablishment = (request: Request, response: Response) => {
+  const { user } = request as AuthenticatedRequest;
+
+  if (user.role !== UserRoles.Admin) {
+    throw new AuthenticationFailedError();
+  }
+
+  const establishmentId = request.params.establishmentId;
+
+  signInToEstablishment(user, establishmentId, response);
+};
 
 const updatePassword = async (
   request: Request,
@@ -125,4 +146,5 @@ export default {
   updatePassword,
   resetPassword,
   resetPasswordValidators,
+  changeEstablishment,
 };

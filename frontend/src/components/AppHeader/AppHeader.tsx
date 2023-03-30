@@ -18,11 +18,15 @@ import {
   UserNavItem,
   UserNavItems,
 } from '../../models/UserNavItem';
-import { logout } from '../../store/actions/authenticationAction';
+import {
+  changeEstablishment,
+  logout,
+} from '../../store/actions/authenticationAction';
 import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
@@ -101,7 +105,25 @@ function AppHeader() {
           </Logo>
           <Service
             title="Zéro Logement Vacant"
-            description={isAuthenticated ? authUser?.establishment.name : ''}
+            className={styles.brandService}
+            description={
+              isAuthenticated ? (
+                isAdmin ? (
+                  <EstablishmentSearchableSelect
+                    initialEstablishmentId={authUser?.establishment.id}
+                    onChange={(id: string) => {
+                      if (id) {
+                        dispatch(changeEstablishment(id));
+                      }
+                    }}
+                  />
+                ) : (
+                  authUser?.establishment.name
+                )
+              ) : (
+                ''
+              )
+            }
           />
           {isAuthenticated ? (
             <Tool>

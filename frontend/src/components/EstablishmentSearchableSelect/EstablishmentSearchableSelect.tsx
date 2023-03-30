@@ -5,9 +5,13 @@ import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstabl
 
 interface Props {
   onChange(establishmentId: string): void;
+  initialEstablishmentId?: string;
 }
 
-const EstablishmentSearchableSelect = ({ onChange }: Props) => {
+const EstablishmentSearchableSelect = ({
+  onChange,
+  initialEstablishmentId,
+}: Props) => {
   const availableEstablishmentOptions = useAvailableEstablishmentOptions();
   const [establishmentOptions, setEstablishmentOptions] = useState<
     { value: string; label: string }[]
@@ -43,6 +47,7 @@ const EstablishmentSearchableSelect = ({ onChange }: Props) => {
 
   return (
     <SearchableSelect
+      selected={initialEstablishmentId}
       options={establishmentOptions}
       label="Etablissement : "
       onChange={onChange}

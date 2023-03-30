@@ -55,7 +55,7 @@
     "jsonwebtoken": "^9.0.0",
     "knex": "^0.95.15",
     "node-fetch": "^2.6.7",
-    "nodemailer": "^6.7.5",
+    "nodemailer": "^6.9.1",
     "pg": "^8.7.3",
     "proj4": "^2.8.0",
     "randomstring": "^1.2.1",

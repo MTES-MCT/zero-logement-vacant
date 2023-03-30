@@ -17,7 +17,6 @@ import {
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import { ValidationError } from 'yup/es';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
 import { statusOptions } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
@@ -25,6 +24,7 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal';
 import styles from './housing-edition-form.module.scss';
 import classNames from 'classnames';
+import { useForm } from '../../hooks/useForm';
 
 interface Props {
   currentStatus?: HousingStatus;
@@ -32,7 +32,7 @@ interface Props {
   currentPrecisions?: string[];
   currentVacancyReasons?: string[];
   fromDefaultCampaign?: boolean;
-  onValidate: (housingUpdate: HousingUpdate) => void;
+  onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
 const HousingEditionForm = (
@@ -42,7 +42,7 @@ const HousingEditionForm = (
     currentPrecisions,
     currentVacancyReasons,
     fromDefaultCampaign,
-    onValidate,
+    onSubmit,
   }: Props,
   ref: any
 ) => {
@@ -60,7 +60,6 @@ const HousingEditionForm = (
   const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
   const [contactKind, setContactKind] = useState<string>();
   const [comment, setComment] = useState<string>();
-  const [formErrors, setFormErrors] = useState<any>({});
   const [isVacancyReasonsModalOpen, setIsVacancyReasonsModalOpen] =
     useState<boolean>(false);
 
@@ -78,7 +77,6 @@ const HousingEditionForm = (
   }, [currentVacancyReasons]);
 
   const selectStatus = (newStatus: HousingStatus) => {
-    setFormErrors({});
     setStatus(+newStatus);
     setSubStatusOptions(getSubStatusOptions(newStatus));
     selectSubStatus(
@@ -90,7 +88,6 @@ const HousingEditionForm = (
   };
 
   const selectSubStatus = (status?: HousingStatus, newSubStatus?: string) => {
-    setFormErrors({});
     setSubStatus(newSubStatus);
     if (newSubStatus && status) {
       setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
@@ -151,7 +148,7 @@ const HousingEditionForm = (
     },
   ];
 
-  const updatingForm = yup.object().shape({
+  const schema = yup.object().shape({
     status: yup.string().required('Veuillez sélectionner un statut.'),
     subStatus: yup
       .string()
@@ -171,42 +168,29 @@ const HousingEditionForm = (
       }),
   });
 
+  const { isValid, message, messageType } = useForm(schema, {
+    hasSubStatus: subStatusOptions !== undefined,
+    hasContactKind: status !== HousingStatus.NeverContacted,
+    status,
+    subStatus,
+    contactKind,
+  });
+
   useImperativeHandle(ref, () => ({
-    validate: () => {
-      setFormErrors({});
-      updatingForm
-        .validate(
-          {
-            hasSubStatus: subStatusOptions !== undefined,
-            hasContactKind: status !== HousingStatus.NeverContacted,
-            status,
-            subStatus,
-            contactKind,
-          },
-          { abortEarly: false }
-        )
-        .then(() =>
-          onValidate({
-            status: +(status ?? HousingStatus.Waiting),
-            subStatus: subStatus,
-            precisions,
-            contactKind:
-              status === HousingStatus.NeverContacted
-                ? 'Jamais contacté'
-                : contactKind,
-            vacancyReasons,
-            comment,
-          })
-        )
-        .catch((err: any) => {
-          const object: any = {};
-          err.inner.forEach((x: ValidationError) => {
-            if (x.path !== undefined && x.errors.length) {
-              object[x.path] = x.errors[0];
-            }
-          });
-          setFormErrors(object);
+    submit: () => {
+      if (isValid()) {
+        onSubmit({
+          status: +(status ?? HousingStatus.Waiting),
+          subStatus: subStatus,
+          precisions,
+          contactKind:
+            status === HousingStatus.NeverContacted
+              ? 'Jamais contacté'
+              : contactKind,
+          vacancyReasons,
+          comment,
         });
+      }
     },
   }));
 
@@ -237,8 +221,12 @@ const HousingEditionForm = (
               label="Sous-statut"
               options={subStatusOptions}
               selected={subStatus}
-              messageType={formErrors['subStatus'] ? 'error' : undefined}
-              message={formErrors['subStatus']}
+              messageType={
+                messageType('subStatus') !== ''
+                  ? (messageType('subStatus') as 'valid' | 'error')
+                  : 'error'
+              }
+              message={message('subStatus')}
               onChange={(e: any) => selectSubStatus(status, e.target.value)}
               required
             />
@@ -308,9 +296,9 @@ const HousingEditionForm = (
           </Tag>
         ))}
       </TagGroup>
-      {formErrors['contactKind'] && (
+      {messageType('contactKind') === 'error' && (
         <span className="fr-error-text fr-mt-0 fr-mb-2w">
-          {formErrors['contactKind']}
+          {message('contactKind')}
         </span>
       )}
       <TextInput

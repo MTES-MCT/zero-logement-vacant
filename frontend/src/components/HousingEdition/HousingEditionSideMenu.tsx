@@ -20,7 +20,7 @@ const HousingEditionSideMenu = ({
   onClose,
 }: Props) => {
   const campaignList = useCampaignList();
-  const statusFormRef = useRef<{ validate: () => void }>();
+  const statusFormRef = useRef<{ submit: () => void }>();
   const submit = (housingUpdate: HousingUpdate) => {
     if (housing) {
       onSubmit(housing, housingUpdate);
@@ -57,7 +57,7 @@ const HousingEditionSideMenu = ({
               currentPrecisions={housing.precisions}
               currentVacancyReasons={housing.vacancyReasons}
               fromDefaultCampaign={hasOnlyDefaultCampaign}
-              onValidate={submit}
+              onSubmit={submit}
               ref={statusFormRef}
             />
           )}
@@ -76,7 +76,7 @@ const HousingEditionSideMenu = ({
           {
             <Button
               title="Enregistrer"
-              onClick={() => statusFormRef.current?.validate()}
+              onClick={() => statusFormRef.current?.submit()}
             >
               Enregistrer
             </Button>

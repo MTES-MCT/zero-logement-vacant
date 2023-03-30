@@ -23,7 +23,7 @@ const HousingListEditionSideMenu = ({
   onSubmit,
   onClose,
 }: Props) => {
-  const statusFormRef = useRef<{ validate: () => void }>();
+  const statusFormRef = useRef<{ submit: () => void }>();
 
   return (
     <Aside
@@ -38,7 +38,7 @@ const HousingListEditionSideMenu = ({
           <HousingEditionForm
             currentStatus={initialStatus}
             fromDefaultCampaign={fromDefaultCampaign}
-            onValidate={onSubmit}
+            onSubmit={onSubmit}
             ref={statusFormRef}
           />
         </Container>
@@ -55,7 +55,7 @@ const HousingListEditionSideMenu = ({
           </Button>
           <Button
             title="Enregistrer"
-            onClick={() => statusFormRef.current?.validate()}
+            onClick={() => statusFormRef.current?.submit()}
           >
             Enregistrer
           </Button>

@@ -1,52 +1,35 @@
 import config from '../utils/config';
-import authService from './auth.service';
 import { Establishment } from '../models/Establishment';
 import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
 import {
   createHttpService,
   getURLSearchParams,
   normalizeUrlSegment,
-  toJSON,
 } from '../utils/fetchUtils';
 
-const http = createHttpService('establishment');
+const http = createHttpService('establishment', {
+  host: config.apiEndpoint,
+  authenticated: true,
+  json: true,
+});
 
 const listEstablishments = async (
   filters: EstablishmentFilterApi
 ): Promise<Establishment[]> => {
-  return await http
-    .fetch(
-      {
-        host: `${config.apiEndpoint}/api/establishments`,
-        searchParams: getURLSearchParams({
-          ...filters,
-          name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
-        }),
-      },
-      {
-        method: 'GET',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-    .then(toJSON);
+  const params = getURLSearchParams({
+    ...filters,
+    name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
+  });
+  const response = await http.get(`/api/establishments?${params}`);
+  return response.json();
 };
 
-const quickSearch = (query: string): Promise<Establishment[]> => {
-  return http
-    .fetch(
-      {
-        host: `${config.apiEndpoint}/api/establishments`,
-        searchParams: new URLSearchParams({ query }),
-      },
-      {
-        method: 'GET',
-        abortId: 'search-establishment',
-      }
-    )
-    .then(toJSON);
+const quickSearch = async (query: string): Promise<Establishment[]> => {
+  const params = new URLSearchParams({ query });
+  const response = await http.get(`/api/establishments?${params}`, {
+    abortId: 'search-establishment',
+  });
+  return response.json();
 };
 
 const establishmentService = {

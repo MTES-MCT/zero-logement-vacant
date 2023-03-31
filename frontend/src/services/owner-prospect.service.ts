@@ -6,19 +6,15 @@ import { PaginatedResult } from '../models/PaginatedResult';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { SortOptions, toQuery } from '../models/Sort';
 
-const http = createHttpService('owner-prospects');
+const http = createHttpService('owner-prospects', {
+  host: config.apiEndpoint,
+  json: true,
+});
 
 const create = async (ownerProspect: OwnerProspect): Promise<OwnerProspect> => {
-  const response = await http.fetch(
-    `${config.apiEndpoint}/api/owner-prospects`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(ownerProspect),
-    }
-  );
+  const response = await http.post('/api/owner-prospects', {
+    body: JSON.stringify(ownerProspect),
+  });
   if (!response.ok) {
     throw new Error('Une erreur s’est produite.');
   }
@@ -37,27 +33,21 @@ const find = async (
     query.set('sort', sort);
   }
 
-  const response = await http.fetch(
-    `${config.apiEndpoint}/api/owner-prospects?${query}`,
-    {
-      method: 'GET',
-      headers: {
-        ...authService.authHeader(),
-      },
-      abortId: 'find-owner-prospects',
-    }
-  );
+  const response = await http.get(`/api/owner-prospects?${query}`, {
+    headers: {
+      ...authService.authHeader(),
+    },
+    abortId: 'find-owner-prospects',
+  });
   return response.json();
 };
 
 const update = async (ownerProspect: OwnerProspect): Promise<void> => {
   const { id, ...op } = ownerProspect;
-  await http.fetch(`${config.apiEndpoint}/api/owner-prospects/${id}`, {
-    method: 'PUT',
+  await http.put(`/api/owner-prospects/${id}`, {
     body: JSON.stringify(op),
     headers: {
       ...authService.authHeader(),
-      'Content-Type': 'application/json',
     },
     abortId: 'update-owner-prospect',
   });

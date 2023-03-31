@@ -28,10 +28,6 @@ describe('Owner prospect controller', () => {
     fetchMock.resetMocks();
   });
 
-  function createOwnerProspect(geoCode: string): OwnerProspectApi {
-    return { ...genOwnerProspectApi(), geoCode };
-  }
-
   describe('create', () => {
     const testRoute = '/api/owner-prospects';
 
@@ -130,10 +126,12 @@ describe('Owner prospect controller', () => {
     const testRoute = '/api/owner-prospects';
 
     const ownerProspects: OwnerProspectApi[] = [
-      createOwnerProspect(Locality1.geoCode),
-      createOwnerProspect(Locality1.geoCode),
-      createOwnerProspect(Locality2.geoCode),
+      genOwnerProspectApi(Locality1.geoCode),
+      genOwnerProspectApi(Locality1.geoCode),
+      genOwnerProspectApi(Locality2.geoCode),
     ];
+    const expectedCount = [OwnerProspect1, ...ownerProspects.slice(0, 2)]
+      .length;
 
     beforeEach(async () => {
       await Promise.all(ownerProspects.map(ownerProspectRepository.insert));
@@ -157,11 +155,11 @@ describe('Owner prospect controller', () => {
         {
           page: 1,
           perPage: 25,
-          filteredCount: 2,
-          totalCount: 2,
+          filteredCount: expectedCount,
+          totalCount: expectedCount,
         }
       );
-      expect(body.entities).toHaveLength(2);
+      expect(body.entities).toHaveLength(expectedCount);
       const inEstablishment = body.entities.every(
         (entity: OwnerProspectApi) => entity.geoCode === Locality1.geoCode
       );
@@ -178,7 +176,7 @@ describe('Owner prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
       expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
         {
-          totalCount: 2,
+          totalCount: expectedCount,
           filteredCount: 1,
           page: 1,
           perPage: 1,

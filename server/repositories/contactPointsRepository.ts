@@ -43,8 +43,8 @@ const find = async (
   );
   const contactPoints = await ContactPoints()
     .select(`${contactPointsTable}.*`)
-    .where({ establishment_id: establishmentId })
-    .modify(builder => {
+    .where(`${contactPointsTable}.establishment_id`, establishmentId)
+    .modify((builder) => {
       if (publicOnly) {
         builder
           .join(
@@ -52,7 +52,7 @@ const find = async (
             `${settingsTable}.establishment_id`,
             `${contactPointsTable}.establishment_id`
           )
-          .andWhere('contact_points_public', true)
+          .andWhere('contact_points_public', true);
       }
     })
     .orderBy('title');

@@ -17,7 +17,7 @@ router.use(jwtCheck(false))
 router.use(userCheck(false));
 
 // Allow 10 requests by IP over 1 minute
-const rateLimiter = rateLimit({
+const rateLimiter = () => rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   message: 'Too many request from this address, try again later please.',
@@ -29,16 +29,16 @@ router.get('/prospects/:email', prospectController.showProspectValidator, valida
 
 router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.create);
 
-router.post('/users/creation', rateLimiter, userController.createUserValidators, validator.validate, userController.createUser);
-router.post('/authenticate', rateLimiter, accountController.signInValidators, validator.validate, accountController.signIn);
-router.post('/account/reset-password', rateLimiter, accountController.resetPasswordValidators, validator.validate, accountController.resetPassword);
+router.post('/users/creation', rateLimiter(), userController.createUserValidators, validator.validate, userController.createUser);
+router.post('/authenticate', rateLimiter(), accountController.signInValidators, validator.validate, accountController.signIn);
+router.post('/account/reset-password', rateLimiter(), accountController.resetPasswordValidators, validator.validate, accountController.resetPassword);
 
-router.post('/reset-links', rateLimiter, resetLinkController.createValidators, validator.validate, resetLinkController.create);
-router.get('/reset-links/:id', rateLimiter, resetLinkController.showValidators, validator.validate, resetLinkController.show);
+router.post('/reset-links', rateLimiter(), resetLinkController.createValidators, validator.validate, resetLinkController.create);
+router.get('/reset-links/:id', rateLimiter(), resetLinkController.showValidators, validator.validate, resetLinkController.show);
 
-router.post('/signup-links', rateLimiter, signupLinkController.createValidators, validator.validate, signupLinkController.create);
-router.get('/signup-links/:id', rateLimiter, signupLinkController.showValidators, validator.validate, signupLinkController.show);
-router.put('/signup-links/:id/prospect', rateLimiter, prospectController.createProspectValidator, validator.validate, prospectController.upsert);
+router.post('/signup-links', rateLimiter(), signupLinkController.createValidators, validator.validate, signupLinkController.create);
+router.get('/signup-links/:id', rateLimiter(), signupLinkController.showValidators, validator.validate, signupLinkController.show);
+router.put('/signup-links/:id/prospect', rateLimiter(), prospectController.createProspectValidator, validator.validate, prospectController.upsert);
 
 router.get('/establishments', establishmentController.listValidators, validator.validate, establishmentController.list);
 

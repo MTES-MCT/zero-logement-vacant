@@ -1,5 +1,7 @@
 import { User } from '../../shared/models/User';
 
+export const SALT_LENGTH = 10;
+
 export interface UserApi {
   id: string;
   email: string;

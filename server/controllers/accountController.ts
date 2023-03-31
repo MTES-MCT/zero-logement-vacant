@@ -11,7 +11,13 @@ import resetLinkRepository from '../repositories/resetLinkRepository';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import { hasExpired } from '../models/ResetLinkApi';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
-import { TokenPayload, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
+import {
+  SALT_LENGTH,
+  TokenPayload,
+  toUserDTO,
+  UserApi,
+  UserRoles,
+} from '../models/UserApi';
 import AuthenticationFailedError from '../errors/authenticationFailedError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { emailValidator, passwordCreationValidator } from '../utils/validators';
@@ -93,10 +99,13 @@ const updatePassword = async (request: Request, response: Response) => {
     throw new PasswordInvalidError();
   }
 
-  // TODO: avoid hashing password synchronously
-  // as it blocks other incoming requests
-  await userRepository.updatePassword(user.id, bcrypt.hashSync(newPassword));
-  response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+  if (isPasswordValid) {
+    const hash = await bcrypt.hash(newPassword, SALT_LENGTH)
+    await userRepository.updatePassword(user.id, hash)
+    response.sendStatus(constants.HTTP_STATUS_OK)
+  } else {
+    response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+  }
 };
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
@@ -115,7 +124,8 @@ const resetPassword = async (request: Request, response: Response) => {
     throw new ResetLinkExpiredError();
   }
 
-  await userRepository.updatePassword(link.userId, bcrypt.hashSync(password));
+  const hash = await bcrypt.hash(password, SALT_LENGTH);
+    await userRepository.updatePassword(link.userId, hash);
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 };

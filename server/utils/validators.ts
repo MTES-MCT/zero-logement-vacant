@@ -42,8 +42,10 @@ export const emailValidator = () =>
 
 export const PASSWORD_MIN_LENGTH = 8;
 
-export const passwordCreationValidator = (): ValidationChain =>
-  body('password')
+export const passwordCreationValidator = (
+  field = 'password'
+): ValidationChain =>
+  body(field)
     .isStrongPassword({
       minLength: PASSWORD_MIN_LENGTH,
       minNumbers: 1,

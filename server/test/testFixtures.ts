@@ -28,6 +28,7 @@ import {
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 const randomstring = require('randomstring');
 
@@ -181,6 +182,7 @@ export const genHousingApi = (geoCode: string) => {
     occupancy: OccupancyKindApi.Vacant,
     energyConsumption: EnergyConsumptionGradesApi.A,
     energyConsumptionWorst: EnergyConsumptionGradesApi.B,
+    status: HousingStatusApi.NeverContacted,
   };
 };
 

@@ -4,6 +4,7 @@ import {
   HousingApi,
   HousingSortableApi,
   HousingUpdateApi,
+  isHousingUpdated,
 } from '../models/HousingApi';
 import {
   HousingFiltersApi,
@@ -237,12 +238,14 @@ const updateHousing = async (
     ]);
   }
 
-  await createHousingUpdateEvent(
-    [housing],
-    housingUpdateApi,
-    [lastCampaignId],
-    userId
-  );
+  if (isHousingUpdated(housing, housingUpdateApi)) {
+    await createHousingUpdateEvent(
+      [housing],
+      housingUpdateApi,
+      [lastCampaignId],
+      userId
+    );
+  }
 
   if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(

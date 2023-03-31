@@ -12,7 +12,7 @@ import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import { Housing1 } from '../../database/seeds/test/005-housing';
+import { Housing0, Housing1 } from '../../database/seeds/test/005-housing';
 import { eventsTable } from '../repositories/eventRepository';
 import { EventKinds } from '../models/EventApi';
 import { User1 } from '../../database/seeds/test/003-users';
@@ -157,6 +157,30 @@ describe('Housing controller', () => {
             })
           )
         );
+    });
+
+    it('should not create and event when no changes', async () => {
+      await withAccessToken(
+        request(app)
+          .post(testRoute(Housing0.id))
+          .send({
+            housingUpdate: {
+              status: Housing0.status,
+              subStatus: Housing0.subStatus,
+              precisions: Housing0.precisions,
+              vacancyReasons: Housing0.vacancyReasons,
+              contactKind: 'Appel entrant',
+              comment: '',
+            },
+          })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      await db(eventsTable)
+        .where('housing_id', Housing1.id)
+        .andWhere('campaign_id', Campaign1.id)
+        .andWhere('owner_id', Owner1.id)
+        .first()
+        .then((result) => expect(result).toBeUndefined());
     });
 
     it('should create and event related to the status change', async () => {

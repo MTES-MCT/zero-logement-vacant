@@ -1,0 +1,14 @@
+.tagNotSelected {
+  background-color: revert !important;
+  color: revert !important;
+}
+
+.radioLabel {
+  label {
+    font-weight: bold;
+
+    p{
+      font-weight: normal;
+    }
+  }
+}

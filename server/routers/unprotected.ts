@@ -11,19 +11,23 @@ import ownerProspectController from '../controllers/ownerProspectController';
 import rateLimit from 'express-rate-limit';
 import contactPointController from '../controllers/contactPointController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
+import config from "../utils/config";
+import { noop } from "../middlewares/noop";
 
 const router = express.Router();
 router.use(jwtCheck(false))
 router.use(userCheck(false));
 
 // Allow 10 requests by IP over 1 minute
-const rateLimiter = () => rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: 'Too many request from this address, try again later please.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
+function rateLimiter() {
+  return config.environment === 'production' ? rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: 'Too many request from this address, try again later please.',
+    standardHeaders: true,
+    legacyHeaders: false
+  }) : noop();
+}
 
 router.get('/prospects/:email', prospectController.showProspectValidator, validator.validate, prospectController.show);
 

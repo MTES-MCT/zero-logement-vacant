@@ -2,6 +2,7 @@ import db, { notDeleted } from './db';
 import { UserApi } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
+import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 
 export const usersTable = 'users';
 
@@ -77,8 +78,7 @@ const insert = async (userApi: UserApi): Promise<UserApi> => {
 const listWithFilters = async (
   filters: UserFiltersApi,
   filtersForTotalCount: UserFiltersApi,
-  page?: number,
-  perPage?: number
+  pagination: PaginationApi
 ): Promise<PaginatedResultApi<UserApi>> => {
   try {
     const filter = (filters: UserFiltersApi) => (queryBuilder: any) => {
@@ -106,18 +106,16 @@ const listWithFilters = async (
       .modify((queryBuilder: any) => {
         queryBuilder.orderBy('last_name');
         queryBuilder.orderBy('first_name');
-        if (page && perPage) {
-          queryBuilder.offset((page - 1) * perPage).limit(perPage);
-        }
       })
+      .modify(paginationQuery(pagination))
       .modify(filter(filters));
 
     return <PaginatedResultApi<UserApi>>{
       entities: results.map((result: any) => parseUserApi(result)),
       filteredCount,
       totalCount,
-      page,
-      perPage,
+      page: pagination.paginate ? pagination.page : 1,
+      perPage: pagination.paginate ? pagination.perPage : filteredCount,
     };
   } catch (err) {
     console.error('Listing users failed', err);

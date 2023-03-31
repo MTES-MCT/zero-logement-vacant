@@ -1,40 +1,40 @@
 import config from '../utils/config';
-import authService from './auth.service';
 import { Establishment } from '../models/Establishment';
+import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
+import {
+  createHttpService,
+  getURLSearchParams,
+  normalizeUrlSegment,
+} from '../utils/fetchUtils';
 
-const listAvailableEstablishments = async (): Promise<Establishment[]> => {
-  return await fetch(`${config.apiEndpoint}/api/establishments/available`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  }).then((_) => _.json());
+const http = createHttpService('establishment', {
+  host: config.apiEndpoint,
+  authenticated: true,
+  json: true,
+});
+
+const listEstablishments = async (
+  filters: EstablishmentFilterApi
+): Promise<Establishment[]> => {
+  const params = getURLSearchParams({
+    ...filters,
+    name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
+  });
+  const response = await http.get(`/api/establishments?${params}`);
+  return response.json();
 };
 
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<Establishment[]>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
-
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(
-        `${config.apiEndpoint}/api/establishments${query ? `?q=${query}` : ''}`,
-        {
-          method: 'GET',
-          signal,
-        }
-      ).then((_) => _.json()),
-  };
+const quickSearch = async (query: string): Promise<Establishment[]> => {
+  const params = new URLSearchParams({ query });
+  const response = await http.get(`/api/establishments?${params}`, {
+    abortId: 'search-establishment',
+  });
+  return response.json();
 };
 
 const establishmentService = {
-  listAvailableEstablishments,
-  quickSearchService,
+  listEstablishments,
+  quickSearch,
 };
 
 export default establishmentService;

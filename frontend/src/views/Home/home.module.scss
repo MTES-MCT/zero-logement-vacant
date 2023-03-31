@@ -8,3 +8,60 @@
 .quote_author {
   display: inline-block;
 }
+
+.ownerContainer {
+  background-color: var(--blue-france-113);
+  outline: 1px solid var(--white-1000);
+  outline-offset: -10px;
+
+  a {
+    color: var(--blue-france-113) !important;
+    background-color: var(--white-1000) !important;
+  }
+
+  h1,
+  p {
+    color: var(--white-1000);
+  }
+}
+
+.cardCol {
+
+  div {
+
+    @media (max-width: 575px) {
+      height: 130px;
+    }
+
+    text-align: center;
+    height: 225px;
+    background-color: var(--blue-france-925);
+    padding-top: 1rem;
+
+    img {
+      max-width: 75%;
+      height: 100%;
+    }
+  }
+}
+
+.editableInput {
+  display: inline-block;
+  width: 85%;
+
+  & + button {
+    display: inline-block;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.ownerFormContainer {
+  background-color: var(--white-1000);
+  padding: 1.5rem !important;
+
+  @media (min-width: 576px) {
+    padding: 4rem !important;
+    margin-right: 1rem;
+  }
+}

@@ -1,6 +1,7 @@
 import { MailEvent, MailService, SendOptions } from './mailService';
 import nodemailer from 'nodemailer';
 import config from '../../utils/config';
+import { UserApi } from '../../models/UserApi';
 
 class NodemailerService implements MailService {
   private transport: nodemailer.Transporter<nodemailer.SentMessageInfo>;
@@ -54,6 +55,14 @@ class NodemailerService implements MailService {
       ...options,
       subject: 'Activation du compte',
       content: `Cliquez sur le lien ${config.application.host}/inscription/mot-de-passe#${key}`,
+    });
+  }
+
+  async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
+    return this.send({
+      subject: 'Nouveau message - Boite de réception',
+      recipients: users.map((user) => user.email),
+      content: 'Nouveau message',
     });
   }
 }

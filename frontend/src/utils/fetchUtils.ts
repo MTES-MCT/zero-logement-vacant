@@ -1,3 +1,5 @@
+import { kebabCase } from 'lodash';
+
 import authService from '../services/auth.service';
 
 interface HttpService {
@@ -84,6 +86,32 @@ export function handleAbort(error: Error) {
 export function toJSON(response: Response): any {
   return response.json();
 }
+
+export interface AbortOptions {
+  abortable?: boolean;
+}
+
+export const getURLSearchParams = (params: Object) => {
+  const searchParams = new URLSearchParams(
+    Object.entries(params).filter(
+      ([_, v]) => v != null && !(v instanceof Array)
+    )
+  );
+
+  Object.entries(params)
+    .filter(([_, v]) => v instanceof Array && v.length)
+    .forEach(([k, v]) => {
+      searchParams.set(k, v[0]);
+      (v as Array<string>).forEach((_) => searchParams.append(k, _));
+    });
+
+  return searchParams;
+};
+
+export const normalizeUrlSegment = (segment: string) =>
+  kebabCase(segment.replaceAll(/\(.*\)/g, ''))
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 
 export interface AbortOptions {
   abortable?: boolean;

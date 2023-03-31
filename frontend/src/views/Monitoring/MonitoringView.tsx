@@ -11,7 +11,7 @@ import { differenceInDays, format, formatDuration } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { HousingStates, HousingStatus } from '../../models/HousingState';
 import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { useEstablishments } from '../../hooks/useEstablishments';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { dataYearsIncludedOptions } from '../../models/HousingFilters';
@@ -26,7 +26,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 const MonitoringView = () => {
   useDocumentTitle('Suivi');
   const dispatch = useAppDispatch();
-  const availableEstablishmentOptions = useAvailableEstablishmentOptions();
+  const { availableEstablishmentOptions } = useEstablishments();
 
   const {
     establishmentData,

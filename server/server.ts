@@ -34,12 +34,9 @@ export function createServer(): Server {
             "'self'",
             "'unsafe-inline'",
             'https://stats.beta.gouv.fr',
-            'https://stats.data.gouv.fr',
             'https://client.crisp.chat',
-            'https://renderer-assets.typeform.com',
           ],
           frameSrc: [
-            'https://form.typeform.com',
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
             'https://zerologementvacant.crisp.help',
           ],
@@ -69,7 +66,6 @@ export function createServer(): Server {
           connectSrc: [
             "'self'",
             'https://stats.beta.gouv.fr',
-            'https://stats.data.gouv.fr',
             'https://api-adresse.data.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',

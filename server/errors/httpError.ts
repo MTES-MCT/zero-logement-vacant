@@ -6,22 +6,26 @@ interface HttpErrorOptions {
   name: string;
   message: string;
   status: number;
+  data?: Record<string, unknown>;
 }
 
 export abstract class HttpError extends Error implements HttpError {
   status: number;
+  data?: Record<string, unknown>;
 
   protected constructor(options: HttpErrorOptions) {
     super(options.message);
     this.name = options.name;
     this.status = options.status;
+    this.data = options.data;
   }
 
-  toJSON() {
+  toJSON(): Record<string, unknown> {
     return {
       name: this.name,
       message: this.message,
       status: this.status,
+      data: this.data,
     };
   }
 }

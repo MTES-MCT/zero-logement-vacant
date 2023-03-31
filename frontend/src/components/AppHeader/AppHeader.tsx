@@ -26,14 +26,16 @@ import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
   isCurrent?: () => boolean;
+  count?: number;
 }
 
-function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
+function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
   const location = useLocation();
   const [path, setPath] = useState(() => location.pathname || '');
 
@@ -47,7 +49,16 @@ function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
     <NavItem
       current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
       title={userNavItem.label}
-      asLink={<Link to={userNavItem.url} className="d-md-none" />}
+      asLink={
+        count ? (
+          <Link to={userNavItem.url} className="d-md-none">
+            {userNavItem.label}
+            <span className={styles.count}>{count}</span>
+          </Link>
+        ) : (
+          <Link to={userNavItem.url} className="d-md-none" />
+        )
+      }
     />
   );
 }
@@ -60,6 +71,15 @@ function AppHeader() {
   const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
+  const { ownerProspects } = useAppSelector((state) => state.ownerProspect);
+
+  useEffect(() => {
+    dispatch(findOwnerProspects());
+  }, [dispatch]);
+
+  const unreadMessages = ownerProspects?.entities?.filter(
+    (entity) => !entity.read
+  );
 
   useEffect(() => {
     trackPageView({});
@@ -92,8 +112,8 @@ function AppHeader() {
 
   const withNavItems =
     location.pathname === '/' ||
-    location.pathname.indexOf('/collectivites') === 0 ||
-    location.pathname.indexOf('/proprietaires') === 0;
+    location.pathname === '/collectivites' ||
+    location.pathname === '/proprietaires';
 
   return (
     <>
@@ -177,6 +197,10 @@ function AppHeader() {
             <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.Establishment)}
+            />
+            <AppNavItem
+              userNavItem={getUserNavItem(UserNavItems.Inbox)}
+              count={unreadMessages?.length}
             />
           </HeaderNav>
         ) : (

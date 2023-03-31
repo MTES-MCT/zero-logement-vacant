@@ -19,18 +19,27 @@ describe('ContactPoint controller', () => {
   const { app } = createServer();
 
   describe('listContactPoints', () => {
-    const testRoute = '/api/contact-points';
+    const testRoute = (establishmentId?: string) =>
+      `/api/contact-points/${
+        establishmentId ? '?establishmentId=' + establishmentId : ''
+      }`;
 
     it('should be forbidden for a not authenticated user', async () => {
       await request(app)
-        .get(testRoute)
+        .post(testRoute(Establishment1.id))
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should list the contact points for the authenticated user', async () => {
-      const res = await withAccessToken(request(app).get(testRoute)).expect(
-        constants.HTTP_STATUS_OK
+    it('should received a valid establishmentId', async () => {
+      await withAccessToken(request(app).get(testRoute('id'))).expect(
+        constants.HTTP_STATUS_BAD_REQUEST
       );
+    });
+
+    it('should list the contact points for an authenticated user', async () => {
+      const res = await withAccessToken(
+        request(app).get(testRoute(Establishment1.id))
+      ).expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.arrayContaining([
@@ -50,6 +59,42 @@ describe('ContactPoint controller', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('listPublicContactPoints', () => {
+    const testRoute = (establishmentId?: string) =>
+      `/api/contact-points/public/${
+        establishmentId ? '?establishmentId=' + establishmentId : ''
+      }`;
+
+    it('should received a valid establishmentId', async () => {
+      await request(app)
+        .get(testRoute('id'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should not list the contact points to public when establishment settings do not allow it', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment1.id))
+        .expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: ContactPoint1.id,
+            establishmentId: Establishment1.id,
+          }),
+        ])
+      );
+    });
+
+    it('should list the contact points to public when establishment settings allow it', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment2.id))
+        .expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject([]);
     });
   });
 
@@ -99,7 +144,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, true)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -168,7 +213,7 @@ describe('ContactPoint controller', () => {
         .expect(constants.HTTP_STATUS_OK);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, true)
         .then((result) => {
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -222,7 +267,7 @@ describe('ContactPoint controller', () => {
       ).expect(constants.HTTP_STATUS_NO_CONTENT);
 
       await contactPointsRepository
-        .find(ContactPoint1.establishmentId)
+        .find(ContactPoint1.establishmentId, true)
         .then((result) => {
           expect(result).toEqual([]);
         });

@@ -15,6 +15,7 @@ export interface ContactPointApi {
 export function toContactPointDTO(contactPoint: ContactPointApi): ContactPoint {
   return {
     id: contactPoint.id,
+    establishmentId: contactPoint.establishmentId,
     title: contactPoint.title,
     opening: contactPoint.opening,
     address: contactPoint.address,

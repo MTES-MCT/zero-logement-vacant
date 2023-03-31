@@ -1,11 +1,15 @@
+import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
+
 export interface EstablishmentApi {
   id: string;
   name: string;
+  shortName: string;
   siren: number;
   available: boolean;
   geoCodes: string[];
   campaignIntent?: CampaignIntent;
   priority: EstablishmentPriority;
+  kind: EstablishmentKind;
 }
 
 export type EstablishmentPriority = 'standard' | 'high';

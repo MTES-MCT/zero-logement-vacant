@@ -1,0 +1,85 @@
+.toggle {
+  --text-spacing: 0;
+  --title-spacing: 0;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+
+  input[type=checkbox] {
+    appearance: none;
+    border-radius: 0.75rem;
+    box-shadow: inset 0 0 0 1px var(--toggle-color);
+    color: var(--toggle-color);
+    flex-shrink: 0;
+    height: 1.5rem;
+    margin: 0;
+    width: 2.5rem;
+  }
+
+  :checked {
+    background-color: var(--toggle-color);
+  }
+}
+
+.inputContainer {
+  position: relative;
+}
+
+.vertical {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+
+  .label {
+    padding-left: 0;
+  }
+}
+
+.icon {
+  --idle: #0000;
+  --hover: var(--background-default-grey-hover);
+  --active: var(--background-default-grey-active);
+  align-items: center;
+  background-color: var(--background-default-grey);
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--toggle-color);
+  color: var(--toggle-color);
+  content: "";
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  margin: 0;
+
+  :checked + & {
+    right: 0;
+  }
+
+  :not(:checked) + &:before {
+    content: "";
+  }
+}
+
+.label {
+  --toggle-status-width: auto;
+  display: inline-flex;
+  flex-basis: calc(100% - 2.5rem);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  min-height: 1.5rem;
+  padding-left: 2rem;
+
+  :not(.vertical) & {
+    padding-left: 0.5rem;
+  }
+
+  ::after {
+    background-image: none;
+  }
+}

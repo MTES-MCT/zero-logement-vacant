@@ -27,6 +27,7 @@ import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
+import { paginationQuery } from '../models/PaginationApi';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -570,11 +571,13 @@ const paginatedListWithFilters = async (
   }
 
   return Promise.all([
-    filterQuery.modify((queryBuilder: any) => {
-      if (page && perPage) {
-        queryBuilder.offset((page - 1) * perPage).limit(perPage);
-      }
-    }),
+    filterQuery.modify(
+      paginationQuery({
+        paginate: true,
+        page,
+        perPage,
+      })
+    ),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),
   ]).then(

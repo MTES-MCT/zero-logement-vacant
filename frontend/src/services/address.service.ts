@@ -1,42 +1,36 @@
 import config from '../utils/config';
+import { createHttpService } from '../utils/fetchUtils';
+import { Feature } from 'maplibre-gl';
 
 export interface AddressSearchResult {
   label: string;
   geoCode: string;
+  city: string;
 }
 
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<AddressSearchResult[]>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
+const http = createHttpService('address', {
+  authenticated: false,
+  host: config.banEndpoint,
+  json: true,
+});
 
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(`${config.banEndpoint}/search/?q=${query}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal,
-      })
-        .then((_) => _.json())
-        .then((result) =>
-          result.features.map(
-            (a: any) =>
-              ({
-                label: a.properties.label,
-                geoCode: a.properties.citycode,
-              } as AddressSearchResult)
-          )
-        ),
-  };
+const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
+  const params = new URLSearchParams({ q: query });
+  const response = await http.get(`/search?${params}`, {
+    abortId: 'search-address',
+  });
+  const addresses = await response.json();
+  return addresses.features.map(
+    (a: Feature): AddressSearchResult => ({
+      label: a.properties.label,
+      geoCode: a.properties.citycode,
+      city: a.properties.city,
+    })
+  );
 };
 
-const housingService = {
-  quickSearchService,
+const addressService = {
+  quickSearch,
 };
 
-export default housingService;
+export default addressService;

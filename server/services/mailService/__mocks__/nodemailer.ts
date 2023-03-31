@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
-import nodemailermock from 'nodemailer-mock';
+import { getMockFor } from 'nodemailer-mock';
 
-const mock = nodemailermock.getMockFor(nodemailer);
+const mock = getMockFor(nodemailer);
 
 export default mock;

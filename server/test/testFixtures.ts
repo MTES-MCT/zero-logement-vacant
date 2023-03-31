@@ -27,6 +27,7 @@ import {
 } from '../models/SignupLinkApi';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
+import { SettingsApi } from '../models/SettingsApi';
 
 const randomstring = require('randomstring');
 
@@ -113,14 +114,20 @@ export const genProspectApi = (establishment: EstablishmentApi) => {
   };
 };
 
-export const genOwnerProspectApi = () => {
-  return <OwnerProspectApi>{
+export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
+  return {
+    id: uuidv4(),
     email: genEmail(),
     firstName: randomstring.generate(),
     lastName: randomstring.generate(),
     address: randomstring.generate(),
-    geoCode: genGeoCode(),
+    geoCode: geoCode ?? genGeoCode(),
+    notes: randomstring.generate(),
     phone: randomstring.generate(),
+    invariant: randomstring.generate(),
+    callBack: true,
+    read: false,
+    createdAt: new Date(),
   };
 };
 
@@ -250,5 +257,15 @@ export const genContactPointApi = (establishmentId: string) => {
     address: randomstring.generate(),
     email: genEmail(),
     geoCodes: [genGeoCode()],
+  };
+};
+
+export const genSettingsApi = (establishmentId: string): SettingsApi => {
+  return {
+    id: uuidv4(),
+    establishmentId,
+    contactPoints: {
+      public: genBoolean(),
+    },
   };
 };

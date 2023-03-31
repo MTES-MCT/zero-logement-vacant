@@ -6,13 +6,20 @@ import {
 import { createHttpService, toJSON } from '../utils/fetchUtils';
 
 const http = createHttpService('contact-points', {
-  host: config.apiEndpoint,
   authenticated: true,
+  host: config.apiEndpoint,
   json: true,
 });
 
-const find = async (): Promise<ContactPoint[]> => {
-  const response = await http.get('/api/contact-points');
+const find = async (
+  establishmentId: string,
+  publicOnly: boolean
+): Promise<ContactPoint[]> => {
+  const response = await http.get(
+    `/api/contact-points${
+      publicOnly ? '/public' : ''
+    }?establishmentId=${establishmentId}`
+  );
   return toJSON(response);
 };
 

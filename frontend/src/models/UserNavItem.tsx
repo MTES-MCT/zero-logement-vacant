@@ -9,6 +9,7 @@ export enum UserNavItems {
   Resources,
   EstablishmentHome,
   OwnerHome,
+  Inbox,
 }
 
 export interface UserNavItem {
@@ -33,6 +34,8 @@ export const getUserNavItem = (
       return { url: '/base-de-donnees', label: 'Base de données' };
     case UserNavItems.Establishment:
       return { url: '/territoire', label: 'Votre territoire' };
+    case UserNavItems.Inbox:
+      return { url: '/boite-de-reception', label: 'Boite de réception' };
     case UserNavItems.User:
       return { url: '/utilisateurs', label: 'Utilisateurs' };
     case UserNavItems.Monitoring:

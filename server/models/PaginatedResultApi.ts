@@ -5,3 +5,7 @@ export interface PaginatedResultApi<T> {
   page: number;
   perPage: number;
 }
+
+export function isPartial(page: PaginatedResultApi<any>): boolean {
+  return page.filteredCount < page.totalCount;
+}

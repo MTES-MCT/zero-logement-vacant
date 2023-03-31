@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SearchableSelect } from '@dataesr/react-dsfr';
 import establishmentService from '../../services/establishment.service';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { useEstablishments } from '../../hooks/useEstablishments';
 
 interface Props {
   onChange(establishmentId: string): void;
@@ -12,25 +12,19 @@ const EstablishmentSearchableSelect = ({
   onChange,
   initialEstablishmentId,
 }: Props) => {
-  const availableEstablishmentOptions = useAvailableEstablishmentOptions();
+  const { availableEstablishmentOptions } = useEstablishments();
   const [establishmentOptions, setEstablishmentOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const quickSearchAbortRef = useRef<() => void | null>();
 
   useEffect(() => {
     setEstablishmentOptions(availableEstablishmentOptions);
   }, [availableEstablishmentOptions]);
 
   const quickSearch = (query: string) => {
-    quickSearchAbortRef.current?.();
-
-    const quickSearchService = establishmentService.quickSearchService();
-    quickSearchAbortRef.current = quickSearchService.abort;
-
     if (query.length) {
-      quickSearchService
-        .fetch(query)
+      establishmentService
+        .quickSearch(query)
         .then((_) =>
           setEstablishmentOptions(
             _.map((establishment) => ({

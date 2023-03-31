@@ -1,5 +1,6 @@
 import db from './db';
 import { ContactPointApi } from '../models/ContactPointApi';
+import { settingsTable } from './settingsRepository';
 
 type ContactPointsUniqueProperties = Pick<
   ContactPointApi,
@@ -32,13 +33,28 @@ const update = async (contactPointApi: ContactPointApi): Promise<void> => {
   await ContactPoints().where({ id: contactPointApi.id }).update(updatedData);
 };
 
-const find = async (establishmentId: string): Promise<ContactPointApi[]> => {
+const find = async (
+  establishmentId: string,
+  publicOnly?: boolean
+): Promise<ContactPointApi[]> => {
   console.log(
     'List contactPointApi for establishment with id',
     establishmentId
   );
   const contactPoints = await ContactPoints()
-    .where({ establishment_id: establishmentId })
+    .select(`${contactPointsTable}.*`)
+    .where(`${contactPointsTable}.establishment_id`, establishmentId)
+    .modify((builder) => {
+      if (publicOnly) {
+        builder
+          .join(
+            settingsTable,
+            `${settingsTable}.establishment_id`,
+            `${contactPointsTable}.establishment_id`
+          )
+          .andWhere('contact_points_public', true);
+      }
+    })
     .orderBy('title');
   return contactPoints.map(parseContactPointApi);
 };

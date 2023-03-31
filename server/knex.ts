@@ -1,6 +1,10 @@
+import { knex } from 'knex';
+
 import config from './utils/config';
 
-const defaultConfig = {
+type KnexConfig = Exclude<Parameters<typeof knex>[0], string>;
+
+const defaultConfig: KnexConfig = {
   client: 'pg',
   connection: config.databaseUrl,
   acquireConnectionTimeout: 10000,
@@ -10,7 +14,7 @@ const defaultConfig = {
   },
 };
 
-const dummyConfig = {
+const dummyConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
     directory: '../database/seeds/dummy',
@@ -18,7 +22,7 @@ const dummyConfig = {
   },
 };
 
-const testConfig = {
+const testConfig: KnexConfig = {
   ...defaultConfig,
   connection: config.databaseUrlTest,
   migrations: {
@@ -31,7 +35,7 @@ const testConfig = {
   },
 };
 
-const productionConfig = {
+const productionConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
     directory: '../database/seeds/production',

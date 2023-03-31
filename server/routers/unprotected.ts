@@ -8,12 +8,16 @@ import signupLinkController from '../controllers/signupLinkController';
 import prospectController from '../controllers/prospectController';
 import localityController from '../controllers/localityController';
 import ownerProspectController from '../controllers/ownerProspectController';
+import contactPointController from '../controllers/contactPointController';
+import { jwtCheck, userCheck } from '../middlewares/auth';
 
 const router = express.Router();
+router.use(jwtCheck(false))
+router.use(userCheck(false));
 
 router.get('/prospects/:email', prospectController.showProspectValidator, validator.validate, prospectController.show);
 
-router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.createOwnerProspect);
+router.post('/owner-prospects', ownerProspectController.createOwnerProspectValidators, validator.validate, ownerProspectController.create);
 
 router.post('/users/creation', userController.createUserValidators, validator.validate, userController.createUser);
 router.post('/authenticate', accountController.signInValidators, validator.validate, accountController.signIn);
@@ -26,9 +30,10 @@ router.post('/signup-links', signupLinkController.createValidators, validator.va
 router.get('/signup-links/:id', signupLinkController.showValidators, validator.validate, signupLinkController.show);
 router.put('/signup-links/:id/prospect', prospectController.createProspectValidator, validator.validate, prospectController.upsert);
 
-router.get('/establishments', establishmentController.searchQueryValidator, validator.validate, establishmentController.searchEstablishments);
-router.get('/establishments/available', establishmentController.listAvailableEstablishments);
+router.get('/establishments', establishmentController.listValidators, validator.validate, establishmentController.list);
 
+router.get('/localities', localityController.listLocalitiesValidators, validator.validate, localityController.listLocalities);
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
+router.get('/contact-points/public', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(true));
 export default router;

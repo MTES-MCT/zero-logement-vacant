@@ -38,6 +38,7 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';
+import { useAppSelector } from '../../hooks/useStore';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -52,9 +53,12 @@ const HousingFiltersBadges = ({
   onReset,
   small,
 }: HousingFiltersBadgesProps) => {
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
+  );
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
-  const { localitiesOptions } = useLocalityList();
+  const { localitiesOptions } = useLocalityList(establishment?.id);
 
   function reset() {
     onReset?.();

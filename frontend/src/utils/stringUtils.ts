@@ -6,6 +6,10 @@ export const capitalize = (string: string) => {
     : string;
 };
 
+export const unCapitalize = (string?: string) => {
+  return string ? string.charAt(0).toLowerCase() + string.slice(1) : string;
+};
+
 export const toTitleCase = (string: string) => {
   return string
     .toLowerCase()
@@ -74,3 +78,7 @@ export function prependIf(condition: boolean) {
 }
 
 export const mailto = (email: string): string => `mailto:${email}`;
+
+export function initials(firstName: string, lastName: string): string {
+  return `${firstName[0]}${lastName[0]}`.toUpperCase();
+}

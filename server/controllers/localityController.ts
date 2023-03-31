@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import localityRepository from '../repositories/localityRepository';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import LocalityMissingError from '../errors/localityMissingError';
 import { TaxKindsApi } from '../models/LocalityApi';
@@ -28,12 +28,13 @@ const getLocality = async (
   return response.status(constants.HTTP_STATUS_OK).json(locality);
 };
 
+const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
+
 const listLocalities = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+  const establishmentId = <string>request.query.establishmentId;
 
   console.log('List localities', establishmentId);
 
@@ -86,6 +87,7 @@ const updateLocalityTax = async (
 const localityController = {
   getLocalityValidators,
   getLocality,
+  listLocalitiesValidators,
   listLocalities,
   updateLocalityTaxValidators,
   updateLocalityTax,

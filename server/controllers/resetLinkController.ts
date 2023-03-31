@@ -10,24 +10,16 @@ import {
 } from '../models/ResetLinkApi';
 import { addHours } from 'date-fns';
 import userRepository from '../repositories/userRepository';
-import UserMissingError from '../errors/userMissingError';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 
-const create = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = request.body;
-    const user = await userRepository.getByEmail(email);
-    if (!user) {
-      throw new UserMissingError(email);
-    }
+const create = async (request: Request, response: Response) => {
+  const { email } = request.body;
+  const user = await userRepository.getByEmail(email);
 
+  if (user) {
     const resetLink: ResetLinkApi = {
       id: randomstring.generate({
         charset: 'alphanumeric',
@@ -42,12 +34,10 @@ const create = async (
     await mailService.sendPasswordReset(resetLink.id, {
       recipients: [user.email],
     });
-    // Avoid returning the reset link in the body because it would compromise
-    // the security of the password reset flow.
-    response.sendStatus(constants.HTTP_STATUS_CREATED);
-  } catch (error) {
-    next(error);
   }
+  // Avoid returning the reset link in the body because it would compromise
+  // the security of the password reset flow.
+  response.sendStatus(constants.HTTP_STATUS_OK);
 };
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 

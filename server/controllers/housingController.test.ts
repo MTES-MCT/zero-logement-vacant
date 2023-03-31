@@ -15,13 +15,31 @@ import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { Housing0, Housing1 } from '../../database/seeds/test/005-housing';
 import { eventsTable } from '../repositories/eventRepository';
 import { EventKinds } from '../models/EventApi';
-import { User1 } from '../../database/seeds/test/003-users';
+import { User1, User2 } from '../../database/seeds/test/003-users';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
 
 const { app } = createServer();
 
 describe('Housing controller', () => {
+  describe('get', () => {
+    const testRoute = (id: string) => `/api/housing/${id}`;
+
+    it("should forbid access to housing outside of an establishment's perimeter", async () => {
+      // Forbidden
+      await withAccessToken(
+        request(app).get(testRoute(Housing1.id)),
+        User2
+      ).expect(constants.HTTP_STATUS_NOT_FOUND);
+
+      // Allowed
+      await withAccessToken(
+        request(app).get(testRoute(Housing1.id)),
+        User1
+      ).expect(constants.HTTP_STATUS_OK);
+    });
+  });
+
   describe('list', () => {
     const testRoute = '/api/housing';
 

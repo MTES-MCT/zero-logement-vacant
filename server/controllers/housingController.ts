@@ -32,15 +32,20 @@ import SortApi from '../models/SortApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';
+import HousingMissingError from '../errors/housingMissingError';
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const get = async (request: Request, response: Response) => {
   const id = request.params.id;
+  const establishment = (request as AuthenticatedRequest).establishment;
 
   console.log('Get housing', id);
 
-  return housingRepository
-    .get(id)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const housing = await housingRepository.get(id, establishment.geoCodes);
+  if (!housing) {
+    throw new HousingMissingError(id);
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
 const listValidators: ValidationChain[] = [
@@ -219,10 +224,17 @@ const updateHousing = async (
 
   console.log('Update housing', housingId);
 
-  const { userId, establishmentId } = (request as AuthenticatedRequest).auth;
+  const { auth, establishment } = request as AuthenticatedRequest;
+  const { userId, establishmentId } = auth;
   const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
 
-  const housing = await housingRepository.get(housingId);
+  const housing = await housingRepository.get(
+    housingId,
+    establishment.geoCodes
+  );
+  if (!housing) {
+    throw new HousingMissingError(housingId);
+  }
 
   const campaignList = await campaignRepository.listCampaigns(establishmentId);
 

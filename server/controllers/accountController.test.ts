@@ -103,7 +103,7 @@ describe('Account controller', () => {
         })
       );
 
-      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual({});
     });
   });

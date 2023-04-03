@@ -99,13 +99,9 @@ const updatePassword = async (request: Request, response: Response) => {
     throw new PasswordInvalidError();
   }
 
-  if (isPasswordValid) {
-    const hash = await bcrypt.hash(newPassword, SALT_LENGTH)
-    await userRepository.updatePassword(user.id, hash)
-    response.sendStatus(constants.HTTP_STATUS_OK)
-  } else {
-    response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-  }
+  const hash = await bcrypt.hash(newPassword, SALT_LENGTH)
+  await userRepository.updatePassword(user.id, hash)
+  response.sendStatus(constants.HTTP_STATUS_OK)
 };
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
@@ -125,7 +121,7 @@ const resetPassword = async (request: Request, response: Response) => {
   }
 
   const hash = await bcrypt.hash(password, SALT_LENGTH);
-    await userRepository.updatePassword(link.userId, hash);
+  await userRepository.updatePassword(link.userId, hash);
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 };

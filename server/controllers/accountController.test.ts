@@ -14,6 +14,7 @@ import { subDays } from 'date-fns';
 import { usersTable } from '../repositories/userRepository';
 import bcrypt from 'bcryptjs';
 import { createServer } from '../server';
+import { withAccessToken } from '../test/testUtils';
 
 jest.mock('../services/ceremaService/mockCeremaService');
 
@@ -63,6 +64,47 @@ describe('Account controller', () => {
           password: '123ValidButWrong',
         })
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+  });
+
+  describe('Update password', () => {
+    const testRoute = '/api/account/password';
+
+    it('should receive valid current and new passwords', async () => {
+      async function test(payload: Record<string, unknown>) {
+        const { status } = await withAccessToken(
+          request(app).post(testRoute).send(payload)
+        );
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await test({ currentPassword: '', newPassword: '123QWEasd' });
+      await test({ currentPassword: '     ', newPassword: '123QWEasd' });
+      await test({ currentPassword: User1.password, newPassword: '' });
+      await test({ currentPassword: User1.password, newPassword: '    ' });
+    });
+
+    it('should fail if the current password and the given one are different', async () => {
+      const { status } = await withAccessToken(
+        request(app).post(testRoute).send({
+          currentPassword: 'NotTheirCurrentPassword',
+          newPassword: '123QWEasd',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should succeed to change the password', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send({
+          currentPassword: User1.password,
+          newPassword: '123QWEasd',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      expect(body).toStrictEqual({});
     });
   });
 

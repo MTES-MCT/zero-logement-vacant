@@ -15,6 +15,7 @@ import { TokenPayload, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
 import AuthenticationFailedError from '../errors/authenticationFailedError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { emailValidator, passwordCreationValidator } from '../utils/validators';
+import PasswordInvalidError from '../errors/passwordInvalidError';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -80,36 +81,27 @@ const changeEstablishment = (request: Request, response: Response) => {
   signInToEstablishment(user, establishmentId, response);
 };
 
-const updatePassword = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const { userId } = (request as AuthenticatedRequest).auth;
-
+const updatePassword = async (request: Request, response: Response) => {
+  const user = (request as AuthenticatedRequest).user;
   const currentPassword = request.body.currentPassword;
   const newPassword = request.body.newPassword;
 
-  console.log('update password for ', userId);
-
-  const user = await userRepository.get(userId);
-
-  if (!user) {
-    console.log('User not found for id', userId);
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-  }
+  console.log('Update password for ', user.id);
 
   const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-
-  if (isPasswordValid) {
-    // TODO: avoid hashing password synchronously
-    // as it blocks other incoming requests
-    return userRepository
-      .updatePassword(userId, bcrypt.hashSync(newPassword))
-      .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
-  } else {
-    return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+  if (!isPasswordValid) {
+    throw new PasswordInvalidError();
   }
+
+  // TODO: avoid hashing password synchronously
+  // as it blocks other incoming requests
+  await userRepository.updatePassword(user.id, bcrypt.hashSync(newPassword));
+  response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
 };
+const updatePasswordValidators: ValidationChain[] = [
+  body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
+  passwordCreationValidator('newPassword'),
+];
 
 const resetPassword = async (request: Request, response: Response) => {
   const { key, password } = request.body;
@@ -136,6 +128,7 @@ export default {
   signIn,
   signInValidators,
   updatePassword,
+  updatePasswordValidators,
   resetPassword,
   resetPasswordValidators,
   changeEstablishment,

@@ -57,7 +57,7 @@ router.get('/events/owner/:ownerId', eventController.listByOwnerId);
 router.get('/events/housing/:housingId', eventController.listByHousingId);
 router.post('/events', eventController.eventValidator, validator.validate, eventController.create);
 
-router.post('/account/password', accountController.updatePassword);
+router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
 router.post('/users', userController.list);

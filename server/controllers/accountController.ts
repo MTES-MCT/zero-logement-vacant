@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import config from '../utils/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -111,29 +111,21 @@ const updatePassword = async (
   }
 };
 
-const resetPassword = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { key, password } = request.body;
+const resetPassword = async (request: Request, response: Response) => {
+  const { key, password } = request.body;
 
-    const link = await resetLinkRepository.get(key);
-    if (!link) {
-      throw new ResetLinkMissingError();
-    }
-
-    if (hasExpired(link)) {
-      throw new ResetLinkExpiredError();
-    }
-
-    await userRepository.updatePassword(link.userId, bcrypt.hashSync(password));
-    await resetLinkRepository.used(link.id);
-    response.sendStatus(constants.HTTP_STATUS_OK);
-  } catch (error) {
-    next(error);
+  const link = await resetLinkRepository.get(key);
+  if (!link) {
+    throw new ResetLinkMissingError();
   }
+
+  if (hasExpired(link)) {
+    throw new ResetLinkExpiredError();
+  }
+
+  await userRepository.updatePassword(link.userId, bcrypt.hashSync(password));
+  await resetLinkRepository.used(link.id);
+  response.sendStatus(constants.HTTP_STATUS_OK);
 };
 const resetPasswordValidators: ValidationChain[] = [
   body('key').isString().isAlphanumeric(),

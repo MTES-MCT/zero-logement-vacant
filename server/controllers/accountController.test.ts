@@ -66,7 +66,7 @@ describe('Account controller', () => {
     });
   });
 
-  describe('resetPassword', () => {
+  describe('Reset password', () => {
     const testRoute = '/api/account/reset-password';
 
     it('should receive valid key and password', async () => {

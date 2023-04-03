@@ -49,11 +49,8 @@ class SendinblueService implements MailService {
           email,
           data as MailEvent['prospect:initialized']
         );
-      case 'prospect:activated':
-        return this.prospectActivated(
-          email,
-          data as MailEvent['prospect:activated']
-        );
+      case 'user:created':
+        return this.prospectActivated(email, data as MailEvent['user:created']);
     }
   }
 
@@ -130,10 +127,7 @@ class SendinblueService implements MailService {
       .catch(console.error);
   }
 
-  private prospectActivated(
-    email: string,
-    data: MailEvent['prospect:activated']
-  ) {
+  private prospectActivated(email: string, data: MailEvent['user:created']) {
     this.contacts
       .updateContact(email, {
         attributes: {
@@ -141,7 +135,7 @@ class SendinblueService implements MailService {
           EMAIL_VALIDE: true,
         },
       })
-      .then(() => this.events.trackEvent(email, 'prospect:activated'))
+      .then(() => this.events.trackEvent(email, 'user:created'))
       .catch(console.error);
   }
 }

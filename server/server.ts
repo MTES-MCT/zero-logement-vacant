@@ -89,6 +89,8 @@ export function createServer(): Server {
     windowMs: 5 * 60 * 1000, // 5 minutes window
     max: config.maxRate, // start blocking after X requests for windowMs time
     message: 'Too many request from this address, try again later please.',
+    standardHeaders: true,
+    legacyHeaders: false,
   });
   app.use(rateLimiter);
 

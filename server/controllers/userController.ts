@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { UserApi, UserRoles } from '../models/UserApi';
+import { SALT_LENGTH, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
@@ -20,8 +20,6 @@ import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
 import mailService from '../services/mailService';
-
-const SALT = 10;
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -77,7 +75,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
   const userApi: UserApi = {
     id: uuidv4(),
     email: body.email,
-    password: await bcrypt.hash(body.password, SALT),
+    password: await bcrypt.hash(body.password, SALT_LENGTH),
     firstName: body.firstName ?? '',
     lastName: body.lastName ?? '',
     role: UserRoles.Usual,

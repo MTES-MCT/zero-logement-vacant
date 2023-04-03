@@ -6,7 +6,10 @@ import housingRepository, {
   housingTable,
 } from '../repositories/housingRepository';
 import { genHousingApi } from '../test/testFixtures';
-import { Locality1 } from '../../database/seeds/test/001-establishments';
+import {
+  Establishment1,
+  Locality1,
+} from '../../database/seeds/test/001-establishments';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
@@ -18,6 +21,7 @@ import { EventKinds } from '../models/EventApi';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
+import { HousingApi } from '../models/HousingApi';
 
 const { app } = createServer();
 
@@ -47,6 +51,20 @@ describe('Housing controller', () => {
       await request(app)
         .post(testRoute)
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it("should forbid access to housing outside of an establishment's perimeter", async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send({
+          filters: {},
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const allowedHousing = body.entities.every((housing: HousingApi) =>
+        Establishment1.geoCodes.includes(housing.geoCode)
+      );
+      expect(allowedHousing).toBe(true);
     });
 
     it('should return the housing list for a query filter', async () => {

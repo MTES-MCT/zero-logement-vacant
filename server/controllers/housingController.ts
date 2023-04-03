@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import {
   HousingApi,
@@ -104,11 +104,7 @@ const listValidators: ValidationChain[] = [
   ...paginationApi.validators,
 ];
 
-const list = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
+const list = async (request: Request, response: Response) => {
   console.log('List housing');
 
   const { auth, user } = request as AuthenticatedRequest;
@@ -129,38 +125,34 @@ const list = async (
       ? filters.establishmentIds
       : [establishmentId];
 
-  try {
-    const housing: PaginatedResultApi<HousingApi> = pagination.paginate
-      ? await housingRepository.paginatedListWithFilters(
-          {
-            ...filters,
-            establishmentIds,
-          },
-          {
-            ...filtersForTotalCount,
-            establishmentIds,
-          },
-          pagination.page,
-          pagination.perPage,
-          sort
-        )
-      : await housingRepository
-          .listWithFilters({
-            ...filters,
-            establishmentIds,
-          })
-          .then((housing) => ({
-            entities: housing,
-            page: 1,
-            perPage: housing.length,
-            filteredCount: housing.length,
-            // Wrong but not used
-            totalCount: housing.length,
-          }));
-    return response.status(constants.HTTP_STATUS_OK).json(housing);
-  } catch (err) {
-    next(err);
-  }
+  const housing: PaginatedResultApi<HousingApi> = pagination.paginate
+    ? await housingRepository.paginatedListWithFilters(
+        {
+          ...filters,
+          establishmentIds,
+        },
+        {
+          ...filtersForTotalCount,
+          establishmentIds,
+        },
+        pagination.page,
+        pagination.perPage,
+        sort
+      )
+    : await housingRepository
+        .listWithFilters({
+          ...filters,
+          establishmentIds,
+        })
+        .then((housing) => ({
+          entities: housing,
+          page: 1,
+          perPage: housing.length,
+          filteredCount: housing.length,
+          // Wrong but not used
+          totalCount: housing.length,
+        }));
+  response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
 const count = async (request: Request, response: Response) => {

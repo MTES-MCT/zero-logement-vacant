@@ -5,7 +5,7 @@ export interface Selection {
   ids: string[];
 }
 
-export function useSelection() {
+export function useSelection(itemCount: number) {
   const [selected, setSelected] = useState<Selection>({
     all: false,
     ids: [],
@@ -13,9 +13,9 @@ export function useSelection() {
 
   const hasSelected = useMemo<boolean>(
     () =>
-      (selected.all && selected.ids.length === 0) ||
+      (selected.all && selected.ids.length < itemCount) ||
       (!selected.all && selected.ids.length > 0),
-    [selected.all, selected.ids]
+    [selected.all, selected.ids, itemCount]
   );
 
   function select(id: string): void {

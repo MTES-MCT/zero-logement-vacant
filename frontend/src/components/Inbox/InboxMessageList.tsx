@@ -19,13 +19,13 @@ interface Props {
 }
 
 function InboxMessageList(props: Props) {
-  const selection = useSelection();
   const { cycleSort, getIcon } = useSort<OwnerProspectSort>({
     onSort: props.onSort,
   });
 
   const total = props.messages.length;
   const unread = props.messages.filter((message) => !message.read).length;
+  const selection = useSelection(total);
 
   function splitAddress(fullAddress: string): string[] {
     const zipcode = fullAddress.search(/\d{5}/);
@@ -42,7 +42,7 @@ function InboxMessageList(props: Props) {
           checked={selection.hasSelected}
           className={selection.selected.ids.length > 0 ? 'indeterminate' : ''}
           label=""
-          onChange={(e) => selection.toggleSelectAll()}
+          onChange={() => selection.toggleSelectAll()}
         />
       ),
       render: ({ id }: { id: string }) => (

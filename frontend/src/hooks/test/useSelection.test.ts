@@ -3,8 +3,9 @@ import { useSelection } from '../useSelection';
 import { genNumber } from '../../../test/fixtures.test';
 
 describe('useSelection', () => {
+  const itemCount = Number(genNumber(3));
   it('should have a default state', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result } = renderHook(() => useSelection(itemCount));
 
     expect(result.current.selected.ids).toHaveLength(0);
     expect(result.current.selected.all).toBe(false);
@@ -24,6 +25,7 @@ describe('useSelection', () => {
     });
     expect(result.current.isSelected('123')).toBe(true);
     expect(result.current.hasSelected).toBe(true);
+    expect(result.current.selectedCount).toBe(1);
 
     act(() => {
       result.current.toggleSelect('123');
@@ -35,10 +37,11 @@ describe('useSelection', () => {
     });
     expect(result.current.isSelected('123')).toBe(false);
     expect(result.current.hasSelected).toBe(false);
+    expect(result.current.selectedCount).toBe(0);
   });
 
   it('should select and unselect all items', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelectAll();
@@ -49,6 +52,7 @@ describe('useSelection', () => {
       ids: [],
     });
     expect(result.current.hasSelected).toBe(true);
+    expect(result.current.selectedCount).toEqual(itemCount);
 
     act(() => {
       result.current.toggleSelectAll();
@@ -59,10 +63,11 @@ describe('useSelection', () => {
       ids: [],
     });
     expect(result.current.hasSelected).toBe(false);
+    expect(result.current.selectedCount).toBe(0);
   });
 
   it('should unselect all items only if all items are selected', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelect('123');
@@ -74,6 +79,7 @@ describe('useSelection', () => {
       ids: [],
     });
     expect(result.current.hasSelected).toBe(true);
+    expect(result.current.selectedCount).toBe(itemCount);
 
     act(() => {
       result.current.toggleSelectAll();
@@ -84,10 +90,11 @@ describe('useSelection', () => {
       ids: [],
     });
     expect(result.current.hasSelected).toBe(false);
+    expect(result.current.selectedCount).toBe(0);
   });
 
   it('should select all items and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelectAll();
@@ -100,5 +107,6 @@ describe('useSelection', () => {
     });
     expect(result.current.isSelected('123')).toBe(false);
     expect(result.current.hasSelected).toBe(true);
+    expect(result.current.selectedCount).toBe(itemCount - 1);
   });
 });

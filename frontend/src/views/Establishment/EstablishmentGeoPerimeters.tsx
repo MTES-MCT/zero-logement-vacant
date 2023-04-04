@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import {
   Button,
+  Checkbox,
   Col,
   File,
   Link,
@@ -11,16 +12,10 @@ import {
   Text,
   Title,
 } from '@dataesr/react-dsfr';
-import {
-  deleteGeoPerimeter,
-  updateGeoPerimeter,
-  uploadFile,
-} from '../../store/actions/establishmentAction';
-import { displayCount } from '../../utils/stringUtils';
+import { displayCount, pluralize } from '../../utils/stringUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import GeoPerimeterEditionModal from '../../components/modals/GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -33,128 +28,116 @@ import GeoPerimeterCard from '../../components/GeoPerimeterCard/GeoPerimeterCard
 import classNames from 'classnames';
 import Help from '../../components/Help/Help';
 import styles from './establishment-geo-perimeters.module.scss';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-
-enum ActionSteps {
-  Init,
-  InProgress,
-  Done,
-}
-
-interface GeoPerimeterActionState {
-  step: ActionSteps;
-  geoPerimeter: GeoPerimeter;
-}
+import { useSelection } from '../../hooks/useSelection';
+import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import {
+  useDeleteGeoPerimetersMutation,
+  useListGeoPerimetersQuery,
+  useUpdateGeoPerimeterMutation,
+  useUploadGeoPerimeterFileMutation,
+} from '../../services/geo.service';
 
 const EstablishmentGeoPerimeters = () => {
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const geoPerimeters = useGeoPerimeterList();
-  const { loading } = useAppSelector((state) => state.establishment);
-  const [uploadingState, setUploadingState] = useState<
-    ActionSteps | undefined
+  const { data: geoPerimeters } = useListGeoPerimetersQuery();
+  const [isUploadingModalOpen, setIsUploadingModalOpen] =
+    useState<boolean>(false);
+  const [geoPerimetersToUpdate, setGeoPerimeterToUpdate] = useState<
+    GeoPerimeter | undefined
   >();
-  const [updatingState, setUpdatingState] = useState<
-    GeoPerimeterActionState | undefined
+  const [geoPerimetersToRemove, setGeoPerimetersToRemove] = useState<
+    GeoPerimeter[] | undefined
   >();
-  const [removingState, setRemovingState] = useState<
-    GeoPerimeterActionState | undefined
-  >();
-  const [isCardView, setIsCardView] = useState<boolean>(true);
+  const [isCardView, setIsCardView] = useState<boolean>(false);
+
+  const [
+    updateGeoPerimeter,
+    { isSuccess: isUpdateSuccess, originalArgs: updateArgs },
+  ] = useUpdateGeoPerimeterMutation();
+  const [uploadGeoPerimeterFile, { isSuccess: isUploadSuccess }] =
+    useUploadGeoPerimeterFileMutation();
+  const [deleteGeoPerimeters, { isSuccess: isDeleteSuccess }] =
+    useDeleteGeoPerimetersMutation();
 
   const onSubmitUploadingGeoPerimeter = (file: File) => {
     trackEvent({
       category: TrackEventCategories.GeoPerimeters,
       action: TrackEventActions.GeoPerimeters.Upload,
     });
-    setUploadingState(ActionSteps.InProgress);
-    dispatch(uploadFile(file));
+    uploadGeoPerimeterFile(file);
   };
 
   useEffect(() => {
-    if (uploadingState === ActionSteps.InProgress && !loading) {
-      setUploadingState(ActionSteps.Done);
+    if (isUploadSuccess) {
+      setIsUploadingModalOpen(false);
     }
-    if (updatingState?.step === ActionSteps.InProgress && !loading) {
-      setUpdatingState({
-        step: ActionSteps.Done,
-        geoPerimeter: updatingState.geoPerimeter,
-      });
+  }, [isUploadSuccess]);
+  useEffect(() => {
+    if (isUpdateSuccess) {
+      setGeoPerimeterToUpdate(undefined);
     }
-    if (removingState?.step === ActionSteps.InProgress && !loading) {
-      setRemovingState({
-        step: ActionSteps.Done,
-        geoPerimeter: removingState.geoPerimeter,
-      });
+  }, [isUpdateSuccess]);
+  useEffect(() => {
+    if (isDeleteSuccess) {
+      setGeoPerimetersToRemove(undefined);
     }
-  }, [loading]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [isDeleteSuccess]);
 
   const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
-    if (updatingState?.geoPerimeter) {
+    if (geoPerimetersToUpdate) {
       trackEvent({
         category: TrackEventCategories.GeoPerimeters,
         action: TrackEventActions.GeoPerimeters.Rename,
       });
-      setUpdatingState({
-        step: ActionSteps.InProgress,
-        geoPerimeter: { ...updatingState.geoPerimeter, name: name ?? '', kind },
+      updateGeoPerimeter({
+        geoPerimeterId: geoPerimetersToUpdate.id,
+        kind,
+        name,
       });
-      dispatch(updateGeoPerimeter(updatingState?.geoPerimeter.id, kind, name));
     }
   };
 
   const onSubmitRemovingGeoPerimeter = () => {
-    if (removingState?.geoPerimeter) {
+    if (geoPerimetersToRemove) {
       trackEvent({
         category: TrackEventCategories.GeoPerimeters,
         action: TrackEventActions.GeoPerimeters.Delete,
       });
-      setRemovingState({
-        step: ActionSteps.InProgress,
-        geoPerimeter: removingState.geoPerimeter,
-      });
-      dispatch(deleteGeoPerimeter(removingState.geoPerimeter.id));
+      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id));
     }
   };
 
-  const initEditing = (geoPerimeter: GeoPerimeter) =>
-    setUpdatingState({
-      step: ActionSteps.Init,
-      geoPerimeter,
-    });
-
-  const initRemoving = (geoPerimeter: GeoPerimeter) =>
-    setRemovingState({
-      step: ActionSteps.Init,
-      geoPerimeter,
-    });
   const invalidGeoFilters = geoPerimeters?.filter((_) => !_.kind?.length);
 
   return (
     <>
-      {uploadingState === ActionSteps.Init && (
+      {isUploadingModalOpen && (
         <GeoPerimeterUploadingModal
           onSubmit={onSubmitUploadingGeoPerimeter}
-          onClose={() => setUploadingState(undefined)}
+          onClose={() => setIsUploadingModalOpen(false)}
         />
       )}
-      {updatingState?.step === ActionSteps.Init && (
+      {geoPerimetersToUpdate && (
         <GeoPerimeterEditionModal
-          geoPerimeter={updatingState.geoPerimeter}
+          geoPerimeter={geoPerimetersToUpdate}
           onSubmit={onSubmitUpdatingGeoPerimeter}
-          onClose={() => setUpdatingState(undefined)}
+          onClose={() => setGeoPerimeterToUpdate(undefined)}
         />
       )}
-      {removingState?.step === ActionSteps.Init && (
-        <ConfirmationModal
-          onSubmit={onSubmitRemovingGeoPerimeter}
-          onClose={() => setRemovingState(undefined)}
-        >
-          <Text size="md">
-            Êtes-vous sûr de vouloir supprimer ce périmètre ?
-          </Text>
-        </ConfirmationModal>
-      )}
+      {geoPerimetersToRemove !== undefined &&
+        geoPerimetersToRemove.length > 0 && (
+          <ConfirmationModal
+            onSubmit={onSubmitRemovingGeoPerimeter}
+            onClose={() => setGeoPerimetersToRemove(undefined)}
+          >
+            <Text size="md">
+              Êtes-vous sûr de vouloir supprimer{' '}
+              {pluralize(geoPerimetersToRemove.length)('ce')} 
+              {pluralize(geoPerimetersToRemove.length)('périmètre')} ?
+            </Text>
+          </ConfirmationModal>
+        )}
       <Row>
         <Col n="9">
           <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
@@ -166,7 +149,7 @@ const EstablishmentGeoPerimeters = () => {
         </Col>
         <Col n="3">
           <Button
-            onClick={() => setUploadingState(ActionSteps.Init)}
+            onClick={() => setIsUploadingModalOpen(true)}
             className="float-right"
           >
             Déposer un périmètre (.zip)
@@ -186,7 +169,7 @@ const EstablishmentGeoPerimeters = () => {
           extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
         </Text>
       </Help>
-      {uploadingState === ActionSteps.Done && (
+      {isUploadSuccess && (
         <Alert
           type="success"
           description="Le fichier à été déposé avec succès ! "
@@ -194,19 +177,19 @@ const EstablishmentGeoPerimeters = () => {
           className="fr-mb-2w"
         />
       )}
-      {updatingState?.step === ActionSteps.Done && (
+      {isUpdateSuccess && (
         <Alert
           type="success"
           description={
             'Le périmètre / filtre ' +
-            updatingState.geoPerimeter.name +
+            updateArgs?.name +
             ' a été modifié avec succès !'
           }
           closable
           className="fr-mb-2w"
         />
       )}
-      {removingState?.step === ActionSteps.Done && (
+      {isDeleteSuccess && (
         <Alert
           type="success"
           description="Le périmètre / filtre a été supprimé avec succès !"
@@ -261,20 +244,20 @@ const EstablishmentGeoPerimeters = () => {
                 <Col n="4" key={geoPerimeter.id}>
                   <GeoPerimeterCard
                     geoPerimeter={geoPerimeter}
-                    onEdit={initEditing}
-                    onRemove={initRemoving}
+                    onEdit={setGeoPerimeterToUpdate}
+                    onRemove={(geoPerimeter) =>
+                      setGeoPerimetersToRemove([geoPerimeter])
+                    }
                   />
                 </Col>
               ))}
             </Row>
           ) : (
-            <Row>
-              <GeoPerimetersTable
-                geoPerimeters={geoPerimeters}
-                onEdit={initEditing}
-                onRemove={initRemoving}
-              />
-            </Row>
+            <GeoPerimetersTable
+              geoPerimeters={geoPerimeters}
+              onEdit={setGeoPerimeterToUpdate}
+              onRemove={setGeoPerimetersToRemove}
+            />
           )}
         </>
       )}
@@ -285,7 +268,7 @@ const EstablishmentGeoPerimeters = () => {
 interface GeoPerimetersTableProps {
   geoPerimeters: GeoPerimeter[];
   onEdit: (geoPerimeter: GeoPerimeter) => void;
-  onRemove: (geoPerimeter: GeoPerimeter) => void;
+  onRemove: (geoPerimeters: GeoPerimeter[]) => void;
 }
 
 const GeoPerimetersTable = ({
@@ -293,6 +276,32 @@ const GeoPerimetersTable = ({
   onEdit,
   onRemove,
 }: GeoPerimetersTableProps) => {
+  const selection = useSelection(geoPerimeters.length);
+
+  const selectColumn = {
+    name: 'select',
+    headerRender: () => (
+      <Checkbox
+        checked={selection.hasSelected}
+        className={
+          selection.selected.ids.length > 0 &&
+          selection.selected.ids.length < geoPerimeters.length
+            ? 'indeterminate'
+            : ''
+        }
+        label=""
+        onChange={() => selection.toggleSelectAll()}
+      />
+    ),
+    render: ({ id }: { id: string }) => (
+      <Checkbox
+        checked={selection.isSelected(id)}
+        label=""
+        onChange={() => selection.toggleSelect(id)}
+        value={id}
+      />
+    ),
+  };
   const kindColumn = {
     name: 'kind',
     label: 'Filtre',
@@ -321,7 +330,7 @@ const GeoPerimetersTable = ({
           className="d-inline-block fr-mr-1w"
         />
         <ButtonLink
-          onClick={() => onRemove(geoPerimeter)}
+          onClick={() => onRemove([geoPerimeter])}
           isSimple
           icon="ri-delete-bin-5-fill"
           iconSize="lg"
@@ -352,17 +361,54 @@ const GeoPerimetersTable = ({
     ),
   };
 
-  const columns = [nameColumn, kindColumn, viewColumn, actionsColumn];
+  const columns = [
+    selectColumn,
+    nameColumn,
+    kindColumn,
+    viewColumn,
+    actionsColumn,
+  ];
+
+  const selectedGeoPerimeters = geoPerimeters.filter((geoPerimeter) =>
+    selection.selected.all
+      ? !selection.selected.ids.includes(geoPerimeter.id)
+      : selection.selected.ids.includes(geoPerimeter.id)
+  );
+
   return (
-    <Table
-      caption="Périmètres"
-      captionPosition="none"
-      rowKey="id"
-      data={geoPerimeters}
-      columns={columns}
-      fixedLayout={true}
-      className="with-view"
-    />
+    <>
+      <header>
+        <SelectableListHeader
+          entity="périmètre"
+          selected={selection.selectedCount}
+          count={geoPerimeters.length}
+          total={geoPerimeters.length}
+          onUnselectAll={() => selection.toggleSelectAll(false)}
+        >
+          <SelectableListHeaderActions>
+            {selection.hasSelected && (
+              <Row justifyContent="right">
+                <Button
+                  title="Supprimer"
+                  onClick={() => onRemove(selectedGeoPerimeters)}
+                >
+                  Supprimer
+                </Button>
+              </Row>
+            )}
+          </SelectableListHeaderActions>
+        </SelectableListHeader>
+      </header>
+      <Table
+        caption="Périmètres"
+        captionPosition="none"
+        rowKey="id"
+        data={geoPerimeters}
+        columns={columns}
+        fixedLayout={true}
+        className="with-view with-select"
+      />
+    </>
   );
 };
 

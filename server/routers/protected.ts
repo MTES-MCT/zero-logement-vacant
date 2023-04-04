@@ -71,7 +71,7 @@ router.post('/monitoring/export', monitoringController.exportMonitoring);
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
 router.post('/geo/perimeters', geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, validator.validate, geoController.updateGeoPerimeter);
-router.delete('/geo/perimeters/:geoPerimeterId', geoController.deleteGeoPerimeterValidators, validator.validate, geoController.deleteGeoPerimeter);
+router.delete('/geo/perimeters', geoController.deleteGeoPerimeterListValidators, validator.validate, geoController.deleteGeoPerimeterList);
 
 router.get('/contact-points', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(false));
 router.post('/contact-points', contactPointController.createContactPointValidators, validator.validate, contactPointController.createContactPoint);

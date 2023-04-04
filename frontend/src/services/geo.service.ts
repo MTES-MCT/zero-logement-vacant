@@ -1,64 +1,72 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { GeoPerimeter } from '../models/GeoPerimeter';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 
-const listGeoPerimeters = async (): Promise<GeoPerimeter[]> => {
-  return await fetch(`${config.apiEndpoint}/api/geo/perimeters`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  }).then((_) => _.json());
-};
+export const geoPerimetersApi = createApi({
+  reducerPath: 'geoPerimetersApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/geo/perimeters`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['GeoPerimeter'],
+  endpoints: (builder) => ({
+    listGeoPerimeters: builder.query<GeoPerimeter[], void>({
+      query: () => '',
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'GeoPerimeter' as const,
+                id,
+              })),
+              'GeoPerimeter',
+            ]
+          : ['GeoPerimeter'],
+    }),
+    updateGeoPerimeter: builder.mutation<
+      void,
+      { geoPerimeterId: string; kind: string; name?: string }
+    >({
+      query: ({ geoPerimeterId, kind, name }) => ({
+        url: geoPerimeterId,
+        method: 'PUT',
+        body: { kind, name },
+      }),
+      invalidatesTags: (result, error, { geoPerimeterId }) => [
+        { type: 'GeoPerimeter', id: geoPerimeterId },
+      ],
+    }),
+    deleteGeoPerimeters: builder.mutation<void, string[]>({
+      query: (geoPerimeterIds) => ({
+        url: '',
+        method: 'DELETE',
+        body: { geoPerimeterIds },
+      }),
+      invalidatesTags: (result, error, geoPerimeterId) => [
+        { type: 'GeoPerimeter', geoPerimeterId },
+      ],
+    }),
+    uploadGeoPerimeterFile: builder.mutation<void, File>({
+      query: (file) => ({
+        url: '',
+        method: 'POST',
+        body: fileToFormData(file),
+      }),
+      invalidatesTags: ['GeoPerimeter'],
+    }),
+  }),
+});
 
-const updateGeoPerimeter = async (
-  geoPerimeterId: string,
-  kind: string,
-  name?: string
-): Promise<void> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/geo/perimeters/${geoPerimeterId}`,
-    {
-      method: 'PUT',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ kind, name }),
-    }
-  ).then(() => {});
-};
-
-const deleteGeoPerimeter = async (geoPerimeterId: string): Promise<void> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/geo/perimeters/${geoPerimeterId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-    }
-  ).then(() => {});
-};
-
-const uploadGeoPerimeterFile = async (file: File): Promise<void> => {
+const fileToFormData = (file: File) => {
   const formData: FormData = new FormData();
   formData.append('geoPerimeter', file, file.name);
-
-  return await fetch(`${config.apiEndpoint}/api/geo/perimeters`, {
-    method: 'POST',
-    headers: { ...authService.authHeader() },
-    body: formData,
-  }).then(() => {});
+  return formData;
 };
 
-const geoService = {
-  listGeoPerimeters,
-  updateGeoPerimeter,
-  deleteGeoPerimeter,
-  uploadGeoPerimeterFile,
-};
-
-export default geoService;
+export const {
+  useListGeoPerimetersQuery,
+  useUpdateGeoPerimeterMutation,
+  useDeleteGeoPerimetersMutation,
+  useUploadGeoPerimeterFileMutation,
+} = geoPerimetersApi;

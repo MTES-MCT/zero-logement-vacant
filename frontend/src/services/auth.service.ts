@@ -92,12 +92,25 @@ const authHeader = () => {
     : undefined;
 };
 
+const withAuthHeader = (headers?: Headers) => {
+  if (authHeader()) {
+    const newHeaders = new Headers(authHeader());
+    headers?.forEach((value, key) => {
+      newHeaders.append(key, value);
+    });
+    return newHeaders;
+  } else {
+    return headers;
+  }
+};
+
 const authService = {
   login,
   logout,
   changePassword,
   resetPassword,
   authHeader,
+  withAuthHeader,
   changeEstablishment,
 };
 

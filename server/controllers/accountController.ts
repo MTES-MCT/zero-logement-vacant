@@ -22,6 +22,7 @@ import AuthenticationFailedError from '../errors/authenticationFailedError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { emailValidator, passwordCreationValidator } from '../utils/validators';
 import PasswordInvalidError from '../errors/passwordInvalidError';
+import UnprocessableEntityError from '../errors/unprocessableEntityError';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -29,23 +30,32 @@ const signInValidators: ValidationChain[] = [
   body('establishmentId').isString().optional(),
 ];
 
-const signIn = async (request: Request, response: Response) => {
-  const { email, password } = request.body;
+interface SignInPayload {
+  email: string;
+  password: string;
+  establishmentId?: string;
+}
 
-  const user = await userRepository.getByEmail(email);
+const signIn = async (request: Request, response: Response) => {
+  const payload = request.body as SignInPayload;
+
+  const user = await userRepository.getByEmail(payload.email);
   if (!user) {
     throw new AuthenticationFailedError();
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordValid) {
     throw new AuthenticationFailedError();
   }
 
   await userRepository.updateLastAuthentication(user.id);
-  const establishmentId = user.establishmentId ?? request.body.establishmentId;
+  const establishmentId = user.establishmentId ?? payload.establishmentId;
+  if (!establishmentId) {
+    throw new UnprocessableEntityError();
+  }
 
-  signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(user, establishmentId, response);
 };
 
 const signInToEstablishment = async (
@@ -75,7 +85,7 @@ const signInToEstablishment = async (
   });
 };
 
-const changeEstablishment = (request: Request, response: Response) => {
+const changeEstablishment = async (request: Request, response: Response) => {
   const { user } = request as AuthenticatedRequest;
 
   if (user.role !== UserRoles.Admin) {
@@ -84,7 +94,7 @@ const changeEstablishment = (request: Request, response: Response) => {
 
   const establishmentId = request.params.establishmentId;
 
-  signInToEstablishment(user, establishmentId, response);
+  await signInToEstablishment(user, establishmentId, response);
 };
 
 const updatePassword = async (request: Request, response: Response) => {
@@ -99,9 +109,9 @@ const updatePassword = async (request: Request, response: Response) => {
     throw new PasswordInvalidError();
   }
 
-  const hash = await bcrypt.hash(newPassword, SALT_LENGTH)
-  await userRepository.updatePassword(user.id, hash)
-  response.sendStatus(constants.HTTP_STATUS_OK)
+  const hash = await bcrypt.hash(newPassword, SALT_LENGTH);
+  await userRepository.updatePassword(user.id, hash);
+  response.sendStatus(constants.HTTP_STATUS_OK);
 };
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),

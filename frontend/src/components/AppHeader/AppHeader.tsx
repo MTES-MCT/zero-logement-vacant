@@ -74,8 +74,10 @@ function AppHeader() {
   const { ownerProspects } = useAppSelector((state) => state.ownerProspect);
 
   useEffect(() => {
-    dispatch(findOwnerProspects());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(findOwnerProspects());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const unreadMessages = ownerProspects?.entities?.filter(
     (entity) => !entity.read

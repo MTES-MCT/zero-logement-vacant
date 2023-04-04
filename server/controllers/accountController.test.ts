@@ -1,7 +1,7 @@
 import request from 'supertest';
 import randomstring from 'randomstring';
 import { constants } from 'http2';
-import { User1 } from '../../database/seeds/test/003-users';
+import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
 import { genResetLinkApi } from '../test/testFixtures';
 import fetchMock from 'jest-fetch-mock';
 import db from '../repositories/db';
@@ -54,6 +54,19 @@ describe('Account controller', () => {
           password: '123Valid',
         })
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail if an admin tries to connect as a user', async () => {
+      const { body, status } = await request(app).post(testRoute).send({
+        email: AdminUser1.email,
+        password: AdminUser1.password,
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
+      expect(body).toStrictEqual({
+        name: 'UnprocessableEntityError',
+        message: 'Unprocessable entity',
+      });
     });
 
     it('should fail if the password is wrong', async () => {

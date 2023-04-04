@@ -11,6 +11,7 @@ export const User1 = genUserApi(Establishment1.id);
 export const User2 = genUserApi(Establishment2.id);
 export const AdminUser1 = {
   ...genUserApi(Establishment1.id),
+  establishmentId: undefined,
   role: UserRoles.Admin,
 };
 

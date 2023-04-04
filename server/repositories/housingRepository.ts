@@ -92,80 +92,79 @@ export const queryOwnerHousingWhereClause = (
   }
 };
 
-const get = async (housingId: string): Promise<HousingApi> => {
-  try {
-    return db
-      .select(
-        `${housingTable}.*`,
-        'o.id as owner_id',
-        'o.raw_address as owner_raw_address',
-        'o.full_name',
-        'o.administrator',
-        db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-        db.raw(
-          'json_agg(distinct(perimeters.perimeter_kind)) as geo_perimeters'
-        ),
-        `${buildingTable}.housing_count`,
-        `${buildingTable}.vacant_housing_count`,
-        `${localitiesTable}.locality_kind`,
-        db.raw(`count(${eventsTable}) as contact_count`),
-        db.raw(`max(${eventsTable}.created_at) as last_contact`),
-        db.raw(
-          `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
-        ),
-        db.raw(
-          `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
-        )
+const get = async (
+  housingId: string,
+  geoCodes: string[]
+): Promise<HousingApi | null> => {
+  const housing = await db
+    .select(
+      `${housingTable}.*`,
+      'o.id as owner_id',
+      'o.raw_address as owner_raw_address',
+      'o.full_name',
+      'o.administrator',
+      db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
+      db.raw('json_agg(distinct(perimeters.perimeter_kind)) as geo_perimeters'),
+      `${buildingTable}.housing_count`,
+      `${buildingTable}.vacant_housing_count`,
+      `${localitiesTable}.locality_kind`,
+      db.raw(`count(${eventsTable}) as contact_count`),
+      db.raw(`max(${eventsTable}.created_at) as last_contact`),
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
+      ),
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
       )
-      .from(housingTable)
-      .join(
-        localitiesTable,
-        `${housingTable}.geo_code`,
-        `${localitiesTable}.geo_code`
-      )
-      .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-      .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .leftJoin(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
-      )
-      .joinRaw(
-        `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
-      )
-      .joinRaw(
-        `left join lateral (
+    )
+    .from(housingTable)
+    .join(
+      localitiesTable,
+      `${housingTable}.geo_code`,
+      `${localitiesTable}.geo_code`
+    )
+    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .leftJoin(
+      buildingTable,
+      `${housingTable}.building_id`,
+      `${buildingTable}.id`
+    )
+    .joinRaw(
+      `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
+    )
+    .joinRaw(
+      `left join lateral (
                     select campaign_id as campaign_id, count(*) over() as campaign_count 
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
                 ) campaigns on true`
-      )
-      .joinRaw(
-        `left join lateral (
+    )
+    .joinRaw(
+      `left join lateral (
                      select kind as perimeter_kind 
                      from ${geoPerimetersTable} perimeter
                      where st_contains(perimeter.geom, ST_SetSRID( ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
                      ) perimeters on true`
-      )
-      .joinRaw(
-        `left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`
-      )
-      .groupBy(
-        `${housingTable}.id`,
-        'o.id',
-        `${buildingTable}.id`,
-        `${localitiesTable}.id`,
-        'ban.ref_id',
-        'ban.address_kind'
-      )
-      .where(`${housingTable}.id`, housingId)
-      .first()
-      .then((_) => parseHousingApi(_));
-  } catch (err) {
-    console.error('Getting housing failed', err, housingId);
-    throw new Error('Getting housing failed');
-  }
+    )
+    .joinRaw(
+      `left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`
+    )
+    .groupBy(
+      `${housingTable}.id`,
+      'o.id',
+      `${buildingTable}.id`,
+      `${localitiesTable}.id`,
+      'ban.ref_id',
+      'ban.address_kind'
+    )
+    .whereIn(`${housingTable}.geo_code`, geoCodes)
+    .andWhere(`${housingTable}.id`, housingId)
+    // .andWhereRaw(`${housingTable}.geo_code IN ?`, geoCodes)
+    .first();
+
+  return housing ? parseHousingApi(housing) : null;
 };
 
 const filteredQuery = (filters: HousingFiltersApi) => {

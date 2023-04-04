@@ -71,10 +71,10 @@ export const genBoolean = () => Math.random() < 0.5;
 
 export const genSiren = () => genNumber(9);
 
-export const genLocalityApi = () => {
+export const genLocalityApi = (geoCode = genGeoCode()) => {
   return <LocalityApi>{
     id: uuidv4(),
-    geoCode: genGeoCode(),
+    geoCode,
     name: randomstring.generate(),
     taxKind: TaxKindsApi.None,
   };

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import {
   HousingApi,
@@ -32,15 +32,20 @@ import SortApi from '../models/SortApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';
+import HousingMissingError from '../errors/housingMissingError';
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const get = async (request: Request, response: Response) => {
   const id = request.params.id;
+  const establishment = (request as AuthenticatedRequest).establishment;
 
   console.log('Get housing', id);
 
-  return housingRepository
-    .get(id)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const housing = await housingRepository.get(id, establishment.geoCodes);
+  if (!housing) {
+    throw new HousingMissingError(id);
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
 const listValidators: ValidationChain[] = [
@@ -99,11 +104,7 @@ const listValidators: ValidationChain[] = [
   ...paginationApi.validators,
 ];
 
-const list = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
+const list = async (request: Request, response: Response) => {
   console.log('List housing');
 
   const { auth, user } = request as AuthenticatedRequest;
@@ -124,38 +125,34 @@ const list = async (
       ? filters.establishmentIds
       : [establishmentId];
 
-  try {
-    const housing: PaginatedResultApi<HousingApi> = pagination.paginate
-      ? await housingRepository.paginatedListWithFilters(
-          {
-            ...filters,
-            establishmentIds,
-          },
-          {
-            ...filtersForTotalCount,
-            establishmentIds,
-          },
-          pagination.page,
-          pagination.perPage,
-          sort
-        )
-      : await housingRepository
-          .listWithFilters({
-            ...filters,
-            establishmentIds,
-          })
-          .then((housing) => ({
-            entities: housing,
-            page: 1,
-            perPage: housing.length,
-            filteredCount: housing.length,
-            // Wrong but not used
-            totalCount: housing.length,
-          }));
-    return response.status(constants.HTTP_STATUS_OK).json(housing);
-  } catch (err) {
-    next(err);
-  }
+  const housing: PaginatedResultApi<HousingApi> = pagination.paginate
+    ? await housingRepository.paginatedListWithFilters(
+        {
+          ...filters,
+          establishmentIds,
+        },
+        {
+          ...filtersForTotalCount,
+          establishmentIds,
+        },
+        pagination.page,
+        pagination.perPage,
+        sort
+      )
+    : await housingRepository
+        .listWithFilters({
+          ...filters,
+          establishmentIds,
+        })
+        .then((housing) => ({
+          entities: housing,
+          page: 1,
+          perPage: housing.length,
+          filteredCount: housing.length,
+          // Wrong but not used
+          totalCount: housing.length,
+        }));
+  response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
 const count = async (request: Request, response: Response) => {
@@ -219,10 +216,17 @@ const updateHousing = async (
 
   console.log('Update housing', housingId);
 
-  const { userId, establishmentId } = (request as AuthenticatedRequest).auth;
+  const { auth, establishment } = request as AuthenticatedRequest;
+  const { userId, establishmentId } = auth;
   const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
 
-  const housing = await housingRepository.get(housingId);
+  const housing = await housingRepository.get(
+    housingId,
+    establishment.geoCodes
+  );
+  if (!housing) {
+    throw new HousingMissingError(housingId);
+  }
 
   const campaignList = await campaignRepository.listCampaigns(establishmentId);
 

@@ -130,11 +130,16 @@ function AppHeader() {
               isAuthenticated ? (
                 isAdmin ? (
                   <EstablishmentSearchableSelect
-                    initialEstablishmentId={authUser?.establishment.id}
+                    initialEstablishmentOption={
+                      authUser
+                        ? {
+                            value: authUser.establishment.id,
+                            label: authUser.establishment.name,
+                          }
+                        : undefined
+                    }
                     onChange={(id: string) => {
-                      if (id) {
-                        dispatch(changeEstablishment(id));
-                      }
+                      dispatch(changeEstablishment(id));
                     }}
                   />
                 ) : (

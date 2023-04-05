@@ -1,9 +1,7 @@
 import {
   EstablishmentFetchedAction,
-  LocalityListFetchedAction,
   NearbyEstablishmentsFetchedAction,
 } from '../actions/establishmentAction';
-import { Locality } from '../../models/Locality';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Establishment } from '../../models/Establishment';
 
@@ -12,7 +10,6 @@ export interface EstablishmentState {
   establishment?: Establishment;
   epciEstablishment?: Establishment;
   nearbyEstablishments?: Establishment[];
-  localities?: Locality[];
 }
 
 const initialState: EstablishmentState = {
@@ -42,17 +39,6 @@ const establishmentSlice = createSlice({
     ) => {
       state.nearbyEstablishments = action.payload.nearbyEstablishments;
       state.epciEstablishment = action.payload.epciEstablishment;
-    },
-    fetchLocalityList: (state: EstablishmentState) => {
-      state.loading = true;
-      state.localities = [];
-    },
-    localityListFetched: (
-      state: EstablishmentState,
-      action: PayloadAction<LocalityListFetchedAction>
-    ) => {
-      state.loading = false;
-      state.localities = action.payload.localities;
     },
   },
 });

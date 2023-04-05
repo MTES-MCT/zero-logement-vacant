@@ -21,7 +21,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './home.module.scss';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import {
-  fetchLocalities,
   getEstablishment,
   getNearbyEstablishments,
 } from '../../store/actions/establishmentAction';
@@ -32,6 +31,7 @@ import { OwnerProspect } from '../../models/OwnerProspect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
 import { useFindContactPointsQuery } from '../../services/contact-point.service';
+import { useLocalityList } from '../../hooks/useLocalityList';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -43,7 +43,7 @@ const OwnerEstablishmentHomeView = () => {
     (state) => state.ownerProspect
   );
 
-  const { establishment, localities, nearbyEstablishments, epciEstablishment } =
+  const { establishment, nearbyEstablishments, epciEstablishment } =
     useAppSelector((state) => state.establishment);
 
   const { data: contactPoints } = useFindContactPointsQuery(
@@ -78,6 +78,7 @@ const OwnerEstablishmentHomeView = () => {
   );
 
   useDocumentTitle(establishment?.name);
+  const { localities } = useLocalityList(establishment?.id);
 
   useEffect(() => {
     if (refName) {
@@ -88,7 +89,6 @@ const OwnerEstablishmentHomeView = () => {
   useEffect(() => {
     if (establishment) {
       dispatch(getNearbyEstablishments(establishment));
-      dispatch(fetchLocalities(establishment.id));
     }
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 

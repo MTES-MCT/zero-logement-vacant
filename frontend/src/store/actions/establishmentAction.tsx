@@ -1,7 +1,5 @@
 import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { Locality, TaxKinds } from '../../models/Locality';
-import localityService from '../../services/locality.service';
 import establishmentSlice from '../reducers/establishmentReducer';
 import { Establishment } from '../../models/Establishment';
 import establishmentService from '../../services/establishment.service';
@@ -15,17 +13,11 @@ export interface NearbyEstablishmentsFetchedAction {
   epciEstablishment?: Establishment;
 }
 
-export interface LocalityListFetchedAction {
-  localities: Locality[];
-}
-
 const {
   fetchEstablishment,
   establishmentFetched,
   fetchNearbyEstablishments,
   nearbyEstablishmentFetched,
-  fetchLocalityList,
-  localityListFetched,
 } = establishmentSlice.actions;
 
 export const getEstablishment = (name: string, geoCode?: string) => {
@@ -95,37 +87,5 @@ export const getNearbyEstablishments = (establishment: Establishment) => {
         })
       );
     }
-  };
-};
-export const fetchLocalities = (establishmentId: string) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchLocalityList());
-
-    localityService.listLocalities(establishmentId).then((localities) => {
-      dispatch(hideLoading());
-      dispatch(
-        localityListFetched({
-          localities,
-        })
-      );
-    });
-  };
-};
-
-export const updateLocalityTax = (
-  establishmentId: string,
-  geoCode: string,
-  taxKind: TaxKinds,
-  taxRate?: number
-) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    localityService.updateLocalityTax(geoCode, taxKind, taxRate).then(() => {
-      dispatch(hideLoading());
-      fetchLocalities(establishmentId)(dispatch);
-    });
   };
 };

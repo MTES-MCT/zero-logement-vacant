@@ -11,6 +11,7 @@ import { loadingBarReducer } from 'react-redux-loading-bar';
 import settingsReducer from './reducers/settingsReducer';
 import { geoPerimetersApi } from '../services/geo.service';
 import { contactPointsApi } from '../services/contact-point.service';
+import { localityApi } from '../services/locality.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -25,14 +26,21 @@ export const applicationReducer = {
   loadingBar: loadingBarReducer,
   [geoPerimetersApi.reducerPath]: geoPerimetersApi.reducer,
   [contactPointsApi.reducerPath]: contactPointsApi.reducer,
+  [localityApi.reducerPath]: localityApi.reducer,
 };
+
+export const applicationMiddlewares = [
+  geoPerimetersApi.middleware,
+  contactPointsApi.middleware,
+  localityApi.middleware,
+];
 
 export const store = configureStore({
   reducer: applicationReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(geoPerimetersApi.middleware, contactPointsApi.middleware),
+    }).concat(applicationMiddlewares),
 });
 
 export type AppState = ReturnType<typeof store.getState>;

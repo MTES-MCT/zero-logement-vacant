@@ -59,6 +59,32 @@ const resetPassword = async (key: string, password: string) => {
   }
 };
 
+const changeEstablishment = async (establishmentId: string) => {
+  return fetch(
+    `${config.apiEndpoint}/api/account/establishments/${establishmentId}`,
+    {
+      method: 'GET',
+      headers: {
+        ...authService.authHeader(),
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Authentication failed');
+      }
+    })
+    .then((authUser) => {
+      if (authUser.accessToken) {
+        localStorage.setItem('authUser', JSON.stringify(authUser));
+      }
+      return authUser;
+    });
+};
+
 const authHeader = () => {
   const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
   return authUser && authUser.accessToken
@@ -72,6 +98,7 @@ const authService = {
   changePassword,
   resetPassword,
   authHeader,
+  changeEstablishment,
 };
 
 export default authService;

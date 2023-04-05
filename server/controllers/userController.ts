@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { UserApi, UserRoles } from '../models/UserApi';
+import { SALT_LENGTH, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
@@ -19,8 +19,7 @@ import { isTestAccount, isValid } from '../models/ProspectApi';
 import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
-
-const SALT = 10;
+import mailService from '../services/mailService';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -76,7 +75,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
   const userApi: UserApi = {
     id: uuidv4(),
     email: body.email,
-    password: await bcrypt.hash(body.password, SALT),
+    password: await bcrypt.hash(body.password, SALT_LENGTH),
     firstName: body.firstName ?? '',
     lastName: body.lastName ?? '',
     role: UserRoles.Usual,
@@ -103,9 +102,12 @@ const createUser = async (request: JWTRequest, response: Response) => {
     await establishmentService.makeEstablishmentAvailable(userEstablishment);
   }
   // Remove associated prospect
-  await prospectRepository.remove(body.email);
+  await prospectRepository.remove(prospect.email);
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
+  mailService.emit('user:created', prospect.email, {
+    createdAt: new Date(),
+  });
 };
 
 const list = async (
@@ -133,8 +135,7 @@ const list = async (
     .listWithFilters(
       filters,
       role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
-      page,
-      perPage
+      { paginate: true, page, perPage }
     )
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };

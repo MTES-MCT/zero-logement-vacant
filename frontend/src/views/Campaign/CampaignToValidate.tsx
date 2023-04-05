@@ -73,7 +73,9 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     sendingDate,
   });
 
-  const { hasSelected, setSelected } = useSelection();
+  const { hasSelected, setSelected } = useSelection(
+    campaignBundleHousing.totalCount
+  );
 
   const { search } = useCampaignHousingSearch();
 

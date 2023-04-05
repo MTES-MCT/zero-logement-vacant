@@ -8,6 +8,7 @@ import monitoringReducer from './reducers/monitoringReducer';
 import establishmentReducer from './reducers/establishmentReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
+import settingsReducer from './reducers/settingsReducer';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -18,6 +19,7 @@ export const applicationReducer = {
   monitoring: monitoringReducer.reducer,
   establishment: establishmentReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
+  settings: settingsReducer.reducer,
   loadingBar: loadingBarReducer,
 };
 

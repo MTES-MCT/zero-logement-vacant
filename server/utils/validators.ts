@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { body, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 
 type Refinement = (value: unknown) => boolean;
 
@@ -42,8 +42,10 @@ export const emailValidator = () =>
 
 export const PASSWORD_MIN_LENGTH = 8;
 
-export const passwordCreationValidator = (): ValidationChain =>
-  body('password')
+export const passwordCreationValidator = (
+  field = 'password'
+): ValidationChain =>
+  body(field)
     .isStrongPassword({
       minLength: PASSWORD_MIN_LENGTH,
       minNumbers: 1,
@@ -54,3 +56,6 @@ export const passwordCreationValidator = (): ValidationChain =>
     .withMessage(
       `Must be at least ${PASSWORD_MIN_LENGTH} characters long, have 1 number, 1 uppercase, 1 lowercase`
     );
+
+export const isUUIDParam = (paramField: string): ValidationChain =>
+  param(paramField).isUUID().notEmpty();

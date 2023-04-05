@@ -1,7 +1,7 @@
 import request from 'supertest';
 import randomstring from 'randomstring';
 import { constants } from 'http2';
-import { User1 } from '../../database/seeds/test/003-users';
+import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
 import { genResetLinkApi } from '../test/testFixtures';
 import fetchMock from 'jest-fetch-mock';
 import db from '../repositories/db';
@@ -14,6 +14,7 @@ import { subDays } from 'date-fns';
 import { usersTable } from '../repositories/userRepository';
 import bcrypt from 'bcryptjs';
 import { createServer } from '../server';
+import { withAccessToken } from '../test/testUtils';
 
 jest.mock('../services/ceremaService/mockCeremaService');
 
@@ -55,6 +56,19 @@ describe('Account controller', () => {
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
+    it('should fail if an admin tries to connect as a user', async () => {
+      const { body, status } = await request(app).post(testRoute).send({
+        email: AdminUser1.email,
+        password: AdminUser1.password,
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
+      expect(body).toStrictEqual({
+        name: 'UnprocessableEntityError',
+        message: 'Unprocessable entity',
+      });
+    });
+
     it('should fail if the password is wrong', async () => {
       await request(app)
         .post(testRoute)
@@ -66,7 +80,48 @@ describe('Account controller', () => {
     });
   });
 
-  describe('resetPassword', () => {
+  describe('Update password', () => {
+    const testRoute = '/api/account/password';
+
+    it('should receive valid current and new passwords', async () => {
+      async function test(payload: Record<string, unknown>) {
+        const { status } = await withAccessToken(
+          request(app).post(testRoute).send(payload)
+        );
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await test({ currentPassword: '', newPassword: '123QWEasd' });
+      await test({ currentPassword: '     ', newPassword: '123QWEasd' });
+      await test({ currentPassword: User1.password, newPassword: '' });
+      await test({ currentPassword: User1.password, newPassword: '    ' });
+    });
+
+    it('should fail if the current password and the given one are different', async () => {
+      const { status } = await withAccessToken(
+        request(app).post(testRoute).send({
+          currentPassword: 'NotTheirCurrentPassword',
+          newPassword: '123QWEasd',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should succeed to change the password', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send({
+          currentPassword: User1.password,
+          newPassword: '123QWEasd',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({});
+    });
+  });
+
+  describe('Reset password', () => {
     const testRoute = '/api/account/reset-password';
 
     it('should receive valid key and password', async () => {

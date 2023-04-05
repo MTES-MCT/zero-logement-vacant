@@ -17,6 +17,7 @@ export const TrackEventActions = {
     Connection: 'Connexion',
     Join: 'Rejoindre la communauté',
     Rectify: 'Rectifier la situation',
+    SelectAddress: "Sélection d'une adresse",
   },
   Dashboard: {
     QuickSearch: 'Recherche rapide',

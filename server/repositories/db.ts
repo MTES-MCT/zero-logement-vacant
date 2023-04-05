@@ -1,8 +1,7 @@
 import knex, { Knex } from 'knex';
 import knexConfig from '../knex';
-import QueryCallback = Knex.QueryCallback;
 
-export const notDeleted: QueryCallback = (builder) =>
+export const notDeleted: Knex.QueryCallback = (builder) =>
   builder.whereNull('deleted_at');
 
 export const likeUnaccent = (column: string, query: string) => {
@@ -11,6 +10,11 @@ export const likeUnaccent = (column: string, query: string) => {
     query
   );
 };
+
+export async function countQuery(query: Knex.QueryInterface): Promise<number> {
+  const result = await query.count().first();
+  return Number(result.count);
+}
 
 export default knex(knexConfig);
 // .on( 'query', function( queryData ) {

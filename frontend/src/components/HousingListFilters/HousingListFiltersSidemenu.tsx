@@ -78,7 +78,7 @@ function HousingListFiltersSidemenu() {
   const campaignList = useCampaignList();
   const geoPerimeters = useGeoPerimeterList();
   const { paginatedHousing } = useAppSelector((state) => state.housing);
-  const { localitiesOptions } = useLocalityList();
+  const { localitiesOptions } = useLocalityList(establishment?.id);
   const localities = localitiesOptions
     // Remove those localities which are already selected
     .filter(

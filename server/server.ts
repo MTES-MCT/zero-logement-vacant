@@ -34,12 +34,9 @@ export function createServer(): Server {
             "'self'",
             "'unsafe-inline'",
             'https://stats.beta.gouv.fr',
-            'https://stats.data.gouv.fr',
             'https://client.crisp.chat',
-            'https://renderer-assets.typeform.com',
           ],
           frameSrc: [
-            'https://form.typeform.com',
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
             'https://zerologementvacant.crisp.help',
           ],
@@ -69,7 +66,6 @@ export function createServer(): Server {
           connectSrc: [
             "'self'",
             'https://stats.beta.gouv.fr',
-            'https://stats.data.gouv.fr',
             'https://api-adresse.data.gouv.fr',
             'wss://client.relay.crisp.chat',
             'https://client.crisp.chat',
@@ -93,6 +89,8 @@ export function createServer(): Server {
     windowMs: 5 * 60 * 1000, // 5 minutes window
     max: config.maxRate, // start blocking after X requests for windowMs time
     message: 'Too many request from this address, try again later please.',
+    standardHeaders: true,
+    legacyHeaders: false,
   });
   app.use(rateLimiter);
 

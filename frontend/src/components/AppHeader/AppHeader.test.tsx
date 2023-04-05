@@ -7,8 +7,23 @@ import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../test/fixtures.test';
 import { applicationReducer, store } from '../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
+import ownerProspectService from '../../services/owner-prospect.service';
+import { PaginatedResult } from '../../models/PaginatedResult';
+import { OwnerProspect } from '../../models/OwnerProspect';
 
 describe('AppHeader', () => {
+  beforeEach(() => {
+    const response: PaginatedResult<OwnerProspect> = {
+      entities: [],
+      page: 1,
+      perPage: 25,
+      loading: false,
+      totalCount: 0,
+      filteredCount: 0,
+    };
+    jest.spyOn(ownerProspectService, 'find').mockResolvedValue(response);
+  });
+
   test('should not display navbar when no user is logged', () => {
     render(
       <Provider store={store}>

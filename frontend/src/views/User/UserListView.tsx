@@ -20,8 +20,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import { displayCount, stringSort } from '../../utils/stringUtils';
-import AppMultiSelect from '../../components/AppMultiSelect/AppMultiSelect';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { useEstablishments } from '../../hooks/useEstablishments';
 import { dateSort } from '../../utils/dateUtils';
 import styles from './user-list.module.scss';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
@@ -29,12 +28,13 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import Help from '../../components/Help/Help';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 
 const UserListView = () => {
   useDocumentTitle('Utilisateurs');
   const dispatch = useAppDispatch();
   const { isAdmin } = useUser();
-  const availableEstablishmentOptions = useAvailableEstablishmentOptions();
+  const { availableEstablishmentOptions } = useEstablishments();
 
   const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] =
     useState<string>();
@@ -162,12 +162,9 @@ const UserListView = () => {
             </Col>
             {isAdmin && (
               <Col>
-                <AppMultiSelect
-                  label="Etablissements"
-                  options={availableEstablishmentOptions}
-                  initialValues={filters.establishmentIds}
-                  onChange={(values) =>
-                    onChangeFilters({ establishmentIds: values })
+                <EstablishmentSearchableSelect
+                  onChange={(id: string) =>
+                    onChangeFilters({ establishmentIds: id ? [id] : undefined })
                   }
                 />
               </Col>

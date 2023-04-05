@@ -21,19 +21,20 @@ import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
-import ProprietaireView from './views/Proprietaire/ProprietaireView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
-import EstablismentView from './views/Establishment/EstablismentView';
+import EstablishmentView from './views/Establishment/EstablishmentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import OwnerHomeView from './views/Home/OwnerHomeView';
+import OwnerEstablishmentHomeView from './views/Home/OwnerEstablishmentHomeView';
 import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
+import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
+import InboxView from "./views/Inbox/InboxView";
 import StatusView from './views/Resources/StatusView';
 
 function AppWrapper() {
@@ -85,7 +86,6 @@ function App() {
               <Route exact path="/" component={DashboardView} />
               <Route exact path="/stats" component={StatsView} />
               <Route exact path="/accessibilite" component={AccessibilityView} />
-              <Route exact path="/proprietaire" component={ProprietaireView} />
               <Route exact path="/accueil" component={DashboardView} />
               <Route exact path="/base-de-donnees" component={HousingListView} />
               <Route exact path="/campagnes" component={CampaignsListView} />
@@ -103,7 +103,8 @@ function App() {
               <Route exact path="*/proprietaires/:ownerId" component={OwnerView} />
               <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} />
               <Route exact path="*/logements/:housingId" component={HousingView} />
-              <Route exact path="*/territoire" component={EstablismentView} />
+              <Route exact path="/boite-de-reception" component={InboxView} />
+              <Route exact path="*/territoire" component={EstablishmentView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/ressources/statuts" component={StatusView} />
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
@@ -112,6 +113,8 @@ function App() {
               {isAdmin &&
                 <Route exact path="/suivi" component={MonitoringView}/>
               }
+              <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView} />
+              <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView} />
               <Route path="/*">
                 <Redirect to="/accueil" />
               </Route>
@@ -121,10 +124,11 @@ function App() {
             <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/collectivites" component={EstablishmentHomeView} />
-            <Route exact path="/proprietaires" component={OwnerHomeView} />
+            <Route exact path="/proprietaires" component={OwnerGenericHomeView} />
+            <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView} />
+            <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView} />
             <Route exact path="/stats" component={StatsView} />
             <Route exact path="/accessibilite" component={AccessibilityView} />
-            <Route exact path="/proprietaire" component={ProprietaireView} />
             <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} />
             <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} />
             <Route exact path="/admin" component={LoginView} />

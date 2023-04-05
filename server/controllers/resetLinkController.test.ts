@@ -9,6 +9,7 @@ import { User1 } from '../../database/seeds/test/003-users';
 import { genResetLinkApi } from '../test/testFixtures';
 import { ResetLinkApi } from '../models/ResetLinkApi';
 import { subDays } from 'date-fns';
+import mailService from '../services/mailService';
 
 describe('Reset link controller', () => {
   const { app } = createServer();
@@ -44,7 +45,7 @@ describe('Reset link controller', () => {
         email,
       });
 
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(status).toBe(constants.HTTP_STATUS_OK);
 
       const link = await db(resetLinkTable)
         .select()
@@ -53,12 +54,16 @@ describe('Reset link controller', () => {
       expect(link).toBeDefined();
     });
 
-    it('should return not found if the user does not exist', async () => {
+    it('should return OK if the user is missing without sending an email', async () => {
+      const createLink = jest.spyOn(resetLinkRepository, 'insert');
+      const sendEmail = jest.spyOn(mailService, 'sendPasswordReset');
       const email = 'test@test.test';
 
       const { status } = await request(app).post(testRoute).send({ email });
 
-      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(createLink).not.toHaveBeenCalled();
+      expect(sendEmail).not.toHaveBeenCalled();
     });
   });
 

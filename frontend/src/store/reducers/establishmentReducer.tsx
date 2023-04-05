@@ -1,16 +1,22 @@
 import {
   ContactPointListFetchedAction,
+  EstablishmentFetchedAction,
   GeoPerimeterFileUploadingAction,
   GeoPerimeterListFetchedAction,
   LocalityListFetchedAction,
+  NearbyEstablishmentsFetchedAction,
 } from '../actions/establishmentAction';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { ContactPoint } from '../../models/ContactPoint';
+import { ContactPoint } from '../../../../shared/models/ContactPoint';
 import { Locality } from '../../models/Locality';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Establishment } from '../../models/Establishment';
 
 export interface EstablishmentState {
   loading: boolean;
+  establishment?: Establishment;
+  epciEstablishment?: Establishment;
+  nearbyEstablishments?: Establishment[];
   localities?: Locality[];
   geoPerimeters?: GeoPerimeter[];
   geoPerimeterFile?: File;
@@ -26,6 +32,26 @@ const establishmentSlice = createSlice({
   name: 'establishment',
   initialState,
   reducers: {
+    fetchEstablishment: (state: EstablishmentState) => {
+      state.establishment = undefined;
+    },
+    establishmentFetched: (
+      state: EstablishmentState,
+      action: PayloadAction<EstablishmentFetchedAction>
+    ) => {
+      state.establishment = action.payload.establishment;
+    },
+    fetchNearbyEstablishments: (state: EstablishmentState) => {
+      state.nearbyEstablishments = undefined;
+      state.epciEstablishment = undefined;
+    },
+    nearbyEstablishmentFetched: (
+      state: EstablishmentState,
+      action: PayloadAction<NearbyEstablishmentsFetchedAction>
+    ) => {
+      state.nearbyEstablishments = action.payload.nearbyEstablishments;
+      state.epciEstablishment = action.payload.epciEstablishment;
+    },
     fetchLocalityList: (state: EstablishmentState) => {
       state.loading = true;
       state.localities = [];

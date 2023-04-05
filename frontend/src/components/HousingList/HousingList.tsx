@@ -17,12 +17,10 @@ import { capitalize } from '../../utils/stringUtils';
 
 import { useLocation } from 'react-router-dom';
 import { PaginatedResult } from '../../models/PaginatedResult';
-import styles from './housing-list.module.scss';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
-import { getHousingState } from '../../models/HousingState';
 import _ from 'lodash';
 import {
   TrackEventActions,
@@ -36,6 +34,7 @@ import Checkbox from '../Checkbox/Checkbox';
 import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
 import InternalLink from '../InternalLink/InternalLink';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export enum HousingDisplayKey {
   Housing,
@@ -135,7 +134,7 @@ const HousingList = ({
           (allChecked && checkedIds.length === 0) ||
           (!allChecked && checkedIds.length === paginatedHousing.filteredCount)
         }
-        className={checkedIds.length !== 0 ? styles.indeterminate : ''}
+        className={checkedIds.length !== 0 ? 'indeterminate' : ''}
         label=""
       ></Checkbox>
     ),
@@ -239,18 +238,7 @@ const HousingList = ({
   const statusColumn = {
     name: 'status',
     label: 'Statut',
-    render: ({ status }: Housing) =>
-      status != null && (
-        <span
-          style={{
-            backgroundColor: `var(${getHousingState(status).bgcolor})`,
-            color: `var(${getHousingState(status).color})`,
-          }}
-          className="status-label"
-        >
-          {getHousingState(status).title}
-        </span>
-      ),
+    render: ({ status }: Housing) => <HousingStatusBadge status={status} />,
   };
 
   const actionColumn = {

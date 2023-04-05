@@ -1,8 +1,15 @@
+import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
+import { normalizeUrlSegment } from '../utils/fetchUtils';
+
 export interface Establishment {
   id: string;
   name: string;
+  shortName: string;
   siren: number;
+  available: boolean;
+  geoCodes: string[];
   campaignIntent?: string;
+  kind: EstablishmentKind;
 }
 
 export interface EstablishmentData {
@@ -20,3 +27,10 @@ export interface EstablishmentData {
   delayBetweenCampaigns: any;
   firstCampaignSentDelay: number;
 }
+
+export const getEstablishmentUrl = (establishment: Establishment) =>
+  establishment.kind === 'Commune'
+    ? `/communes/${normalizeUrlSegment(establishment.shortName)}-${
+        establishment.geoCodes[0]
+      }`
+    : `/collectivites/${normalizeUrlSegment(establishment.shortName)}`;

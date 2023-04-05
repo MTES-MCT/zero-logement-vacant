@@ -1,32 +1,38 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SearchableSelect } from '@dataesr/react-dsfr';
 import establishmentService from '../../services/establishment.service';
-import { useAvailableEstablishmentOptions } from '../../hooks/useAvailableEstablishmentOptions';
+import { useEstablishments } from '../../hooks/useEstablishments';
+import _ from 'lodash';
+import { SelectOption } from '../../models/SelectOption';
 
 interface Props {
-  onChange(establishmentId: string): void;
+  onChange(establishmentId?: string): void;
+  initialEstablishmentOption?: { value: string; label: string };
 }
 
-const EstablishmentSearchableSelect = ({ onChange }: Props) => {
-  const availableEstablishmentOptions = useAvailableEstablishmentOptions();
+const EstablishmentSearchableSelect = ({
+  onChange,
+  initialEstablishmentOption,
+}: Props) => {
+  const { availableEstablishmentOptions } = useEstablishments();
   const [establishmentOptions, setEstablishmentOptions] = useState<
-    { value: string; label: string }[]
+    SelectOption[]
   >([]);
-  const quickSearchAbortRef = useRef<() => void | null>();
+  const [selected, setSelected] = useState(initialEstablishmentOption?.value);
+
+  const addOption = (o1: SelectOption[], o2?: SelectOption) =>
+    _.unionWith(o1, o2 ? [o2] : [], (s1, s2) => s1.value === s2.value);
 
   useEffect(() => {
-    setEstablishmentOptions(availableEstablishmentOptions);
-  }, [availableEstablishmentOptions]);
+    setEstablishmentOptions(
+      addOption(availableEstablishmentOptions, initialEstablishmentOption)
+    );
+  }, [availableEstablishmentOptions, initialEstablishmentOption]);
 
   const quickSearch = (query: string) => {
-    quickSearchAbortRef.current?.();
-
-    const quickSearchService = establishmentService.quickSearchService();
-    quickSearchAbortRef.current = quickSearchService.abort;
-
     if (query.length) {
-      quickSearchService
-        .fetch(query)
+      establishmentService
+        .quickSearch(query)
         .then((_) =>
           setEstablishmentOptions(
             _.map((establishment) => ({
@@ -37,15 +43,24 @@ const EstablishmentSearchableSelect = ({ onChange }: Props) => {
         )
         .catch((err) => console.log('error', err));
     } else {
-      setEstablishmentOptions(availableEstablishmentOptions);
+      setSelected(initialEstablishmentOption?.value);
+      setEstablishmentOptions(
+        addOption(availableEstablishmentOptions, initialEstablishmentOption)
+      );
     }
   };
 
   return (
     <SearchableSelect
+      selected={selected}
       options={establishmentOptions}
       label="Etablissement : "
-      onChange={onChange}
+      onChange={(value) => {
+        setSelected(value);
+        if (value.length) {
+          onChange(value);
+        }
+      }}
       placeholder="Rechercher un établissement"
       required={true}
       onTextChange={(q: string) => quickSearch(q)}

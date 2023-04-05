@@ -2,37 +2,55 @@ import { Request, Response } from 'express';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { constants } from 'http2';
 import { query, ValidationChain } from 'express-validator';
+import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
+import validator from 'validator';
 
-const listAvailableEstablishments = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('list available establishments');
-
-  return establishmentRepository
-    .listAvailable()
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
-
-const searchQueryValidator: ValidationChain[] = [
-  query('q').notEmpty().isString(),
+const listValidators: ValidationChain[] = [
+  query('available').optional({ nullable: true }).isBoolean(),
+  query('query').optional({ nullable: true }).isString(),
+  query('kind').optional({ nullable: true }).isString(),
+  query('name').optional({ nullable: true }).isString(),
+  query('geoCodes')
+    .optional({ nullable: true })
+    .isArray()
+    .custom((value) =>
+      value.every(
+        (v: any) =>
+          validator.isAlphanumeric(v) &&
+          validator.isLength(v, { min: 5, max: 5 })
+      )
+    ),
 ];
 
-const searchEstablishments = async (
+const list = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const searchQuery = <string>request.query.q;
+  console.log('list establishments');
 
-  console.log('Search establishments', searchQuery);
+  const available = request.query.available
+    ? Boolean(request.query.available)
+    : undefined;
+  const searchQuery = <string>request.query.query;
+  const name = <string>request.query.name;
+  const geoCodes = <string[]>request.query.geoCodes;
+  const kind = <EstablishmentKind>request.query.kind;
+
+  if (
+    available === undefined &&
+    !searchQuery?.length &&
+    !geoCodes?.length &&
+    !name?.length
+  ) {
+    return response.sendStatus(constants.HTTP_STATUS_BAD_REQUEST);
+  }
 
   return establishmentRepository
-    .search(searchQuery)
+    .listWithFilters({ available, query: searchQuery, geoCodes, kind, name })
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
 export default {
-  listAvailableEstablishments,
-  searchQueryValidator,
-  searchEstablishments,
+  listValidators,
+  list,
 };

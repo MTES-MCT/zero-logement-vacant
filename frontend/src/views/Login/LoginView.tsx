@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import {
@@ -10,10 +10,7 @@ import {
   TextInput,
   Title,
 } from '@dataesr/react-dsfr';
-import {
-  fetchAvailableEstablishments,
-  login,
-} from '../../store/actions/authenticationAction';
+import { login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
@@ -52,12 +49,6 @@ const LoginView = () => {
     password,
     establishmentId,
   });
-
-  useEffect(() => {
-    if (pathname === '/admin') {
-      dispatch(fetchAvailableEstablishments());
-    }
-  }, [dispatch, pathname]);
 
   function submitLoginForm(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();

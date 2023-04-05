@@ -14,14 +14,8 @@ import React, { useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 import { pluralize } from '../../utils/stringUtils';
-import {
-  getHousingState,
-  getHousingSubStatus,
-  getPrecision,
-} from '../../models/HousingState';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import HousingStatusModal from '../modals/HousingStatusModal/HousingStatusModal';
 import {
   createHousingNote,
   updateHousing,
@@ -37,6 +31,10 @@ import { HousingNote } from '../../models/Note';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import { useAppDispatch } from '../../hooks/useStore';
+import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
+import HousingPrecisionsBadges from '../HousingStatusBadge/HousingPrecisionsBadges';
 
 interface Props {
   housing: Housing;
@@ -47,7 +45,8 @@ interface Props {
 function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
   const dispatch = useAppDispatch();
 
-  const [isModalStatusOpen, setIsModalStatusOpen] = useState(false);
+  const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
+    useState(false);
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
 
   const submitHousingUpdate = (
@@ -55,7 +54,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
     housingUpdate: HousingUpdate
   ) => {
     dispatch(updateHousing(housing, housingUpdate));
-    setIsModalStatusOpen(false);
+    setIsHousingListEditionExpand(false);
   };
 
   const submitHousingNoteAboutHousing = (note: HousingNote): void => {
@@ -93,60 +92,16 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
               {housing.dataYears.join(' - ')}
             </span>
           </div>
-          {housing.status != null && (
-            <span
-              style={{
-                backgroundColor: `var(${
-                  getHousingState(housing.status).bgcolor
-                })`,
-                color: `var(${getHousingState(housing.status).color})`,
-              }}
-              className="status-label"
-            >
-              {getHousingState(housing.status).title}
-            </span>
-          )}
-          {housing.subStatus && (
-            <span
-              style={{
-                backgroundColor: `var(${
-                  getHousingSubStatus(housing)?.bgcolor
-                })`,
-                color: `var(${getHousingSubStatus(housing)?.color})`,
-              }}
-              className="status-label"
-            >
-              {housing.subStatus}
-            </span>
-          )}
-          {housing.precisions &&
-            housing.precisions.map((precision, index) => (
-              <b key={'precision_' + index} className="status-label">
-                {housing.status && housing.subStatus && (
-                  <span
-                    style={{
-                      backgroundColor: `var(${
-                        getPrecision(
-                          housing.status,
-                          housing.subStatus,
-                          precision
-                        )?.bgcolor
-                      })`,
-                      color: `var(${
-                        getPrecision(
-                          housing.status,
-                          housing.subStatus,
-                          precision
-                        )?.color
-                      })`,
-                    }}
-                    className="status-label"
-                  >
-                    {precision}
-                  </span>
-                )}
-              </b>
-            ))}
+          <HousingStatusBadge status={housing.status} />
+          <HousingSubStatusBadge
+            status={housing.status}
+            subStatus={housing.subStatus}
+          />
+          <HousingPrecisionsBadges
+            status={housing.status}
+            subStatus={housing.subStatus}
+            precisions={housing.precisions}
+          />
         </div>
         <Row spacing="pt-2w float" justifyContent="right">
           <Button
@@ -158,7 +113,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
           </Button>
           <Button
             icon="ri-edit-2-fill"
-            onClick={() => setIsModalStatusOpen(true)}
+            onClick={() => setIsHousingListEditionExpand(true)}
             className="fr-ml-1w"
           >
             Mettre à jour le dossier
@@ -170,13 +125,12 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
               onSubmitAboutHousing={submitHousingNoteAboutHousing}
             />
           )}
-          {isModalStatusOpen && (
-            <HousingStatusModal
-              housingList={[housing]}
-              onSubmit={submitHousingUpdate}
-              onClose={() => setIsModalStatusOpen(false)}
-            />
-          )}
+          <HousingEditionSideMenu
+            housing={housing}
+            expand={isHousingListEditionExpand}
+            onSubmit={submitHousingUpdate}
+            onClose={() => setIsHousingListEditionExpand(false)}
+          />
         </Row>
         <Tabs className="fr-pt-3w">
           <Tab label="Caractéristiques" className="fr-px-0">

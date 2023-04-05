@@ -5,5 +5,5 @@ export interface Pagination {
 }
 
 export interface PaginationOptions {
-  pagination: Pagination;
+  pagination?: Pagination;
 }

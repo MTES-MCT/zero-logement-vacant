@@ -1,62 +1,54 @@
 import config from '../utils/config';
-import authService from './auth.service';
-import { ContactPoint, DraftContactPoint } from '../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../shared/models/ContactPoint';
+import { createHttpService, toJSON } from '../utils/fetchUtils';
 
-const listContactPoints = async (): Promise<ContactPoint[]> => {
-  return await fetch(`${config.apiEndpoint}/api/contact-points`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  }).then((_) => _.json());
+const http = createHttpService('contact-points', {
+  authenticated: true,
+  host: config.apiEndpoint,
+  json: true,
+});
+
+const find = async (
+  establishmentId: string,
+  publicOnly: boolean
+): Promise<ContactPoint[]> => {
+  const response = await http.get(
+    `/api/contact-points${
+      publicOnly ? '/public' : ''
+    }?establishmentId=${establishmentId}`
+  );
+  return toJSON(response);
 };
 
-const createContactPoint = async (
+const create = async (
   draftContactPoint: DraftContactPoint
-): Promise<void> => {
-  return await fetch(`${config.apiEndpoint}/api/contact-points`, {
+): Promise<ContactPoint> => {
+  const response = await http.fetch('/api/contact-points', {
     method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(draftContactPoint),
-  }).then(() => {});
+  });
+  return response.json();
 };
 
-const updateContactPoint = async (
-  contactPoint: ContactPoint
-): Promise<void> => {
+const update = async (contactPoint: ContactPoint): Promise<void> => {
   const { id, ...body } = contactPoint;
-  return await fetch(`${config.apiEndpoint}/api/contact-points/${id}`, {
-    method: 'PUT',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
+  await http.put(`/api/contact-points/${id}`, {
     body: JSON.stringify(body),
-  }).then(() => {});
+  });
 };
 
-const deleteContactPoint = async (contactPointId: string): Promise<void> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/contact-points/${contactPointId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-    }
-  ).then(() => {});
+const remove = async (contactPointId: string): Promise<void> => {
+  await http.delete(`/api/contact-points/${contactPointId}`);
 };
 
 const contactPointService = {
-  listContactPoints,
-  createContactPoint,
-  updateContactPoint,
-  deleteContactPoint,
+  find,
+  create,
+  update,
+  remove,
 };
 
 export default contactPointService;

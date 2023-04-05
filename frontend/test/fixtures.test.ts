@@ -36,18 +36,21 @@ export function genNumber(length = 10) {
   });
 }
 
-export function genAuthUser() {
+export function genAuthUser(): AuthUser {
   return {
     accessToken: randomstring.generate(),
     user: genUser(),
     establishment: {
       id: genNumber(10),
       name: randomstring.generate(),
-      localities: [],
       siren: genNumber(10),
+      kind: 'Commune',
+      available: genBoolean(),
+      shortName: randomstring.generate(),
+      geoCodes: [genNumber(5)],
       campaignIntent: randomstring.generate(),
     },
-  } as AuthUser;
+  };
 }
 
 export function genUser() {

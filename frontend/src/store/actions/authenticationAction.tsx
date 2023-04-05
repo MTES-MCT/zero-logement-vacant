@@ -54,6 +54,32 @@ export const login = (
       });
   };
 };
+export const changeEstablishment = (establishmentId: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    authService
+      .changeEstablishment(establishmentId)
+      .then((authUser) => {
+        if (authUser.accessToken) {
+          dispatch(
+            loginUser({
+              authUser,
+            })
+          );
+          window.location.reload();
+        } else {
+          dispatch(loginFail());
+        }
+      })
+      .catch(() => {
+        dispatch(loginFail());
+      })
+      .finally(() => {
+        dispatch(hideLoading());
+      });
+  };
+};
 
 export const logout = () => (dispatch: Dispatch) => {
   authService.logout();
@@ -102,7 +128,7 @@ export const changePassword = (
 export const fetchAvailableEstablishments = () => {
   return function (dispatch: Dispatch) {
     establishmentService
-      .listAvailableEstablishments()
+      .listEstablishments({ available: true })
       .then((availableEstablishments) => {
         dispatch(
           availableEstablishmentsFetched({

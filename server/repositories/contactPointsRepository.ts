@@ -1,63 +1,85 @@
 import db from './db';
-import {
+import { ContactPointApi } from '../models/ContactPointApi';
+import { settingsTable } from './settingsRepository';
+
+type ContactPointsUniqueProperties = Pick<
   ContactPointApi,
-  DraftContactPointApi,
-} from '../models/ContactPointApi';
+  'id' | 'establishmentId'
+>;
 
 export const contactPointsTable = 'contact_points';
 
+const ContactPoints = () => db<ContactPointDBO>(contactPointsTable);
+
 const get = async (contactPointId: string): Promise<ContactPointApi | null> => {
   console.log('Get ContactPointApi with id', contactPointId);
-  const contactPoint = await db(contactPointsTable)
+  const contactPoint = await ContactPoints()
     .where('id', contactPointId)
     .first();
   return contactPoint ? parseContactPointApi(contactPoint) : null;
 };
 
-const insert = async (
-  draftContactPointApi: DraftContactPointApi
-): Promise<ContactPointApi> => {
-  console.log('Insert draftContactPointApi');
-  return db(contactPointsTable)
-    .insert(formatDraftContactPointApi(draftContactPointApi))
-    .returning('*')
-    .then((_) => parseContactPointApi(_[0]));
+const insert = async (contactPointApi: ContactPointApi): Promise<void> => {
+  console.log('Insert ContactPointApi');
+  await ContactPoints().insert(formatContactPointApi(contactPointApi));
 };
 
-const update = async (
-  contactPointApi: ContactPointApi
-): Promise<ContactPointApi> => {
+const update = async (contactPointApi: ContactPointApi): Promise<void> => {
   console.log('Update contactPointApi with id', contactPointApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, establishment_id, ...updatedData } =
     formatContactPointApi(contactPointApi);
-  return db(contactPointsTable)
-    .where('id', contactPointApi.id)
-    .update(updatedData)
-    .returning('*')
-    .then((_) => parseContactPointApi(_[0]));
+  await ContactPoints().where({ id: contactPointApi.id }).update(updatedData);
 };
 
-const listContactPoints = async (
-  establishmentId: string
+const find = async (
+  establishmentId: string,
+  publicOnly?: boolean
 ): Promise<ContactPointApi[]> => {
   console.log(
     'List contactPointApi for establishment with id',
     establishmentId
   );
-  return db(contactPointsTable)
-    .where('establishment_id', establishmentId)
+  const contactPoints = await ContactPoints()
+    .select(`${contactPointsTable}.*`)
+    .where(`${contactPointsTable}.establishment_id`, establishmentId)
+    .modify((builder) => {
+      if (publicOnly) {
+        builder
+          .join(
+            settingsTable,
+            `${settingsTable}.establishment_id`,
+            `${contactPointsTable}.establishment_id`
+          )
+          .andWhere('contact_points_public', true);
+      }
+    })
+    .orderBy('title');
+  return contactPoints.map(parseContactPointApi);
+};
+
+const findOne = async (
+  options: ContactPointsUniqueProperties
+): Promise<ContactPointApi | null> => {
+  console.log('Find contactPointApi with options', options);
+  const contactPoint = await ContactPoints()
+    .where({
+      id: options.id,
+      establishment_id: options.establishmentId,
+    })
     .orderBy('title')
-    .then((_) => _.map((_) => parseContactPointApi(_)));
+    .first();
+  return contactPoint ? parseContactPointApi(contactPoint) : null;
 };
 
-const deleteContactPoint = async (contactPointId: string): Promise<number> => {
-  console.log('Delete contactPointApi with id', contactPointId);
-  return db(contactPointsTable).where('id', contactPointId).delete();
+const remove = async (id: string): Promise<void> => {
+  console.log('Delete contactPointApi with id', id);
+  await ContactPoints().where({ id }).delete();
 };
 
-interface DraftContactPointDbo {
+interface ContactPointDBO {
+  id: string;
   establishment_id: string;
   title: string;
   opening?: string;
@@ -68,50 +90,40 @@ interface DraftContactPointDbo {
   notes?: string;
 }
 
-interface ContactPointDbo extends DraftContactPointDbo {
-  id: string;
-}
+const formatContactPointApi = (
+  contactPointApi: ContactPointApi
+): ContactPointDBO => ({
+  id: contactPointApi.id,
+  establishment_id: contactPointApi.establishmentId,
+  title: contactPointApi.title,
+  opening: contactPointApi.opening,
+  address: contactPointApi.address,
+  geo_codes: contactPointApi.geoCodes,
+  email: contactPointApi.email,
+  phone: contactPointApi.phone,
+  notes: contactPointApi.notes,
+});
 
-const formatDraftContactPointApi = (
-  draftContactPointApi: DraftContactPointApi
-) =>
-  <DraftContactPointDbo>{
-    establishment_id: draftContactPointApi.establishmentId,
-    title: draftContactPointApi.title,
-    opening: draftContactPointApi.opening,
-    address: draftContactPointApi.address,
-    geo_codes: draftContactPointApi.geoCodes,
-    email: draftContactPointApi.email,
-    phone: draftContactPointApi.phone,
-    notes: draftContactPointApi.notes,
-  };
-
-const formatContactPointApi = (contactPointApi: ContactPointApi) => {
-  const { id, ...draftContactPointApi } = contactPointApi;
-  return <ContactPointDbo>{
-    id,
-    ...formatDraftContactPointApi(draftContactPointApi),
-  };
-};
-
-const parseContactPointApi = (contactPointDbo: ContactPointDbo) =>
-  <ContactPointApi>{
-    id: contactPointDbo.id,
-    establishmentId: contactPointDbo.establishment_id,
-    title: contactPointDbo.title,
-    opening: contactPointDbo.opening,
-    address: contactPointDbo.address,
-    geoCodes: contactPointDbo.geo_codes,
-    email: contactPointDbo.email,
-    phone: contactPointDbo.phone,
-    notes: contactPointDbo.notes,
-  };
+const parseContactPointApi = (
+  contactPointDbo: ContactPointDBO
+): ContactPointApi => ({
+  id: contactPointDbo.id,
+  establishmentId: contactPointDbo.establishment_id,
+  title: contactPointDbo.title,
+  opening: contactPointDbo.opening,
+  address: contactPointDbo.address,
+  geoCodes: contactPointDbo.geo_codes,
+  email: contactPointDbo.email,
+  phone: contactPointDbo.phone,
+  notes: contactPointDbo.notes,
+});
 
 export default {
+  find,
+  findOne,
   get,
   insert,
   update,
-  listContactPoints,
-  deleteContactPoint,
+  remove,
   formatContactPointApi,
 };

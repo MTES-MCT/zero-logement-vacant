@@ -13,8 +13,8 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import config from '../../utils/config';
-import { PaginationApi } from '../../../../server/models/PaginationApi';
 import monitoringSlice from '../reducers/monitoringReducer';
+import { Pagination } from '../../../../shared/models/Pagination';
 
 export interface FetchHousingByStatusCountAction {
   filters: MonitoringFilters;
@@ -147,7 +147,7 @@ export const fetchHousingToContact = (
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    const pagination: PaginationApi = { page, perPage };
+    const pagination: Pagination = { page, perPage };
 
     dispatch(
       fetchingHousingToContact({

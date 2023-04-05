@@ -2,6 +2,7 @@ import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import {
+  Establishment1,
   Locality1,
   Locality2,
 } from '../../database/seeds/test/001-establishments';
@@ -43,18 +44,21 @@ describe('Locality controller', () => {
   });
 
   describe('listLocalities', () => {
-    const testRoute = '/api/localities';
+    const testRoute = (establishmentId?: string) =>
+      `/api/localities${
+        establishmentId ? '?establishmentId=' + establishmentId : ''
+      }`;
 
-    it('should be forbidden for a not authenticated user', async () => {
+    it('should received a valid establishmentId', async () => {
       await request(app)
-        .get(testRoute)
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        .get(testRoute('id'))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should list the localities for the authenticated user', async () => {
-      const res = await withAccessToken(request(app).get(testRoute)).expect(
-        constants.HTTP_STATUS_OK
-      );
+    it('should list the localities', async () => {
+      const res = await request(app)
+        .get(testRoute(Establishment1.id))
+        .expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.arrayContaining([

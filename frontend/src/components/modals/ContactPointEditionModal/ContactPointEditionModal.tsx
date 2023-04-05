@@ -16,24 +16,29 @@ import {
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
-import { ContactPoint, DraftContactPoint } from '../../../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../../shared/models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';
 
 interface Props {
+  establishmentId: string;
   contactPoint?: ContactPoint;
   onSubmit: (contactPoint: DraftContactPoint | ContactPoint) => void;
   onClose: () => void;
 }
 
 const ContactPointEditionModal = ({
+  establishmentId,
   contactPoint,
   onSubmit,
   onClose,
 }: Props) => {
   const { localitiesOptions, localities, localitiesGeoCodes } =
-    useLocalityList();
+    useLocalityList(establishmentId);
   const [title, setTitle] = useState(contactPoint?.title ?? '');
   const [opening, setOpening] = useState(contactPoint?.opening ?? undefined);
   const [address, setAddress] = useState(contactPoint?.address ?? undefined);
@@ -72,6 +77,7 @@ const ContactPointEditionModal = ({
     if (isValid()) {
       onSubmit({
         ...(contactPoint?.id ? { id: contactPoint.id } : {}),
+        establishmentId,
         title: title!,
         opening,
         address,

@@ -2,21 +2,33 @@ import React, { ChangeEvent, useState } from 'react';
 import { Button, Checkbox, Col, Row, TextInput } from '@dataesr/react-dsfr';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
-import { PartialOwnerProspect } from '../../models/OwnerProspect';
+import { OwnerProspect } from '../../models/OwnerProspect';
+import { AddressSearchResult } from '../../services/address.service';
+import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
+import styles from './home.module.scss';
 
 interface Props {
-  onCreateOwnerProspect: (partialOwnerProspect: PartialOwnerProspect) => void;
+  addressSearchResult?: AddressSearchResult;
+  onCreateOwnerProspect: (ownerProspect: OwnerProspect) => void;
 }
 
-const OwnerProspectForm = ({ onCreateOwnerProspect }: Props) => {
+const OwnerProspectForm = ({
+  addressSearchResult,
+  onCreateOwnerProspect,
+}: Props) => {
+  const [address, setAddress] = useState(addressSearchResult?.label ?? '');
+  const [geoCode, setGeoCode] = useState(addressSearchResult?.geoCode ?? '');
+  const [invariant, setInvariant] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [agreement, setAgreement] = useState(false);
+  const [editAddress, setEditAddress] = useState(false);
 
   const schema = yup.object().shape({
+    address: yup.string().required('Veuillez renseigner votre adresse.'),
     firstName: yup.string().required('Veuillez renseigner votre prénom.'),
     lastName: yup.string().required('Veuillez renseigner votre nom.'),
     email: emailValidator,
@@ -29,29 +41,81 @@ const OwnerProspectForm = ({ onCreateOwnerProspect }: Props) => {
       .oneOf([true], 'Veuillez accepter les conditions générales.'),
   });
 
-  const { isValid, message, messageType } = useForm(schema, {
-    firstName,
-    lastName,
-    email,
-    phone,
-    notes,
-    agreement,
-  });
+  const { isValid, message, messageType, validate } = useForm(
+    schema,
+    {
+      address,
+      invariant,
+      firstName,
+      lastName,
+      email,
+      phone,
+      notes,
+      agreement,
+    },
+    { disableValidationOnTouch: true }
+  );
 
   const submitForm = () => {
+    validate();
     if (isValid()) {
       onCreateOwnerProspect({
+        address,
+        geoCode,
+        invariant,
         email,
         firstName,
         lastName,
         phone,
         notes,
+        callBack: true,
+        read: false,
       });
     }
   };
 
+  const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
+    setAddress(addressSearchResult.label);
+    setGeoCode(addressSearchResult.geoCode);
+  };
+
   return (
     <form id="prospect_form">
+      <Row gutters>
+        <Col>
+          {addressSearchResult && !editAddress ? (
+            <>
+              <TextInput
+                value={addressSearchResult.label}
+                label="Adresse de votre logement vacant"
+                disabled
+                className={styles.editableInput}
+              />
+              <Button
+                icon="ri-edit-fill"
+                secondary
+                onClick={() => setEditAddress(true)}
+              />
+            </>
+          ) : (
+            <AddressSearchableSelect onSelectAddress={onSelectAddress} />
+          )}
+        </Col>
+      </Row>
+      <Row gutters>
+        <Col>
+          <TextInput
+            value={invariant}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setInvariant(e.target.value)
+            }
+            messageType={messageType('invariant')}
+            message={message('invariant')}
+            label="Invariant fiscal"
+            placeholder="ex : I9904012457A"
+          />
+        </Col>
+      </Row>
       <Row gutters>
         <Col>
           <TextInput
@@ -90,8 +154,6 @@ const OwnerProspectForm = ({ onCreateOwnerProspect }: Props) => {
             required
           />
         </Col>
-      </Row>
-      <Row gutters>
         <Col>
           <TextInput
             value={phone}

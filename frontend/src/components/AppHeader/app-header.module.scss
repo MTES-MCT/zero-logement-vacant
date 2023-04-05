@@ -4,3 +4,26 @@
   background-color: var(--blue-france-113);
   height: 2px;
 }
+
+.count {
+  align-items: center;
+  background-color: var(--blue-france-113);
+  border-radius: 50%;
+  color: white;
+  display: inline-flex;
+  font-size: 12px;
+  height: 1.5rem;
+  justify-content: center;
+  margin-left: 0.5rem;
+  width: 1.5rem;
+}
+
+.brandService {
+  label {
+    display: none;
+  }
+
+  input {
+    width: 450px;
+  }
+}

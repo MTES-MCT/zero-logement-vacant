@@ -58,6 +58,7 @@ export const fileValidator = (supportedFormats: string[]) =>
 
 interface UseFormOptions {
   dependencies?: React.DependencyList;
+  disableValidationOnTouch?: boolean;
 }
 
 type MessageType = 'error' | 'valid' | '';
@@ -163,7 +164,10 @@ export function useForm<
     if (isTouched || options?.dependencies?.length) {
       validate();
     } else {
-      if (Object.values(input).some((value) => !!value)) {
+      if (
+        !options?.disableValidationOnTouch &&
+        Object.values(input).some((value) => !!value)
+      ) {
         setIsTouched(true);
         validate();
       }

@@ -14,6 +14,8 @@ import {
   getHousingState,
   getHousingSubStatus,
 } from '../../models/HousingState';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 
 interface HousingPopupProps {
   building: Building;
@@ -90,26 +92,11 @@ function HousingPopup(props: HousingPopupProps) {
           {housingState && (
             <Row spacing="mb-1w">
               <Col n="12">
-                <span
-                  style={{
-                    backgroundColor: `var(${housingState.bgcolor})`,
-                    color: `var(${housingState.color})`,
-                  }}
-                  className="status-label"
-                >
-                  {housingState.title}
-                </span>
-                {housing.subStatus && (
-                  <span
-                    style={{
-                      backgroundColor: `var(${housingSubState?.bgcolor})`,
-                      color: `var(${housingSubState?.color})`,
-                    }}
-                    className="status-label"
-                  >
-                    {housing.subStatus}
-                  </span>
-                )}
+                <HousingStatusBadge status={housingState.status} />
+                <HousingSubStatusBadge
+                  status={housingState.status}
+                  subStatus={housingSubState?.title}
+                />
               </Col>
             </Row>
           )}

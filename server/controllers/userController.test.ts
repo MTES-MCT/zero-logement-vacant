@@ -277,7 +277,7 @@ describe('User controller', () => {
           })
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ filteredCount: 2, totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 3 });
     });
 
     it('should list only establishment users when authenticated user has not admin role', async () => {
@@ -285,7 +285,7 @@ describe('User controller', () => {
         constants.HTTP_STATUS_OK
       );
 
-      expect(res.body).toMatchObject({ filteredCount: 2, totalCount: 2 });
+      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 1 });
     });
   });
 

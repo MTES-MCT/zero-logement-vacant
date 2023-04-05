@@ -118,6 +118,18 @@
   display: none !important;
 }
 
+.d-sm-block {
+  @media (min-width: 576px) {
+    display: block !important;
+  }
+}
+
+.d-md-block {
+  @media (min-width: 768px) {
+    display: block !important;
+  }
+}
+
 .d-lg-block {
   @media (min-width: 992px) {
     display: block !important;
@@ -130,8 +142,21 @@
   }
 }
 
+.py-xs-0.fr-py-7w, .py-xs-0.fr-py-6w, .py-xs-0.fr-py-11w {
+  @media (max-width: 575px) {
+    padding: 0 !important;
+  }
+}
+
+
+.py-xs-3w.fr-py-7w, .py-xs-3w.fr-py-6w, .py-xs-3w.fr-py-11w {
+  @media (max-width: 575px) {
+    padding: 1.5rem !important;
+  }
+}
+
 .bg-white {
-  background-color: var(--white-1000);
+  background-color: var(--white-1000) !important;
 }
 .bg-100 {
   background-color: var(--grey-975) !important;
@@ -154,6 +179,9 @@
 .bg-bf925 {
   background-color: var(--blue-france-925) !important;
 }
+.bg-bf950 {
+  background-color: var(--blue-france-950);
+}
 .bg-bf975 {
   background-color: var(--blue-france-975);
 }
@@ -168,6 +196,10 @@
 
 .color-bf925-active {
   color: var(--blue-france-925-active);
+}
+
+.color-bf525 {
+  color: var(--blue-france-main-525) !important;
 }
 
 .color-bf113 {
@@ -188,6 +220,10 @@
 
 .d-flex {
   display: flex;
+}
+
+.d-block {
+  display: block !important;
 }
 
 .float-right {
@@ -242,10 +278,10 @@ button.fr-select {
   }
 }
 
-.select-multi-input {
+.select-multi-input, .select-single-input {
   position: relative;
 
-  .select-multi-options {
+  .select-multi-options, .select-single-options {
     background-color: var(--white-1000);
     box-shadow: 0 0 10px var(--grey-925);
     position: absolute;
@@ -258,6 +294,12 @@ button.fr-select {
       display: inherit;
       max-height: 250px;
       overflow: auto;
+    }
+
+    &.select-single-options__visible {
+      display: block;
+      position: sticky;
+      padding: 0;
     }
 
     .fr-checkbox-group:first-child {
@@ -370,4 +412,29 @@ a.fr-btn[target='_blank']:after {
 
 .italic {
   font-style: italic;
+}
+
+.flex-left {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.flex-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flex-align-center {
+  align-items: center
+}
+
+.word-wrap {
+  hyphens: auto;
+  word-wrap: break-word;
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }

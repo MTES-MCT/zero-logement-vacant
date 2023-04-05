@@ -2,11 +2,25 @@ import { Dispatch } from 'redux';
 import geoService from '../../services/geo.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { ContactPoint, DraftContactPoint } from '../../models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../shared/models/ContactPoint';
 import contactPointService from '../../services/contact-point.service';
 import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
 import establishmentSlice from '../reducers/establishmentReducer';
+import { Establishment } from '../../models/Establishment';
+import establishmentService from '../../services/establishment.service';
+
+export interface EstablishmentFetchedAction {
+  establishment: Establishment;
+}
+
+export interface NearbyEstablishmentsFetchedAction {
+  nearbyEstablishments: Establishment[];
+  epciEstablishment?: Establishment;
+}
 
 export interface LocalityListFetchedAction {
   localities: Locality[];
@@ -26,6 +40,10 @@ export interface ContactPointListFetchedAction {
 }
 
 const {
+  fetchEstablishment,
+  establishmentFetched,
+  fetchNearbyEstablishments,
+  nearbyEstablishmentFetched,
   fetchLocalityList,
   contactPointListFetched,
   fetchContactPointList,
@@ -36,13 +54,82 @@ const {
   localityListFetched,
 } = establishmentSlice.actions;
 
-export const fetchLocalities = () => {
+export const getEstablishment = (name: string, geoCode?: string) => {
+  return function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    dispatch(fetchEstablishment());
+
+    establishmentService
+      .listEstablishments({
+        geoCodes: geoCode ? [geoCode] : undefined,
+        name,
+      })
+      .then((establishments) => {
+        dispatch(hideLoading());
+        dispatch(
+          establishmentFetched({
+            establishment: establishments[0],
+          })
+        );
+      });
+  };
+};
+
+export const getNearbyEstablishments = (establishment: Establishment) => {
+  return async function (dispatch: Dispatch) {
+    dispatch(showLoading());
+
+    dispatch(fetchNearbyEstablishments());
+
+    const epci =
+      establishment.kind === 'Commune'
+        ? await establishmentService
+            .listEstablishments({
+              geoCodes: [establishment.geoCodes[0]],
+              kind: 'EPCI',
+            })
+            .then((establishments) => establishments[0])
+        : establishment.kind === 'EPCI'
+        ? establishment
+        : undefined;
+
+    if (epci) {
+      establishmentService
+        .listEstablishments({
+          geoCodes: epci.geoCodes,
+          kind: 'Commune',
+        })
+        .then((establishments) => {
+          dispatch(hideLoading());
+          dispatch(
+            nearbyEstablishmentFetched({
+              nearbyEstablishments: establishments.filter((_) =>
+                establishment.kind === 'Commune'
+                  ? !_.geoCodes.includes(establishment.geoCodes[0])
+                  : true
+              ),
+              epciEstablishment: epci,
+            })
+          );
+        });
+    } else {
+      dispatch(
+        nearbyEstablishmentFetched({
+          nearbyEstablishments: [],
+          epciEstablishment: epci,
+        })
+      );
+    }
+  };
+};
+export const fetchLocalities = (establishmentId: string) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchLocalityList());
 
-    localityService.listLocalities().then((localities) => {
+    localityService.listLocalities(establishmentId).then((localities) => {
       dispatch(hideLoading());
       dispatch(
         localityListFetched({
@@ -71,6 +158,7 @@ export const fetchGeoPerimeters = () => {
 };
 
 export const updateLocalityTax = (
+  establishmentId: string,
   geoCode: string,
   taxKind: TaxKinds,
   taxRate?: number
@@ -80,7 +168,7 @@ export const updateLocalityTax = (
 
     localityService.updateLocalityTax(geoCode, taxKind, taxRate).then(() => {
       dispatch(hideLoading());
-      fetchLocalities()(dispatch);
+      fetchLocalities(establishmentId)(dispatch);
     });
   };
 };
@@ -125,13 +213,16 @@ export const uploadFile = (file: File) => {
   };
 };
 
-export const fetchContactPoints = () => {
+export const fetchContactPoints = (
+  establishmentId: string,
+  publicOnly: boolean
+) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchContactPointList());
 
-    contactPointService.listContactPoints().then((contactPoints) => {
+    contactPointService.find(establishmentId, publicOnly).then((contactPoints) => {
       dispatch(hideLoading());
       dispatch(
         contactPointListFetched({
@@ -146,9 +237,9 @@ export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.createContactPoint(draftContactPoint).then(() => {
+    contactPointService.create(draftContactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(draftContactPoint.establishmentId, false)(dispatch);
     });
   };
 };
@@ -157,20 +248,20 @@ export const updateContactPoint = (contactPoint: ContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.updateContactPoint(contactPoint).then(() => {
+    contactPointService.update(contactPoint).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
     });
   };
 };
 
-export const deleteContactPoint = (contactPointId: string) => {
+export const deleteContactPoint = (contactPoint: ContactPoint) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    contactPointService.deleteContactPoint(contactPointId).then(() => {
+    contactPointService.remove(contactPoint.id).then(() => {
       dispatch(hideLoading());
-      fetchContactPoints()(dispatch);
+      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
     });
   };
 };

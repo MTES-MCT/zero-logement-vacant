@@ -10,9 +10,11 @@ import { MailEvent, MailService, SendOptions } from './mailService';
 import config from '../../utils/config';
 import { getAccountActivationLink } from '../../models/SignupLinkApi';
 import { getPasswordResetLink } from '../../models/ResetLinkApi';
+import { UserApi } from '../../models/UserApi';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
+const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 
 class SendinblueService implements MailService {
   private emails: TransactionalEmailsApi;
@@ -40,16 +42,15 @@ class SendinblueService implements MailService {
           email,
           data as MailEvent['housing:exported']
         );
+      case 'owner-prospect:created':
+        return this.ownerProspectCreated(email);
       case 'prospect:initialized':
         return this.prospectInitialized(
           email,
           data as MailEvent['prospect:initialized']
         );
-      case 'prospect:activated':
-        return this.prospectActivated(
-          email,
-          data as MailEvent['prospect:activated']
-        );
+      case 'user:created':
+        return this.prospectActivated(email, data as MailEvent['user:created']);
     }
   }
 
@@ -86,11 +87,24 @@ class SendinblueService implements MailService {
     });
   }
 
+  async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
+    await this.send({
+      templateId: OWNER_PROSPECT_CREATED_TEMPLATE_ID,
+      recipients: users.map((user) => user.email),
+    });
+  }
+
   private housingExported(email: string, data: MailEvent['housing:exported']) {
     this.events
       .trackEvent(email, 'housing:exported', {
         priority: data.priority,
       })
+      .catch(console.error);
+  }
+
+  private ownerProspectCreated(email: string) {
+    this.events
+      .trackEvent(email, 'owner-prospect:created')
       .catch(console.error);
   }
 
@@ -113,10 +127,7 @@ class SendinblueService implements MailService {
       .catch(console.error);
   }
 
-  private prospectActivated(
-    email: string,
-    data: MailEvent['prospect:activated']
-  ) {
+  private prospectActivated(email: string, data: MailEvent['user:created']) {
     this.contacts
       .updateContact(email, {
         attributes: {
@@ -124,7 +135,7 @@ class SendinblueService implements MailService {
           EMAIL_VALIDE: true,
         },
       })
-      .then(() => this.events.trackEvent(email, 'prospect:activated'))
+      .then(() => this.events.trackEvent(email, 'user:created'))
       .catch(console.error);
   }
 }

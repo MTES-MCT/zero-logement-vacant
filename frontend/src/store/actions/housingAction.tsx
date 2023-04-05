@@ -11,10 +11,10 @@ import eventService from '../../services/event.service';
 import { FormState } from './FormState';
 import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
-import { PaginationApi } from '../../../../server/models/PaginationApi';
 import { handleAbort } from '../../utils/fetchUtils';
 import housingReducer from '../reducers/housingReducer';
 import { AppState } from '../store';
+import { Pagination } from '../../../../shared/models/Pagination';
 
 export interface ExpandFiltersAction {
   value: boolean;
@@ -49,7 +49,7 @@ export interface HousingEventsFetchedAction {
 
 export interface FetchingHousingListAction {
   filters: HousingFilters;
-  pagination: PaginationApi;
+  pagination: Pagination;
   sort?: HousingSort;
 }
 
@@ -89,12 +89,12 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const pagination: PaginationApi = getState().housing.paginate
-      ? {
-          page: 1,
-          perPage: getState().housing.paginatedHousing.perPage,
-        }
-      : { paginate: false };
+    const page = 1;
+    const perPage = getState().housing.paginatedHousing.perPage;
+    const pagination: Pagination = {
+      page,
+      perPage,
+    };
 
     dispatch(
       fetchingHousingList({
@@ -129,7 +129,7 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
   };
 };
 
-export const changeHousingPagination = (pagination: PaginationApi) => {
+export const changeHousingPagination = (pagination: Pagination) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
@@ -173,7 +173,7 @@ export const changeHousingSort = (sort: HousingSort) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     const { filters, paginatedHousing } = getState().housing;
     const { page, perPage } = paginatedHousing;
-    const pagination: PaginationApi = {
+    const pagination: Pagination = {
       page,
       perPage,
     };

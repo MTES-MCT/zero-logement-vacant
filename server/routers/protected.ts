@@ -13,11 +13,14 @@ import contactPointController from '../controllers/contactPointController';
 import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import housingExportController from '../controllers/housingExportController';
+import settingsController from '../controllers/settingsController';
+import ownerProspectController from "../controllers/ownerProspectController";
+import { isUUIDParam } from '../utils/validators';
 
 const router = express.Router();
 
-router.use(jwtCheck)
-router.use(userCheck);
+router.use(jwtCheck(true))
+router.use(userCheck(true));
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
@@ -47,11 +50,15 @@ router.put('/owners/:ownerId', ownerController.ownerValidators, ownerController.
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
 router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
 
+router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find)
+router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update)
+
 router.get('/events/owner/:ownerId', eventController.listByOwnerId);
 router.get('/events/housing/:housingId', eventController.listByHousingId);
 router.post('/events', eventController.eventValidator, validator.validate, eventController.create);
 
-router.post('/account/password', accountController.updatePassword);
+router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
+router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
 router.post('/users', userController.list);
 router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);
@@ -66,12 +73,14 @@ router.post('/geo/perimeters', geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, validator.validate, geoController.updateGeoPerimeter);
 router.delete('/geo/perimeters/:geoPerimeterId', geoController.deleteGeoPerimeterValidators, validator.validate, geoController.deleteGeoPerimeter);
 
-router.get('/contact-points', contactPointController.listContactPoints);
+router.get('/contact-points', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(false));
 router.post('/contact-points', contactPointController.createContactPointValidators, validator.validate, contactPointController.createContactPoint);
 router.put('/contact-points/:contactPointId', contactPointController.updateContactPointValidators, validator.validate, contactPointController.updateContactPoint);
 router.delete('/contact-points/:contactPointId', contactPointController.deleteContactPointValidators, validator.validate, contactPointController.deleteContactPoint);
 
-router.get('/localities', localityController.listLocalities);
 router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValidators, validator.validate, localityController.updateLocalityTax);
+
+router.get('/establishments/:id/settings', settingsController.getSettingsValidators, validator.validate, settingsController.getSettings);
+router.put('/establishments/:id/settings', settingsController.updateSettingsValidators, validator.validate, settingsController.updateSettings);
 
 export default router;

@@ -10,6 +10,7 @@ import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 
 export const establishmentsTable = 'establishments';
 
@@ -55,44 +56,34 @@ const update = async (
   }
 };
 
-const listAvailable = async (): Promise<EstablishmentApi[]> => {
-  try {
-    return db(establishmentsTable)
-      .where('available', true)
-      .orderBy('name')
-      .then((_) =>
-        _.map(
-          (result) =>
-            <EstablishmentApi>{
-              id: result.id,
-              name: result.name,
-            }
-        )
+const listWithFilters = async (
+  filters: EstablishmentFilterApi
+): Promise<EstablishmentApi[]> => {
+  const filter = (filters: EstablishmentFilterApi) => (queryBuilder: any) => {
+    if (filters.available) {
+      queryBuilder.where('available', true);
+    }
+    if (filters.query?.length) {
+      queryBuilder.whereRaw(likeUnaccent('name', filters.query));
+    }
+    if (filters.geoCodes) {
+      queryBuilder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
+    }
+    if (filters.kind) {
+      queryBuilder.where('kind', filters.kind);
+    }
+    if (filters.name) {
+      queryBuilder.whereRaw(
+        `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
+        filters.name
       );
-  } catch (err) {
-    console.error('Listing available establishment failed', err);
-    throw new Error('Listing available establishment failed');
-  }
-};
+    }
+  };
 
-const search = async (searchQuery: string): Promise<EstablishmentApi[]> => {
-  try {
-    return db(establishmentsTable)
-      .whereRaw(likeUnaccent('name', searchQuery))
-      .orderBy('name')
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <EstablishmentApi>{
-              id: result.id,
-              name: result.name,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Search available establishment failed', err, searchQuery);
-    throw new Error('Search available establishment failed');
-  }
+  return db(establishmentsTable)
+    .modify(filter(filters))
+    .orderBy('name')
+    .then((_) => _.map(parseEstablishmentApi));
 };
 
 const listDataWithFilters = async (
@@ -205,6 +196,7 @@ interface EstablishmentDbo {
   localities_geo_code: string[];
   campaign_intent?: string;
   priority?: string;
+  kind: string;
 }
 
 const formatEstablishmentApi = (
@@ -217,6 +209,7 @@ const formatEstablishmentApi = (
   localities_geo_code: establishmentApi.geoCodes,
   campaign_intent: establishmentApi.campaignIntent,
   priority: establishmentApi.priority,
+  kind: establishmentApi.kind,
 });
 
 const parseEstablishmentApi = (
@@ -225,19 +218,23 @@ const parseEstablishmentApi = (
   <EstablishmentApi>{
     id: establishmentDbo.id,
     name: establishmentDbo.name,
+    shortName:
+      establishmentDbo.kind === 'Commune'
+        ? establishmentDbo.name.replaceAll(/^Commune d(e\s|')/g, '')
+        : establishmentDbo.name,
     siren: establishmentDbo.siren,
     available: establishmentDbo.available,
     geoCodes: establishmentDbo.localities_geo_code,
     campaignIntent: establishmentDbo.campaign_intent,
     priority: establishmentDbo.priority ?? 'standard',
+    kind: establishmentDbo.kind,
   };
 
 export default {
   get,
   findOne,
   update,
-  search,
-  listAvailable,
+  listWithFilters,
   listDataWithFilters,
   formatEstablishmentApi,
 };

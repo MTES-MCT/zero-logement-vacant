@@ -22,6 +22,7 @@ import {
 import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 import { updateLocalityTax } from '../../store/actions/establishmentAction';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import Help from '../../components/Help/Help';
 
 enum ActionSteps {
   Init,
@@ -34,11 +35,15 @@ interface LocalityTaxActionState {
   locality: Locality;
 }
 
-const EstablishmentLocalityTaxes = () => {
+interface Props {
+  establishmentId: string;
+}
+
+const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { loading } = useAppSelector((state) => state.establishment);
-  const { localities, filterCount } = useLocalityList();
+  const { localities, filterCount } = useLocalityList(establishmentId);
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
   const [hasTHLVFilter, setHasTHLVFilter] = useState<boolean>(true);
@@ -86,7 +91,12 @@ const EstablishmentLocalityTaxes = () => {
         locality: { ...editingState.locality, taxRate },
       });
       dispatch(
-        updateLocalityTax(editingState.locality.geoCode, taxKind, taxRate)
+        updateLocalityTax(
+          establishmentId,
+          editingState.locality.geoCode,
+          taxKind,
+          taxRate
+        )
       );
     }
   };
@@ -100,9 +110,12 @@ const EstablishmentLocalityTaxes = () => {
           onClose={() => setEditingState(undefined)}
         />
       )}
-      <Title look="h5" as="h2" className="fr-mt-1w">
+      <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
         Taxes sur les logements vacants
       </Title>
+      <Help className="d-inline-block bg-white">
+        Informations publiées par défaut
+      </Help>
       {editingState?.step === ActionSteps.Done && (
         <Alert
           type="success"
@@ -155,6 +168,7 @@ const EstablishmentLocalityTaxes = () => {
                 onEdit={(locality) =>
                   setEditingState({ step: ActionSteps.Init, locality })
                 }
+                isPublicDisplay={false}
               />
             </Col>
           ))}

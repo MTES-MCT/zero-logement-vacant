@@ -1,4 +1,12 @@
-import { Button, Row, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import {
+  Button,
+  Container,
+  Link,
+  Row,
+  Text,
+  TextInput,
+  Title,
+} from '@dataesr/react-dsfr';
 import React, { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
@@ -6,6 +14,7 @@ import * as yup from 'yup';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import InternalLink from '../../../components/InternalLink/InternalLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
+import styles from './account-email-creation-view.module.scss';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
@@ -36,6 +45,18 @@ function AccountEmailCreationView() {
         impérativement avoir déjà signé l'acte d'engagement permettant d'accéder
         aux données LOVAC via la procédure indiquée sur le site du Cerema.
       </Text>
+      <Container as="section" fluid>
+        <Row justifyContent="right">
+          <Link
+            className={styles.help}
+            href="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+            isSimple
+            size="sm"
+          >
+            Besoin d’aide pour créer votre compte ?
+          </Link>
+        </Row>
+      </Container>
       <TextInput
         type="email"
         value={email}

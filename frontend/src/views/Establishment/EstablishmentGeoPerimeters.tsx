@@ -53,12 +53,20 @@ const EstablishmentGeoPerimeters = () => {
 
   const [
     updateGeoPerimeter,
-    { isSuccess: isUpdateSuccess, originalArgs: updateArgs },
+    {
+      isSuccess: isUpdateSuccess,
+      originalArgs: updateArgs,
+      isError: isUpdateError,
+    },
   ] = useUpdateGeoPerimeterMutation();
-  const [uploadGeoPerimeterFile, { isSuccess: isUploadSuccess }] =
-    useUploadGeoPerimeterFileMutation();
-  const [deleteGeoPerimeters, { isSuccess: isDeleteSuccess }] =
-    useDeleteGeoPerimetersMutation();
+  const [
+    uploadGeoPerimeterFile,
+    { isSuccess: isUploadSuccess, isError: isUploadError },
+  ] = useUploadGeoPerimeterFileMutation();
+  const [
+    deleteGeoPerimeters,
+    { isSuccess: isDeleteSuccess, isError: isDeleteError },
+  ] = useDeleteGeoPerimetersMutation();
 
   const onSubmitUploadingGeoPerimeter = (file: File) => {
     trackEvent({
@@ -69,20 +77,20 @@ const EstablishmentGeoPerimeters = () => {
   };
 
   useEffect(() => {
-    if (isUploadSuccess) {
+    if (isUploadSuccess || isUploadError) {
       setIsUploadingModalOpen(false);
     }
-  }, [isUploadSuccess]);
+  }, [isUploadSuccess, isUploadError]);
   useEffect(() => {
-    if (isUpdateSuccess) {
+    if (isUpdateSuccess || isUpdateError) {
       setGeoPerimeterToUpdate(undefined);
     }
-  }, [isUpdateSuccess]);
+  }, [isUpdateSuccess, isUpdateError]);
   useEffect(() => {
-    if (isDeleteSuccess) {
+    if (isDeleteSuccess || isDeleteError) {
       setGeoPerimetersToRemove(undefined);
     }
-  }, [isDeleteSuccess]);
+  }, [isDeleteSuccess, isDeleteError]);
 
   const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
     if (geoPerimetersToUpdate) {
@@ -193,6 +201,14 @@ const EstablishmentGeoPerimeters = () => {
         <Alert
           type="success"
           description="Le périmètre / filtre a été supprimé avec succès !"
+          closable
+          className="fr-mb-2w"
+        />
+      )}
+      {(isUploadError || isUpdateError || isDeleteError) && (
+        <Alert
+          type="success"
+          description="Une erreur s'est produite, veuillez réessayer."
           closable
           className="fr-mb-2w"
         />

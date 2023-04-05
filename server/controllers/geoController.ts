@@ -65,7 +65,7 @@ const deleteGeoPerimeterList = async (
 
   return geoRepository
     .removeMany(geoPerimeterIds, establishmentId)
-    .then(() => response.status(constants.HTTP_STATUS_OK).send());
+    .then(() => response.sendStatus(constants.HTTP_STATUS_NO_CONTENT));
 };
 
 const updateGeoPerimeterValidators = [

@@ -80,7 +80,7 @@ describe('Geo controller', () => {
         request(app)
           .delete(testRoute)
           .send({ geoPerimeterIds: [GeoPerimeter1.id] })
-      ).expect(constants.HTTP_STATUS_OK);
+      ).expect(constants.HTTP_STATUS_NO_CONTENT);
 
       await geoRepository.find(GeoPerimeter1.establishmentId).then((result) => {
         expect(result).toEqual([]);
@@ -92,7 +92,7 @@ describe('Geo controller', () => {
         request(app)
           .delete(testRoute)
           .send({ geoPerimeterIds: [GeoPerimeter2.id] })
-      ).expect(constants.HTTP_STATUS_OK);
+      ).expect(constants.HTTP_STATUS_NO_CONTENT);
 
       await geoRepository.find(GeoPerimeter2.establishmentId).then((result) => {
         expect(result).toMatchObject(

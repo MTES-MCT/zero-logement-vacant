@@ -5,11 +5,7 @@ interface SelectableListHeaderActionsProps {
 }
 
 function SelectableListHeaderActions(props: SelectableListHeaderActionsProps) {
-  if (props.children) {
-    return <>{props.children}</>;
-  }
-
-  return <></>;
+  return <>{props.children}</>;
 }
 
 export default SelectableListHeaderActions;

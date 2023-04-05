@@ -73,11 +73,9 @@ const EstablishmentGeoPerimeters = () => {
       category: TrackEventCategories.GeoPerimeters,
       action: TrackEventActions.GeoPerimeters.Upload,
     });
-    uploadGeoPerimeterFile(file)
-      .unwrap()
-      .finally(() => {
-        setIsUploadingModalOpen(false);
-      });
+    uploadGeoPerimeterFile(file).finally(() => {
+      setIsUploadingModalOpen(false);
+    });
   };
 
   const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
@@ -90,11 +88,9 @@ const EstablishmentGeoPerimeters = () => {
         geoPerimeterId: geoPerimetersToUpdate.id,
         kind,
         name,
-      })
-        .unwrap()
-        .finally(() => {
-          setGeoPerimeterToUpdate(undefined);
-        });
+      }).finally(() => {
+        setGeoPerimeterToUpdate(undefined);
+      });
     }
   };
 
@@ -104,11 +100,11 @@ const EstablishmentGeoPerimeters = () => {
         category: TrackEventCategories.GeoPerimeters,
         action: TrackEventActions.GeoPerimeters.Delete,
       });
-      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id))
-        .unwrap()
-        .finally(() => {
+      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id)).finally(
+        () => {
           setGeoPerimetersToRemove(undefined);
-        });
+        }
+      );
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Button,
@@ -73,24 +73,12 @@ const EstablishmentGeoPerimeters = () => {
       category: TrackEventCategories.GeoPerimeters,
       action: TrackEventActions.GeoPerimeters.Upload,
     });
-    uploadGeoPerimeterFile(file);
+    uploadGeoPerimeterFile(file)
+      .unwrap()
+      .finally(() => {
+        setIsUploadingModalOpen(false);
+      });
   };
-
-  useEffect(() => {
-    if (isUploadSuccess || isUploadError) {
-      setIsUploadingModalOpen(false);
-    }
-  }, [isUploadSuccess, isUploadError]);
-  useEffect(() => {
-    if (isUpdateSuccess || isUpdateError) {
-      setGeoPerimeterToUpdate(undefined);
-    }
-  }, [isUpdateSuccess, isUpdateError]);
-  useEffect(() => {
-    if (isDeleteSuccess || isDeleteError) {
-      setGeoPerimetersToRemove(undefined);
-    }
-  }, [isDeleteSuccess, isDeleteError]);
 
   const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
     if (geoPerimetersToUpdate) {
@@ -102,7 +90,11 @@ const EstablishmentGeoPerimeters = () => {
         geoPerimeterId: geoPerimetersToUpdate.id,
         kind,
         name,
-      });
+      })
+        .unwrap()
+        .finally(() => {
+          setGeoPerimeterToUpdate(undefined);
+        });
     }
   };
 
@@ -112,7 +104,11 @@ const EstablishmentGeoPerimeters = () => {
         category: TrackEventCategories.GeoPerimeters,
         action: TrackEventActions.GeoPerimeters.Delete,
       });
-      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id));
+      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id))
+        .unwrap()
+        .finally(() => {
+          setGeoPerimetersToRemove(undefined);
+        });
     }
   };
 
@@ -207,7 +203,7 @@ const EstablishmentGeoPerimeters = () => {
       )}
       {(isUploadError || isUpdateError || isDeleteError) && (
         <Alert
-          type="success"
+          type="error"
           description="Une erreur s'est produite, veuillez réessayer."
           closable
           className="fr-mb-2w"

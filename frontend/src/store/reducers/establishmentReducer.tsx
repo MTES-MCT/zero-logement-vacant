@@ -1,10 +1,8 @@
 import {
-  ContactPointListFetchedAction,
   EstablishmentFetchedAction,
   LocalityListFetchedAction,
   NearbyEstablishmentsFetchedAction,
 } from '../actions/establishmentAction';
-import { ContactPoint } from '../../../../shared/models/ContactPoint';
 import { Locality } from '../../models/Locality';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Establishment } from '../../models/Establishment';
@@ -15,7 +13,6 @@ export interface EstablishmentState {
   epciEstablishment?: Establishment;
   nearbyEstablishments?: Establishment[];
   localities?: Locality[];
-  contactPoints?: ContactPoint[];
 }
 
 const initialState: EstablishmentState = {
@@ -56,17 +53,6 @@ const establishmentSlice = createSlice({
     ) => {
       state.loading = false;
       state.localities = action.payload.localities;
-    },
-    fetchContactPointList: (state: EstablishmentState) => {
-      state.loading = true;
-      state.contactPoints = [];
-    },
-    contactPointListFetched: (
-      state: EstablishmentState,
-      action: PayloadAction<ContactPointListFetchedAction>
-    ) => {
-      state.loading = false;
-      state.contactPoints = action.payload.contactPoints;
     },
   },
 });

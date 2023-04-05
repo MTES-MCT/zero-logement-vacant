@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { geoPerimetersApi } from '../../services/geo.service';
 import { applicationReducer, store as appStore } from '../../store/store';
+import { contactPointsApi } from '../../services/contact-point.service';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -60,7 +61,7 @@ describe('housing view', () => {
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
           serializableCheck: false,
-        }).concat(geoPerimetersApi.middleware),
+        }).concat(geoPerimetersApi.middleware, contactPointsApi.middleware),
       preloadedState: { authentication: { authUser: genAuthUser() } },
     });
   });

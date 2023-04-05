@@ -1,10 +1,5 @@
 import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../shared/models/ContactPoint';
-import contactPointService from '../../services/contact-point.service';
 import { Locality, TaxKinds } from '../../models/Locality';
 import localityService from '../../services/locality.service';
 import establishmentSlice from '../reducers/establishmentReducer';
@@ -24,18 +19,12 @@ export interface LocalityListFetchedAction {
   localities: Locality[];
 }
 
-export interface ContactPointListFetchedAction {
-  contactPoints: ContactPoint[];
-}
-
 const {
   fetchEstablishment,
   establishmentFetched,
   fetchNearbyEstablishments,
   nearbyEstablishmentFetched,
   fetchLocalityList,
-  contactPointListFetched,
-  fetchContactPointList,
   localityListFetched,
 } = establishmentSlice.actions;
 
@@ -137,61 +126,6 @@ export const updateLocalityTax = (
     localityService.updateLocalityTax(geoCode, taxKind, taxRate).then(() => {
       dispatch(hideLoading());
       fetchLocalities(establishmentId)(dispatch);
-    });
-  };
-};
-
-export const fetchContactPoints = (
-  establishmentId: string,
-  publicOnly: boolean
-) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchContactPointList());
-
-    contactPointService
-      .find(establishmentId, publicOnly)
-      .then((contactPoints) => {
-        dispatch(hideLoading());
-        dispatch(
-          contactPointListFetched({
-            contactPoints,
-          })
-        );
-      });
-  };
-};
-
-export const createContactPoint = (draftContactPoint: DraftContactPoint) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    contactPointService.create(draftContactPoint).then(() => {
-      dispatch(hideLoading());
-      fetchContactPoints(draftContactPoint.establishmentId, false)(dispatch);
-    });
-  };
-};
-
-export const updateContactPoint = (contactPoint: ContactPoint) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    contactPointService.update(contactPoint).then(() => {
-      dispatch(hideLoading());
-      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
-    });
-  };
-};
-
-export const deleteContactPoint = (contactPoint: ContactPoint) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    contactPointService.remove(contactPoint.id).then(() => {
-      dispatch(hideLoading());
-      fetchContactPoints(contactPoint.establishmentId, false)(dispatch);
     });
   };
 };

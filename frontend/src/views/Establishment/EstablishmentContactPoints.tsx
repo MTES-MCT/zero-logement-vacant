@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button, Col, Row, Text, Title, Toggle } from '@dataesr/react-dsfr';
 import {
   ContactPoint,
@@ -6,12 +6,6 @@ import {
 } from '../../../../shared/models/ContactPoint';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Alert from '../../components/Alert/Alert';
-import {
-  createContactPoint,
-  deleteContactPoint,
-  fetchContactPoints,
-  updateContactPoint,
-} from '../../store/actions/establishmentAction';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
 import {
   TrackEventActions,
@@ -19,37 +13,56 @@ import {
 } from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import Help from '../../components/Help/Help';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useSettings } from '../../hooks/useSettings';
-
-enum ActionSteps {
-  Init,
-  InProgress,
-  Done,
-}
-
-interface ContactPointActionState {
-  step: ActionSteps;
-  contactPoint?: ContactPoint;
-}
+import {
+  useCreateContactPointMutation,
+  useFindContactPointsQuery,
+  useRemoveContactPointMutation,
+  useUpdateContactPointMutation,
+} from '../../services/contact-point.service';
 
 interface Props {
   establishmentId: string;
 }
 
 const EstablishmentContactPoints = ({ establishmentId }: Props) => {
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
-  const { loading, contactPoints } = useAppSelector(
-    (state) => state.establishment
-  );
+  const { data: contactPoints } = useFindContactPointsQuery({
+    establishmentId,
+    publicOnly: false,
+  });
+
+  const [
+    updateContactPoint,
+    {
+      isSuccess: isUpdateSuccess,
+      originalArgs: updateArgs,
+      isError: isUpdateError,
+    },
+  ] = useUpdateContactPointMutation();
+  const [
+    createContactPoint,
+    { isSuccess: isCreateSuccess, isError: isCreateError },
+  ] = useCreateContactPointMutation();
+  const [
+    deleteContactPoint,
+    { isSuccess: isDeleteSuccess, isError: isDeleteError },
+  ] = useRemoveContactPointMutation();
+
   const { settings, togglePublishContactPoints } = useSettings();
 
-  const [editingState, setEditingState] = useState<ContactPointActionState>();
-  const [removingState, setRemovingState] = useState<ContactPointActionState>();
+  const [isCreatingModalOpen, setIsCreatingModalOpen] =
+    useState<boolean>(false);
+  const [contactPointToUpdate, setContactPointToUpdate] = useState<
+    ContactPoint | undefined
+  >();
+  const [contactPointToRemove, setContactPointToRemove] = useState<
+    ContactPoint | undefined
+  >();
+
   const [query, setQuery] = useState<string>();
 
   function search(query: string): void {
@@ -68,25 +81,6 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     [query, contactPoints]
   );
 
-  useEffect(() => {
-    dispatch(fetchContactPoints(establishmentId, false));
-  }, [dispatch, establishmentId]);
-
-  useEffect(() => {
-    if (editingState?.step === ActionSteps.InProgress && !loading) {
-      setEditingState({
-        step: ActionSteps.Done,
-        contactPoint: editingState.contactPoint,
-      });
-    }
-    if (removingState?.step === ActionSteps.InProgress && !loading) {
-      setRemovingState({
-        step: ActionSteps.Done,
-        contactPoint: removingState.contactPoint,
-      });
-    }
-  }, [loading]); //eslint-disable-line react-hooks/exhaustive-deps
-
   const onSubmitEditingContactPoint = (
     contactPoint: DraftContactPoint | ContactPoint
   ) => {
@@ -97,45 +91,50 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
         ? TrackEventActions.ContactPoints.Create
         : TrackEventActions.ContactPoints.Update,
     });
-    setEditingState({
-      step: ActionSteps.InProgress,
-      contactPoint: isDraft ? undefined : (contactPoint as ContactPoint),
-    });
-    dispatch(
-      isDraft
-        ? createContactPoint(contactPoint)
-        : updateContactPoint(contactPoint as ContactPoint)
-    );
+    if (isDraft) {
+      createContactPoint(contactPoint).finally(() =>
+        setIsCreatingModalOpen(false)
+      );
+    } else {
+      updateContactPoint(contactPoint as ContactPoint).finally(() =>
+        setContactPointToUpdate(undefined)
+      );
+    }
   };
 
   const onSubmitRemovingContactPoint = () => {
-    if (removingState?.contactPoint) {
+    if (contactPointToRemove) {
       trackEvent({
         category: TrackEventCategories.ContactPoints,
         action: TrackEventActions.ContactPoints.Delete,
       });
-      setRemovingState({
-        step: ActionSteps.InProgress,
-        contactPoint: removingState.contactPoint,
-      });
-      dispatch(deleteContactPoint(removingState.contactPoint));
+      deleteContactPoint(contactPointToRemove.id).finally(() =>
+        setContactPointToRemove(undefined)
+      );
     }
   };
 
   return (
     <>
-      {editingState?.step === ActionSteps.Init && (
+      {isCreatingModalOpen && (
         <ContactPointEditionModal
           establishmentId={establishmentId}
-          contactPoint={editingState.contactPoint}
           onSubmit={onSubmitEditingContactPoint}
-          onClose={() => setEditingState(undefined)}
+          onClose={() => setIsCreatingModalOpen(false)}
         />
       )}
-      {removingState?.step === ActionSteps.Init && (
+      {contactPointToUpdate && (
+        <ContactPointEditionModal
+          establishmentId={establishmentId}
+          contactPoint={contactPointToUpdate}
+          onSubmit={onSubmitEditingContactPoint}
+          onClose={() => setContactPointToUpdate(undefined)}
+        />
+      )}
+      {contactPointToRemove && (
         <ConfirmationModal
           onSubmit={onSubmitRemovingContactPoint}
-          onClose={() => setRemovingState(undefined)}
+          onClose={() => setContactPointToRemove(undefined)}
         >
           <Text size="md">Êtes-vous sûr de vouloir supprimer ce guichet ?</Text>
         </ConfirmationModal>
@@ -159,31 +158,43 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
             <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
           </div>
           <Button
-            onClick={() => setEditingState({ step: ActionSteps.Init })}
+            onClick={() => setIsCreatingModalOpen(true)}
             className="float-right"
           >
             Ajouter un guichet
           </Button>
         </Col>
       </Row>
-      {editingState?.step === ActionSteps.Done && (
+      {isCreateSuccess && (
+        <Alert
+          type="success"
+          description="Le nouveau guichet a été ajouté avec succès ! "
+          closable
+          className="fr-mb-2w"
+        />
+      )}
+      {isUpdateSuccess && (
         <Alert
           type="success"
           description={
-            editingState.contactPoint
-              ? 'Le guichet ' +
-                editingState.contactPoint?.title +
-                ' a été modifié avec succès !'
-              : 'Le nouveau guichet a été ajouté avec succès ! '
+            'Le guichet ' + updateArgs?.title + ' a été modifié avec succès !'
           }
           closable
           className="fr-mb-2w"
         />
       )}
-      {removingState?.step === ActionSteps.Done && (
+      {isDeleteSuccess && (
         <Alert
           type="success"
           description="Le guichet a été supprimé avec succès !"
+          closable
+          className="fr-mb-2w"
+        />
+      )}
+      {(isCreateError || isUpdateError || isDeleteError) && (
+        <Alert
+          type="error"
+          description="Une erreur s'est produite, veuillez réessayer."
           closable
           className="fr-mb-2w"
         />
@@ -197,12 +208,8 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           <Col n="4" key={contactPoint.id}>
             <ContactPointCard
               contactPoint={contactPoint}
-              onEdit={(contactPoint) =>
-                setEditingState({ step: ActionSteps.Init, contactPoint })
-              }
-              onRemove={(contactPoint) =>
-                setRemovingState({ step: ActionSteps.Init, contactPoint })
-              }
+              onEdit={(contactPoint) => setContactPointToUpdate(contactPoint)}
+              onRemove={(contactPoint) => setContactPointToRemove(contactPoint)}
               isPublicDisplay={false}
             />
           </Col>

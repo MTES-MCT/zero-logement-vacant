@@ -21,7 +21,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './home.module.scss';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import {
-  fetchContactPoints,
   fetchLocalities,
   getEstablishment,
   getNearbyEstablishments,
@@ -32,6 +31,7 @@ import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
+import { useFindContactPointsQuery } from '../../services/contact-point.service';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -43,13 +43,22 @@ const OwnerEstablishmentHomeView = () => {
     (state) => state.ownerProspect
   );
 
-  const {
-    establishment,
-    contactPoints,
-    localities,
-    nearbyEstablishments,
-    epciEstablishment,
-  } = useAppSelector((state) => state.establishment);
+  const { establishment, localities, nearbyEstablishments, epciEstablishment } =
+    useAppSelector((state) => state.establishment);
+
+  const { data: contactPoints } = useFindContactPointsQuery(
+    {
+      establishmentId: (establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id)!,
+      publicOnly: true,
+    },
+    {
+      skip: !(establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id),
+    }
+  );
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
@@ -82,14 +91,6 @@ const OwnerEstablishmentHomeView = () => {
       dispatch(fetchLocalities(establishment.id));
     }
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (establishment?.available) {
-      dispatch(fetchContactPoints(establishment?.id, true));
-    } else if (epciEstablishment?.available) {
-      dispatch(fetchContactPoints(epciEstablishment?.id, true));
-    }
-  }, [establishment, epciEstablishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
     dispatch(

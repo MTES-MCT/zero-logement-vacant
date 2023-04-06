@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { isClientError, isHttpError } from '../errors/httpError';
 import { errors as compose, ErrorHandler, Next } from 'compose-middleware';
+import { constants } from 'http2';
 
 function log(
   error: Error,
@@ -29,9 +30,9 @@ function respond(
   const status =
     isHttpError(error) && isClientError(error) ? error.status : 500;
 
-  response.status(status).json({
+  response.status(status ?? constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({
     name: error.name,
-    message: isHttpError(error) ? error.message : '',
+    message: isHttpError(error) ? error.message : 'Internal Server Error',
   });
 }
 

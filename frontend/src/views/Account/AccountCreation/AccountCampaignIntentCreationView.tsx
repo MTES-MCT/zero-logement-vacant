@@ -7,11 +7,11 @@ import { Button, Row, Title } from '@dataesr/react-dsfr';
 import Help from '../../../components/Help/Help';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';
-import { createUser } from '../../../store/actions/userAction';
 import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
 import InternalLink from '../../../components/InternalLink/InternalLink';
 import { useAppDispatch } from '../../../hooks/useStore';
+import { useCreateUserMutation } from '../../../services/user.service';
 
 interface State {
   prospect: Prospect;
@@ -29,6 +29,8 @@ function AccountCampaignIntentCreationView() {
     prospect?.establishment?.campaignIntent
   );
 
+  const [createUser] = useCreateUserMutation();
+
   const schema = yup.object().shape({
     campaignIntent: yup.string().required().oneOf(['0-2', '2-4', '4+']),
   });
@@ -45,14 +47,12 @@ function AccountCampaignIntentCreationView() {
     e.preventDefault();
     if (isValid() && prospect && password && prospect.establishment) {
       // Save user and remove prospect
-      await dispatch(
-        createUser({
-          email: prospect.email,
-          password,
-          establishmentId: prospect.establishment.id,
-          campaignIntent,
-        })
-      );
+      await createUser({
+        email: prospect.email,
+        password,
+        establishmentId: prospect.establishment.id,
+        campaignIntent,
+      });
       dispatch(login(prospect.email, password, prospect.establishment.id));
     }
   }

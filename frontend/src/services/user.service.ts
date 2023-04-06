@@ -2,51 +2,67 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { PaginatedResult } from '../models/PaginatedResult';
 import { DraftUser, User } from '../models/User';
-import { parseISO } from 'date-fns';
 import { UserFilters } from '../models/UserFilters';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { parseISO } from 'date-fns';
 
-const listUsers = async (
-  filters: UserFilters,
-  page: number,
-  perPage: number
-): Promise<PaginatedResult<User>> => {
-  return await fetch(`${config.apiEndpoint}/api/users`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ filters, page, perPage }),
-  })
-    .then((_) => _.json())
-    .then((result) => ({
-      ...result,
-      entities: result.entities.map((e: any) => parseUser(e)),
-    }));
-};
-
-const createUser = async (draftUser: DraftUser): Promise<User> => {
-  return await fetch(`${config.apiEndpoint}/api/users/creation`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(draftUser),
-  })
-    .then((_) => _.json())
-    .then((result) => parseUser(result));
-};
-
-const removeUser = async (userId: string): Promise<void> => {
-  await fetch(`${config.apiEndpoint}/api/users/${userId}`, {
-    method: 'DELETE',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  });
-};
+export const userApi = createApi({
+  reducerPath: 'userApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/users`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['User'],
+  endpoints: (builder) => ({
+    listUsers: builder.query<
+      PaginatedResult<User>,
+      {
+        filters: UserFilters;
+        page: number;
+        perPage: number;
+      }
+    >({
+      query: ({ filters, page, perPage }) => ({
+        url: '',
+        method: 'POST',
+        body: { filters, page, perPage },
+      }),
+      transformResponse: (response: PaginatedResult<User>) => ({
+        ...response,
+        entities: response.entities.map((e: any) => parseUser(e)),
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.entities.map(({ id }) => ({
+                type: 'User' as const,
+                id,
+              })),
+              { type: 'User', id: 'PARTIAL-LIST' },
+            ]
+          : [{ type: 'User', id: 'PARTIAL-LIST' }],
+    }),
+    createUser: builder.mutation<User, DraftUser>({
+      query: (draftUser) => ({
+        url: 'creation',
+        method: 'POST',
+        body: draftUser,
+      }),
+      transformResponse: (response) => parseUser(response),
+      invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST' }],
+    }),
+    removeUser: builder.mutation<void, string>({
+      query: (userId) => ({
+        url: userId,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, userId) => [
+        { type: 'User', userId },
+        { type: 'User', id: 'PARTIAL-LIST' },
+      ],
+    }),
+  }),
+});
 
 const parseUser = (u: any): User =>
   ({
@@ -54,10 +70,8 @@ const parseUser = (u: any): User =>
     activatedAt: parseISO(u.activatedAt),
   } as User);
 
-const userService = {
-  listUsers,
-  createUser,
-  removeUser,
-};
-
-export default userService;
+export const {
+  useListUsersQuery,
+  useCreateUserMutation,
+  useRemoveUserMutation,
+} = userApi;

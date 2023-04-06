@@ -3,7 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
 import AccountEmailActivationView from '../AccountEmailActivationView';
-import signupLinkService from '../../../../services/signup-link.service';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { store } from '../../../../store/store';
+import { signupLinkApi } from '../../../../services/signup-link.service';
 
 describe('AccountEmailActivationView', () => {
   const user = userEvent.setup();
@@ -12,9 +15,11 @@ describe('AccountEmailActivationView', () => {
   describe('Without passing an email in route state', () => {
     function setup() {
       render(
-        <Router history={history}>
-          <AccountEmailActivationView />
-        </Router>
+        <Provider store={store}>
+          <Router history={history}>
+            <AccountEmailActivationView />
+          </Router>
+        </Provider>
       );
     }
 
@@ -33,9 +38,11 @@ describe('AccountEmailActivationView', () => {
         },
       });
       render(
-        <Router history={history}>
-          <AccountEmailActivationView />
-        </Router>
+        <Provider store={store}>
+          <Router history={history}>
+            <AccountEmailActivationView />
+          </Router>
+        </Provider>
       );
     }
 
@@ -50,15 +57,18 @@ describe('AccountEmailActivationView', () => {
     });
 
     it('should send an email again', async () => {
-      const sendActivationEmail = jest
-        .spyOn(signupLinkService, 'sendActivationEmail')
-        .mockResolvedValue();
+      const sendActivationEmail = jest.spyOn(
+        signupLinkApi.endpoints.sendActivationEmail,
+        'initiate'
+      );
       setup();
 
       const sendAgain = screen.getByText(/renvoyer le mail/i);
       await user.click(sendAgain);
 
-      expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr');
+      expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr', {
+        fixedCacheKey: undefined,
+      });
       const sent = screen.getByText('Email envoyé.');
       expect(sent).toBeVisible();
     });

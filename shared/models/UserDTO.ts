@@ -1,8 +1,9 @@
-export interface User {
+export interface UserDTO {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: number;
-  activatedAt?: Date;
+  activatedAt: string;
+  establishmentId?: string;
 }

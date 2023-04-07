@@ -60,7 +60,7 @@ router.post('/events', eventController.eventValidator, validator.validate, event
 router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
-router.post('/users', userController.list);
+router.post('/users', userController.listUsersValidators, validator.validate, userController.listUsers);
 router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);
 
 router.post('/monitoring/establishments/data', monitoringController.listEstablishmentData);

@@ -1,4 +1,5 @@
 import { Establishment } from './Establishment';
+import { UserDTO } from '../../../shared/models/UserDTO';
 
 export interface AuthUser {
   user: User;
@@ -6,22 +7,12 @@ export interface AuthUser {
   establishment: Establishment;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  // TODO: this should be string | undefined until we can retrieve first
-  // and last name
-  firstName: string;
-  lastName: string;
-  role: UserRoles;
+export interface User extends Omit<UserDTO, 'activatedAt'> {
   activatedAt: Date;
-  establishmentId: string;
 }
 
-export interface DraftUser {
-  email: string;
+export interface DraftUser extends Pick<User, 'email' | 'establishmentId'> {
   password: string;
-  establishmentId: string;
   campaignIntent?: string;
 }
 

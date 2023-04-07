@@ -5,6 +5,7 @@ import { DraftUser, User } from '../models/User';
 import { UserFilters } from '../models/UserFilters';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { parseISO } from 'date-fns';
+import { UserDTO } from '../../../shared/models/UserDTO';
 
 export const userApi = createApi({
   reducerPath: 'userApi',
@@ -27,9 +28,9 @@ export const userApi = createApi({
         method: 'POST',
         body: { filters, page, perPage },
       }),
-      transformResponse: (response: PaginatedResult<User>) => ({
+      transformResponse: (response: PaginatedResult<UserDTO>) => ({
         ...response,
-        entities: response.entities.map((e: any) => parseUser(e)),
+        entities: response.entities.map(parseUser),
       }),
       providesTags: (result) =>
         result
@@ -48,7 +49,7 @@ export const userApi = createApi({
         method: 'POST',
         body: draftUser,
       }),
-      transformResponse: (response) => parseUser(response),
+      transformResponse: (response: UserDTO) => parseUser(response),
       invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST' }],
     }),
     removeUser: builder.mutation<void, string>({
@@ -64,11 +65,10 @@ export const userApi = createApi({
   }),
 });
 
-const parseUser = (u: any): User =>
-  ({
-    ...u,
-    activatedAt: parseISO(u.activatedAt),
-  } as User);
+const parseUser = (user: UserDTO): User => ({
+  ...user,
+  activatedAt: parseISO(user.activatedAt),
+});
 
 export const {
   useListUsersQuery,

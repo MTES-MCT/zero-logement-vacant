@@ -29,6 +29,8 @@ import { createServer } from '../server';
 import fetchMock from 'jest-fetch-mock';
 import { CampaignIntent } from '../models/EstablishmentApi';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
+import { UserDTO } from '../../shared/models/UserDTO';
+import { Paginated } from '../../shared/models/Pagination';
 import { TEST_ACCOUNTS } from '../services/ceremaService/consultUserService';
 
 const { app } = createServer();
@@ -251,7 +253,7 @@ describe('User controller', () => {
     });
   });
 
-  describe('list', () => {
+  describe('listUsers', () => {
     const testRoute = '/api/users';
 
     it('should be forbidden for a non authenticated user', async () => {
@@ -261,31 +263,39 @@ describe('User controller', () => {
     });
 
     it('should list all users when authenticated user has admin role', async () => {
-      const res = await withAdminAccessToken(
+      const { body, status } = await withAdminAccessToken(
         request(app).post(testRoute)
-      ).expect(constants.HTTP_STATUS_OK);
+      );
 
-      expect(res.body).toMatchObject({ filteredCount: 3, totalCount: 3 });
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<Paginated<UserDTO>>>({
+        filteredCount: 3,
+        totalCount: 3,
+      });
     });
 
     it('should filter users', async () => {
-      const res = await withAdminAccessToken(
+      const { body, status } = await withAdminAccessToken(
         request(app)
           .post(testRoute)
           .send({
-            filters: { establishmentIds: [Establishment1.id] },
+            filters: {
+              establishmentIds: [Establishment1.id],
+            },
           })
-      ).expect(constants.HTTP_STATUS_OK);
+      );
 
-      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 3 });
+      expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+      expect(body).toMatchObject({ filteredCount: 1, totalCount: 3 });
     });
 
     it('should list only establishment users when authenticated user has not admin role', async () => {
-      const res = await withAccessToken(request(app).post(testRoute)).expect(
-        constants.HTTP_STATUS_OK
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute)
       );
 
-      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 1 });
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({ filteredCount: 1, totalCount: 1 });
     });
   });
 

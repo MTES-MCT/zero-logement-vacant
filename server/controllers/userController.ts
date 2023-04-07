@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { SALT_LENGTH, UserApi, UserRoles } from '../models/UserApi';
+import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
-import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
+import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import {
   CampaignIntent,
@@ -20,6 +20,14 @@ import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
 import mailService from '../services/mailService';
+import ForbiddenError from '../errors/forbiddenError';
+import UserMissingError from '../errors/userMissingError';
+import EstablishmentMissingError from '../errors/establishmentMissingError';
+import pagination from '../models/PaginationApi';
+import { isArrayOf, isString } from '../utils/validators';
+
+import { isPartial, Paginated } from '../../shared/models/Pagination';
+import { UserDTO } from '../../shared/models/UserDTO';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
 
 const createUserValidators = [
@@ -50,7 +58,7 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-const createUser = async (request: JWTRequest, response: Response) => {
+const createUser = async (request: Request, response: Response<UserDTO>) => {
   const body = request.body as CreateUserBody;
 
   if (isTestAccount(body.email)) {
@@ -65,15 +73,12 @@ const createUser = async (request: JWTRequest, response: Response) => {
     throw new ProspectInvalidError(prospect);
   }
 
-  const userEstablishment = await establishmentRepository.get(
-    body.establishmentId
-  );
-  if (!userEstablishment) {
-    console.log('Establishment not found for id', body.establishmentId);
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+  const establishment = await establishmentRepository.get(body.establishmentId);
+  if (!establishment) {
+    throw new EstablishmentMissingError(body.establishmentId);
   }
 
-  const userApi: UserApi = {
+  const user: UserApi = {
     id: uuidv4(),
     email: body.email,
     password: await bcrypt.hash(body.password, SALT_LENGTH),
@@ -81,93 +86,94 @@ const createUser = async (request: JWTRequest, response: Response) => {
     lastName: body.lastName ?? '',
     role: UserRoles.Usual,
     establishmentId: body.establishmentId,
+    activatedAt: new Date(),
   };
 
   console.log('Create user', {
-    id: userApi.id,
-    email: userApi.email,
-    establishmentId: userApi.establishmentId,
+    id: user.id,
+    email: user.email,
+    establishmentId: user.establishmentId,
   });
 
-  const createdUser = await userRepository.insert(userApi);
+  await userRepository.insert(user);
 
-  if (!userEstablishment.campaignIntent && body.campaignIntent) {
-    userEstablishment.campaignIntent = body.campaignIntent;
-    userEstablishment.priority = hasPriority(userEstablishment)
-      ? 'high'
-      : 'standard';
-    await establishmentRepository.update(userEstablishment);
+  if (!establishment.campaignIntent && body.campaignIntent) {
+    establishment.campaignIntent = body.campaignIntent;
+    establishment.priority = hasPriority(establishment) ? 'high' : 'standard';
+    await establishmentRepository.update(establishment);
   }
 
-  if (!userEstablishment.available) {
-    await establishmentService.makeEstablishmentAvailable(userEstablishment);
+  if (!establishment.available) {
+    await establishmentService.makeEstablishmentAvailable(establishment);
   }
   // Remove associated prospect
   await prospectRepository.remove(prospect.email);
 
-  response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
+  response.status(constants.HTTP_STATUS_CREATED).json(toUserDTO(user));
   mailService.emit('user:created', prospect.email, {
     createdAt: new Date(),
   });
 };
 
-const list = async (
+const listUsersValidators: ValidationChain[] = [
+  ...pagination.bodyValidators,
+  body('filters').default({}).isObject({ strict: true }),
+  body('filters.establishmentIds')
+    .default([])
+    .isArray()
+    .custom(isArrayOf(isString)),
+];
+
+const listUsers = async (
   request: Request,
-  response: Response
-): Promise<Response> => {
+  response: Response<Paginated<UserDTO>>
+) => {
   console.log('List users');
 
-  const page = request.body.page;
-  const perPage = request.body.perPage;
-  const role = (request as AuthenticatedRequest).user.role;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
-  const bodyFilters = <UserFiltersApi>request.body.filters ?? {};
+  const { auth, body, user } = request as AuthenticatedRequest;
+  const bodyFilters: UserFiltersApi = body.filters ?? {};
 
   const filters = {
     ...bodyFilters,
     establishmentIds:
-      role === UserRoles.Admin
+      user.role === UserRoles.Admin
         ? bodyFilters.establishmentIds
-        : [establishmentId],
+        : [auth.establishmentId],
   };
 
-  return userRepository
-    .listWithFilters(
-      filters,
-      role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
-      { paginate: true, page, perPage }
-    )
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const page = await userRepository.listWithFilters(
+    filters,
+    auth.role === UserRoles.Admin
+      ? {}
+      : { establishmentIds: [auth.establishmentId] },
+    pagination.create(body)
+  );
+  const status = isPartial(page)
+    ? constants.HTTP_STATUS_PARTIAL_CONTENT
+    : constants.HTTP_STATUS_OK;
+  response.status(status).json({
+    ...page,
+    entities: page.entities.map(toUserDTO),
+  });
 };
 
-const removeUser = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    console.log('Remove user');
+const removeUser = async (request: Request, response: Response<void>) => {
+  console.log('Remove user');
 
-    const role = (request as AuthenticatedRequest).user.role;
-    if (role !== UserRoles.Admin) {
-      return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-    }
-
-    const { userId } = request.params;
-    const user = await userRepository.get(userId);
-
-    if (!user) {
-      console.log('User not found for id', userId);
-      return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-    }
-
-    await userRepository.remove(user.id);
-
-    response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
-  } catch (error) {
-    next(error);
+  const role = (request as AuthenticatedRequest).user.role;
+  if (role !== UserRoles.Admin) {
+    throw new ForbiddenError();
   }
+
+  const { userId } = request.params;
+  const user = await userRepository.get(userId);
+  if (!user) {
+    console.log('User not found for id', userId);
+    throw new UserMissingError(userId);
+  }
+
+  await userRepository.remove(user.id);
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
@@ -175,7 +181,8 @@ const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 const userController = {
   createUserValidators,
   createUser,
-  list,
+  listUsersValidators,
+  listUsers,
   removeUser,
   userIdValidator,
 };

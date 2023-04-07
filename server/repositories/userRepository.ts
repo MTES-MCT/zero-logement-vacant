@@ -2,19 +2,18 @@ import highland from 'highland';
 
 import db, { notDeleted } from './db';
 import { UserApi, UserRoles } from '../models/UserApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
-import { PaginationApi, paginationQuery } from '../models/PaginationApi';
+import { paginationQuery } from '../models/PaginationApi';
+import { Paginated, Pagination } from '../../shared/models/Pagination';
 
 export const usersTable = 'users';
+
+const Users = () => db<UserDBO>(usersTable);
 
 const get = async (id: string): Promise<UserApi | null> => {
   console.log('Get user by id', id);
 
-  const result = await db(usersTable)
-    .where(`${usersTable}.id`, id)
-    .andWhere(notDeleted)
-    .first();
+  const result = await Users().where('id', id).andWhere(notDeleted).first();
 
   return result ? parseUserApi(result) : null;
 };
@@ -22,7 +21,7 @@ const get = async (id: string): Promise<UserApi | null> => {
 const getByEmail = async (email: string): Promise<UserApi | null> => {
   console.log('Get user by email', email);
 
-  const result = await db(usersTable)
+  const result = await Users()
     .whereRaw('upper(email) = upper(?)', email)
     .andWhere(notDeleted)
     .first();
@@ -35,7 +34,7 @@ const updatePassword = async (
   password: string
 ): Promise<any> => {
   try {
-    return db(usersTable).update({ password }).where('id', userId);
+    return Users().update({ password }).where('id', userId);
   } catch (err) {
     console.error('Updating password failed', err, userId);
     throw new Error('Updating password failed');
@@ -44,7 +43,7 @@ const updatePassword = async (
 
 const updateLastAuthentication = async (userId: string): Promise<any> => {
   try {
-    return db(usersTable)
+    return Users()
       .update({ last_authenticated_at: new Date() })
       .where('id', userId);
   } catch (err) {
@@ -55,26 +54,16 @@ const updateLastAuthentication = async (userId: string): Promise<any> => {
 
 const activate = async (userId: string): Promise<any> => {
   try {
-    return db(usersTable)
-      .update({ activated_at: new Date() })
-      .where('id', userId);
+    return Users().update({ activated_at: new Date() }).where('id', userId);
   } catch (err) {
     console.error('Updating password failed', err, userId);
     throw new Error('Updating password failed');
   }
 };
 
-const insert = async (userApi: UserApi): Promise<UserApi> => {
+const insert = async (userApi: UserApi): Promise<void> => {
   console.log('Insert user with email', userApi.email);
-  try {
-    return db(usersTable)
-      .insert(formatUserApi(userApi))
-      .returning('*')
-      .then((_) => parseUserApi(_[0]));
-  } catch (err) {
-    console.error('Inserting user failed', err, userApi);
-    throw new Error('Inserting user failed');
-  }
+  await Users().insert(formatUserApi(userApi));
 };
 
 interface StreamOptions {
@@ -100,8 +89,8 @@ const stream = (options?: StreamOptions) => {
 const listWithFilters = async (
   filters: UserFiltersApi,
   filtersForTotalCount: UserFiltersApi,
-  pagination: PaginationApi
-): Promise<PaginatedResultApi<UserApi>> => {
+  pagination: Required<Pagination>
+): Promise<Paginated<UserApi>> => {
   try {
     const filter = (filters: UserFiltersApi) => (queryBuilder: any) => {
       if (filters.establishmentIds?.length) {
@@ -109,31 +98,31 @@ const listWithFilters = async (
       }
     };
 
-    const filteredCount: number = await db(usersTable)
+    const filteredCount: number = await Users()
       .where(notDeleted)
       .modify(filter(filters))
       .count('id')
       .first()
       .then((_) => Number(_.count));
 
-    const totalCount: number = await db(usersTable)
+    const totalCount: number = await Users()
       .where(notDeleted)
       .modify(filter(filtersForTotalCount))
       .count('id')
       .first()
       .then((_) => Number(_?.count));
 
-    const results = await db(usersTable)
+    const results: UserDBO[] = await Users()
       .where(notDeleted)
-      .modify((queryBuilder: any) => {
+      .modify((queryBuilder) => {
         queryBuilder.orderBy('last_name');
         queryBuilder.orderBy('first_name');
       })
       .modify(paginationQuery(pagination))
       .modify(filter(filters));
 
-    return <PaginatedResultApi<UserApi>>{
-      entities: results.map((result: any) => parseUserApi(result)),
+    return {
+      entities: results.map(parseUserApi),
       filteredCount,
       totalCount,
       page: pagination.paginate ? pagination.page : 1,
@@ -145,29 +134,36 @@ const listWithFilters = async (
   }
 };
 
-const remove = async (userId: string): Promise<void> => {
-  console.log('Remove user', userId);
-  try {
-    await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
-  } catch (err) {
-    console.error('Removing user failed', err, userId);
-    throw new Error('Removing user failed');
-  }
+const remove = async (id: string): Promise<void> => {
+  console.log('Remove user', id);
+  await Users().where({ id }).update({ deleted_at: new Date() });
 };
 
-const parseUserApi = (result: any) =>
-  <UserApi>{
-    id: result.id,
-    email: result.email,
-    password: result.password,
-    firstName: result.first_name,
-    lastName: result.last_name,
-    establishmentId: result.establishment_id,
-    role: result.role,
-    activatedAt: result.activated_at,
-  };
+interface UserDBO {
+  id: string;
+  establishment_id?: string;
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  role: UserRoles;
+  activated_at: Date;
+  last_authenticated_at?: Date;
+  deleted_at?: Date;
+}
 
-const formatUserApi = (userApi: UserApi) => ({
+const parseUserApi = (result: UserDBO): UserApi => ({
+  id: result.id,
+  email: result.email,
+  password: result.password,
+  firstName: result.first_name,
+  lastName: result.last_name,
+  establishmentId: result.establishment_id,
+  role: result.role,
+  activatedAt: result.activated_at,
+});
+
+const formatUserApi = (userApi: UserApi): UserDBO => ({
   id: userApi.id,
   email: userApi.email,
   password: userApi.password,
@@ -175,7 +171,7 @@ const formatUserApi = (userApi: UserApi) => ({
   last_name: userApi.lastName,
   establishment_id: userApi.establishmentId,
   role: userApi.role,
-  activated_at: userApi.activatedAt ? new Date(userApi.activatedAt) : undefined,
+  activated_at: userApi.activatedAt,
 });
 
 export default {

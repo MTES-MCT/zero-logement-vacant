@@ -1,26 +1,23 @@
-import { User } from '../../shared/models/User';
+import { UserDTO } from '../../shared/models/UserDTO';
 
 export const SALT_LENGTH = 10;
 
-export interface UserApi {
-  id: string;
-  email: string;
+export interface UserApi extends Omit<UserDTO, 'activatedAt'> {
   password: string;
-  firstName: string;
-  lastName: string;
-  establishmentId?: string;
-  role: number;
-  activatedAt?: Date;
+  activatedAt: Date;
+  lastAuthenticatedAt?: Date;
+  deletedAt?: Date;
 }
 
-export function toUserDTO(user: UserApi): User {
+export function toUserDTO(user: UserApi): UserDTO {
   return {
     id: user.id,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
-    activatedAt: user.activatedAt,
+    activatedAt: user.activatedAt.toISOString(),
+    establishmentId: user.establishmentId,
   };
 }
 

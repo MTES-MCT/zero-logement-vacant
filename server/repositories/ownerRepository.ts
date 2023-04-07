@@ -3,7 +3,7 @@ import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { ownersHousingTable, ReferenceDataYear } from './housingRepository';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { Paginated } from '../../shared/models/Pagination';
 
 export const ownerTable = 'owners';
 
@@ -16,7 +16,7 @@ const searchOwners = async (
   q: string,
   page?: number,
   perPage?: number
-): Promise<PaginatedResultApi<OwnerApi>> => {
+): Promise<Paginated<OwnerApi>> => {
   try {
     const filterQuery = db(ownerTable)
       .whereRaw(
@@ -55,7 +55,7 @@ const searchOwners = async (
 
     console.log('filteredCount', filteredCount);
 
-    return <PaginatedResultApi<OwnerApi>>{
+    return <Paginated<OwnerApi>>{
       entities: results.map((result: any) => parseOwnerApi(result)),
       totalCount,
       filteredCount,

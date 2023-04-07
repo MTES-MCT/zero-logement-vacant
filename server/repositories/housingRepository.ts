@@ -9,7 +9,6 @@ import {
 } from '../models/HousingApi';
 import { ownerTable } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import {
   HousingFiltersApi,
   HousingFiltersForTotalCountApi,
@@ -28,6 +27,7 @@ import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
 import { paginationQuery } from '../models/PaginationApi';
+import { Paginated } from '../../shared/models/Pagination';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -546,7 +546,7 @@ const paginatedListWithFilters = async (
   page: number,
   perPage: number,
   sort?: HousingSortApi
-): Promise<PaginatedResultApi<HousingApi>> => {
+): Promise<Paginated<HousingApi>> => {
   const filterQuery = listQuery(filters.establishmentIds).modify(
     filteredQuery(filters)
   );
@@ -581,7 +581,7 @@ const paginatedListWithFilters = async (
     countWithFilters(filtersForTotalCount),
   ]).then(
     ([results, filteredCount, totalCount]) =>
-      <PaginatedResultApi<HousingApi>>{
+      <Paginated<HousingApi>>{
         entities: results.map((result: any) => parseHousingApi(result)),
         filteredCount,
         totalCount,

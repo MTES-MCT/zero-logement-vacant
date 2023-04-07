@@ -15,11 +15,11 @@ import {
   Locality2,
 } from '../../database/seeds/test/001-establishments';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import {
   OwnerProspect1,
   OwnerProspect2,
 } from '../../database/seeds/test/010-owner-prospects';
+import { Paginated } from '../../shared/models/Pagination';
 
 describe('Owner prospect controller', () => {
   const { app } = createServer();
@@ -151,14 +151,12 @@ describe('Owner prospect controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
-        {
-          page: 1,
-          perPage: 25,
-          filteredCount: expectedCount,
-          totalCount: expectedCount,
-        }
-      );
+      expect(body).toMatchObject<Partial<Paginated<OwnerProspectApi>>>({
+        page: 1,
+        perPage: 25,
+        filteredCount: expectedCount,
+        totalCount: expectedCount,
+      });
       expect(body.entities).toHaveLength(expectedCount);
       const inEstablishment = body.entities.every(
         (entity: OwnerProspectApi) => entity.geoCode === Locality1.geoCode
@@ -174,14 +172,12 @@ describe('Owner prospect controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
-      expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
-        {
-          totalCount: expectedCount,
-          filteredCount: 1,
-          page: 1,
-          perPage: 1,
-        }
-      );
+      expect(body).toMatchObject<Partial<Paginated<OwnerProspectApi>>>({
+        totalCount: expectedCount,
+        filteredCount: 1,
+        page: 1,
+        perPage: 1,
+      });
       expect(body.entities).toHaveLength(1);
     });
   });

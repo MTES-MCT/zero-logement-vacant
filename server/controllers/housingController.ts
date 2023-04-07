@@ -29,10 +29,10 @@ import {
 } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
-import paginationApi, { PaginationApi } from '../models/PaginationApi';
+import paginationApi from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
+import { Paginated, Pagination } from '../../shared/models/Pagination';
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -101,7 +101,7 @@ const listValidators: ValidationChain[] = [
   body('filtersForTotalCount.campaignIds')
     .default([])
     .custom(isArrayOf(isString)),
-  ...paginationApi.validators,
+  ...paginationApi.bodyValidators,
 ];
 
 const list = async (request: Request, response: Response) => {
@@ -109,7 +109,7 @@ const list = async (request: Request, response: Response) => {
 
   const { auth, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const pagination = request.body as Required<PaginationApi>;
+  const pagination = request.body as Required<Pagination>;
   const filters = request.body.filters as HousingFiltersApi;
   const filtersForTotalCount = request.body
     .filtersForTotalCount as HousingFiltersForTotalCountApi;
@@ -125,7 +125,7 @@ const list = async (request: Request, response: Response) => {
       ? filters.establishmentIds
       : [establishmentId];
 
-  const housing: PaginatedResultApi<HousingApi> = pagination.paginate
+  const housing: Paginated<HousingApi> = pagination.paginate
     ? await housingRepository.paginatedListWithFilters(
         {
           ...filters,

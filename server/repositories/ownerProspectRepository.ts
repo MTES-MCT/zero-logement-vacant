@@ -4,10 +4,10 @@ import {
   OwnerProspectSortableApi,
   OwnerProspectSortApi,
 } from '../models/OwnerProspectApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { establishmentsTable } from './establishmentRepository';
-import { PaginationApi, paginationQuery } from '../models/PaginationApi';
+import { paginationQuery } from '../models/PaginationApi';
 import SortApi from '../models/SortApi';
+import { Paginated, Pagination } from '../../shared/models/Pagination';
 
 export const ownerProspectsTable = 'owner_prospects';
 
@@ -26,13 +26,13 @@ const insert = async (
 
 interface FindOptions {
   establishmentId: string;
-  pagination: PaginationApi;
+  pagination: Required<Pagination>;
   sort?: OwnerProspectSortApi;
 }
 
 const find = async (
   options: FindOptions
-): Promise<PaginatedResultApi<OwnerProspectApi>> => {
+): Promise<Paginated<OwnerProspectApi>> => {
   const { establishmentId, pagination, sort } = options;
 
   const query = OwnerProspects()

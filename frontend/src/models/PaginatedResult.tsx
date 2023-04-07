@@ -1,15 +1,11 @@
 import config from '../utils/config';
+import { Paginated } from '../../../shared/models/Pagination';
 
-export interface PaginatedResult<T> {
-  filteredCount: number;
-  totalCount: number;
-  entities: Array<T>;
-  page: number;
-  perPage: number;
+export interface PaginatedResult<T> extends Paginated<T> {
   loading: boolean;
 }
 
-export const initialPaginatedResult = () => ({
+export const initialPaginatedResult = (): PaginatedResult<never> => ({
   entities: [],
   page: 1,
   perPage: config.perPageDefault,

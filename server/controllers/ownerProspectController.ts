@@ -11,15 +11,14 @@ import {
   OwnerProspectUpdateApi,
 } from '../models/OwnerProspectApi';
 import ownerProspectRepository from '../repositories/ownerProspectRepository';
-import pagination, { createPagination } from '../models/PaginationApi';
-import { isPartial } from '../models/PaginatedResultApi';
+import pagination from '../models/PaginationApi';
 import SortApi from '../models/SortApi';
 import OwnerProspectMissingError from '../errors/ownerProspectMissingError';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import userRepository from '../repositories/userRepository';
 import { UserApi } from '../models/UserApi';
-import { Pagination } from '../../shared/models/Pagination';
+import { isPartial } from '../../shared/models/Pagination';
 
 const createOwnerProspectValidators: ValidationChain[] = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -57,7 +56,7 @@ const create = async (request: Request, response: Response) => {
       const users = await userRepository.listWithFilters(
         byEstablishment,
         byEstablishment,
-        { paginate: false }
+        { paginate: false, page: 0, perPage: 0 }
       );
 
       const sendEmails = fp.pipe(
@@ -96,7 +95,7 @@ const find = async (request: Request, response: Response) => {
 
   const ownerProspects = await ownerProspectRepository.find({
     establishmentId: auth.establishmentId,
-    pagination: createPagination(query as unknown as Required<Pagination>),
+    pagination: pagination.create(query),
     sort,
   });
 

@@ -7,6 +7,7 @@ import { body, param, query } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
 import { ContactPointApi, toContactPointDTO } from '../models/ContactPointApi';
+import { ContactPoint } from '../../shared/models/ContactPoint';
 
 const listContactPointsValidators = [
   query('establishmentId').notEmpty().isUUID(),
@@ -14,16 +15,18 @@ const listContactPointsValidators = [
 
 const listContactPoints =
   (publicOnly: boolean) =>
-  async (request: Request, response: Response): Promise<void> => {
+  async (request: Request, response: Response<ContactPoint[]>) => {
     const establishmentId = request.query.establishmentId as string;
 
     console.log('List contact points for establishment', establishmentId);
 
-    const contactPoints = await contactPointsRepository
-      .find(establishmentId, publicOnly);
-      response
-    .status(constants.HTTP_STATUS_OK)
-    .json(contactPoints.map(toContactPointDTO));
+    const contactPoints = await contactPointsRepository.find(
+      establishmentId,
+      publicOnly
+    );
+    response
+      .status(constants.HTTP_STATUS_OK)
+      .json(contactPoints.map(toContactPointDTO));
   };
 
 interface ContactPointBody {
@@ -53,7 +56,10 @@ const createContactPointValidators = [
   body('notes').isString().optional(),
 ];
 
-const createContactPoint = async (request: Request, response: Response) => {
+const createContactPoint = async (
+  request: Request,
+  response: Response<ContactPoint>
+) => {
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
@@ -66,7 +72,7 @@ const createContactPoint = async (request: Request, response: Response) => {
   };
   await contactPointsRepository.insert(contactPoint);
   response
-    .status(constants.HTTP_STATUS_OK)
+    .status(constants.HTTP_STATUS_CREATED)
     .json(toContactPointDTO(contactPoint));
 };
 
@@ -74,7 +80,10 @@ const deleteContactPointValidators = [
   param('contactPointId').notEmpty().isUUID(),
 ];
 
-const deleteContactPoint = async (request: Request, response: Response) => {
+const deleteContactPoint = async (
+  request: Request,
+  response: Response<void>
+) => {
   const id = request.params.contactPointId;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -97,7 +106,10 @@ const updateContactPointValidators = [
   ...createContactPointValidators,
 ];
 
-const updateContactPoint = async (request: Request, response: Response) => {
+const updateContactPoint = async (
+  request: Request,
+  response: Response<void>
+) => {
   const contactPointId = request.params.contactPointId;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;

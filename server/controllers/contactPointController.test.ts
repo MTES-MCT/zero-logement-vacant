@@ -141,7 +141,7 @@ describe('ContactPoint controller', () => {
 
       await withAccessToken(request(app).post(testRoute))
         .send(body)
-        .expect(constants.HTTP_STATUS_OK);
+        .expect(constants.HTTP_STATUS_CREATED);
 
       await contactPointsRepository
         .find(ContactPoint1.establishmentId, true)

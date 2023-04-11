@@ -1,16 +1,7 @@
-import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
 import { normalizeUrlSegment } from '../utils/fetchUtils';
+import { EstablishmentDTO } from '../../../shared/models/EstablishmentDTO';
 
-export interface Establishment {
-  id: string;
-  name: string;
-  shortName: string;
-  siren: number;
-  available: boolean;
-  geoCodes: string[];
-  campaignIntent?: string;
-  kind: EstablishmentKind;
-}
+export type Establishment = Omit<EstablishmentDTO, 'priority'>;
 
 export interface EstablishmentData {
   id: string;

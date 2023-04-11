@@ -1,18 +1,6 @@
-import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
+import { EstablishmentDTO } from '../../shared/models/EstablishmentDTO';
 
-export interface EstablishmentApi {
-  id: string;
-  name: string;
-  shortName: string;
-  siren: number;
-  available: boolean;
-  geoCodes: string[];
-  campaignIntent?: CampaignIntent;
-  priority: EstablishmentPriority;
-  kind: EstablishmentKind;
-}
-
-export type EstablishmentPriority = 'standard' | 'high';
+export type EstablishmentApi = EstablishmentDTO;
 
 export function hasPriority(establishment: EstablishmentApi): boolean {
   return establishment.campaignIntent === '0-2';

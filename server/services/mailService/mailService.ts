@@ -1,5 +1,5 @@
-import { EstablishmentPriority } from '../../models/EstablishmentApi';
 import { UserApi } from '../../models/UserApi';
+import { EstablishmentPriority } from '../../../shared/models/EstablishmentDTO';
 
 export type TemplateId = string | number;
 

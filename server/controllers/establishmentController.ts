@@ -4,6 +4,7 @@ import { constants } from 'http2';
 import { query, ValidationChain } from 'express-validator';
 import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
 import validator from 'validator';
+import { EstablishmentDTO } from '../../shared/models/EstablishmentDTO';
 
 const listValidators: ValidationChain[] = [
   query('available').optional({ nullable: true }).isBoolean(),
@@ -24,8 +25,8 @@ const listValidators: ValidationChain[] = [
 
 const list = async (
   request: Request,
-  response: Response
-): Promise<Response> => {
+  response: Response<EstablishmentDTO[]>
+) => {
   console.log('list establishments');
 
   const available = request.query.available

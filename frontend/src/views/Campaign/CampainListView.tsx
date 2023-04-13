@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Button,
   Callout,
   CalloutText,
   CalloutTitle,
@@ -60,6 +61,15 @@ const CampaignsListView = () => {
           >
             Voir tout
           </InternalLink>
+          <Button
+            onClick={() =>
+              window.open(inProgressCampaignBundle?.exportURL, '_self')
+            }
+            className="float-right"
+            icon="ri-download-line"
+          >
+            Exporter les données
+          </Button>
         </Title>
 
         <CampaignBundleList withDeletion={true} />

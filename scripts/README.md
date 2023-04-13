@@ -12,6 +12,7 @@ checked at the start of your script.
 
 async function run() {
   if (config.application.isReviewApp) {
+    console.log('This is a review app. Skipping...')
     return
   }
   

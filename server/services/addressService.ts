@@ -8,6 +8,11 @@ import banAddressesRepository from '../repositories/banAddressesRepository';
 import db from '../repositories/db';
 
 const run = async (): Promise<void> => {
+  if (config.application.isReviewApp) {
+    console.log('This is a review app. Skipping...');
+    return;
+  }
+
   const addressesToNormalize =
     await banAddressesRepository.listAddressesToNormalize();
 

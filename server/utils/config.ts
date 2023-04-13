@@ -37,6 +37,9 @@ if (!process.env.API_PORT) {
 }
 
 interface Config {
+  attio: {
+    token: string | null;
+  };
   environment: string;
   serverPort: number;
   auth: {
@@ -53,6 +56,7 @@ interface Config {
   maxRate: number;
   application: {
     host: string;
+    isReviewApp: boolean;
   };
   feature: {
     occupancy: string[];
@@ -92,6 +96,15 @@ interface Config {
 }
 
 const config = convict<Config>({
+  attio: {
+    token: {
+      env: 'ATTIO_TOKEN',
+      format: String,
+      sensitive: true,
+      nullable: true,
+      default: null,
+    },
+  },
   environment: {
     env: 'NODE_ENV',
     format: String,
@@ -153,6 +166,11 @@ const config = convict<Config>({
       env: 'APPLICATION_HOST',
       format: 'url',
       default: 'http://localhost:3000',
+    },
+    isReviewApp: {
+      env: 'IS_REVIEW_APP',
+      format: 'strict-boolean',
+      default: false,
     },
   },
   feature: {

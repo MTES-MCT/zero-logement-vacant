@@ -1,21 +1,24 @@
 import React, { ReactElement } from 'react';
 import { Col, Row } from '@dataesr/react-dsfr';
 import { displayCount, pluralize } from '../../utils/stringUtils';
-import HousingListHeaderActions from './HousingListHeaderActions';
+import SelectableListHeaderActions from './SelectableListHeaderActions';
 import { findChild } from '../../utils/elementUtils';
 import classNames from 'classnames';
-import styles from './housing-list-header.module.scss';
+import styles from './selectable-list-header.module.scss';
 
-interface HousingListHeaderProps {
+export type SelectableEntity = 'logement' | 'périmètre';
+
+interface SelectableListHeaderProps {
   children?: ReactElement | ReactElement[];
   selected?: number;
   count?: number;
   total?: number;
   onUnselectAll?: () => void;
+  entity: SelectableEntity;
 }
 
-function HousingListHeader(props: HousingListHeaderProps) {
-  const actions = findChild(props.children, HousingListHeaderActions);
+function SelectableListHeader(props: SelectableListHeaderProps) {
+  const actions = findChild(props.children, SelectableListHeaderActions);
 
   const { selected, total } = {
     selected: 0,
@@ -32,28 +35,28 @@ function HousingListHeader(props: HousingListHeaderProps) {
   const count = hasSelected() ? (
     <>
       <span className={styles.selection}>
-        {selected} {pluralizeMany('logement')} {pluralizeMany('sélectionné')}
+        {selected} {pluralizeMany(props.entity)} {pluralizeMany('sélectionné')}
       </span>
       <button className={buttonClasses} onClick={props.onUnselectAll}>
         Supprimer la sélection
       </button>
     </>
   ) : (
-    displayCount(total, 'logement', true, props.count)
+    displayCount(total, props.entity, true, props.count)
   );
 
-  const classes = classNames(styles.housingListHeader, {
-    [styles.housingListHeaderInfo]: selected > 0,
+  const classes = classNames(styles.selectableListHeader, {
+    [styles.selectableListHeaderInfo]: selected > 0,
   });
 
   return (
     <Row alignItems="middle" className={classes}>
       <Col>{count}</Col>
       <Col n={hasSelected() ? '6' : '8'}>
-        <HousingListHeaderActions {...actions?.props} />
+        <SelectableListHeaderActions {...actions?.props} />
       </Col>
     </Row>
   );
 }
 
-export default HousingListHeader;
+export default SelectableListHeader;

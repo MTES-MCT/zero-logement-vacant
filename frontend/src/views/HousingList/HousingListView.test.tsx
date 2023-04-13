@@ -17,12 +17,14 @@ import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
-import { applicationReducer } from '../../store/store';
+import { geoPerimetersApi } from '../../services/geo.service';
+import { applicationReducer, store as appStore } from '../../store/store';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
 describe('housing view', () => {
   const user = userEvent.setup();
+  let store = appStore;
 
   function setup() {
     render(
@@ -33,8 +35,6 @@ describe('housing view', () => {
       </Provider>
     );
   }
-
-  let store: any;
 
   const defaultFetchMock = (request: Request) => {
     return Promise.resolve(
@@ -57,6 +57,10 @@ describe('housing view', () => {
     fetchMock.resetMocks();
     store = configureStore({
       reducer: applicationReducer,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+          serializableCheck: false,
+        }).concat(geoPerimetersApi.middleware),
       preloadedState: { authentication: { authUser: genAuthUser() } },
     });
   });

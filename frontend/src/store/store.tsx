@@ -9,6 +9,7 @@ import establishmentReducer from './reducers/establishmentReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import settingsReducer from './reducers/settingsReducer';
+import { geoPerimetersApi } from '../services/geo.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -21,6 +22,7 @@ export const applicationReducer = {
   ownerProspect: ownerProspectReducer.reducer,
   settings: settingsReducer.reducer,
   loadingBar: loadingBarReducer,
+  [geoPerimetersApi.reducerPath]: geoPerimetersApi.reducer,
 };
 
 export const store = configureStore({
@@ -28,7 +30,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    }).concat(geoPerimetersApi.middleware),
 });
 
 export type AppState = ReturnType<typeof store.getState>;

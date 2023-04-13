@@ -1,7 +1,5 @@
 import { Dispatch } from 'redux';
-import geoService from '../../services/geo.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
 import {
   ContactPoint,
   DraftContactPoint,
@@ -26,15 +24,6 @@ export interface LocalityListFetchedAction {
   localities: Locality[];
 }
 
-export interface GeoPerimeterListFetchedAction {
-  geoPerimeters: GeoPerimeter[];
-}
-
-export interface GeoPerimeterFileUploadingAction {
-  file: File;
-  filename: string;
-}
-
 export interface ContactPointListFetchedAction {
   contactPoints: ContactPoint[];
 }
@@ -47,10 +36,6 @@ const {
   fetchLocalityList,
   contactPointListFetched,
   fetchContactPointList,
-  fetchGeoPerimeterList,
-  geoPerimeterListFetched,
-  geoPerimeterFileUploading,
-  geoPerimeterFileUploaded,
   localityListFetched,
 } = establishmentSlice.actions;
 
@@ -140,23 +125,6 @@ export const fetchLocalities = (establishmentId: string) => {
   };
 };
 
-export const fetchGeoPerimeters = () => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchGeoPerimeterList());
-
-    geoService.listGeoPerimeters().then((geoPerimeters) => {
-      dispatch(hideLoading());
-      dispatch(
-        geoPerimeterListFetched({
-          geoPerimeters,
-        })
-      );
-    });
-  };
-};
-
 export const updateLocalityTax = (
   establishmentId: string,
   geoCode: string,
@@ -173,46 +141,6 @@ export const updateLocalityTax = (
   };
 };
 
-export const updateGeoPerimeter = (
-  geoPerimeterId: string,
-  kind: string,
-  name?: string
-) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    geoService.updateGeoPerimeter(geoPerimeterId, kind, name).then(() => {
-      dispatch(hideLoading());
-      fetchGeoPerimeters()(dispatch);
-    });
-  };
-};
-
-export const deleteGeoPerimeter = (geoPerimeterId: string) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    geoService.deleteGeoPerimeter(geoPerimeterId).then(() => {
-      dispatch(hideLoading());
-      fetchGeoPerimeters()(dispatch);
-    });
-  };
-};
-
-export const uploadFile = (file: File) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(geoPerimeterFileUploading({ file, filename: file.name }));
-
-    geoService.uploadGeoPerimeterFile(file).then(() => {
-      dispatch(hideLoading());
-      dispatch(geoPerimeterFileUploaded());
-      fetchGeoPerimeters()(dispatch);
-    });
-  };
-};
-
 export const fetchContactPoints = (
   establishmentId: string,
   publicOnly: boolean
@@ -222,14 +150,16 @@ export const fetchContactPoints = (
 
     dispatch(fetchContactPointList());
 
-    contactPointService.find(establishmentId, publicOnly).then((contactPoints) => {
-      dispatch(hideLoading());
-      dispatch(
-        contactPointListFetched({
-          contactPoints,
-        })
-      );
-    });
+    contactPointService
+      .find(establishmentId, publicOnly)
+      .then((contactPoints) => {
+        dispatch(hideLoading());
+        dispatch(
+          contactPointListFetched({
+            contactPoints,
+          })
+        );
+      });
   };
 };
 

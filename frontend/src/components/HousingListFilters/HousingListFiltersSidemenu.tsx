@@ -46,11 +46,11 @@ import {
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
 
 interface TitleWithIconProps {
   icon: string;
@@ -76,7 +76,7 @@ function HousingListFiltersSidemenu() {
   const { expand, filters, onChangeFilters, onResetFilters, setExpand } =
     useFilters();
   const campaignList = useCampaignList();
-  const geoPerimeters = useGeoPerimeterList();
+  const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList(establishment?.id);
   const localities = localitiesOptions

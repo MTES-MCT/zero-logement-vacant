@@ -28,7 +28,7 @@ import {
 } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
-import HousingListHeader from './HousingListHeader';
+import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
 import Checkbox from '../Checkbox/Checkbox';
 import { useSort } from '../../hooks/useSort';
@@ -66,7 +66,7 @@ const HousingList = ({
   additionalColumns,
   tableClassName,
 }: Props) => {
-  const header = findChild(children, HousingListHeader);
+  const header = findChild(children, SelectableListHeader);
 
   const location = useLocation();
   const campaignList = useCampaignList();
@@ -297,7 +297,7 @@ const HousingList = ({
   return (
     <div>
       <header>
-        <HousingListHeader
+        <SelectableListHeader
           selected={
             allChecked
               ? paginatedHousing.filteredCount - checkedIds.length

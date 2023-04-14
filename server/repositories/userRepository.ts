@@ -1,5 +1,7 @@
+import highland from 'highland';
+
 import db, { notDeleted } from './db';
-import { UserApi } from '../models/UserApi';
+import { UserApi, UserRoles } from '../models/UserApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
@@ -73,6 +75,26 @@ const insert = async (userApi: UserApi): Promise<UserApi> => {
     console.error('Inserting user failed', err, userApi);
     throw new Error('Inserting user failed');
   }
+};
+
+interface StreamOptions {
+  roles?: UserRoles[];
+  updatedAfter?: Date;
+}
+
+const stream = (options?: StreamOptions) => {
+  const stream = db(usersTable)
+    .orderBy('email')
+    .modify((query) => {
+      if (options?.updatedAfter) {
+        query.andWhere('updated_at', '>', options.updatedAfter);
+      }
+      if (options?.roles?.length) {
+        query.andWhere('role', 'IN', options.roles);
+      }
+    })
+    .stream();
+  return highland(stream).map(parseUserApi);
 };
 
 const listWithFilters = async (
@@ -162,6 +184,7 @@ export default {
   updatePassword,
   updateLastAuthentication,
   listWithFilters,
+  stream,
   insert,
   activate,
   formatUserApi,

@@ -1,6 +1,10 @@
 import fetch from 'node-fetch';
 import config from '../../server/utils/config';
 import { EstablishmentApi } from '../../server/models/EstablishmentApi';
+import { UserApi } from '../../server/models/UserApi';
+import { AttioOption, toOption } from './attio-option';
+import { Option } from './option';
+import { AttioCompany } from './attio-company';
 
 const host = 'https://api.attio.com/v2';
 const token = config.attio.token;
@@ -18,29 +22,10 @@ async function listOptions(attribute: string): Promise<Option[]> {
   );
   if (!response.ok) {
     const error: Error = await response.json();
-    throw new Error(error.message);
+    throw error;
   }
   const json: { data: AttioOption[] } = await response.json();
   return json.data.map(toOption);
-}
-
-interface AttioOption {
-  id: {
-    workspace_id: string;
-    object_id: string;
-    attribute_id: string;
-    option_id: string;
-  };
-  title: string;
-  is_archived: boolean;
-}
-
-function toOption(option: AttioOption): Option {
-  return {
-    id: option.id.option_id,
-    title: option.title,
-    is_archived: option.is_archived,
-  };
 }
 
 const cache: Map<string, Option[]> = new Map();
@@ -58,13 +43,9 @@ async function getOption(
   );
 }
 
-interface Option {
-  id: string;
-  title: string;
-  is_archived: boolean;
-}
-
-async function sync(establishment: EstablishmentApi): Promise<void> {
+async function syncEstablishment(
+  establishment: EstablishmentApi
+): Promise<void> {
   const kind = await getOption('type_etablissement', establishment.kind);
   const priority = await getOption(
     'priorite',
@@ -98,12 +79,83 @@ async function sync(establishment: EstablishmentApi): Promise<void> {
   );
   if (!response.ok) {
     const error: Error = await response.json();
-    throw new Error(error.message);
+    throw error;
+  }
+}
+
+async function findCompany(id: string): Promise<AttioCompany | null> {
+  const response = await fetch(`${host}/objects/companies/records/query`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      limit: 1,
+      filters: { id },
+    }),
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const error: Error = await response.json();
+    throw error;
+  }
+
+  const company = await response.json();
+  return {
+    id: company.data[0].id.record_id,
+  };
+}
+
+async function syncUser(user: UserApi): Promise<void> {
+  if (!user.establishmentId) {
+    throw new Error(`User ${user.email} has no establishmentId.`);
+  }
+
+  const company = await findCompany(user.establishmentId);
+  if (!company) {
+    throw new Error(`Attio company ${user.establishmentId} not found.`);
+  }
+
+  const response = await fetch(
+    `${host}/objects/people/records?matching_attribute=email_addresses`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          values: {
+            utilisateur_id: [{ value: user.id }],
+            email_addresses: [{ email_address: user.email }],
+            company: [
+              {
+                target_object: 'companies',
+                target_record_id: company.id,
+              },
+            ],
+            date_activation_zlv: [{ value: user.activatedAt }],
+          },
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error: Error = await response.json();
+    throw error;
   }
 }
 
 const attio = {
-  sync,
+  syncEstablishment,
+  syncUser,
 };
 
 export default attio;

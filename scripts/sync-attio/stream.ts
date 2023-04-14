@@ -1,4 +1,5 @@
 import highland from 'highland';
+import Stream = Highland.Stream;
 
 export function tapAsync<T>(f: (data: T) => Promise<void>) {
   return (
@@ -27,6 +28,20 @@ export function tapAsync<T>(f: (data: T) => Promise<void>) {
       })
       .finally(() => {
         next();
+      });
+  };
+}
+
+export function counter(message: (count: number) => string) {
+  let count = 0;
+
+  return <T>(stream: Stream<T>): Stream<T> => {
+    return stream
+      .tap(() => {
+        count++;
+      })
+      .on('end', () => {
+        console.log(message(count));
       });
   };
 }

@@ -9,4 +9,4 @@ output of the script.
 
 ### Optimizations
 Because Attio is rate-limited, we limit the amount of outgoing requests on our
-side to avoid having a complex _retry_ implementation.
+side and each failed request is retried after a short time if necessary.

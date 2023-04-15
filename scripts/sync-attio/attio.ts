@@ -1,4 +1,5 @@
-import fetch from 'node-fetch';
+import fetch from '@adobe/node-fetch-retry';
+
 import config from '../../server/utils/config';
 import { EstablishmentApi } from '../../server/models/EstablishmentApi';
 import { UserApi } from '../../server/models/UserApi';
@@ -9,7 +10,22 @@ import { AttioCompany } from './attio-company';
 const host = 'https://api.attio.com/v2';
 const token = config.attio.token;
 
+/**
+ * Set up the cache
+ */
+async function initialize(): Promise<void> {
+  await Promise.all([
+    listOptions('priorite'),
+    listOptions('type_etablissement'),
+  ]);
+}
+
 async function listOptions(attribute: string): Promise<Option[]> {
+  if (cache.has(attribute)) {
+    return cache.get(attribute) ?? [];
+  }
+
+  console.log(`Listing options for attribute ${attribute}`);
   const response = await fetch(
     `${host}/objects/companies/attributes/${attribute}/options`,
     {
@@ -25,7 +41,9 @@ async function listOptions(attribute: string): Promise<Option[]> {
     throw error;
   }
   const json: { data: AttioOption[] } = await response.json();
-  return json.data.map(toOption);
+  const options = json.data.map(toOption);
+  cache.set(attribute, options);
+  return options;
 }
 
 const cache: Map<string, Option[]> = new Map();
@@ -34,8 +52,7 @@ async function getOption(
   attribute: string,
   value: string
 ): Promise<Option | null> {
-  const options = cache.get(attribute) ?? (await listOptions(attribute));
-  cache.set(attribute, options);
+  const options = await listOptions(attribute);
   return (
     options
       .filter((option) => !option.is_archived)
@@ -45,7 +62,7 @@ async function getOption(
 
 async function syncEstablishment(
   establishment: EstablishmentApi
-): Promise<void> {
+): Promise<EstablishmentApi> {
   const kind = await getOption('type_etablissement', establishment.kind);
   const priority = await getOption(
     'priorite',
@@ -78,9 +95,13 @@ async function syncEstablishment(
     }
   );
   if (!response.ok) {
+    console.error('Bad response', establishment, response.status);
     const error: Error = await response.json();
+    console.error(error);
     throw error;
   }
+  console.log(`Synced ${establishment.name}`);
+  return establishment;
 }
 
 async function findCompany(id: string): Promise<AttioCompany | null> {
@@ -92,26 +113,21 @@ async function findCompany(id: string): Promise<AttioCompany | null> {
     },
     body: JSON.stringify({
       limit: 1,
-      filters: { id },
+      filter: { id },
     }),
   });
-
-  if (response.status === 404) {
-    return null;
-  }
 
   if (!response.ok) {
     const error: Error = await response.json();
     throw error;
   }
 
-  const company = await response.json();
-  return {
-    id: company.data[0].id.record_id,
-  };
+  const { data } = await response.json();
+  const company = data[0];
+  return company ? { id: company.id.record_id } : null;
 }
 
-async function syncUser(user: UserApi): Promise<void> {
+async function syncUser(user: UserApi): Promise<UserApi> {
   if (!user.establishmentId) {
     throw new Error(`User ${user.email} has no establishmentId.`);
   }
@@ -148,12 +164,18 @@ async function syncUser(user: UserApi): Promise<void> {
   );
 
   if (!response.ok) {
-    const error: Error = await response.json();
-    throw error;
+    if (response.headers.get('Content-Type')?.includes('application/json')) {
+      const error: Error = await response.json();
+      throw error;
+    }
+    throw new Error(`Error while syncing user ${user.email}`);
   }
+  console.log(`Synced ${user.email}`);
+  return user;
 }
 
 const attio = {
+  initialize,
   syncEstablishment,
   syncUser,
 };

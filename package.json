@@ -29,6 +29,7 @@
     "npm": "^8"
   },
   "dependencies": {
+    "@adobe/node-fetch-retry": "^2.2.0",
     "@jest-mock/express": "^1.4.5",
     "@sendinblue/client": "^3.2.2",
     "@sentry/integrations": "^7.12.1",

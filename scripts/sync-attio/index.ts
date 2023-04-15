@@ -1,15 +1,15 @@
 import { millisecondsInMinute, subHours } from 'date-fns';
 
 import config from '../../server/utils/config';
-import establishmentRepository from '../../server/repositories/establishmentRepository';
 import db from '../../server/repositories/db';
 import attio from './attio';
-import { counter, tapAsync } from './stream';
-import userRepository from '../../server/repositories/userRepository';
+import { counter, tapAllAsync } from './stream';
 import { UserRoles } from '../../server/models/UserApi';
+import establishmentRepository from '../../server/repositories/establishmentRepository';
+import userRepository from '../../server/repositories/userRepository';
 
-// 5000 requests by minute (Attio's rate limit)
-const MAX_REQUESTS_PER_FRAME = 1000;
+// Requests per minute (to comply with Attio's rate limit)
+const MAX_REQUESTS_PER_FRAME = 500;
 const FRAME = millisecondsInMinute;
 const UPDATED_LESS_THAN_HOURS_AGO = 2; // hours
 
@@ -18,6 +18,8 @@ async function run() {
     console.log('This is a review app. Skipping...');
     return;
   }
+
+  await attio.initialize();
 
   console.log('Querying database...');
 
@@ -29,12 +31,11 @@ async function run() {
           updatedAfter: subHours(new Date(), UPDATED_LESS_THAN_HOURS_AGO),
         })
         .ratelimit(MAX_REQUESTS_PER_FRAME, FRAME)
-        .consume(tapAsync(attio.syncEstablishment))
+        .batch(100)
+        .consume(tapAllAsync(attio.syncEstablishment))
+        .sequence()
         .errors((error) => {
-          console.error(error);
-        })
-        .tap((establishment) => {
-          console.log(`Synced ${establishment.name}`);
+          console.error('Error', error);
         })
         .through(counter((count) => `Synced ${count} establishments.`))
         .done(resolve);
@@ -49,19 +50,19 @@ async function run() {
           updatedAfter: subHours(new Date(), UPDATED_LESS_THAN_HOURS_AGO),
         })
         .ratelimit(MAX_REQUESTS_PER_FRAME, FRAME)
-        .consume(tapAsync(attio.syncUser))
+        .batch(100)
+        .consume(tapAllAsync(attio.syncUser))
+        .sequence()
         .errors((error) => {
           console.error(error);
-        })
-        .tap((user) => {
-          console.log(`Synced ${user.email}`);
         })
         .through(counter((count) => `Synced ${count} users.`))
         .done(resolve);
     });
   }
 
-  return Promise.all([syncEstablishments(), syncUsers()]);
+  await syncEstablishments();
+  await syncUsers();
 }
 
 run()

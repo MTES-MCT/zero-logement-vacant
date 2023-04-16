@@ -13,6 +13,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 
 import styles from './app-footer.module.scss';
+import { useUser } from '../../hooks/useUser';
 
 type FooterInternalLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
 
@@ -26,17 +27,27 @@ function AppFooter() {
     );
   }
 
+  const authUser = useUser();
+
   return (
     <Footer>
       <FooterTop align="start">
         <FooterTopCategory title="Liens utiles" n="4">
-          <FooterInternalLink href="/">Nous contacter</FooterInternalLink>
-          <FooterInternalLink href="/">FAQ</FooterInternalLink>
-          <FooterInternalLink href="/">Nouveautés</FooterInternalLink>
+          <FooterLink href="mailto:contact@zerologementvacant.beta.gouv.fr">
+            Nous contacter
+          </FooterLink>
+          <FooterLink href="https://zerologementvacant.crisp.help/fr/">
+            FAQ
+          </FooterLink>
+          <FooterLink href="https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441">
+            Nouveautés
+          </FooterLink>
         </FooterTopCategory>
         <FooterTopCategory title="Informations légales" n="4">
           <FooterInternalLink href="/">Mentions légales</FooterInternalLink>
-          <FooterInternalLink href="/">Statistiques</FooterInternalLink>
+          <FooterLink href="https://zerologementvacant.beta.gouv.fr/stats">
+            Statistiques
+          </FooterLink>
           <FooterInternalLink href="/">CGU</FooterInternalLink>
         </FooterTopCategory>
         <FooterTopCategory title="Navigation" n="4">
@@ -50,6 +61,21 @@ function AppFooter() {
           <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
           <FooterInternalLink href="/territoire">
             Votre territoire
+          </FooterInternalLink>
+          <FooterInternalLink href="/utilisateurs">
+            Utilisateurs
+          </FooterInternalLink>
+          <FooterInternalLink
+            href={
+              authUser.isAdmin
+                ? '/suivi'
+                : `/suivi/etablissement/${authUser.establishment?.id}`
+            }
+          >
+            Suivi
+          </FooterInternalLink>
+          <FooterInternalLink href="/boite-de-reception">
+            Boite de réception
           </FooterInternalLink>
         </FooterTopCategory>
       </FooterTop>

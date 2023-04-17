@@ -113,8 +113,8 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
         email,
-        hasAccount: false,
-        hasCommitment: false,
+        hasAccount: true,
+        hasCommitment: true,
       });
     });
 

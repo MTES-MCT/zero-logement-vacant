@@ -3,9 +3,9 @@ import { getTestAccount } from '../../models/ProspectApi';
 import { SirenStrasbourg } from '../../../database/seeds/dummy/001-establishments';
 
 class MockCeremaService implements ConsultUserService {
-  async consultUser(email: string): Promise<CeremaUser> {
+  async consultUsers(email: string): Promise<CeremaUser[]> {
     const testAccount = getTestAccount(email);
-    return testAccount ?? defaultOK(email);
+    return [testAccount ?? defaultOK(email)];
   }
 }
 

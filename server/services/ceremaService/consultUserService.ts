@@ -1,10 +1,10 @@
 export interface CeremaUser {
   email: string;
-  establishmentSiren?: number;
+  establishmentSiren: number;
   hasAccount: boolean;
   hasCommitment: boolean;
 }
 
 export interface ConsultUserService {
-  consultUser(email: string): Promise<CeremaUser>;
+  consultUsers(email: string): Promise<CeremaUser[]>;
 }

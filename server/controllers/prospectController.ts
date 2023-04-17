@@ -12,6 +12,7 @@ import SignupLinkExpiredError from '../errors/signupLinkExpiredError';
 import { ProspectApi } from '../models/ProspectApi';
 import ceremaService from '../services/ceremaService';
 import establishmentRepository from '../repositories/establishmentRepository';
+import { EstablishmentApi } from '../models/EstablishmentApi';
 
 async function upsert(request: Request, response: Response) {
   const id = request.params.id as string;
@@ -32,18 +33,26 @@ async function upsert(request: Request, response: Response) {
     return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
   }
 
-  const ceremaUser = await ceremaService.consultUser(email);
-  const establishment = ceremaUser.establishmentSiren
-    ? await establishmentRepository.findOne({
-        siren: ceremaUser.establishmentSiren,
+  const ceremaUsers = await ceremaService.consultUsers(email);
+
+  const establishment: EstablishmentApi | undefined =
+    await establishmentRepository
+      .listWithFilters({
+        sirens: ceremaUsers.map((ceremaUser) => ceremaUser.establishmentSiren),
       })
-    : null;
+      .then((_) => _[0]);
+
+  const ceremaUser = ceremaUsers.find(
+    (_) => _.establishmentSiren === establishment?.siren
+  );
+
   const exists = await prospectRepository.exists(email);
+
   const prospect: ProspectApi = {
     email,
-    establishment,
-    hasAccount: ceremaUser.hasAccount,
-    hasCommitment: ceremaUser.hasCommitment,
+    establishment: establishment,
+    hasAccount: ceremaUser?.hasAccount ?? false,
+    hasCommitment: ceremaUser?.hasCommitment ?? false,
   };
   await prospectRepository.upsert(prospect);
 

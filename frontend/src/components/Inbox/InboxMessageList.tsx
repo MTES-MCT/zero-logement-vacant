@@ -139,7 +139,7 @@ function InboxMessageList(props: Props) {
           isSimple
           onClick={() => props.onDisplay?.({ ...owner, read: true })}
         >
-          Afficher la fiche contact
+          Afficher le message
         </ButtonLink>
       ),
     },

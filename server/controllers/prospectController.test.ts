@@ -59,10 +59,9 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
 
-    it('should create a prospect with first known establishment', async () => {
+    it('should create a prospect for the first known establishment with lovac ok', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      const siren = Establishment1.siren;
       await signupLinkRepository.insert(link);
       jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
@@ -73,7 +72,13 @@ describe('Prospect controller', () => {
         },
         {
           email,
-          establishmentSiren: siren,
+          establishmentSiren: Establishment1.siren,
+          hasAccount: true,
+          hasCommitment: false,
+        },
+        {
+          email,
+          establishmentSiren: Establishment2.siren,
           hasAccount: true,
           hasCommitment: true,
         },
@@ -84,13 +89,13 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: Establishment1,
+        establishment: Establishment2,
         hasAccount: true,
         hasCommitment: true,
       });
     });
 
-    it('should create a prospect with unknown establishment', async () => {
+    it('should create a prospect with an unknown establishment', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
       await signupLinkRepository.insert(link);

@@ -35,7 +35,7 @@ async function upsert(request: Request, response: Response) {
 
   const ceremaUsers = await ceremaService.consultUsers(email);
 
-  const establishment: EstablishmentApi | undefined =
+  const knowEstablishmentWithCommitment: EstablishmentApi | undefined =
     await establishmentRepository
       .listWithFilters({
         sirens: ceremaUsers
@@ -44,15 +44,16 @@ async function upsert(request: Request, response: Response) {
       })
       .then((_) => _[0]);
 
-  const ceremaUser = ceremaUsers.find(
-    (_) => _.establishmentSiren === establishment?.siren
-  );
+  const ceremaUser =
+    ceremaUsers.find(
+      (_) => _.establishmentSiren === knowEstablishmentWithCommitment?.siren
+    ) ?? ceremaUsers[0];
 
   const exists = await prospectRepository.exists(email);
 
   const prospect: ProspectApi = {
     email,
-    establishment: establishment,
+    establishment: knowEstablishmentWithCommitment,
     hasAccount: ceremaUser?.hasAccount ?? false,
     hasCommitment: ceremaUser?.hasCommitment ?? false,
   };

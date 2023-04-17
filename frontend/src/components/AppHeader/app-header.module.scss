@@ -18,12 +18,19 @@
   width: 1.5rem;
 }
 
-.brandService {
-  label {
-    display: none;
+.header {
+  a:before {
+    display: none !important;
   }
 
-  input {
-    width: 450px;
+  .brandService {
+    label {
+      display: none;
+    }
+
+    input {
+      width: 450px;
+    }
+
   }
 }

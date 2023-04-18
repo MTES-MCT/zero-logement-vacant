@@ -19,6 +19,11 @@ async function run() {
     return;
   }
 
+  if (!config.attio.enabled) {
+    console.log('This script is disabled. Skipping...');
+    return;
+  }
+
   await attio.initialize();
 
   console.log('Querying database...');

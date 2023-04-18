@@ -38,6 +38,7 @@ if (!process.env.API_PORT) {
 
 interface Config {
   attio: {
+    enabled: boolean;
     token: string | null;
   };
   environment: string;
@@ -97,6 +98,11 @@ interface Config {
 
 const config = convict<Config>({
   attio: {
+    enabled: {
+      env: 'ATTIO_ENABLED',
+      format: 'strict-boolean',
+      default: false,
+    },
     token: {
       env: 'ATTIO_TOKEN',
       format: String,

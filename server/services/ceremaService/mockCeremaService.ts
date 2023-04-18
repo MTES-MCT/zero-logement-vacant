@@ -1,5 +1,8 @@
-import { CeremaUser, ConsultUserService } from './consultUserService';
-import { getTestAccount } from '../../models/ProspectApi';
+import {
+  CeremaUser,
+  ConsultUserService,
+  getTestAccount,
+} from './consultUserService';
 import { SirenStrasbourg } from '../../../database/seeds/dummy/001-establishments';
 
 class MockCeremaService implements ConsultUserService {

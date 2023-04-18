@@ -26,10 +26,10 @@ import housingRepository, {
 } from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import { createServer } from '../server';
-import { TEST_ACCOUNTS } from '../models/ProspectApi';
 import fetchMock from 'jest-fetch-mock';
 import { CampaignIntent } from '../models/EstablishmentApi';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
+import { TEST_ACCOUNTS } from '../services/ceremaService/consultUserService';
 
 const { app } = createServer();
 

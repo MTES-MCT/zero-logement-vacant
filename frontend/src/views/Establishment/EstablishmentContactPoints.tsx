@@ -148,13 +148,8 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           {settings && (
             <Toggle
               checked={settings.contactPoints?.public}
-              label={
-                settings.contactPoints?.public
-                  ? 'Informations publiées'
-                  : 'Informations non publiées'
-              }
+              label="Publication"
               onChange={togglePublishContactPoints}
-              className="fr-mt-0"
             />
           )}
           <div className="flex-1 flex-right">

@@ -1,6 +1,8 @@
 .link {
-  background: none;
-  color: var(--grey-425);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
+  & > a {
+    background: none;
+    color: var(--grey-425);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
 }

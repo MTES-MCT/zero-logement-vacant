@@ -15,16 +15,21 @@ import { Link as RouterLink } from 'react-router-dom';
 import styles from './app-footer.module.scss';
 import { useUser } from '../../hooks/useUser';
 
-type FooterInternalLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
+type FooterLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
 
 function AppFooter() {
-  function FooterInternalLink(props: FooterInternalLinkProps) {
+  function FooterInternalLink(props: FooterLinkProps) {
     return (
       <FooterLink
         {...props}
-        asLink={<RouterLink className={styles.link} to={props.href ?? '#'} />}
+        className={styles.link}
+        asLink={<RouterLink to={props.href ?? '#'} />}
       />
     );
+  }
+
+  function FooterExternalLink(props: FooterLinkProps) {
+    return <FooterLink {...props} className={styles.link} />;
   }
 
   const authUser = useUser();
@@ -33,22 +38,23 @@ function AppFooter() {
     <Footer>
       <FooterTop align="start">
         <FooterTopCategory title="Liens utiles" n="4">
-          <FooterLink href="mailto:contact@zerologementvacant.beta.gouv.fr">
+          <FooterExternalLink href="mailto:contact@zerologementvacant.beta.gouv.fr">
             Nous contacter
-          </FooterLink>
-          <FooterLink href="https://zerologementvacant.crisp.help/fr/">
+          </FooterExternalLink>
+          <FooterExternalLink href="https://zerologementvacant.crisp.help/fr/">
             FAQ
-          </FooterLink>
-          <FooterLink href="https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441">
+          </FooterExternalLink>
+          <FooterExternalLink href="https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441">
             Nouveautés
-          </FooterLink>
+          </FooterExternalLink>
         </FooterTopCategory>
         <FooterTopCategory title="Informations légales" n="4">
-          <FooterInternalLink href="/">Mentions légales</FooterInternalLink>
-          <FooterLink href="https://zerologementvacant.beta.gouv.fr/stats">
+          <FooterInternalLink href="/mentions-legales">
+            Mentions légales & CGU
+          </FooterInternalLink>
+          <FooterExternalLink href="https://zerologementvacant.beta.gouv.fr/stats">
             Statistiques
-          </FooterLink>
-          <FooterInternalLink href="/">CGU</FooterInternalLink>
+          </FooterExternalLink>
         </FooterTopCategory>
         <FooterTopCategory title="Navigation" n="4">
           <FooterInternalLink href="/accueil">Accueil</FooterInternalLink>

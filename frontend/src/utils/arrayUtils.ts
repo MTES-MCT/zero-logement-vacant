@@ -8,3 +8,7 @@ export function ensure<T>(
 
   return argument;
 }
+
+export function concat<T>(array: Array<T> | undefined, ...items: Array<T>) {
+  return [...(array ?? []), ...items];
+}

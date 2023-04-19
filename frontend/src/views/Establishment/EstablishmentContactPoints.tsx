@@ -148,7 +148,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           {settings && (
             <Toggle
               checked={settings.contactPoints?.public}
-              label="Publication"
+              label="Publication des informations"
               onChange={togglePublishContactPoints}
             />
           )}

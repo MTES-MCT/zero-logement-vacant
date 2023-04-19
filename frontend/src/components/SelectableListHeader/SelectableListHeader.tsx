@@ -38,7 +38,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
         {selected} {pluralizeMany(props.entity)} {pluralizeMany('sélectionné')}
       </span>
       <button className={buttonClasses} onClick={props.onUnselectAll}>
-        Supprimer la sélection
+        Annuler la sélection
       </button>
     </>
   ) : (

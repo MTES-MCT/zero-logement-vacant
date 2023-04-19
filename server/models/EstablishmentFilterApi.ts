@@ -6,4 +6,5 @@ export interface EstablishmentFilterApi {
   geoCodes?: string[];
   kind?: EstablishmentKind;
   name?: string;
+  sirens?: number[];
 }

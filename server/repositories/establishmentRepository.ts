@@ -78,6 +78,9 @@ const listWithFilters = async (
         filters.name
       );
     }
+    if (filters.sirens) {
+      queryBuilder.whereIn('siren', filters.sirens);
+    }
   };
 
   return db(establishmentsTable)

@@ -15,11 +15,12 @@ import establishmentService from '../services/establishmentService';
 import prospectRepository from '../repositories/prospectRepository';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { isTestAccount, isValid } from '../models/ProspectApi';
+import { isValid } from '../models/ProspectApi';
 import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
 import mailService from '../services/mailService';
+import { isTestAccount } from '../services/ceremaService/consultUserService';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),

@@ -21,8 +21,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './home.module.scss';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import {
-  fetchContactPoints,
-  fetchLocalities,
   getEstablishment,
   getNearbyEstablishments,
 } from '../../store/actions/establishmentAction';
@@ -32,6 +30,8 @@ import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
+import { useFindContactPointsQuery } from '../../services/contact-point.service';
+import { useLocalityList } from '../../hooks/useLocalityList';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -43,13 +43,22 @@ const OwnerEstablishmentHomeView = () => {
     (state) => state.ownerProspect
   );
 
-  const {
-    establishment,
-    contactPoints,
-    localities,
-    nearbyEstablishments,
-    epciEstablishment,
-  } = useAppSelector((state) => state.establishment);
+  const { establishment, nearbyEstablishments, epciEstablishment } =
+    useAppSelector((state) => state.establishment);
+
+  const { data: contactPoints } = useFindContactPointsQuery(
+    {
+      establishmentId: (establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id)!,
+      publicOnly: true,
+    },
+    {
+      skip: !(establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id),
+    }
+  );
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
@@ -69,6 +78,7 @@ const OwnerEstablishmentHomeView = () => {
   );
 
   useDocumentTitle(establishment?.name);
+  const { localities } = useLocalityList(establishment?.id);
 
   useEffect(() => {
     if (refName) {
@@ -79,17 +89,8 @@ const OwnerEstablishmentHomeView = () => {
   useEffect(() => {
     if (establishment) {
       dispatch(getNearbyEstablishments(establishment));
-      dispatch(fetchLocalities(establishment.id));
     }
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (establishment?.available) {
-      dispatch(fetchContactPoints(establishment?.id, true));
-    } else if (epciEstablishment?.available) {
-      dispatch(fetchContactPoints(epciEstablishment?.id, true));
-    }
-  }, [establishment, epciEstablishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
     dispatch(

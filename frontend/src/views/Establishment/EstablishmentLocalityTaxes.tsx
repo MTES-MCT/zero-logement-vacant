@@ -20,29 +20,21 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
-import { updateLocalityTax } from '../../store/actions/establishmentAction';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import Help from '../../components/Help/Help';
-
-enum ActionSteps {
-  Init,
-  InProgress,
-  Done,
-}
-
-interface LocalityTaxActionState {
-  step: ActionSteps;
-  locality: Locality;
-}
+import { useUpdateLocalityTaxMutation } from '../../services/locality.service';
 
 interface Props {
   establishmentId: string;
 }
 
 const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { loading } = useAppSelector((state) => state.establishment);
+
+  const [
+    updateLocalityTax,
+    { isSuccess: isUpdateSuccess, isError: isUpdateError },
+  ] = useUpdateLocalityTaxMutation();
+
   const { localities, filterCount } = useLocalityList(establishmentId);
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
@@ -67,47 +59,31 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
     [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
   );
 
-  const [editingState, setEditingState] = useState<
-    LocalityTaxActionState | undefined
+  const [localityToUpdate, setLocalityToUpdate] = useState<
+    Locality | undefined
   >();
 
-  useEffect(() => {
-    if (editingState?.step === ActionSteps.InProgress && !loading) {
-      setEditingState({
-        step: ActionSteps.Done,
-        locality: editingState.locality,
-      });
-    }
-  }, [loading]); //eslint-disable-line react-hooks/exhaustive-deps
-
   const onSubmitEditingLocalityTax = (taxKind: TaxKinds, taxRate?: number) => {
-    if (editingState?.locality) {
+    if (localityToUpdate) {
       trackEvent({
         category: TrackEventCategories.LocalityTaxes,
         action: TrackEventActions.LocalityTaxes.Update,
       });
-      setEditingState({
-        step: ActionSteps.InProgress,
-        locality: { ...editingState.locality, taxRate },
-      });
-      dispatch(
-        updateLocalityTax(
-          establishmentId,
-          editingState.locality.geoCode,
-          taxKind,
-          taxRate
-        )
-      );
+      updateLocalityTax({
+        geoCode: localityToUpdate.geoCode,
+        taxKind,
+        taxRate,
+      }).finally(() => setLocalityToUpdate(undefined));
     }
   };
 
   return (
     <>
-      {editingState?.step === ActionSteps.Init && (
+      {localityToUpdate && (
         <LocalityTaxEditionModal
-          locality={editingState.locality}
+          locality={localityToUpdate}
           onSubmit={onSubmitEditingLocalityTax}
-          onClose={() => setEditingState(undefined)}
+          onClose={() => setLocalityToUpdate(undefined)}
         />
       )}
       <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
@@ -116,14 +92,18 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
       <Help className="d-inline-block bg-white">
         Informations publiées par défaut
       </Help>
-      {editingState?.step === ActionSteps.Done && (
+      {isUpdateSuccess && (
         <Alert
           type="success"
-          description={
-            'La taxe de ' +
-            editingState.locality.name +
-            ' a été modifiée avec succès ! '
-          }
+          description={'La taxe de a été modifiée avec succès !'}
+          closable
+          className="fr-mb-2w"
+        />
+      )}
+      {isUpdateError && (
+        <Alert
+          type="error"
+          description="Une erreur s'est produite, veuillez réessayer."
           closable
           className="fr-mb-2w"
         />
@@ -165,9 +145,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
             <Col n="4" key={locality.name}>
               <LocalityTaxCard
                 locality={locality}
-                onEdit={(locality) =>
-                  setEditingState({ step: ActionSteps.Init, locality })
-                }
+                onEdit={(locality) => setLocalityToUpdate(locality)}
                 isPublicDisplay={false}
               />
             </Col>

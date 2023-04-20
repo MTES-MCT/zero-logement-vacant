@@ -17,8 +17,11 @@ import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
-import { geoPerimetersApi } from '../../services/geo.service';
-import { applicationReducer, store as appStore } from '../../store/store';
+import {
+  applicationMiddlewares,
+  applicationReducer,
+  store as appStore,
+} from '../../store/store';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -60,7 +63,7 @@ describe('housing view', () => {
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
           serializableCheck: false,
-        }).concat(geoPerimetersApi.middleware),
+        }).concat(applicationMiddlewares),
       preloadedState: { authentication: { authUser: genAuthUser() } },
     });
   });

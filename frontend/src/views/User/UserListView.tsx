@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Button,
   Col,
   Container,
   Link,
+  Pagination,
   Row,
   Table,
   Title,
 } from '@dataesr/react-dsfr';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
-import {
-  changeUserFiltering,
-  changeUserPagination,
-  removeUser,
-} from '../../store/actions/userAction';
 import { User } from '../../models/User';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -27,47 +23,52 @@ import ConfirmationModal from '../../components/modals/ConfirmationModal/Confirm
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import Help from '../../components/Help/Help';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import {
+  useListUsersQuery,
+  useRemoveUserMutation,
+} from '../../services/user.service';
+import config from '../../utils/config';
+import { usePagination } from '../../hooks/usePagination';
 
 const UserListView = () => {
   useDocumentTitle('Utilisateurs');
-  const dispatch = useAppDispatch();
   const { isAdmin } = useUser();
   const { availableEstablishmentOptions } = useEstablishments();
+
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ establishmentIds: [] });
+
+  const { data: paginatedUsers } = useListUsersQuery({
+    page,
+    perPage: config.perPageDefault,
+    filters,
+  });
+
+  const { pageCount, hasPagination } = usePagination(paginatedUsers);
+
+  const [removeUser] = useRemoveUserMutation();
 
   const [isRemovingUserModalOpen, setIsRemovingUserModalOpen] =
     useState<string>();
   const { availableEstablishments } = useAppSelector(
     (state) => state.authentication
   );
-  const { paginatedUsers, filters } = useAppSelector((state) => state.user);
-
-  useEffect(() => {
-    dispatch(changeUserPagination(0, 500));
-  }, [dispatch]);
 
   const onChangeFilters = (changedFilters: any) => {
-    dispatch(
-      changeUserFiltering({
-        ...filters,
-        ...changedFilters,
-      })
-    );
+    setFilters(changedFilters);
   };
 
   const removeFilter = (removedFilter: any) => {
-    dispatch(
-      changeUserFiltering({
-        ...filters,
-        ...removedFilter,
-      })
-    );
+    setFilters({
+      ...filters,
+      ...removedFilter,
+    });
   };
 
   const onRemoveUser = (id: User['id']) => {
-    dispatch(removeUser(id));
-    setIsRemovingUserModalOpen(undefined);
+    removeUser(id).finally(() => setIsRemovingUserModalOpen(undefined));
   };
 
   const nameColumn = {
@@ -206,20 +207,31 @@ const UserListView = () => {
             )}
 
             {paginatedUsers.filteredCount > 0 && (
-              <Table
-                caption="Utilisateurs"
-                captionPosition="none"
-                rowKey="id"
-                data={paginatedUsers.entities.map((_, index) => ({
-                  ..._,
-                  rowNumber:
-                    (paginatedUsers.page - 1) * paginatedUsers.perPage +
-                    index +
-                    1,
-                }))}
-                columns={columns}
-                fixedLayout={true}
-              />
+              <>
+                <Table
+                  caption="Utilisateurs"
+                  captionPosition="none"
+                  rowKey="id"
+                  data={paginatedUsers.entities.map((_, index) => ({
+                    ..._,
+                    rowNumber:
+                      (paginatedUsers.page - 1) * paginatedUsers.perPage +
+                      index +
+                      1,
+                  }))}
+                  columns={columns}
+                  fixedLayout={true}
+                />
+                {hasPagination && (
+                  <div className="fr-react-table--pagination-center nav">
+                    <Pagination
+                      onClick={(page: number) => setPage(page)}
+                      currentPage={page}
+                      pageCount={pageCount}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

@@ -27,7 +27,6 @@ import {
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
 import { campaignFullName } from '../../models/Campaign';
-import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   getSubStatusList,
@@ -39,6 +38,7 @@ import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';
 import { useAppSelector } from '../../hooks/useStore';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -57,7 +57,7 @@ const HousingFiltersBadges = ({
     (state) => state.authentication.authUser?.establishment
   );
   const campaignList = useCampaignList();
-  const geoPerimeters = useGeoPerimeterList();
+  const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   function reset() {

@@ -411,3 +411,10 @@ export const hasFilters = (housingFilters: HousingFilters) => {
       housingFilters.occupancies?.length
   );
 };
+export const unselectedOptions = (
+  options: SelectOption[],
+  selectedValues?: string[]
+) =>
+  options.filter(
+    (option: { value: any }) => !selectedValues?.includes(option.value)
+  );

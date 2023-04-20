@@ -11,6 +11,7 @@ import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
+import highland from 'highland';
 
 export const establishmentsTable = 'establishments';
 
@@ -49,11 +50,30 @@ const update = async (
   try {
     return db(establishmentsTable)
       .where('id', establishmentApi.id)
-      .update(formatEstablishmentApi(establishmentApi));
+      .update({
+        ...formatEstablishmentApi(establishmentApi),
+        updated_at: new Date(),
+      });
   } catch (err) {
     console.error('Updating establishment failed', err, establishmentApi);
     throw new Error('Updating establishmentA failed');
   }
+};
+
+interface StreamOptions {
+  updatedAfter?: Date;
+}
+
+const stream = (options?: StreamOptions) => {
+  const stream = db(establishmentsTable)
+    .orderBy('name')
+    .modify((query) => {
+      if (options?.updatedAfter) {
+        query.andWhere('updated_at', '>', options.updatedAfter);
+      }
+    })
+    .stream();
+  return highland<EstablishmentDbo>(stream).map(parseEstablishmentApi);
 };
 
 const listWithFilters = async (
@@ -77,6 +97,9 @@ const listWithFilters = async (
         `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
         filters.name
       );
+    }
+    if (filters.sirens) {
+      queryBuilder.whereIn('siren', filters.sirens);
     }
   };
 
@@ -234,6 +257,7 @@ export default {
   get,
   findOne,
   update,
+  stream,
   listWithFilters,
   listDataWithFilters,
   formatEstablishmentApi,

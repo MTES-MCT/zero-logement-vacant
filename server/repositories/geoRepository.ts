@@ -1,26 +1,17 @@
 import db from './db';
-import { Geometry } from 'geojson';
+import { GeoJSON, Geometry } from 'geojson';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 
 export const geoPerimetersTable = 'geo_perimeters';
 
-const get = async (geoPerimeterId: string): Promise<GeoPerimeterApi> => {
-  try {
-    return db(geoPerimetersTable)
-      .where('id', geoPerimeterId)
-      .first()
-      .then((result) => {
-        if (result) {
-          return parseGeoPerimeterApi(result);
-        } else {
-          console.error('Geo perimeter not found for id', geoPerimeterId);
-          throw Error('Geo perimeter not found');
-        }
-      });
-  } catch (err) {
-    console.error('Getting geo perimeter failed', err, geoPerimeterId);
-    throw new Error('Getting geo perimeter failed');
-  }
+const GeoPerimeters = () => db<GeoPerimeterDbo>(geoPerimetersTable);
+
+const get = async (geoPerimeterId: string): Promise<GeoPerimeterApi | null> => {
+  console.log('Get GeoPerimeter with id', geoPerimeterId);
+  const geoPerimeter = await GeoPerimeters()
+    .where('id', geoPerimeterId)
+    .first();
+  return geoPerimeter ? parseGeoPerimeterApi(geoPerimeter) : null;
 };
 
 const insert = async (
@@ -29,96 +20,93 @@ const insert = async (
   kind: string,
   name: string,
   createdBy?: string
-): Promise<any> => {
+): Promise<void> => {
   const rawGeom =
     geometry.type === 'LineString' || geometry.type === 'MultiLineString'
       ? 'st_multi(st_concaveHull(st_geomfromgeojson(?), 0.80))'
       : 'st_multi(st_geomfromgeojson(?))';
 
   console.log('Insert geo perimeter', establishmentId, kind, name);
-  try {
-    return db(geoPerimetersTable)
-      .insert(
-        db.raw(
-          `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
-          [
-            kind,
-            name,
-            JSON.stringify(geometry),
-            establishmentId,
-            createdBy ?? '',
-          ]
-        )
-      )
-      .returning('*');
-  } catch (err) {
-    console.error('Inserting geo perimeter failed', err, establishmentId);
-    throw new Error('Inserting geo perimeter failed');
-  }
+  await db(geoPerimetersTable).insert(
+    db.raw(
+      `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
+      [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? '']
+    )
+  );
 };
 
-const update = async (
-  geoPerimeterId: string,
-  kind: string,
-  name?: string
-): Promise<GeoPerimeterApi> => {
-  try {
-    return db(geoPerimetersTable)
-      .where('id', geoPerimeterId)
-      .update({ kind, name });
-  } catch (err) {
-    console.error('Updating geo perimeter failed', err, geoPerimeterId);
-    throw new Error('Updating geo perimeter failed');
-  }
+const update = async (geoPerimeterApi: GeoPerimeterApi): Promise<void> => {
+  console.log('Update geoPerimeterApi with id', geoPerimeterApi.id);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, establishment_id, geo_json, ...updatedData } =
+    formatGeoPerimeterApi(geoPerimeterApi);
+
+  await GeoPerimeters().where({ id: geoPerimeterApi.id }).update(updatedData);
 };
 
-const listGeoPerimeters = async (
+const find = async (establishmentId: string): Promise<GeoPerimeterApi[]> => {
+  console.log(
+    'List geoPerimeterApi for establishment with id',
+    establishmentId
+  );
+
+  const geoPerimeters = await GeoPerimeters()
+    .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
+    .where('establishment_id', establishmentId)
+    .orWhereNull('establishment_id')
+    .orderBy('name');
+  return geoPerimeters.map(parseGeoPerimeterApi);
+};
+
+const removeMany = async (
+  geoPerimeterIds: string[],
   establishmentId: string
-): Promise<GeoPerimeterApi[]> => {
-  try {
-    return db(geoPerimetersTable)
-      .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
-      .where('establishment_id', establishmentId)
-      .orWhereNull('establishment_id')
-      .orderBy('name')
-      .then((_) => _.map((_) => parseGeoPerimeterApi(_)));
-  } catch (err) {
-    console.error('Listing geo perimeter failed', err);
-    throw new Error('Listing geo perimeter failed');
-  }
+): Promise<void> => {
+  console.log(
+    'Remove geoPerimeters with ids %s into establishment',
+    geoPerimeterIds,
+    establishmentId
+  );
+  await db(geoPerimetersTable)
+    .whereIn('id', geoPerimeterIds)
+    .andWhere('establishment_id', establishmentId)
+    .delete();
 };
 
-const deleteGeoPerimeter = async (geoPerimeterId: string): Promise<number> => {
-  try {
-    return db(geoPerimetersTable).where('id', geoPerimeterId).delete();
-  } catch (err) {
-    console.error('Deleting geo perimeter failed', err, geoPerimeterId);
-    throw new Error('Deleting geo perimeter failed');
-  }
-};
+interface GeoPerimeterDbo {
+  id: string;
+  establishment_id: string;
+  name: string;
+  kind: string;
+  geo_json?: GeoJSON;
+}
 
-const formatGeoPerimeterApi = (geoPerimeterApi: GeoPerimeterApi) => ({
+const formatGeoPerimeterApi = (
+  geoPerimeterApi: GeoPerimeterApi
+): GeoPerimeterDbo => ({
   id: geoPerimeterApi.id,
   establishment_id: geoPerimeterApi.establishmentId,
   name: geoPerimeterApi.name,
   kind: geoPerimeterApi.kind,
 });
 
-const parseGeoPerimeterApi = (result: any) =>
-  <GeoPerimeterApi>{
-    id: result.id,
-    establishmentId: result.establishment_id,
-    name: result.name,
-    kind: result.kind,
-    geoJson: result.geo_json,
-  };
+const parseGeoPerimeterApi = (
+  geoPerimeterDbo: GeoPerimeterDbo
+): GeoPerimeterApi => ({
+  id: geoPerimeterDbo.id,
+  establishmentId: geoPerimeterDbo.establishment_id,
+  name: geoPerimeterDbo.name,
+  kind: geoPerimeterDbo.kind,
+  geoJson: geoPerimeterDbo.geo_json,
+});
 
 export default {
   get,
   insert,
   update,
-  listGeoPerimeters,
-  deleteGeoPerimeter,
+  find,
+  removeMany,
   formatGeoPerimeterApi,
   parseGeoPerimeterApi,
 };

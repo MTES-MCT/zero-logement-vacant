@@ -3,6 +3,8 @@ import { Router } from 'react-router-dom';
 import AccountEmailCreationView from '../AccountEmailCreationView';
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory } from 'history';
+import { store } from '../../../../store/store';
+import { Provider } from 'react-redux';
 
 describe('AccountEmailCreationView', () => {
   const user = userEvent.setup();
@@ -10,9 +12,11 @@ describe('AccountEmailCreationView', () => {
 
   function setup() {
     render(
-      <Router history={history}>
-        <AccountEmailCreationView />
-      </Router>
+      <Provider store={store}>
+        <Router history={history}>
+          <AccountEmailCreationView />
+        </Router>
+      </Provider>
     );
   }
 

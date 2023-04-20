@@ -12,16 +12,22 @@ import { Router } from 'react-router-dom';
 import * as randomstring from 'randomstring';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import { Prospect } from '../../../../models/Prospect';
-import userService from '../../../../services/user.service';
 import authService from '../../../../services/auth.service';
 import { configureStore } from '@reduxjs/toolkit';
-import { applicationReducer } from '../../../../store/store';
+import {
+  applicationMiddlewares,
+  applicationReducer,
+} from '../../../../store/store';
 
 describe('AccountCampaignIntentCreationView', () => {
   const user = userEvent.setup();
   const history = createMemoryHistory();
   const store = configureStore({
     reducer: applicationReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+      }).concat(applicationMiddlewares),
     preloadedState: { authentication: { authUser: genAuthUser() } },
   });
   const password = randomstring.generate();
@@ -44,7 +50,7 @@ describe('AccountCampaignIntentCreationView', () => {
   }
 
   function mockCreateUserPass() {
-    return jest.spyOn(userService, 'createUser').mockResolvedValue(genUser());
+    return fetchMock.mockResponse(JSON.stringify(genUser()));
   }
 
   function mockLoginPass() {

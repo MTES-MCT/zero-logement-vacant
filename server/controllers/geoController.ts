@@ -4,6 +4,7 @@ import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
 import geoRepository from '../repositories/geoRepository';
 import { body, param } from 'express-validator';
 import { constants } from 'http2';
+import { isArrayOf, isUUID } from '../utils/validators';
 
 const listGeoPerimeters = async (
   request: Request,
@@ -15,7 +16,7 @@ const listGeoPerimeters = async (
   console.log('List geo perimeters', establishmentId);
 
   return geoRepository
-    .listGeoPerimeters(establishmentId)
+    .find(establishmentId)
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
@@ -43,32 +44,28 @@ const createGeoPerimeter = async (
     )
   );
 
-  return response.sendStatus(constants.HTTP_STATUS_OK);
+  return response.status(constants.HTTP_STATUS_OK).send();
 };
 
-const deleteGeoPerimeterValidators = [
-  param('geoPerimeterId').notEmpty().isUUID(),
+const deleteGeoPerimeterListValidators = [
+  body('geoPerimeterIds')
+    .custom(isArrayOf(isUUID))
+    .withMessage('Must be an array of UUIDs'),
 ];
 
-const deleteGeoPerimeter = async (
+const deleteGeoPerimeterList = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const geoPerimeterId = request.params.geoPerimeterId;
+  const geoPerimeterIds = request.body.geoPerimeterIds;
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  console.log('Delete geo perimeter', geoPerimeterId);
-
-  const geoPerimeter = await geoRepository.get(geoPerimeterId);
-
-  if (!geoPerimeter || geoPerimeter.establishmentId !== establishmentId) {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
-  }
+  console.log('Delete geo perimeters', geoPerimeterIds);
 
   return geoRepository
-    .deleteGeoPerimeter(geoPerimeterId)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+    .removeMany(geoPerimeterIds, establishmentId)
+    .then(() => response.sendStatus(constants.HTTP_STATUS_NO_CONTENT));
 };
 
 const updateGeoPerimeterValidators = [
@@ -96,15 +93,19 @@ const updateGeoPerimeter = async (
   }
 
   return geoRepository
-    .update(geoPerimeterId, kind, name)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+    .update({
+      ...geoPerimeter,
+      kind,
+      name,
+    })
+    .then(() => response.status(constants.HTTP_STATUS_OK).send());
 };
 
 const geoController = {
   createGeoPerimeter,
   listGeoPerimeters,
-  deleteGeoPerimeterValidators,
-  deleteGeoPerimeter,
+  deleteGeoPerimeterListValidators,
+  deleteGeoPerimeterList,
   updateGeoPerimeterValidators,
   updateGeoPerimeter,
 };

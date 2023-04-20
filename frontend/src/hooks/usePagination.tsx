@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
-import { PaginatedResult } from '../models/PaginatedResult';
+import {
+  initialPaginatedResult,
+  PaginatedResult,
+} from '../models/PaginatedResult';
 
-export function usePagination<T>(paginatedResult: PaginatedResult<T>) {
+export function usePagination<T>(
+  paginatedResult: PaginatedResult<T> = initialPaginatedResult()
+) {
   const pageCount = useMemo<number>(
     () => Math.ceil(paginatedResult.filteredCount / paginatedResult.perPage),
     [paginatedResult.filteredCount, paginatedResult.perPage]

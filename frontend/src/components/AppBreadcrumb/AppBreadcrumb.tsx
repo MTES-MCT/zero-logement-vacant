@@ -50,7 +50,7 @@ const AppBreadcrumb = () => {
 
   useEffect(() => {
     if (
-      location.pathname.indexOf('campagnes/C') !== -1 &&
+      location.pathname.includes('campagnes/C') &&
       !campaignBundle &&
       campaignNumber
     ) {
@@ -61,18 +61,10 @@ const AppBreadcrumb = () => {
         })
       );
     }
-    if (
-      location.pathname.indexOf('proprietaires/') !== -1 &&
-      !owner &&
-      ownerId
-    ) {
+    if (location.pathname.includes('proprietaires/') && !owner && ownerId) {
       dispatch(getOwner(ownerId));
     }
-    if (
-      location.pathname.indexOf('logements/') !== -1 &&
-      !housing &&
-      housingId
-    ) {
+    if (location.pathname.includes('logements/') && !housing && housingId) {
       dispatch(getHousing(housingId));
     }
 
@@ -81,31 +73,27 @@ const AppBreadcrumb = () => {
         location.pathname
           .split('/')
           .map((value) => {
-            if (
-              value ===
-                getUserNavItem(UserNavItems.Dashboard).url.substring(1) ||
-              value === ''
-            ) {
+            if (['/', ''].includes(value)) {
               return getUserNavItem(UserNavItems.Dashboard);
-            } else if (
-              value ===
-              getUserNavItem(UserNavItems.HousingList).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.HousingList);
-            } else if (
-              value ===
-              getUserNavItem(UserNavItems.Establishment).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.Establishment);
-            } else if (
-              value === getUserNavItem(UserNavItems.Campaign).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.Campaign);
-            } else if (
-              value === getUserNavItem(UserNavItems.User).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.User);
-            } else if (
+            }
+
+            const navItem = [
+              UserNavItems.Dashboard,
+              UserNavItems.HousingList,
+              UserNavItems.Establishment,
+              UserNavItems.Campaign,
+              UserNavItems.User,
+              UserNavItems.Resources,
+              UserNavItems.Inbox,
+            ]
+              .map((path) => getUserNavItem(path))
+              .find((item) => item.url.substring(1) === value);
+
+            if (navItem) {
+              return navItem;
+            }
+
+            if (
               value === getUserNavItem(UserNavItems.Monitoring).url.substring(1)
             ) {
               return authUser.user.role === UserRoles.Admin
@@ -114,7 +102,9 @@ const AppBreadcrumb = () => {
                     UserNavItems.EstablishmentMonitoring,
                     authUser.establishment.id
                   );
-            } else if (value.indexOf('C') === 0 && campaignBundle) {
+            }
+
+            if (value.indexOf('C') === 0 && campaignBundle) {
               return {
                 url:
                   '/campagnes/' +
@@ -123,7 +113,9 @@ const AppBreadcrumb = () => {
                   ),
                 label: campaignFullName(campaignBundle),
               };
-            } else if (value.indexOf('proprietaires') !== -1 && owner) {
+            }
+
+            if (value.includes('proprietaires') && owner) {
               return {
                 url: location.pathname.substring(
                   0,
@@ -131,7 +123,9 @@ const AppBreadcrumb = () => {
                 ),
                 label: owner.fullName,
               };
-            } else if (value.indexOf('logements') !== -1 && housing) {
+            }
+
+            if (value.includes('logements') && housing) {
               return {
                 url: location.pathname.substring(
                   0,
@@ -139,8 +133,10 @@ const AppBreadcrumb = () => {
                 ),
                 label: housing.rawAddress.join(' - '),
               };
-            } else if (
-              value.indexOf('etablissement') !== -1 &&
+            }
+
+            if (
+              value.includes('etablissement') &&
               establishmentId &&
               availableEstablishments
             ) {
@@ -150,21 +146,15 @@ const AppBreadcrumb = () => {
                   availableEstablishments.find((_) => _.id === establishmentId)
                     ?.name ?? '',
               };
-            } else if (
-              value === getUserNavItem(UserNavItems.Resources).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.Resources);
-            } else if (value === 'statuts') {
-              return { url: '', label: 'Arborescence des status' };
-            } else if (
-              value === getUserNavItem(UserNavItems.Inbox).url.substring(1)
-            ) {
-              return getUserNavItem(UserNavItems.Inbox);
-            } else {
-              return { url: '', label: '' };
             }
+
+            if (value === 'statuts') {
+              return { url: '', label: 'Arborescence des status' };
+            }
+
+            return null;
           })
-          .filter((_) => _.label !== '')
+          .filter((_): _ is UserNavItem => _ !== null)
       );
     }
   }, [

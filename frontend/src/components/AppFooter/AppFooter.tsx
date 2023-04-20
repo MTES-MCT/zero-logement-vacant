@@ -1,17 +1,90 @@
-import React from 'react';
+import React, { ComponentPropsWithoutRef } from 'react';
 import {
   Footer,
   FooterBody,
   FooterBodyItem,
   FooterBottom,
   FooterLink,
+  FooterTop,
+  FooterTopCategory,
   Link,
   Logo,
 } from '@dataesr/react-dsfr';
+import { Link as RouterLink } from 'react-router-dom';
+
+import styles from './app-footer.module.scss';
+import { useUser } from '../../hooks/useUser';
+
+type FooterLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
 
 function AppFooter() {
+  function FooterInternalLink(props: FooterLinkProps) {
+    return (
+      <FooterLink
+        {...props}
+        className={styles.link}
+        asLink={<RouterLink to={props.href ?? '#'} />}
+      />
+    );
+  }
+
+  function FooterExternalLink(props: FooterLinkProps) {
+    return <FooterLink {...props} className={styles.link} />;
+  }
+
+  const authUser = useUser();
+
   return (
     <Footer>
+      <FooterTop align="start">
+        <FooterTopCategory title="Liens utiles" n="4">
+          <FooterExternalLink href="mailto:contact@zerologementvacant.beta.gouv.fr">
+            Nous contacter
+          </FooterExternalLink>
+          <FooterExternalLink href="https://zerologementvacant.crisp.help/fr/">
+            FAQ
+          </FooterExternalLink>
+          <FooterExternalLink href="https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441">
+            Nouveautés
+          </FooterExternalLink>
+        </FooterTopCategory>
+        <FooterTopCategory title="Informations légales" n="4">
+          <FooterInternalLink href="/mentions-legales">
+            Mentions légales & CGU
+          </FooterInternalLink>
+          <FooterExternalLink href="https://zerologementvacant.beta.gouv.fr/stats">
+            Statistiques
+          </FooterExternalLink>
+        </FooterTopCategory>
+        <FooterTopCategory title="Navigation" n="4">
+          <FooterInternalLink href="/accueil">Accueil</FooterInternalLink>
+          <FooterInternalLink href="/campagnes">
+            Logements suivis
+          </FooterInternalLink>
+          <FooterInternalLink href="/base-de-donnees">
+            Base de données
+          </FooterInternalLink>
+          <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
+          <FooterInternalLink href="/territoire">
+            Votre territoire
+          </FooterInternalLink>
+          <FooterInternalLink href="/utilisateurs">
+            Utilisateurs
+          </FooterInternalLink>
+          <FooterInternalLink
+            href={
+              authUser.isAdmin
+                ? '/suivi'
+                : `/suivi/etablissement/${authUser.establishment?.id}`
+            }
+          >
+            Suivi
+          </FooterInternalLink>
+          <FooterInternalLink href="/boite-de-reception">
+            Boite de réception
+          </FooterInternalLink>
+        </FooterTopCategory>
+      </FooterTop>
       <FooterBody description="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée.">
         <Logo splitCharacter={10}>Ministère de la transition écologique</Logo>
         <FooterBodyItem>

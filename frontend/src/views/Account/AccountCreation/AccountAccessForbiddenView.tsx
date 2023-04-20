@@ -1,6 +1,7 @@
 import {
   Accordion,
   AccordionItem,
+  Container,
   Link,
   Text,
   Title,
@@ -26,7 +27,7 @@ function AccountAccessForbiddenView() {
         créer un compte Zéro Logement Vacant. Vous êtes sans doute dans l’un des
         cas suivants :
       </Text>
-      <Accordion className="fr-mb-4w" keepOpen>
+      <Accordion className="fr-mb-2w" keepOpen>
         <AccordionItem title="Votre structure n’est pas autorisée à accéder aux données LOVAC">
           <Text className="color-grey-50" size="sm">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
@@ -45,7 +46,7 @@ function AccountAccessForbiddenView() {
         </AccordionItem>
         <AccordionItem title="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
           <Text className="color-grey-50 fr-mb-0" size="sm">
-            Dans ce cas,{' '}
+            Dans ce cas, 
             <ButtonLink isSimple display="inline" onClick={back} size="sm">
               réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
             </ButtonLink>
@@ -79,6 +80,15 @@ function AccountAccessForbiddenView() {
           </Text>
         </AccordionItem>
       </Accordion>
+      <Container as="section" fluid spacing="mb-4w">
+        <Link
+          href="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+          isSimple
+          size="sm"
+        >
+          Besoin d’aide pour créer votre compte ?
+        </Link>
+      </Container>
       <Link
         isSimple
         display="flex"

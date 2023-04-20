@@ -4,6 +4,9 @@
       "generator": "url",
       "template": "%URL%"
     },
+    "IS_REVIEW_APP": {
+      "value": "true"
+    },
     "REACT_APP_API_URL": {
       "generator": "url",
       "template": "%URL%"

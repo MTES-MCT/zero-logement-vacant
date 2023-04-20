@@ -27,8 +27,8 @@ import CampaignCreationModal from '../../components/modals/CampaignCreationModal
 import Tab from '../../components/Tab/Tab';
 import Help from '../../components/Help/Help';
 import { Link } from 'react-router-dom';
-import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
-import HousingListHeader from '../../components/HousingList/HousingListHeader';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
@@ -211,8 +211,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
         additionalColumns={[statusColumn, modifyColumn]}
         tableClassName="campaign"
       >
-        <HousingListHeader>
-          <HousingListHeaderActions>
+        <SelectableListHeader entity="logement">
+          <SelectableListHeaderActions>
             {hasSelected() && (
               <Row justifyContent="right">
                 <Button
@@ -231,8 +231,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
                 </Button>
               </Row>
             )}
-          </HousingListHeaderActions>
-        </HousingListHeader>
+          </SelectableListHeaderActions>
+        </SelectableListHeader>
       </HousingList>
       <HousingEditionSideMenu
         housing={updatingHousing}
@@ -336,18 +336,6 @@ const CampaignInProgress = () => {
             }}
           />
         </Col>
-        {campaignBundle && !campaignBundle?.campaignNumber && (
-          <Col>
-            <Button
-              secondary
-              onClick={() => window.open(campaignBundle?.exportURL, '_self')}
-              className="float-right"
-              icon="ri-download-line"
-            >
-              Exporter
-            </Button>
-          </Col>
-        )}
       </Row>
       {searchQuery && (
         <Row className="fr-pb-2w">

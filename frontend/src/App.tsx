@@ -36,6 +36,7 @@ import { useAppSelector } from './hooks/useStore';
 import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
 import InboxView from "./views/Inbox/InboxView";
 import StatusView from './views/Resources/StatusView';
+import LegalNoticesView from "./views/LegalNotices/LegalNoticesView";
 
 function AppWrapper() {
 
@@ -121,6 +122,7 @@ function App() {
             </Switch>
           </> :
           <Switch>
+            <Route path="/mentions-legales" component={LegalNoticesView} />
             <Route path="/inscription" component={AccountCreationView} />
             <Route exact path="/connexion" component={LoginView} />
             <Route exact path="/collectivites" component={EstablishmentHomeView} />

@@ -1,47 +1,48 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { Locality, TaxKinds } from '../models/Locality';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 
-const getLocality = async (geoCode: string): Promise<Locality> => {
-  return await fetch(`${config.apiEndpoint}/api/localities/${geoCode}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((_) => _.json());
-};
+export const localityApi = createApi({
+  reducerPath: 'localityApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/localities`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['Locality'],
+  endpoints: (builder) => ({
+    listLocalities: builder.query<Locality[], string>({
+      query: (establishmentId) => `?establishmentId=${establishmentId}`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ geoCode }) => ({
+                type: 'Locality' as const,
+                geoCode,
+              })),
+              'Locality',
+            ]
+          : ['Locality'],
+    }),
+    updateLocalityTax: builder.mutation<
+      void,
+      {
+        geoCode: string;
+        taxKind: TaxKinds;
+        taxRate?: number;
+      }
+    >({
+      query: ({ geoCode, taxKind, taxRate }) => ({
+        url: `${geoCode}/tax`,
+        method: 'PUT',
+        body: { taxKind, taxRate },
+      }),
+      invalidatesTags: (result, error, { geoCode }) => [
+        { type: 'Locality', geoCode },
+      ],
+    }),
+  }),
+});
 
-const listLocalities = async (establishmentId: string): Promise<Locality[]> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/localities?establishmentId=${establishmentId}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  ).then((_) => _.json());
-};
-
-const updateLocalityTax = async (
-  geoCode: string,
-  taxKind: TaxKinds,
-  taxRate?: number
-): Promise<void> => {
-  return await fetch(`${config.apiEndpoint}/api/localities/${geoCode}/tax`, {
-    method: 'PUT',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ taxKind, taxRate }),
-  }).then(() => {});
-};
-
-const localityService = {
-  getLocality,
-  listLocalities,
-  updateLocalityTax,
-};
-
-export default localityService;
+export const { useListLocalitiesQuery, useUpdateLocalityTaxMutation } =
+  localityApi;

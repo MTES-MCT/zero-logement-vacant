@@ -3,52 +3,70 @@ import {
   ContactPoint,
   DraftContactPoint,
 } from '../../../shared/models/ContactPoint';
-import { createHttpService, toJSON } from '../utils/fetchUtils';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import authService from './auth.service';
 
-const http = createHttpService('contact-points', {
-  authenticated: true,
-  host: config.apiEndpoint,
-  json: true,
+export const contactPointsApi = createApi({
+  reducerPath: 'contactPointsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/contact-points`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['ContactPoint'],
+  endpoints: (builder) => ({
+    findContactPoints: builder.query<
+      ContactPoint[],
+      {
+        establishmentId: string;
+        publicOnly: boolean;
+      }
+    >({
+      query: ({ establishmentId, publicOnly }) =>
+        `${publicOnly ? '/public' : ''}?establishmentId=${establishmentId}`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'ContactPoint' as const,
+                id,
+              })),
+              'ContactPoint',
+            ]
+          : ['ContactPoint'],
+    }),
+    createContactPoint: builder.mutation<void, DraftContactPoint>({
+      query: (draftContactPoint) => ({
+        url: '',
+        method: 'POST',
+        body: draftContactPoint,
+      }),
+      invalidatesTags: ['ContactPoint'],
+    }),
+    updateContactPoint: builder.mutation<void, ContactPoint>({
+      query: ({ id, ...body }) => ({
+        url: id,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'ContactPoint', id },
+      ],
+    }),
+    removeContactPoint: builder.mutation<void, string>({
+      query: (contactPointId) => ({
+        url: contactPointId,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, contactPointId) => [
+        { type: 'ContactPoint', contactPointId },
+      ],
+    }),
+  }),
 });
 
-const find = async (
-  establishmentId: string,
-  publicOnly: boolean
-): Promise<ContactPoint[]> => {
-  const response = await http.get(
-    `/api/contact-points${
-      publicOnly ? '/public' : ''
-    }?establishmentId=${establishmentId}`
-  );
-  return toJSON(response);
-};
-
-const create = async (
-  draftContactPoint: DraftContactPoint
-): Promise<ContactPoint> => {
-  const response = await http.fetch('/api/contact-points', {
-    method: 'POST',
-    body: JSON.stringify(draftContactPoint),
-  });
-  return response.json();
-};
-
-const update = async (contactPoint: ContactPoint): Promise<void> => {
-  const { id, ...body } = contactPoint;
-  await http.put(`/api/contact-points/${id}`, {
-    body: JSON.stringify(body),
-  });
-};
-
-const remove = async (contactPointId: string): Promise<void> => {
-  await http.delete(`/api/contact-points/${contactPointId}`);
-};
-
-const contactPointService = {
-  find,
-  create,
-  update,
-  remove,
-};
-
-export default contactPointService;
+export const {
+  useCreateContactPointMutation,
+  useUpdateContactPointMutation,
+  useFindContactPointsQuery,
+  useRemoveContactPointMutation,
+} = contactPointsApi;

@@ -40,8 +40,8 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
-import HousingListHeader from '../../components/HousingList/HousingListHeader';
-import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
+import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import Help from '../../components/Help/Help';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -262,8 +262,8 @@ const HousingListView = () => {
                   onSelectHousing={onSelectHousing}
                   onSort={onSort}
                 >
-                  <HousingListHeader>
-                    <HousingListHeaderActions>
+                  <SelectableListHeader entity="logement">
+                    <SelectableListHeaderActions>
                       {paginatedHousing.filteredCount > 0 && (
                         <Row justifyContent="right">
                           {!hasSelected() && (
@@ -304,8 +304,8 @@ const HousingListView = () => {
                           )}
                         </Row>
                       )}
-                    </HousingListHeaderActions>
-                  </HousingListHeader>
+                    </SelectableListHeaderActions>
+                  </SelectableListHeader>
                 </HousingList>
               </>
             )}

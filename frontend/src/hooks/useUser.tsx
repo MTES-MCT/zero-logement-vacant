@@ -19,8 +19,13 @@ export const useUser = () => {
     [authUser, isAuthenticated]
   );
 
+  const user = authUser?.user;
+  const establishment = authUser?.establishment;
+
   return {
+    establishment,
     isAdmin,
     isAuthenticated,
+    user,
   };
 };

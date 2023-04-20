@@ -33,6 +33,7 @@ import {
   roomsCountOptions,
   statusOptions,
   taxedOptions,
+  unselectedOptions,
   vacancyDurationOptions,
   vacancyRateOptions,
 } from '../../models/HousingFilters';
@@ -46,11 +47,12 @@ import {
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import { useGeoPerimeterList } from '../../hooks/useGeoPerimeterList';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { concat } from '../../utils/arrayUtils';
 
 interface TitleWithIconProps {
   icon: string;
@@ -76,14 +78,9 @@ function HousingListFiltersSidemenu() {
   const { expand, filters, onChangeFilters, onResetFilters, setExpand } =
     useFilters();
   const campaignList = useCampaignList();
-  const geoPerimeters = useGeoPerimeterList();
+  const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList(establishment?.id);
-  const localities = localitiesOptions
-    // Remove those localities which are already selected
-    .filter(
-      (option: { value: any }) => !filters.localities?.includes(option.value)
-    );
 
   function close(): void {
     setExpand(false);
@@ -354,13 +351,18 @@ function HousingListFiltersSidemenu() {
               <Row gutters>
                 <Col n="6">
                   <SearchableSelect
-                    options={localities}
+                    options={unselectedOptions(
+                      localitiesOptions,
+                      filters.localities
+                    )}
                     label="Commune"
                     placeholder="Rechercher une commune"
                     onChange={(value: string) => {
                       if (value) {
-                        const values = [...(filters.localities ?? []), value];
-                        onChangeFilters({ localities: values }, 'Commune');
+                        onChangeFilters(
+                          { localities: concat(filters.localities, value) },
+                          'Commune'
+                        );
                       }
                     }}
                   />
@@ -379,30 +381,49 @@ function HousingListFiltersSidemenu() {
                   />
                 </Col>
                 <Col n="6">
-                  <AppMultiSelect
+                  <SearchableSelect
+                    options={unselectedOptions(
+                      geoPerimeterOptions(geoPerimeters),
+                      filters.geoPerimetersIncluded
+                    )}
                     label="Périmètre inclus"
-                    options={geoPerimeterOptions(geoPerimeters)}
-                    initialValues={filters.geoPerimetersIncluded}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { geoPerimetersIncluded: values },
-                        'Périmètre inclus'
-                      )
-                    }
+                    placeholder="Rechercher un périmètre"
+                    onChange={(value: string) => {
+                      if (value) {
+                        onChangeFilters(
+                          {
+                            geoPerimetersIncluded: concat(
+                              filters.geoPerimetersIncluded,
+                              value
+                            ),
+                          },
+                          'Périmètre inclus'
+                        );
+                      }
+                    }}
                   />
                 </Col>
                 <Col n="6">
-                  <AppMultiSelect
+                  <SearchableSelect
+                    options={unselectedOptions(
+                      geoPerimeterOptions(geoPerimeters),
+                      filters.geoPerimetersExcluded
+                    )}
                     label="Périmètre exclu"
-                    defaultOption="Aucun"
-                    options={geoPerimeterOptions(geoPerimeters)}
-                    initialValues={filters.geoPerimetersExcluded}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { geoPerimetersExcluded: values },
-                        'Périmètre exclu'
-                      )
-                    }
+                    placeholder="Rechercher un périmètre"
+                    onChange={(value: string) => {
+                      if (value) {
+                        onChangeFilters(
+                          {
+                            geoPerimetersExcluded: concat(
+                              filters.geoPerimetersExcluded,
+                              value
+                            ),
+                          },
+                          'Périmètre exclu'
+                        );
+                      }
+                    }}
                   />
                 </Col>
               </Row>

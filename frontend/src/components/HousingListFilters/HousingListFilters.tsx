@@ -13,6 +13,7 @@ import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from './HousingListFiltersSidemenu';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
+import { concat } from '../../utils/arrayUtils';
 
 const HousingListFilters = () => {
   const establishment = useAppSelector(
@@ -47,8 +48,10 @@ const HousingListFilters = () => {
             placeholder="Rechercher une commune"
             onChange={(value: string) => {
               if (value) {
-                const values = [...(filters.localities ?? []), value];
-                onChangeFilters({ localities: values }, 'Commune');
+                onChangeFilters(
+                  { localities: concat(filters.localities, value) },
+                  'Commune'
+                );
               }
             }}
           />

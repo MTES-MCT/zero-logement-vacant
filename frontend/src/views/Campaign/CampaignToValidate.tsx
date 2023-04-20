@@ -22,8 +22,8 @@ import { dateValidator, useForm } from '../../hooks/useForm';
 import HousingList, {
   HousingDisplayKey,
 } from '../../components/HousingList/HousingList';
-import HousingListHeaderActions from '../../components/HousingList/HousingListHeaderActions';
-import HousingListHeader from '../../components/HousingList/HousingListHeader';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useSelection } from '../../hooks/useSelection';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
@@ -177,8 +177,8 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   onSelectHousing={setSelected}
                   paginatedHousing={campaignBundleHousing}
                 >
-                  <HousingListHeader>
-                    <HousingListHeaderActions>
+                  <SelectableListHeader entity="logement">
+                    <SelectableListHeaderActions>
                       <Row>
                         {!hasSelected && (
                           <Col n="6">
@@ -188,8 +188,8 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                           </Col>
                         )}
                       </Row>
-                    </HousingListHeaderActions>
-                  </HousingListHeader>
+                    </SelectableListHeaderActions>
+                  </SelectableListHeader>
                 </HousingList>
                 <Row justifyContent="right">
                   <Button

@@ -190,7 +190,7 @@ const HousingList = ({
         <InternalLink
           isSimple
           title={owner.fullName}
-          to={`/proprietaires/${owner.id}`}
+          to={`${location.pathname}/proprietaires/${owner.id}`}
         >
           {owner.fullName}
         </InternalLink>

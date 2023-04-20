@@ -147,22 +147,21 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           {settings && (
             <Toggle
               checked={settings.contactPoints?.public}
-              label="Informations publiées"
+              label="Publication des informations"
               onChange={togglePublishContactPoints}
-              className="fr-mt-0"
             />
           )}
-        </Col>
-        <Col className="flex-right flex-align-center">
-          <div className="fr-mx-2w">
-            <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
+          <div className="flex-1 flex-right">
+            <div className="fr-mx-2w">
+              <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
+            </div>
+            <Button
+              onClick={() => setIsCreatingModalOpen(true)}
+              className="float-right"
+            >
+              Ajouter un guichet
+            </Button>
           </div>
-          <Button
-            onClick={() => setIsCreatingModalOpen(true)}
-            className="float-right"
-          >
-            Ajouter un guichet
-          </Button>
         </Col>
       </Row>
       {isCreateSuccess && (

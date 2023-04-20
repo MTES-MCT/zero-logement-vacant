@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import config from '../../utils/config';
 
 class CeremaService implements ConsultUserService {
-  async consultUser(email: string): Promise<CeremaUser> {
+  async consultUsers(email: string): Promise<CeremaUser[]> {
     try {
       const response = await fetch(
         `${config.cerema.api.endpoint}/api/consult/utilisateurs/?email=${email}`,
@@ -16,28 +16,22 @@ class CeremaService implements ConsultUserService {
         }
       );
       const users = await response.json();
-      if (users.length) {
-        return {
-          email: users[0].email,
-          establishmentSiren: Number(users[0].siret.substring(0, 9)),
-          hasAccount: true,
-          hasCommitment: users[0].lovac_ok,
-        };
+      if (users) {
+        return users.map(
+          (user: { email: any; siret: string; lovac_ok: boolean }) => ({
+            email: user.email,
+            establishmentSiren: Number(user.siret.substring(0, 9)),
+            hasAccount: true,
+            hasCommitment: user.lovac_ok,
+          })
+        );
       }
-      return defaultUser(email);
+      return [];
     } catch (error) {
       console.error(error);
-      return defaultUser(email);
+      return [];
     }
   }
-}
-
-function defaultUser(email: string): CeremaUser {
-  return {
-    email,
-    hasAccount: false,
-    hasCommitment: false,
-  };
 }
 
 export default function createCeremaService(): ConsultUserService {

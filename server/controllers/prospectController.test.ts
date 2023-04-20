@@ -2,7 +2,7 @@ import request from 'supertest';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import { User1 } from '../../database/seeds/test/003-users';
-import { genEmail, genSignupLinkApi } from '../test/testFixtures';
+import { genEmail, genSignupLinkApi, genSiren } from '../test/testFixtures';
 import { createServer } from '../server';
 import signupLinkRepository from '../repositories/signupLinkRepository';
 import { ProspectApi } from '../models/ProspectApi';
@@ -10,6 +10,10 @@ import ceremaService from '../services/ceremaService';
 import { SignupLinkApi } from '../models/SignupLinkApi';
 import { subHours } from 'date-fns';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
+import {
+  Establishment1,
+  Establishment2,
+} from '../../database/seeds/test/001-establishments';
 
 describe('Prospect controller', () => {
   const { app } = createServer();
@@ -55,22 +59,60 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
 
-    it('should create a prospect', async () => {
+    it('should create a prospect for the first known establishment with lovac ok', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
       await signupLinkRepository.insert(link);
-      jest.spyOn(ceremaService, 'consultUser').mockResolvedValue({
-        email,
-        hasAccount: true,
-        hasCommitment: true,
-      });
+      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        {
+          email,
+          establishmentSiren: genSiren(),
+          hasAccount: false,
+          hasCommitment: true,
+        },
+        {
+          email,
+          establishmentSiren: Establishment1.siren,
+          hasAccount: true,
+          hasCommitment: false,
+        },
+        {
+          email,
+          establishmentSiren: Establishment2.siren,
+          hasAccount: true,
+          hasCommitment: true,
+        },
+      ]);
 
       const { body, status } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toStrictEqual<ProspectApi>({
+      expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: null,
+        establishment: Establishment2,
+        hasAccount: true,
+        hasCommitment: true,
+      });
+    });
+
+    it('should create a prospect with an unknown establishment', async () => {
+      const email = genEmail();
+      const link = genSignupLinkApi(email);
+      await signupLinkRepository.insert(link);
+      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        {
+          email,
+          establishmentSiren: genSiren(),
+          hasAccount: true,
+          hasCommitment: true,
+        },
+      ]);
+
+      const { body, status } = await request(app).put(testRoute(link.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject<ProspectApi>({
+        email,
         hasAccount: true,
         hasCommitment: true,
       });
@@ -79,19 +121,23 @@ describe('Prospect controller', () => {
     it('should update and return the prospect if they already exist', async () => {
       const email = Prospect1.email;
       const link = genSignupLinkApi(email);
+      const siren = Establishment2.siren;
       await signupLinkRepository.insert(link);
-      jest.spyOn(ceremaService, 'consultUser').mockResolvedValue({
-        email,
-        hasAccount: true,
-        hasCommitment: true,
-      });
+      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+        {
+          email,
+          establishmentSiren: siren,
+          hasAccount: true,
+          hasCommitment: true,
+        },
+      ]);
 
       const { body, status } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<ProspectApi>({
+      expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: null,
+        establishment: Establishment2,
         hasAccount: true,
         hasCommitment: true,
       });

@@ -13,6 +13,7 @@ import contactPointController from '../controllers/contactPointController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import config from "../utils/config";
 import { noop } from "../middlewares/noop";
+import settingsController from "../controllers/settingsController";
 
 const router = express.Router();
 router.use(jwtCheck(false))
@@ -45,9 +46,11 @@ router.get('/signup-links/:id', rateLimiter(), signupLinkController.showValidato
 router.put('/signup-links/:id/prospect', rateLimiter(), prospectController.createProspectValidator, validator.validate, prospectController.upsert);
 
 router.get('/establishments', establishmentController.listValidators, validator.validate, establishmentController.list);
+router.get('/establishments/:id/settings', settingsController.getSettingsValidators, validator.validate, settingsController.getSettings);
 
 router.get('/localities', localityController.listLocalitiesValidators, validator.validate, localityController.listLocalities);
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
 router.get('/contact-points/public', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(true));
+
 export default router;

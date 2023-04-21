@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
 import { useFindContactPointsQuery } from '../../services/contact-point.service';
 import { useLocalityList } from '../../hooks/useLocalityList';
+import { useSettings } from '../../hooks/useSettings';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -45,6 +46,8 @@ const OwnerEstablishmentHomeView = () => {
 
   const { establishment, nearbyEstablishments, epciEstablishment } =
     useAppSelector((state) => state.establishment);
+
+  const { settings } = useSettings(establishment?.id ?? epciEstablishment?.id);
 
   const { data: contactPoints } = useFindContactPointsQuery(
     {
@@ -310,38 +313,39 @@ const OwnerEstablishmentHomeView = () => {
       <div className="bg-bf950">
         <Container as="section" spacing="py-11w" className="py-xs-0">
           <Row gutters>
-            {(establishment?.available || epciEstablishment?.available) && (
-              <Col
-                className={classNames(
-                  styles.ownerFormContainer,
-                  'fr-col-12',
-                  'fr-col-sm-7'
-                )}
-              >
-                <Text className="color-bf525" spacing="mb-1w">
-                  PROPRIÉTAIRE DE LOGEMENT VACANT
-                </Text>
-                <Title as="h2" look="h2" spacing="mb-1w">
-                  Vous souhaitez sortir votre logement de la vacance ?
-                </Title>
-                <Text size="md" className="subtitle">
-                  Votre collectivité peut vous aider. Laissez vos coordonnées
-                  pour être recontacté par votre collectivité.
-                </Text>
-                {ownerProspect ? (
-                  <Alert
-                    title=""
-                    description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
-                    type="success"
-                  />
-                ) : (
-                  <OwnerProspectForm
-                    onCreateOwnerProspect={onCreateOwnerProspect}
-                    addressSearchResult={addressSearchResult}
-                  />
-                )}
-              </Col>
-            )}
+            {(establishment?.available || epciEstablishment?.available) &&
+              settings?.inbox?.enabled && (
+                <Col
+                  className={classNames(
+                    styles.ownerFormContainer,
+                    'fr-col-12',
+                    'fr-col-sm-7'
+                  )}
+                >
+                  <Text className="color-bf525" spacing="mb-1w">
+                    PROPRIÉTAIRE DE LOGEMENT VACANT
+                  </Text>
+                  <Title as="h2" look="h2" spacing="mb-1w">
+                    Vous souhaitez sortir votre logement de la vacance ?
+                  </Title>
+                  <Text size="md" className="subtitle">
+                    Votre collectivité peut vous aider. Laissez vos coordonnées
+                    pour être recontacté par votre collectivité.
+                  </Text>
+                  {ownerProspect ? (
+                    <Alert
+                      title=""
+                      description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
+                      type="success"
+                    />
+                  ) : (
+                    <OwnerProspectForm
+                      onCreateOwnerProspect={onCreateOwnerProspect}
+                      addressSearchResult={addressSearchResult}
+                    />
+                  )}
+                </Col>
+              )}
             <Col
               className={classNames(styles.ownerFormContainer, 'h-fit-content')}
             >

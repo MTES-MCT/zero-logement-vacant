@@ -6,7 +6,7 @@ import {
 } from '../store/actions/settingsAction';
 import { useAppDispatch, useAppSelector } from './useStore';
 
-export function useSettings() {
+export function useSettings(establishmentId?: string) {
   const dispatch = useAppDispatch();
   const { settings: state } = useAppSelector((state) => state);
 
@@ -23,8 +23,8 @@ export function useSettings() {
   }
 
   useEffect(() => {
-    dispatch(doFetchSettings());
-  }, [dispatch]);
+    dispatch(doFetchSettings(establishmentId));
+  }, [dispatch, establishmentId]);
 
   return {
     settings: state.settings,

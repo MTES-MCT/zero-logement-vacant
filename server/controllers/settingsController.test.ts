@@ -25,6 +25,7 @@ describe('Settings controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<Settings>({
         contactPoints: Settings1.contactPoints,
+        inbox: Settings1.inbox,
       });
     });
   });
@@ -54,6 +55,9 @@ describe('Settings controller', () => {
         contactPoints: {
           public: true,
         },
+        inbox: {
+          enabled: true,
+        },
       });
     });
 
@@ -70,6 +74,9 @@ describe('Settings controller', () => {
       expect(body).toStrictEqual<Settings>({
         contactPoints: {
           public: !Settings1.contactPoints.public,
+        },
+        inbox: {
+          enabled: true,
         },
       });
     });

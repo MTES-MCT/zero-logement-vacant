@@ -6,10 +6,14 @@ export interface SettingsApi {
   contactPoints: {
     public: boolean;
   };
+  inbox: {
+    enabled: boolean;
+  };
 }
 
 export function toDBO(settings: SettingsApi): Settings {
   return {
     contactPoints: settings.contactPoints,
+    inbox: settings.inbox,
   };
 }

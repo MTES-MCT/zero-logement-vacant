@@ -57,7 +57,7 @@
     "jsonwebtoken": "^9.0.0",
     "knex": "^0.95.15",
     "lodash": "^4.17.21",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^2.6.9",
     "nodemailer": "^6.9.1",
     "pg": "^8.7.3",
     "pg-query-stream": "^4.4.0",

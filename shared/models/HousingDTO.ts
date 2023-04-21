@@ -1,0 +1,43 @@
+import { OwnerDTO } from './OwnerDTO';
+import { OwnershipKind } from '../types/OwnershipKind';
+import { LocalityKind } from '../types/LocalityKind';
+import { Occupancy } from '../types/Occupancy';
+import { EnergyConsumption } from '../types/EnergyConsumption';
+import { HousingStatusApi } from '../../server/models/HousingStatusApi';
+
+export interface HousingDTO {
+  id: string;
+  buildingHousingCount?: number;
+  buildingLocation?: string;
+  buildingVacancyRate: number;
+  buildingYear?: number;
+  cadastralClassification: number;
+  cadastralReference: string;
+  campaignIds: string[];
+  contactCount: number;
+  dataYears: number[];
+  energyConsumption?: EnergyConsumption;
+  energyConsumptionWorst?: EnergyConsumption;
+  geoCode: string;
+  geoPerimeters?: string[];
+  housingKind: string;
+  invariant: string;
+  lastContact?: Date;
+  latitude?: number;
+  livingArea: number;
+  localityKind: LocalityKind;
+  localId?: string;
+  longitude?: number;
+  occupancy: Occupancy;
+  owner: OwnerDTO;
+  ownershipKind: OwnershipKind;
+  precisions?: string[];
+  rawAddress: string[];
+  roomsCount: number;
+  status?: HousingStatusApi;
+  subStatus?: string;
+  taxed: boolean;
+  uncomfortable: boolean;
+  vacancyReasons: string[];
+  vacancyStartYear: number;
+}

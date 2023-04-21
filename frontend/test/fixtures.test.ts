@@ -61,7 +61,7 @@ export function genUser() {
   } as User;
 }
 
-export function genOwner() {
+export function genOwner(): Owner {
   return {
     id: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
@@ -69,7 +69,7 @@ export function genOwner() {
     birthDate: new Date(),
     email: genEmail(),
     phone: randomstring.generate(),
-  } as Owner;
+  };
 }
 
 export function genHousing() {

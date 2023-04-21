@@ -1,44 +1,10 @@
-import { OwnerApi } from './OwnerApi';
-import { HousingStatusApi } from './HousingStatusApi';
-import { Sort } from './SortApi';
 import _ from 'lodash';
 
-export interface HousingApi {
-  id: string;
-  invariant: string;
-  localId?: string;
-  cadastralReference: string;
-  buildingLocation: string;
-  geoCode: string;
-  rawAddress: string[];
-  latitude?: number;
-  longitude?: number;
-  localityKind: string;
-  geoPerimeters?: string[];
-  owner: OwnerApi;
-  livingArea: number;
-  housingKind: string;
-  roomsCount: number;
-  buildingYear?: number;
-  vacancyStartYear: number;
-  vacancyReasons: string[];
-  uncomfortable: boolean;
-  cadastralClassification: number;
-  taxed: boolean;
-  ownershipKind: OwnershipKindsApi;
-  buildingHousingCount?: number;
-  buildingVacancyRate: number;
-  campaignIds: string[];
-  dataYears: number[];
-  status?: HousingStatusApi;
-  subStatus?: string;
-  precisions?: string[];
-  contactCount: number;
-  lastContact?: Date;
-  occupancy: OccupancyKindApi;
-  energyConsumption?: EnergyConsumptionGradesApi;
-  energyConsumptionWorst?: EnergyConsumptionGradesApi;
-}
+import { Sort } from './SortApi';
+import { HousingDTO } from '../../shared/models/HousingDTO';
+import { HousingStatusApi } from './HousingStatusApi';
+
+export type HousingApi = HousingDTO;
 
 export interface HousingUpdateApi {
   status: HousingStatusApi;

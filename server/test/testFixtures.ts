@@ -7,7 +7,6 @@ import { addHours, formatISO } from 'date-fns';
 import {
   EnergyConsumptionGradesApi,
   HousingApi,
-  OccupancyKindApi,
   OwnershipKindsApi,
 } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
@@ -29,6 +28,7 @@ import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { Occupancy } from '../../shared/types/Occupancy';
 
 const randomstring = require('randomstring');
 
@@ -153,8 +153,8 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (geoCode: string) => {
-  return <HousingApi>{
+export const genHousingApi = (geoCode: string): HousingApi => {
+  return {
     id: uuidv4(),
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
@@ -162,7 +162,6 @@ export const genHousingApi = (geoCode: string) => {
     buildingLocation: randomstring.generate(),
     geoCode,
     rawAddress: [randomstring.generate(), randomstring.generate()],
-    address: genAddressApi(),
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
     livingArea: genNumber(4),
@@ -179,7 +178,7 @@ export const genHousingApi = (geoCode: string) => {
     ownershipKind: OwnershipKindsApi.Single,
     buildingVacancyRate: genNumber(2),
     contactCount: genNumber(1),
-    occupancy: OccupancyKindApi.Vacant,
+    occupancy: Occupancy.Vacant,
     energyConsumption: EnergyConsumptionGradesApi.A,
     energyConsumptionWorst: EnergyConsumptionGradesApi.B,
     status: HousingStatusApi.NeverContacted,

@@ -1,3 +1,5 @@
+import { OwnerDTO } from '../../../shared/models/OwnerDTO';
+
 export interface DraftOwner {
   rawAddress: string[];
   fullName: string;
@@ -6,14 +8,8 @@ export interface DraftOwner {
   phone?: string;
 }
 
-export interface Owner {
-  id: string;
-  rawAddress: string[];
-  fullName: string;
-  administrator?: string;
+export interface Owner extends Omit<OwnerDTO, 'birthDate'> {
   birthDate?: Date;
-  email?: string;
-  phone?: string;
 }
 
 export interface HousingOwner extends Owner {

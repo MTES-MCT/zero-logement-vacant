@@ -130,7 +130,7 @@ const updateContactPoint = async (
     id: contactPointId,
   };
   await contactPointsRepository.update(updated);
-  response.status(constants.HTTP_STATUS_OK).json(toContactPointDTO(updated));
+  response.status(constants.HTTP_STATUS_OK).send();
 };
 
 const geoController = {

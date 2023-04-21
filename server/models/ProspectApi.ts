@@ -1,17 +1,3 @@
-import { EstablishmentApi } from './EstablishmentApi';
+import { ProspectDTO } from '../../shared/models/ProspectDTO';
 
-type PartialEstablishment = Pick<
-  EstablishmentApi,
-  'id' | 'siren' | 'campaignIntent'
->;
-
-export interface ProspectApi {
-  email: string;
-  establishment?: PartialEstablishment | null;
-  hasAccount: boolean;
-  hasCommitment: boolean;
-}
-
-export function isValid(prospect: ProspectApi): boolean {
-  return prospect.hasAccount && prospect.hasCommitment;
-}
+export type ProspectApi = ProspectDTO;

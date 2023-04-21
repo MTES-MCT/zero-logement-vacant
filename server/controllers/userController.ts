@@ -15,7 +15,6 @@ import establishmentService from '../services/establishmentService';
 import prospectRepository from '../repositories/prospectRepository';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { isValid } from '../models/ProspectApi';
 import TestAccountError from '../errors/testAccountError';
 import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
@@ -29,6 +28,7 @@ import { isArrayOf, isString } from '../utils/validators';
 import { isPartial, Paginated } from '../../shared/models/Pagination';
 import { UserDTO } from '../../shared/models/UserDTO';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
+import { isValid } from '../../shared/models/ProspectDTO';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),

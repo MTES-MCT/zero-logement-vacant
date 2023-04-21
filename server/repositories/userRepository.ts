@@ -83,7 +83,7 @@ const stream = (options?: StreamOptions) => {
       }
     })
     .stream();
-  return highland(stream).map(parseUserApi);
+  return highland<UserDBO>(stream).map(parseUserApi);
 };
 
 const listWithFilters = async (

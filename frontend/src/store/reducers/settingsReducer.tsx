@@ -1,6 +1,6 @@
-import { Settings } from '../../../../shared/models/Settings';
 import { SettingsFetchedAction } from '../actions/settingsAction';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Settings } from '../../models/Settings';
 
 export interface SettingsState {
   settings?: Settings;

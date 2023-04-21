@@ -1,8 +1,9 @@
+import { DeepPartial } from 'ts-essentials';
+
 import { createHttpService, toJSON } from '../utils/fetchUtils';
-import { Settings } from '../../../shared/models/Settings';
 import config from '../utils/config';
 import authService from './auth.service';
-import { DeepPartial } from 'ts-essentials';
+import { Settings } from '../models/Settings';
 
 const http = createHttpService('settings');
 

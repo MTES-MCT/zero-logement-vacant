@@ -2,10 +2,10 @@ import { Dispatch } from 'redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { DeepPartial } from 'ts-essentials';
 
-import { Settings } from '../../../../shared/models/Settings';
 import settingsService from '../../services/settings.service';
 import settingsSlice from '../reducers/settingsReducer';
 import { AppState } from '../store';
+import { Settings } from '../../models/Settings';
 
 export interface SettingsFetchedAction {
   settings: Settings;

@@ -2,7 +2,7 @@ import request from 'supertest';
 import { createServer } from '../server';
 import { constants } from 'http2';
 import { Settings1 } from '../../database/seeds/test/009-settings';
-import { Settings } from '../../shared/models/Settings';
+import { SettingsDTO } from '../../shared/models/SettingsDTO';
 import { withAccessToken } from '../test/testUtils';
 import { User2 } from '../../database/seeds/test/003-users';
 
@@ -23,7 +23,7 @@ describe('Settings controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<Settings>({
+      expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: Settings1.contactPoints,
       });
     });
@@ -50,7 +50,7 @@ describe('Settings controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toStrictEqual<Settings>({
+      expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: {
           public: true,
         },
@@ -67,7 +67,7 @@ describe('Settings controller', () => {
       });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<Settings>({
+      expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: {
           public: !Settings1.contactPoints.public,
         },

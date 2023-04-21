@@ -7,7 +7,7 @@ import settingsRepository from '../repositories/settingsRepository';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
-import { SettingsApi, toDBO } from '../models/SettingsApi';
+import { SettingsApi, toDTO } from '../models/SettingsApi';
 
 const getSettings = async (request: Request, response: Response) => {
   const { auth } = request as AuthenticatedRequest;
@@ -22,7 +22,7 @@ const getSettings = async (request: Request, response: Response) => {
   if (!settings) {
     throw new SettingsMissingError({ establishmentId: auth.establishmentId });
   }
-  response.status(constants.HTTP_STATUS_OK).json(toDBO(settings));
+  response.status(constants.HTTP_STATUS_OK).json(toDTO(settings));
 };
 
 const getSettingsValidators: ValidationChain[] = [
@@ -57,7 +57,7 @@ const updateSettings = async (request: Request, response: Response) => {
     },
   };
   await settingsRepository.upsert(newSettings);
-  response.status(status).json(toDBO(newSettings));
+  response.status(status).json(toDTO(newSettings));
 };
 
 const updateSettingsValidators: ValidationChain[] = [

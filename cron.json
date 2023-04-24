@@ -4,7 +4,7 @@
       "command": "*/10 * * * * node dist/server/services/addressService.js"
     },
     {
-      "command": "0 */2 * * * ts-node scripts/sync-attio"
+      "command": "0 */2 * * * node dist/scripts/sync-attio"
     }
   ]
 }

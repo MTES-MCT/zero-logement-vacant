@@ -30,13 +30,11 @@ export interface CampaignBundleListFetchedAction {
 
 export interface FetchCampaignBundleAction {
   campaignBundleFetchingId: CampaignBundleId;
-  searchQuery?: string;
 }
 
 export interface CampaignBundleFetchedAction {
   campaignBundle: CampaignBundle;
   campaignBundleFetchingId: CampaignBundleId;
-  searchQuery?: string;
 }
 
 export interface FetchCampaignBundleHousingListAction {
@@ -44,12 +42,14 @@ export interface FetchCampaignBundleHousingListAction {
   status?: HousingStatus;
   page: number;
   perPage: number;
+  searchQuery?: string;
 }
 
 export interface CampaignBundleHousingListFetchedAction {
   campaignIds: string[];
   status?: HousingStatus;
   paginatedHousing: PaginatedResult<Housing>;
+  searchQuery?: string;
 }
 
 export interface CampaignCreatedAction {
@@ -119,7 +119,6 @@ export const getCampaignBundle = (
     dispatch(
       fetchCampaignBundle({
         campaignBundleFetchingId: campaignBundleId,
-        searchQuery,
       })
     );
 
@@ -131,7 +130,6 @@ export const getCampaignBundle = (
           campaignBundleFetched({
             campaignBundleFetchingId: campaignBundleId,
             campaignBundle,
-            searchQuery,
           })
         );
       });
@@ -141,7 +139,7 @@ export const getCampaignBundle = (
 export const listCampaignBundleHousing = (
   campaignBundle: CampaignBundle,
   status?: HousingStatus,
-  query?: string
+  searchQuery?: string
 ) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
@@ -159,6 +157,7 @@ export const listCampaignBundleHousing = (
         status,
         page,
         perPage,
+        searchQuery,
       })
     );
 
@@ -168,7 +167,7 @@ export const listCampaignBundleHousing = (
     };
 
     housingService
-      .listHousing({ ...filters, query }, filters, {
+      .listHousing({ ...filters, query: searchQuery }, filters, {
         pagination: { page, perPage },
       })
       .then((result: PaginatedResult<Housing>) => {
@@ -178,6 +177,7 @@ export const listCampaignBundleHousing = (
             campaignIds: campaignBundle.campaignIds,
             status,
             paginatedHousing: result,
+            searchQuery,
           })
         );
       });
@@ -202,6 +202,7 @@ export const changeCampaignHousingPagination = (
           status,
           page,
           perPage,
+          searchQuery,
         })
       );
 
@@ -224,6 +225,7 @@ export const changeCampaignHousingPagination = (
               campaignIds: campaignBundle.campaignIds,
               status,
               paginatedHousing: result,
+              searchQuery,
             })
           );
         });
@@ -253,6 +255,7 @@ export const changeCampaignHousingSort = (
           status,
           page: 1,
           perPage: campaignBundleHousing.perPage,
+          searchQuery,
         })
       );
 
@@ -273,6 +276,7 @@ export const changeCampaignHousingSort = (
               campaignIds: campaignBundle.campaignIds,
               status,
               paginatedHousing: result,
+              searchQuery,
             })
           );
         });

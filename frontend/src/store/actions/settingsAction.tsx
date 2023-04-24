@@ -13,16 +13,16 @@ export interface SettingsFetchedAction {
 
 const { settingsFetched } = settingsSlice.actions;
 
-export const fetchSettings = () => {
+export const fetchSettings = (establishmentId?: string) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const establishmentId =
-      getState().authentication.authUser?.establishment.id;
+    const id =
+      establishmentId ?? getState().authentication.authUser?.establishment?.id;
 
-    if (establishmentId) {
+    if (id) {
       settingsService
-        .findOne({ establishmentId })
+        .findOne({ establishmentId: id })
         .then((settings) => {
           dispatch(
             settingsFetched({

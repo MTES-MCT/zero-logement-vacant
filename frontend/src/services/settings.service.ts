@@ -14,6 +14,9 @@ const DEFAULT_SETTINGS: Settings = {
   contactPoints: {
     public: false,
   },
+  inbox: {
+    enabled: true,
+  },
 };
 
 async function findOne(options: FindOneOptions): Promise<Settings> {

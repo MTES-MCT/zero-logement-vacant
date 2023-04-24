@@ -16,10 +16,11 @@ async function findOne(options: FindOneOptions): Promise<SettingsApi | null> {
   return settings ? parseSettingsApi(settings) : null;
 }
 
-interface SettingsDBO {
+export interface SettingsDBO {
   id: string;
   establishment_id: string;
   contact_points_public: boolean;
+  inbox_enabled: boolean;
 }
 
 async function upsert(settings: SettingsApi): Promise<void> {
@@ -38,6 +39,9 @@ function parseSettingsApi(settings: SettingsDBO): SettingsApi {
     contactPoints: {
       public: settings.contact_points_public,
     },
+    inbox: {
+      enabled: settings.inbox_enabled,
+    },
   };
 }
 
@@ -46,6 +50,7 @@ function formatSettingsApi(settings: SettingsApi): SettingsDBO {
     id: settings.id,
     establishment_id: settings.establishmentId,
     contact_points_public: settings.contactPoints.public,
+    inbox_enabled: settings.inbox.enabled,
   };
 }
 

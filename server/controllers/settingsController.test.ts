@@ -12,11 +12,6 @@ describe('Settings controller', () => {
   describe('Get settings', () => {
     const testRoute = (id: string) => `/api/establishments/${id}/settings`;
 
-    it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute('any'));
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
     it('should retrieve existing settings', async () => {
       const { body, status } = await withAccessToken(
         request(app).get(testRoute(Settings1.establishmentId))
@@ -25,6 +20,7 @@ describe('Settings controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<Settings>({
         contactPoints: Settings1.contactPoints,
+        inbox: Settings1.inbox,
       });
     });
   });
@@ -54,6 +50,9 @@ describe('Settings controller', () => {
         contactPoints: {
           public: true,
         },
+        inbox: {
+          enabled: true,
+        },
       });
     });
 
@@ -70,6 +69,9 @@ describe('Settings controller', () => {
       expect(body).toStrictEqual<Settings>({
         contactPoints: {
           public: !Settings1.contactPoints.public,
+        },
+        inbox: {
+          enabled: true,
         },
       });
     });

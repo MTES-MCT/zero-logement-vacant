@@ -80,7 +80,6 @@ router.delete('/contact-points/:contactPointId', contactPointController.deleteCo
 
 router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValidators, validator.validate, localityController.updateLocalityTax);
 
-router.get('/establishments/:id/settings', settingsController.getSettingsValidators, validator.validate, settingsController.getSettings);
 router.put('/establishments/:id/settings', settingsController.updateSettingsValidators, validator.validate, settingsController.updateSettings);
 
 export default router;

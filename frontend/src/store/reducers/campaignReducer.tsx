@@ -86,7 +86,6 @@ const campaignSlice = createSlice({
           : undefined;
       state.loading = true;
       state.campaignCreated = false;
-      state.searchQuery = action.payload.searchQuery;
     },
     campaignBundleFetched: (
       state: CampaignState,
@@ -94,8 +93,7 @@ const campaignSlice = createSlice({
     ) => {
       const isCurrentFetching =
         action.payload.campaignBundleFetchingId ===
-          current(state).campaignBundleFetchingId &&
-        action.payload.searchQuery === current(state).searchQuery;
+        current(state).campaignBundleFetchingId;
       if (isCurrentFetching) {
         state.campaignBundle = action.payload.campaignBundle;
         state.loading = false;
@@ -134,6 +132,7 @@ const campaignSlice = createSlice({
             perPage: action.payload.perPage,
             loading: true,
           };
+      state.searchQuery = action.payload.searchQuery;
     },
     campaignBundleHousingListFetched: (
       state: CampaignState,
@@ -141,6 +140,7 @@ const campaignSlice = createSlice({
     ) => {
       const isCurrentFetching =
         action.payload.campaignIds === current(state).campaignIds &&
+        action.payload.searchQuery === current(state).searchQuery &&
         action.payload.paginatedHousing.page ===
           (action.payload.status
             ? current(state).campaignBundleHousingByStatus[
@@ -184,6 +184,7 @@ const campaignSlice = createSlice({
               totalCount: action.payload.paginatedHousing.filteredCount,
               loading: false,
             };
+        state.searchQuery = action.payload.searchQuery;
       }
     },
     campaignCreated: (

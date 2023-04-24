@@ -269,5 +269,8 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
     contactPoints: {
       public: genBoolean(),
     },
+    inbox: {
+      enabled: true,
+    },
   };
 };

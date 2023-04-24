@@ -12,15 +12,15 @@ import { SettingsApi, toDBO } from '../models/SettingsApi';
 const getSettings = async (request: Request, response: Response) => {
   const { auth } = request as AuthenticatedRequest;
 
-  console.log('Get settings', auth.establishmentId);
+  const id = request.params.id ?? auth.establishmentId;
+  console.log('Get settings', id);
 
   const settings = await settingsRepository.findOne({
-    // Could be the given establishmentId param in a future with access control
-    establishmentId: auth.establishmentId,
+    establishmentId: id,
   });
 
   if (!settings) {
-    throw new SettingsMissingError({ establishmentId: auth.establishmentId });
+    throw new SettingsMissingError({ establishmentId: id });
   }
   response.status(constants.HTTP_STATUS_OK).json(toDBO(settings));
 };
@@ -54,6 +54,9 @@ const updateSettings = async (request: Request, response: Response) => {
     establishmentId,
     contactPoints: {
       public: body.contactPoints.public,
+    },
+    inbox: existingSettings?.inbox ?? {
+      enabled: true,
     },
   };
   await settingsRepository.upsert(newSettings);

@@ -14,7 +14,7 @@ export interface EventApi<T> {
   contactKind?: string;
   conflict?: boolean;
   old?: T;
-  new: T;
+  new?: T;
   createdAt: Date;
   createdBy: string;
 }

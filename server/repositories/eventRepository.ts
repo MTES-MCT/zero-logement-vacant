@@ -116,7 +116,7 @@ interface EventDBO<T> {
   contact_kind?: string;
   conflict?: boolean;
   old?: T;
-  new: T;
+  new?: T;
   created_at: Date;
   created_by: string;
 }

@@ -13,7 +13,6 @@ import {
 import { CampaignApi } from '../models/CampaignApi';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 import { ProspectApi } from '../models/ProspectApi';
-import { EventCreationDTO } from '../../shared/models/EventDTO';
 import {
   RESET_LINK_EXPIRATION,
   RESET_LINK_LENGTH,
@@ -29,6 +28,7 @@ import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import { NoteCreationDTO } from '../../shared/models/NoteDTO';
 
 const randomstring = require('randomstring');
 
@@ -220,11 +220,11 @@ export const genGeoPerimeterApi = (establishmentId: string) => {
   };
 };
 
-export const genEventCreationDTO = (): EventCreationDTO => ({
+export const genNoteCreationDTO = (): NoteCreationDTO => ({
   title: randomstring.generate(),
   content: randomstring.generate(),
   contactKind: randomstring.generate(),
-  housingId: [uuidv4()],
+  housingIds: [uuidv4()],
   ownerId: uuidv4(),
 });
 

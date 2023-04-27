@@ -1,11 +1,9 @@
 import { Owner } from '../../models/Owner';
 import {
-  OwnerEventsFetchedAction,
   OwnerFetchedAction,
   OwnerHousingFetchedAction,
   OwnerUpdatedAction,
 } from '../actions/ownerAction';
-import { Event } from '../../models/Event';
 import { Housing, housingSort } from '../../models/Housing';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
@@ -13,7 +11,6 @@ export interface OwnerState {
   owner?: Owner;
   housingList?: Housing[];
   housingTotalCount?: number;
-  events?: Event[];
 }
 
 const initialState: OwnerState = {};
@@ -46,15 +43,6 @@ const ownerSlice = createSlice({
       action: PayloadAction<OwnerUpdatedAction>
     ) => {
       state.owner = action.payload.owner;
-    },
-    fetchingOwnerEvents: (state: OwnerState) => {
-      state.events = [];
-    },
-    ownerEventsFetched: (
-      state: OwnerState,
-      action: PayloadAction<OwnerEventsFetchedAction>
-    ) => {
-      state.events = action.payload.events;
     },
   },
 });

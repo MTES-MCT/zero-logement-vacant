@@ -4,7 +4,6 @@ import campaignHousingRepository from '../repositories/campaignHousingRepository
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
-import { HousingEventApi } from '../models/EventApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -139,20 +138,18 @@ const createCampaign = async (
   const newHousingList = await housingRepository.listByIds(housingIds);
 
   await eventRepository.insertManyHousingEvents(
-    housingIds.map(
-      (housingId) =>
-        <HousingEventApi>{
-          id: uuidv4(),
-          kind: 'Create',
-          category: 'Campaign',
-          section: 'Suivi de campagne',
-          old: housingList.find((_) => _.id === housingId),
-          new: newHousingList.find((_) => _.id === housingId),
-          createdBy: userId,
-          createdAt: new Date(),
-          housingId: housingId,
-        }
-    )
+    housingIds.map((housingId) => ({
+      id: uuidv4(),
+      name: 'Ajout dans une campagne',
+      kind: 'Create',
+      category: 'Campaign',
+      section: 'Suivi de campagne',
+      old: housingList.find((_) => _.id === housingId),
+      new: newHousingList.find((_) => _.id === housingId),
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId: housingId,
+    }))
   );
 
   return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);

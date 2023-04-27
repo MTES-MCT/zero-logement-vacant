@@ -1,22 +1,41 @@
-export interface EventApi {
-  id?: string;
-  ownerId?: string;
-  housingId?: string;
-  campaignId?: string;
-  kind: EventKinds;
-  createdBy?: string;
-  createdAt?: Date;
-  title?: string;
-  content?: string;
+import { EventKind } from '../../shared/types/EventKind';
+import { EventCategory } from '../../shared/types/EventCategory';
+import { HousingApi } from './HousingApi';
+import { HousingOwnerApi, OwnerApi } from './OwnerApi';
+import { CampaignApi } from './CampaignApi';
+import { EventSection } from '../../shared/types/EventSection';
+
+export interface EventApi<T> {
+  id: string;
+  name: string;
+  kind: EventKind;
+  category: EventCategory;
+  section: EventSection;
   contactKind?: string;
+  conflict?: boolean;
+  old?: T;
+  new: T;
+  createdAt: Date;
+  createdBy: string;
 }
 
-export enum EventKinds {
-  OwnerUpdate,
-  CampaignSend,
-  StatusChange,
-  Contact,
-  OwnerCreation,
-  HousingOwnersUpdate,
-  NoteCreation,
+export interface HousingEventApi
+  extends EventApi<HousingApi | HousingOwnerApi[]> {
+  housingId: string;
+}
+export interface OwnerEventApi extends EventApi<OwnerApi> {
+  ownerId: string;
+}
+export interface CampaignEventApi extends EventApi<CampaignApi> {
+  campaignId: string;
+}
+
+export function toEventDTO<T>(eventApi: EventApi<T>) {
+  return {
+    id: eventApi.id,
+    title: eventApi.name,
+    content: eventApi.name,
+    contactKind: eventApi.contactKind ?? '',
+    createdAt: eventApi.createdAt,
+  };
 }

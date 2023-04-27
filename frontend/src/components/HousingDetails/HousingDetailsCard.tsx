@@ -16,10 +16,7 @@ import classNames from 'classnames';
 import { pluralize } from '../../utils/stringUtils';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import {
-  createHousingNote,
-  updateHousing,
-} from '../../store/actions/housingAction';
+import { updateHousing } from '../../store/actions/housingAction';
 import { HousingOwner } from '../../models/Owner';
 import HousingDetailsSubCardOwners from './HousingDetailsSubCardOwners';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -35,6 +32,8 @@ import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingPrecisionsBadges from '../HousingStatusBadge/HousingPrecisionsBadges';
+import { useCreateNoteMutation } from '../../services/note.service';
+import { useFindEventsByHousingQuery } from '../../services/event.service';
 
 interface Props {
   housing: Housing;
@@ -49,17 +48,26 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
     useState(false);
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
 
+  const [createNote] = useCreateNoteMutation();
+  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
+    housing.id
+  );
+
   const submitHousingUpdate = (
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    dispatch(updateHousing(housing, housingUpdate));
+    dispatch(updateHousing(housing, housingUpdate, refetchHousingEvents));
     setIsHousingListEditionExpand(false);
   };
 
-  const submitHousingNoteAboutHousing = (note: HousingNote): void => {
-    dispatch(createHousingNote(note));
-    setIsModalNoteOpen(false);
+  const submitHousingNoteAboutHousing = async (
+    note: HousingNote
+  ): Promise<void> => {
+    await createNote(note).finally(() => {
+      refetchHousingEvents();
+      setIsModalNoteOpen(false);
+    });
   };
 
   return (

@@ -22,10 +22,10 @@ exports.seed = function (knex: Knex) {
     knex
       .table(housingTable)
       .insert([
-        housingRepository.formatHousingApi(Housing0),
-        housingRepository.formatHousingApi(Housing1),
-        housingRepository.formatHousingApi(Housing2),
-        housingRepository.formatHousingApi(HousingShortVacancy),
+        housingRepository.formatHousingRecordApi(Housing0),
+        housingRepository.formatHousingRecordApi(Housing1),
+        housingRepository.formatHousingRecordApi(Housing2),
+        housingRepository.formatHousingRecordApi(HousingShortVacancy),
       ])
       .then(() =>
         knex.table(ownersHousingTable).insert([

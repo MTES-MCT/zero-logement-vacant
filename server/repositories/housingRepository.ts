@@ -1,7 +1,9 @@
 import db from './db';
 import {
+  EnergyConsumptionGradesApi,
   getOwnershipKindFromValue,
   HousingApi,
+  HousingRecordApi,
   HousingSortApi,
   OccupancyKindApi,
   OwnershipKindsApi,
@@ -22,7 +24,7 @@ import {
   HousingStatusDurationApi,
 } from '../models/HousingStatusApi';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
-import { eventsTable } from './eventRepository';
+import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
@@ -39,6 +41,19 @@ export const ownersHousingJoinClause = (query: any) => {
   query
     .on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`)
     .andOnVal('rank', 1);
+};
+export const queryHousingEventsJoinClause = (queryBuilder: any) => {
+  queryBuilder
+    .leftJoin(
+      housingEventsTable,
+      `${housingEventsTable}.housing_id`,
+      `${housingTable}.id`
+    )
+    .leftJoin(
+      eventsTable,
+      `${eventsTable}.id`,
+      `${housingEventsTable}.event_id`
+    );
 };
 
 export const queryOwnerHousingWhereClause = (
@@ -148,9 +163,7 @@ const get = async (
                      where st_contains(perimeter.geom, ST_SetSRID( ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
                      ) perimeters on true`
     )
-    .joinRaw(
-      `left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`
-    )
+    .modify(queryHousingEventsJoinClause)
     .groupBy(
       `${housingTable}.id`,
       'o.id',
@@ -528,9 +541,7 @@ const listQuery = (establishmentIds?: string[]) =>
                 ) campaigns on true`,
       establishmentIds ?? []
     )
-    .joinRaw(
-      `left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id`
-    )
+    .modify(queryHousingEventsJoinClause)
     .groupBy(`${housingTable}.id`, 'o.id');
 
 const listWithFilters = async (
@@ -794,79 +805,115 @@ const monitoringQueryFilter =
     }
   };
 
-const parseHousingApi = (result: any) =>
-  <HousingApi>{
-    id: result.id,
-    invariant: result.invariant,
-    cadastralReference: result.cadastral_reference,
-    buildingLocation: result.building_location,
-    geoCode: result.geo_code,
-    rawAddress: result.raw_address,
-    latitude: result.latitude_ban ?? result.latitude,
-    longitude: result.longitude_ban ?? result.longitude,
-    localityKind: result.locality_kind,
-    geoPerimeters: result.geo_perimeters,
-    owner: <OwnerApi>{
-      id: result.owner_id,
-      rawAddress: result.owner_raw_address,
-      fullName: result.full_name,
-      administrator: result.administrator,
-      email: result.email,
-      phone: result.phone,
-    },
-    livingArea: result.living_area,
-    housingKind: result.housing_kind,
-    roomsCount: result.rooms_count,
-    buildingYear: result.building_year,
-    vacancyStartYear: result.vacancy_start_year,
-    vacancyReasons: result.vacancy_reasons,
-    uncomfortable: result.uncomfortable,
-    cadastralClassification: result.cadastral_classification,
-    taxed: result.taxed,
-    ownershipKind: getOwnershipKindFromValue(result.ownership_kind),
-    buildingHousingCount: result.housing_count,
-    buildingVacancyRate: result.vacant_housing_count
-      ? Math.round(
-          (result.vacant_housing_count * 100) /
-            (result.housing_count ?? result.vacant_housing_count)
-        )
-      : undefined,
-    dataYears: result.data_years,
-    campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
-    status: result.status,
-    subStatus: result.sub_status,
-    precisions: result.precisions,
-    contactCount: result.contact_count,
-    lastContact: result.last_contact,
-    occupancy: result.occupancy,
-    energyConsumption: result.energy_consumption,
-    energyConsumptionWorst: result.energy_consumption_worst,
-  };
+interface HousingRecordDBO {
+  id: string;
+  invariant: string;
+  local_id: string;
+  raw_address: string[];
+  geo_code: string;
+  longitude?: number;
+  latitude?: number;
+  cadastral_classification: number;
+  uncomfortable: boolean;
+  vacancy_start_year: number;
+  housing_kind: string;
+  rooms_count: number;
+  living_area: number;
+  cadastral_reference: string;
+  building_year?: number;
+  taxed: boolean;
+  vacancy_reasons: string[];
+  data_years: number[];
+  building_location: string;
+  ownership_kind?: OwnershipKindsApi;
+  status?: HousingStatusApi;
+  sub_status?: string;
+  precisions?: string[];
+  energy_consumption?: EnergyConsumptionGradesApi;
+  energy_consumption_worst?: EnergyConsumptionGradesApi;
+  occupancy: OccupancyKindApi;
+  latitude_ban?: number;
+  longitude_ban?: number;
+}
 
-const formatHousingApi = (housingApi: HousingApi) => ({
-  id: housingApi.id,
-  invariant: housingApi.invariant,
-  local_id: housingApi.localId,
-  cadastral_reference: housingApi.cadastralReference,
-  building_location: housingApi.buildingLocation,
-  geo_code: housingApi.geoCode,
-  raw_address: housingApi.rawAddress,
-  latitude: housingApi.latitude,
-  longitude: housingApi.longitude,
-  living_area: housingApi.livingArea,
-  housing_kind: housingApi.housingKind,
-  rooms_count: housingApi.roomsCount,
-  building_year: housingApi.buildingYear,
-  vacancy_start_year: housingApi.vacancyStartYear,
-  vacancy_reasons: housingApi.vacancyReasons,
-  uncomfortable: housingApi.uncomfortable,
-  cadastral_classification: housingApi.cadastralClassification,
-  taxed: housingApi.taxed,
-  ownership_kind: housingApi.ownershipKind,
-  data_years: housingApi.dataYears,
-  status: housingApi.status,
-  sub_status: housingApi.subStatus,
-  precisions: housingApi.precisions,
+const parseHousingApi = (result: any): HousingApi => ({
+  id: result.id,
+  invariant: result.invariant,
+  localId: result.local_id,
+  rawAddress: result.raw_address,
+  geoCode: result.geo_code,
+  longitude: result.longitude_ban ?? result.longitude,
+  latitude: result.latitude_ban ?? result.latitude,
+  cadastralClassification: result.cadastral_classification,
+  uncomfortable: result.uncomfortable,
+  vacancyStartYear: result.vacancy_start_year,
+  housingKind: result.housing_kind,
+  roomsCount: result.rooms_count,
+  livingArea: result.living_area,
+  cadastralReference: result.cadastral_reference,
+  buildingYear: result.building_year,
+  taxed: result.taxed,
+  vacancyReasons: result.vacancy_reasons,
+  dataYears: result.data_years,
+  buildingLocation: result.building_location,
+  ownershipKind: getOwnershipKindFromValue(result.ownership_kind),
+  status: result.status,
+  subStatus: result.sub_status,
+  precisions: result.precisions,
+  energyConsumption: result.energy_consumption,
+  energyConsumptionWorst: result.energy_consumption_worst,
+  occupancy: result.occupancy,
+  localityKind: result.locality_kind,
+  geoPerimeters: result.geo_perimeters,
+  owner: <OwnerApi>{
+    id: result.owner_id,
+    rawAddress: result.owner_raw_address,
+    fullName: result.full_name,
+    administrator: result.administrator,
+    email: result.email,
+    phone: result.phone,
+  },
+  buildingHousingCount: result.housing_count,
+  buildingVacancyRate: result.vacant_housing_count
+    ? Math.round(
+        (result.vacant_housing_count * 100) /
+          (result.housing_count ?? result.vacant_housing_count)
+      )
+    : undefined,
+  campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
+  contactCount: result.contact_count,
+  lastContact: result.last_contact,
+});
+
+const formatHousingRecordApi = (
+  housingRecordApi: HousingRecordApi
+): HousingRecordDBO => ({
+  id: housingRecordApi.id,
+  invariant: housingRecordApi.invariant,
+  local_id: housingRecordApi.localId,
+  raw_address: housingRecordApi.rawAddress,
+  geo_code: housingRecordApi.geoCode,
+  longitude: housingRecordApi.longitude,
+  latitude: housingRecordApi.latitude,
+  cadastral_classification: housingRecordApi.cadastralClassification,
+  uncomfortable: housingRecordApi.uncomfortable,
+  vacancy_start_year: housingRecordApi.vacancyStartYear,
+  housing_kind: housingRecordApi.housingKind,
+  rooms_count: housingRecordApi.roomsCount,
+  living_area: housingRecordApi.livingArea,
+  cadastral_reference: housingRecordApi.cadastralReference,
+  building_year: housingRecordApi.buildingYear,
+  building_location: housingRecordApi.buildingLocation,
+  vacancy_reasons: housingRecordApi.vacancyReasons,
+  taxed: housingRecordApi.taxed,
+  ownership_kind: housingRecordApi.ownershipKind,
+  data_years: housingRecordApi.dataYears,
+  status: housingRecordApi.status,
+  sub_status: housingRecordApi.subStatus,
+  precisions: housingRecordApi.precisions,
+  energy_consumption: housingRecordApi.energyConsumption,
+  energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
+  occupancy: housingRecordApi.occupancy,
 });
 
 export default {
@@ -878,5 +925,5 @@ export default {
   updateHousingList,
   countByStatusWithFilters,
   durationByStatusWithFilters,
-  formatHousingApi,
+  formatHousingRecordApi,
 };

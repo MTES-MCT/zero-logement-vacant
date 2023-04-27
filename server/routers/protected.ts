@@ -16,6 +16,7 @@ import housingExportController from '../controllers/housingExportController';
 import settingsController from '../controllers/settingsController';
 import ownerProspectController from "../controllers/ownerProspectController";
 import { isUUIDParam } from '../utils/validators';
+import noteController from '../controllers/noteController';
 
 const router = express.Router();
 
@@ -25,8 +26,8 @@ router.use(userCheck(true));
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
-router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
-router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);
+router.post('/housing/list', housingController.updateHousingListValidators, validator.validate, housingController.updateHousingList);
+router.post('/housing/:housingId', housingController.updateHousingValidators, validator.validate, housingController.updateHousing);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
@@ -55,7 +56,8 @@ router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectVa
 
 router.get('/events/owner/:ownerId', eventController.listByOwnerId);
 router.get('/events/housing/:housingId', eventController.listByHousingId);
-router.post('/events', eventController.eventValidator, validator.validate, eventController.create);
+
+router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
 
 router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);

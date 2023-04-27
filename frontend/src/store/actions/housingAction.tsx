@@ -6,10 +6,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { Event } from '../../models/Event';
-import eventService from '../../services/event.service';
 import { FormState } from './FormState';
-import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
 import { handleAbort } from '../../utils/fetchUtils';
 import housingReducer from '../reducers/housingReducer';
@@ -43,10 +40,6 @@ export interface HousingOwnersUpdateAction {
   formState: FormState;
 }
 
-export interface HousingEventsFetchedAction {
-  events: Event[];
-}
-
 export interface FetchingHousingListAction {
   filters: HousingFilters;
   pagination: Pagination;
@@ -61,12 +54,10 @@ export interface HousingListFetchedAction {
 }
 
 const {
-  fetchingHousingEvents,
   fetchingHousingOwners,
   additionalOwnersFetched,
   fetchingAdditionalOwners,
   fetchingHousingList,
-  housingEventsFetched,
   fetchingHousing,
   housingListFetched,
   housingOwnersFetched,
@@ -247,26 +238,10 @@ export const getHousingOwners = (housingId: string) => {
   };
 };
 
-export const getHousingEvents = (housingId: string) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchingHousingEvents());
-
-    eventService.listByHousing(housingId).then((events) => {
-      dispatch(hideLoading());
-      dispatch(
-        housingEventsFetched({
-          events,
-        })
-      );
-    });
-  };
-};
-
 export const updateHousing = (
   housing: Housing,
-  housingUpdate: HousingUpdate
+  housingUpdate: HousingUpdate,
+  callback: () => void
 ) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
@@ -274,7 +249,7 @@ export const updateHousing = (
     housingService.updateHousing(housing.id, housingUpdate).then(() => {
       dispatch(hideLoading());
       getHousing(housing.id)(dispatch);
-      getHousingEvents(housing.id)(dispatch);
+      callback();
     });
   };
 };
@@ -282,7 +257,8 @@ export const updateHousing = (
 export const createAdditionalOwner = (
   housingId: string,
   draftOwner: DraftOwner,
-  ownerRank: number
+  ownerRank: number,
+  callback: () => void
 ) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
@@ -291,7 +267,12 @@ export const createAdditionalOwner = (
       .createOwner(draftOwner)
       .then((owner) => {
         dispatch(hideLoading());
-        addHousingOwner(housingId, owner, ownerRank)(dispatch, getState);
+        addHousingOwner(
+          housingId,
+          owner,
+          ownerRank,
+          callback
+        )(dispatch, getState);
       })
       .catch((error) => {
         console.error(error);
@@ -323,30 +304,36 @@ export const updateMainHousingOwner = (
 export const addHousingOwner = (
   housingId: string,
   owner: Owner,
-  ownerRank: number
+  ownerRank: number,
+  callback: () => void
 ) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     const { housingOwners } = getState().housing;
 
-    updateHousingOwners(housingId, [
-      ...(housingOwners ?? []).map((ho) => ({
-        ...ho,
-        rank: ownerRank && ownerRank <= ho.rank ? ho.rank + 1 : ho.rank,
-      })),
-      {
-        ...owner,
-        housingId: housingId,
-        rank: ownerRank,
-        startDate: new Date(),
-        origin: 'ZLV',
-      },
-    ])(dispatch);
+    updateHousingOwners(
+      housingId,
+      [
+        ...(housingOwners ?? []).map((ho) => ({
+          ...ho,
+          rank: ownerRank && ownerRank <= ho.rank ? ho.rank + 1 : ho.rank,
+        })),
+        {
+          ...owner,
+          housingId: housingId,
+          rank: ownerRank,
+          startDate: new Date(),
+          origin: 'ZLV',
+        },
+      ],
+      callback
+    )(dispatch);
   };
 };
 
 export const updateHousingOwners = (
   housingId: string,
-  housingOwners: HousingOwner[]
+  housingOwners: HousingOwner[],
+  callback: () => void
 ) => {
   return function (dispatch: Dispatch) {
     dispatch(showLoading());
@@ -365,7 +352,7 @@ export const updateHousingOwners = (
         })
       );
       getHousingOwners(housingId)(dispatch);
-      getHousingEvents(housingId)(dispatch);
+      callback();
     });
   };
 };
@@ -428,14 +415,5 @@ export const changeAdditionalOwnersPagination = (
           })
         );
       });
-  };
-};
-
-export const createHousingNote = (note: HousingNote) => {
-  return async function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    await eventService.createNote(note);
-    dispatch(hideLoading());
   };
 };

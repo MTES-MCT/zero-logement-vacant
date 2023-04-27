@@ -1,9 +1,7 @@
-export interface EventDTO {
-  id: string;
+export interface NoteCreationDTO {
   title?: string;
   content?: string;
   contactKind: string;
   ownerId?: string;
-  housingId?: string;
-  createdAt: Date;
+  housingIds?: string[];
 }

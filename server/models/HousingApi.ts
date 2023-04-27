@@ -3,41 +3,44 @@ import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
 import _ from 'lodash';
 
-export interface HousingApi {
+export interface HousingRecordApi {
   id: string;
   invariant: string;
-  localId?: string;
-  cadastralReference: string;
-  buildingLocation: string;
-  geoCode: string;
+  localId: string;
   rawAddress: string[];
-  latitude?: number;
+  geoCode: string;
   longitude?: number;
-  localityKind: string;
-  geoPerimeters?: string[];
-  owner: OwnerApi;
-  livingArea: number;
+  latitude?: number;
+  cadastralClassification: number;
+  uncomfortable: boolean;
+  vacancyStartYear: number;
   housingKind: string;
   roomsCount: number;
+  livingArea: number;
+  cadastralReference: string;
   buildingYear?: number;
-  vacancyStartYear: number;
-  vacancyReasons: string[];
-  uncomfortable: boolean;
-  cadastralClassification: number;
   taxed: boolean;
-  ownershipKind: OwnershipKindsApi;
-  buildingHousingCount?: number;
-  buildingVacancyRate: number;
-  campaignIds: string[];
+  vacancyReasons: string[];
   dataYears: number[];
+  buildingLocation: string;
+  ownershipKind?: OwnershipKindsApi;
   status?: HousingStatusApi;
   subStatus?: string;
   precisions?: string[];
-  contactCount: number;
-  lastContact?: Date;
-  occupancy: OccupancyKindApi;
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionWorst?: EnergyConsumptionGradesApi;
+  occupancy: OccupancyKindApi;
+}
+
+export interface HousingApi extends HousingRecordApi {
+  localityKind: string;
+  geoPerimeters?: string[];
+  owner: OwnerApi;
+  buildingHousingCount?: number;
+  buildingVacancyRate?: number;
+  campaignIds: string[];
+  contactCount: number;
+  lastContact?: Date;
 }
 
 export interface HousingUpdateApi {

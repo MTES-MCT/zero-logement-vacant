@@ -2,50 +2,29 @@ import config from '../utils/config';
 import authService from './auth.service';
 import { Event } from '../models/Event';
 import { parseISO } from 'date-fns';
-import { Note } from '../models/Note';
-import { EventCreationDTO } from '../../../shared/models/EventDTO';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 
-const listByOwner = async (ownerId: string) => {
-  return await fetch(`${config.apiEndpoint}/api/events/owner/${ownerId}`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((_) => _.json())
-    .then((_) => _.map((_: any) => parseEvent(_)));
-};
-
-const listByHousing = async (housingId: string) => {
-  return await fetch(`${config.apiEndpoint}/api/events/housing/${housingId}`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((_) => _.json())
-    .then((_) => _.map((_: any) => parseEvent(_)));
-};
-
-const createNote = async (note: Note): Promise<void> => {
-  await fetch(`${config.apiEndpoint}/api/events`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(toEventCreationDTO(note)),
-  });
-};
-
-const toEventCreationDTO = (note: Note): EventCreationDTO => ({
-  title: note.title,
-  content: note.content,
-  contactKind: note.contactKind,
-  ownerId: note.owner?.id,
-  housingId: note.housingList?.map((_) => _.id),
+export const eventApi = createApi({
+  reducerPath: 'eventApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/events`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['Event'],
+  endpoints: (builder) => ({
+    findEventsByOwner: builder.query<Event[], string>({
+      query: (ownerId) => `/owner/${ownerId}`,
+      providesTags: () => ['Event'],
+      transformResponse: (response: any[]) =>
+        response.map((_) => parseEvent(_)),
+    }),
+    findEventsByHousing: builder.query<Event[], string>({
+      query: (housingId) => `/housing/${housingId}`,
+      providesTags: () => ['Event'],
+      transformResponse: (response: any[]) =>
+        response.map((_) => parseEvent(_)),
+    }),
+  }),
 });
 
 const parseEvent = (e: any): Event =>
@@ -61,10 +40,5 @@ const parseEvent = (e: any): Event =>
     contactKind: e.contactKind,
   } as Event);
 
-const eventService = {
-  listByOwner,
-  listByHousing,
-  createNote,
-};
-
-export default eventService;
+export const { useFindEventsByHousingQuery, useFindEventsByOwnerQuery } =
+  eventApi;

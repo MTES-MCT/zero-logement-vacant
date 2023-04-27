@@ -13,6 +13,8 @@ import { contactPointsApi } from '../services/contact-point.service';
 import { localityApi } from '../services/locality.service';
 import { userApi } from '../services/user.service';
 import { signupLinkApi } from '../services/signup-link.service';
+import { noteApi } from '../services/note.service';
+import { eventApi } from '../services/event.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -25,16 +27,20 @@ export const applicationReducer = {
   settings: settingsReducer.reducer,
   loadingBar: loadingBarReducer,
   [contactPointsApi.reducerPath]: contactPointsApi.reducer,
+  [eventApi.reducerPath]: eventApi.reducer,
   [geoPerimetersApi.reducerPath]: geoPerimetersApi.reducer,
   [localityApi.reducerPath]: localityApi.reducer,
+  [noteApi.reducerPath]: noteApi.reducer,
   [signupLinkApi.reducerPath]: signupLinkApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
 };
 
 export const applicationMiddlewares = [
   contactPointsApi.middleware,
+  eventApi.middleware,
   geoPerimetersApi.middleware,
   localityApi.middleware,
+  noteApi.middleware,
   signupLinkApi.middleware,
   userApi.middleware,
 ];

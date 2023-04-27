@@ -11,7 +11,7 @@ import {
   Housing2,
 } from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import { eventsTable } from '../repositories/eventRepository';
+import { campaignEventsTable } from '../repositories/eventRepository';
 import { CampaignSteps } from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
@@ -338,8 +338,8 @@ describe('Campaign controller', () => {
       expect(res.body).toMatchObject(
         expect.objectContaining({
           id: Campaign1.id,
-          sentAt: expect.anything(),
-          sendingDate: expect.anything(),
+          sentAt: expect.any(String),
+          sendingDate: expect.any(String),
         })
       );
 
@@ -445,7 +445,7 @@ describe('Campaign controller', () => {
           expect(result).toEqual([]);
         });
 
-      await db(eventsTable)
+      await db(campaignEventsTable)
         .join(campaignsTable, 'campaign_id', `${campaignsTable}.id`)
         .where('establishment_id', Establishment1.id)
         .andWhere('campaign_number', '1')

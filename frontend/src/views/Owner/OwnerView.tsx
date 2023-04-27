@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Col, Container, Row, Tag, Title } from '@dataesr/react-dsfr';
 import styles from './owner.module.scss';
-import { createOwnerNote, update } from '../../store/actions/ownerAction';
+import { update } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
@@ -11,9 +11,9 @@ import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard
 import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard';
 import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNoteModal';
 import { HousingNote, OwnerNote } from '../../models/Note';
-import { createHousingNote } from '../../store/actions/housingAction';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch } from '../../hooks/useStore';
+import { useCreateNoteMutation } from '../../services/note.service';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
@@ -22,21 +22,22 @@ const OwnerView = () => {
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
-  const { owner, housingList } = useOwner();
+  const { owner, housingList, refetchOwnerEvents } = useOwner();
+
+  const [createNote] = useCreateNoteMutation();
 
   const updateOwner = (owner: Owner) => {
-    dispatch(update(owner));
+    dispatch(update(owner, refetchOwnerEvents));
     setIsModalOwnerOpen(false);
   };
 
-  function submitHousingNoteAboutOwner(note: OwnerNote): void {
-    dispatch(createOwnerNote(note));
-    setIsModalNoteOpen(false);
-  }
-
-  function submitHousingNoteAboutHousing(note: HousingNote): void {
-    dispatch(createHousingNote(note));
-    setIsModalNoteOpen(false);
+  async function submitHousingNote(
+    note: OwnerNote | HousingNote
+  ): Promise<void> {
+    await createNote(note).finally(() => {
+      refetchOwnerEvents();
+      setIsModalNoteOpen(false);
+    });
   }
 
   if (!owner || !housingList) {
@@ -58,8 +59,8 @@ const OwnerView = () => {
             owner={owner}
             housingList={housingList}
             onClose={() => setIsModalNoteOpen(false)}
-            onSubmitAboutOwner={submitHousingNoteAboutOwner}
-            onSubmitAboutHousing={submitHousingNoteAboutHousing}
+            onSubmitAboutOwner={submitHousingNote}
+            onSubmitAboutHousing={submitHousingNote}
           />
         )}
         <Row>

@@ -198,7 +198,7 @@ describe('User controller', () => {
         .fill(0)
         .map(() => genHousingApi(Locality.geoCode));
       await db(housingTable).insert(
-        housing.map((_) => housingRepository.formatHousingApi(_))
+        housing.map((_) => housingRepository.formatHousingRecordApi(_))
       );
       await db(ownersHousingTable).insert(
         housing.map((_) => ({

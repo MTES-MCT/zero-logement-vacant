@@ -61,10 +61,8 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
     setIsHousingListEditionExpand(false);
   };
 
-  const submitHousingNoteAboutHousing = async (
-    note: HousingNote
-  ): Promise<void> => {
-    await createNote(note).finally(() => {
+  const submitHousingNoteAboutHousing = (note: HousingNote): void => {
+    createNote(note).finally(() => {
       refetchHousingEvents();
       setIsModalNoteOpen(false);
     });

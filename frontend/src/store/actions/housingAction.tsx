@@ -205,12 +205,12 @@ export const changeHousingSort = (sort: HousingSort) => {
 };
 
 export const getHousing = (id: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingHousing());
 
-    housingService.getHousing(id).then((housing) => {
+    await housingService.getHousing(id).then((housing) => {
       dispatch(hideLoading());
       dispatch(
         housingFetched({
@@ -222,12 +222,12 @@ export const getHousing = (id: string) => {
 };
 
 export const getHousingOwners = (housingId: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingHousingOwners());
 
-    ownerService.listByHousing(housingId).then((housingOwners) => {
+    await ownerService.listByHousing(housingId).then((housingOwners) => {
       dispatch(hideLoading());
       dispatch(
         housingOwnersFetched({
@@ -243,10 +243,10 @@ export const updateHousing = (
   housingUpdate: HousingUpdate,
   callback: () => void
 ) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    housingService.updateHousing(housing.id, housingUpdate).then(() => {
+    await housingService.updateHousing(housing.id, housingUpdate).then(() => {
       dispatch(hideLoading());
       getHousing(housing.id)(dispatch);
       callback();
@@ -335,7 +335,7 @@ export const updateHousingOwners = (
   housingOwners: HousingOwner[],
   callback: () => void
 ) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(
@@ -344,21 +344,23 @@ export const updateHousingOwners = (
       })
     );
 
-    ownerService.updateHousingOwners(housingId, housingOwners).then(() => {
-      dispatch(hideLoading());
-      dispatch(
-        housingOwnersUpdate({
-          formState: FormState.Succeed,
-        })
-      );
-      getHousingOwners(housingId)(dispatch);
-      callback();
-    });
+    await ownerService
+      .updateHousingOwners(housingId, housingOwners)
+      .then(() => {
+        dispatch(hideLoading());
+        dispatch(
+          housingOwnersUpdate({
+            formState: FormState.Succeed,
+          })
+        );
+        getHousingOwners(housingId)(dispatch);
+        callback();
+      });
   };
 };
 
 export const changeAdditionalOwnersSearching = (q: string) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const page = 1;
@@ -373,7 +375,7 @@ export const changeAdditionalOwnersSearching = (q: string) => {
       })
     );
 
-    ownerService
+    await ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());
@@ -391,7 +393,7 @@ export const changeAdditionalOwnersPagination = (
   page: number,
   perPage: number
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const q = getState().housing.additionalOwners?.q ?? '';
@@ -404,7 +406,7 @@ export const changeAdditionalOwnersPagination = (
       })
     );
 
-    ownerService
+    await ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());

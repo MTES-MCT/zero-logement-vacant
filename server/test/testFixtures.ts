@@ -33,7 +33,6 @@ import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
-import { User1 } from '../../database/seeds/test/003-users';
 
 const randomstring = require('randomstring');
 
@@ -282,7 +281,7 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-function genEventApi<T>(): EventApi<T> {
+function genEventApi<T>(createdBy: string): EventApi<T> {
   return {
     id: uuidv4(),
     name: randomstring.generate(),
@@ -292,22 +291,28 @@ function genEventApi<T>(): EventApi<T> {
     contactKind: randomstring.generate(),
     conflict: genBoolean(),
     createdAt: new Date(),
-    createdBy: User1.id,
+    createdBy,
   };
 }
 
-export const genOwnerEventApi = (ownerId: string): OwnerEventApi => {
+export const genOwnerEventApi = (
+  ownerId: string,
+  createdBy: string
+): OwnerEventApi => {
   return {
-    ...genEventApi<OwnerApi>(),
+    ...genEventApi<OwnerApi>(createdBy),
     old: { ...genOwnerApi(), id: ownerId },
     new: { ...genOwnerApi(), id: ownerId },
     ownerId,
   };
 };
 
-export const genHousingEventApi = (housingId: string): HousingEventApi => {
+export const genHousingEventApi = (
+  housingId: string,
+  createdBy: string
+): HousingEventApi => {
   return {
-    ...genEventApi<HousingApi>(),
+    ...genEventApi<HousingApi>(createdBy),
     old: { ...genHousingApi(genGeoCode()), id: housingId },
     new: { ...genHousingApi(genGeoCode()), id: housingId },
     housingId,

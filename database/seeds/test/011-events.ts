@@ -10,9 +10,10 @@ import eventRepository, {
   ownerEventsTable,
 } from '../../../server/repositories/eventRepository';
 import { Housing1 } from './005-housing';
+import { User1 } from './003-users';
 
-export const OwnerEvent1 = genOwnerEventApi(Owner1.id);
-export const HousingEvent1 = genHousingEventApi(Housing1.id);
+export const OwnerEvent1 = genOwnerEventApi(Owner1.id, User1.id);
+export const HousingEvent1 = genHousingEventApi(Housing1.id, User1.id);
 
 exports.seed = function (knex: Knex) {
   return Promise.all([

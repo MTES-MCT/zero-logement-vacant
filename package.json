@@ -61,7 +61,7 @@
     "nodemailer": "^6.9.1",
     "pg": "^8.7.3",
     "pg-query-stream": "^4.4.0",
-    "proj4": "^2.8.0",
+    "proj4": "^2.9.0",
     "randomstring": "^1.2.1",
     "shpjs": "^4.0.4",
     "sib-api-v3-typescript": "^2.2.2",

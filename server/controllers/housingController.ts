@@ -26,6 +26,8 @@ import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
 import { v4 as uuidv4 } from 'uuid';
+import noteRepository from '../repositories/noteRepository';
+import { HousingNoteApi } from '../models/NoteApi';
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -227,15 +229,6 @@ const updateHousing = async (
     ]);
   }
 
-  if (isHousingUpdated(housing, housingUpdateApi)) {
-    await createHousingUpdateEvent(
-      [housing],
-      housingUpdateApi,
-      [lastCampaignId],
-      userId
-    );
-  }
-
   if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       [lastCampaignId],
@@ -250,6 +243,19 @@ const updateHousing = async (
     housingUpdateApi.precisions,
     housingUpdateApi.vacancyReasons
   );
+
+  if (isHousingUpdated(housing, housingUpdateApi)) {
+    await createHousingUpdateEvent(
+      [housing],
+      housingUpdateApi,
+      [lastCampaignId],
+      userId
+    );
+  }
+
+  if (housingUpdateApi.comment.length) {
+    await createHousingUpdateNote([housing], housingUpdateApi, userId);
+  }
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
@@ -303,13 +309,6 @@ const updateHousingList = async (
       )
     );
 
-  await createHousingUpdateEvent(
-    housingList,
-    housingUpdateApi,
-    campaignIds,
-    userId
-  );
-
   if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       campaignIds,
@@ -324,6 +323,15 @@ const updateHousingList = async (
     housingUpdateApi.precisions,
     housingUpdateApi.vacancyReasons
   );
+
+  await createHousingUpdateEvent(
+    housingList,
+    housingUpdateApi,
+    campaignIds,
+    userId
+  );
+
+  await createHousingUpdateNote(housingList, housingUpdateApi, userId);
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
@@ -352,6 +360,26 @@ const createHousingUpdateEvent = async (
             precisions: housingUpdateApi.precisions,
             vacancyReasons: housingUpdateApi.vacancyReasons,
           },
+          createdBy: userId,
+          createdAt: new Date(),
+          housingId: housingApi.id,
+        }
+    )
+  );
+};
+const createHousingUpdateNote = async (
+  housingList: HousingApi[],
+  housingUpdateApi: HousingUpdateApi,
+  userId: string
+) => {
+  return noteRepository.insertManyHousingNotes(
+    housingList.map(
+      (housingApi) =>
+        <HousingNoteApi>{
+          id: uuidv4(),
+          title: 'Note sur la mise à jour du dossier',
+          content: housingUpdateApi.comment,
+          contactKind: housingUpdateApi.contactKind,
           createdBy: userId,
           createdAt: new Date(),
           housingId: housingApi.id,

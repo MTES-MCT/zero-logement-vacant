@@ -153,7 +153,7 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (geoCode: string) => {
+export const genHousingApi = (geoCode: string = genGeoCode()) => {
   return <HousingApi>{
     id: uuidv4(),
     invariant: randomstring.generate(),

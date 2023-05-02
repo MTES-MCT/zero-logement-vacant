@@ -36,6 +36,7 @@
     "@sentry/node": "^7.12.1",
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
     "bcryptjs": "^2.4.3",
+    "cli-progress": "^3.12.0",
     "compose-middleware": "^5.0.1",
     "convict": "^6.2.4",
     "convict-format-with-validator": "^6.2.0",
@@ -71,6 +72,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
+    "@types/cli-progress": "^3.11.0",
     "@types/convict": "^6.1.1",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/cors": "^2.8.12",
@@ -96,6 +98,7 @@
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
     "husky": "^8.0.2",
+    "jest-extended": "^3.2.4",
     "lint-staged": "^13.1.2",
     "nodemailer-mock": "^2.0.1",
     "npm-run-all": "^4.1.5",

@@ -30,7 +30,7 @@ exports.seed = function (knex: Knex) {
       .then(() =>
         knex
           .table(housingEventsTable)
-          .insert({ event_id: OwnerEvent1.id, housing_id: Housing1.id })
+          .insert({ event_id: HousingEvent1.id, housing_id: Housing1.id })
       ),
   ]);
 };

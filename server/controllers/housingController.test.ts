@@ -24,6 +24,7 @@ import { User1, User2 } from '../../database/seeds/test/003-users';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
 import { HousingApi } from '../models/HousingApi';
+import { HousingEvent1 } from '../../database/seeds/test/011-events';
 
 const { app } = createServer();
 
@@ -215,6 +216,7 @@ describe('Housing controller', () => {
 
       await db(housingEventsTable)
         .where('housing_id', Housing1.id)
+        .andWhereNot('event_id', HousingEvent1.id)
         .first()
         .then((result) => expect(result).toBeUndefined());
     });
@@ -229,6 +231,7 @@ describe('Housing controller', () => {
       await db(eventsTable)
         .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
+        .andWhereNot('id', HousingEvent1.id)
         .first()
         .then((result) =>
           expect(result).toMatchObject(
@@ -403,6 +406,7 @@ describe('Housing controller', () => {
       await db(eventsTable)
         .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
+        .andWhereNot('id', HousingEvent1.id)
         .first()
         .then((result) =>
           expect(result).toMatchObject(

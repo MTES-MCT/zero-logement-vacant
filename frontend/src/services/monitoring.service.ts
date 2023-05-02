@@ -1,8 +1,5 @@
 import config from '../utils/config';
-import {
-  HousingStatusCount,
-  HousingStatusDuration,
-} from '../models/HousingState';
+import { HousingStatusCount } from '../models/HousingState';
 import { MonitoringFilters } from '../models/MonitoringFilters';
 import authService from './auth.service';
 import { EstablishmentData } from '../models/Establishment';
@@ -61,22 +58,6 @@ const getHousingByStatusCount = async (
   ).then((_) => _.json());
 };
 
-const getHousingByStatusDuration = async (
-  filters: MonitoringFilters
-): Promise<HousingStatusDuration[]> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/monitoring/housing/status/duration`,
-    {
-      method: 'POST',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ filters }),
-    }
-  ).then((_) => _.json());
-};
-
 const exportMonitoring = async (filters: MonitoringFilters): Promise<Blob> => {
   return await fetch(`${config.apiEndpoint}/api/monitoring/export`, {
     method: 'POST',
@@ -91,7 +72,6 @@ const exportMonitoring = async (filters: MonitoringFilters): Promise<Blob> => {
 const monitoringService = {
   listEstablishmentData,
   getHousingByStatusCount,
-  getHousingByStatusDuration,
   exportMonitoring,
 };
 

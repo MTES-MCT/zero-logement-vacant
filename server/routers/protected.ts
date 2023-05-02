@@ -67,7 +67,6 @@ router.delete('/users/:userId', userController.userIdValidator, validator.valida
 
 router.post('/monitoring/establishments/data', monitoringController.listEstablishmentData);
 router.post('/monitoring/housing/status/count', monitoringController.housingByStatusCount);
-router.post('/monitoring/housing/status/duration', monitoringController.housingByStatusDuration);
 router.post('/monitoring/export', monitoringController.exportMonitoring);
 
 router.get('/geo/perimeters', geoController.listGeoPerimeters);

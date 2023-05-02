@@ -160,7 +160,7 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (geoCode: string): HousingApi => {
+export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
   return <HousingApi>{
     id: uuidv4(),
     invariant: randomstring.generate(),

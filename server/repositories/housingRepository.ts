@@ -28,6 +28,7 @@ import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
 import { paginationQuery } from '../models/PaginationApi';
+import highland from 'highland';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -103,6 +104,11 @@ export const queryOwnerHousingWhereClause = (
       );
     });
   }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const bulkSave = async (housingList: HousingApi[]): Promise<void> => {
+  // TODO
 };
 
 const get = async (
@@ -549,6 +555,12 @@ const listWithFilters = async (
     .modify(filteredQuery(filters))
     .then((_) => _.map((result: any) => parseHousingApi(result)));
 };
+
+const stream = (): Highland.Stream<HousingApi> => {
+  const stream = listQuery().stream();
+  return highland(stream).map(parseHousingApi);
+};
+
 const paginatedListWithFilters = async (
   filters: HousingFiltersApi,
   filtersForTotalCount: HousingFiltersForTotalCountApi,
@@ -840,10 +852,12 @@ const formatHousingRecordApi = (
 export default {
   get,
   listWithFilters,
+  stream,
   paginatedListWithFilters,
   countWithFilters,
   listByIds,
   updateHousingList,
   countByStatusWithFilters,
   formatHousingRecordApi,
+  bulkSave,
 };

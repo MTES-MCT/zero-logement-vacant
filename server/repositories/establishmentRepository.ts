@@ -5,7 +5,7 @@ import {
 } from '../models/EstablishmentApi';
 import { housingTable, ReferenceDataYear } from './housingRepository';
 import { usersTable } from './userRepository';
-import { eventsTable } from './eventRepository';
+import { eventsTable, housingEventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { differenceInDays } from 'date-fns';
@@ -122,7 +122,7 @@ const listDataWithFilters = async (
           `max(${usersTable}.last_authenticated_at) as "last_authenticated_at"`
         ),
         db.raw(
-          `count(distinct(${eventsTable}.housing_id)) as "last_month_updates_count"`
+          `count(distinct(${housingEventsTable}.housing_id)) as "last_month_updates_count"`
         ),
         db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
         db.raw(
@@ -163,8 +163,13 @@ const listDataWithFilters = async (
         `${usersTable}.establishment_id`,
         `${establishmentsTable}.id`
       )
+      .leftJoin(
+        housingEventsTable,
+        `${housingEventsTable}.housing_id`,
+        `${housingTable}.id`
+      )
       .joinRaw(
-        `left join ${eventsTable} on ${eventsTable}.housing_id = ${housingTable}.id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`
+        `left join ${eventsTable} on ${eventsTable}.id = ${housingEventsTable}.event_id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`
       )
       .where('available', true)
       .groupBy(`${establishmentsTable}.id`)

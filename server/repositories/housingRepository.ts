@@ -18,10 +18,8 @@ import {
 } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import {
-  getHousingStatusApiLabel,
   HousingStatusApi,
   HousingStatusCountApi,
-  HousingStatusDurationApi,
 } from '../models/HousingStatusApi';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
@@ -714,83 +712,6 @@ const countByStatusWithFilters = async (
   }
 };
 
-const durationByStatusWithFilters = async (
-  filters: MonitoringFiltersApi
-): Promise<HousingStatusDurationApi[]> => {
-  try {
-    return db
-      .select(
-        'status',
-        db.raw('avg(current_timestamp - created_at)'),
-        db.raw(
-          `count(created_at) filter ( where created_at < current_timestamp  - interval '3 months')`
-        )
-      )
-      .from(
-        db
-          .from(housingTable)
-          .select(
-            'status',
-            db.raw(`max(${eventsTable}.created_at) as created_at`)
-          )
-          .join(eventsTable, `${housingTable}.id`, 'housing_id')
-          .whereRaw(
-            `${eventsTable}.kind = (case when status = 1 then '1' else '2' end)`
-          )
-          .andWhereRaw(
-            `${eventsTable}.content like
-                        (case
-                             when status = ${
-                               HousingStatusApi.Waiting
-                             } then '%Ajout dans la campagne%'
-                             when status = ${
-                               HousingStatusApi.FirstContact
-                             } then '%${getHousingStatusApiLabel(
-              HousingStatusApi.FirstContact
-            )}%'
-                             when status = ${
-                               HousingStatusApi.InProgress
-                             } then '%${getHousingStatusApiLabel(
-              HousingStatusApi.InProgress
-            )}%'
-                             when status = ${
-                               HousingStatusApi.NotVacant
-                             } then '%${getHousingStatusApiLabel(
-              HousingStatusApi.NotVacant
-            )}%'
-                             when status = ${
-                               HousingStatusApi.NoAction
-                             } then '%${getHousingStatusApiLabel(
-              HousingStatusApi.NoAction
-            )}%'
-                             when status = ${
-                               HousingStatusApi.Exit
-                             } then '%${getHousingStatusApiLabel(
-              HousingStatusApi.Exit
-            )}%'
-                        end) `
-          )
-          .groupBy(`${housingTable}.id`)
-          .modify(monitoringQueryFilter(filters))
-          .as('max')
-      )
-      .groupBy('status')
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <HousingStatusDurationApi>{
-              status: result.status,
-              averageDuration: result.avg,
-              unchangedFor3MonthsCount: Number(result.count),
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Duration housing by status failed', err);
-    throw new Error('Duration housing by status failed');
-  }
-};
-
 const monitoringQueryFilter =
   (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
     if (filters.establishmentIds?.length) {
@@ -924,6 +845,5 @@ export default {
   listByIds,
   updateHousingList,
   countByStatusWithFilters,
-  durationByStatusWithFilters,
   formatHousingRecordApi,
 };

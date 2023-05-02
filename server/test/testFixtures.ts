@@ -29,6 +29,11 @@ import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { NoteCreationDTO } from '../../shared/models/NoteDTO';
+import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
+import { EventKinds } from '../../shared/types/EventKind';
+import { EventCategories } from '../../shared/types/EventCategory';
+import { EventSections } from '../../shared/types/EventSection';
+import { User1 } from '../../database/seeds/test/003-users';
 
 const randomstring = require('randomstring');
 
@@ -70,6 +75,9 @@ export const genNumber = (length = 10) => {
 export const genBoolean = () => Math.random() < 0.5;
 
 export const genSiren = () => genNumber(9);
+export function oneOf<T>(array: Array<T>): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
 
 export const genLocalityApi = (geoCode = genGeoCode()) => {
   return <LocalityApi>{
@@ -153,36 +161,35 @@ export const genOwnerApi = () => {
   };
 };
 
-export const genHousingApi = (geoCode: string) => {
+export const genHousingApi = (geoCode: string): HousingApi => {
   return <HousingApi>{
     id: uuidv4(),
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
-    cadastralReference: randomstring.generate(),
-    buildingLocation: randomstring.generate(),
-    geoCode,
     rawAddress: [randomstring.generate(), randomstring.generate()],
-    address: genAddressApi(),
-    localityKind: randomstring.generate(),
-    owner: genOwnerApi(),
-    livingArea: genNumber(4),
+    geoCode,
+    cadastralClassification: genNumber(1),
+    uncomfortable: false,
+    vacancyStartYear: 1000 + genNumber(3),
     housingKind: randomstring.generate(),
     roomsCount: genNumber(1),
+    livingArea: genNumber(4),
+    cadastralReference: randomstring.generate(),
     buildingYear: genNumber(4),
-    vacancyStartYear: 1000 + genNumber(3),
-    dataYears: [2021],
-    campaignIds: [],
-    vacancyReasons: [],
-    uncomfortable: false,
-    cadastralClassification: genNumber(1),
     taxed: false,
+    vacancyReasons: [],
+    dataYears: [2021],
+    buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
-    buildingVacancyRate: genNumber(2),
-    contactCount: genNumber(1),
-    occupancy: OccupancyKindApi.Vacant,
+    status: HousingStatusApi.NeverContacted,
     energyConsumption: EnergyConsumptionGradesApi.A,
     energyConsumptionWorst: EnergyConsumptionGradesApi.B,
-    status: HousingStatusApi.NeverContacted,
+    occupancy: OccupancyKindApi.Vacant,
+    localityKind: randomstring.generate(),
+    owner: genOwnerApi(),
+    buildingVacancyRate: genNumber(2),
+    campaignIds: [],
+    contactCount: genNumber(1),
   };
 };
 
@@ -272,5 +279,37 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
     inbox: {
       enabled: true,
     },
+  };
+};
+
+function genEventApi<T>(): EventApi<T> {
+  return {
+    id: uuidv4(),
+    name: randomstring.generate(),
+    kind: oneOf(EventKinds),
+    category: oneOf(EventCategories),
+    section: oneOf(EventSections),
+    contactKind: randomstring.generate(),
+    conflict: genBoolean(),
+    createdAt: new Date(),
+    createdBy: User1.id,
+  };
+}
+
+export const genOwnerEventApi = (ownerId: string): OwnerEventApi => {
+  return {
+    ...genEventApi<OwnerApi>(),
+    old: { ...genOwnerApi(), id: ownerId },
+    new: { ...genOwnerApi(), id: ownerId },
+    ownerId,
+  };
+};
+
+export const genHousingEventApi = (housingId: string): HousingEventApi => {
+  return {
+    ...genEventApi<HousingApi>(),
+    old: { ...genHousingApi(genGeoCode()), id: housingId },
+    new: { ...genHousingApi(genGeoCode()), id: housingId },
+    housingId,
   };
 };

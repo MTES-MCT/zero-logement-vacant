@@ -59,8 +59,7 @@ export const isHousingUpdated = (
   housing.status !== housingUpdate.status ||
   housing.subStatus !== housingUpdate.subStatus ||
   !_.isEqual(housing.precisions, housingUpdate.precisions) ||
-  !_.isEqual(housing.vacancyReasons, housingUpdate.vacancyReasons) ||
-  housingUpdate.comment?.length;
+  !_.isEqual(housing.vacancyReasons, housingUpdate.vacancyReasons);
 
 export type HousingSortableApi = Pick<HousingApi, 'owner' | 'rawAddress'>;
 export type HousingSortApi = Sort<HousingSortableApi>;

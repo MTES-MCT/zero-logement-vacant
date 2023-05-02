@@ -307,12 +307,25 @@ const validateStep = async (
         campaignIds: [campaignId],
       });
 
-      await housingRepository.updateHousingList(
+      const updatedHousingList = await housingRepository.updateHousingList(
         housingList.filter((_) => !_.status).map((_) => _.id),
         HousingStatusApi.Waiting
       );
 
-      //TODO
+      await eventRepository.insertManyHousingEvents(
+        updatedHousingList.map((updatedHousing) => ({
+          id: uuidv4(),
+          name: 'Changement de statut de suivi',
+          kind: 'Update',
+          category: 'Campaign',
+          section: 'Suivi de campagne',
+          old: housingList.find((_) => _.id === updatedHousing.id),
+          new: updatedHousing,
+          createdBy: userId,
+          createdAt: new Date(),
+          housingId: updatedHousing.id,
+        }))
+      );
     }
 
     await eventRepository.insertCampaignEvent({

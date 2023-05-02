@@ -162,4 +162,5 @@ export default {
   findHousingEvents,
   findCampaignEvents,
   removeCampaignEvents,
+  formatEventApi,
 };

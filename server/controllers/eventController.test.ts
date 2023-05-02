@@ -3,7 +3,10 @@ import { constants } from 'http2';
 import { withAccessToken } from '../test/testUtils';
 import { createServer } from '../server';
 import { Owner1 } from '../../database/seeds/test/004-owner';
-import { OwnerEvent1 } from '../../database/seeds/test/011-events';
+import {
+  HousingEvent1,
+  OwnerEvent1,
+} from '../../database/seeds/test/011-events';
 import { Housing1 } from '../../database/seeds/test/005-housing';
 
 describe('Event controller', () => {
@@ -63,7 +66,7 @@ describe('Event controller', () => {
       expect(res.body).toMatchObject(
         expect.arrayContaining([
           expect.objectContaining({
-            id: OwnerEvent1.id,
+            id: HousingEvent1.id,
             housingId: Housing1.id,
           }),
         ])

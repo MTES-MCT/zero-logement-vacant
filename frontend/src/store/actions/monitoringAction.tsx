@@ -6,7 +6,6 @@ import {
   FirstContactToContactedSubStatus,
   HousingStatus,
   HousingStatusCount,
-  HousingStatusDuration,
 } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
@@ -22,15 +21,6 @@ export interface FetchHousingByStatusCountAction {
 
 export interface HousingByStatusCountFetchedAction {
   housingByStatusCount: HousingStatusCount[];
-  filters: MonitoringFilters;
-}
-
-export interface FetchHousingByStatusDurationAction {
-  filters: MonitoringFilters;
-}
-
-export interface HousingByStatusDurationFetchedAction {
-  housingByStatusDuration: HousingStatusDuration[];
   filters: MonitoringFilters;
 }
 
@@ -58,10 +48,8 @@ const {
   fetchingEstablishmentData,
   establishmentDataFetched,
   fetchingHousingToContact,
-  fetchingHousingByStatusDuration,
   fetchingHousingByStatusCount,
   housingToContactFetchedAction,
-  housingByStatusDurationFetched,
   housingByStatusCountFetched,
 } = monitoringSlice.actions;
 
@@ -106,31 +94,6 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
           dispatch(
             housingByStatusCountFetched({
               housingByStatusCount,
-              filters,
-            })
-          );
-        }),
-    ]).then(() => dispatch(hideLoading()));
-  };
-};
-
-export const fetchHousingByStatusDuration = (filters: MonitoringFilters) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(
-      fetchingHousingByStatusDuration({
-        filters,
-      })
-    );
-
-    Promise.all([
-      monitoringService
-        .getHousingByStatusDuration(filters)
-        .then((housingByStatusDuration) => {
-          dispatch(
-            housingByStatusDurationFetched({
-              housingByStatusDuration,
               filters,
             })
           );

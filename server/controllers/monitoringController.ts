@@ -31,17 +31,6 @@ const housingByStatusCount = async (
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
-const housingByStatusDuration = async (
-  request: JWTRequest,
-  response: Response
-): Promise<Response> => {
-  console.log('Get housing by status durations');
-
-  return housingRepository
-    .durationByStatusWithFilters(getFiltersFromRequest(request))
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
-
 const exportMonitoring = async (
   request: JWTRequest,
   response: Response
@@ -89,11 +78,6 @@ const exportMonitoring = async (
     { header: 'Sous-statut', key: 'subStatus' },
     { header: 'Précisions', key: 'precisions' },
     { header: 'Nombre', key: 'count' },
-    { header: 'Temps moyen dans le statut', key: 'averageDuration' },
-    {
-      header: 'Dans le statut depuis plus de 3 mois',
-      key: 'unchangedFor3MonthsCount',
-    },
   ];
 
   filtersWorksheet.columns = [
@@ -104,8 +88,7 @@ const exportMonitoring = async (
   await Promise.all([
     establishmentRepository.listDataWithFilters(filters),
     housingRepository.countByStatusWithFilters(filters),
-    housingRepository.durationByStatusWithFilters(filters),
-  ]).then(([establishmentDataList, counts, durations]) => {
+  ]).then(([establishmentDataList, counts]) => {
     establishmentDataList.forEach((data) => {
       establishmentWorksheet.addRow({
         name: data.name,
@@ -135,16 +118,6 @@ const exportMonitoring = async (
             : '',
         precisions: countData.precisions?.join(', '),
         count: countData.count,
-        averageDuration:
-          counts[countIndex - 1]?.status !== countData.status
-            ? durations.find((_) => _.status === countData.status)
-                ?.averageDuration
-            : '',
-        unchangedFor3MonthsCount:
-          counts[countIndex - 1]?.status !== countData.status
-            ? durations.find((_) => _.status === countData.status)
-                ?.unchangedFor3MonthsCount
-            : '',
       });
     });
 
@@ -181,7 +154,6 @@ const getFiltersFromRequest = (request: JWTRequest) => {
 const monitoringController = {
   listEstablishmentData,
   housingByStatusCount,
-  housingByStatusDuration,
   exportMonitoring,
 };
 

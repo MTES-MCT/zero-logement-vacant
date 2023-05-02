@@ -30,12 +30,12 @@ const {
 } = ownerSlice.actions;
 
 export const getOwner = (id: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingOwner());
 
-    ownerService.getOwner(id).then((owner) => {
+    await ownerService.getOwner(id).then((owner) => {
       dispatch(hideLoading());
       dispatch(
         ownerFetched({
@@ -47,12 +47,12 @@ export const getOwner = (id: string) => {
 };
 
 export const getOwnerHousing = (ownerId: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingOwnerHousing());
 
-    housingService.listByOwner(ownerId).then((result) => {
+    await housingService.listByOwner(ownerId).then((result) => {
       dispatch(hideLoading());
       dispatch(
         ownerHousingFetched({
@@ -65,11 +65,11 @@ export const getOwnerHousing = (ownerId: string) => {
 };
 
 export const update = (modifiedOwner: Owner, callback: () => void) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
       dispatch(showLoading());
 
-      ownerService
+      await ownerService
         .updateOwner(modifiedOwner)
         .then(() => {
           dispatch(hideLoading());

@@ -61,13 +61,13 @@ exports.up = function (knex: Knex) {
       table.uuid('owner_id').references('id').inTable('owners').notNullable();
     }),
     knex.schema.raw(
-      `insert into notes (select id, title, content, contact_kind, created_at, created_by from old_events where kind = '6')`
+      `insert into notes (select id, title, content, contact_kind, created_at, created_by from old_events)`
     ),
     knex.schema.raw(
-      `insert into owner_notes (select id, owner_id from old_events where kind = '6' and owner_id is not null)`
+      `insert into housing_notes (select id, housing_id from old_events where housing_id is not null)`
     ),
     knex.schema.raw(
-      `insert into housing_notes (select id, housing_id from old_events where kind = '6' and housing_id is not null)`
+      `insert into owner_notes (select id, owner_id from old_events where housing_id is null and owner_id is not null)`
     ),
   ]);
 };

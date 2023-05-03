@@ -51,24 +51,26 @@ const MonitoringView = () => {
     );
   }, [dispatch, monitoringFilters]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const exportMonitoring = () => {
+  const exportMonitoring = async () => {
     dispatch(showLoading());
-    monitoringService.exportMonitoring(monitoringFilters).then((response) => {
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(response);
-      link.download = `export_monitoring_${format(
-        new Date(),
-        'yyyyMMdd_HHmmss'
-      )}.xlsx`;
+    await monitoringService
+      .exportMonitoring(monitoringFilters)
+      .then((response) => {
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(response);
+        link.download = `export_monitoring_${format(
+          new Date(),
+          'yyyyMMdd_HHmmss'
+        )}.xlsx`;
 
-      document.body.appendChild(link);
+        document.body.appendChild(link);
 
-      link.click();
-      setTimeout(function () {
-        dispatch(hideLoading());
-        window.URL.revokeObjectURL(link.href);
-      }, 200);
-    });
+        link.click();
+        setTimeout(function () {
+          dispatch(hideLoading());
+          window.URL.revokeObjectURL(link.href);
+        }, 200);
+      });
   };
 
   const rowNumberColumn = {

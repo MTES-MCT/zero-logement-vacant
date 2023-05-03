@@ -284,7 +284,7 @@ export const HousingStates: HousingState[] = [
     title: 'Non-vacant',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a
+        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a 
         <b>jamais été vacant</b> ou qu’il a été vendu ou loué il y a plus de 2
         ans. Retour traduisant une erreur dans la base de données.
       </Text>
@@ -899,7 +899,7 @@ export const HousingStates: HousingState[] = [
     title: 'Sortie de la vacance',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le bien <b>était vacant</b> dans les 2 dernières années et
+        Le bien <b>était vacant</b> dans les 2 dernières années et 
         <b>est sorti de la vacance</b> (loué, vendu...) avec ou sans
         accompagnement (à renseigner dans sous-statut).
       </Text>

@@ -28,12 +28,7 @@ const CampaignEvents = () =>
 const insertHousingEvent = async (
   housingEvent: HousingEventApi
 ): Promise<void> => {
-  insertManyHousingEvents([housingEvent]);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const bulkInsert = async (events: EventApi[]): Promise<void> => {
-  // TODO
+  await insertManyHousingEvents([housingEvent]);
 };
 
 const insertManyHousingEvents = async (
@@ -167,5 +162,4 @@ export default {
   findHousingEvents,
   findCampaignEvents,
   removeCampaignEvents,
-  bulkInsert,
 };

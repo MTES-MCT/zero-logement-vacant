@@ -39,3 +39,9 @@ export function toEventDTO<T>(eventApi: EventApi<T>) {
     createdAt: eventApi.createdAt,
   };
 }
+
+export function isHousingEvent(
+  event: EventApi<unknown>
+): event is HousingEventApi {
+  return 'housingId' in event;
+}

@@ -29,3 +29,9 @@ export interface OwnerEventApi extends EventApi<OwnerApi> {
 export interface CampaignEventApi extends EventApi<CampaignApi> {
   campaignId: string;
 }
+
+export function isHousingEvent(
+  event: EventApi<unknown>
+): event is HousingEventApi {
+  return 'housingId' in event;
+}

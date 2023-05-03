@@ -28,7 +28,7 @@ const CampaignEvents = () =>
 const insertHousingEvent = async (
   housingEvent: HousingEventApi
 ): Promise<void> => {
-  insertManyHousingEvents([housingEvent]);
+  await insertManyHousingEvents([housingEvent]);
 };
 
 const insertManyHousingEvents = async (

@@ -24,8 +24,8 @@ interface HousingNoteModalProps {
   housingList: Housing[];
   owner?: Owner;
   onClose: () => void;
-  onSubmitAboutOwner?: (note: OwnerNote) => void;
-  onSubmitAboutHousing: (note: HousingNote) => void;
+  onSubmitAboutOwner?: (note: OwnerNote) => Promise<void>;
+  onSubmitAboutHousing: (note: HousingNote) => Promise<void>;
 }
 
 const ALL = 'all';
@@ -108,7 +108,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
     housing: selectedHousing,
   });
 
-  function submit(): void {
+  function submit(): Promise<void> | undefined {
     if (selectedHousing.includes(OWNER) && props.owner) {
       return props.onSubmitAboutOwner?.({
         title,

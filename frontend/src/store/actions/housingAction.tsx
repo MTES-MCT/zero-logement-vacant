@@ -246,11 +246,13 @@ export const updateHousing = (
   return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    await housingService.updateHousing(housing.id, housingUpdate).then(() => {
-      dispatch(hideLoading());
-      getHousing(housing.id)(dispatch);
-      callback();
-    });
+    await housingService
+      .updateHousing(housing.id, housingUpdate)
+      .then(async () => {
+        dispatch(hideLoading());
+        await getHousing(housing.id)(dispatch);
+        callback();
+      });
   };
 };
 
@@ -290,9 +292,9 @@ export const updateMainHousingOwner = (
 
       ownerService
         .updateOwner(modifiedOwner)
-        .then(() => {
+        .then(async () => {
           dispatch(hideLoading());
-          getHousingOwners(housingId)(dispatch);
+          await getHousingOwners(housingId)(dispatch);
         })
         .catch((error) => {
           console.error(error);
@@ -307,10 +309,10 @@ export const addHousingOwner = (
   ownerRank: number,
   callback: () => void
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     const { housingOwners } = getState().housing;
 
-    updateHousingOwners(
+    await updateHousingOwners(
       housingId,
       [
         ...(housingOwners ?? []).map((ho) => ({
@@ -346,14 +348,14 @@ export const updateHousingOwners = (
 
     await ownerService
       .updateHousingOwners(housingId, housingOwners)
-      .then(() => {
+      .then(async () => {
         dispatch(hideLoading());
         dispatch(
           housingOwnersUpdate({
             formState: FormState.Succeed,
           })
         );
-        getHousingOwners(housingId)(dispatch);
+        await getHousingOwners(housingId)(dispatch);
         callback();
       });
   };

@@ -3,7 +3,6 @@ import {
   differenceInMilliseconds,
   differenceInYears,
   format,
-  formatISO,
   parse,
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -36,6 +35,3 @@ export function birthdate(date: Date): string {
 export function age(date: Date): number {
   return differenceInYears(new Date(), date);
 }
-
-export const formatDateISO = (date?: Date) =>
-  date ? formatISO(date) : undefined;

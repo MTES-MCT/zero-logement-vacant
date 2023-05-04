@@ -267,9 +267,9 @@ export const createAdditionalOwner = (
 
     await ownerService
       .createOwner(draftOwner)
-      .then((owner) => {
+      .then(async (owner) => {
         dispatch(hideLoading());
-        addHousingOwner(
+        await addHousingOwner(
           housingId,
           owner,
           ownerRank,
@@ -286,11 +286,11 @@ export const updateMainHousingOwner = (
   modifiedOwner: Owner,
   housingId: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
       dispatch(showLoading());
 
-      ownerService
+      await ownerService
         .updateOwner(modifiedOwner)
         .then(async () => {
           dispatch(hideLoading());

@@ -84,7 +84,7 @@ exports.up = function (knex: Knex) {
       `insert into owner_notes (select id, owner_id from old_events where kind in ('0', '4', '6') and owner_id is not null)`
     ),
     knex.schema.raw(
-      `insert into housing_notes (select id, housing_id from old_events where kind not in ('0', '4') or owner_id is null)`
+      `insert into housing_notes (select id, housing_id from old_events where kind not in ('0', '4', '6') or owner_id is null)`
     ),
   ]);
 };

@@ -58,9 +58,9 @@ const AppSearchBar = ({
 
   const onKeyDown = (e: any) => e.keyCode === 13 && submitSearch(e);
 
-  const onKeyUp = () => {
+  const onKeyUp = async () => {
     if (onKeySearch) {
-      onKeySearch(searchInput).then((results) => {
+      await onKeySearch(searchInput).then((results) => {
         setSearchResults(results ?? undefined);
       });
     }

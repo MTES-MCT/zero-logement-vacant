@@ -174,7 +174,6 @@ const HousingListView = () => {
         query,
       })
     );
-    return Promise.resolve();
   };
 
   return (

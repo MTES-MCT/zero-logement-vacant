@@ -262,10 +262,10 @@ export const createAdditionalOwner = (
   ownerRank: number,
   callback: () => void
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    ownerService
+    await ownerService
       .createOwner(draftOwner)
       .then((owner) => {
         dispatch(hideLoading());

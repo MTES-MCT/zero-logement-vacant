@@ -62,11 +62,23 @@ exports.up = function (knex: Knex) {
     }),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by) 
-        (select id, coalesce(title, content), case when title is null then null else content end, contact_kind, created_at, created_by from old_events where kind <> '1')`
+        (select id, content, null, contact_kind, created_at, created_by from old_events where kind in ('0', '4'))`
     ),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by) 
         (select e.id, 'Ajout dans une campagne', c.title, contact_kind, e.created_at, e.created_by from old_events e, campaigns c where e.campaign_id = c.id and e.kind = '1')`
+    ),
+    knex.schema.raw(
+      `insert into notes(id, title, content, contact_kind, created_at, created_by)
+         (select id, 'Changement de statut', content, contact_kind, created_at, created_by from old_events where kind = '2')`
+    ),
+    knex.schema.raw(
+      `insert into notes(id, title, content, contact_kind, created_at, created_by)
+         (select id, 'Changement de propriétaire', content, contact_kind, created_at, created_by from old_events where kind in ('3', '5'))`
+    ),
+    knex.schema.raw(
+      `insert into notes(id, title, content, contact_kind, created_at, created_by)
+         (select id, title, content, contact_kind, created_at, created_by from old_events where kind = '6')`
     ),
     knex.schema.raw(
       `insert into owner_notes (select id, owner_id from old_events where kind in ('0', '4', '6') and owner_id is not null)`

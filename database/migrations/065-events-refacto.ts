@@ -43,8 +43,8 @@ exports.up = function (knex: Knex) {
     knex.schema.createTable('notes', (table) => {
       table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
       table.text('title').notNullable();
-      table.text('content').notNullable();
-      table.string('contact_kind').notNullable();
+      table.text('content');
+      table.string('contact_kind');
       table.timestamp('created_at').defaultTo(knex.fn.now());
       table.uuid('created_by').references('id').inTable('users').notNullable();
     }),
@@ -61,13 +61,18 @@ exports.up = function (knex: Knex) {
       table.uuid('owner_id').references('id').inTable('owners').notNullable();
     }),
     knex.schema.raw(
-      `insert into notes (select id, title, content, contact_kind, created_at, created_by from old_events)`
+      `insert into notes(id, title, content, contact_kind, created_at, created_by) 
+        (select id, coalesce(title, content), case when title is null then null else content end, contact_kind, created_at, created_by from old_events where kind <> '1')`
     ),
     knex.schema.raw(
-      `insert into housing_notes (select id, housing_id from old_events where housing_id is not null)`
+      `insert into notes(id, title, content, contact_kind, created_at, created_by) 
+        (select e.id, 'Ajout dans une campagne', c.title, contact_kind, e.created_at, e.created_by from old_events e, campaigns c where e.campaign_id = c.id and e.kind = '1')`
     ),
     knex.schema.raw(
-      `insert into owner_notes (select id, owner_id from old_events where housing_id is null and owner_id is not null)`
+      `insert into owner_notes (select id, owner_id from old_events where kind in ('0', '4', '6') and owner_id is not null)`
+    ),
+    knex.schema.raw(
+      `insert into housing_notes (select id, housing_id from old_events where kind not in ('0', '4') or owner_id is null)`
     ),
   ]);
 };

@@ -229,13 +229,25 @@ const HousingListView = () => {
                 title="Vue liste"
                 icon="ri-list-unordered"
                 secondary={view !== 'list'}
-                onClick={() => setView('list')}
+                onClick={() => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.ListView,
+                  });
+                  setView('list');
+                }}
               />
               <Button
                 title="Vue carte"
                 icon="fr-icon-road-map-fill"
                 secondary={view !== 'map'}
-                onClick={() => setView('map')}
+                onClick={() => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.MapView,
+                  });
+                  setView('map');
+                }}
               />
             </ButtonGroup>
             {view === 'map' ? (

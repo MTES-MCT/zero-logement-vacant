@@ -58,7 +58,13 @@ const DashboardView = () => {
                 title: `${housing.rawAddress.join(' - ')} (${
                   housing.owner.fullName
                 } - ${housing.owner.rawAddress.join(' - ')})`,
-                redirectUrl: '/accueil/proprietaires/' + housing.owner.id,
+                onclick: () => {
+                  trackEvent({
+                    category: TrackEventCategories.Dashboard,
+                    action: TrackEventActions.Dashboard.SelectAddress,
+                  });
+                  history.push('/accueil/proprietaires/' + housing.owner.id);
+                },
               } as SearchResult)
           )
         )
@@ -69,6 +75,10 @@ const DashboardView = () => {
   };
 
   const search = (query: string) => {
+    trackEvent({
+      category: TrackEventCategories.Dashboard,
+      action: TrackEventActions.Dashboard.Search,
+    });
     history.push('/base-de-donnees?q=' + query);
   };
 

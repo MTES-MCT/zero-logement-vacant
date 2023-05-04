@@ -11,9 +11,14 @@
     max-height: 250px;
     overflow: auto;
 
-    a {
-      display: block;
+    div {
       color: var(--black-50);
+      cursor: pointer;
+      padding: 0.3rem;
+
+      &:hover {
+        background-color: var(--grey-975);
+      }
     }
   }
 

@@ -250,8 +250,8 @@ export const updateHousing = (
       .updateHousing(housing.id, housingUpdate)
       .then(async () => {
         dispatch(hideLoading());
-        await getHousing(housing.id)(dispatch);
         callback();
+        await getHousing(housing.id)(dispatch);
       });
   };
 };
@@ -355,8 +355,8 @@ export const updateHousingOwners = (
             formState: FormState.Succeed,
           })
         );
-        await getHousingOwners(housingId)(dispatch);
         callback();
+        await getHousingOwners(housingId)(dispatch);
       });
   };
 };

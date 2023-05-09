@@ -4,6 +4,7 @@ export interface Event {
   housingId?: string;
   campaignId?: string;
   createdAt: Date;
+  createdBy: string;
   title?: string;
   content?: string;
   contactKind?: string;

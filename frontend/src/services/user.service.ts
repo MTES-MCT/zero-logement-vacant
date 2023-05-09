@@ -14,6 +14,19 @@ export const userApi = createApi({
   }),
   tagTypes: ['User'],
   endpoints: (builder) => ({
+    getUser: builder.query<User, string>({
+      query: (userId) => userId,
+      transformResponse: (r) => parseUser(r),
+      providesTags: (result) =>
+        result
+          ? [
+              {
+                type: 'User' as const,
+                id: result.id,
+              },
+            ]
+          : [],
+    }),
     listUsers: builder.query<
       PaginatedResult<User>,
       {
@@ -71,6 +84,7 @@ const parseUser = (u: any): User =>
   } as User);
 
 export const {
+  useGetUserQuery,
   useListUsersQuery,
   useCreateUserMutation,
   useRemoveUserMutation,

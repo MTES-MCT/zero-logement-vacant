@@ -21,4 +21,5 @@ export const toEventDTO = (noteApi: NoteApi) => ({
   content: noteApi.content,
   contactKind: noteApi.contactKind ?? '',
   createdAt: noteApi.createdAt,
+  createdBy: noteApi.createdBy,
 });

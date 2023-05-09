@@ -251,6 +251,34 @@ describe('User controller', () => {
     });
   });
 
+  describe('get', () => {
+    const testRoute = (userId: string) => `/api/users/${userId}`;
+
+    it('should be forbidden for a non authenticated user', async () => {
+      await request(app)
+        .get(testRoute(User1.id))
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should received a valid userId', async () => {
+      await withAccessToken(
+        request(app).get(testRoute(randomstring.generate()))
+      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should retrieve the user', async () => {
+      const res = await withAdminAccessToken(
+        request(app).get(testRoute(User1.id))
+      ).expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject(
+        expect.objectContaining({
+          id: User1.id,
+        })
+      );
+    });
+  });
+
   describe('list', () => {
     const testRoute = '/api/users';
 

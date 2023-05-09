@@ -1,86 +1,77 @@
 import React, { useState } from 'react';
-import { Badge, Tag, TagGroup } from '@dataesr/react-dsfr';
+import { Text } from '@dataesr/react-dsfr';
 import styles from './events-history.module.scss';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useCampaignList } from '../../hooks/useCampaignList';
 import { Event } from '../../models/Event';
-import { Housing } from '../../models/Housing';
-import { campaignFullName, getCampaignKindLabel } from '../../models/Campaign';
+import { useGetUserQuery } from '../../services/user.service';
+import { useEstablishments } from '../../hooks/useEstablishments';
 
-const EventsHistory = ({
-  events,
-  housingList,
-}: {
+interface EventUserProps {
+  userId: string;
+}
+
+const EventUser = ({ userId }: EventUserProps) => {
+  const { availableEstablishments } = useEstablishments();
+
+  const { data: user } = useGetUserQuery(userId);
+
+  const establishment = availableEstablishments?.find(
+    (_) => _.id === user?.establishmentId
+  );
+
+  if (!user) {
+    return <></>;
+  }
+
+  return (
+    <span className="color-bf525">
+      <span className="ri-user-fill" aria-hidden="true" /> {user.firstName} 
+      {user.lastName}
+      {establishment && <> ({establishment.name})</>}
+    </span>
+  );
+};
+
+interface Props {
   events: Event[];
-  housingList?: Housing[];
-}) => {
-  const campaignList = useCampaignList();
+}
 
+const EventsHistory = ({ events }: Props) => {
   const [expandEvents, setExpandEvents] = useState(false);
-
-  const housingNumber = (housingId: string) =>
-    housingList ? housingList.findIndex((h) => h.id === housingId) + 1 : 1;
 
   return (
     <>
       {events && (
         <>
-          <ul className={styles.ownerEvents}>
-            {events
-              .filter((event, index) => expandEvents || index < 3)
-              .map((event) => {
-                const eventCampaign = campaignList?.find(
-                  (campaign) => campaign.id === event.campaignId
-                );
-                return (
-                  <li key={event.id}>
-                    <div className={styles.ownerEvent}>
-                      <TagGroup>
-                        <Tag as="span" small>
-                          {format(event.createdAt, 'dd MMMM yyyy', {
-                            locale: fr,
-                          })}
-                        </Tag>
-                      </TagGroup>
-                      {housingList && event.housingId && (
-                        <div>
-                          <b>
-                            {housingNumber(event.housingId)
-                              ? 'Logement ' + housingNumber(event.housingId)
-                              : 'Ancien logement'}
-                          </b>
-                        </div>
-                      )}
-                      <div className="fr-mb-0">
-                        {eventCampaign && (
-                          <div>
-                            <Badge
-                              isSmall
-                              text={
-                                eventCampaign.campaignNumber
-                                  ? `Campagne - ${getCampaignKindLabel(
-                                      eventCampaign.kind
-                                    )}`
-                                  : 'Hors campagne'
-                              }
-                              className="fr-mb-1w"
-                            />
-                            <br />"{campaignFullName(eventCampaign)}"
-                          </div>
-                        )}
-                        {event.contactKind && `${event.contactKind}. `}
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: event.content ?? '',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-          </ul>
+          {events
+            .filter((event, index) => expandEvents || index < 3)
+            .map((event) => {
+              return (
+                <div key={event.id} className="fr-mb-3w">
+                  <span className={styles.eventDate}>
+                    {format(event.createdAt, 'dd MMMM yyyy, HH:mm', {
+                      locale: fr,
+                    })}
+                  </span>
+                   par 
+                  <EventUser userId={event.createdBy} />
+                  <div className={styles.event}>
+                    <Text size="md" bold spacing="mb-0">
+                      {event.title}
+                    </Text>
+                    {event.content !== event.title && (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: event.content ?? '',
+                        }}
+                        className={styles.eventContent}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           {!expandEvents && events.length > 3 && (
             <button
               className="ds-fr--inline fr-link"

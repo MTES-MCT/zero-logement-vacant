@@ -6,6 +6,7 @@ import { EventDTO } from '../../shared/models/EventDTO';
 import noteRepository from '../repositories/noteRepository';
 import { toEventDTO } from '../models/EventApi';
 import { toEventDTO as noteToEventDTO } from '../models/NoteApi';
+import { differenceInMilliseconds } from 'date-fns';
 
 const listByOwnerId = async (
   request: Request,
@@ -27,7 +28,7 @@ const listByOwnerId = async (
       ...noteToEventDTO(note),
       ownerId,
     })),
-  ];
+  ].sort((e1, e2) => differenceInMilliseconds(e2.createdAt, e1.createdAt));
 
   return response.status(constants.HTTP_STATUS_OK).json(eventDTOs);
 };
@@ -52,7 +53,7 @@ const listByHousingId = async (
       ...noteToEventDTO(note),
       housingId,
     })),
-  ];
+  ].sort((e1, e2) => differenceInMilliseconds(e2.createdAt, e1.createdAt));
 
   return response.status(constants.HTTP_STATUS_OK).json(eventDTOs);
 };

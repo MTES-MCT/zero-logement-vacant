@@ -1,13 +1,13 @@
-ul.ownerEvents {
-  list-style-image: url('../../assets/images/list-item-circle.svg');
+.eventDate {
+  color: var(--grey-425);
+}
 
-  li {
-    padding-bottom: 0;
+.event {
+  background-color: var(--grey-975);
+  padding: 0.75rem 1.25rem;
+}
 
-    .ownerEvent {
-      border-left: 1px solid var(--grey-850);
-      padding: 0 0 24px 19px;
-      margin: 0 0 0 -16px;
-    }
-  }
+.eventContent {
+  background-color: var(--white-1000);
+  padding: 0.35rem 0.75rem;
 }

@@ -62,6 +62,7 @@ router.post('/notes', noteController.createNoteValidators, validator.validate, n
 router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
+router.get('/users/:userId', [isUUIDParam('userId')], validator.validate, userController.get);
 router.post('/users', userController.list);
 router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);
 

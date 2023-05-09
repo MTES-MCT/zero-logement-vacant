@@ -37,5 +37,6 @@ export function toEventDTO<T>(eventApi: EventApi<T>) {
     content: eventApi.name,
     contactKind: eventApi.contactKind ?? '',
     createdAt: eventApi.createdAt,
+    createdBy: eventApi.createdBy,
   };
 }

@@ -35,6 +35,7 @@ const parseEvent = (e: any): Event =>
     campaignId: e.campaignId,
     kind: e.kind,
     createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
+    createdBy: e.createdBy,
     title: e.title,
     content: e.content,
     contactKind: e.contactKind,

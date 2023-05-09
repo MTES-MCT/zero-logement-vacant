@@ -6,4 +6,5 @@ export interface EventDTO {
   ownerId?: string;
   housingId?: string;
   createdAt: Date;
+  createdBy: string;
 }

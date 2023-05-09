@@ -253,7 +253,7 @@ const updateHousing = async (
     );
   }
 
-  if (housingUpdateApi.comment.length) {
+  if (housingUpdateApi.comment?.length) {
     await createHousingUpdateNote([housing], housingUpdateApi, userId);
   }
 

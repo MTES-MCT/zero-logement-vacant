@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
-import { SALT_LENGTH, UserApi, UserRoles } from '../models/UserApi';
+import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
@@ -21,6 +21,7 @@ import ProspectInvalidError from '../errors/prospectInvalidError';
 import ProspectMissingError from '../errors/prospectMissingError';
 import mailService from '../services/mailService';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
+import UserMissingError from '../errors/userMissingError';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -111,6 +112,20 @@ const createUser = async (request: JWTRequest, response: Response) => {
   });
 };
 
+const get = async (request: Request, response: Response): Promise<Response> => {
+  const userId = request.params.userId;
+
+  console.log('Get user', userId);
+
+  const user = await userRepository.get(userId);
+
+  if (!user) {
+    throw new UserMissingError(userId);
+  }
+
+  return response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
+};
+
 const list = async (
   request: Request,
   response: Response
@@ -132,13 +147,16 @@ const list = async (
         : [establishmentId],
   };
 
-  return userRepository
-    .listWithFilters(
-      filters,
-      role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
-      { paginate: true, page, perPage }
-    )
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const paginatedUsers = await userRepository.listWithFilters(
+    filters,
+    role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
+    { paginate: true, page, perPage }
+  );
+
+  return response.status(constants.HTTP_STATUS_OK).json({
+    ...paginatedUsers,
+    entities: paginatedUsers.entities.map((_) => toUserDTO(_)),
+  });
 };
 
 const removeUser = async (
@@ -175,6 +193,7 @@ const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 const userController = {
   createUserValidators,
   createUser,
+  get,
   list,
   removeUser,
   userIdValidator,

@@ -26,8 +26,14 @@ const EventUser = ({ userId }: EventUserProps) => {
 
   return (
     <span className="color-bf525">
-      <span className="ri-user-fill" aria-hidden="true" /> {user.firstName} 
-      {user.lastName}
+      <span className="ri-user-fill" aria-hidden="true" />
+      {user.firstName || user.lastName ? (
+        <>
+          {user.firstName} {user.lastName}
+        </>
+      ) : (
+        user.email
+      )}
       {establishment && <> ({establishment.name})</>}
     </span>
   );

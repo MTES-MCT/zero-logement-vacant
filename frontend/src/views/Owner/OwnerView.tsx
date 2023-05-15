@@ -10,10 +10,10 @@ import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard';
 import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard';
 import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNoteModal';
-import { HousingNote, OwnerNote } from '../../models/Note';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useCreateNoteMutation } from '../../services/note.service';
+import { HousingNoteCreation, OwnerNoteCreation } from '../../models/Note';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
@@ -32,7 +32,7 @@ const OwnerView = () => {
   };
 
   async function submitHousingNote(
-    note: OwnerNote | HousingNote
+    note: OwnerNoteCreation | HousingNoteCreation
   ): Promise<void> {
     await createNote(note).finally(() => {
       refetchOwnerEvents();

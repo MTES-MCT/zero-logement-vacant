@@ -166,6 +166,8 @@ const updateHousingOwners = async (
 
     await ownerRepository.insertHousingOwners(housingOwnersApi);
 
+    const newHousingOwnersApi = await ownerRepository.listByHousing(housingId);
+
     await eventRepository.insertHousingEvent({
       id: uuidv4(),
       name: 'Changement de propriétaires',
@@ -173,7 +175,7 @@ const updateHousingOwners = async (
       category: 'Ownership',
       section: 'Propriétaire',
       old: prevHousingOwnersApi,
-      new: housingOwnersApi,
+      new: newHousingOwnersApi,
       createdBy: userId,
       createdAt: new Date(),
       housingId,

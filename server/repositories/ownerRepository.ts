@@ -252,6 +252,7 @@ export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
   startDate: result.start_date,
   endDate: result.end_date,
   origin: result.origin,
+  housingCount: Number(result.housing_count),
 });
 
 export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({

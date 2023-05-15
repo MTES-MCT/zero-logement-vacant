@@ -1,4 +1,4 @@
-async function publish(report: any): Promise<void> {
+function publish(report: any): void {
   // TODO
   console.log(report);
 }

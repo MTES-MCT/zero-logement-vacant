@@ -1,5 +1,5 @@
 import { UserApi, UserRoles } from '../models/UserApi';
-import { OwnerApi } from '../models/OwnerApi';
+import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
@@ -29,6 +29,7 @@ import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { NoteCreationDTO } from '../../shared/models/NoteDTO';
+import { EventApi, HousingEventApi } from '../models/EventApi';
 
 const randomstring = require('randomstring');
 
@@ -141,30 +142,36 @@ export const genAddressApi = () => {
   };
 };
 
-export const genOwnerApi = () => {
-  return <OwnerApi>{
+export const genOwnerApi = (): OwnerApi => {
+  return {
     id: uuidv4(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     birthDate: formatISO(new Date()),
-    address: genAddressApi(),
     fullName: randomstring.generate(),
     email: genEmail(),
     phone: randomstring.generate(),
   };
 };
 
-export const genHousingApi = (geoCode: string = genGeoCode()) => {
-  return <HousingApi>{
-    id: uuidv4(),
+export const genHousingOwnerApi = (housingId: string): HousingOwnerApi => ({
+  ...genOwnerApi(),
+  housingId,
+  rank: 2,
+});
+
+export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
+  const id = uuidv4();
+  return {
+    id,
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
     cadastralReference: randomstring.generate(),
     buildingLocation: randomstring.generate(),
     geoCode,
     rawAddress: [randomstring.generate(), randomstring.generate()],
-    address: genAddressApi(),
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
+    coowners: [genHousingOwnerApi(id)],
     livingArea: genNumber(4),
     housingKind: randomstring.generate(),
     roomsCount: genNumber(1),
@@ -274,3 +281,30 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
     },
   };
 };
+
+export const genEventApi = <T>(
+  createdBy: string,
+  old?: T,
+  now?: T
+): EventApi<T> => ({
+  id: uuidv4(),
+  name: randomstring.generate(),
+  kind: 'Create',
+  category: 'Followup',
+  section: 'Situation',
+  conflict: false,
+  createdAt: new Date(),
+  createdBy,
+  old,
+  new: now,
+  contactKind: randomstring.generate(),
+});
+
+export const genHousingEventApi = (
+  createdBy: string,
+  old: HousingApi,
+  now: HousingApi
+): HousingEventApi => ({
+  ...genEventApi(createdBy, old, now),
+  housingId: old.id,
+});

@@ -17,12 +17,12 @@ export const ownerEventsTable = 'owner_events';
 export const housingEventsTable = 'housing_events';
 export const campaignEventsTable = 'campaign_events';
 
-const Events = () => db<EventDBO<any>>(eventsTable);
-const OwnerEvents = () =>
+export const Events = () => db<EventDBO<any>>(eventsTable);
+export const OwnerEvents = () =>
   db<{ event_id: string; owner_id: string }>(ownerEventsTable);
-const HousingEvents = () =>
+export const HousingEvents = () =>
   db<{ event_id: string; housing_id: string }>(housingEventsTable);
-const CampaignEvents = () =>
+export const CampaignEvents = () =>
   db<{ event_id: string; campaign_id: string }>(campaignEventsTable);
 
 const insertHousingEvent = async (
@@ -34,7 +34,6 @@ const insertHousingEvent = async (
 const insertManyHousingEvents = async (
   housingEvents: HousingEventApi[]
 ): Promise<void> => {
-  console.log('Insert %d HousingEventApi', housingEvents.length);
   if (housingEvents.length) {
     await Events().insert(
       housingEvents.map((housingEvent) => formatEventApi(housingEvent))
@@ -49,7 +48,6 @@ const insertManyHousingEvents = async (
 };
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
-  console.log('Insert OwnerEventApi', ownerEvent);
   await Events().insert(formatEventApi(ownerEvent));
   await OwnerEvents().insert({
     event_id: ownerEvent.id,

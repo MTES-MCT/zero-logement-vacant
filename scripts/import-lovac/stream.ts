@@ -1,5 +1,6 @@
 import highland from 'highland';
 import _ from 'lodash';
+import notion from './notion';
 
 type Finder<In = unknown, Out = unknown> = (data: In) => Promise<Out>;
 type AwaitedFinders<In, Out, T extends Record<string, Finder<In, Out>>> = {
@@ -36,5 +37,27 @@ export function appendAll<In, Out, U extends Record<string, Finder<In, Out>>>(
 export function count() {
   return (stream: Highland.Stream<any>): Highland.Stream<number> => {
     return stream.reduce(0, (i) => i + 1);
+  };
+}
+
+export function errorHandler() {
+  return <T>(stream: Highland.Stream<T>): Highland.Stream<T> => {
+    const errors: Error[] = [];
+    let imported = 0;
+
+    return stream
+      .tap((data) => {
+        imported += Array.isArray(data) ? data.length : 1;
+      })
+      .errors((error) => {
+        errors.push(error);
+      })
+      .on('end', () => {
+        const report = {
+          imported,
+          errors,
+        };
+        notion.publish(report);
+      });
   };
 }

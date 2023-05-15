@@ -1,4 +1,4 @@
-import { OwnerApi } from './OwnerApi';
+import { HousingOwnerApi, OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
 import _ from 'lodash';
@@ -36,6 +36,10 @@ export interface HousingApi extends HousingRecordApi {
   localityKind: string;
   geoPerimeters?: string[];
   owner: OwnerApi;
+  /**
+   * All the owners having rank >= 2
+   */
+  coowners: HousingOwnerApi[];
   buildingHousingCount?: number;
   buildingVacancyRate?: number;
   campaignIds: string[];

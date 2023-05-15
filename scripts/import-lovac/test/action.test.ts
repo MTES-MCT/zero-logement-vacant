@@ -15,6 +15,12 @@ describe('Action', () => {
       describe('If it is missing now', () => {
         const now = null;
 
+        it('should keep dataYears untouched', () => {
+          const action = compare({ before, now, modifications: [] });
+
+          expect(action.housing?.dataYears).toStrictEqual(before.dataYears);
+        });
+
         describe('If it is untouched', () => {
           const modifications: Modification[] = [];
 
@@ -156,7 +162,10 @@ describe('Action', () => {
             it('should erase all data', () => {
               const action = compare({ before, now, modifications });
 
-              expect(action.housing).toStrictEqual(now);
+              expect(action.housing).toStrictEqual({
+                ...now,
+                dataYears: [...now.dataYears, ...before.dataYears],
+              });
             });
           });
 
@@ -171,6 +180,8 @@ describe('Action', () => {
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
                 owner: now.owner,
+                coowners: now.coowners,
+                dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
 
@@ -200,6 +211,7 @@ describe('Action', () => {
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
                 owner: now.owner,
+                dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
           });
@@ -266,6 +278,7 @@ describe('Action', () => {
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
                 owner: now.owner,
+                dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
           });
@@ -278,7 +291,10 @@ describe('Action', () => {
             it('should remain the same', () => {
               const action = compare({ before, now, modifications });
 
-              expect(action.housing).toStrictEqual(before);
+              expect(action.housing).toStrictEqual({
+                ...before,
+                dataYears: [...now.dataYears, ...before.dataYears],
+              });
             });
 
             it('should create an occupancy conflict event', () => {
@@ -307,6 +323,12 @@ describe('Action', () => {
       const before = null;
       const modifications: Modification[] = [];
       const now = genHousingApi();
+
+      it('should add the current year to dataYears', () => {
+        const action = compare({ before, now, modifications });
+
+        expect(action.housing?.dataYears).toStrictEqual(now.dataYears);
+      });
 
       it('should create an occupancy update event', () => {
         const action = compare({ before, now, modifications });

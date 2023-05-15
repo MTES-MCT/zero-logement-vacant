@@ -4,6 +4,7 @@ services:
     image: postgis/postgis:14-3.3
     container_name: zlv
     restart: always
+    shm_size: 1g
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

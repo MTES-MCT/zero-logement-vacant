@@ -22,17 +22,23 @@ exports.up = async (knex: Knex) => {
 };
 
 exports.down = async (knex: Knex) => {
-  return Promise.all([
+  await Promise.all([
     knex.schema.alterTable('owners', (table) => {
       table.dropIndex(
         ['full_name', 'raw_address', 'birth_date'],
         'owners_full_name_birth_date_raw_address_idx'
       );
     }),
-    knex.schema.raw('DROP INDEX owners_full_name_raw_address_idx'),
     knex.schema.alterTable('housing', (table) => {
       table.dropUnique(['local_id'], 'housing_local_id_idx');
       table.index(['local_id'], 'housing_local_id_idx');
     }),
   ]);
+  await knex.schema.raw('DROP INDEX owners_full_name_raw_address_idx');
+  await knex.schema.alterTable('owners', (table) => {
+    table.index(
+      ['full_name', 'birth_date', 'raw_address'],
+      'owners_full_name_birth_date_raw_address_idx'
+    );
+  });
 };

@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { HousingApi, OccupancyKindApi } from '../../server/models/HousingApi';
-import housingRepository from '../../server/repositories/housingRepository';
 import {
   EventApi,
   HousingEventApi,
@@ -10,30 +9,11 @@ import {
 import { HousingStatusApi } from '../../server/models/HousingStatusApi';
 import { hasAnyOwnershipModification, Modification } from './modification';
 import eventRepository from '../../server/repositories/eventRepository';
-
-export interface Action {
-  housing: HousingApi | null;
-  events: EventApi<unknown>[];
-}
-
-export async function bulkSave(actions: Action[]): Promise<void> {
-  const housingList = actions
-    .map((action) => action.housing)
-    .filter((housing): housing is NonNullable<HousingApi> => housing !== null);
-  const events = actions
-    .flatMap((action) => action.events)
-    .filter(isHousingEvent);
-  await Promise.all([
-    housingRepository.bulkSave(housingList),
-    eventRepository.insertManyHousingEvents(events),
-  ]);
-}
-
-export interface Comparison {
-  before: HousingApi | null;
-  now: HousingApi | null;
-  modifications: Modification[];
-}
+import housingRepository from '../../server/repositories/housingRepository';
+import userRepository from '../../server/repositories/userRepository';
+import { UserApi } from '../../server/models/UserApi';
+import config from '../../server/utils/config';
+import UserMissingError from '../../server/errors/userMissingError';
 
 export function compare({ before, now, modifications }: Comparison): Action {
   if (before && now === null) {
@@ -127,11 +107,12 @@ export function compare({ before, now, modifications }: Comparison): Action {
     };
   }
 
-  // Mettre à jour dataYears ?
   if (before && now) {
+    const dataYears = [...now.dataYears, ...before.dataYears];
+
     if (!hasAnyOwnershipModification(modifications)) {
       const events: HousingEventApi[] =
-        before.owner.email !== now.owner.email
+        before.owner.fullName !== now.owner.fullName
           ? [
               {
                 id: uuidv4(),
@@ -151,7 +132,11 @@ export function compare({ before, now, modifications }: Comparison): Action {
 
       if (before.status === HousingStatusApi.NeverContacted) {
         return {
-          housing: now,
+          housing: {
+            ...now,
+            id: before.id,
+            dataYears,
+          },
           events,
         };
       }
@@ -174,13 +159,23 @@ export function compare({ before, now, modifications }: Comparison): Action {
           createdAt: new Date(),
         };
         return {
-          housing: { ...before, owner: now.owner },
+          housing: {
+            ...before,
+            owner: now.owner,
+            coowners: now.coowners,
+            dataYears,
+          },
           events: [...events, occupancyConflict],
         };
       }
 
       return {
-        housing: { ...before, owner: now.owner },
+        housing: {
+          ...before,
+          owner: now.owner,
+          coowners: now.coowners,
+          dataYears,
+        },
         events,
       };
     }
@@ -203,6 +198,8 @@ export function compare({ before, now, modifications }: Comparison): Action {
         housing: {
           ...before,
           owner: now.owner,
+          coowners: now.coowners,
+          dataYears,
         },
         events: [ownershipConflict],
       };
@@ -226,19 +223,18 @@ export function compare({ before, now, modifications }: Comparison): Action {
         createdAt: new Date(),
       };
       return {
-        housing: before,
+        housing: { ...before, dataYears },
         events: [ownershipConflict, occupancyConflict],
       };
     }
 
     return {
-      housing: before,
+      housing: { ...before, dataYears },
       events: [ownershipConflict],
     };
   }
 
   if (before === null && now) {
-    // TODO: create housing with occupancy = 'V' and status = 'Never contacted'
     const occupancyEvent: HousingEventApi = {
       id: uuidv4(),
       name: 'Changement de statut d’occupation',
@@ -266,4 +262,42 @@ export function compare({ before, now, modifications }: Comparison): Action {
     housing: null,
     events: [],
   };
+}
+
+export interface Action {
+  housing: HousingApi | null;
+  events: EventApi<unknown>[];
+}
+
+export interface Comparison {
+  before: HousingApi | null;
+  now: HousingApi | null;
+  modifications: Modification[];
+}
+
+let system: UserApi | null = null;
+
+export async function bulkSave(actions: Action[]): Promise<void> {
+  // Retrieve the system account
+  if (!system) {
+    system = await userRepository.getByEmail(config.application.system);
+  }
+  if (!system) {
+    throw new UserMissingError(config.application.system);
+  }
+
+  const housingList = actions
+    .map((action) => action.housing)
+    .filter((housing): housing is NonNullable<HousingApi> => housing !== null);
+  const events = actions
+    .flatMap((action) => action.events)
+    .filter(isHousingEvent)
+    .map((event) => ({
+      ...event,
+      createdBy: (system as UserApi).id,
+    }));
+
+  await housingRepository.saveMany(housingList);
+  // Depends on housing insertion
+  await eventRepository.insertManyHousingEvents(events);
 }

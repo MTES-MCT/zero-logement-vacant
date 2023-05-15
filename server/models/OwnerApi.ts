@@ -14,6 +14,8 @@ export interface OwnerApi {
   birthDate?: string;
   email?: string;
   phone?: string;
+  kind?: string;
+  kindDetail?: string;
 }
 
 export interface HousingOwnerApi extends OwnerApi {
@@ -22,5 +24,4 @@ export interface HousingOwnerApi extends OwnerApi {
   startDate?: Date;
   endDate?: Date;
   origin?: string;
-  housingCount?: number;
 }

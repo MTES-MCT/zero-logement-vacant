@@ -58,6 +58,7 @@ interface Config {
   application: {
     host: string;
     isReviewApp: boolean;
+    system: string;
   };
   feature: {
     occupancy: string[];
@@ -177,6 +178,11 @@ const config = convict<Config>({
       env: 'IS_REVIEW_APP',
       format: 'strict-boolean',
       default: false,
+    },
+    system: {
+      env: 'SYSTEM_ACCOUNT',
+      format: String,
+      default: 'lovac-2023@zerologementvacant.beta.gouv.fr',
     },
   },
   feature: {

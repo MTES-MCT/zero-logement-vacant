@@ -1,5 +1,5 @@
 import { UserApi, UserRoles } from '../models/UserApi';
-import { OwnerApi } from '../models/OwnerApi';
+import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
@@ -148,31 +148,40 @@ export const genAddressApi = () => {
   };
 };
 
-export const genOwnerApi = () => {
-  return <OwnerApi>{
+export const genOwnerApi = (): OwnerApi => {
+  return {
     id: uuidv4(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     birthDate: formatISO(new Date()),
-    address: genAddressApi(),
     fullName: randomstring.generate(),
     email: genEmail(),
     phone: randomstring.generate(),
   };
 };
 
+export const genHousingOwnerApi = (housingId: string): HousingOwnerApi => ({
+  ...genOwnerApi(),
+  housingId,
+  rank: 2,
+});
+
 export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
-  return <HousingApi>{
-    id: uuidv4(),
+  const id = uuidv4();
+  return {
+    id,
     invariant: randomstring.generate(),
     localId: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     geoCode,
+    localityKind: randomstring.generate(),
+    owner: genOwnerApi(),
+    coowners: [genHousingOwnerApi(id)],
+    livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
     vacancyStartYear: 1000 + genNumber(3),
     housingKind: randomstring.generate(),
     roomsCount: genNumber(1),
-    livingArea: genNumber(4),
     cadastralReference: randomstring.generate(),
     buildingYear: genNumber(4),
     taxed: false,
@@ -184,8 +193,6 @@ export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
     energyConsumption: EnergyConsumptionGradesApi.A,
     energyConsumptionWorst: EnergyConsumptionGradesApi.B,
     occupancy: OccupancyKindApi.Vacant,
-    localityKind: randomstring.generate(),
-    owner: genOwnerApi(),
     buildingVacancyRate: genNumber(2),
     campaignIds: [],
     contactCount: genNumber(1),

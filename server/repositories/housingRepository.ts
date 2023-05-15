@@ -1,3 +1,4 @@
+import fp from 'lodash/fp';
 import db from './db';
 import {
   EnergyConsumptionGradesApi,
@@ -9,8 +10,12 @@ import {
   OwnershipKindsApi,
   OwnershipKindValues,
 } from '../models/HousingApi';
-import { ownerTable } from './ownerRepository';
-import { OwnerApi } from '../models/OwnerApi';
+import ownerRepository, {
+  formatHousingOwnerApi,
+  HousingOwnerDBO,
+  OwnerDBO,
+  ownerTable,
+} from './ownerRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import {
   HousingFiltersApi,
@@ -29,12 +34,13 @@ import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
 import { paginationQuery } from '../models/PaginationApi';
 import highland from 'highland';
+import { HousingOwnerApi } from '../models/OwnerApi';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
-export const ReferenceDataYear = 2021;
+export const ReferenceDataYear = 2022;
 
 export const ownersHousingJoinClause = (query: any) => {
   query
@@ -106,9 +112,39 @@ export const queryOwnerHousingWhereClause = (
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const bulkSave = async (housingList: HousingApi[]): Promise<void> => {
-  // TODO
+const saveMany = async (housingList: HousingApi[]): Promise<void> => {
+  if (!housingList.length) {
+    return;
+  }
+
+  const mainOwners: HousingOwnerApi[] = housingList.map((housing) => ({
+    ...housing.owner,
+    rank: 1,
+    housingId: housing.id,
+  }));
+  const coowners = housingList.flatMap((housing) =>
+    housing.coowners.map((coowner) => ({
+      ...coowner,
+      housingId: housing.id,
+    }))
+  );
+  const owners: HousingOwnerApi[] = fp.pipe(fp.uniqBy('id'))([
+    ...mainOwners,
+    ...coowners,
+  ]);
+  const ids = housingList.map((housing) => housing.id);
+
+  await db.transaction(async (transaction) => {
+    await transaction(housingTable)
+      .insert(housingList.map(formatHousingRecordApi))
+      .onConflict('local_id')
+      .merge();
+
+    // Owners should already be present
+    const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);
+    await transaction(ownersHousingTable).whereIn('housing_id', ids).delete();
+    await transaction(ownersHousingTable).insert(ownersHousing);
+  });
 };
 
 const get = async (
@@ -178,7 +214,6 @@ const get = async (
     )
     .whereIn(`${housingTable}.geo_code`, geoCodes)
     .andWhere(`${housingTable}.id`, housingId)
-    // .andWhereRaw(`${housingTable}.geo_code IN ?`, geoCodes)
     .first();
 
   return housing ? parseHousingApi(housing) : null;
@@ -557,8 +592,43 @@ const listWithFilters = async (
 };
 
 const stream = (): Highland.Stream<HousingApi> => {
-  const stream = listQuery().stream();
-  return highland(stream).map(parseHousingApi);
+  const stream = db
+    .select(
+      `${housingTable}.*`,
+      'o.id as owner_id',
+      'o.birth_date as owner_birth_date',
+      'o.raw_address as owner_raw_address',
+      'o.full_name',
+      'o.administrator',
+      'o.email',
+      'o.phone'
+    )
+    .from(housingTable)
+    .join(ownersHousingTable, ownersHousingJoinClause)
+    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .modify(
+      filteredQuery({
+        occupancies: [OccupancyKindApi.Vacant],
+        // Exclude the current year to avoid fetching housing
+        // that were just imported by the LOVAC script
+        dataYearsExcluded: [ReferenceDataYear + 1],
+      })
+    )
+    .groupBy(`${housingTable}.id`, 'o.id')
+    .stream();
+
+  return highland<HousingDBO>(stream)
+    .map(parseHousingApi)
+    .flatMap((housing) => {
+      return highland<HousingApi>(
+        ownerRepository.listByHousing(housing.id).then(
+          (owners: HousingOwnerApi[]): HousingApi => ({
+            ...housing,
+            coowners: owners.filter((owner) => owner.rank > 1),
+          })
+        )
+      );
+    });
 };
 
 const paginatedListWithFilters = async (
@@ -769,7 +839,15 @@ interface HousingRecordDBO {
   longitude_ban?: number;
 }
 
-const parseHousingApi = (result: any): HousingApi => ({
+interface HousingDBO extends HousingRecordDBO {
+  owner_id: string;
+  owner_birth_date?: string;
+  coowners: OwnerDBO[];
+  // TODO: fix this
+  [key: string]: any;
+}
+
+export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   id: result.id,
   invariant: result.invariant,
   localId: result.local_id,
@@ -798,14 +876,16 @@ const parseHousingApi = (result: any): HousingApi => ({
   occupancy: result.occupancy,
   localityKind: result.locality_kind,
   geoPerimeters: result.geo_perimeters,
-  owner: <OwnerApi>{
+  owner: {
     id: result.owner_id,
-    rawAddress: result.owner_raw_address,
+    birthDate: result.owner_birth_date,
+    rawAddress: result.owner_raw_address.filter((_: string) => _ && _.length),
     fullName: result.full_name,
     administrator: result.administrator,
     email: result.email,
     phone: result.phone,
   },
+  coowners: [],
   buildingHousingCount: result.housing_count,
   buildingVacancyRate: result.vacant_housing_count
     ? Math.round(
@@ -859,5 +939,5 @@ export default {
   updateHousingList,
   countByStatusWithFilters,
   formatHousingRecordApi,
-  bulkSave,
+  saveMany,
 };

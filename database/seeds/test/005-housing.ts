@@ -1,4 +1,4 @@
-import { Owner1 } from './004-owner';
+import { Owner1, Owner2 } from './004-owner';
 import { genHousingApi } from '../../../server/test/testFixtures';
 import housingRepository, {
   housingTable,
@@ -33,6 +33,11 @@ exports.seed = function (knex: Knex) {
             owner_id: Owner1.id,
             housing_id: Housing0.id,
             rank: 1,
+          },
+          {
+            owner_id: Owner2.id,
+            housing_id: Housing0.id,
+            rank: 2,
           },
           {
             owner_id: Owner1.id,

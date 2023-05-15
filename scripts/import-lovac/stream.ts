@@ -50,6 +50,7 @@ export function errorHandler() {
         imported += Array.isArray(data) ? data.length : 1;
       })
       .errors((error) => {
+        console.log(error);
         errors.push(error);
       })
       .on('end', () => {

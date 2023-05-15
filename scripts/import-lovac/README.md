@@ -1,7 +1,10 @@
 ## Usage
 
 ### Copying production data (optional, to work on your machine)
-TODO
+```shell
+pg_dump --clean --if-exists --format c --dbname $(scalingo -a zerologementvacant env-get DATABASE_URL) --no-owner --no-privileges --no-comments --exclude-schema 'information_schema' --exclude-schema '^pg_*' --file zlv-prod.pgsql
+pg_restore --clean --if-exists --no-owner --no-privileges --no-comments --dbname postgres://postgres:postgres@localhost zlv-prod.pgsql --verbose
+```
 
 ### Remove duplicates to avoid conflicts
 ```shell

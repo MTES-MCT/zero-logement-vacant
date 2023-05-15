@@ -27,7 +27,7 @@ export const isOwnerNoteCreation = (
   return (noteCreation as OwnerNoteCreation).owner !== undefined;
 };
 
-export interface Note extends NoteCreation {
+export interface Note extends Partial<NoteCreation> {
   createdBy: string;
   createdAt: Date;
 }

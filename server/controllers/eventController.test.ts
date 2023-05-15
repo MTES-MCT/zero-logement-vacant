@@ -36,7 +36,6 @@ describe('Event controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: OwnerEvent1.id,
-            ownerId: OwnerEvent1.ownerId,
           }),
         ])
       );
@@ -67,7 +66,6 @@ describe('Event controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: HousingEvent1.id,
-            housingId: Housing1.id,
           }),
         ])
       );

@@ -58,6 +58,7 @@ router.get('/events/owner/:ownerId', [isUUIDParam('ownerId')], validator.validat
 router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.validate, eventController.listByHousingId);
 
 router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
+router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 
 router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);

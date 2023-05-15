@@ -114,7 +114,7 @@ const parseOwner = (o: any): Owner =>
     administrator: o.administrator ? toTitleCase(o.administrator) : undefined,
   } as Owner);
 
-const parseHousingOwner = (o: any): HousingOwner =>
+export const parseHousingOwner = (o: any): HousingOwner =>
   ({
     ...parseOwner(o),
     startDate: o.startDate ? parseISO(o.startDate) : undefined,

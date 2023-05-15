@@ -5,3 +5,11 @@ export interface NoteCreationDTO {
   ownerId?: string;
   housingIds?: string[];
 }
+
+export interface NoteDTO {
+  title: string;
+  content: string;
+  contactKind: string;
+  createdBy: string;
+  createdAt: string;
+}

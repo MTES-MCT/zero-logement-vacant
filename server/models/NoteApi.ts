@@ -1,3 +1,5 @@
+import { NoteDTO } from '../../shared/models/NoteDTO';
+
 export interface NoteApi {
   id: string;
   title?: string;
@@ -15,11 +17,11 @@ export interface HousingNoteApi extends NoteApi {
   housingId: string;
 }
 
-export const toEventDTO = (noteApi: NoteApi) => ({
+export const toNoteDTO = (noteApi: NoteApi): NoteDTO => ({
   id: noteApi.id,
   title: noteApi.title,
   content: noteApi.content,
-  contactKind: noteApi.contactKind ?? '',
+  contactKind: noteApi.contactKind,
   createdAt: noteApi.createdAt,
   createdBy: noteApi.createdBy,
 });

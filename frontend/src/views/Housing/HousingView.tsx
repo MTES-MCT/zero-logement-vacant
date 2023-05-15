@@ -14,7 +14,8 @@ import { useAppDispatch } from '../../hooks/useStore';
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
   const dispatch = useAppDispatch();
-  const { housing, mainHousingOwner, housingOwners, events } = useHousing();
+  const { housing, mainHousingOwner, housingOwners, events, notes } =
+    useHousing();
   const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
 
   const updateMainOwner = (owner: Owner) => {
@@ -72,6 +73,7 @@ const HousingView = () => {
                     housing={housing}
                     housingOwners={housingOwners ?? []}
                     housingEvents={events ?? []}
+                    housingNotes={notes ?? []}
                   />
                 </>
               )}

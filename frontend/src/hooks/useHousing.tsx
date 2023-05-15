@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { getHousing, getHousingOwners } from '../store/actions/housingAction';
 import { useAppDispatch, useAppSelector } from './useStore';
 import { useFindEventsByHousingQuery } from '../services/event.service';
+import { useFindNotesByHousingQuery } from '../services/note.service';
 
 export function useHousing() {
   const dispatch = useAppDispatch();
@@ -10,6 +11,9 @@ export function useHousing() {
 
   const { data: events, refetch: refetchHousingEvents } =
     useFindEventsByHousingQuery(housingId);
+
+  const { data: notes, refetch: refetchHousingNotes } =
+    useFindNotesByHousingQuery(housingId);
 
   useEffect(() => {
     dispatch(getHousing(housingId));
@@ -22,7 +26,9 @@ export function useHousing() {
 
   return {
     events,
+    notes,
     refetchHousingEvents,
+    refetchHousingNotes,
     mainHousingOwner,
     housingOwners,
     housing,

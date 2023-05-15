@@ -1,95 +1,104 @@
 import React, { useState } from 'react';
 import { Text } from '@dataesr/react-dsfr';
 import styles from './events-history.module.scss';
-import { format } from 'date-fns';
+import { differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Event } from '../../models/Event';
-import { useGetUserQuery } from '../../services/user.service';
-import { useEstablishments } from '../../hooks/useEstablishments';
-
-interface EventUserProps {
-  userId: string;
-}
-
-const EventUser = ({ userId }: EventUserProps) => {
-  const { availableEstablishments } = useEstablishments();
-
-  const { data: user } = useGetUserQuery(userId);
-
-  const establishment = availableEstablishments?.find(
-    (_) => _.id === user?.establishmentId
-  );
-
-  if (!user) {
-    return <></>;
-  }
-
-  return (
-    <span className="color-bf525">
-      <span className="ri-user-fill" aria-hidden="true" />
-      {user.firstName || user.lastName ? (
-        <>
-          {user.firstName} {user.lastName}
-        </>
-      ) : (
-        user.email
-      )}
-      {establishment && <> ({establishment.name})</>}
-    </span>
-  );
-};
+import EventUser from './EventUser';
+import EventHousingStatutContent from './EventHousingStatutContent';
+import EventHousingOwnerContent from './EventHousingOwnerContent';
+import { Note } from '../../models/Note';
 
 interface Props {
   events: Event[];
+  notes: Note[];
 }
 
-const EventsHistory = ({ events }: Props) => {
+const EventsHistory = ({ events, notes }: Props) => {
   const [expandEvents, setExpandEvents] = useState(false);
+
+  const eventAndNotes = [...events, ...notes].sort((e1, e2) =>
+    differenceInMilliseconds(e2.createdAt, e1.createdAt)
+  );
+
+  const isEvent = (e: Event | Note): e is Event => {
+    return (e as Event).category !== undefined;
+  };
 
   return (
     <>
-      {events && (
-        <>
-          {events
-            .filter((event, index) => expandEvents || index < 3)
-            .map((event) => {
-              return (
-                <div key={event.id} className="fr-mb-3w">
-                  <span className={styles.eventDate}>
-                    {format(event.createdAt, 'dd MMMM yyyy, HH:mm', {
-                      locale: fr,
-                    })}
-                  </span>
-                   par 
-                  <EventUser userId={event.createdBy} />
-                  <div className={styles.event}>
+      {eventAndNotes
+        .filter((eventOrNote, index) => expandEvents || index < 3)
+        .map((eventOrNote, index) => {
+          return (
+            <div key={`event_note_${index}`} className="fr-mb-3w">
+              <div className={styles.eventData}>
+                <span className={styles.eventDate}>
+                  {format(eventOrNote.createdAt, 'dd MMMM yyyy, HH:mm', {
+                    locale: fr,
+                  })}
+                </span>
+                <span className="fr-mx-1w">par</span>
+                <EventUser userId={eventOrNote.createdBy} />
+              </div>
+              <div className={styles.event}>
+                {isEvent(eventOrNote) ? (
+                  <>
                     <Text size="md" bold spacing="mb-0">
-                      {event.title}
+                      {eventOrNote.name}
                     </Text>
-                    {event.content !== event.title && (
+                    {eventOrNote.section === 'Situation' && (
+                      <div className={styles.eventContentRowContainer}>
+                        <EventHousingStatutContent housing={eventOrNote.old} />
+                        {eventOrNote.old && eventOrNote.new && (
+                          <span className="fr-icon-arrow-right-s-line" />
+                        )}
+                        <EventHousingStatutContent housing={eventOrNote.new} />
+                      </div>
+                    )}
+                    {eventOrNote.section === 'Propriétaire' && (
+                      <div className={styles.eventContentRowContainer}>
+                        <EventHousingOwnerContent
+                          housingOwners={eventOrNote.old}
+                        />
+                        {eventOrNote.old && eventOrNote.new && (
+                          <span className="fr-icon-arrow-right-s-line" />
+                        )}
+                        <EventHousingOwnerContent
+                          housingOwners={eventOrNote.new}
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Text size="md" bold spacing="mb-0">
+                      Note : {eventOrNote.title}
+                    </Text>
+                    {eventOrNote.content !== eventOrNote.title && (
                       <div
                         dangerouslySetInnerHTML={{
-                          __html: event.content ?? '',
+                          __html: eventOrNote.content ?? '',
                         }}
                         className={styles.eventContent}
                       />
                     )}
-                  </div>
-                </div>
-              );
-            })}
-          {!expandEvents && events.length > 3 && (
-            <button
-              className="ds-fr--inline fr-link"
-              type="button"
-              title="Voir tout le suivi"
-              onClick={() => setExpandEvents(!expandEvents)}
-            >
-              Voir tout le suivi
-              <span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
-            </button>
-          )}
-        </>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      {!expandEvents && events.length > 3 && (
+        <button
+          className="ds-fr--inline fr-link"
+          type="button"
+          title="Voir tout le suivi"
+          onClick={() => setExpandEvents(!expandEvents)}
+        >
+          Voir tout le suivi
+          <span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+        </button>
       )}
     </>
   );

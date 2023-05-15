@@ -293,7 +293,7 @@ describe('User controller', () => {
         request(app).post(testRoute)
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ filteredCount: 3, totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 4, totalCount: 4 });
     });
 
     it('should filter users', async () => {
@@ -305,7 +305,7 @@ describe('User controller', () => {
           })
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 4 });
     });
 
     it('should list only establishment users when authenticated user has not admin role', async () => {

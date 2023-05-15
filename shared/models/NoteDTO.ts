@@ -1,5 +1,5 @@
 export interface NoteCreationDTO {
-  title?: string;
+  title: string;
   content?: string;
   contactKind: string;
   ownerId?: string;
@@ -8,8 +8,8 @@ export interface NoteCreationDTO {
 
 export interface NoteDTO {
   title: string;
-  content: string;
-  contactKind: string;
+  content?: string;
+  contactKind?: string;
   createdBy: string;
   createdAt: string;
 }

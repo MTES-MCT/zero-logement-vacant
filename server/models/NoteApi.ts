@@ -2,9 +2,9 @@ import { NoteDTO } from '../../shared/models/NoteDTO';
 
 export interface NoteApi {
   id: string;
-  title?: string;
+  title: string;
   content?: string;
-  contactKind: string;
+  contactKind?: string;
   createdBy: string;
   createdAt: Date;
 }
@@ -18,10 +18,9 @@ export interface HousingNoteApi extends NoteApi {
 }
 
 export const toNoteDTO = (noteApi: NoteApi): NoteDTO => ({
-  id: noteApi.id,
   title: noteApi.title,
   content: noteApi.content,
   contactKind: noteApi.contactKind,
-  createdAt: noteApi.createdAt,
+  createdAt: noteApi.createdAt.toISOString(),
   createdBy: noteApi.createdBy,
 });

@@ -61,9 +61,9 @@ const findHousingNotes = async (housingId: string): Promise<NoteApi[]> => {
 
 interface NoteDBO {
   id: string;
-  title?: string;
+  title: string;
   content?: string;
-  contact_kind: string;
+  contact_kind?: string;
   created_by: string;
   created_at: Date;
 }

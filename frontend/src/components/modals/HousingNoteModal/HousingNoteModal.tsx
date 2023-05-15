@@ -17,15 +17,15 @@ import { useForm } from '../../../hooks/useForm';
 import { CONTACT_KINDS } from '../../../models/ContactKind';
 import { DefaultOption, Separator } from '../../../models/SelectOption';
 import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
-import { HousingNote, OwnerNote } from '../../../models/Note';
 import { Owner } from '../../../models/Owner';
+import { HousingNoteCreation, OwnerNoteCreation } from '../../../models/Note';
 
 interface HousingNoteModalProps {
   housingList: Housing[];
   owner?: Owner;
   onClose: () => void;
-  onSubmitAboutOwner?: (note: OwnerNote) => Promise<void>;
-  onSubmitAboutHousing: (note: HousingNote) => Promise<void>;
+  onSubmitAboutOwner?: (note: OwnerNoteCreation) => Promise<void>;
+  onSubmitAboutHousing: (note: HousingNoteCreation) => Promise<void>;
 }
 
 const ALL = 'all';

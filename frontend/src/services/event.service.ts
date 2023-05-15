@@ -27,19 +27,10 @@ export const eventApi = createApi({
   }),
 });
 
-const parseEvent = (e: any): Event =>
-  ({
-    id: e.id,
-    ownerId: e.ownerId,
-    housingId: e.housingId,
-    campaignId: e.campaignId,
-    kind: e.kind,
-    createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
-    createdBy: e.createdBy,
-    title: e.title,
-    content: e.content,
-    contactKind: e.contactKind,
-  } as Event);
+const parseEvent = (e: any): Event => ({
+  ...e,
+  createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
+});
 
 export const { useFindEventsByHousingQuery, useFindEventsByOwnerQuery } =
   eventApi;

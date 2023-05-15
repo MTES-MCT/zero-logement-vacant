@@ -30,7 +30,7 @@ export interface Housing {
   buildingVacancyRate: number;
   dataYears: number[];
   campaignIds: string[];
-  status?: HousingStatus;
+  status: HousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;

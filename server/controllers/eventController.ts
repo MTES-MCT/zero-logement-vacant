@@ -2,11 +2,6 @@ import { Request, Response } from 'express';
 
 import eventRepository from '../repositories/eventRepository';
 import { constants } from 'http2';
-import { EventDTO } from '../../shared/models/EventDTO';
-import noteRepository from '../repositories/noteRepository';
-import { toEventDTO } from '../models/EventApi';
-import { toEventDTO as noteToEventDTO } from '../models/NoteApi';
-import { differenceInMilliseconds } from 'date-fns';
 
 const listByOwnerId = async (
   request: Request,
@@ -17,20 +12,8 @@ const listByOwnerId = async (
   console.log('List events for owner', ownerId);
 
   const events = await eventRepository.findOwnerEvents(ownerId);
-  const notes = await noteRepository.findOwnerNotes(ownerId);
 
-  const eventDTOs: EventDTO[] = [
-    ...events.map((event) => ({
-      ...toEventDTO(event),
-      ownerId,
-    })),
-    ...notes.map((note) => ({
-      ...noteToEventDTO(note),
-      ownerId,
-    })),
-  ].sort((e1, e2) => differenceInMilliseconds(e2.createdAt, e1.createdAt));
-
-  return response.status(constants.HTTP_STATUS_OK).json(eventDTOs);
+  return response.status(constants.HTTP_STATUS_OK).json(events);
 };
 
 const listByHousingId = async (
@@ -42,20 +25,8 @@ const listByHousingId = async (
   console.log('List events for housing', housingId);
 
   const events = await eventRepository.findHousingEvents(housingId);
-  const notes = await noteRepository.findHousingNotes(housingId);
 
-  const eventDTOs: EventDTO[] = [
-    ...events.map((event) => ({
-      ...toEventDTO(event),
-      housingId,
-    })),
-    ...notes.map((note) => ({
-      ...noteToEventDTO(note),
-      housingId,
-    })),
-  ].sort((e1, e2) => differenceInMilliseconds(e2.createdAt, e1.createdAt));
-
-  return response.status(constants.HTTP_STATUS_OK).json(eventDTOs);
+  return response.status(constants.HTTP_STATUS_OK).json(events);
 };
 
 const eventController = {

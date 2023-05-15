@@ -1,18 +1,33 @@
 import { Housing } from './Housing';
 import { Owner } from './Owner';
 
-export interface Note {
+export interface NoteCreation {
   title: string;
   content: string;
   contactKind: string;
-  housingList?: Housing[];
-  owner?: Owner;
 }
 
-export interface HousingNote extends Note {
+export interface HousingNoteCreation extends NoteCreation {
   housingList: Housing[];
 }
 
-export interface OwnerNote extends Note {
+export interface OwnerNoteCreation extends NoteCreation {
   owner: Owner;
+}
+
+export const isHousingNoteCreation = (
+  noteCreation: NoteCreation
+): noteCreation is HousingNoteCreation => {
+  return (noteCreation as HousingNoteCreation).housingList !== undefined;
+};
+
+export const isOwnerNoteCreation = (
+  noteCreation: NoteCreation
+): noteCreation is OwnerNoteCreation => {
+  return (noteCreation as OwnerNoteCreation).owner !== undefined;
+};
+
+export interface Note extends NoteCreation {
+  createdBy: string;
+  createdAt: Date;
 }

@@ -29,14 +29,3 @@ export interface OwnerEventApi extends EventApi<OwnerApi> {
 export interface CampaignEventApi extends EventApi<CampaignApi> {
   campaignId: string;
 }
-
-export function toEventDTO<T>(eventApi: EventApi<T>) {
-  return {
-    id: eventApi.id,
-    title: eventApi.name,
-    content: eventApi.name,
-    contactKind: eventApi.contactKind ?? '',
-    createdAt: eventApi.createdAt,
-    createdBy: eventApi.createdBy,
-  };
-}

@@ -186,7 +186,7 @@ export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
     buildingYear: genNumber(4),
     taxed: false,
     vacancyReasons: [],
-    dataYears: [2021],
+    dataYears: [2022],
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,

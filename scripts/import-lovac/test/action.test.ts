@@ -164,6 +164,7 @@ describe('Action', () => {
 
               expect(action.housing).toStrictEqual({
                 ...now,
+                id: before.id,
                 dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
@@ -205,12 +206,17 @@ describe('Action', () => {
           });
 
           describe('If it has another status', () => {
+            beforeAll(() => {
+              before.status = HousingStatusApi.FirstContact;
+            });
+
             it('should erase ownership data', () => {
               const action = compare({ before, now, modifications });
 
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
                 owner: now.owner,
+                coowners: now.coowners,
                 dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
@@ -277,7 +283,9 @@ describe('Action', () => {
 
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
+                id: before.id,
                 owner: now.owner,
+                coowners: now.coowners,
                 dataYears: [...now.dataYears, ...before.dataYears],
               });
             });

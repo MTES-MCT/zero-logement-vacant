@@ -614,7 +614,6 @@ const stream = (): Highland.Stream<HousingApi> => {
         dataYearsExcluded: [ReferenceDataYear + 1],
       })
     )
-    .groupBy(`${housingTable}.id`, 'o.id')
     .stream();
 
   return highland<HousingDBO>(stream)

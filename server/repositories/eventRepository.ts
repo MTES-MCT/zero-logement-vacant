@@ -35,19 +35,17 @@ const insertManyHousingEvents = async (
   housingEvents: HousingEventApi[]
 ): Promise<void> => {
   if (housingEvents.length) {
-    await Events()
-      .insert(
-        housingEvents.map((housingEvent) => ({
-          ...formatEventApi(housingEvent),
-          new: Array.isArray(housingEvent.new)
-            ? JSON.stringify(housingEvent.new)
-            : housingEvent.new,
-          old: Array.isArray(housingEvent.old)
-            ? JSON.stringify(housingEvent.old)
-            : housingEvent.old,
-        }))
-      )
-      .debug(true);
+    await Events().insert(
+      housingEvents.map((housingEvent) => ({
+        ...formatEventApi(housingEvent),
+        new: Array.isArray(housingEvent.new)
+          ? JSON.stringify(housingEvent.new)
+          : housingEvent.new,
+        old: Array.isArray(housingEvent.old)
+          ? JSON.stringify(housingEvent.old)
+          : housingEvent.old,
+      }))
+    );
     await HousingEvents().insert(
       housingEvents.map((housingEvent) => ({
         event_id: housingEvent.id,

@@ -46,7 +46,7 @@ exports.up = function (knex: Knex) {
       table.text('content');
       table.string('contact_kind');
       table.timestamp('created_at').defaultTo(knex.fn.now());
-      table.uuid('created_by').references('id').inTable('users').notNullable();
+      table.uuid('created_by').references('id').inTable('users');
     }),
     knex.schema.createTable('housing_notes', (table) => {
       table.uuid('note_id').references('id').inTable('notes').notNullable();

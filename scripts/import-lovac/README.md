@@ -19,6 +19,11 @@ npm run migrate-latest
 Note that you should migrate the database after removing the duplicates,
 because they might conflict with a unique constraint added by a migration.
 
+### Create the user Lovac 2023 if needed
+```shell
+knex seed:run --specific=004-users.ts --knexfile=./server/knex.ts
+```
+
 ### Import the CSV file into the database
 ```shell
 psql $(scalingo -a <app> env-get DATABASE_URL) -f database/scripts/009-load-lovac-2023.sql -v filePath=<path-to-lovac-2023.csv> -v dateFormat="'DD/MM/YY'"

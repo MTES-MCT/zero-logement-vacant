@@ -1,3 +1,4 @@
+DROP MATERIALIZED VIEW IF EXISTS lovac;
 DROP TABLE IF EXISTS _extract_zlv_;
 CREATE TABLE _extract_zlv_
 (

@@ -4,6 +4,7 @@ import { DraftOwner, HousingOwner, Owner } from '../models/Owner';
 import { parseISO } from 'date-fns';
 import { toTitleCase } from '../utils/stringUtils';
 import { PaginatedResult } from '../models/PaginatedResult';
+import { formatDateISO } from '../utils/dateUtils';
 
 const getOwner = async (id: string): Promise<Owner> => {
   return await fetch(`${config.apiEndpoint}/api/owners/${id}`, {
@@ -36,7 +37,10 @@ const createOwner = async (draftOwner: DraftOwner) => {
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ draftOwner }),
+    body: JSON.stringify({
+      ...draftOwner,
+      birthDate: formatDateISO(draftOwner.birthDate),
+    }),
   }).then((response) => {
     if (response.status === 200) {
       return response.json();
@@ -53,7 +57,10 @@ const updateOwner = async (owner: Owner) => {
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ owner }),
+    body: JSON.stringify({
+      ...owner,
+      birthDate: formatDateISO(owner.birthDate),
+    }),
   }).then((response) => {
     if (response.status === 200) {
       return response.json();

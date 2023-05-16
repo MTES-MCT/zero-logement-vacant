@@ -12,6 +12,7 @@ import {
 } from '../models/Campaign';
 import { HousingStatus } from '../models/HousingState';
 import { Housing } from '../models/Housing';
+import { formatDateISO } from '../utils/dateUtils';
 
 const listCampaigns = async (): Promise<Campaign[]> => {
   return await fetch(`${config.apiEndpoint}/api/campaigns`, {
@@ -150,7 +151,11 @@ const validCampaignStep = async (
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ ...params, step }),
+    body: JSON.stringify({
+      ...params,
+      step,
+      sendingDate: formatDateISO(params?.sendingDate),
+    }),
   })
     .then((_) => _.json())
     .then((_) => parseCampaign(_));

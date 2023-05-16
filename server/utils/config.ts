@@ -56,6 +56,7 @@ interface Config {
   sentryDNS: string | null;
   maxRate: number;
   application: {
+    batchSize: number;
     host: string;
     isReviewApp: boolean;
     system: string;
@@ -169,6 +170,11 @@ const config = convict<Config>({
     default: 10000,
   },
   application: {
+    batchSize: {
+      env: 'BATCH_SIZE',
+      format: Number,
+      default: 10,
+    },
     host: {
       env: 'APPLICATION_HOST',
       format: 'url',

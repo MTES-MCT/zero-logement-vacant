@@ -20,8 +20,9 @@ import {
 } from '../../server/repositories/ownerRepository';
 import { v4 as uuidv4 } from 'uuid';
 import fp from 'lodash/fp';
+import config from '../../server/utils/config';
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = config.application.batchSize;
 
 function run() {
   console.log('Starting import...');
@@ -46,11 +47,11 @@ function run() {
     highland(lovacRepository.count()),
   ])
     .parallel(2)
-    .toArray(([housingCount, lovacCount]) => {
-      const count = housingCount;
-      const lovac = lovacCount;
-      console.log(`Found ${housingCount} vacant housing in ZLV.`);
-      console.log(`Found ${lovacCount} new Lovac housing missing from ZLV.`);
+    .toArray(([count, lovac]) => {
+      console.log(`Found ${count} vacant housing in ZLV.`);
+      console.log(`Found ${lovac} new Lovac housing missing from ZLV.`);
+
+      let imported = 0;
 
       owners(count).done(() => {
         console.log('Importing housing...');
@@ -63,6 +64,8 @@ function run() {
           .consume(tapAsync(bulkSave))
           .tap((actions) => {
             bar.increment(actions.length);
+            imported += actions.length;
+            console.log(`${imported} / ${count + lovac} housing`);
           })
           .through(errorHandler())
           .done(async () => {

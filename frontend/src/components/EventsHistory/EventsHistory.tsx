@@ -8,6 +8,7 @@ import EventUser from './EventUser';
 import EventHousingStatutContent from './EventHousingStatutContent';
 import EventHousingOwnerContent from './EventHousingOwnerContent';
 import { Note } from '../../models/Note';
+import classNames from 'classnames';
 
 interface Props {
   events: Event[];
@@ -49,40 +50,66 @@ const EventsHistory = ({ events, notes }: Props) => {
                     </Text>
                     {eventOrNote.section === 'Situation' && (
                       <div className={styles.eventContentRowContainer}>
-                        <EventHousingStatutContent housing={eventOrNote.old} />
-                        {eventOrNote.old && eventOrNote.new && (
-                          <span className="fr-icon-arrow-right-s-line" />
+                        {eventOrNote.old && eventOrNote.new ? (
+                          <>
+                            <EventHousingStatutContent
+                              housing={eventOrNote.old}
+                            />
+                            <span className="fr-icon-arrow-right-s-line" />
+                            <EventHousingStatutContent
+                              housing={eventOrNote.new}
+                            />
+                          </>
+                        ) : eventOrNote.old ? (
+                          <div
+                            className={classNames(
+                              styles.eventContent,
+                              'd-inline-block'
+                            )}
+                          >
+                            Ce logement <b>n'est plus présent</b> dans Lovac
+                          </div>
+                        ) : (
+                          <div
+                            className={classNames(
+                              styles.eventContent,
+                              'd-inline-block'
+                            )}
+                          >
+                            Ce logement est <b>NOUVEAU</b> dans Lovac
+                          </div>
                         )}
-                        <EventHousingStatutContent housing={eventOrNote.new} />
                       </div>
                     )}
-                    {eventOrNote.section === 'Propriétaire' && (
-                      <div className={styles.eventContentRowContainer}>
-                        <EventHousingOwnerContent
-                          housingOwners={eventOrNote.old}
-                        />
-                        {eventOrNote.old && eventOrNote.new && (
-                          <span className="fr-icon-arrow-right-s-line" />
-                        )}
-                        <EventHousingOwnerContent
-                          housingOwners={eventOrNote.new}
-                        />
-                      </div>
-                    )}
+                    {eventOrNote.category === 'Ownership' &&
+                      eventOrNote.section === 'Propriétaire' && (
+                        <div className={styles.eventContentRowContainer}>
+                          <EventHousingOwnerContent
+                            housingOwners={eventOrNote.old}
+                          />
+                          {eventOrNote.old && eventOrNote.new && (
+                            <span className="fr-icon-arrow-right-s-line" />
+                          )}
+                          <EventHousingOwnerContent
+                            housingOwners={eventOrNote.new}
+                          />
+                        </div>
+                      )}
                   </>
                 ) : (
                   <>
                     <Text size="md" bold spacing="mb-0">
                       Note : {eventOrNote.title}
                     </Text>
-                    {eventOrNote.content !== eventOrNote.title && (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: eventOrNote.content ?? '',
-                        }}
-                        className={styles.eventContent}
-                      />
-                    )}
+                    {eventOrNote.content &&
+                      eventOrNote.content !== eventOrNote.title && (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: eventOrNote.content ?? '',
+                          }}
+                          className={styles.eventContent}
+                        />
+                      )}
                   </>
                 )}
               </div>

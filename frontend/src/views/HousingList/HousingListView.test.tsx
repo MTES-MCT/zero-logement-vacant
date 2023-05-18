@@ -132,7 +132,7 @@ describe('housing view', () => {
           },
           filtersForTotalCount: {
             dataYearsExcluded: [],
-            dataYearsIncluded: [2022],
+            dataYearsIncluded: [2023],
           },
           page: 1,
           perPage: config.perPageDefault,
@@ -188,7 +188,7 @@ describe('housing view', () => {
           filters: { ...initialHousingFilters, query: 'my search' },
           filtersForTotalCount: {
             dataYearsExcluded: [],
-            dataYearsIncluded: [2022],
+            dataYearsIncluded: [2023],
           },
           page: 1,
           perPage: config.perPageDefault,

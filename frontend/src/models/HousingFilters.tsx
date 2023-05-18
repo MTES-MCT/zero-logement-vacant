@@ -267,6 +267,7 @@ export const dataYearsIncludedOptions = [
   { value: '2020', label: '2020', badgeLabel: 'Millésime 2020' },
   { value: '2021', label: '2021', badgeLabel: 'Millésime 2021' },
   { value: '2022', label: '2022', badgeLabel: 'Millésime 2022' },
+  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023' },
 ];
 
 export const dataYearsExcludedOptions = [
@@ -274,6 +275,7 @@ export const dataYearsExcludedOptions = [
   { value: '2020', label: '2020', badgeLabel: 'Millésime 2020 exclu' },
   { value: '2021', label: '2021', badgeLabel: 'Millésime 2021 exclu' },
   { value: '2022', label: '2022', badgeLabel: 'Millésime 2022 exclu' },
+  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023 exclu' },
 ];
 
 export const vacancyReasonsOptions: {

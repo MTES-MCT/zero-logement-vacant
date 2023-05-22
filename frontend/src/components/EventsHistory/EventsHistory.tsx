@@ -5,10 +5,11 @@ import { differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Event } from '../../models/Event';
 import EventUser from './EventUser';
-import EventHousingStatutContent from './EventHousingStatutContent';
+import EventPartialHousingContent from './EventPartialHousingContent';
 import EventHousingOwnerContent from './EventHousingOwnerContent';
 import { Note } from '../../models/Note';
 import classNames from 'classnames';
+import { getHousingDiff } from '../../models/HousingDiff';
 
 interface Props {
   events: Event[];
@@ -52,12 +53,22 @@ const EventsHistory = ({ events, notes }: Props) => {
                       <div className={styles.eventContentRowContainer}>
                         {eventOrNote.old && eventOrNote.new ? (
                           <>
-                            <EventHousingStatutContent
-                              housing={eventOrNote.old}
+                            <EventPartialHousingContent
+                              partialHousing={
+                                getHousingDiff(eventOrNote.old, eventOrNote.new)
+                                  .old
+                              }
                             />
-                            <span className="fr-icon-arrow-right-s-line" />
-                            <EventHousingStatutContent
-                              housing={eventOrNote.new}
+                            {eventOrNote.conflict ? (
+                              <span className="fr-icon-error-warning-fill color-red-marianne-625" />
+                            ) : (
+                              <span className="fr-icon-arrow-right-s-line" />
+                            )}
+                            <EventPartialHousingContent
+                              partialHousing={
+                                getHousingDiff(eventOrNote.old, eventOrNote.new)
+                                  .new
+                              }
                             />
                           </>
                         ) : eventOrNote.old ? (

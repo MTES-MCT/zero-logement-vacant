@@ -35,6 +35,7 @@ import SortApi from '../models/SortApi';
 import { paginationQuery } from '../models/PaginationApi';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
+import { Knex } from 'knex';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -606,14 +607,7 @@ const stream = (): Highland.Stream<HousingApi> => {
     .from(housingTable)
     .join(ownersHousingTable, ownersHousingJoinClause)
     .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-    .modify(
-      filteredQuery({
-        occupancies: [OccupancyKindApi.Vacant],
-        // Exclude the current year to avoid fetching housing
-        // that were just imported by the LOVAC script
-        dataYearsExcluded: [ReferenceDataYear + 1],
-      })
-    )
+    .modify(whereVacant())
     .stream();
 
   return highland<HousingDBO>(stream)
@@ -680,6 +674,25 @@ const paginatedListWithFilters = async (
       }
   );
 };
+
+const countVacant = async (): Promise<number> => {
+  const value = await db(housingTable)
+    .countDistinct(`${housingTable}.id`)
+    .modify(whereVacant());
+
+  return Number(value[0].count);
+};
+
+function whereVacant(year: number = ReferenceDataYear) {
+  return (query: Knex.QueryBuilder) =>
+    query
+      .andWhere({
+        occupancy: OccupancyKindApi.Vacant,
+      })
+      .andWhere('vacancy_start_year', '<=', year - 2)
+      .andWhereRaw('data_years && ?::integer[]', [[year]])
+      .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
+}
 
 const countWithFilters = async (
   filters: HousingFiltersApi
@@ -933,6 +946,7 @@ export default {
   listWithFilters,
   stream,
   paginatedListWithFilters,
+  countVacant,
   countWithFilters,
   listByIds,
   updateHousingList,

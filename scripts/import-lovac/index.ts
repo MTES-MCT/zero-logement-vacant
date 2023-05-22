@@ -2,9 +2,7 @@ import progress from 'cli-progress';
 import highland from 'highland';
 
 import { bulkSave, compare, Comparison } from './action';
-import housingRepository, {
-  ReferenceDataYear,
-} from '../../server/repositories/housingRepository';
+import housingRepository from '../../server/repositories/housingRepository';
 import db from '../../server/repositories/db';
 import { appendAll, errorHandler } from './stream';
 import lovacRepository, {
@@ -12,7 +10,6 @@ import lovacRepository, {
   LovacOwner,
 } from './lovac-repository';
 import modificationRepository from './modification-repository';
-import { OccupancyKindApi } from '../../server/models/HousingApi';
 import { tapAsync } from '../sync-attio/stream';
 import {
   OwnerDBO,
@@ -38,12 +35,7 @@ function run() {
   );
 
   highland([
-    highland(
-      housingRepository.countWithFilters({
-        occupancies: [OccupancyKindApi.Vacant],
-        dataYearsExcluded: [ReferenceDataYear + 1],
-      })
-    ),
+    highland(housingRepository.countVacant()),
     highland(lovacRepository.count()),
   ])
     .parallel(2)

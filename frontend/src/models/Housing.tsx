@@ -36,6 +36,7 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionWorst?: string;
+  occupancy?: string;
 }
 
 export interface SelectedHousing {

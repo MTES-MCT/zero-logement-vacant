@@ -2,14 +2,14 @@ import { Housing } from '../../models/Housing';
 import styles from './events-history.module.scss';
 import { getHousingState } from '../../models/HousingState';
 import React from 'react';
-import { hasKey } from '../../models/HousingDiff';
+import { hasValues } from '../../models/HousingDiff';
 
 interface Props {
   partialHousing: Partial<Housing>;
 }
 
 const EventPartialHousingContent = ({ partialHousing }: Props) => {
-  return partialHousing && hasKey(partialHousing) ? (
+  return partialHousing && hasValues(partialHousing) ? (
     <div className={styles.eventContent}>
       {partialHousing.status !== undefined && (
         <>
@@ -44,7 +44,7 @@ const EventPartialHousingContent = ({ partialHousing }: Props) => {
       )}
     </div>
   ) : (
-    <></>
+    <div className={styles.eventContent}>-</div>
   );
 };
 

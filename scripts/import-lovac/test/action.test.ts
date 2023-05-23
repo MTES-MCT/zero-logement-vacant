@@ -39,19 +39,25 @@ describe('Action', () => {
             });
           });
 
-          describe('If the housing is vacant', () => {
-            beforeAll(() => {
-              before.status = HousingStatusApi.InProgress;
-            });
+          describe('If the housing is not vacant', () => {
+            it.each`
+              status
+              ${HousingStatusApi.Waiting}
+              ${HousingStatusApi.NotVacant}
+              ${HousingStatusApi.Exit}
+            `(
+              'should change the housing status from $status to "exit"',
+              ({ status }) => {
+                before.status = status;
 
-            it('should change the housing status to "exit"', () => {
-              const action = compare({ before, now, modifications });
+                const action = compare({ before, now, modifications });
 
-              expect(action.housing?.status).toBe(HousingStatusApi.Exit);
-              expect(action.housing?.subStatus).toBe(
-                'Absent du millésime suivant'
-              );
-            });
+                expect(action.housing?.status).toBe(HousingStatusApi.Exit);
+                expect(action.housing?.subStatus).toBe(
+                  'Absent du millésime suivant'
+                );
+              }
+            );
           });
 
           describe('If the owner was contacted and the housing has another status', () => {
@@ -105,23 +111,34 @@ describe('Action', () => {
           });
 
           describe('If the housing is not vacant', () => {
-            beforeAll(() => {
-              before.status = HousingStatusApi.NotVacant;
-            });
+            it.each`
+              status
+              ${HousingStatusApi.Waiting}
+              ${HousingStatusApi.NotVacant}
+              ${HousingStatusApi.Exit}
+            `(
+              'should change the housing status from $status to "exit"',
+              ({ status }) => {
+                before.status = status;
 
-            it('should change the housing status to "exit"', () => {
-              const action = compare({ before, now, modifications });
+                const action = compare({ before, now, modifications });
 
-              expect(action.housing?.status).toBe(HousingStatusApi.Exit);
-              expect(action.housing?.subStatus).toBe(
-                'Absent du millésime suivant'
-              );
-            });
+                expect(action.housing?.status).toBe(HousingStatusApi.Exit);
+                expect(action.housing?.subStatus).toBe(
+                  'Absent du millésime suivant'
+                );
+              }
+            );
           });
 
-          describe('If it is vacant', () => {
+          describe.each`
+            status
+            ${HousingStatusApi.NoAction}
+            ${HousingStatusApi.InProgress}
+            ${HousingStatusApi.FirstContact}
+          `('If it is vacant (status: $status)', ({ status }) => {
             beforeAll(() => {
-              before.status = HousingStatusApi.NoAction;
+              before.status = status;
             });
 
             it('should create an occupancy conflict event', () => {
@@ -139,6 +156,21 @@ describe('Action', () => {
                 new: undefined,
                 createdBy: 'system',
                 createdAt: expect.toBeDate(),
+              });
+            });
+          });
+
+          describe('If the owner was never contacted', () => {
+            beforeAll(() => {
+              before.status = HousingStatusApi.NeverContacted;
+            });
+
+            it('should leave the housing untouched', () => {
+              const action = compare({ before, now, modifications });
+
+              expect(action).toStrictEqual({
+                housing: null,
+                events: [],
               });
             });
           });
@@ -170,9 +202,13 @@ describe('Action', () => {
             });
           });
 
-          describe('If it is not vacant', () => {
+          describe.each`
+            status
+            ${HousingStatusApi.NotVacant}
+            ${HousingStatusApi.Exit}
+          `('If it is not vacant (status: $status)', ({ status }) => {
             beforeAll(() => {
-              before.status = HousingStatusApi.NotVacant;
+              before.status = status;
             });
 
             it('should erase ownership data', () => {
@@ -205,9 +241,15 @@ describe('Action', () => {
             });
           });
 
-          describe('If it has another status', () => {
+          describe.each`
+            status
+            ${HousingStatusApi.Waiting}
+            ${HousingStatusApi.FirstContact}
+            ${HousingStatusApi.InProgress}
+            ${HousingStatusApi.NoAction}
+          `('If it has another status (status: $status)', ({ status }) => {
             beforeAll(() => {
-              before.status = HousingStatusApi.FirstContact;
+              before.status = status;
             });
 
             it('should erase ownership data', () => {
@@ -291,9 +333,13 @@ describe('Action', () => {
             });
           });
 
-          describe('If the housing is not vacant', () => {
+          describe.each`
+            status
+            ${HousingStatusApi.NotVacant}
+            ${HousingStatusApi.Exit}
+          `('If the housing is not vacant (status: $status)', ({ status }) => {
             beforeAll(() => {
-              before.status = HousingStatusApi.NotVacant;
+              before.status = status;
             });
 
             it('should remain the same', () => {
@@ -320,6 +366,27 @@ describe('Action', () => {
                 new: now,
                 createdBy: 'system',
                 createdAt: expect.toBeDate(),
+              });
+            });
+          });
+
+          describe.each`
+            status
+            ${HousingStatusApi.Waiting}
+            ${HousingStatusApi.FirstContact}
+            ${HousingStatusApi.InProgress}
+            ${HousingStatusApi.NoAction}
+          `('If it has another status (status: $status)', ({ status }) => {
+            beforeAll(() => {
+              before.status = status;
+            });
+
+            it('should remain the same', () => {
+              const action = compare({ before, now, modifications });
+
+              expect(action.housing).toStrictEqual({
+                ...before,
+                dataYears: [...now.dataYears, ...before.dataYears],
               });
             });
           });

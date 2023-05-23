@@ -22,7 +22,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
         before.status !== undefined &&
         [
           HousingStatusApi.NeverContacted,
-          HousingStatusApi.InProgress,
+          HousingStatusApi.Waiting,
           HousingStatusApi.NotVacant,
           HousingStatusApi.Exit,
         ].includes(before.status)
@@ -73,7 +73,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
     if (
       before.status !== undefined &&
       [
-        HousingStatusApi.InProgress,
+        HousingStatusApi.Waiting,
         HousingStatusApi.NotVacant,
         HousingStatusApi.Exit,
       ].includes(before.status)
@@ -88,23 +88,28 @@ export function compare({ before, now, modifications }: Comparison): Action {
       };
     }
 
-    const occupancyConflict: HousingEventApi = {
-      id: uuidv4(),
-      name: 'Conflit d’informations venant d’une source externe concernant le statut d’occupation',
-      kind: 'Create',
-      category: 'Followup',
-      section: 'Situation',
-      conflict: true,
-      housingId: before.id,
-      old: before,
-      new: undefined,
-      createdBy: 'system',
-      createdAt: new Date(),
-    };
-    return {
-      housing: null,
-      events: [ownershipConflict, occupancyConflict],
-    };
+    if (
+      before.status !== undefined &&
+      before.status !== HousingStatusApi.NeverContacted
+    ) {
+      const occupancyConflict: HousingEventApi = {
+        id: uuidv4(),
+        name: 'Conflit d’informations venant d’une source externe concernant le statut d’occupation',
+        kind: 'Create',
+        category: 'Followup',
+        section: 'Situation',
+        conflict: true,
+        housingId: before.id,
+        old: before,
+        new: undefined,
+        createdBy: 'system',
+        createdAt: new Date(),
+      };
+      return {
+        housing: null,
+        events: [ownershipConflict, occupancyConflict],
+      };
+    }
   }
 
   if (before && now) {

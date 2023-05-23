@@ -1,4 +1,4 @@
-import { Modification, ModificationKind } from './modification';
+import { Modification } from './modification';
 import db from '../../server/repositories/db';
 
 const table = 'old_events';
@@ -23,14 +23,14 @@ interface FindOptions {
 
 interface ModificationDBO {
   id: string;
-  kind: ModificationKind;
+  kind: string;
   housingId: string;
 }
 
 export function parseModification(modification: ModificationDBO): Modification {
   return {
     id: modification.id,
-    kind: modification.kind,
+    kind: Number(modification.kind),
   };
 }
 

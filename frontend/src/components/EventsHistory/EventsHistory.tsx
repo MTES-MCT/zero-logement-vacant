@@ -96,13 +96,21 @@ const EventsHistory = ({ events, notes }: Props) => {
                       eventOrNote.section === 'Propriétaire' && (
                         <div className={styles.eventContentRowContainer}>
                           <EventHousingOwnerContent
-                            housingOwners={eventOrNote.old}
+                            housingOwners={
+                              eventOrNote.old.owner
+                                ? [eventOrNote.old.owner]
+                                : eventOrNote.old
+                            }
                           />
                           {eventOrNote.old && eventOrNote.new && (
                             <span className="fr-icon-arrow-right-s-line" />
                           )}
                           <EventHousingOwnerContent
-                            housingOwners={eventOrNote.new}
+                            housingOwners={
+                              eventOrNote.new.owner
+                                ? [eventOrNote.new.owner]
+                                : eventOrNote.new
+                            }
                           />
                         </div>
                       )}

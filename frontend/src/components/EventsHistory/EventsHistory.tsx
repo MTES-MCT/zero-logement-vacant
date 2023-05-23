@@ -102,16 +102,31 @@ const EventsHistory = ({ events, notes }: Props) => {
                                 : eventOrNote.old
                             }
                           />
-                          {eventOrNote.old && eventOrNote.new && (
-                            <span className="fr-icon-arrow-right-s-line" />
+                          <>
+                            {eventOrNote.conflict ? (
+                              <span className="fr-icon-error-warning-fill color-red-marianne-625" />
+                            ) : (
+                              <span className="fr-icon-arrow-right-s-line" />
+                            )}
+                          </>
+                          {eventOrNote.new ? (
+                            <EventHousingOwnerContent
+                              housingOwners={
+                                eventOrNote.new.owner
+                                  ? [eventOrNote.new.owner]
+                                  : eventOrNote.new
+                              }
+                            />
+                          ) : (
+                            <div
+                              className={classNames(
+                                styles.eventContent,
+                                'd-inline-block'
+                              )}
+                            >
+                              Ce logement <b>n'est plus présent</b> dans Lovac
+                            </div>
                           )}
-                          <EventHousingOwnerContent
-                            housingOwners={
-                              eventOrNote.new.owner
-                                ? [eventOrNote.new.owner]
-                                : eventOrNote.new
-                            }
-                          />
                         </div>
                       )}
                   </>

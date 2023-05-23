@@ -55,4 +55,4 @@ export const getHousingDiff = (
 });
 
 export const hasValues = (partialHousing: Partial<Housing>) =>
-  Object.values(partialHousing).filter((_) => !!_).length > 0;
+  Object.values(partialHousing).filter((_) => _ !== undefined).length > 0;

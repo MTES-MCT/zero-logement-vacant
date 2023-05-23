@@ -127,7 +127,7 @@ const EventsHistory = ({ events, notes }: Props) => {
             </div>
           );
         })}
-      {!expandEvents && events.length > 3 && (
+      {!expandEvents && eventAndNotes.length > 3 && (
         <button
           className="ds-fr--inline fr-link"
           type="button"

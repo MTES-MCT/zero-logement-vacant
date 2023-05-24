@@ -16,6 +16,7 @@ import housingExportController from '../controllers/housingExportController';
 import settingsController from '../controllers/settingsController';
 import ownerProspectController from "../controllers/ownerProspectController";
 import { isUUIDParam } from '../utils/validators';
+import noteController from '../controllers/noteController';
 
 const router = express.Router();
 
@@ -25,8 +26,8 @@ router.use(userCheck(true));
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
-router.post('/housing/list', housingController.updateHousingListValidators, housingController.updateHousingList);
-router.post('/housing/:housingId', housingController.updateHousingValidators, housingController.updateHousing);
+router.post('/housing/list', housingController.updateHousingListValidators, validator.validate, housingController.updateHousingList);
+router.post('/housing/:housingId', housingController.updateHousingValidators, validator.validate, housingController.updateHousing);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
@@ -53,19 +54,21 @@ router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
 router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find)
 router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update)
 
-router.get('/events/owner/:ownerId', eventController.listByOwnerId);
-router.get('/events/housing/:housingId', eventController.listByHousingId);
-router.post('/events', eventController.eventValidator, validator.validate, eventController.create);
+router.get('/events/owner/:ownerId', [isUUIDParam('ownerId')], validator.validate, eventController.listByOwnerId);
+router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.validate, eventController.listByHousingId);
+
+router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
+router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 
 router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
+router.get('/users/:userId', [isUUIDParam('userId')], validator.validate, userController.get);
 router.post('/users', userController.list);
 router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);
 
 router.post('/monitoring/establishments/data', monitoringController.listEstablishmentData);
 router.post('/monitoring/housing/status/count', monitoringController.housingByStatusCount);
-router.post('/monitoring/housing/status/duration', monitoringController.housingByStatusDuration);
 router.post('/monitoring/export', monitoringController.exportMonitoring);
 
 router.get('/geo/perimeters', geoController.listGeoPerimeters);

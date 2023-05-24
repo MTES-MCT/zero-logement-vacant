@@ -4,7 +4,6 @@ import { DraftOwner, HousingOwner, Owner } from '../models/Owner';
 import { parseISO } from 'date-fns';
 import { toTitleCase } from '../utils/stringUtils';
 import { PaginatedResult } from '../models/PaginatedResult';
-import { formatDateISO } from '../utils/dateUtils';
 
 const getOwner = async (id: string): Promise<Owner> => {
   return await fetch(`${config.apiEndpoint}/api/owners/${id}`, {
@@ -37,10 +36,7 @@ const createOwner = async (draftOwner: DraftOwner) => {
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...draftOwner,
-      birthDate: formatDateISO(draftOwner.birthDate),
-    }),
+    body: JSON.stringify({ draftOwner }),
   }).then((response) => {
     if (response.status === 200) {
       return response.json();
@@ -57,10 +53,7 @@ const updateOwner = async (owner: Owner) => {
       ...authService.authHeader(),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...owner,
-      birthDate: formatDateISO(owner.birthDate),
-    }),
+    body: JSON.stringify({ owner }),
   }).then((response) => {
     if (response.status === 200) {
       return response.json();
@@ -121,7 +114,7 @@ const parseOwner = (o: any): Owner =>
     administrator: o.administrator ? toTitleCase(o.administrator) : undefined,
   } as Owner);
 
-const parseHousingOwner = (o: any): HousingOwner =>
+export const parseHousingOwner = (o: any): HousingOwner =>
   ({
     ...parseOwner(o),
     startDate: o.startDate ? parseISO(o.startDate) : undefined,

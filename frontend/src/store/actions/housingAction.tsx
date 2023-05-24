@@ -6,10 +6,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
-import { Event } from '../../models/Event';
-import eventService from '../../services/event.service';
 import { FormState } from './FormState';
-import { HousingNote } from '../../models/Note';
 import _ from 'lodash';
 import { handleAbort } from '../../utils/fetchUtils';
 import housingReducer from '../reducers/housingReducer';
@@ -43,10 +40,6 @@ export interface HousingOwnersUpdateAction {
   formState: FormState;
 }
 
-export interface HousingEventsFetchedAction {
-  events: Event[];
-}
-
 export interface FetchingHousingListAction {
   filters: HousingFilters;
   pagination: Pagination;
@@ -61,12 +54,10 @@ export interface HousingListFetchedAction {
 }
 
 const {
-  fetchingHousingEvents,
   fetchingHousingOwners,
   additionalOwnersFetched,
   fetchingAdditionalOwners,
   fetchingHousingList,
-  housingEventsFetched,
   fetchingHousing,
   housingListFetched,
   housingOwnersFetched,
@@ -214,12 +205,12 @@ export const changeHousingSort = (sort: HousingSort) => {
 };
 
 export const getHousing = (id: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingHousing());
 
-    housingService.getHousing(id).then((housing) => {
+    await housingService.getHousing(id).then((housing) => {
       dispatch(hideLoading());
       dispatch(
         housingFetched({
@@ -231,12 +222,12 @@ export const getHousing = (id: string) => {
 };
 
 export const getHousingOwners = (housingId: string) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(fetchingHousingOwners());
 
-    ownerService.listByHousing(housingId).then((housingOwners) => {
+    await ownerService.listByHousing(housingId).then((housingOwners) => {
       dispatch(hideLoading());
       dispatch(
         housingOwnersFetched({
@@ -247,51 +238,43 @@ export const getHousingOwners = (housingId: string) => {
   };
 };
 
-export const getHousingEvents = (housingId: string) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(fetchingHousingEvents());
-
-    eventService.listByHousing(housingId).then((events) => {
-      dispatch(hideLoading());
-      dispatch(
-        housingEventsFetched({
-          events,
-        })
-      );
-    });
-  };
-};
-
 export const updateHousing = (
   housing: Housing,
-  housingUpdate: HousingUpdate
+  housingUpdate: HousingUpdate,
+  callback: () => void
 ) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
-    housingService.updateHousing(housing.id, housingUpdate).then(() => {
-      dispatch(hideLoading());
-      getHousing(housing.id)(dispatch);
-      getHousingEvents(housing.id)(dispatch);
-    });
+    await housingService
+      .updateHousing(housing.id, housingUpdate)
+      .then(async () => {
+        dispatch(hideLoading());
+        callback();
+        await getHousing(housing.id)(dispatch);
+      });
   };
 };
 
 export const createAdditionalOwner = (
   housingId: string,
   draftOwner: DraftOwner,
-  ownerRank: number
+  ownerRank: number,
+  callback: () => void
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    ownerService
+    await ownerService
       .createOwner(draftOwner)
-      .then((owner) => {
+      .then(async (owner) => {
         dispatch(hideLoading());
-        addHousingOwner(housingId, owner, ownerRank)(dispatch, getState);
+        await addHousingOwner(
+          housingId,
+          owner,
+          ownerRank,
+          callback
+        )(dispatch, getState);
       })
       .catch((error) => {
         console.error(error);
@@ -303,15 +286,15 @@ export const updateMainHousingOwner = (
   modifiedOwner: Owner,
   housingId: string
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     if (!_.isEqual(getState().owner.owner, modifiedOwner)) {
       dispatch(showLoading());
 
-      ownerService
+      await ownerService
         .updateOwner(modifiedOwner)
-        .then(() => {
+        .then(async () => {
           dispatch(hideLoading());
-          getHousingOwners(housingId)(dispatch);
+          await getHousingOwners(housingId)(dispatch);
         })
         .catch((error) => {
           console.error(error);
@@ -323,32 +306,38 @@ export const updateMainHousingOwner = (
 export const addHousingOwner = (
   housingId: string,
   owner: Owner,
-  ownerRank: number
+  ownerRank: number,
+  callback: () => void
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     const { housingOwners } = getState().housing;
 
-    updateHousingOwners(housingId, [
-      ...(housingOwners ?? []).map((ho) => ({
-        ...ho,
-        rank: ownerRank && ownerRank <= ho.rank ? ho.rank + 1 : ho.rank,
-      })),
-      {
-        ...owner,
-        housingId: housingId,
-        rank: ownerRank,
-        startDate: new Date(),
-        origin: 'ZLV',
-      },
-    ])(dispatch);
+    await updateHousingOwners(
+      housingId,
+      [
+        ...(housingOwners ?? []).map((ho) => ({
+          ...ho,
+          rank: ownerRank && ownerRank <= ho.rank ? ho.rank + 1 : ho.rank,
+        })),
+        {
+          ...owner,
+          housingId: housingId,
+          rank: ownerRank,
+          startDate: new Date(),
+          origin: 'ZLV',
+        },
+      ],
+      callback
+    )(dispatch);
   };
 };
 
 export const updateHousingOwners = (
   housingId: string,
-  housingOwners: HousingOwner[]
+  housingOwners: HousingOwner[],
+  callback: () => void
 ) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(
@@ -357,21 +346,23 @@ export const updateHousingOwners = (
       })
     );
 
-    ownerService.updateHousingOwners(housingId, housingOwners).then(() => {
-      dispatch(hideLoading());
-      dispatch(
-        housingOwnersUpdate({
-          formState: FormState.Succeed,
-        })
-      );
-      getHousingOwners(housingId)(dispatch);
-      getHousingEvents(housingId)(dispatch);
-    });
+    await ownerService
+      .updateHousingOwners(housingId, housingOwners)
+      .then(async () => {
+        dispatch(hideLoading());
+        dispatch(
+          housingOwnersUpdate({
+            formState: FormState.Succeed,
+          })
+        );
+        callback();
+        await getHousingOwners(housingId)(dispatch);
+      });
   };
 };
 
 export const changeAdditionalOwnersSearching = (q: string) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const page = 1;
@@ -386,7 +377,7 @@ export const changeAdditionalOwnersSearching = (q: string) => {
       })
     );
 
-    ownerService
+    await ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());
@@ -404,7 +395,7 @@ export const changeAdditionalOwnersPagination = (
   page: number,
   perPage: number
 ) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
+  return async function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
     const q = getState().housing.additionalOwners?.q ?? '';
@@ -417,7 +408,7 @@ export const changeAdditionalOwnersPagination = (
       })
     );
 
-    ownerService
+    await ownerService
       .listOwners(q, page, perPage)
       .then((result: PaginatedResult<Owner>) => {
         dispatch(hideLoading());
@@ -428,14 +419,5 @@ export const changeAdditionalOwnersPagination = (
           })
         );
       });
-  };
-};
-
-export const createHousingNote = (note: HousingNote) => {
-  return async function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    await eventService.createNote(note);
-    dispatch(hideLoading());
   };
 };

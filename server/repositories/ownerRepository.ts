@@ -214,35 +214,48 @@ const escapeValue = (value?: string) => {
   return value ? value.replace(/'/g, "''") : '';
 };
 
-export const parseOwnerApi = (result: any) =>
-  <OwnerApi>{
-    id: result.id,
-    rawAddress: result.raw_address.filter((_: string) => _ && _.length),
-    address: <AddressApi>{
-      houseNumber: result.house_number,
-      street: result.street,
-      postalCode: result.postal_code,
-      city: result.city,
-    },
-    fullName: result.full_name,
-    administrator: result.administrator,
-    birthDate: result.birth_date,
-    email: result.email,
-    phone: result.phone,
-  };
+export interface OwnerDBO {
+  id: string;
+  full_name: string;
+  birth_date?: string;
+  administrator?: string;
+  raw_address: string[];
+  owner_kind?: string;
+  owner_kind_detail?: string;
+  email?: string;
+  phone?: string;
+}
 
-export const parseHousingOwnerApi = (result: any) =>
-  <HousingOwnerApi>{
-    ...parseOwnerApi(result),
-    housingId: result.housing_id,
-    rank: result.rank,
-    startDate: result.start_date,
-    endDate: result.end_date,
-    origin: result.origin,
-    housingCount: Number(result.housing_count),
-  };
+export interface HousingOwnerDBO {
+  owner_id: string;
+  housing_id: string;
+  rank: number;
+  start_date?: Date;
+  end_date?: Date;
+  origin?: string;
+}
 
-const formatOwnerApi = (ownerApi: OwnerApi) => ({
+export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
+  id: result.id,
+  rawAddress: result.raw_address.filter((_: string) => _ && _.length),
+  fullName: result.full_name,
+  administrator: result.administrator,
+  birthDate: result.birth_date,
+  email: result.email,
+  phone: result.phone,
+});
+
+export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
+  ...parseOwnerApi(result),
+  housingId: result.housing_id,
+  rank: result.rank,
+  startDate: result.start_date,
+  endDate: result.end_date,
+  origin: result.origin,
+  housingCount: Number(result.housing_count),
+});
+
+export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   id: ownerApi.id,
   raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
   full_name: ownerApi.fullName,
@@ -250,6 +263,17 @@ const formatOwnerApi = (ownerApi: OwnerApi) => ({
   birth_date: ownerApi.birthDate,
   email: ownerApi.email,
   phone: ownerApi.phone,
+});
+
+export const formatHousingOwnerApi = (
+  housingOwnerApi: HousingOwnerApi
+): HousingOwnerDBO => ({
+  owner_id: housingOwnerApi.id,
+  housing_id: housingOwnerApi.housingId,
+  rank: housingOwnerApi.rank,
+  start_date: housingOwnerApi.startDate,
+  end_date: housingOwnerApi.endDate,
+  origin: housingOwnerApi.origin,
 });
 
 export default {

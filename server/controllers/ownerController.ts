@@ -1,32 +1,24 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { body, oneOf, validationResult } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
-import { EventApi, EventKinds } from '../models/EventApi';
 import { constants } from 'http2';
 import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
+import { v4 as uuidv4 } from 'uuid';
 
-const get = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = request.params;
-    console.log('Get owner', id);
-    const owner = await ownerRepository.get(id);
-    if (!owner) {
-      throw new OwnerMissingError(id);
-    }
-
-    response.status(constants.HTTP_STATUS_OK).json(owner);
-  } catch (error) {
-    next(error);
+const get = async (request: Request, response: Response) => {
+  const { id } = request.params;
+  console.log('Get owner', id);
+  const owner = await ownerRepository.get(id);
+  if (!owner) {
+    throw new OwnerMissingError(id);
   }
+
+  response.status(constants.HTTP_STATUS_OK).json(owner);
 };
 
 const search = async (
@@ -80,16 +72,19 @@ const create = async (
     AddressKinds.Owner
   );
 
-  return eventRepository
-    .insert(<EventApi>{
-      ownerId: createdOwnerApi.id,
-      kind: EventKinds.OwnerCreation,
-      content: 'Création du propriétaire',
-      createdBy: userId,
-    })
-    .then(() =>
-      response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi)
-    );
+  await eventRepository.insertOwnerEvent({
+    id: uuidv4(),
+    name: "Création d'un nouveau propriétaire",
+    kind: 'Create',
+    category: 'Ownership',
+    section: 'Propriétaire',
+    new: createdOwnerApi,
+    createdBy: userId,
+    createdAt: new Date(),
+    ownerId: createdOwnerApi.id,
+  });
+
+  return response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi);
 };
 
 const update = async (
@@ -117,16 +112,20 @@ const update = async (
     AddressKinds.Owner
   );
 
-  return eventRepository
-    .insert(<EventApi>{
-      ownerId: updatedOwnerApi.id,
-      kind: EventKinds.OwnerUpdate,
-      content: "Modification des données d'identité",
-      createdBy: userId,
-    })
-    .then(() =>
-      response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi)
-    );
+  await eventRepository.insertOwnerEvent({
+    id: uuidv4(),
+    name: 'Modification de coordonnées',
+    kind: 'Update',
+    category: 'Ownership',
+    section: 'Coordonnées propriétaire',
+    old: ownerApi,
+    new: updatedOwnerApi,
+    createdBy: userId,
+    createdAt: new Date(),
+    ownerId: ownerApi.id,
+  });
+
+  return response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi);
 };
 
 const updateHousingOwners = async (
@@ -153,47 +152,38 @@ const updateHousingOwners = async (
 
   if (
     prevHousingOwnersApi.length !== housingOwnersApi.length ||
-    prevHousingOwnersApi.find(
+    prevHousingOwnersApi.some(
       (ho1) =>
-        !housingOwnersApi.find(
+        !housingOwnersApi.some(
           (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank
         )
     )
   ) {
-    return ownerRepository
-      .deleteHousingOwners(
-        housingId,
-        housingOwnersApi.map((_) => _.id)
-      )
-      .then(() => ownerRepository.insertHousingOwners(housingOwnersApi))
-      .then(() =>
-        eventRepository.insert(<EventApi>{
-          housingId,
-          kind: EventKinds.HousingOwnersUpdate,
-          content: `Modification des propriétaires 
-                            <br/> ${
-                              prevHousingOwnersApi.length === 1
-                                ? ' Propriétaire précédent : '
-                                : ' Propriétaires précédents : '
-                            } 
-                            ${prevHousingOwnersApi
-                              .map(
-                                (_) =>
-                                  `${_.fullName} (${
-                                    _.rank === 0
-                                      ? 'Ancien'
-                                      : _.rank === 1
-                                      ? 'Principal'
-                                      : _.rank + 'ème ayant droit'
-                                  })`
-                              )
-                              .join(' - ')}`,
-          createdBy: userId,
-        })
-      )
-      .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+    await ownerRepository.deleteHousingOwners(
+      housingId,
+      housingOwnersApi.map((_) => _.id)
+    );
+
+    await ownerRepository.insertHousingOwners(housingOwnersApi);
+
+    const newHousingOwnersApi = await ownerRepository.listByHousing(housingId);
+
+    await eventRepository.insertHousingEvent({
+      id: uuidv4(),
+      name: 'Changement de propriétaires',
+      kind: 'Update',
+      category: 'Ownership',
+      section: 'Propriétaire',
+      old: prevHousingOwnersApi,
+      new: newHousingOwnersApi,
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId,
+    });
+
+    return response.sendStatus(constants.HTTP_STATUS_OK);
   } else {
-    return response.sendStatus(304);
+    return response.sendStatus(constants.HTTP_STATUS_NOT_MODIFIED);
   }
 };
 

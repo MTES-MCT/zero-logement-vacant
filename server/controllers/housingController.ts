@@ -13,26 +13,21 @@ import {
 import campaignRepository from '../repositories/campaignRepository';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
-import { EventApi, EventKinds } from '../models/EventApi';
+import { HousingEventApi } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { AuthenticatedRequest } from 'express-jwt';
-import {
-  getHousingStatusApiLabel,
-  HousingStatusApi,
-} from '../models/HousingStatusApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
-import {
-  body,
-  param,
-  ValidationChain,
-  validationResult,
-} from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
+import { v4 as uuidv4 } from 'uuid';
+import noteRepository from '../repositories/noteRepository';
+import { HousingNoteApi } from '../models/NoteApi';
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -205,20 +200,12 @@ const updateHousing = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   const housingId = request.params.housingId;
-
-  console.log('Update housing', housingId);
-
   const { auth, establishment } = request as AuthenticatedRequest;
   const { userId, establishmentId } = auth;
   const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+
+  console.log('Update housing', housingId);
 
   const housing = await housingRepository.get(
     housingId,
@@ -242,15 +229,6 @@ const updateHousing = async (
     ]);
   }
 
-  if (isHousingUpdated(housing, housingUpdateApi)) {
-    await createHousingUpdateEvent(
-      [housing],
-      housingUpdateApi,
-      [lastCampaignId],
-      userId
-    );
-  }
-
   if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       [lastCampaignId],
@@ -265,6 +243,19 @@ const updateHousing = async (
     housingUpdateApi.precisions,
     housingUpdateApi.vacancyReasons
   );
+
+  if (isHousingUpdated(housing, housingUpdateApi)) {
+    await createHousingUpdateEvent(
+      [housing],
+      housingUpdateApi,
+      [lastCampaignId],
+      userId
+    );
+  }
+
+  if (housingUpdateApi.comment?.length) {
+    await createHousingUpdateNote([housing], housingUpdateApi, userId);
+  }
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
@@ -287,13 +278,6 @@ const updateHousingList = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   console.log('Update campaign housing list');
 
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
@@ -325,13 +309,6 @@ const updateHousingList = async (
       )
     );
 
-  await createHousingUpdateEvent(
-    housingList,
-    housingUpdateApi,
-    campaignIds,
-    userId
-  );
-
   if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       campaignIds,
@@ -347,6 +324,15 @@ const updateHousingList = async (
     housingUpdateApi.vacancyReasons
   );
 
+  await createHousingUpdateEvent(
+    housingList,
+    housingUpdateApi,
+    campaignIds,
+    userId
+  );
+
+  await createHousingUpdateNote(housingList, housingUpdateApi, userId);
+
   return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
@@ -356,44 +342,50 @@ const createHousingUpdateEvent = async (
   campaignIds: string[],
   userId: string
 ) => {
-  return eventRepository.insertList(
+  return eventRepository.insertManyHousingEvents(
     housingList.map(
-      (housing) =>
-        <EventApi>{
-          housingId: housing.id,
-          ownerId: housing.owner.id,
-          kind: EventKinds.StatusChange,
-          campaignId: campaignIds
-            .filter((_) => housing.campaignIds.indexOf(_) !== -1)
-            .reverse()[0],
+      (housingApi) =>
+        <HousingEventApi>{
+          id: uuidv4(),
+          name: 'Modification du statut',
+          kind: 'Update',
+          category: 'Followup',
+          section: 'Situation',
           contactKind: housingUpdateApi.contactKind,
-          content: [
-            getStatusLabel(housing, housingUpdateApi),
-            housingUpdateApi.comment,
-          ]
-            .filter((_) => _ !== null && _ !== undefined)
-            .join('. '),
+          old: housingApi,
+          new: {
+            ...housingApi,
+            status: housingUpdateApi.status,
+            subStatus: housingUpdateApi.subStatus,
+            precisions: housingUpdateApi.precisions,
+            vacancyReasons: housingUpdateApi.vacancyReasons,
+          },
           createdBy: userId,
+          createdAt: new Date(),
+          housingId: housingApi.id,
         }
     )
   );
 };
-
-const getStatusLabel = (
-  housingApi: HousingApi,
-  housingUpdateApi: HousingUpdateApi
+const createHousingUpdateNote = async (
+  housingList: HousingApi[],
+  housingUpdateApi: HousingUpdateApi,
+  userId: string
 ) => {
-  return housingApi.status !== housingUpdateApi.status ||
-    housingApi.subStatus != housingUpdateApi.subStatus ||
-    housingApi.precisions != housingUpdateApi.precisions
-    ? [
-        'Passage à ' + getHousingStatusApiLabel(housingUpdateApi.status),
-        housingUpdateApi.subStatus,
-        housingUpdateApi.precisions?.join(', '),
-      ]
-        .filter((_) => _?.length)
-        .join(' - ')
-    : undefined;
+  return noteRepository.insertManyHousingNotes(
+    housingList.map(
+      (housingApi) =>
+        <HousingNoteApi>{
+          id: uuidv4(),
+          title: 'Note sur la mise à jour du dossier',
+          content: housingUpdateApi.comment,
+          contactKind: housingUpdateApi.contactKind,
+          createdBy: userId,
+          createdAt: new Date(),
+          housingId: housingApi.id,
+        }
+    )
+  );
 };
 
 const housingController = {

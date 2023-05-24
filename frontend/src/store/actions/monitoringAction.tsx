@@ -6,7 +6,6 @@ import {
   FirstContactToContactedSubStatus,
   HousingStatus,
   HousingStatusCount,
-  HousingStatusDuration,
 } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
@@ -22,15 +21,6 @@ export interface FetchHousingByStatusCountAction {
 
 export interface HousingByStatusCountFetchedAction {
   housingByStatusCount: HousingStatusCount[];
-  filters: MonitoringFilters;
-}
-
-export interface FetchHousingByStatusDurationAction {
-  filters: MonitoringFilters;
-}
-
-export interface HousingByStatusDurationFetchedAction {
-  housingByStatusDuration: HousingStatusDuration[];
   filters: MonitoringFilters;
 }
 
@@ -58,15 +48,13 @@ const {
   fetchingEstablishmentData,
   establishmentDataFetched,
   fetchingHousingToContact,
-  fetchingHousingByStatusDuration,
   fetchingHousingByStatusCount,
   housingToContactFetchedAction,
-  housingByStatusDurationFetched,
   housingByStatusCountFetched,
 } = monitoringSlice.actions;
 
 export const fetchEstablishmentData = (filters: MonitoringFilters) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(
@@ -75,7 +63,7 @@ export const fetchEstablishmentData = (filters: MonitoringFilters) => {
       })
     );
 
-    monitoringService
+    await monitoringService
       .listEstablishmentData(filters)
       .then((establishmentData) => {
         dispatch(hideLoading());
@@ -90,7 +78,7 @@ export const fetchEstablishmentData = (filters: MonitoringFilters) => {
 };
 
 export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     dispatch(
@@ -99,7 +87,7 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
       })
     );
 
-    Promise.all([
+    await Promise.all([
       monitoringService
         .getHousingByStatusCount(filters)
         .then((housingByStatusCount) => {
@@ -114,37 +102,12 @@ export const fetchHousingByStatusCount = (filters: MonitoringFilters) => {
   };
 };
 
-export const fetchHousingByStatusDuration = (filters: MonitoringFilters) => {
-  return function (dispatch: Dispatch) {
-    dispatch(showLoading());
-
-    dispatch(
-      fetchingHousingByStatusDuration({
-        filters,
-      })
-    );
-
-    Promise.all([
-      monitoringService
-        .getHousingByStatusDuration(filters)
-        .then((housingByStatusDuration) => {
-          dispatch(
-            housingByStatusDurationFetched({
-              housingByStatusDuration,
-              filters,
-            })
-          );
-        }),
-    ]).then(() => dispatch(hideLoading()));
-  };
-};
-
 export const fetchHousingToContact = (
   filters: MonitoringFilters,
   page: number = 1,
   perPage: number = config.perPageDefault
 ) => {
-  return function (dispatch: Dispatch) {
+  return async function (dispatch: Dispatch) {
     dispatch(showLoading());
 
     const pagination: Pagination = { page, perPage };
@@ -157,7 +120,7 @@ export const fetchHousingToContact = (
       })
     );
 
-    housingService
+    await housingService
       .listHousing(
         {
           establishmentIds: filters.establishmentIds,

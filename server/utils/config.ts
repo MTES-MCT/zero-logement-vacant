@@ -56,8 +56,10 @@ interface Config {
   sentryDNS: string | null;
   maxRate: number;
   application: {
+    batchSize: number;
     host: string;
     isReviewApp: boolean;
+    system: string;
   };
   feature: {
     occupancy: string[];
@@ -168,6 +170,11 @@ const config = convict<Config>({
     default: 10000,
   },
   application: {
+    batchSize: {
+      env: 'BATCH_SIZE',
+      format: Number,
+      default: 10,
+    },
     host: {
       env: 'APPLICATION_HOST',
       format: 'url',
@@ -177,6 +184,11 @@ const config = convict<Config>({
       env: 'IS_REVIEW_APP',
       format: 'strict-boolean',
       default: false,
+    },
+    system: {
+      env: 'SYSTEM_ACCOUNT',
+      format: String,
+      default: 'lovac-2023@zerologementvacant.beta.gouv.fr',
     },
   },
   feature: {

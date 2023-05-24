@@ -26,13 +26,11 @@ export function tapAsync<T>(f: (data: T) => Promise<void>) {
       .catch((error) => {
         push(error);
       })
-      .finally(() => {
-        next();
-      });
+      .finally(next);
   };
 }
 
-export function tapAllAsync<T>(f: (item: T) => Promise<T>) {
+export function tapAllAsync<T>(f: (data: T) => Promise<T>) {
   return (
     error: Error | null,
     array: T[] | Highland.Nil,

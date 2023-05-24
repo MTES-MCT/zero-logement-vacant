@@ -24,3 +24,10 @@ export interface HousingOwner extends Owner {
   origin?: string;
   housingCount?: number;
 }
+
+export const getHousingOwnerRankLabel = (housingOwner: HousingOwner) =>
+  !housingOwner.rank
+    ? 'Ancien propriétaire'
+    : housingOwner.rank === 1
+    ? 'Propriétaire principal'
+    : `${housingOwner.rank}ème ayant droit`;

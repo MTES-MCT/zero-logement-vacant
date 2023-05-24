@@ -9,4 +9,5 @@ export const CONTACT_KINDS = [
   'Retour indirect - via acteur terrain',
   'Retour poste - NPAI',
   'Visite - Rencontre',
+  'Note personnelle',
 ];

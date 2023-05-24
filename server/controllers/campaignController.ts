@@ -4,12 +4,12 @@ import campaignHousingRepository from '../repositories/campaignHousingRepository
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
-import { EventApi, EventKinds } from '../models/EventApi';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -112,7 +112,7 @@ const createCampaign = async (
     ? userLocalities.filter((l) => (filters.localities ?? []).indexOf(l) !== -1)
     : userLocalities;
 
-  const housingIds = allHousing
+  const housingList = allHousing
     ? await housingRepository
         .listWithFilters({
           ...filters,
@@ -120,11 +120,13 @@ const createCampaign = async (
           localities: filterLocalities,
         })
         .then((_) =>
-          _.map((_) => _.id).filter(
-            (id) => request.body.housingIds.indexOf(id) === -1
+          _.filter(
+            (housing) => request.body.housingIds.indexOf(housing.id) === -1
           )
         )
-    : request.body.housingIds;
+    : await housingRepository.listByIds(request.body.housingIds);
+
+  const housingIds = housingList.map((_) => _.id);
 
   await campaignHousingRepository.insertHousingList(
     newCampaignApi.id,
@@ -132,6 +134,23 @@ const createCampaign = async (
   );
 
   await removeHousingFromDefaultCampaign(housingIds, establishmentId);
+
+  const newHousingList = await housingRepository.listByIds(housingIds);
+
+  await eventRepository.insertManyHousingEvents(
+    housingIds.map((housingId) => ({
+      id: uuidv4(),
+      name: 'Ajout dans une campagne',
+      kind: 'Create',
+      category: 'Campaign',
+      section: 'Suivi de campagne',
+      old: housingList.find((_) => _.id === housingId),
+      new: newHousingList.find((_) => _.id === housingId),
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId: housingId,
+    }))
+  );
 
   return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 };
@@ -288,25 +307,39 @@ const validateStep = async (
         campaignIds: [campaignId],
       });
 
-      await housingRepository.updateHousingList(
+      const updatedHousingList = await housingRepository.updateHousingList(
         housingList.filter((_) => !_.status).map((_) => _.id),
         HousingStatusApi.Waiting
       );
 
-      await eventRepository.insertList(
-        housingList.map(
-          (housing) =>
-            <EventApi>{
-              housingId: housing.id,
-              ownerId: housing.owner.id,
-              campaignId,
-              kind: EventKinds.CampaignSend,
-              content: 'Ajout dans la campagne',
-              createdBy: userId,
-            }
-        )
+      await eventRepository.insertManyHousingEvents(
+        updatedHousingList.map((updatedHousing) => ({
+          id: uuidv4(),
+          name: 'Changement de statut de suivi',
+          kind: 'Update',
+          category: 'Campaign',
+          section: 'Suivi de campagne',
+          old: housingList.find((_) => _.id === updatedHousing.id),
+          new: updatedHousing,
+          createdBy: userId,
+          createdAt: new Date(),
+          housingId: updatedHousing.id,
+        }))
       );
     }
+
+    await eventRepository.insertCampaignEvent({
+      id: uuidv4(),
+      name: 'Modification du statut de la campagne',
+      kind: 'Update',
+      category: 'Campaign',
+      section: 'Suivi de campagne',
+      old: campaignApi,
+      new: updatedCampaign,
+      createdBy: userId,
+      createdAt: new Date(),
+      campaignId,
+    });
 
     return campaignRepository
       .update(updatedCampaign)
@@ -398,7 +431,7 @@ const deleteCampaignBundle = async (
       campaignIdsToDelete
     );
 
-    await eventRepository.deleteEventsFromCampaigns(campaignIdsToDelete);
+    await eventRepository.removeCampaignEvents(campaignIdsToDelete);
 
     await campaignRepository.deleteCampaigns(campaignIdsToDelete);
 

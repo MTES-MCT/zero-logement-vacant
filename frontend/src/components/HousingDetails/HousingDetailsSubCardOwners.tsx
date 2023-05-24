@@ -13,11 +13,17 @@ import {
   createAdditionalOwner,
   updateHousingOwners,
 } from '../../store/actions/housingAction';
-import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
+import {
+  DraftOwner,
+  getHousingOwnerRankLabel,
+  HousingOwner,
+  Owner,
+} from '../../models/Owner';
 import HousingOwnersModal from '../modals/HousingOwnersModal/HousingOwnersModal';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingAdditionalOwnerModal from '../modals/HousingAdditionnalOwnerModal/HousingAdditionalOwnerModal';
 import { useAppDispatch } from '../../hooks/useStore';
+import { useFindEventsByHousingQuery } from '../../services/event.service';
 
 interface Props {
   housingId: string;
@@ -31,18 +37,30 @@ function HousingDetailsSubCardOwners({ housingId, housingOwners }: Props) {
   const [isModalAdditionalOwnerOpen, setIsModalAdditionalOwnerOpen] =
     useState(false);
 
+  const { refetch: refetchHousingEvents } =
+    useFindEventsByHousingQuery(housingId);
+
   const submitHousingOwnersUpdate = (housingOwnersUpdated: HousingOwner[]) => {
-    dispatch(updateHousingOwners(housingId, housingOwnersUpdated));
+    dispatch(
+      updateHousingOwners(housingId, housingOwnersUpdated, refetchHousingEvents)
+    );
     setIsModalOwnersOpen(false);
   };
 
   const submitAddingHousingOwner = (owner: Owner, rank: number) => {
-    dispatch(addHousingOwner(housingId, owner, rank));
+    dispatch(addHousingOwner(housingId, owner, rank, refetchHousingEvents));
     setIsModalAdditionalOwnerOpen(false);
   };
 
   const submitCreatingHousingOwner = (draftOwner: DraftOwner, rank: number) => {
-    dispatch(createAdditionalOwner(housingId, draftOwner, Number(rank)));
+    dispatch(
+      createAdditionalOwner(
+        housingId,
+        draftOwner,
+        Number(rank),
+        refetchHousingEvents
+      )
+    );
     setIsModalAdditionalOwnerOpen(false);
   };
 
@@ -76,11 +94,7 @@ function HousingDetailsSubCardOwners({ housingId, housingOwners }: Props) {
               </CardTitle>
               <CardDescription>
                 <Text size="sm" className="zlv-label" as="span">
-                  {!housingOwner.rank
-                    ? 'Ancien propriétaire'
-                    : housingOwner.rank === 1
-                    ? 'Propriétaire principal'
-                    : `${housingOwner.rank}ème ayant droit`}
+                  {getHousingOwnerRankLabel(housingOwner)}
                 </Text>
                 <Text
                   as="span"

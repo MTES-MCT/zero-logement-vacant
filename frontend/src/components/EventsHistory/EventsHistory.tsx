@@ -51,7 +51,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                     </Text>
                     {eventOrNote.section === 'Situation' && (
                       <div className={styles.eventContentRowContainer}>
-                        {eventOrNote.old && eventOrNote.new ? (
+                        {eventOrNote.old ? (
                           <>
                             <EventPartialHousingContent
                               partialHousing={
@@ -64,22 +64,26 @@ const EventsHistory = ({ events, notes }: Props) => {
                             ) : (
                               <span className="fr-icon-arrow-right-s-line" />
                             )}
-                            <EventPartialHousingContent
-                              partialHousing={
-                                getHousingDiff(eventOrNote.old, eventOrNote.new)
-                                  .new
-                              }
-                            />
-                          </>
-                        ) : eventOrNote.old ? (
-                          <div
-                            className={classNames(
-                              styles.eventContent,
-                              'd-inline-block'
+                            {eventOrNote.new ? (
+                              <EventPartialHousingContent
+                                partialHousing={
+                                  getHousingDiff(
+                                    eventOrNote.old,
+                                    eventOrNote.new
+                                  ).new
+                                }
+                              />
+                            ) : (
+                              <div
+                                className={classNames(
+                                  styles.eventContent,
+                                  'd-inline-block'
+                                )}
+                              >
+                                Ce logement <b>n'est plus présent</b> dans Lovac
+                              </div>
                             )}
-                          >
-                            Ce logement <b>n'est plus présent</b> dans Lovac
-                          </div>
+                          </>
                         ) : (
                           <div
                             className={classNames(

@@ -55,8 +55,10 @@ const EventsHistory = ({ events, notes }: Props) => {
                           <>
                             <EventPartialHousingContent
                               partialHousing={
-                                getHousingDiff(eventOrNote.old, eventOrNote.new)
-                                  .old
+                                getHousingDiff(
+                                  eventOrNote.old,
+                                  eventOrNote.new ?? {}
+                                ).old
                               }
                             />
                             {eventOrNote.conflict ? (

@@ -1,4 +1,4 @@
-import { Owner1 } from './004-owner';
+import { Owner1, Owner2 } from './004-owner';
 import { genHousingApi } from '../../../server/test/testFixtures';
 import housingRepository, {
   housingTable,
@@ -22,10 +22,10 @@ exports.seed = function (knex: Knex) {
     knex
       .table(housingTable)
       .insert([
-        housingRepository.formatHousingApi(Housing0),
-        housingRepository.formatHousingApi(Housing1),
-        housingRepository.formatHousingApi(Housing2),
-        housingRepository.formatHousingApi(HousingShortVacancy),
+        housingRepository.formatHousingRecordApi(Housing0),
+        housingRepository.formatHousingRecordApi(Housing1),
+        housingRepository.formatHousingRecordApi(Housing2),
+        housingRepository.formatHousingRecordApi(HousingShortVacancy),
       ])
       .then(() =>
         knex.table(ownersHousingTable).insert([
@@ -33,6 +33,11 @@ exports.seed = function (knex: Knex) {
             owner_id: Owner1.id,
             housing_id: Housing0.id,
             rank: 1,
+          },
+          {
+            owner_id: Owner2.id,
+            housing_id: Housing0.id,
+            rank: 2,
           },
           {
             owner_id: Owner1.id,

@@ -198,7 +198,7 @@ describe('User controller', () => {
         .fill(0)
         .map(() => genHousingApi(Locality.geoCode));
       await db(housingTable).insert(
-        housing.map((_) => housingRepository.formatHousingApi(_))
+        housing.map((_) => housingRepository.formatHousingRecordApi(_))
       );
       await db(ownersHousingTable).insert(
         housing.map((_) => ({
@@ -251,6 +251,34 @@ describe('User controller', () => {
     });
   });
 
+  describe('get', () => {
+    const testRoute = (userId: string) => `/api/users/${userId}`;
+
+    it('should be forbidden for a non authenticated user', async () => {
+      await request(app)
+        .get(testRoute(User1.id))
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should received a valid userId', async () => {
+      await withAccessToken(
+        request(app).get(testRoute(randomstring.generate()))
+      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('should retrieve the user', async () => {
+      const res = await withAdminAccessToken(
+        request(app).get(testRoute(User1.id))
+      ).expect(constants.HTTP_STATUS_OK);
+
+      expect(res.body).toMatchObject(
+        expect.objectContaining({
+          id: User1.id,
+        })
+      );
+    });
+  });
+
   describe('list', () => {
     const testRoute = '/api/users';
 
@@ -265,7 +293,7 @@ describe('User controller', () => {
         request(app).post(testRoute)
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ filteredCount: 3, totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 4, totalCount: 4 });
     });
 
     it('should filter users', async () => {
@@ -277,7 +305,7 @@ describe('User controller', () => {
           })
       ).expect(constants.HTTP_STATUS_OK);
 
-      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 3 });
+      expect(res.body).toMatchObject({ filteredCount: 1, totalCount: 4 });
     });
 
     it('should list only establishment users when authenticated user has not admin role', async () => {

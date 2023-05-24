@@ -4,7 +4,6 @@ import {
   ExpandFiltersAction,
   FetchingAdditionalOwnersAction,
   FetchingHousingListAction,
-  HousingEventsFetchedAction,
   HousingFetchedAction,
   HousingListFetchedAction,
   HousingOwnersFetchedAction,
@@ -17,7 +16,6 @@ import {
 } from '../../models/PaginatedResult';
 import config from '../../utils/config';
 import { HousingOwner, Owner } from '../../models/Owner';
-import { Event } from '../../models/Event';
 import { FormState } from '../actions/FormState';
 import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
@@ -32,7 +30,6 @@ export interface HousingState {
     paginatedOwners: PaginatedResult<Owner>;
     q?: string;
   };
-  events?: Event[];
   checkedHousingIds?: string[];
   housingOwnersUpdateFormState?: FormState;
   sort?: HousingSort;
@@ -145,15 +142,6 @@ const housingSlice = createSlice({
           },
         };
       }
-    },
-    fetchingHousingEvents: (state: HousingState) => {
-      state.events = [];
-    },
-    housingEventsFetched: (
-      state: HousingState,
-      action: PayloadAction<HousingEventsFetchedAction>
-    ) => {
-      state.events = action.payload.events;
     },
     housingOwnersUpdate: (
       state: HousingState,

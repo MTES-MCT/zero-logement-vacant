@@ -20,6 +20,7 @@ export function toUserDTO(user: UserApi): User {
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    establishmentId: user.establishmentId,
     activatedAt: user.activatedAt,
   };
 }

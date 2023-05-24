@@ -16,12 +16,15 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { Housing0, Housing1 } from '../../database/seeds/test/005-housing';
-import { eventsTable } from '../repositories/eventRepository';
-import { EventKinds } from '../models/EventApi';
+import {
+  eventsTable,
+  housingEventsTable,
+} from '../repositories/eventRepository';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
 import { HousingApi } from '../models/HousingApi';
+import { HousingEvent1 } from '../../database/seeds/test/011-events';
 
 const { app } = createServer();
 
@@ -74,7 +77,7 @@ describe('Housing controller', () => {
       };
 
       await db(housingTable).insert(
-        housingRepository.formatHousingApi(queriedHousing)
+        housingRepository.formatHousingRecordApi(queriedHousing)
       );
 
       await ownerRepository.insertHousingOwners([
@@ -211,10 +214,9 @@ describe('Housing controller', () => {
           })
       ).expect(constants.HTTP_STATUS_OK);
 
-      await db(eventsTable)
+      await db(housingEventsTable)
         .where('housing_id', Housing1.id)
-        .andWhere('campaign_id', Campaign1.id)
-        .andWhere('owner_id', Owner1.id)
+        .andWhereNot('event_id', HousingEvent1.id)
         .first()
         .then((result) => expect(result).toBeUndefined());
     });
@@ -227,21 +229,19 @@ describe('Housing controller', () => {
       ).expect(constants.HTTP_STATUS_OK);
 
       await db(eventsTable)
+        .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
-        .andWhere('campaign_id', Campaign1.id)
-        .andWhere('owner_id', Owner1.id)
+        .andWhereNot('id', HousingEvent1.id)
         .first()
         .then((result) =>
           expect(result).toMatchObject(
             expect.objectContaining({
               housing_id: Housing1.id,
-              owner_id: Owner1.id,
-              campaign_id: Campaign1.id,
-              kind: String(EventKinds.StatusChange),
               contact_kind: validBody.housingUpdate.contactKind,
+              kind: 'Update',
+              category: 'Followup',
+              section: 'Situation',
               created_by: User1.id,
-              content:
-                'Passage à Suivi en cours. ' + validBody.housingUpdate.comment,
             })
           )
         );
@@ -404,21 +404,19 @@ describe('Housing controller', () => {
       ).expect(constants.HTTP_STATUS_OK);
 
       await db(eventsTable)
+        .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
-        .andWhere('campaign_id', Campaign1.id)
-        .andWhere('owner_id', Owner1.id)
+        .andWhereNot('id', HousingEvent1.id)
         .first()
         .then((result) =>
           expect(result).toMatchObject(
             expect.objectContaining({
               housing_id: Housing1.id,
-              owner_id: Owner1.id,
-              campaign_id: Campaign1.id,
-              kind: String(EventKinds.StatusChange),
               contact_kind: validBody.housingUpdate.contactKind,
+              kind: 'Update',
+              category: 'Followup',
+              section: 'Situation',
               created_by: User1.id,
-              content:
-                'Passage à Suivi en cours. ' + validBody.housingUpdate.comment,
             })
           )
         );

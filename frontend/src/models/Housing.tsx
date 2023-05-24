@@ -30,12 +30,13 @@ export interface Housing {
   buildingVacancyRate: number;
   dataYears: number[];
   campaignIds: string[];
-  status?: HousingStatus;
+  status: HousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionWorst?: string;
+  occupancy?: string;
 }
 
 export interface SelectedHousing {

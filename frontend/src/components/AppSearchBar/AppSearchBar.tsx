@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import styles from './app-search-bar.module.scss';
-import { Link } from 'react-router-dom';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 export interface SearchResult {
   title: string;
-  redirectUrl?: string;
   onclick?: () => void;
 }
 
@@ -22,32 +20,17 @@ const AppSearchResult = ({
     .indexOf(query.toLowerCase());
 
   return (
-    <>
-      {searchResult.redirectUrl ? (
-        <Link
-          className="fr-p-1w ds-fr--inline fr-link"
-          title="Afficher le détail"
-          to={searchResult.redirectUrl}
-        >
-          {queryIndex === -1 ? (
-            searchResult.title
-          ) : (
-            <>
-              {searchResult.title.substr(0, queryIndex)}
-              <b>{searchResult.title.substr(queryIndex, query.length)}</b>
-              {searchResult.title.substr(queryIndex + query.length)}
-            </>
-          )}
-        </Link>
+    <div title="Afficher le détail" onClick={searchResult.onclick}>
+      {queryIndex === -1 ? (
+        searchResult.title
       ) : (
-        <span
-          className="fr-p-1w ds-fr--inline fr-link"
-          onClick={searchResult.onclick}
-        >
-          {searchResult.title}
-        </span>
+        <>
+          {searchResult.title.substr(0, queryIndex)}
+          <b>{searchResult.title.substr(queryIndex, query.length)}</b>
+          {searchResult.title.substr(queryIndex + query.length)}
+        </>
       )}
-    </>
+    </div>
   );
 };
 
@@ -75,9 +58,9 @@ const AppSearchBar = ({
 
   const onKeyDown = (e: any) => e.keyCode === 13 && submitSearch(e);
 
-  const onKeyUp = () => {
+  const onKeyUp = async () => {
     if (onKeySearch) {
-      onKeySearch(searchInput).then((results) => {
+      await onKeySearch(searchInput).then((results) => {
         setSearchResults(results ?? undefined);
       });
     }

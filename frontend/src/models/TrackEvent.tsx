@@ -21,12 +21,16 @@ export const TrackEventActions = {
   },
   Dashboard: {
     QuickSearch: 'Recherche rapide',
+    SelectAddress: "Sélection d'une adresse",
+    Search: 'Recherche',
   },
   HousingList: {
     CreateCampaign: 'Créer la campagne',
     SaveCampaign: 'Enregistrer la campagne',
     DisplayHousing: 'Afficher un logement',
     Search: 'Rechercher un logement',
+    MapView: 'Affichage de la cartographie (via le bouton)',
+    ListView: 'Affichage de la liste (via le bouton)',
   },
   Campaigns: {
     ValidStep: (step: CampaignSteps) =>

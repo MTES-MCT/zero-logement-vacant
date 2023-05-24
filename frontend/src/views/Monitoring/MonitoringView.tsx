@@ -4,7 +4,6 @@ import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
   fetchEstablishmentData,
   fetchHousingByStatusCount,
-  fetchHousingByStatusDuration,
 } from '../../store/actions/monitoringAction';
 import { EstablishmentData } from '../../models/Establishment';
 import { differenceInDays, format, formatDuration } from 'date-fns';
@@ -32,7 +31,6 @@ const MonitoringView = () => {
     establishmentData,
     housingByStatusCount,
     housingByStatusCountFilters,
-    housingByStatusDuration,
   } = useAppSelector((state) => state.monitoring);
   const [monitoringFilters, setMonitoringFilters] = useState<MonitoringFilters>(
     housingByStatusCountFilters
@@ -51,32 +49,28 @@ const MonitoringView = () => {
         ...monitoringFilters,
       })
     );
-    dispatch(
-      fetchHousingByStatusDuration({
-        ...housingByStatusCountFilters,
-        ...monitoringFilters,
-      })
-    );
   }, [dispatch, monitoringFilters]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const exportMonitoring = () => {
+  const exportMonitoring = async () => {
     dispatch(showLoading());
-    monitoringService.exportMonitoring(monitoringFilters).then((response) => {
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(response);
-      link.download = `export_monitoring_${format(
-        new Date(),
-        'yyyyMMdd_HHmmss'
-      )}.xlsx`;
+    await monitoringService
+      .exportMonitoring(monitoringFilters)
+      .then((response) => {
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(response);
+        link.download = `export_monitoring_${format(
+          new Date(),
+          'yyyyMMdd_HHmmss'
+        )}.xlsx`;
 
-      document.body.appendChild(link);
+        document.body.appendChild(link);
 
-      link.click();
-      setTimeout(function () {
-        dispatch(hideLoading());
-        window.URL.revokeObjectURL(link.href);
-      }, 200);
-    });
+        link.click();
+        setTimeout(function () {
+          dispatch(hideLoading());
+          window.URL.revokeObjectURL(link.href);
+        }, 200);
+      });
   };
 
   const rowNumberColumn = {
@@ -255,19 +249,6 @@ const MonitoringView = () => {
     ),
   };
 
-  const housingWithStatusDuration = (status: HousingStatus) => {
-    return housingByStatusDuration?.find((_) => _.status === status);
-  };
-
-  const housingWithStatusFormattedDuration = (status: HousingStatus) => {
-    const duration = housingByStatusDuration?.find(
-      (_) => _.status === status
-    )?.averageDuration;
-    return duration
-      ? formatDuration(duration, { format: ['months', 'days'], locale: fr })
-      : undefined;
-  };
-
   const housingWithStatusCount = (
     status: HousingStatus,
     subStatus?: string
@@ -321,11 +302,6 @@ const MonitoringView = () => {
         <Col n="4">
           <b>{state?.title}</b> :&nbsp;
           {housingByStatusCount ? housingWithStatusCount(status) : '...'}
-          <br />
-          Temps moyen dans le statut :{' '}
-          {housingByStatusDuration
-            ? housingWithStatusFormattedDuration(status)
-            : '...'}
         </Col>
         <Col>
           {state?.subStatusList?.map((subStatus, index) => (
@@ -464,26 +440,6 @@ const MonitoringView = () => {
             {housingByStatusCount
               ? housingWithStatusCount(HousingStatus.Waiting)
               : '...'}
-          </Col>
-          <Col>
-            <b>En attente de retour depuis plus de 3 mois</b> :&nbsp;
-            {housingWithStatusDuration(HousingStatus.Waiting)
-              ?.unchangedFor3MonthsCount ?? '...'}
-            {housingByStatusCount &&
-            housingWithStatusDuration(HousingStatus.Waiting) ? (
-              <>
-                {' '}
-                (
-                {percent(
-                  housingWithStatusDuration(HousingStatus.Waiting)
-                    ?.unchangedFor3MonthsCount ?? 0,
-                  housingWithStatusCount(HousingStatus.Waiting)
-                )}
-                %){' '}
-              </>
-            ) : (
-              ''
-            )}
           </Col>
         </Row>
         <HousingStatusStats status={HousingStatus.FirstContact} />

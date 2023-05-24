@@ -3,6 +3,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  establishmentId?: string;
   role: number;
   activatedAt?: Date;
 }

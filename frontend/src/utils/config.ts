@@ -9,7 +9,7 @@ const config = {
     linkTracking: true,
   },
   perPageDefault: 50,
-  dataYear: 2021,
+  dataYear: 2022,
   feature: {
     /**
      * @example

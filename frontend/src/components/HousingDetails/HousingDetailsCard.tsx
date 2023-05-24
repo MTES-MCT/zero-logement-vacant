@@ -16,10 +16,7 @@ import classNames from 'classnames';
 import { pluralize } from '../../utils/stringUtils';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import {
-  createHousingNote,
-  updateHousing,
-} from '../../store/actions/housingAction';
+import { updateHousing } from '../../store/actions/housingAction';
 import { HousingOwner } from '../../models/Owner';
 import HousingDetailsSubCardOwners from './HousingDetailsSubCardOwners';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -27,7 +24,6 @@ import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
 import HousingDetailsSubCardSituation from './HousingDetailsSubCardSituation';
 import HousingNoteModal from '../modals/HousingNoteModal/HousingNoteModal';
-import { HousingNote } from '../../models/Note';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import { useAppDispatch } from '../../hooks/useStore';
@@ -35,31 +31,60 @@ import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingPrecisionsBadges from '../HousingStatusBadge/HousingPrecisionsBadges';
+import {
+  useCreateNoteMutation,
+  useFindNotesByHousingQuery,
+} from '../../services/note.service';
+import { useFindEventsByHousingQuery } from '../../services/event.service';
+import { HousingNoteCreation, Note } from '../../models/Note';
 
 interface Props {
   housing: Housing;
   housingOwners: HousingOwner[];
   housingEvents: Event[];
+  housingNotes: Note[];
 }
 
-function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
+function HousingDetailsCard({
+  housing,
+  housingOwners,
+  housingEvents,
+  housingNotes,
+}: Props) {
   const dispatch = useAppDispatch();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
     useState(false);
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
 
+  const [createNote] = useCreateNoteMutation();
+  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
+    housing.id
+  );
+  const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
+    housing.id
+  );
+
   const submitHousingUpdate = (
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    dispatch(updateHousing(housing, housingUpdate));
+    dispatch(
+      updateHousing(housing, housingUpdate, () => {
+        refetchHousingEvents();
+        refetchHousingNotes();
+      })
+    );
     setIsHousingListEditionExpand(false);
   };
 
-  const submitHousingNoteAboutHousing = (note: HousingNote): void => {
-    dispatch(createHousingNote(note));
-    setIsModalNoteOpen(false);
+  const submitHousingNoteAboutHousing = async (
+    note: HousingNoteCreation
+  ): Promise<void> => {
+    await createNote(note).finally(() => {
+      refetchHousingNotes();
+      setIsModalNoteOpen(false);
+    });
   };
 
   return (
@@ -150,7 +175,7 @@ function HousingDetailsCard({ housing, housingOwners, housingEvents }: Props) {
             </Row>
           </Tab>
           <Tab label="Suivi du logement">
-            <EventsHistory events={housingEvents} />
+            <EventsHistory events={housingEvents} notes={housingNotes} />
           </Tab>
         </Tabs>
       </CardDescription>

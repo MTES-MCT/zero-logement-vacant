@@ -2,17 +2,12 @@ import { EstablishmentData } from '../../models/Establishment';
 import {
   EstablishmentDataFetchedAction,
   FetchHousingByStatusCountAction,
-  FetchHousingByStatusDurationAction,
   FetchHousingToContactAction,
   FetchingEstablishmentDataAction,
   HousingByStatusCountFetchedAction,
-  HousingByStatusDurationFetchedAction,
   HousingToContactFetchedAction,
 } from '../actions/monitoringAction';
-import {
-  HousingStatusCount,
-  HousingStatusDuration,
-} from '../../models/HousingState';
+import { HousingStatusCount } from '../../models/HousingState';
 import { MonitoringFilters } from '../../models/MonitoringFilters';
 import { PaginatedResult } from '../../models/PaginatedResult';
 import { Housing } from '../../models/Housing';
@@ -21,7 +16,6 @@ import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface MonitoringState {
   housingByStatusCount?: HousingStatusCount[];
-  housingByStatusDuration?: HousingStatusDuration[];
   paginatedHousingToContact: PaginatedResult<Housing>;
   establishmentData?: EstablishmentData[];
   housingByStatusCountFilters: MonitoringFilters;
@@ -68,23 +62,6 @@ const monitoringSlice = createSlice({
         action.payload.filters === current(state).housingByStatusCountFilters;
       if (isCurrentFetching) {
         state.housingByStatusCount = action.payload.housingByStatusCount;
-      }
-    },
-    fetchingHousingByStatusDuration: (
-      state: MonitoringState,
-      action: PayloadAction<FetchHousingByStatusDurationAction>
-    ) => {
-      state.housingByStatusDurationFilters = action.payload.filters;
-    },
-    housingByStatusDurationFetched: (
-      state: MonitoringState,
-      action: PayloadAction<HousingByStatusDurationFetchedAction>
-    ) => {
-      const isCurrentFetching =
-        action.payload.filters ===
-        current(state).housingByStatusDurationFilters;
-      if (isCurrentFetching) {
-        state.housingByStatusDuration = action.payload.housingByStatusDuration;
       }
     },
     fetchingHousingToContact: (

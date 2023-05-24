@@ -69,7 +69,12 @@ function HousingDetailsCard({
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    dispatch(updateHousing(housing, housingUpdate, refetchHousingEvents));
+    dispatch(
+      updateHousing(housing, housingUpdate, () => {
+        refetchHousingEvents();
+        refetchHousingNotes();
+      })
+    );
     setIsHousingListEditionExpand(false);
   };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MapProvider } from 'react-map-gl';
 import './App.scss';
 import AppHeader from './components/AppHeader/AppHeader';
@@ -13,7 +13,7 @@ import CampaignsListView from './views/Campaign/CampainListView';
 import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import { createInstance, MatomoProvider } from '@datapunt/matomo-tracker-react';
+import { createInstance, MatomoProvider, useMatomo } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
@@ -61,15 +61,21 @@ function AppWrapper() {
 }
 
 function App() {
-  const { isAdmin, isAuthenticated } = useUser();
-  const { isLoggedOut } = useAppSelector(
-    (state) => state.authentication
+  const { pushInstruction } = useMatomo();
+  const { isAdmin, isAuthenticated, user } = useUser();
+    const { isLoggedOut } = useAppSelector(
+        (state) => state.authentication
   );
   const { campaignBundleFetchingId, campaignCreated } = useAppSelector(
     (state) => state.campaign
   );
 
   FetchInterceptor();
+
+  useEffect(() => {
+    pushInstruction('setUserId', user?.id);
+    pushInstruction('disabled', isAdmin);
+  }, [user, isAdmin])
 
   return (
     <React.Suspense fallback={<></>}>

@@ -36,12 +36,24 @@ import { paginationQuery } from '../models/PaginationApi';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
+import _ from 'lodash';
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 
 export const ReferenceDataYear = 2022;
+
+export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
+  const dataYearsIncluded =
+    filters.dataYearsIncluded && filters.dataYearsIncluded.length > 0
+      ? filters.dataYearsIncluded
+      : Array.from(Array(ReferenceDataYear + 2).keys());
+  const maxDataYearIncluded = _.max(
+    _.without(dataYearsIncluded, ...(filters.dataYearsExcluded ?? []))
+  );
+  return maxDataYearIncluded ? maxDataYearIncluded - 1 : ReferenceDataYear;
+};
 
 export const ownersHousingJoinClause = (query: any) => {
   query
@@ -229,7 +241,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
       ) {
         whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
           OccupancyKindApi.Vacant,
-          ReferenceDataYear - 2,
+          referenceDataYearFromFilters(filters) - 2,
         ]);
       }
       if (
@@ -392,26 +404,26 @@ const filteredQuery = (filters: HousingFiltersApi) => {
       queryBuilder.where(function (whereBuilder: any) {
         if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            ReferenceDataYear - 1,
-            ReferenceDataYear,
+            referenceDataYearFromFilters(filters) - 1,
+            referenceDataYearFromFilters(filters),
           ]);
         }
         if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            ReferenceDataYear - 4,
-            ReferenceDataYear - 2,
+            referenceDataYearFromFilters(filters) - 4,
+            referenceDataYearFromFilters(filters) - 2,
           ]);
         }
         if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            ReferenceDataYear - 9,
-            ReferenceDataYear - 5,
+            referenceDataYearFromFilters(filters) - 9,
+            referenceDataYearFromFilters(filters) - 5,
           ]);
         }
         if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             0,
-            ReferenceDataYear - 10,
+            referenceDataYearFromFilters(filters) - 10,
           ]);
         }
       });

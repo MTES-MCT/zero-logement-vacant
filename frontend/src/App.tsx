@@ -91,11 +91,13 @@ function App() {
             }
 
             <Switch>
+              {!isAdmin &&
                 <Route path="/*">
                     <Container>
                         <Alert title="Zéro Logement Vacant est temporairement en maintenance" description="Veuillez nous excuser pour la gêne occasionnée" type="error" className="fr-my-16w"/>
                     </Container>
                 </Route>
+              }
               <Route exact path="/" component={DashboardView} />
               <Route exact path="/stats" component={StatsView} />
               <Route exact path="/accessibilite" component={AccessibilityView} />

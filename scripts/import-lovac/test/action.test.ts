@@ -191,12 +191,18 @@ describe('Action', () => {
               before.status = HousingStatusApi.NeverContacted;
             });
 
-            it('should erase all data', () => {
+            it('should erase all data except zlv ones', () => {
               const action = compare({ before, now, modifications });
 
               expect(action.housing).toStrictEqual({
                 ...now,
                 id: before.id,
+                status: before.status,
+                subStatus: before.subStatus,
+                precisions: before.precisions,
+                vacancyReasons: before.vacancyReasons,
+                energyConsumption: before.energyConsumption,
+                energyConsumptionWorst: before.energyConsumptionWorst,
                 dataYears: [...now.dataYears, ...before.dataYears],
               });
             });

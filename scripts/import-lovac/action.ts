@@ -140,6 +140,12 @@ export function compare({ before, now, modifications }: Comparison): Action {
           housing: {
             ...now,
             id: before.id,
+            status: before.status,
+            subStatus: before.subStatus,
+            precisions: before.precisions,
+            vacancyReasons: before.vacancyReasons,
+            energyConsumption: before.energyConsumption,
+            energyConsumptionWorst: before.energyConsumptionWorst,
             dataYears,
           },
           events,

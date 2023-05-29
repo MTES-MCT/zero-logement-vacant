@@ -2,7 +2,11 @@ import highland from 'highland';
 import lodash from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
-import { HousingApi, OccupancyKindApi } from '../../server/models/HousingApi';
+import {
+  getOwnershipKindFromValue,
+  HousingApi,
+  OccupancyKindApi,
+} from '../../server/models/HousingApi';
 import db from '../../server/repositories/db';
 import { housingTable } from '../../server/repositories/housingRepository';
 import { HousingOwnerApi } from '../../server/models/OwnerApi';
@@ -245,6 +249,10 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     uncomfortable: housing.uncomfortable,
     vacancyReasons: [],
     vacancyStartYear: housing.vacancy_start_year,
+    longitude: housing.longitude,
+    latitude: housing.latitude,
+    buildingYear: housing.building_year,
+    ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
   };
 }
 

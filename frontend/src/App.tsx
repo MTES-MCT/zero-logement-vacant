@@ -34,10 +34,9 @@ import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
 import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
-import InboxView from "./views/Inbox/InboxView";
+import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
-import LegalNoticesView from "./views/LegalNotices/LegalNoticesView";
-import { Alert, Container } from '@dataesr/react-dsfr';
+import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 
 function AppWrapper() {
 
@@ -91,13 +90,13 @@ function App() {
             }
 
             <Switch>
-              {!isAdmin &&
-                <Route path="/*">
-                    <Container>
-                        <Alert title="Zéro Logement Vacant est temporairement en maintenance" description="Veuillez nous excuser pour la gêne occasionnée" type="error" className="fr-my-16w"/>
-                    </Container>
-                </Route>
-              }
+              {/*{!isAdmin &&*/}
+              {/*  <Route path="/*">*/}
+              {/*      <Container>*/}
+              {/*          <Alert title="Zéro Logement Vacant est temporairement en maintenance" description="Veuillez nous excuser pour la gêne occasionnée" type="error" className="fr-my-16w"/>*/}
+              {/*      </Container>*/}
+              {/*  </Route>*/}
+              {/*}*/}
               <Route exact path="/" component={DashboardView} />
               <Route exact path="/stats" component={StatsView} />
               <Route exact path="/accessibilite" component={AccessibilityView} />

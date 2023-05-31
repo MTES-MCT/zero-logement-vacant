@@ -213,16 +213,27 @@ export const multiOwnerOptions: SelectOption[] = [
   { value: 'false', label: 'Non', badgeLabel: 'Mono-propriétaire' },
 ];
 
-export const vacancyDurationOptions = [
+export const vacancyDurationOptions: SelectOption[] = [
   {
     value: 'lt2',
     label: 'Moins de 2 ans',
     badgeLabel: 'Durée de vacance : moins de 2 ans',
   },
   {
+    value: '2',
+    label: '2 ans',
+    badgeLabel: 'Durée de vacance : 2 ans',
+  },
+  {
     value: '2to5',
     label: 'Entre 2 et 5 ans',
     badgeLabel: 'Durée de vacance : entre 2 et 5 ans',
+    hidden: true,
+  },
+  {
+    value: '3to5',
+    label: 'Entre 3 et 5 ans',
+    badgeLabel: 'Durée de vacance : entre 3 et 5 ans',
   },
   {
     value: '5to10',

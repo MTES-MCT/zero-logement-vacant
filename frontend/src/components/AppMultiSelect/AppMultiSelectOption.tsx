@@ -12,6 +12,10 @@ export interface AppMultiSelectOptionProps
 }
 
 function AppMultiSelectOption(props: AppMultiSelectOptionProps) {
+  if (props.hidden) {
+    return <></>;
+  }
+
   return (
     <Checkbox
       checked={props.checked}

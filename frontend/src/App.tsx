@@ -63,7 +63,7 @@ function AppWrapper() {
 
 function App() {
   const { pushInstruction } = useMatomo();
-  const { isAdmin, isAuthenticated, user } = useUser();
+  const { isAuthenticated, user } = useUser();
     const { isLoggedOut } = useAppSelector(
         (state) => state.authentication
   );
@@ -75,8 +75,7 @@ function App() {
 
   useEffect(() => {
     pushInstruction('setUserId', user?.id);
-    pushInstruction('disabled', isAdmin);
-  }, [user, isAdmin])
+  }, [user])
 
   return (
     <React.Suspense fallback={<></>}>

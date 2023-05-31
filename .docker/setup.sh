@@ -10,13 +10,12 @@ fi
 
 # The default postgres user
 POSTGRES_USER=postgres
-POSTGRES_DB=postgres
 
 docker-compose up -d
 echo "Postgres started."
-docker-compose exec -T db psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-  DROP DATABASE zlv;
-  DROP DATABASE test_zlv;
+docker-compose exec -T db psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"  <<-EOSQL
+  DROP DATABASE IF EXISTS zlv;
+  DROP DATABASE IF EXISTS test_zlv;
   CREATE DATABASE zlv;
   CREATE DATABASE test_zlv;
 EOSQL

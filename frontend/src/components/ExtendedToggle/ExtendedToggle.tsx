@@ -30,12 +30,10 @@ function ExtendedToggle(props: Props) {
   );
 
   useEffect(() => {
-    if (props.toggleColor) {
-      document.documentElement.style.setProperty(
-        '--toggle-color',
-        props.toggleColor
-      );
-    }
+    document.documentElement.style.setProperty(
+      '--toggle-color',
+      props.toggleColor ?? 'var(--blue-france-113)'
+    );
   }, [props.toggleColor]);
 
   const checkboxLabels = props.vertical

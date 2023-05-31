@@ -9,13 +9,19 @@ export interface AuthUser {
 export interface User {
   id: string;
   email: string;
-  // TODO: this should be string | undefined until we can retrieve first
-  // and last name
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   role: UserRoles;
   activatedAt: Date;
   establishmentId: string;
+}
+
+export interface UserAccount {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  position?: string;
+  timePerWeek?: string;
 }
 
 export interface DraftUser {

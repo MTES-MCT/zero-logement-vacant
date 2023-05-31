@@ -14,6 +14,7 @@ import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 import {
   SALT_LENGTH,
   TokenPayload,
+  toUserAccountDTO,
   toUserDTO,
   UserApi,
   UserRoles,
@@ -23,6 +24,8 @@ import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { emailValidator, passwordCreationValidator } from '../utils/validators';
 import PasswordInvalidError from '../errors/passwordInvalidError';
 import UnprocessableEntityError from '../errors/unprocessableEntityError';
+import UserMissingError from '../errors/userMissingError';
+import { UserAccountDTO } from '../../shared/models/UserDTO';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -49,7 +52,7 @@ const signIn = async (request: Request, response: Response) => {
     throw new AuthenticationFailedError();
   }
 
-  await userRepository.updateLastAuthentication(user.id);
+  await userRepository.update({ ...user, lastAuthenticatedAt: new Date() });
   const establishmentId = user.establishmentId ?? payload.establishmentId;
   if (!establishmentId) {
     throw new UnprocessableEntityError();
@@ -97,6 +100,42 @@ const changeEstablishment = async (request: Request, response: Response) => {
   await signInToEstablishment(user, establishmentId, response);
 };
 
+const get = async (request: Request, response: Response): Promise<Response> => {
+  const { userId } = (request as AuthenticatedRequest).auth;
+
+  console.log('Get account', userId);
+
+  const user = await userRepository.get(userId);
+
+  if (!user) {
+    throw new UserMissingError(userId);
+  }
+
+  return response.status(constants.HTTP_STATUS_OK).json(toUserAccountDTO(user));
+};
+
+const updateAccountValidators: ValidationChain[] = [
+  body('firstName').isString().notEmpty(),
+  body('lastName').isString().notEmpty(),
+  body('phone').isString().notEmpty(),
+  body('position').isString().notEmpty(),
+  body('timePerWeek').isString().notEmpty(),
+];
+
+const updateAccount = async (request: Request, response: Response) => {
+  const user = (request as AuthenticatedRequest).user;
+  const userAccount = request.body as UserAccountDTO;
+
+  console.log('Update account for ', user.id);
+
+  await userRepository.update({
+    ...user,
+    ...userAccount,
+    updatedAt: new Date(),
+  });
+  response.status(constants.HTTP_STATUS_OK).send();
+};
+
 const updatePassword = async (request: Request, response: Response) => {
   const user = (request as AuthenticatedRequest).user;
   const currentPassword = request.body.currentPassword;
@@ -110,8 +149,9 @@ const updatePassword = async (request: Request, response: Response) => {
   }
 
   const hash = await bcrypt.hash(newPassword, SALT_LENGTH);
-  await userRepository.updatePassword(user.id, hash);
-  response.sendStatus(constants.HTTP_STATUS_OK);
+  await userRepository.update({ ...user, password: hash });
+
+  response.status(constants.HTTP_STATUS_OK).send();
 };
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
@@ -130,8 +170,14 @@ const resetPassword = async (request: Request, response: Response) => {
     throw new ResetLinkExpiredError();
   }
 
+  const user = await userRepository.get(link.userId);
+
+  if (!user) {
+    throw new UserMissingError(link.userId);
+  }
+
   const hash = await bcrypt.hash(password, SALT_LENGTH);
-  await userRepository.updatePassword(link.userId, hash);
+  await userRepository.update({ ...user, password: hash });
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 };
@@ -143,6 +189,9 @@ const resetPasswordValidators: ValidationChain[] = [
 export default {
   signIn,
   signInValidators,
+  get,
+  updateAccount,
+  updateAccountValidators,
   updatePassword,
   updatePasswordValidators,
   resetPassword,

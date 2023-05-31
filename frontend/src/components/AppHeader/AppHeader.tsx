@@ -101,9 +101,9 @@ function AppHeader() {
 
   const menuActions = [
     {
-      title: 'Modifier mon mot de passe',
-      icon: 'ri-key-2-fill',
-      onClick: () => history.push('/compte/mot-de-passe'),
+      title: 'Gérer votre profil',
+      icon: 'ri-user-fill',
+      onClick: () => history.push('/compte'),
     },
     {
       title: 'Me déconnecter',

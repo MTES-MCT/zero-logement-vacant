@@ -1,4 +1,4 @@
-import { User } from '../../shared/models/User';
+import { UserDTO, UserAccountDTO } from '../../shared/models/UserDTO';
 
 export const SALT_LENGTH = 10;
 
@@ -11,9 +11,15 @@ export interface UserApi {
   establishmentId?: string;
   role: number;
   activatedAt?: Date;
+  lastAuthenticatedAt?: Date;
+  deletedAt?: Date;
+  updatedAt?: Date;
+  phone?: string;
+  position?: string;
+  timePerWeek?: string;
 }
 
-export function toUserDTO(user: UserApi): User {
+export function toUserDTO(user: UserApi): UserDTO {
   return {
     id: user.id,
     email: user.email,
@@ -22,6 +28,16 @@ export function toUserDTO(user: UserApi): User {
     role: user.role,
     establishmentId: user.establishmentId,
     activatedAt: user.activatedAt,
+  };
+}
+
+export function toUserAccountDTO(user: UserApi): UserAccountDTO {
+  return {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    position: user.position,
+    timePerWeek: user.timePerWeek,
   };
 }
 

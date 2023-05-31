@@ -1,11 +1,9 @@
 import {
   AvailableEstablishmentsFetchedAction,
   LoginAction,
-  PasswordChangeAction,
 } from '../actions/authenticationAction';
 import { AuthUser } from '../../models/User';
 import { Establishment } from '../../models/Establishment';
-import { FormState } from '../actions/FormState';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
@@ -15,7 +13,6 @@ export interface AuthenticationState {
   isLoggedOut?: boolean;
   authUser?: AuthUser;
   loginError?: string;
-  passwordFormState?: FormState;
 }
 
 const initialState: AuthenticationState = {
@@ -48,12 +45,6 @@ const authenticationSlice = createSlice({
       action: PayloadAction<AvailableEstablishmentsFetchedAction>
     ) => {
       state.availableEstablishments = action.payload.availableEstablishments;
-    },
-    passwordChange: (
-      state: AuthenticationState,
-      action: PayloadAction<PasswordChangeAction>
-    ) => {
-      state.passwordFormState = action.payload.formState;
     },
   },
 });

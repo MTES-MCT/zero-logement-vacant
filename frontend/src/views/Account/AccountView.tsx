@@ -90,8 +90,8 @@ const AccountView = () => {
     return <></>;
   }
 
-  const submit = () => {
-    validate(() =>
+  const submit = async () => {
+    await validate(() =>
       updateUserAccount({
         firstName,
         lastName,

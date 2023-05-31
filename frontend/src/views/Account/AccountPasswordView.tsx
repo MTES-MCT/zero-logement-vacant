@@ -50,8 +50,8 @@ const AccountPasswordView = () => {
     passwordConfirmation,
   });
 
-  const submit = () => {
-    validate(() =>
+  const submit = async () => {
+    await validate(() =>
       updateUserPassword({ currentPassword, newPassword: password })
     );
   };

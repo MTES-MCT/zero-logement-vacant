@@ -48,7 +48,11 @@ export const displayCount = (
 };
 
 export function pluralize(count: number) {
-  return (str: string): string => (count > 1 ? `${str}s` : str);
+  return (str: string): string =>
+    str
+      .split(' ')
+      .map((s) => (count > 1 ? `${s}s` : s))
+      .join(' ');
 }
 
 export const stringSort = (s1?: string, s2?: string): Compare => {

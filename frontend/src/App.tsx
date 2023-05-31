@@ -74,8 +74,7 @@ function App() {
 
   useEffect(() => {
     pushInstruction('setUserId', user?.id);
-    pushInstruction('disabled', isAdmin);
-  }, [user, isAdmin])
+  }, [user])
 
   return (
     <React.Suspense fallback={<></>}>

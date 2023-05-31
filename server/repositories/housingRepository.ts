@@ -408,6 +408,18 @@ const filteredQuery = (filters: HousingFiltersApi) => {
             referenceDataYearFromFilters(filters),
           ]);
         }
+        if (filters.vacancyDurations?.indexOf('2') !== -1) {
+          whereBuilder.orWhere(
+            'vacancy_start_year',
+            referenceDataYearFromFilters(filters) - 2
+          );
+        }
+        if (filters.vacancyDurations?.indexOf('3to5') !== -1) {
+          whereBuilder.orWhereBetween('vacancy_start_year', [
+            referenceDataYearFromFilters(filters) - 4,
+            referenceDataYearFromFilters(filters) - 3,
+          ]);
+        }
         if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 4,

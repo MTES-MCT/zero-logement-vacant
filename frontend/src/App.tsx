@@ -63,7 +63,7 @@ function AppWrapper() {
 
 function App() {
   const { pushInstruction } = useMatomo();
-  const { isAuthenticated, user } = useUser();
+  const { isAdmin, isAuthenticated, user } = useUser();
     const { isLoggedOut } = useAppSelector(
         (state) => state.authentication
   );

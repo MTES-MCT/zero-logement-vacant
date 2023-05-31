@@ -29,7 +29,7 @@ import { useSelection } from '../../hooks/useSelection';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import Help from '../../components/Help/Help';
 import { useCampaignHousingSearch } from '../../hooks/useCampaignHousingSearch';
-import { prependIf } from '../../utils/stringUtils';
+import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 
@@ -47,7 +47,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     (_) => _.id === campaignBundle?.campaignIds[0]
   );
 
-  const [removing, setRemoving] = useState<string>();
+  const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
     useState<boolean>(false);
 
@@ -73,7 +73,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     sendingDate,
   });
 
-  const { hasSelected, setSelected } = useSelection(
+  const { hasSelected, setSelected, selected, selectedCount } = useSelection(
     campaignBundleHousing.totalCount
   );
 
@@ -112,19 +112,19 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   };
 
   function remove(id: string): void {
-    setRemoving(id);
+    setRemovingId(id);
     setIsRemovingModalOpen(true);
   }
 
   const submitCampaignHousingRemove = () => {
-    if (removing) {
-      dispatch(
-        removeCampaignHousingList(campaignBundle.campaignIds[0], false, [
-          removing,
-        ])
-      );
-      setIsRemovingModalOpen(false);
-    }
+    dispatch(
+      removeCampaignHousingList(
+        campaignBundle.campaignIds[0],
+        removingId ? false : selected.all,
+        removingId ? [removingId] : selected.ids
+      )
+    );
+    setIsRemovingModalOpen(false);
   };
 
   async function downloadCSV(downloadOnly = false): Promise<void> {
@@ -179,13 +179,20 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>
-                      <Row>
-                        {!hasSelected && (
+                      <Row justifyContent="right">
+                        {!hasSelected ? (
                           <Col n="6">
                             <AppSearchBar
                               onSearch={(q) => search(campaignBundle)(q)}
                             />
                           </Col>
+                        ) : (
+                          <Button
+                            title="Supprimer"
+                            onClick={() => setIsRemovingModalOpen(true)}
+                          >
+                            Supprimer
+                          </Button>
                         )}
                       </Row>
                     </SelectableListHeaderActions>
@@ -201,10 +208,14 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                 {isRemovingModalOpen && (
                   <ConfirmationModal
                     onSubmit={() => submitCampaignHousingRemove()}
-                    onClose={() => setIsRemovingModalOpen(false)}
+                    onClose={() => {
+                      setIsRemovingModalOpen(false);
+                      setRemovingId(undefined);
+                    }}
                   >
-                    Êtes-vous sûr de vouloir supprimer ce logement de la
-                    campagne ?
+                    Êtes-vous sûr de vouloir supprimer 
+                    {pluralize(removingId ? 1 : selectedCount)('ce logement')} 
+                    de la campagne ?
                   </ConfirmationModal>
                 )}
               </>

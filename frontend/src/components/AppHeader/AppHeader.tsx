@@ -22,12 +22,13 @@ import {
   changeEstablishment,
   logout,
 } from '../../store/actions/authenticationAction';
-import AppActionsMenu, { MenuAction } from '../AppActionsMenu/AppActionsMenu';
+import { MenuAction } from '../AppActionsMenu/AppActionsMenu';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import VerticalLink from '../VerticalLink/VerticalLink';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
@@ -112,10 +113,9 @@ function AppHeader() {
     },
   ] as MenuAction[];
 
-  const withNavItems =
-    location.pathname === '/' ||
-    location.pathname === '/collectivites' ||
-    location.pathname === '/proprietaires';
+  const withNavItems = ['/', '/collectivites', 'proprietaires'].includes(
+    location.pathname
+  );
 
   return (
     <>
@@ -159,12 +159,21 @@ function AppHeader() {
           {isAuthenticated ? (
             <Tool>
               <ToolItemGroup>
-                <ToolItem as="div">
-                  <AppActionsMenu
-                    actions={menuActions}
-                    title={displayName()}
-                    icon="ri-account-circle-line"
-                    iconPosition="left"
+                <ToolItem as="div" className="fr-ml-2w">
+                  <VerticalLink
+                    badge={unreadMessages?.length}
+                    current={location.pathname === '/messagerie'}
+                    icon="ri-mail-fill"
+                    label="Messagerie"
+                    to="/messagerie"
+                  />
+                </ToolItem>
+                <ToolItem as="div" className="fr-ml-2w">
+                  <VerticalLink
+                    current={location.pathname === '/ressources'}
+                    icon="ri-question-fill"
+                    label="Ressources"
+                    to="/ressources"
                   />
                 </ToolItem>
               </ToolItemGroup>
@@ -185,33 +194,12 @@ function AppHeader() {
         </HeaderBody>
         {isAuthenticated ? (
           <HeaderNav data-testid="header-nav">
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Dashboard)} />
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.HousingList)}
             />
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.User)} />
-            {isAdmin ? (
-              <>
-                <AppNavItem
-                  userNavItem={getUserNavItem(UserNavItems.Monitoring)}
-                />
-              </>
-            ) : (
-              <AppNavItem
-                userNavItem={getUserNavItem(
-                  UserNavItems.EstablishmentMonitoring,
-                  authUser?.establishment.id
-                )}
-              />
-            )}
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Resources)} />
+            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
             <AppNavItem
               userNavItem={getUserNavItem(UserNavItems.Establishment)}
-            />
-            <AppNavItem
-              userNavItem={getUserNavItem(UserNavItems.Inbox)}
-              count={unreadMessages?.length}
             />
           </HeaderNav>
         ) : (
@@ -225,18 +213,18 @@ function AppHeader() {
               />
             </div>
             {withNavItems && (
-              <AppNavItem
-                userNavItem={getUserNavItem(UserNavItems.EstablishmentHome)}
-                isCurrent={() =>
-                  location.pathname === '/' ||
-                  location.pathname.indexOf('/collectivites') === 0
-                }
-              />
-            )}
-            {withNavItems && (
-              <AppNavItem
-                userNavItem={getUserNavItem(UserNavItems.OwnerHome)}
-              />
+              <>
+                <AppNavItem
+                  userNavItem={getUserNavItem(UserNavItems.EstablishmentHome)}
+                  isCurrent={() =>
+                    location.pathname === '/' ||
+                    location.pathname.indexOf('/collectivites') === 0
+                  }
+                />
+                <AppNavItem
+                  userNavItem={getUserNavItem(UserNavItems.OwnerHome)}
+                />
+              </>
             )}
           </HeaderNav>
         )}

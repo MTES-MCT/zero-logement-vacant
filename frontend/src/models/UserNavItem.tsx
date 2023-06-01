@@ -29,11 +29,14 @@ export const getUserNavItem = (
     case UserNavItems.OwnerHome:
       return { url: '/proprietaires', label: 'Propriétaires' };
     case UserNavItems.Campaign:
-      return { url: '/campagnes', label: 'Logements suivis' };
+      return { url: '/campagnes', label: 'Campagnes' };
     case UserNavItems.HousingList:
-      return { url: '/base-de-donnees', label: 'Base de données' };
+      return { url: '/parc-de-logements', label: 'Parc de logements' };
     case UserNavItems.Establishment:
-      return { url: '/territoire', label: 'Votre territoire' };
+      return {
+        url: '/informations-publiques',
+        label: 'Informations publiques',
+      };
     case UserNavItems.Inbox:
       return { url: '/boite-de-reception', label: 'Boite de réception' };
     case UserNavItems.User:

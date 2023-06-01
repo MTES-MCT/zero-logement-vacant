@@ -79,7 +79,7 @@ const DashboardView = () => {
       category: TrackEventCategories.Dashboard,
       action: TrackEventActions.Dashboard.Search,
     });
-    history.push('/base-de-donnees?q=' + query);
+    history.push('/parc-de-logements?q=' + query);
   };
 
   const activeCampaignsCount = () =>
@@ -110,7 +110,7 @@ const DashboardView = () => {
         </CalloutText>
         <InternalLink
           title="Accéder à la base de données"
-          to="/base-de-donnees?campagne=true"
+          to="/parc-de-logements?campagne=true"
           className={classNames(
             { 'fr-btn--secondary': hasCampaign },
             'fr-btn--md',
@@ -144,7 +144,7 @@ const DashboardView = () => {
           />
           <InternalLink
             title="Accéder à la base de données"
-            to="/base-de-donnees"
+            to="/parc-de-logements"
             display="flex"
             icon="ri-arrow-right-line"
             iconSize="1x"
@@ -168,22 +168,21 @@ const DashboardView = () => {
                   Vous avez {activeCampaignsCount()} campagnes en cours.
                 </CalloutTitle>
                 <CalloutText as="div">
-                  Depuis l’onglet “logements suivis”, gérez vos différentes
-                  campagnes.
+                  Depuis l’onglet “Campagnes”, gérez vos différentes campagnes.
                   <ul>
                     <li>
-                      {campaignBundlesCount(CampaignNotSentSteps)} 
+                      {campaignBundlesCount(CampaignNotSentSteps)}
                       {pluralize(campaignBundlesCount(CampaignNotSentSteps))(
                         'campagne'
                       )}
-                       <b>en attente d'envoi</b>
+                      <b>en attente d'envoi</b>
                     </li>
                     <li>
-                      {campaignBundlesCount([CampaignSteps.InProgress])} 
+                      {campaignBundlesCount([CampaignSteps.InProgress])}
                       {pluralize(
                         campaignBundlesCount([CampaignSteps.InProgress])
                       )('campagne')}
-                       <b>en suivi en cours</b>
+                      <b>en suivi en cours</b>
                     </li>
                   </ul>
                   <Link

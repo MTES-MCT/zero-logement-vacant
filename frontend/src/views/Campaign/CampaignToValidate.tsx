@@ -140,8 +140,8 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     <>
       {!isCompleted(CampaignSteps.Export) && (
         <Help>
-          Vous avez basculé dans l’onglet <b>“logements suivis”</b>, ici vous
-          pouvez paramètrer votre campagne et y faire le suivi.
+          Vous avez basculé dans l’onglet <b>“Campagnes”</b>, ici vous pouvez
+          paramètrer votre campagne et y faire le suivi.
         </Help>
       )}
       <VerticalStepper step={index}>
@@ -213,8 +213,8 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                       setRemovingId(undefined);
                     }}
                   >
-                    Êtes-vous sûr de vouloir supprimer 
-                    {pluralize(removingId ? 1 : selectedCount)('ce logement')} 
+                    Êtes-vous sûr de vouloir supprimer
+                    {pluralize(removingId ? 1 : selectedCount)('ce logement')}
                     de la campagne ?
                   </ConfirmationModal>
                 )}

@@ -21,7 +21,6 @@ import {
 } from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
@@ -53,7 +52,7 @@ import { Pagination } from '../../../../shared/models/Pagination';
 type ViewMode = 'list' | 'map';
 
 const HousingListView = () => {
-  useDocumentTitle('Base de données');
+  useDocumentTitle('Parc de logements');
   const dispatch = useAppDispatch();
   const { search } = useLocation();
   const { trackEvent } = useMatomo();
@@ -180,10 +179,9 @@ const HousingListView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Col n="8">
-              <Title as="h1">Base de données</Title>
+              <Title as="h1">Parc de logements</Title>
               <Text size="lead" className="subtitle">
                 Explorez les logements vacants de votre territoire et créez vos
                 échantillons de logements à mobiliser à partir des filtres

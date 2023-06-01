@@ -1,7 +1,6 @@
 import { Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import React, { ReactNode } from 'react';
 
-import AppBreadcrumb from '../AppBreadcrumb/AppBreadcrumb';
 import styles from './page-intro.module.scss';
 
 export interface PageIntroProps {
@@ -17,7 +16,6 @@ function PageIntro(props: PageIntroProps) {
   return (
     <Container as="section" className={styles.container} fluid spacing="py-4w">
       <Container as="article">
-        <AppBreadcrumb />
         <Row>
           <Col n="8">
             <Title as="h1" spacing="mb-1w">

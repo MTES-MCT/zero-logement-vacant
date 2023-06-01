@@ -9,7 +9,6 @@ import {
   TileBody,
   Title,
 } from '@dataesr/react-dsfr';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './resources.module.scss';
@@ -57,7 +56,6 @@ const ResourcesView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Col n="8">
               <Title as="h1">Centre de ressources</Title>

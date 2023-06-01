@@ -12,14 +12,13 @@ import {
   Title,
 } from '@dataesr/react-dsfr';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import InternalLink from '../../components/InternalLink/InternalLink';
 
 const CampaignsListView = () => {
-  useDocumentTitle('Logements suivis');
+  useDocumentTitle('Campagnes');
   const dispatch = useAppDispatch();
   const { campaignBundle: inProgressCampaignBundle } = useAppSelector(
     (state) => state.campaign
@@ -33,10 +32,9 @@ const CampaignsListView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Title as="h1" className="fr-mb-4w">
-              Logements suivis
+              Campagnes
             </Title>
           </Row>
           <Row>

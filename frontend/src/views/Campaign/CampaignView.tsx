@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Col, Container, Row, Text } from '@dataesr/react-dsfr';
 import { CampaignSteps } from '../../models/Campaign';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
@@ -50,6 +49,7 @@ const CampaignView = () => {
 
   const [campaignRemovalModalOpen, setCampaignRemovalModalOpen] =
     useState(false);
+
   function removeCampaign(): void {
     if (bundle) {
       trackEvent({
@@ -90,9 +90,7 @@ const CampaignView = () => {
       <div className="bg-100">
         <Container spacing="py-4w" as="section">
           <Row>
-            <Col>
-              <AppBreadcrumb />
-            </Col>
+            <Col></Col>
             {isDeletable && (
               <Col className="align-right">
                 <ButtonLink

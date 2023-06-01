@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Col, Container, Row, Table, Title } from '@dataesr/react-dsfr';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import {
   fetchEstablishmentData,
   fetchHousingByStatusCount,
@@ -358,8 +357,6 @@ const MonitoringView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="pb-1w">
-          <AppBreadcrumb />
-
           <Row gutters>
             <Col n="4">
               <Title as="h1">Suivi</Title>

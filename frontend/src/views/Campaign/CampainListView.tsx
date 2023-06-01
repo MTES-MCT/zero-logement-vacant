@@ -76,14 +76,14 @@ const CampaignsListView = () => {
           <Col>
             <Callout hasInfoIcon={false} className="fr-mr-4w">
               <CalloutTitle as="h3">
-                Vous souhaitez créer une nouvelle campagne ?
+                Vous souhaitez créer une nouvelle campagne ?
               </CalloutTitle>
               <CalloutText as="p">
                 Vous pouvez également en créer une nouvelle directement dans une
                 campagne existante (pour une relance par exemple)
               </CalloutText>
               <InternalLink
-                to="/base-de-donnees?campagne=true"
+                to="/parc-de-logements?campagne=true"
                 className="fr-btn--md fr-btn fr-btn--secondary"
               >
                 Créer votre nouvelle campagne
@@ -93,7 +93,7 @@ const CampaignsListView = () => {
           <Col>
             <Callout hasInfoIcon={false} className="fr-ml-4w">
               <CalloutTitle as="h3">
-                Vous souhaitez concevoir des courriers plus percutants ?
+                Vous souhaitez concevoir des courriers plus percutants ?
               </CalloutTitle>
               <CalloutText as="p">
                 Accédez à nos modèles de courriers et ceux envoyés par les

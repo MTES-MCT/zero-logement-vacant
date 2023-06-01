@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Container, Row, Tabs, Text, Title } from '@dataesr/react-dsfr';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import Tab from '../../components/Tab/Tab';
 import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
@@ -11,7 +10,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import ContactPointPublicPage from '../../components/ContactPoint/ContactPointPublicPage';
 
 const EstablishmentView = () => {
-  useDocumentTitle('Votre territoire');
+  useDocumentTitle('Informations publiques');
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
@@ -19,8 +18,7 @@ const EstablishmentView = () => {
     <Container as="main" fluid>
       <Container as="article" className="bg-100" fluid>
         <Container as="main" spacing="py-4w">
-          <AppBreadcrumb />
-          <Title as="h1">Votre territoire</Title>
+          <Title as="h1">Informations publiques</Title>
           <Text size="lead" className="subtitle">
             Ici vous trouverez des chiffres clés sur votre parc et votre
             activité, pourrez alimenter les aides et gérer vos périmètres

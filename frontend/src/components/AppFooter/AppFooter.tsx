@@ -58,15 +58,13 @@ function AppFooter() {
         </FooterTopCategory>
         <FooterTopCategory title="Navigation" n="4">
           <FooterInternalLink href="/accueil">Accueil</FooterInternalLink>
-          <FooterInternalLink href="/campagnes">
-            Logements suivis
-          </FooterInternalLink>
-          <FooterInternalLink href="/base-de-donnees">
-            Base de données
+          <FooterInternalLink href="/campagnes">Campagnes</FooterInternalLink>
+          <FooterInternalLink href="/parc-de-logements">
+            Parc de logements
           </FooterInternalLink>
           <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
-          <FooterInternalLink href="/territoire">
-            Votre territoire
+          <FooterInternalLink href="/informations-publiques">
+            Informations publiques
           </FooterInternalLink>
           <FooterInternalLink href="/utilisateurs">
             Utilisateurs

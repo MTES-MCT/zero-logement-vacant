@@ -1,12 +1,17 @@
 .article {
-  background-color: var(--grey-975);
-  padding: 0.5rem;
+  line-height: initial;
+  position: relative;
 }
 
 .header {
-  display: flex;
-  flex-direction: row;
   overflow-x: hidden;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--grey-975);
+
+  .collapsed &:hover {
+    background-color: var(--grey-950);
+  }
 }
 
 .clickable {
@@ -14,7 +19,11 @@
 }
 
 .content:not(.hidden) {
-  margin-top: 0.5rem;
+  position: absolute;
+  width: 100%;
+  top: 100%;
+  padding: 0.5rem;
+  text-align: left;
   white-space: nowrap;
 }
 
@@ -25,7 +34,11 @@
 
 .title {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  max-width: 256px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.5rem;
 }

@@ -69,7 +69,7 @@ function InboxView() {
           <>
             Dans cet onglet, vous pourrez consulter les messages des
             propriétaires qui souhaitent vous faire part de leur situation. Ces
-            messages proviennent du formulaire de contact présent sur la
+            messages proviennent du formulaire de contact présent sur la{' '}
             {link ? (
               <InternalLink
                 className={styles.link}

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Col,
   Header,
   HeaderBody,
   HeaderNav,
   Logo,
   NavItem,
+  Row,
   Service,
+  Text,
   Tool,
   ToolItem,
   ToolItemGroup,
@@ -29,6 +32,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import VerticalLink from '../VerticalLink/VerticalLink';
+import Collapse from '../Collapse/Collapse';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
@@ -155,6 +159,21 @@ function AppHeader() {
           {isAuthenticated ? (
             <Tool>
               <ToolItemGroup>
+                <ToolItem as="div" className="fr-ml-2w">
+                  <Collapse
+                    icon="ri-user-fill"
+                    title="test@test.test"
+                    content={
+                      <Row>
+                        <Col n="6">
+                          <Text className="zlv-label weight-400" size="sm">
+                            Adresse mail
+                          </Text>
+                        </Col>
+                      </Row>
+                    }
+                  />
+                </ToolItem>
                 <ToolItem as="div" className="fr-ml-2w">
                   <VerticalLink
                     badge={unreadMessages?.length}

@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Col,
+  Container,
   Header,
   HeaderBody,
   HeaderNav,
   Logo,
   NavItem,
-  Row,
   Service,
-  Text,
   Tool,
   ToolItem,
   ToolItemGroup,
 } from '@dataesr/react-dsfr';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
 import {
@@ -21,11 +19,7 @@ import {
   UserNavItem,
   UserNavItems,
 } from '../../models/UserNavItem';
-import {
-  changeEstablishment,
-  logout,
-} from '../../store/actions/authenticationAction';
-import { MenuAction } from '../AppActionsMenu/AppActionsMenu';
+import { changeEstablishment } from '../../store/actions/authenticationAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
@@ -33,6 +27,7 @@ import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import VerticalLink from '../VerticalLink/VerticalLink';
 import Collapse from '../Collapse/Collapse';
+import AccountSideMenu from '../../views/Account/AccountSideMenu';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
@@ -71,7 +66,6 @@ function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
 function AppHeader() {
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const history = useHistory();
   const { trackPageView } = useMatomo();
   const { isAdmin, isAuthenticated } = useUser();
 
@@ -92,10 +86,6 @@ function AppHeader() {
     trackPageView({});
   }, [location]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const logoutUser = () => {
-    dispatch(logout());
-  };
-
   function displayName(): string {
     return authUser
       ? authUser.user.firstName && authUser.user.lastName
@@ -103,19 +93,6 @@ function AppHeader() {
         : authUser.user.email
       : '';
   }
-
-  const menuActions = [
-    {
-      title: 'Gérer votre profil',
-      icon: 'ri-user-fill',
-      onClick: () => history.push('/compte'),
-    },
-    {
-      title: 'Me déconnecter',
-      icon: 'ri-lock-line',
-      onClick: () => logoutUser(),
-    },
-  ] as MenuAction[];
 
   const withNavItems = ['/', '/collectivites', 'proprietaires'].includes(
     location.pathname
@@ -166,15 +143,16 @@ function AppHeader() {
                 <ToolItem as="div" className="fr-ml-2w">
                   <Collapse
                     icon="ri-user-fill"
-                    title="test@test.test"
+                    dropdown
+                    title={displayName()}
                     content={
-                      <Row>
-                        <Col n="6">
-                          <Text className="zlv-label weight-400" size="sm">
-                            Adresse mail
-                          </Text>
-                        </Col>
-                      </Row>
+                      <Container
+                        className="bg-white bordered"
+                        spacing="px-2w pt-1w pb-2w"
+                        fluid
+                      >
+                        <AccountSideMenu />
+                      </Container>
                     }
                   />
                 </ToolItem>

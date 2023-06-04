@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Container, Row, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import Tab from '../../components/Tab/Tab';
-import EstablishmentGeoPerimeters from './EstablishmentGeoPerimeters';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
@@ -43,9 +42,6 @@ const EstablishmentView = () => {
                 des informations fiables et compréhensible.
               </Text>
               <Tabs>
-                <Tab label="Vos périmètres géographiques" className="bg-white">
-                  <EstablishmentGeoPerimeters />
-                </Tab>
                 <Tab label="Vos guichets contact" className="bg-white">
                   <EstablishmentContactPoints
                     establishmentId={establishment.id}

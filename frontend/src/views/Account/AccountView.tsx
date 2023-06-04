@@ -142,10 +142,11 @@ const AccountView = () => {
                           className="fr-mb-1w"
                         />
                         <InternalLink
+                          display="flex"
+                          isSimple
                           to="/compte/mot-de-passe"
                           icon="ri-edit-2-fill"
                           iconPosition="left"
-                          className="fr-link"
                         >
                           Modifier le mot de passe
                         </InternalLink>

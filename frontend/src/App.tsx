@@ -10,7 +10,6 @@ import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
-import DashboardView from './views/Dashboard/DashboardView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import {
@@ -19,11 +18,9 @@ import {
   useMatomo
 } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
-import UserListView from './views/User/UserListView';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
-import MonitoringView from './views/Monitoring/MonitoringView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
 import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import ResourcesView from './views/Resources/ResourcesView';
@@ -68,7 +65,7 @@ function AppWrapper() {
 
 function App() {
   const {pushInstruction} = useMatomo();
-  const {isAdmin, isAuthenticated, user} = useUser();
+  const {isAuthenticated, user} = useUser();
   const {isLoggedOut} = useAppSelector(
     (state) => state.authentication
   );
@@ -96,10 +93,8 @@ function App() {
             }
 
             <Switch>
-              <Route exact path="/" component={DashboardView}/>
               <Route exact path="/stats" component={StatsView}/>
               <Route exact path="/accessibilite" component={AccessibilityView}/>
-              <Route exact path="/accueil" component={DashboardView}/>
               <Route exact path="/parc-de-logements"
                      component={HousingListView}/>
               <Route exact path="/campagnes" component={CampaignsListView}/>
@@ -149,16 +144,12 @@ function App() {
                      component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId"
                      component={MonitoringDetailView}/>
-              <Route exact path="/utilisateurs" component={UserListView}/>
-              {isAdmin &&
-                <Route exact path="/suivi" component={MonitoringView}/>
-              }
               <Route exact path="/communes/:establishmentRef"
                      component={OwnerEstablishmentHomeView}/>
               <Route exact path="/collectivites/:establishmentRef"
                      component={OwnerEstablishmentHomeView}/>
               <Route path="/*">
-                <Redirect to="/accueil"/>
+                <Redirect to="/parc-de-logements"/>
               </Route>
             </Switch>
           </> :

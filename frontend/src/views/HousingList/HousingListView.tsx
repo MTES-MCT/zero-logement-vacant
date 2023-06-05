@@ -224,6 +224,7 @@ const HousingListView = () => {
                     secondary
                     className="fr-ml-1w"
                     onClick={() => setExpand(true)}
+                    data-testid="filter-button"
                   >
                     Filtrer ({filterCount(filters)})
                   </Button>

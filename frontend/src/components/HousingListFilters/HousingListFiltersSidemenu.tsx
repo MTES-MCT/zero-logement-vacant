@@ -364,14 +364,16 @@ function HousingListFiltersSidemenu() {
             <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
-                  <AppMultiSelect
-                    label="Type"
-                    options={ownerKindOptions}
-                    initialValues={filters.ownerKinds}
-                    onChange={(values) =>
-                      onChangeFilters({ ownerKinds: values }, 'Type')
-                    }
-                  />
+                  <div data-testid="ownerkind-filter">
+                    <AppMultiSelect
+                      label="Type"
+                      options={ownerKindOptions}
+                      initialValues={filters.ownerKinds}
+                      onChange={(values) =>
+                        onChangeFilters({ ownerKinds: values }, 'Type')
+                      }
+                    />
+                  </div>
                 </Col>
                 <Col n="6">
                   <AppMultiSelect

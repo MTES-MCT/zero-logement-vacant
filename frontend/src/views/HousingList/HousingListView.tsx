@@ -46,13 +46,13 @@ import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { Pagination } from '../../../../shared/models/Pagination';
-import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import { includeExcludeWith } from '../../utils/arrayUtils';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import classNames from 'classnames';
 import { displayCount } from '../../utils/stringUtils';
 import { filterCount } from '../../models/HousingFilters';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { includeExcludeWith } from '../../utils/arrayUtils';
+import { GeoPerimeter } from '../../models/GeoPerimeter';
 
 type ViewMode = 'list' | 'map';
 

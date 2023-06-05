@@ -90,7 +90,6 @@ const CampaignView = () => {
       <div className="bg-100">
         <Container spacing="py-4w" as="section">
           <Row>
-            <Col></Col>
             {isDeletable && (
               <Col className="align-right">
                 <ButtonLink

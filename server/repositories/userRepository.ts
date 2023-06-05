@@ -148,23 +148,22 @@ interface UserDBO {
   time_per_week?: string;
 }
 
-const parseUserApi = (userDBO: UserDBO) =>
-  <UserApi>{
-    id: userDBO.id,
-    email: userDBO.email,
-    password: userDBO.password,
-    firstName: userDBO.first_name,
-    lastName: userDBO.last_name,
-    establishmentId: userDBO.establishment_id,
-    role: userDBO.role,
-    activatedAt: userDBO.activated_at,
-    lastAuthenticatedAt: userDBO.last_authenticated_at,
-    deletedAt: userDBO.deleted_at,
-    updatedAt: userDBO.updated_at,
-    phone: userDBO.phone,
-    position: userDBO.position,
-    timePerWeek: userDBO.time_per_week,
-  };
+const parseUserApi = (userDBO: UserDBO): UserApi => ({
+  id: userDBO.id,
+  email: userDBO.email,
+  password: userDBO.password,
+  firstName: userDBO.first_name,
+  lastName: userDBO.last_name,
+  establishmentId: userDBO.establishment_id,
+  role: userDBO.role,
+  activatedAt: userDBO.activated_at,
+  lastAuthenticatedAt: userDBO.last_authenticated_at,
+  deletedAt: userDBO.deleted_at,
+  updatedAt: userDBO.updated_at,
+  phone: userDBO.phone,
+  position: userDBO.position,
+  timePerWeek: userDBO.time_per_week,
+});
 
 const formatUserApi = (userApi: UserApi): UserDBO => ({
   id: userApi.id,

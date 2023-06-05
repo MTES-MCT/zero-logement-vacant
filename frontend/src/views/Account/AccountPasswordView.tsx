@@ -64,7 +64,12 @@ const AccountPasswordView = () => {
             <AccountSideMenu />
           </Col>
           <Col n="8">
-            <Card hasArrow={false} hasBorder={false} size="sm">
+            <Card
+              hasArrow={false}
+              hasBorder={false}
+              size="sm"
+              className="fr-px-3w fr-py-2w"
+            >
               <CardTitle>
                 <Title as="h1" look="h4" spacing="mb-0">
                   Réinitialisation de votre mot de passe

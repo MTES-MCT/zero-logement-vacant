@@ -1,4 +1,4 @@
-import { UserDTO, UserAccountDTO } from '../../shared/models/UserDTO';
+import { UserAccountDTO, UserDTO } from '../../shared/models/UserDTO';
 
 export const SALT_LENGTH = 10;
 
@@ -6,8 +6,8 @@ export interface UserApi {
   id: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   establishmentId?: string;
   role: number;
   activatedAt?: Date;
@@ -49,8 +49,4 @@ export interface TokenPayload {
 export enum UserRoles {
   Usual,
   Admin,
-}
-
-export function isActivated(user: UserApi): boolean {
-  return !!user.activatedAt;
 }

@@ -12,6 +12,7 @@ interface Props {
   id: string;
   map?: MapRef;
   perimeters: GeoPerimeter[];
+  borderColor?: string;
 }
 
 function Perimeters(props: Props) {
@@ -41,9 +42,16 @@ function Perimeters(props: Props) {
         type="fill"
         paint={{
           'fill-color': 'rgba(227, 227, 253, 0.51)',
-          'fill-outline-color': '#6A6AF4',
         }}
-      ></Layer>
+      />
+      <Layer
+        id="outline"
+        type="line"
+        paint={{
+          'line-color': props.borderColor ?? '#6a6af4',
+          'line-width': 2,
+        }}
+      />
     </Source>
   );
 }

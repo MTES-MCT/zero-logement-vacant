@@ -31,6 +31,7 @@ const STYLE = {
 export interface MapProps {
   housingList?: Housing[];
   perimeters?: GeoPerimeter[];
+  hasPerimetersFilter?: boolean;
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
@@ -129,10 +130,15 @@ function Map(props: MapProps) {
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {perimeters.length === 0 && showPerimeters && (
-        <Perimeters id="perimeters" perimeters={perimeters} map={map} />
+      {perimeters.length > 0 && showPerimeters && (
+        <Perimeters
+          id="perimeters"
+          borderColor={props.hasPerimetersFilter ? '#f95c5e' : undefined}
+          perimeters={perimeters}
+          map={map}
+        />
       )}
-      {points.length === 0 && (
+      {points.length > 0 && (
         <Clusters id="housing" points={points} map={map} onClick={popUp} />
       )}
       {popups}

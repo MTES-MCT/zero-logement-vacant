@@ -129,10 +129,10 @@ function Map(props: MapProps) {
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {perimeters.length && showPerimeters && (
+      {perimeters.length === 0 && showPerimeters && (
         <Perimeters id="perimeters" perimeters={perimeters} map={map} />
       )}
-      {points.length && (
+      {points.length === 0 && (
         <Clusters id="housing" points={points} map={map} onClick={popUp} />
       )}
       {popups}

@@ -11,6 +11,7 @@ import {
 } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
 import {
+  HousingPaginatedResult,
   initialPaginatedResult,
   PaginatedResult,
 } from '../../models/PaginatedResult';
@@ -21,7 +22,7 @@ import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface HousingState {
   paginate?: boolean;
-  paginatedHousing: PaginatedResult<Housing>;
+  paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
   filtersExpanded: boolean;
   housing?: Housing;
@@ -71,6 +72,7 @@ const initialState: HousingState = {
     perPage: config.perPageDefault,
     totalCount: 0,
     filteredCount: 0,
+    filteredOwnerCount: 0,
     loading: true,
   },
   filters: initialHousingFilters,
@@ -175,6 +177,7 @@ const housingSlice = createSlice({
           : state.paginatedHousing.perPage,
         entities: action.payload.paginatedHousing.entities,
         filteredCount: action.payload.paginatedHousing.filteredCount,
+        filteredOwnerCount: action.payload.paginatedHousing.filteredOwnerCount,
         totalCount: action.payload.paginatedHousing.totalCount,
         loading: false,
       };

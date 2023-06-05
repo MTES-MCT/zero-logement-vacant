@@ -1,4 +1,5 @@
 import config from '../utils/config';
+import { Housing } from './Housing';
 
 export interface PaginatedResult<T> {
   filteredCount: number;
@@ -17,3 +18,7 @@ export const initialPaginatedResult = () => ({
   filteredCount: 0,
   loading: true,
 });
+
+export type HousingPaginatedResult = PaginatedResult<Housing> & {
+  filteredOwnerCount: number;
+};

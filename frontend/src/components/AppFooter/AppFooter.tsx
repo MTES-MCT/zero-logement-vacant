@@ -13,7 +13,6 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 
 import styles from './app-footer.module.scss';
-import { useUser } from '../../hooks/useUser';
 
 type FooterLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
 
@@ -31,8 +30,6 @@ function AppFooter() {
   function FooterExternalLink(props: FooterLinkProps) {
     return <FooterLink {...props} className={styles.link} />;
   }
-
-  const authUser = useUser();
 
   return (
     <Footer>
@@ -57,11 +54,10 @@ function AppFooter() {
           </FooterExternalLink>
         </FooterTopCategory>
         <FooterTopCategory title="Navigation" n="4">
-          <FooterInternalLink href="/accueil">Accueil</FooterInternalLink>
-          <FooterInternalLink href="/campagnes">Campagnes</FooterInternalLink>
           <FooterInternalLink href="/parc-de-logements">
             Parc de logements
           </FooterInternalLink>
+          <FooterInternalLink href="/campagnes">Campagnes</FooterInternalLink>
           <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
           <FooterInternalLink href="/informations-publiques">
             Informations publiques
@@ -69,17 +65,8 @@ function AppFooter() {
           <FooterInternalLink href="/utilisateurs">
             Utilisateurs
           </FooterInternalLink>
-          <FooterInternalLink
-            href={
-              authUser.isAdmin
-                ? '/suivi'
-                : `/suivi/etablissement/${authUser.establishment?.id}`
-            }
-          >
-            Suivi
-          </FooterInternalLink>
           <FooterInternalLink href="/boite-de-reception">
-            Boite de réception
+            Messagerie
           </FooterInternalLink>
         </FooterTopCategory>
       </FooterTop>

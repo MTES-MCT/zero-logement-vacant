@@ -15,6 +15,11 @@ interface PaginationDisabled {
   paginate: false;
 }
 
+export const isPaginationEnable = (
+  pagination?: PaginationApi
+): pagination is PaginationEnabled =>
+  pagination !== undefined && pagination.paginate;
+
 export const MAX_PER_PAGE = 500;
 
 export const validators: ValidationChain[] = [
@@ -44,9 +49,9 @@ export function createPagination(query: Required<Pagination>): PaginationApi {
     : { paginate: false };
 }
 
-export function paginationQuery(pagination: PaginationApi) {
+export function paginationQuery(pagination?: PaginationApi) {
   return (builder: Knex.QueryBuilder): void => {
-    if (pagination.paginate) {
+    if (isPaginationEnable(pagination)) {
       const { page, perPage } = pagination;
       builder.offset((page - 1) * perPage).limit(perPage);
     }

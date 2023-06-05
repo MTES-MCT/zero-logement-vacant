@@ -394,36 +394,19 @@ export const vacancyReasonsOptions: {
   },
 ];
 
-export const hasFilters = (housingFilters: HousingFilters) => {
-  return Boolean(
-    housingFilters.ownerKinds?.length ||
-      housingFilters.ownerAges?.length ||
-      housingFilters.multiOwners?.length ||
-      housingFilters.beneficiaryCounts?.length ||
-      housingFilters.housingKinds?.length ||
-      housingFilters.cadastralClassifications?.length ||
-      housingFilters.housingAreas?.length ||
-      housingFilters.roomsCounts?.length ||
-      housingFilters.buildingPeriods?.length ||
-      housingFilters.vacancyDurations?.length ||
-      housingFilters.isTaxedValues?.length ||
-      housingFilters.ownershipKinds?.length ||
-      housingFilters.housingCounts?.length ||
-      housingFilters.vacancyRates?.length ||
-      housingFilters.campaignsCounts?.length ||
-      housingFilters.campaignIds?.length ||
-      housingFilters.localities?.length ||
-      housingFilters.localityKinds?.length ||
-      housingFilters.geoPerimetersIncluded?.length ||
-      housingFilters.geoPerimetersExcluded?.length ||
-      housingFilters.dataYearsIncluded?.length ||
-      housingFilters.dataYearsExcluded?.length ||
-      housingFilters.query?.length ||
-      housingFilters.energyConsumption?.length ||
-      housingFilters.energyConsumptionWorst?.length ||
-      housingFilters.occupancies?.length
-  );
+export const filterCount = (housingFilters: HousingFilters) => {
+  return Object.entries(housingFilters).filter(
+    ([k, v]) =>
+      k !== 'dataYearsIncluded' &&
+      v !== undefined &&
+      v !== null &&
+      (v as any[]).length > 0
+  ).length;
 };
+export const hasFilters = (housingFilters: HousingFilters) => {
+  return filterCount(housingFilters) > 0;
+};
+
 export const unselectedOptions = (
   options: SelectOption[],
   selectedValues?: string[]

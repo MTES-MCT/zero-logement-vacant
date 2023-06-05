@@ -5,7 +5,10 @@ import {
   HousingFiltersForTotalCount,
 } from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
-import { PaginatedResult } from '../models/PaginatedResult';
+import {
+  HousingPaginatedResult,
+  PaginatedResult,
+} from '../models/PaginatedResult';
 import ownerService from './owner.service';
 import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
@@ -37,7 +40,7 @@ const listHousing = async (
   filters: HousingFilters,
   filtersForTotalCount: HousingFiltersForTotalCount,
   options?: ListHousingOptions
-): Promise<PaginatedResult<Housing>> => {
+): Promise<HousingPaginatedResult> => {
   const query =
     toQuery(options?.sort).length > 0 ? `?sort=${toQuery(options?.sort)}` : '';
 

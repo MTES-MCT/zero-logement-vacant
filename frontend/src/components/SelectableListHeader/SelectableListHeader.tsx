@@ -15,6 +15,7 @@ interface SelectableListHeaderProps {
   total?: number;
   onUnselectAll?: () => void;
   entity: SelectableEntity;
+  default?: ReactElement;
 }
 
 function SelectableListHeader(props: SelectableListHeaderProps) {
@@ -50,12 +51,18 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
   });
 
   return (
-    <Row alignItems="middle" className={classes}>
-      <Col>{count}</Col>
-      <Col n={hasSelected() ? '6' : '8'}>
-        <SelectableListHeaderActions {...actions?.props} />
-      </Col>
-    </Row>
+    <>
+      {!hasSelected() && props.default ? (
+        props.default
+      ) : (
+        <Row alignItems="middle" className={classes}>
+          <Col>{count}</Col>
+          <Col n={hasSelected() ? '6' : '8'}>
+            <SelectableListHeaderActions {...actions?.props} />
+          </Col>
+        </Row>
+      )}
+    </>
   );
 }
 

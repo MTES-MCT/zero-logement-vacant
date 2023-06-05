@@ -10,3 +10,20 @@
   width: 2rem;
   height: 2rem;
 }
+
+.locked {
+
+  section::before {
+    box-shadow: none;
+  }
+
+  button {
+    cursor: unset;
+
+    &::after {
+      display: none;
+    }
+  }
+
+
+}

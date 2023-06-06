@@ -470,3 +470,17 @@ a.fr-btn[target='_blank']:after {
   white-space: nowrap;
   overflow: hidden;
 }
+
+.over-sidemenu {
+  z-index: 99999 !important;
+}
+
+.modal-lg {
+
+  .fr-col-12 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+}

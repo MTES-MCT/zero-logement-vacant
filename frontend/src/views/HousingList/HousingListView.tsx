@@ -50,6 +50,7 @@ import HousingListFiltersSidemenu from '../../components/HousingListFilters/Hous
 import classNames from 'classnames';
 import { displayCount } from '../../utils/stringUtils';
 import { filterCount } from '../../models/HousingFilters';
+import GeoPerimetersModalLink from '../../components/modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { includeExcludeWith } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
@@ -291,6 +292,11 @@ const HousingListView = () => {
                 'logement',
                 true,
                 paginatedHousing.filteredCount
+              )}
+              {view === 'map' && (
+                <span className="fr-ml-2w">
+                  <GeoPerimetersModalLink />
+                </span>
               )}
             </Text>
 

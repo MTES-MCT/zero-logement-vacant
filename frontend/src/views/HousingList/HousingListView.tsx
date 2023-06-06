@@ -284,9 +284,9 @@ const HousingListView = () => {
                 paginatedHousing.filteredCount
               )}
               {view === 'map' && (
-                <span className="fr-ml-2w">
+                <div className="d-inline-block fr-ml-2w">
                   <GeoPerimetersModalLink />
-                </span>
+                </div>
               )}
             </Text>
 

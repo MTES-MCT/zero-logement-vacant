@@ -45,12 +45,10 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const [isUploadingModalOpen, setIsUploadingModalOpen] =
     useState<boolean>(false);
-  const [geoPerimetersToUpdate, setGeoPerimeterToUpdate] = useState<
-    GeoPerimeter | undefined
-  >();
-  const [geoPerimetersToRemove, setGeoPerimetersToRemove] = useState<
-    GeoPerimeter[] | undefined
-  >();
+  const [geoPerimetersToUpdate, setGeoPerimeterToUpdate] =
+    useState<GeoPerimeter>();
+  const [geoPerimetersToRemove, setGeoPerimetersToRemove] =
+    useState<GeoPerimeter[]>();
   const [isCardView, setIsCardView] = useState<boolean>(false);
 
   const [

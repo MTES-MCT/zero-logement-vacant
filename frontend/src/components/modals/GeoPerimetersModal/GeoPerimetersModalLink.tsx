@@ -13,9 +13,10 @@ const GeoPerimetersModalLink = () => {
         onClick={() => {
           setIsGeoPerimetersModalOpen(true);
         }}
-        className="fr-link"
+        isSimple
         icon="ri-settings-4-fill"
         iconPosition="left"
+        display="flex"
       >
         Gérer vos périmètres
       </Link>

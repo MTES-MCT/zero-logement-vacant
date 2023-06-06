@@ -5,7 +5,6 @@ import {
   Col,
   Container,
   Icon,
-  Link,
   Row,
   SearchableSelect,
   Text,
@@ -39,7 +38,7 @@ import {
   vacancyRateOptions,
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
-import React, { useState } from 'react';
+import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
 import {
   getSubStatusList,
@@ -55,7 +54,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
-import GeoPerimetersModal from '../modals/GeoPerimetersModal/GeoPerimetersModal';
+import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 
 interface TitleWithIconProps {
   icon: string;
@@ -84,8 +83,6 @@ function HousingListFiltersSidemenu() {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList(establishment?.id);
-  const [isGeoPerimetersModalOpen, setIsGeoPerimetersModalOpen] =
-    useState<boolean>(false);
 
   function close(): void {
     setExpand(false);
@@ -499,22 +496,9 @@ function HousingListFiltersSidemenu() {
                       }
                     }}
                   />
-                  <Link
-                    href="#"
-                    onClick={() => {
-                      setIsGeoPerimetersModalOpen(true);
-                    }}
-                    className="fr-link float-right"
-                    icon="ri-settings-4-fill"
-                    iconPosition="left"
-                  >
-                    Gérer vos périmètres
-                  </Link>
-                  {isGeoPerimetersModalOpen && (
-                    <GeoPerimetersModal
-                      onClose={() => setIsGeoPerimetersModalOpen(false)}
-                    />
-                  )}
+                  <div className="float-right">
+                    <GeoPerimetersModalLink />
+                  </div>
                 </Col>
               </Row>
             </Container>

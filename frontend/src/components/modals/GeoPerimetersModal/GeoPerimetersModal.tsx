@@ -8,6 +8,7 @@ import {
   Modal,
   ModalClose,
   ModalContent,
+  ModalFooter,
   ModalTitle,
   Row,
   Text,
@@ -263,6 +264,9 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
           </>
         )}
       </ModalContent>
+      <ModalFooter>
+        <Button onClick={onClose}>Fermer</Button>
+      </ModalFooter>
     </Modal>
   );
 };

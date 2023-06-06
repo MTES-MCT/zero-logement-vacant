@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   Button,
@@ -34,6 +34,7 @@ import {
 } from '../../../services/geo.service';
 import styles from './geo-perimeters-modal.module.scss';
 import GeoPerimetersTable from './GeoPerimetersTable';
+import AppSearchBar from '../../AppSearchBar/AppSearchBar';
 
 interface Props {
   onClose: () => void;
@@ -109,7 +110,32 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
     }
   };
 
-  const invalidGeoFilters = geoPerimeters?.filter((_) => !_.kind?.length);
+  const [query, setQuery] = useState<string>();
+
+  function search(query: string): void {
+    setQuery(query);
+  }
+
+  async function searchAsync(query: string): Promise<void> {
+    search(query);
+  }
+
+  const perimeters = useMemo<GeoPerimeter[] | undefined>(
+    () =>
+      query
+        ? geoPerimeters?.filter(
+            (perimeter) =>
+              perimeter.name.toLowerCase().search(query.toLowerCase()) !== -1 ||
+              perimeter.kind.toLowerCase().search(query.toLowerCase()) !== -1
+          )
+        : geoPerimeters,
+    [query, geoPerimeters]
+  );
+
+  const invalidGeoPerimeters = useMemo<GeoPerimeter[] | undefined>(
+    () => perimeters?.filter((_) => !_.kind?.length),
+    [perimeters]
+  );
 
   return (
     <Modal
@@ -166,9 +192,16 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         </Help>
         <Row className="fr-mt-3w fr-mb-1w">
           <Col>
-            <Button onClick={() => setIsUploadingModalOpen(true)} secondary>
-              Déposer un périmètre (.zip)
-            </Button>
+            <div className="flex-1 flex-right">
+              <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
+              <Button
+                onClick={() => setIsUploadingModalOpen(true)}
+                secondary
+                className="fr-ml-2w"
+              >
+                Déposer un périmètre (.zip)
+              </Button>
+            </div>
           </Col>
           <Col>
             <ButtonGroup isInlineFrom="xs" size="md" align="right">
@@ -223,14 +256,14 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             className="fr-mb-2w"
           />
         )}
-        {invalidGeoFilters && invalidGeoFilters.length > 0 && (
+        {invalidGeoPerimeters && invalidGeoPerimeters.length > 0 && (
           <Alert
             description={`Il y a ${displayCount(
-              invalidGeoFilters.length,
+              invalidGeoPerimeters.length,
               'périmètre',
               false
             )} qui ${
-              invalidGeoFilters.length === 1
+              invalidGeoPerimeters.length === 1
                 ? "n'est pas valide"
                 : 'ne sont pas valides'
             } car le nom du filtre n'est pas renseigné`}
@@ -238,11 +271,11 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             className="fr-mb-2w"
           />
         )}
-        {geoPerimeters && geoPerimeters.length > 0 && (
+        {perimeters && perimeters.length > 0 && (
           <>
             {isCardView ? (
               <Row gutters>
-                {geoPerimeters?.map((geoPerimeter) => (
+                {perimeters?.map((geoPerimeter) => (
                   <Col n="4" key={geoPerimeter.id}>
                     <GeoPerimeterCard
                       geoPerimeter={geoPerimeter}
@@ -256,7 +289,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
               </Row>
             ) : (
               <GeoPerimetersTable
-                geoPerimeters={geoPerimeters}
+                geoPerimeters={perimeters}
                 onEdit={setGeoPerimeterToUpdate}
                 onRemove={setGeoPerimetersToRemove}
               />

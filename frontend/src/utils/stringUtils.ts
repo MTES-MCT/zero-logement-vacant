@@ -23,7 +23,7 @@ export const displayCount = (
   label: string,
   capitalize = true,
   filteredCount?: number
-) => {
+): string => {
   if (!totalCount || totalCount === 0) {
     return `${capitalize ? 'Aucun' : 'aucun'} ${label}`;
   }
@@ -38,7 +38,7 @@ export const displayCount = (
       .map((_) => pluralize(filteredCount)(_))
       .join(' ')} ${pluralize(filteredCount)(
       'filtré'
-    )} sur un total de ${totalCount}`;
+    )} sur un total de ${displayCount(totalCount, label)}`;
   }
 
   return `${totalCount} ${label

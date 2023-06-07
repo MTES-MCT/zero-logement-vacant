@@ -53,6 +53,7 @@ import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
+import classNames from 'classnames';
 
 interface TitleWithIconProps {
   icon: string;
@@ -93,6 +94,73 @@ function HousingListFiltersSidemenu() {
       title="Tous les filtres"
       content={
         <Accordion>
+          <AccordionItem
+            title={<TitleWithIcon icon="ri-hand-coin-fill" title="Suivi" />}
+            initExpand={true}
+            onClick={(e) => e.preventDefault()}
+            className={classNames('bg-975', 'fr-mb-2w', styles.locked)}
+          >
+            <Container as="section" fluid>
+              <Row gutters>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Statut"
+                    options={statusOptions()}
+                    initialValues={filters.status?.map((_) => _.toString())}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        {
+                          status: values.map(Number),
+                          subStatus: filters.subStatus?.filter(
+                            (_) => getSubStatusList(values).indexOf(_) !== -1
+                          ),
+                        },
+                        'Statut'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Sous-statut"
+                    options={getSubStatusListOptions(filters.status)}
+                    initialValues={filters.subStatus}
+                    onChange={(values) =>
+                      onChangeFilters({ subStatus: values }, 'Sous-statut')
+                    }
+                  />
+                </Col>
+                {campaignList && filters.campaignIds && (
+                  <Col n="6">
+                    <AppMultiSelect
+                      label="Campagne"
+                      options={campaignList.map((c) => ({
+                        value: c.id,
+                        label: campaignFullName(c),
+                      }))}
+                      initialValues={filters.campaignIds}
+                      onChange={(values) =>
+                        onChangeFilters({ campaignIds: values }, 'Campagne')
+                      }
+                    />
+                  </Col>
+                )}
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Prise de contact"
+                    options={campaignsCountOptions}
+                    initialValues={filters.campaignsCounts}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { campaignsCounts: values },
+                        'Prise de contact'
+                      )
+                    }
+                  />
+                </Col>
+              </Row>
+            </Container>
+          </AccordionItem>
           {feature.isEnabled('occupancy') && (
             <AccordionItem
               title={
@@ -227,7 +295,7 @@ function HousingListFiltersSidemenu() {
           <AccordionItem
             title={<TitleWithIcon icon="ri-building-4-fill" title="Immeuble" />}
           >
-            <Container as="section" fluid className={styles.category}>
+            <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
                   <AppMultiSelect
@@ -293,17 +361,19 @@ function HousingListFiltersSidemenu() {
           <AccordionItem
             title={<TitleWithIcon icon="ri-user-fill" title="Propriétaires" />}
           >
-            <Container as="section" fluid className={styles.category}>
+            <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
-                  <AppMultiSelect
-                    label="Type"
-                    options={ownerKindOptions}
-                    initialValues={filters.ownerKinds}
-                    onChange={(values) =>
-                      onChangeFilters({ ownerKinds: values }, 'Type')
-                    }
-                  />
+                  <div data-testid="ownerkind-filter">
+                    <AppMultiSelect
+                      label="Type"
+                      options={ownerKindOptions}
+                      initialValues={filters.ownerKinds}
+                      onChange={(values) =>
+                        onChangeFilters({ ownerKinds: values }, 'Type')
+                      }
+                    />
+                  </div>
                 </Col>
                 <Col n="6">
                   <AppMultiSelect
@@ -347,7 +417,7 @@ function HousingListFiltersSidemenu() {
           <AccordionItem
             title={<TitleWithIcon icon="ri-map-pin-fill" title="Emplacement" />}
           >
-            <Container as="section" className={styles.category} fluid>
+            <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
                   <SearchableSelect
@@ -430,73 +500,9 @@ function HousingListFiltersSidemenu() {
             </Container>
           </AccordionItem>
           <AccordionItem
-            title={<TitleWithIcon icon="ri-hand-coin-fill" title="Suivi" />}
-          >
-            <Container as="section" fluid className={styles.category}>
-              <Row gutters>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Prise de contact"
-                    options={campaignsCountOptions}
-                    initialValues={filters.campaignsCounts}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { campaignsCounts: values },
-                        'Prise de contact'
-                      )
-                    }
-                  />
-                </Col>
-                {campaignList && filters.campaignIds && (
-                  <Col n="6">
-                    <AppMultiSelect
-                      label="Campagne"
-                      options={campaignList.map((c) => ({
-                        value: c.id,
-                        label: campaignFullName(c),
-                      }))}
-                      initialValues={filters.campaignIds}
-                      onChange={(values) =>
-                        onChangeFilters({ campaignIds: values }, 'Campagne')
-                      }
-                    />
-                  </Col>
-                )}
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Statut"
-                    options={statusOptions()}
-                    initialValues={filters.status?.map((_) => _.toString())}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        {
-                          status: values.map(Number),
-                          subStatus: filters.subStatus?.filter(
-                            (_) => getSubStatusList(values).indexOf(_) !== -1
-                          ),
-                        },
-                        'Statut'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Sous-statut"
-                    options={getSubStatusListOptions(filters.status)}
-                    initialValues={filters.subStatus}
-                    onChange={(values) =>
-                      onChangeFilters({ subStatus: values }, 'Sous-statut')
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </AccordionItem>
-          <AccordionItem
             title={<TitleWithIcon icon="ri-calendar-fill" title="Millésime" />}
           >
-            <Container as="section" fluid className={styles.category}>
+            <Container as="section" fluid>
               <Row gutters>
                 <Col n="6">
                   <AppMultiSelect

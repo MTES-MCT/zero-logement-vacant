@@ -306,6 +306,7 @@ const HousingList = ({
           count={paginatedHousing.filteredCount}
           total={paginatedHousing.totalCount}
           onUnselectAll={unselectAll}
+          entity="logement"
           {...header?.props}
         />
       </header>

@@ -47,7 +47,7 @@ export function useFilters() {
       ? (prevFilterEntry[1] as Array<string>)
       : [];
     const newValues = filterValues.filter
-      ? filterValues.filter((_) => prevFilterValues.indexOf(_) === -1)
+      ? filterValues.filter((_) => prevFilterValues?.indexOf(_) === -1)
       : [];
     if (newValues.length) {
       trackEvent({

@@ -1,6 +1,6 @@
 .searchContainer {
   position: relative;
-  width: 100%;
+  flex-grow: 1;
 
   .searchResults {
     background-color: var(--grey-950);

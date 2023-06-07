@@ -3,7 +3,10 @@ import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { HousingFilters } from '../../models/HousingFilters';
-import { PaginatedResult } from '../../models/PaginatedResult';
+import {
+  HousingPaginatedResult,
+  PaginatedResult,
+} from '../../models/PaginatedResult';
 import { DraftOwner, HousingOwner, Owner } from '../../models/Owner';
 import ownerService from '../../services/owner.service';
 import { FormState } from './FormState';
@@ -48,7 +51,7 @@ export interface FetchingHousingListAction {
 
 export interface HousingListFetchedAction {
   paginate?: boolean;
-  paginatedHousing: PaginatedResult<Housing>;
+  paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
   sort?: HousingSort;
 }
@@ -105,7 +108,7 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
           abortable: true,
         }
       )
-      .then((result: PaginatedResult<Housing>) => {
+      .then((result: HousingPaginatedResult) => {
         dispatch(
           housingListFetched({
             paginatedHousing: result,
@@ -144,7 +147,7 @@ export const changeHousingPagination = (pagination: Pagination) => {
           abortable: true,
         }
       )
-      .then((result: PaginatedResult<Housing>) => {
+      .then((result: HousingPaginatedResult) => {
         dispatch(
           housingListFetched({
             paginate: pagination.paginate,

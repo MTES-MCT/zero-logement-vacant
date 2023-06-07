@@ -115,11 +115,11 @@ const get = async (request: Request, response: Response): Promise<Response> => {
 };
 
 const updateAccountValidators: ValidationChain[] = [
-  body('firstName').isString().notEmpty(),
-  body('lastName').isString().notEmpty(),
-  body('phone').isString().notEmpty(),
-  body('position').isString().notEmpty(),
-  body('timePerWeek').isString().notEmpty(),
+  body('firstName').isString(),
+  body('lastName').isString(),
+  body('phone').isString(),
+  body('position').isString(),
+  body('timePerWeek').isString(),
 ];
 
 const updateAccount = async (request: Request, response: Response) => {

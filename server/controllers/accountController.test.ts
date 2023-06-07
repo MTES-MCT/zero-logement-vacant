@@ -2,7 +2,11 @@ import request from 'supertest';
 import randomstring from 'randomstring';
 import { constants } from 'http2';
 import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
-import { genResetLinkApi, genUserAccountDTO } from '../test/testFixtures';
+import {
+  genNumber,
+  genResetLinkApi,
+  genUserAccountDTO,
+} from '../test/testFixtures';
 import fetchMock from 'jest-fetch-mock';
 import db from '../repositories/db';
 import {
@@ -118,11 +122,11 @@ describe('Account controller', () => {
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       }
 
-      await test({ ...genUserAccountDTO, firstName: '' });
-      await test({ ...genUserAccountDTO, lastName: '' });
-      await test({ ...genUserAccountDTO, phone: '' });
-      await test({ ...genUserAccountDTO, position: '' });
-      await test({ ...genUserAccountDTO, timePerWeek: '' });
+      await test({ ...genUserAccountDTO, firstName: genNumber() });
+      await test({ ...genUserAccountDTO, lastName: genNumber() });
+      await test({ ...genUserAccountDTO, phone: genNumber() });
+      await test({ ...genUserAccountDTO, position: genNumber() });
+      await test({ ...genUserAccountDTO, timePerWeek: genNumber() });
     });
 
     it('should succeed to change the account', async () => {

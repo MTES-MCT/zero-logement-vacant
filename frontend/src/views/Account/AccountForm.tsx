@@ -1,5 +1,5 @@
 import { Button, Col, Row, Select, TextInput } from '@dataesr/react-dsfr';
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import Help from '../../components/Help/Help';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
@@ -21,30 +21,19 @@ const AccountForm = ({ user, userAccount }: Props) => {
   ] = useUpdateUserAccountMutation();
 
   const [firstName, setFirstName] = useState(userAccount.firstName ?? '');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [position, setPosition] = useState('');
-  const [timePerWeek, setTimePerWeek] = useState('');
-
-  useEffect(() => {
-    if (userAccount) {
-      setFirstName(userAccount.firstName ?? '');
-      setLastName(userAccount.lastName ?? '');
-      setPhone(userAccount.phone ?? '');
-      setPosition(userAccount.position ?? '');
-      setTimePerWeek(userAccount.timePerWeek ?? '');
-    }
-  }, [userAccount]);
+  const [lastName, setLastName] = useState(userAccount.lastName ?? '');
+  const [phone, setPhone] = useState(userAccount.phone ?? '');
+  const [position, setPosition] = useState(userAccount.position ?? '');
+  const [timePerWeek, setTimePerWeek] = useState(userAccount.timePerWeek ?? '');
 
   const schema = yup.object().shape({
-    firstName: yup.string().required('Veuillez renseigner votre prénom.'),
-    lastName: yup.string().required('Veuillez renseigner votre nom.'),
-    phone: yup.string().required('Veuillez renseigner votre téléphone.'),
-    position: yup.string().required('Veuillez renseigner votre poste.'),
-    timePerWeek: yup
-      .string()
-      .required('Veuillez renseigner le temps dédié à la vacance.'),
+    firstName: yup.string(),
+    lastName: yup.string(),
+    phone: yup.string(),
+    position: yup.string(),
+    timePerWeek: yup.string(),
   });
+
   const { message, messageType, validate } = useForm(
     schema,
     {
@@ -130,7 +119,6 @@ const AccountForm = ({ user, userAccount }: Props) => {
             label="Prénom"
             messageType={messageType('firstName')}
             message={message('firstName')}
-            required
           />
         </Col>
         <Col n="6">
@@ -142,7 +130,6 @@ const AccountForm = ({ user, userAccount }: Props) => {
             label="Nom"
             messageType={messageType('lastName')}
             message={message('lastName')}
-            required
           />
         </Col>
         <Col n="6">
@@ -154,7 +141,6 @@ const AccountForm = ({ user, userAccount }: Props) => {
             label="Téléphone"
             messageType={messageType('phone')}
             message={message('phone')}
-            required
           />
         </Col>
         <Col n="6"></Col>
@@ -167,7 +153,6 @@ const AccountForm = ({ user, userAccount }: Props) => {
             label="Poste"
             messageType={messageType('position')}
             message={message('position')}
-            required
           />
         </Col>
         <Col n="6">
@@ -180,7 +165,6 @@ const AccountForm = ({ user, userAccount }: Props) => {
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
               setTimePerWeek(e.target.value)
             }
-            required
           />
         </Col>
         <Col>

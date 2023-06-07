@@ -2,7 +2,11 @@ import request from 'supertest';
 import randomstring from 'randomstring';
 import { constants } from 'http2';
 import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
-import { genResetLinkApi } from '../test/testFixtures';
+import {
+  genNumber,
+  genResetLinkApi,
+  genUserAccountDTO,
+} from '../test/testFixtures';
 import fetchMock from 'jest-fetch-mock';
 import db from '../repositories/db';
 import {
@@ -15,6 +19,7 @@ import { usersTable } from '../repositories/userRepository';
 import bcrypt from 'bcryptjs';
 import { createServer } from '../server';
 import { withAccessToken } from '../test/testUtils';
+import { toUserAccountDTO } from '../models/UserApi';
 
 jest.mock('../services/ceremaService/mockCeremaService');
 
@@ -80,13 +85,83 @@ describe('Account controller', () => {
     });
   });
 
+  describe('Get account', () => {
+    const testRoute = '/api/account';
+
+    it('should be forbidden for a not authenticated user', async () => {
+      await request(app)
+        .get(testRoute)
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should retrieve the account', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).get(testRoute)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual(toUserAccountDTO(User1));
+    });
+  });
+
+  describe('Update account', () => {
+    const testRoute = '/api/account';
+
+    it('should be forbidden for a not authenticated user', async () => {
+      await request(app)
+        .put(testRoute)
+        .send(genUserAccountDTO)
+        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should receive valid account', async () => {
+      async function test(payload: Record<string, unknown>) {
+        const { status } = await withAccessToken(
+          request(app).put(testRoute).send(payload)
+        );
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await test({ ...genUserAccountDTO, firstName: genNumber() });
+      await test({ ...genUserAccountDTO, lastName: genNumber() });
+      await test({ ...genUserAccountDTO, phone: genNumber() });
+      await test({ ...genUserAccountDTO, position: genNumber() });
+      await test({ ...genUserAccountDTO, timePerWeek: genNumber() });
+    });
+
+    it('should succeed to change the account', async () => {
+      const userAccountDTO = genUserAccountDTO;
+      const { body, status } = await withAccessToken(
+        request(app).put(testRoute).send(userAccountDTO)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({});
+
+      await db(usersTable)
+        .where('id', User1.id)
+        .first()
+        .then((result) => {
+          expect(result).toEqual(
+            expect.objectContaining({
+              first_name: userAccountDTO.firstName,
+              last_name: userAccountDTO.lastName,
+              phone: userAccountDTO.phone,
+              position: userAccountDTO.position,
+              time_per_week: userAccountDTO.timePerWeek,
+            })
+          );
+        });
+    });
+  });
+
   describe('Update password', () => {
     const testRoute = '/api/account/password';
 
     it('should receive valid current and new passwords', async () => {
       async function test(payload: Record<string, unknown>) {
         const { status } = await withAccessToken(
-          request(app).post(testRoute).send(payload)
+          request(app).put(testRoute).send(payload)
         );
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       }
@@ -99,7 +174,7 @@ describe('Account controller', () => {
 
     it('should fail if the current password and the given one are different', async () => {
       const { status } = await withAccessToken(
-        request(app).post(testRoute).send({
+        request(app).put(testRoute).send({
           currentPassword: 'NotTheirCurrentPassword',
           newPassword: '123QWEasd',
         })
@@ -110,7 +185,7 @@ describe('Account controller', () => {
 
     it('should succeed to change the password', async () => {
       const { body, status } = await withAccessToken(
-        request(app).post(testRoute).send({
+        request(app).put(testRoute).send({
           currentPassword: User1.password,
           newPassword: '123QWEasd',
         })

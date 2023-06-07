@@ -15,6 +15,7 @@ import { userApi } from '../services/user.service';
 import { signupLinkApi } from '../services/signup-link.service';
 import { noteApi } from '../services/note.service';
 import { eventApi } from '../services/event.service';
+import { userAccountApi } from '../services/user-account.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -33,6 +34,7 @@ export const applicationReducer = {
   [noteApi.reducerPath]: noteApi.reducer,
   [signupLinkApi.reducerPath]: signupLinkApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
+  [userAccountApi.reducerPath]: userAccountApi.reducer,
 };
 
 export const applicationMiddlewares = [
@@ -43,6 +45,7 @@ export const applicationMiddlewares = [
   noteApi.middleware,
   signupLinkApi.middleware,
   userApi.middleware,
+  userAccountApi.middleware,
 ];
 
 export const store = configureStore({

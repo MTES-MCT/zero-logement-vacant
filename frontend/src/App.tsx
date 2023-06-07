@@ -37,6 +37,7 @@ import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
 import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
+import AccountView from './views/Account/AccountView';
 
 function AppWrapper() {
 
@@ -120,6 +121,7 @@ function App() {
               <Route exact path="*/territoire" component={EstablishmentView} />
               <Route exact path="/ressources" component={ResourcesView} />
               <Route exact path="/ressources/statuts" component={StatusView} />
+              <Route exact path="/compte" component={AccountView}/>
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
               <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
               <Route exact path="/utilisateurs" component={UserListView}/>

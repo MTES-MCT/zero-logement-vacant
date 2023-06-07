@@ -81,7 +81,10 @@ const UserListView = () => {
     ),
     sortable: true,
     sort: (u1: User, u2: User) =>
-      stringSort(u1.lastName + u1.firstName, u2.lastName + u2.firstName),
+      stringSort(
+        u1.lastName ?? '' + u1.firstName,
+        u2.lastName ?? '' + u2.firstName
+      ),
   };
 
   const emailColumn = {

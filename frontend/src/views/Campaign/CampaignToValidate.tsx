@@ -213,7 +213,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                       setRemovingId(undefined);
                     }}
                   >
-                    Êtes-vous sûr de vouloir supprimer
+                    Êtes-vous sûr de vouloir supprimer 
                     {pluralize(removingId ? 1 : selectedCount)('ce logement')}
                     de la campagne ?
                   </ConfirmationModal>

@@ -22,7 +22,6 @@ import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
 import AccessibilityView from './views/Accessibility/AccessibilityView';
-import MonitoringDetailView from './views/Monitoring/MonitoringDetailView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
@@ -117,7 +116,6 @@ function App() {
               <Route exact path="/ressources/statuts" component={StatusView}/>
               <Route exact path="/compte" component={AccountView}/>
               <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
-              <Route exact path="/suivi/etablissement/:establishmentId" component={MonitoringDetailView}/>
               <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>
               <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>
               <Route path="/*">

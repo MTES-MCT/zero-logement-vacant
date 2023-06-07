@@ -99,11 +99,13 @@
   .table-column-header {
     min-width: 150px;
   }
+
   td,
   th {
     text-align: center !important;
     display: block;
   }
+
   td > div {
     padding-right: 16px !important;
   }
@@ -158,33 +160,43 @@
 .bg-white {
   background-color: var(--white-1000) !important;
 }
+
 .bg-100 {
   background-color: var(--grey-975) !important;
 }
+
 .bg-900 {
   background-color: var(--grey-900) !important;
 }
+
 .bg-925 {
   background-color: var(--grey-925) !important;
 }
+
 .bg-950 {
   background-color: var(--grey-950) !important;
 }
+
 .bg-975 {
   background-color: var(--grey-975) !important;
 }
+
 .bg-bf113 {
   background-color: var(--blue-france-113);
 }
+
 .bg-bf925 {
   background-color: var(--blue-france-925) !important;
 }
+
 .bg-bf950 {
   background-color: var(--blue-france-950);
 }
+
 .bg-bf975 {
   background-color: var(--blue-france-975);
 }
+
 .bg-blue-cumulus-925 {
   background-color: var(--blue-cumulus-925);
 }
@@ -235,6 +247,10 @@
 
 .float-right {
   float: right;
+}
+
+.align-left {
+  text-align: left;
 }
 
 .align-center {
@@ -334,6 +350,7 @@ button.fr-select {
   & + div.status-label {
     margin-top: 8px;
   }
+
   & + span.status-label {
     margin-left: 8px;
   }

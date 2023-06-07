@@ -3,7 +3,6 @@ import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 import campaignReducer from './reducers/campaignReducer';
 import ownerReducer from './reducers/ownerReducer';
-import monitoringReducer from './reducers/monitoringReducer';
 import establishmentReducer from './reducers/establishmentReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
@@ -22,7 +21,6 @@ export const applicationReducer = {
   housing: housingReducer.reducer,
   campaign: campaignReducer.reducer,
   owner: ownerReducer.reducer,
-  monitoring: monitoringReducer.reducer,
   establishment: establishmentReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   settings: settingsReducer.reducer,

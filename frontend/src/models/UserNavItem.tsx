@@ -1,12 +1,7 @@
 export enum UserNavItems {
-  Dashboard,
   Campaign,
   HousingList,
-  User,
-  Monitoring,
-  EstablishmentMonitoring,
   Establishment,
-  Resources,
   EstablishmentHome,
   OwnerHome,
   Inbox,
@@ -22,28 +17,21 @@ export const getUserNavItem = (
   establishmentId?: string
 ): UserNavItem => {
   switch (userNavItem) {
-    case UserNavItems.Dashboard:
-      return { url: '/accueil', label: 'Accueil' };
     case UserNavItems.EstablishmentHome:
       return { url: '/collectivites', label: 'Collectivités' };
     case UserNavItems.OwnerHome:
       return { url: '/proprietaires', label: 'Propriétaires' };
     case UserNavItems.Campaign:
-      return { url: '/campagnes', label: 'Logements suivis' };
+      return { url: '/campagnes', label: 'Campagnes' };
     case UserNavItems.HousingList:
-      return { url: '/base-de-donnees', label: 'Base de données' };
+      return { url: '/parc-de-logements', label: 'Parc de logements' };
     case UserNavItems.Establishment:
-      return { url: '/territoire', label: 'Votre territoire' };
+      return {
+        url: '/informations-publiques',
+        label: 'Informations publiques',
+      };
     case UserNavItems.Inbox:
       return { url: '/boite-de-reception', label: 'Boite de réception' };
-    case UserNavItems.User:
-      return { url: '/utilisateurs', label: 'Utilisateurs' };
-    case UserNavItems.Monitoring:
-      return { url: '/suivi', label: 'Suivi' };
-    case UserNavItems.EstablishmentMonitoring:
-      return { url: `/suivi/etablissement/${establishmentId}`, label: 'Suivi' };
-    case UserNavItems.Resources:
-      return { url: '/ressources', label: 'Ressources' };
     default:
       return { url: '/', label: 'Accueil' };
   }

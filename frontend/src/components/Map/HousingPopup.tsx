@@ -1,4 +1,4 @@
-import { Button, Col, Icon, Row, Text } from '@dataesr/react-dsfr';
+import { Button, Col, Container, Icon, Row, Text } from '@dataesr/react-dsfr';
 import React, { useMemo, useState } from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
 
@@ -65,6 +65,10 @@ function HousingPopup(props: HousingPopupProps) {
     }
   }
 
+  const popupTitle = housing.owner.birthDate
+    ? `${housing.owner.fullName} ${age(housing.owner.birthDate)}`
+    : housing.owner.fullName;
+
   return (
     <Popup
       anchor="bottom"
@@ -107,36 +111,37 @@ function HousingPopup(props: HousingPopupProps) {
                   <>
                     <Icon
                       className="color-grey-625"
+                      iconPosition="left"
                       name="ri-user-fill"
                       size="lg"
-                      verticalAlign="middle"
                     />
                     <Text as="span" bold spacing="mb-0">
-                      {housing.owner.fullName} 
-                      {housing.owner.birthDate && age(housing.owner.birthDate)}
+                      {popupTitle}
                     </Text>
                   </>
                 }
                 content={
                   housing.owner.email || housing.owner.phone ? (
-                    <Row>
-                      <Col n="6">
-                        <Text className="zlv-label weight-400" size="sm">
-                          Adresse mail
-                        </Text>
-                        <Text className="weight-500" size="sm" spacing="mb-0">
-                          {housing.owner.email}
-                        </Text>
-                      </Col>
-                      <Col n="6">
-                        <Text className="zlv-label weight-400" size="sm">
-                          Numéro de téléphone
-                        </Text>
-                        <Text className="weight-500" size="sm" spacing="mb-0">
-                          {housing.owner.phone}
-                        </Text>
-                      </Col>
-                    </Row>
+                    <Container fluid spacing="px-2w pt-1w pb-2w">
+                      <Row>
+                        <Col n="6">
+                          <Text className="zlv-label weight-400" size="sm">
+                            Adresse mail
+                          </Text>
+                          <Text className="weight-500" size="sm" spacing="mb-0">
+                            {housing.owner.email}
+                          </Text>
+                        </Col>
+                        <Col n="6">
+                          <Text className="zlv-label weight-400" size="sm">
+                            Numéro de téléphone
+                          </Text>
+                          <Text className="weight-500" size="sm" spacing="mb-0">
+                            {housing.owner.phone}
+                          </Text>
+                        </Col>
+                      </Row>
+                    </Container>
                   ) : null
                 }
               />

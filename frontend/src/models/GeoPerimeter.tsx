@@ -1,12 +1,14 @@
-import { GeoJSON } from 'geojson';
+import { Geometry } from 'geojson';
 
 export interface GeoPerimeter {
   id: string;
   establishmentId: string;
   name: string;
   kind: string;
-  geoJson?: GeoJSON;
+  geoJson?: Geometry;
 }
+
+export type GeoPerimeterProperties = Omit<GeoPerimeter, 'geoJson'>;
 
 export const geoPerimeterOptions = (geoPerimeters?: GeoPerimeter[]) =>
   geoPerimeters

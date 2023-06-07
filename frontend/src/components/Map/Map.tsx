@@ -19,6 +19,9 @@ import {
   groupByBuilding,
   HousingByBuilding,
 } from '../../models/Building';
+import { GeoPerimeter } from '../../models/GeoPerimeter';
+import Perimeters from './Perimeters';
+import MapControls from './MapControls';
 
 const STYLE = {
   title: 'Carte',
@@ -27,6 +30,8 @@ const STYLE = {
 
 export interface MapProps {
   housingList?: Housing[];
+  perimeters?: GeoPerimeter[];
+  hasPerimetersFilter?: boolean;
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
@@ -53,7 +58,7 @@ function Map(props: MapProps) {
     props.onMove?.(event.viewState);
   }
 
-  const { housingMap } = useMap();
+  const { housingMap: map } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
   const housingList = useMemo<HousingWithCoordinates[]>(
@@ -74,8 +79,10 @@ function Map(props: MapProps) {
     [buildingsById]
   );
 
+  const perimeters = props.perimeters ?? [];
+  const [showPerimeters, setShowPerimeters] = useState(true);
+
   useEffect(() => {
-    const map = housingMap?.getMap();
     if (map && !map.hasImage('building')) {
       map.loadImage('/icons/building/building-4-fill.png', (error, image) => {
         if (image) {
@@ -83,7 +90,7 @@ function Map(props: MapProps) {
         }
       });
     }
-  }, [housingMap]);
+  }, [map]);
 
   function popUp(building: Building): void {
     setOpenPopups((state) => ({
@@ -123,15 +130,22 @@ function Map(props: MapProps) {
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {points.length && (
-        <Clusters
-          id="housing"
-          points={points}
-          map={housingMap}
-          onClick={popUp}
+      {perimeters.length > 0 && showPerimeters && (
+        <Perimeters
+          id="perimeters"
+          borderColor={props.hasPerimetersFilter ? '#f95c5e' : undefined}
+          perimeters={perimeters}
+          map={map}
         />
       )}
+      {points.length > 0 && (
+        <Clusters id="housing" points={points} map={map} onClick={popUp} />
+      )}
       {popups}
+      <MapControls
+        perimeters={showPerimeters}
+        onPerimetersChange={setShowPerimeters}
+      />
     </ReactiveMap>
   );
 }

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import {
   Alert,
   Button,
@@ -47,6 +46,9 @@ import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { Pagination } from '../../../../shared/models/Pagination';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { includeExcludeWith } from '../../utils/arrayUtils';
+import { GeoPerimeter } from '../../models/GeoPerimeter';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import classNames from 'classnames';
 import { displayCount } from '../../utils/stringUtils';
@@ -60,6 +62,7 @@ const HousingListView = () => {
   const { search } = useLocation();
   const { trackEvent } = useMatomo();
   const { onResetFilters, setExpand, filters } = useFilters();
+  const { data: perimeters } = useListGeoPerimetersQuery();
 
   const [view, setView] = useState<ViewMode>('list');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -76,6 +79,15 @@ const HousingListView = () => {
   }
 
   const { paginatedHousing } = useAppSelector((state) => state.housing);
+  const hasPerimetersFilter =
+    (filters.geoPerimetersIncluded ?? []).length > 0 ||
+    (filters.geoPerimetersExcluded ?? []).length > 0;
+
+  const filteredPerimeters = includeExcludeWith<GeoPerimeter, 'kind'>(
+    filters.geoPerimetersIncluded ?? [],
+    filters.geoPerimetersExcluded ?? [],
+    (perimeter) => perimeter.kind
+  )(perimeters ?? []);
 
   useEffect(() => {
     const query = new URLSearchParams(search).get('q');
@@ -294,6 +306,8 @@ const HousingListView = () => {
             {view === 'map' ? (
               <Map
                 housingList={paginatedHousing.entities}
+                perimeters={filteredPerimeters}
+                hasPerimetersFilter={hasPerimetersFilter}
                 onMove={onMove}
                 viewState={mapViewState}
               />

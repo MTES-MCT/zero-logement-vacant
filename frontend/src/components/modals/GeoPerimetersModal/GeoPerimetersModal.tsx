@@ -136,12 +136,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
   );
 
   return (
-    <Modal
-      size="lg"
-      isOpen={true}
-      hide={() => onClose()}
-      className="over-sidemenu modal-lg"
-    >
+    <Modal size="lg" isOpen={true} hide={() => onClose()} className="modal-lg">
       <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
         Fermer
       </ModalClose>

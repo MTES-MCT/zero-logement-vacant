@@ -61,7 +61,7 @@ const VacancyReasonsModal = ({
 
   return (
     <div>
-      <Modal isOpen hide={onClose} size="lg" className="over-sidemenu">
+      <Modal isOpen hide={onClose} size="lg">
         <ModalClose hide={onClose} title="Fermer la fenêtre">
           Fermer
         </ModalClose>

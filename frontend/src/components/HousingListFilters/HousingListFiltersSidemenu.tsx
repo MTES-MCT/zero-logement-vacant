@@ -54,6 +54,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
+import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 
 interface TitleWithIconProps {
   icon: string;
@@ -495,6 +496,9 @@ function HousingListFiltersSidemenu() {
                       }
                     }}
                   />
+                  <div className="float-right">
+                    <GeoPerimetersModalLink />
+                  </div>
                 </Col>
               </Row>
             </Container>

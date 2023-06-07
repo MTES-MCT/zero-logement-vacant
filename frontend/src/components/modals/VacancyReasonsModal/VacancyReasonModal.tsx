@@ -13,7 +13,6 @@ import {
 } from '@dataesr/react-dsfr';
 import React, { ChangeEvent, useState } from 'react';
 import { vacancyReasonsOptions } from '../../../models/HousingFilters';
-import styles from './vacancy-reason-modal.module.scss';
 import { SelectOption } from '../../../models/SelectOption';
 
 interface Props {
@@ -62,12 +61,7 @@ const VacancyReasonsModal = ({
 
   return (
     <div>
-      <Modal
-        isOpen
-        hide={onClose}
-        size="lg"
-        className={styles.vacancyReasonModal}
-      >
+      <Modal isOpen hide={onClose} size="lg">
         <ModalClose hide={onClose} title="Fermer la fenêtre">
           Fermer
         </ModalClose>

@@ -187,7 +187,8 @@ export const roomsCountOptions: SelectOption[] = [
   { value: '2', label: '2 pièces' },
   { value: '3', label: '3 pièces' },
   { value: '4', label: '4 pièces' },
-  { value: '5', label: '5 pièces et plus' },
+  { value: '5', label: '5 pièces', hidden: true },
+  { value: 'gt5', label: '5 pièces et plus' },
 ];
 
 export const cadastralClassificationOptions: SelectOption[] = [

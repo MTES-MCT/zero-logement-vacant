@@ -119,12 +119,8 @@ function AppHeader() {
 
   return (
     <>
-      <Header
-        closeButtonLabel="Fermer"
-        data-testid="header"
-        className={styles.header}
-      >
-        <HeaderBody>
+      <Header closeButtonLabel="Fermer" data-testid="header">
+        <HeaderBody className={styles.headerBody}>
           <Logo splitCharacter={10}>
             Ministère de la transition écologique et de la cohésion des
             territoires

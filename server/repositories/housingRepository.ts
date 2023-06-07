@@ -37,6 +37,8 @@ import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
 import _ from 'lodash';
+import validator from 'validator';
+import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -375,7 +377,10 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.roomsCounts?.indexOf('gt5') !== -1) {
           whereBuilder.orWhereRaw('rooms_count >= 5');
         }
-        whereBuilder.orWhereIn('rooms_count', filters.roomsCounts);
+        whereBuilder.orWhereIn(
+          'rooms_count',
+          filters.roomsCounts?.filter((_) => isNumeric(_))
+        );
       });
     }
     if (filters.cadastralClassifications?.length) {

@@ -56,6 +56,11 @@ export const fileValidator = (supportedFormats: string[]) =>
       (value) => value && supportedFormats.includes(value.type)
     );
 
+interface UseFormOptions {
+  dependencies?: React.DependencyList;
+  disableValidationOnTouch?: boolean;
+}
+
 type MessageType = 'error' | 'valid' | '';
 
 interface Message {
@@ -66,7 +71,7 @@ interface Message {
 export function useForm<
   T extends ObjectShape,
   U extends Record<keyof T, unknown>
->(schema: yup.ObjectSchema<T>, input: U) {
+>(schema: yup.ObjectSchema<T>, input: U, options?: UseFormOptions) {
   const [errors, setErrors] = useState<yup.ValidationError[]>();
   const [touchedKeys, setTouchedKeys] = useState<Array<keyof U>>([]);
 

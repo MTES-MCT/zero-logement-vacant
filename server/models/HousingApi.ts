@@ -22,7 +22,7 @@ export interface HousingRecordApi {
   taxed: boolean;
   vacancyReasons: string[];
   dataYears: number[];
-  buildingLocation?: string;
+  buildingLocation: string;
   ownershipKind?: OwnershipKindsApi;
   status?: HousingStatusApi;
   subStatus?: string;
@@ -102,40 +102,4 @@ export enum EnergyConsumptionGradesApi {
   E = 'E',
   F = 'F',
   G = 'G',
-}
-
-const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
-
-export function getBuildingLocation(housing: HousingApi) {
-  const buildingCharLength =
-    housing.buildingLocation?.length === 11
-      ? 2
-      : housing.buildingLocation?.length === 10
-      ? 1
-      : undefined;
-
-  if (
-    buildingCharLength !== undefined &&
-    housing.buildingLocation &&
-    housing.buildingLocation !== 'A010001001'
-  ) {
-    const BUILDING_REGEXP = new RegExp(
-      `([A-Z0-9]{1,${buildingCharLength}})([0-9]{2})([0-9]{2})([0-9]{5})`
-    );
-    const match = housing.buildingLocation.match(BUILDING_REGEXP);
-    if (match) {
-      const [building, entrance, level, local] = match.slice(1);
-      return {
-        building: `Bâtiment ${building}`,
-        entrance: `Entrée ${trimStartingZeros(entrance)}`,
-        level:
-          level === '00'
-            ? 'Rez-de-chaussée'
-            : level === '01'
-            ? '1er étage'
-            : `${trimStartingZeros(level)}ème étage`,
-        local: `Local ${trimStartingZeros(local)}`,
-      };
-    }
-  }
 }

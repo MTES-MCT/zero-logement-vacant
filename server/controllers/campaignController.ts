@@ -202,12 +202,10 @@ const createReminderCampaign = async (
     campaignBundle.campaignNumber
   );
 
-  const newCampaignApi = await campaignRepository.insert({
-    id: uuidv4(),
+  const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
     establishmentId,
     campaignNumber: campaignBundle.campaignNumber,
     kind,
-    title: campaignBundle.title,
     reminderNumber: lastReminderNumber + 1,
     filters: campaignBundle.filters,
     createdBy: userId,

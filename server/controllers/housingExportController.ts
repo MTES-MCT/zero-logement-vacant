@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
-import { getBuildingLocation, HousingApi } from '../models/HousingApi';
+import { HousingApi } from '../models/HousingApi';
 import campaignRepository from '../repositories/campaignRepository';
 import ExcelJS, { Workbook } from 'exceljs';
 import {
@@ -55,7 +55,7 @@ const exportHousingByCampaignBundle = async (
   });
 
   const fileName = campaignNumber
-    ? `${campaignApi.title}.xlsx`
+    ? `C${campaignApi.campaignNumber}.xlsx`
     : 'LogementSuivis.xlsx';
 
   await exportHousingList(
@@ -100,7 +100,7 @@ const exportHousingList = async (
     );
   }
   if (worksheets.includes('housing:complete')) {
-    addHousingCompleteWorksheet(
+    await addHousingCompleteWorksheet(
       workbook,
       housingList,
       housingAddresses,
@@ -237,7 +237,6 @@ const getHousingLightRow = (
     (_) => _.refId === housingApi.owner.id
   );
   const rawAddress = housingApi.owner.rawAddress;
-  const building = getBuildingLocation(housingApi);
   return {
     invariant: housingApi.invariant,
     cadastralReference: housingApi.cadastralReference,
@@ -255,15 +254,6 @@ const getHousingLightRow = (
     ownerAddressScore: ownerAddress?.score,
     housingRawAddress: reduceStringArray(housingApi.rawAddress),
     housingAddress: reduceAddressApi(housingAddress),
-    vacancyStartYear: housingApi.vacancyStartYear,
-    buildingLocation: building
-      ? [
-          building.building,
-          building.entrance,
-          building.level,
-          building.local,
-        ].join(', ')
-      : null,
   };
 };
 
@@ -305,8 +295,6 @@ const housingLightColumns = [
   },
   { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
   { header: 'Adresse BAN du logement', key: 'housingAddress' },
-  { header: 'Date de début de vacance', key: 'vacancyStartYear' },
-  { header: 'Emplacement du local', key: 'buildingLocation' },
 ];
 
 const addHousingLightWorksheet = (
@@ -326,7 +314,7 @@ const addHousingLightWorksheet = (
   });
 };
 
-const addHousingCompleteWorksheet = (
+const addHousingCompleteWorksheet = async (
   workbook: Workbook,
   housingList: HousingApi[],
   housingAddresses: AddressApi[],

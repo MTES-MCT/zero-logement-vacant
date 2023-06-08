@@ -872,7 +872,7 @@ interface HousingRecordDBO {
   taxed: boolean;
   vacancy_reasons: string[];
   data_years: number[];
-  building_location: string;
+  building_location?: string;
   ownership_kind?: OwnershipKindsApi;
   status?: HousingStatusApi;
   sub_status?: string;

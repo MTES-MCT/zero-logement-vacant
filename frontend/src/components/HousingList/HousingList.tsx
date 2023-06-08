@@ -20,7 +20,7 @@ import { PaginatedResult } from '../../models/PaginatedResult';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { CampaignNumberSort, campaignPartialName } from '../../models/Campaign';
+import { campaignFullName, CampaignNumberSort } from '../../models/Campaign';
 import _ from 'lodash';
 import {
   TrackEventActions,
@@ -225,9 +225,7 @@ const HousingList = ({
                 campaignList?.find((c) => c.id === campaignId)
               )
               .sort(CampaignNumberSort)
-              .map((campaign) =>
-                campaign ? campaignPartialName(campaign?.campaignNumber) : ''
-              )
+              .map((campaign) => (campaign ? campaignFullName(campaign) : ''))
           ).map((campaignName, campaignIdx) => (
             <div key={id + '-campaign-' + campaignIdx}>{campaignName}</div>
           ))}

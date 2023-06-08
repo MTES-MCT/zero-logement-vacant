@@ -100,9 +100,9 @@ const AccountForm = ({ user, userAccount }: Props) => {
           </Col>
           <Col n="12">
             <Help>
-              Pour changer d'adresse mail de connexion,
-              <b>rattachez votre nouvelle adresse mail</b> à votre structure via
-              le portail Consultdf puis
+              Pour changer d'adresse mail de connexion, 
+              <b>rattachez votre nouvelle adresse mail</b>  à votre structure
+              via le portail Consultdf puis 
               <b>créez un nouveau compte ZLV</b>  depuis la page d'accueil avec
               votre nouvelle adresse mail
             </Help>

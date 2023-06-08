@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';
@@ -56,11 +56,6 @@ export const fileValidator = (supportedFormats: string[]) =>
       (value) => value && supportedFormats.includes(value.type)
     );
 
-interface UseFormOptions {
-  dependencies?: React.DependencyList;
-  disableValidationOnTouch?: boolean;
-}
-
 type MessageType = 'error' | 'valid' | '';
 
 interface Message {
@@ -71,14 +66,16 @@ interface Message {
 export function useForm<
   T extends ObjectShape,
   U extends Record<keyof T, unknown>
->(schema: yup.ObjectSchema<T>, input: U, options?: UseFormOptions) {
-  const [errors, setErrors] = useState<yup.ValidationError>();
-  const [isTouched, setIsTouched] = useState(false);
+>(schema: yup.ObjectSchema<T>, input: U) {
+  const [errors, setErrors] = useState<yup.ValidationError[]>();
+  const [touchedKeys, setTouchedKeys] = useState<Array<keyof U>>([]);
+
+  const previousInput = useRef<U>();
 
   function error<K extends keyof U>(key?: K): yup.ValidationError | undefined {
-    return isTouched && key
-      ? errors?.inner.find((error) => error.path === key)
-      : errors;
+    return key && touchedKeys.includes(key)
+      ? errors?.find((error) => error && error.path === key)
+      : undefined;
   }
 
   /**
@@ -88,9 +85,9 @@ export function useForm<
   function errorList<K extends keyof U>(
     key?: K
   ): yup.ValidationError[] | undefined {
-    return isTouched && key
-      ? errors?.inner.filter((error) => error.path === key)
-      : errors?.inner;
+    return key && touchedKeys.includes(key)
+      ? errors?.filter((error) => error.path === key)
+      : undefined;
   }
 
   function hasError<K extends keyof U>(key?: K): boolean {
@@ -98,7 +95,7 @@ export function useForm<
   }
 
   function isValid(): boolean {
-    return isTouched && !hasError();
+    return !hasError();
   }
 
   function labels<K extends keyof U>(key?: K): string[] {
@@ -126,10 +123,6 @@ export function useForm<
    * @param key
    */
   function messageList<K extends keyof U>(key: K): Message[] {
-    if (!isTouched) {
-      return [];
-    }
-
     return labels(key).map((label) => {
       return {
         text: label,
@@ -141,7 +134,7 @@ export function useForm<
   }
 
   function messageType<K extends keyof U>(key: K): MessageType {
-    if (isTouched) {
+    if (touchedKeys.includes(key)) {
       if (hasError(key)) {
         return 'error';
       }
@@ -152,40 +145,48 @@ export function useForm<
 
   async function validate(onValid?: () => void) {
     try {
-      setIsTouched(true);
+      setTouchedKeys(Object.keys(schema.fields));
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
       onValid?.();
     } catch (errors) {
-      setErrors(errors as yup.ValidationError);
+      setErrors((errors as yup.ValidationError).inner);
+    }
+  }
+
+  async function validateAt<K extends keyof U>(key: K) {
+    setTouchedKeys([...touchedKeys.filter((_) => _ !== key), key]);
+    try {
+      await schema.validateSyncAt(String(key), input);
+      setErrors([...(errors ?? [])?.filter((error) => error.path !== key)]);
+    } catch (validationError) {
+      setErrors([
+        ...(errors ?? [])?.filter((error) => error.path !== key),
+        validationError as yup.ValidationError,
+      ]);
     }
   }
 
   useEffect(() => {
-    if (
-      (!options?.disableValidationOnTouch && isTouched) ||
-      options?.dependencies?.length
-    ) {
-      validate();
-    } else {
-      if (
-        !options?.disableValidationOnTouch &&
-        Object.values(input).some((value) => !!value)
-      ) {
-        setIsTouched(true);
-        validate();
-      }
-    }
+    Object.entries(input)
+      .filter(([k1, v1]) =>
+        Object.entries(previousInput.current || {}).find(
+          ([k2, v2]) => k1 === k2 && v1 !== v2
+        )
+      )
+      .filter(([key, _]) => touchedKeys.includes(key))
+      .forEach(([key, _]) => validateAt(key));
+    previousInput.current = input;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...Object.values(input), ...(options?.dependencies ?? [])]);
+  }, [...Object.values(input)]);
 
   return {
-    isTouched,
     isValid,
     hasError,
     messageList,
     message,
     messageType,
     validate,
+    validateAt,
   };
 }

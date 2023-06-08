@@ -38,7 +38,7 @@
     "@types/jest": "^28.1.8",
     "@types/node": "^16.18.31",
     "@types/react": "^18.2.6",
-    "@types/react-dom": "^18.0.9",
+    "@types/react-dom": "^18.2.4",
     "@types/react-router-dom": "^5.3.3",
     "date-fns": "^2.29.3",
     "fetch-intercept": "^2.4.0",

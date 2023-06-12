@@ -14,7 +14,7 @@ function MapControls(props: Props) {
     <Container as="section" className={styles.controls} fluid>
       <ExtendedToggle
         checked={props.perimeters}
-        label="Afficher les périmètres"
+        label="Afficher vos périmètres déposés"
         onChange={props.onPerimetersChange}
       />
     </Container>

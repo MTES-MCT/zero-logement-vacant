@@ -67,6 +67,7 @@ const HousingListView = () => {
   const { data: perimeters } = useListGeoPerimetersQuery();
 
   const [view, setView] = useState<ViewMode>('list');
+  const [viewLoaded, setViewLoaded] = useState<ViewMode>('list');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [noHousingAlert, setNoHousingAlert] = useState(false);
   const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({
@@ -111,6 +112,12 @@ const HousingListView = () => {
           };
     dispatch(changeHousingPagination(pagination));
   }, [dispatch, view, paginatedHousing.page, paginatedHousing.perPage]);
+
+  useEffect(() => {
+    if (!paginatedHousing.loading) {
+      setViewLoaded(view);
+    }
+  }, [paginatedHousing.loading]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const create = () => {
     trackEvent({
@@ -315,72 +322,75 @@ const HousingListView = () => {
               )}
             </Text>
 
-            {view === 'map' ? (
-              <Map
-                housingList={paginatedHousing.entities}
-                perimeters={filteredPerimeters}
-                hasPerimetersFilter={hasPerimetersFilter}
-                onMove={onMove}
-                viewState={mapViewState}
-              />
-            ) : (
-              paginatedHousing.filteredCount > 0 &&
-              !paginatedHousing.loading && (
-                <HousingList
-                  paginatedHousing={paginatedHousing}
-                  onChangePagination={(page, perPage) =>
-                    dispatch(changeHousingPagination({ page, perPage }))
-                  }
-                  filters={filters}
-                  displayKind={HousingDisplayKey.Housing}
-                  onSelectHousing={onSelectHousing}
-                  onSort={onSort}
-                >
-                  <SelectableListHeader
-                    entity="logement"
-                    default={
-                      <Help className="fr-my-2w fr-py-2w">
-                        <b>Sélectionnez</b> les logements que vous souhaitez
-                        cibler, puis cliquez sur <b>Créer la campagne</b>.
-                      </Help>
-                    }
-                  >
-                    <SelectableListHeaderActions>
-                      {paginatedHousing.filteredCount > 0 && (
-                        <Row justifyContent="right">
-                          <Button
-                            title="Créer la campagne"
-                            onClick={() => create()}
-                            data-testid="create-campaign-button"
-                          >
-                            Créer la campagne
-                          </Button>
-                          {isCreateModalOpen && (
-                            <CampaignCreationModal
-                              housingCount={selectedHousingCount(
-                                selectedHousing,
-                                paginatedHousing.filteredCount
+            {view === viewLoaded && (
+              <>
+                {view === 'map' ? (
+                  <Map
+                    housingList={paginatedHousing.entities}
+                    perimeters={filteredPerimeters}
+                    hasPerimetersFilter={hasPerimetersFilter}
+                    onMove={onMove}
+                    viewState={mapViewState}
+                  />
+                ) : (
+                  paginatedHousing.filteredCount > 0 && (
+                    <HousingList
+                      paginatedHousing={paginatedHousing}
+                      onChangePagination={(page, perPage) =>
+                        dispatch(changeHousingPagination({ page, perPage }))
+                      }
+                      filters={filters}
+                      displayKind={HousingDisplayKey.Housing}
+                      onSelectHousing={onSelectHousing}
+                      onSort={onSort}
+                    >
+                      <SelectableListHeader
+                        entity="logement"
+                        default={
+                          <Help className="fr-my-2w fr-py-2w">
+                            <b>Sélectionnez</b> les logements que vous souhaitez
+                            cibler, puis cliquez sur <b>Créer la campagne</b>.
+                          </Help>
+                        }
+                      >
+                        <SelectableListHeaderActions>
+                          {paginatedHousing.filteredCount > 0 && (
+                            <Row justifyContent="right">
+                              <Button
+                                title="Créer la campagne"
+                                onClick={() => create()}
+                                data-testid="create-campaign-button"
+                              >
+                                Créer la campagne
+                              </Button>
+                              {isCreateModalOpen && (
+                                <CampaignCreationModal
+                                  housingCount={selectedHousingCount(
+                                    selectedHousing,
+                                    paginatedHousing.filteredCount
+                                  )}
+                                  filters={filters}
+                                  housingExcudedCount={
+                                    paginatedHousing.filteredCount -
+                                    selectedHousingCount(
+                                      selectedHousing,
+                                      paginatedHousing.filteredCount
+                                    )
+                                  }
+                                  onSubmit={(campaignTitle?: string) =>
+                                    onSubmitCampaignCreation(campaignTitle)
+                                  }
+                                  onClose={() => setIsCreateModalOpen(false)}
+                                />
                               )}
-                              filters={filters}
-                              housingExcudedCount={
-                                paginatedHousing.filteredCount -
-                                selectedHousingCount(
-                                  selectedHousing,
-                                  paginatedHousing.filteredCount
-                                )
-                              }
-                              onSubmit={(campaignTitle?: string) =>
-                                onSubmitCampaignCreation(campaignTitle)
-                              }
-                              onClose={() => setIsCreateModalOpen(false)}
-                            />
+                            </Row>
                           )}
-                        </Row>
-                      )}
-                    </SelectableListHeaderActions>
-                  </SelectableListHeader>
-                </HousingList>
-              )
+                        </SelectableListHeaderActions>
+                      </SelectableListHeader>
+                    </HousingList>
+                  )
+                )}
+              </>
             )}
           </>
         )}

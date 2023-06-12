@@ -151,6 +151,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
               setPosition(e.target.value)
             }
             label="Poste"
+            placeholder="Ex : Chargé Habitat"
             messageType={messageType('position')}
             message={message('position')}
           />

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Container, Row, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Tabs, Text, Title } from '@dataesr/react-dsfr';
 import Tab from '../../components/Tab/Tab';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -17,13 +17,17 @@ const EstablishmentView = () => {
     <Container as="main" fluid>
       <Container as="article" className="bg-100" fluid>
         <Container as="header" spacing="py-4w">
-          <Title as="h1">Informations publiques</Title>
-          <Text size="lead" className="subtitle">
-            Renseignez les informations de votre territoire pour alimenter votre
-            page publique ! Cela permettra d’orienter les propriétaires vers vos
-            guichets de contact locaux et de communiquer sur l’existence de
-            taxes sur la vacance.
-          </Text>
+          <Row>
+            <Col n="10">
+              <Title as="h1">Informations publiques</Title>
+              <Text size="lead" className="subtitle">
+                Renseignez les informations de votre territoire pour alimenter
+                votre page publique ! Cela permettra d’orienter les
+                propriétaires vers vos guichets de contact locaux et de
+                communiquer sur l’existence de taxes sur la vacance.
+              </Text>
+            </Col>
+          </Row>
         </Container>
       </Container>
       {establishment && (

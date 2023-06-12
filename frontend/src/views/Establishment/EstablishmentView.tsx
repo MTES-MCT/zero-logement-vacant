@@ -38,9 +38,9 @@ const EstablishmentView = () => {
                 Référencement de vos informations locales
               </Title>
               <Text>
-                Les informations que vous renseignez ici pourront être publié
+                Les informations que vous renseignez ici pourront être publiées
                 sur votre page publique. Il est donc important de remplir des
-                informations fiables et compréhensible.
+                informations fiables et compréhensibles.
               </Text>
               <Tabs>
                 <Tab label="Vos guichets contact" className="bg-white">

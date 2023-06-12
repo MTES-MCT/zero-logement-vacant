@@ -58,16 +58,12 @@ function AppFooter() {
             Parc de logements
           </FooterInternalLink>
           <FooterInternalLink href="/campagnes">Campagnes</FooterInternalLink>
-          <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
           <FooterInternalLink href="/informations-publiques">
             Informations publiques
           </FooterInternalLink>
-          <FooterInternalLink href="/utilisateurs">
-            Utilisateurs
-          </FooterInternalLink>
-          <FooterInternalLink href="/boite-de-reception">
-            Messagerie
-          </FooterInternalLink>
+          <FooterInternalLink href="/compte">Profil</FooterInternalLink>
+          <FooterInternalLink href="/messagerie">Messagerie</FooterInternalLink>
+          <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
         </FooterTopCategory>
       </FooterTop>
       <FooterBody description="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée.">

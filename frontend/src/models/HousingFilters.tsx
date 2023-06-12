@@ -397,11 +397,7 @@ export const vacancyReasonsOptions: {
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(
-    ([k, v]) =>
-      k !== 'dataYearsIncluded' &&
-      v !== undefined &&
-      v !== null &&
-      (v as any[]).length > 0
+    ([_, v]) => v !== undefined && v !== null && (v as any[]).length > 0
   ).length;
 };
 export const hasFilters = (housingFilters: HousingFilters) => {

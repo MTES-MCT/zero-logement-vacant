@@ -30,8 +30,9 @@ const STYLE = {
 
 export interface MapProps {
   housingList?: Housing[];
-  perimeters?: GeoPerimeter[];
   hasPerimetersFilter?: boolean;
+  includedPerimeters?: GeoPerimeter[];
+  excludedPerimeters?: GeoPerimeter[];
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
@@ -79,7 +80,8 @@ function Map(props: MapProps) {
     [buildingsById]
   );
 
-  const perimeters = props.perimeters ?? [];
+  const includedPerimeters = props.includedPerimeters ?? [];
+  const excludedPerimeters = props.excludedPerimeters ?? [];
   const [showPerimeters, setShowPerimeters] = useState(true);
 
   useEffect(() => {
@@ -130,11 +132,21 @@ function Map(props: MapProps) {
       style={{ minHeight: '600px' }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {perimeters.length > 0 && showPerimeters && (
+      {includedPerimeters.length > 0 && showPerimeters && (
         <Perimeters
-          id="perimeters"
-          borderColor={props.hasPerimetersFilter ? '#f95c5e' : undefined}
-          perimeters={perimeters}
+          id="included-perimeters"
+          backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
+          borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
+          perimeters={includedPerimeters}
+          map={map}
+        />
+      )}
+      {excludedPerimeters.length > 0 && showPerimeters && (
+        <Perimeters
+          id="excluded-perimeters"
+          backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
+          borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
+          perimeters={excludedPerimeters}
           map={map}
         />
       )}

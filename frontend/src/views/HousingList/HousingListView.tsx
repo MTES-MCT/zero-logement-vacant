@@ -49,10 +49,10 @@ import { Pagination } from '../../../../shared/models/Pagination';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import classNames from 'classnames';
 import { displayCount } from '../../utils/stringUtils';
-import { filterCount } from '../../models/HousingFilters';
+import { filterCount, hasPerimetersFilter } from '../../models/HousingFilters';
 import GeoPerimetersModalLink from '../../components/modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import { includeExcludeWith } from '../../utils/arrayUtils';
+import { excludeWith, includeExcludeWith } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import { HousingPaginatedResult } from '../../models/PaginatedResult';
 
@@ -82,13 +82,15 @@ const HousingListView = () => {
   }
 
   const { paginatedHousing } = useAppSelector((state) => state.housing);
-  const hasPerimetersFilter =
-    (filters.geoPerimetersIncluded ?? []).length > 0 ||
-    (filters.geoPerimetersExcluded ?? []).length > 0;
 
-  const filteredPerimeters = includeExcludeWith<GeoPerimeter, 'kind'>(
+  const includedPerimeters = includeExcludeWith<GeoPerimeter, 'kind'>(
     filters.geoPerimetersIncluded ?? [],
     filters.geoPerimetersExcluded ?? [],
+    (perimeter) => perimeter.kind
+  )(perimeters ?? []);
+  // Get all the perimeters minus the included ones
+  const excludedPerimeters = excludeWith<GeoPerimeter, 'kind'>(
+    includedPerimeters.map((perimeter) => perimeter.kind),
     (perimeter) => perimeter.kind
   )(perimeters ?? []);
 
@@ -327,8 +329,9 @@ const HousingListView = () => {
                 {view === 'map' ? (
                   <Map
                     housingList={paginatedHousing.entities}
-                    perimeters={filteredPerimeters}
-                    hasPerimetersFilter={hasPerimetersFilter}
+                    hasPerimetersFilter={hasPerimetersFilter(filters)}
+                includedPerimeters={includedPerimeters}
+                excludedPerimeters={excludedPerimeters}
                     onMove={onMove}
                     viewState={mapViewState}
                   />

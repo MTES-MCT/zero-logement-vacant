@@ -12,6 +12,7 @@ interface Props {
   id: string;
   map?: MapRef;
   perimeters: GeoPerimeter[];
+  backgroundColor?: string;
   borderColor?: string;
 }
 
@@ -38,17 +39,18 @@ function Perimeters(props: Props) {
   return (
     <Source id={props.id} type="geojson" data={perimeters}>
       <Layer
-        id="perimeter-polygons"
+        id={`${props.id}-perimeter-polygons`}
         type="fill"
         paint={{
-          'fill-color': 'rgba(227, 227, 253, 0.51)',
+          'fill-color': props.backgroundColor ?? '#f6f6f6',
+          'fill-opacity': 0.51,
         }}
       />
       <Layer
-        id="outline"
+        id={`${props.id}-outline`}
         type="line"
         paint={{
-          'line-color': props.borderColor ?? '#6a6af4',
+          'line-color': props.borderColor ?? '#000091',
           'line-width': 2,
         }}
       />

@@ -411,3 +411,10 @@ export const unselectedOptions = (
   options.filter(
     (option: { value: any }) => !selectedValues?.includes(option.value)
   );
+
+export function hasPerimetersFilter(filters: HousingFilters): boolean {
+  return (
+    (filters.geoPerimetersIncluded ?? []).length > 0 ||
+    (filters.geoPerimetersExcluded ?? []).length > 0
+  );
+}

@@ -43,7 +43,9 @@ const OwnerProspectForm = ({
       .oneOf([true], 'Veuillez accepter les conditions générales.'),
   };
 
-  const input = {
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     address,
     invariant,
     firstName,
@@ -52,9 +54,7 @@ const OwnerProspectForm = ({
     phone,
     notes,
     agreement,
-  };
-
-  const form = useForm(yup.object().shape(shape), input);
+  });
 
   const submitForm = async () => {
     await form.validate(() =>
@@ -108,7 +108,7 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             value={invariant}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setInvariant(e.target.value)
@@ -122,7 +122,7 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             value={lastName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setLastName(e.target.value)
@@ -134,7 +134,7 @@ const OwnerProspectForm = ({
           />
         </Col>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             value={firstName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setFirstName(e.target.value)
@@ -148,7 +148,7 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -159,7 +159,7 @@ const OwnerProspectForm = ({
           />
         </Col>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             inputForm={form}
@@ -171,7 +171,7 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <AppTextInput<typeof shape>
+          <AppTextInput<FormShape>
             textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

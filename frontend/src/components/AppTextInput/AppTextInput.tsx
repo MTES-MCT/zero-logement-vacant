@@ -8,17 +8,18 @@ type AppTextInputProps<T extends ObjectShape> = ComponentPropsWithoutRef<
 > & {
   inputForm: ReturnType<typeof useForm>;
   inputKey: keyof T;
+  whenValid?: string;
 };
 
 function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
-  const { inputKey, inputForm, ...textInputProps } = props;
+  const { inputKey, inputForm, whenValid, ...textInputProps } = props;
 
   return (
     <TextInput
       {...textInputProps}
       onBlur={() => inputForm.validateAt(String(inputKey))}
       messageType={inputForm.messageType(String(inputKey))}
-      message={inputForm.message(String(inputKey))}
+      message={inputForm.message(String(inputKey), whenValid)}
     />
   );
 }

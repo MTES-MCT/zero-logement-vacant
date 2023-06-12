@@ -42,7 +42,6 @@ const OwnerProspectForm = ({
       .boolean()
       .oneOf([true], 'Veuillez accepter les conditions générales.'),
   };
-
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {

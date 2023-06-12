@@ -9,7 +9,6 @@ import {
   ModalTitle,
   Row,
   Text,
-  TextInput,
 } from '@dataesr/react-dsfr';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
 
@@ -17,6 +16,7 @@ import * as yup from 'yup';
 import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
 import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 interface Props {
   housingCount: number;
@@ -36,29 +36,19 @@ const CampaignCreationModal = ({
   isReminder,
 }: Props) => {
   const [campaignTitle, setCampaignTitle] = useState('');
-  const schema = yup.object().shape(
-    isReminder
-      ? {}
-      : {
-          campaignTitle: campaignTitleValidator,
-        }
-  );
-  const { isValid, message, messageType, validate } = useForm(
-    schema,
-    isReminder
-      ? {}
-      : {
-          campaignTitle,
-        },
-    isReminder ? { dependencies: [isReminder] } : undefined
-  );
+  const shape = {
+    campaignTitle: isReminder
+      ? yup.string().nullable()
+      : campaignTitleValidator,
+  };
+  type FormShape = typeof shape;
 
-  const create = () => {
-    validate().then(() => {
-      if (isValid()) {
-        onSubmit(campaignTitle);
-      }
-    });
+  const form = useForm(yup.object().shape(shape), {
+    campaignTitle,
+  });
+
+  const create = async () => {
+    await form.validate(() => onSubmit(campaignTitle));
   };
 
   return (
@@ -83,15 +73,15 @@ const CampaignCreationModal = ({
           {!isReminder && (
             <Row gutters>
               <Col n="6">
-                <TextInput
+                <AppTextInput<FormShape>
                   value={campaignTitle}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setCampaignTitle(e.target.value)
                   }
                   label="Titre de la campagne"
-                  placeholder="Titre de la campagne"
-                  message={message('campaignTitle')}
-                  messageType={messageType('campaignTitle')}
+                  placeholder="Titre de la campagne (obligatoire)"
+                  inputForm={form}
+                  inputKey="campaignTitle"
                   required
                   data-testid="campaign-title-input"
                 />

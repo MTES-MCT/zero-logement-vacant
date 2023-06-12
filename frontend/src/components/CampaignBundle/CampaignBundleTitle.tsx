@@ -9,7 +9,6 @@ import {
   ModalTitle,
   Row,
   Text,
-  TextInput,
   Title,
 } from '@dataesr/react-dsfr';
 import {
@@ -30,6 +29,7 @@ import Help from '../Help/Help';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
+import AppTextInput from '../AppTextInput/AppTextInput';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -46,30 +46,30 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
   const [campaignTitle, setCampaignTitle] = useState(
     campaignBundle.title ?? ''
   );
-  const schema = yup.object().shape({
+  const shape = {
     campaignTitle: campaignTitleValidator,
-  });
-  const { isValid, message, messageType, validate } = useForm(schema, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     campaignTitle,
   });
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const submitTitle = () => {
-    validate().then(() => {
-      if (isValid()) {
-        trackEvent({
-          category: TrackEventCategories.Campaigns,
-          action: TrackEventActions.Campaigns.Rename,
-        });
-        dispatch(
-          updateCampaignBundleTitle(
-            campaignBundle as CampaignBundleId,
-            campaignTitle
-          )
-        );
-        setIsModalOpen(false);
-      }
+  const submitTitle = async () => {
+    await form.validate(() => {
+      trackEvent({
+        category: TrackEventCategories.Campaigns,
+        action: TrackEventActions.Campaigns.Rename,
+      });
+      dispatch(
+        updateCampaignBundleTitle(
+          campaignBundle as CampaignBundleId,
+          campaignTitle
+        )
+      );
+      setIsModalOpen(false);
     });
   };
 
@@ -114,15 +114,15 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
           <Container as="section" fluid>
             <Row gutters>
               <Col n="10">
-                <TextInput
+                <AppTextInput<FormShape>
                   value={campaignTitle}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setCampaignTitle(e.target.value)
                   }
-                  label="Titre de la campagne"
+                  label="Titre de la campagne (obligatoire)"
                   placeholder="Titre de la campagne"
-                  message={message('campaignTitle')}
-                  messageType={messageType('campaignTitle')}
+                  inputForm={form}
+                  inputKey="campaignTitle"
                   required
                 />
               </Col>

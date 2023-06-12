@@ -98,6 +98,20 @@ function AppHeader() {
     location.pathname
   );
 
+  function click(event: React.MouseEvent): void {
+    const isExternalLink = (url: string): boolean =>
+      new URL(url).host !== window.location.host;
+
+    // Hack to deny dataesr/react-dsfr from using event.preventDefault
+    if (event.defaultPrevented && event.target instanceof HTMLAnchorElement) {
+      const link = event.target.href;
+
+      if (isExternalLink(link)) {
+        window.open(link, '_blank');
+      }
+    }
+  }
+
   return (
     <>
       <Header closeButtonLabel="Fermer" data-testid="header">
@@ -136,7 +150,7 @@ function AppHeader() {
           {isAuthenticated ? (
             <Tool>
               <ToolItemGroup>
-                <ToolItem as="div" className="fr-ml-2w">
+                <ToolItem as="div" className="fr-ml-2w" onClick={click}>
                   <Collapse
                     icon="ri-user-fill"
                     dropdown

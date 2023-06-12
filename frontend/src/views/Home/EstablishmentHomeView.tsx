@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
+import hands_mail from '../../assets/images/hands-mail.svg';
 import new_message from '../../assets/images/new_message.svg';
 import people_search from '../../assets/images/people_search.svg';
 import sync_files from '../../assets/images/sync_files.svg';
@@ -104,6 +105,23 @@ const EstablishmentHomeView = () => {
                 jusqu’à la sortie de vacance du logement.
               </Text>
             </Col>
+          </Row>
+          <Row justifyContent="center" gutters spacing="mt-2w">
+            <Button
+              onClick={() => {
+                trackEvent({
+                  category: TrackEventCategories.Home,
+                  action: TrackEventActions.Home.Webinar,
+                });
+                window.open(
+                  'https://calendly.com/julie_guittard/webinaire-de-presentation-zlv',
+                  '_blank',
+                  'noopener'
+                );
+              }}
+            >
+              Participer à un webinaire de présentation
+            </Button>
           </Row>
         </Container>
       </div>
@@ -270,22 +288,52 @@ const EstablishmentHomeView = () => {
               <img src={logo_vire_normandie} width="100%" alt="" />
             </Col>
           </Row>
-          <Row gutters justifyContent="center" className="fr-pt-2w">
-            <InternalLink
-              className="internal-link--btn"
-              onClick={() =>
-                trackEvent({
-                  category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Join,
-                })
-              }
-              to="/inscription"
-            >
-              <Button>Rejoindre la communauté</Button>
-            </InternalLink>
-          </Row>
         </Container>
       </div>
+      <Container as="section" spacing="py-7w mb-4w">
+        <Row gutters>
+          <Col n="3" className="align-center">
+            <img
+              src={hands_mail}
+              style={{ maxWidth: '100%', height: '100%' }}
+              alt=""
+            />
+          </Col>
+          <Col n="6">
+            <Text
+              size="lead"
+              bold
+              className="color-bf925-active"
+              spacing="mb-1w"
+            >
+              LA NEWSLETTER
+            </Text>
+            <Text size="lead" bold>
+              Découvrez chaque mois les nouvelles 
+              <span className="color-bf525">fonctionnalités</span>, des 
+              <span className="color-bf525">retours d'expériences</span>  de
+              collectivités, 
+              <span className="color-bf525">les actualités</span> de la lutte
+              contre la vacance.
+            </Text>
+            <Button
+              onClick={() => {
+                trackEvent({
+                  category: TrackEventCategories.Home,
+                  action: TrackEventActions.Home.Newsletter,
+                });
+                window.open(
+                  'https://890e031e.sibforms.com/serve/MUIEAOyQXgbbxeoLBFC_8fPLahr5i4-KkyF8EICd8AXv5i6NZwxkoUr19wL6NiGJmx7oxh3RxaIpLw4JA0ZDBsgjS1hABUiZm1m9hgKzFVCwmc6yxEO9yV3y2XlZ-esfbxBWPX7nKMTjfORZ7UQMNcM5bSK4gfnNYzC4hYTKBMItk6YhL0sCci7EVICIrpJw1Xli7zM1VGcry_0L',
+                  '_blank',
+                  'noopener'
+                );
+              }}
+            >
+              S'inscrire
+            </Button>
+          </Col>
+        </Row>
+      </Container>
     </>
   );
 };

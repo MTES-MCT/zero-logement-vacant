@@ -18,6 +18,8 @@ export const TrackEventActions = {
     Join: 'Rejoindre la communauté',
     Rectify: 'Rectifier la situation',
     SelectAddress: "Sélection d'une adresse",
+    Webinar: 'Redirection inscription webinaire',
+    Newsletter: 'Redirection inscription newsletter',
   },
   Dashboard: {
     QuickSearch: 'Recherche rapide',

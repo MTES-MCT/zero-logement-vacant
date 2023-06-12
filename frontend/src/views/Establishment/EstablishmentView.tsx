@@ -16,16 +16,13 @@ const EstablishmentView = () => {
   return (
     <Container as="main" fluid>
       <Container as="article" className="bg-100" fluid>
-        <Container as="main" spacing="py-4w">
+        <Container as="header" spacing="py-4w">
           <Title as="h1">Informations publiques</Title>
           <Text size="lead" className="subtitle">
-            Ici vous trouverez des chiffres clés sur votre parc et votre
-            activité, pourrez alimenter les aides et gérer vos périmètres
-            géographiques.
-          </Text>
-          <Text size="lead" className="subtitle">
-            Vous pourrez également publier une page publique pour partager
-            directement avec les propriétaires de logements vacants.
+            Renseignez les informations de votre territoire pour alimenter votre
+            page publique ! Cela permettra d’orienter les propriétaires vers vos
+            guichets de contact locaux et de communiquer sur l’existence de
+            taxes sur la vacance.
           </Text>
         </Container>
       </Container>
@@ -34,12 +31,12 @@ const EstablishmentView = () => {
           <Container as="main">
             <Row spacing="mb-2w">
               <Title as="h2" look="h3">
-                Vos informations territoire
+                Référencement de vos informations locales
               </Title>
               <Text>
-                Toutes les informations que vous renseignez ici pourront être
-                publié sur votre page publique. Il est donc important de remplir
-                des informations fiables et compréhensible.
+                Les informations que vous renseignez ici pourront être publié
+                sur votre page publique. Il est donc important de remplir des
+                informations fiables et compréhensible.
               </Text>
               <Tabs>
                 <Tab label="Vos guichets contact" className="bg-white">

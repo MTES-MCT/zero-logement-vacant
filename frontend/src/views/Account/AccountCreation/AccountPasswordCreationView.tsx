@@ -110,6 +110,7 @@ function AccountPasswordCreationView() {
           onChange={(e) => setPassword(e.target.value)}
           inputForm={form}
           inputKey="password"
+          label="Créer votre mot de passe"
           hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
           required
         />

@@ -1,8 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { PaginatedResult } from '../models/PaginatedResult';
 import { DraftUser, User } from '../models/User';
-import { UserFilters } from '../models/UserFilters';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { parseISO } from 'date-fns';
 
@@ -27,34 +25,6 @@ export const userApi = createApi({
             ]
           : [],
     }),
-    listUsers: builder.query<
-      PaginatedResult<User>,
-      {
-        filters: UserFilters;
-        page: number;
-        perPage: number;
-      }
-    >({
-      query: ({ filters, page, perPage }) => ({
-        url: '',
-        method: 'POST',
-        body: { filters, page, perPage },
-      }),
-      transformResponse: (response: PaginatedResult<User>) => ({
-        ...response,
-        entities: response.entities.map((e: any) => parseUser(e)),
-      }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.entities.map(({ id }) => ({
-                type: 'User' as const,
-                id,
-              })),
-              { type: 'User', id: 'PARTIAL-LIST' },
-            ]
-          : [{ type: 'User', id: 'PARTIAL-LIST' }],
-    }),
     createUser: builder.mutation<User, DraftUser>({
       query: (draftUser) => ({
         url: 'creation',
@@ -63,16 +33,6 @@ export const userApi = createApi({
       }),
       transformResponse: (response) => parseUser(response),
       invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST' }],
-    }),
-    removeUser: builder.mutation<void, string>({
-      query: (userId) => ({
-        url: userId,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (result, error, userId) => [
-        { type: 'User', userId },
-        { type: 'User', id: 'PARTIAL-LIST' },
-      ],
     }),
   }),
 });
@@ -83,9 +43,4 @@ const parseUser = (u: any): User =>
     activatedAt: parseISO(u.activatedAt),
   } as User);
 
-export const {
-  useGetUserQuery,
-  useListUsersQuery,
-  useCreateUserMutation,
-  useRemoveUserMutation,
-} = userApi;
+export const { useGetUserQuery, useCreateUserMutation } = userApi;

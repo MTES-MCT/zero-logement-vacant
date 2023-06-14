@@ -30,21 +30,6 @@ const logout = (): void => {
   localStorage.removeItem('authUser');
 };
 
-const changePassword = async (currentPassword: string, newPassword: string) => {
-  return fetch(`${config.apiEndpoint}/api/account/password`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ currentPassword, newPassword }),
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error('Password change failed');
-    }
-  });
-};
-
 const resetPassword = async (key: string, password: string) => {
   const response = await fetch(
     `${config.apiEndpoint}/api/account/reset-password`,
@@ -107,7 +92,6 @@ const withAuthHeader = (headers?: Headers) => {
 const authService = {
   login,
   logout,
-  changePassword,
   resetPassword,
   authHeader,
   withAuthHeader,

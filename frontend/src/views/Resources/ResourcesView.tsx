@@ -5,11 +5,11 @@ import {
   Container,
   Icon,
   Row,
+  Text,
   Tile,
   TileBody,
   Title,
 } from '@dataesr/react-dsfr';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './resources.module.scss';
@@ -51,16 +51,21 @@ const ResourceTile = ({
 };
 
 const ResourcesView = () => {
-  useDocumentTitle('Centre de ressources');
+  useDocumentTitle('Ressources');
 
   return (
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Col n="8">
-              <Title as="h1">Centre de ressources</Title>
+              <Title as="h1">Ressources</Title>
+              <Text size="lead" className="subtitle">
+                Parcourez les différentes rubriques pour trouver les
+                informations et documents utiles dans votre stratégie de lutte
+                contre la vacance. Retrouvez également en bas de cette page les
+                trois étapes clés pour prendre en main ZLV !
+              </Text>
             </Col>
           </Row>
         </Container>
@@ -69,7 +74,7 @@ const ResourcesView = () => {
         <Row gutters>
           <Col n="6">
             <ResourceTile
-              title="Ressources"
+              title="Documentation"
               linkHref="https://zlv.notion.site/Ressources-fe11627749a34b10820a6e663f607226"
               icon="ri-folder-5-fill"
               iconStyle={styles.iconResource}

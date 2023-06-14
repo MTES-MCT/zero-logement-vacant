@@ -6,7 +6,6 @@ import campaignController from '../controllers/campaignController';
 import eventController from '../controllers/eventController';
 import userController from '../controllers/userController';
 import accountController from '../controllers/accountController';
-import monitoringController from '../controllers/monitoringController';
 import geoController from '../controllers/geoController';
 import validator from '../middlewares/validator';
 import contactPointController from '../controllers/contactPointController';
@@ -60,16 +59,12 @@ router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.v
 router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
 router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 
-router.post('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
+router.get('/account', [], validator.validate, accountController.get);
+router.put('/account', accountController.updateAccountValidators, validator.validate, accountController.updateAccount);
+router.put('/account/password', accountController.updatePasswordValidators, validator.validate, accountController.updatePassword);
 router.get('/account/establishments/:establishmentId', [isUUIDParam('establishmentId')], validator.validate, accountController.changeEstablishment);
 
 router.get('/users/:userId', [isUUIDParam('userId')], validator.validate, userController.get);
-router.post('/users', userController.list);
-router.delete('/users/:userId', userController.userIdValidator, validator.validate, userController.removeUser);
-
-router.post('/monitoring/establishments/data', monitoringController.listEstablishmentData);
-router.post('/monitoring/housing/status/count', monitoringController.housingByStatusCount);
-router.post('/monitoring/export', monitoringController.exportMonitoring);
 
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
 router.post('/geo/perimeters', geoController.createGeoPerimeter);

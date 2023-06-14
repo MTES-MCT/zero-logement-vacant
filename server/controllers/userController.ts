@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
-import { UserFiltersApi } from '../models/UserFiltersApi';
-import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
+import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import {
   CampaignIntent,
@@ -126,76 +125,12 @@ const get = async (request: Request, response: Response): Promise<Response> => {
   return response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
 };
 
-const list = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('List users');
-
-  const page = request.body.page;
-  const perPage = request.body.perPage;
-  const role = (request as AuthenticatedRequest).user.role;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
-  const bodyFilters = <UserFiltersApi>request.body.filters ?? {};
-
-  const filters = {
-    ...bodyFilters,
-    establishmentIds:
-      role === UserRoles.Admin
-        ? bodyFilters.establishmentIds
-        : [establishmentId],
-  };
-
-  const paginatedUsers = await userRepository.listWithFilters(
-    filters,
-    role === UserRoles.Admin ? {} : { establishmentIds: [establishmentId] },
-    { paginate: true, page, perPage }
-  );
-
-  return response.status(constants.HTTP_STATUS_OK).json({
-    ...paginatedUsers,
-    entities: paginatedUsers.entities.map((_) => toUserDTO(_)),
-  });
-};
-
-const removeUser = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    console.log('Remove user');
-
-    const role = (request as AuthenticatedRequest).user.role;
-    if (role !== UserRoles.Admin) {
-      return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
-    }
-
-    const { userId } = request.params;
-    const user = await userRepository.get(userId);
-
-    if (!user) {
-      console.log('User not found for id', userId);
-      return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-    }
-
-    await userRepository.remove(user.id);
-
-    response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
   createUserValidators,
   createUser,
   get,
-  list,
-  removeUser,
   userIdValidator,
 };
 

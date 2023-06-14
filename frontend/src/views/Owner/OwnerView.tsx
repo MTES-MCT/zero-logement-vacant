@@ -4,7 +4,6 @@ import styles from './owner.module.scss';
 import { update } from '../../store/actions/ownerAction';
 import { Owner } from '../../models/Owner';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { useOwner } from '../../hooks/useOwner';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard';
@@ -63,9 +62,6 @@ const OwnerView = () => {
             onSubmitAboutHousing={submitHousingNote}
           />
         )}
-        <Row>
-          <AppBreadcrumb />
-        </Row>
         <Row alignItems="top" gutters spacing="mt-3w mb-0">
           <Col n="4">
             <OwnerCard owner={owner} />

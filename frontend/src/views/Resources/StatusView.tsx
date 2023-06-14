@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Alert, Col, Container, Row, Title } from '@dataesr/react-dsfr';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import { HousingStates, HousingStatus } from '../../models/HousingState';
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -24,7 +23,6 @@ const StatusView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Col n="8">
               <Title as="h1">Arborescence des statuts</Title>

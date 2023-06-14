@@ -1,5 +1,5 @@
 import { HousingStatusApi } from '../HousingStatusApi';
-import { HousingApi } from '../HousingApi';
+import { getBuildingLocation, HousingApi } from '../HousingApi';
 import { genHousingApi } from '../../test/testFixtures';
 
 describe('HousingApi', () => {
@@ -27,5 +27,23 @@ describe('HousingApi', () => {
         expect(actual).toBe(expected);
       }
     );
+  });
+
+  describe('getBuildingLocation', () => {
+    it('should parse a building location', () => {
+      const housing: HousingApi = {
+        ...genHousingApi(),
+        buildingLocation: 'B010002002',
+      };
+
+      const actual = getBuildingLocation(housing);
+
+      expect(actual).toStrictEqual({
+        building: 'Bâtiment B',
+        entrance: 'Entrée 1',
+        level: 'Rez-de-chaussée',
+        local: 'Local 2002',
+      });
+    });
   });
 });

@@ -13,7 +13,6 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 
 import styles from './app-footer.module.scss';
-import { useUser } from '../../hooks/useUser';
 
 type FooterLinkProps = ComponentPropsWithoutRef<typeof FooterLink>;
 
@@ -31,8 +30,6 @@ function AppFooter() {
   function FooterExternalLink(props: FooterLinkProps) {
     return <FooterLink {...props} className={styles.link} />;
   }
-
-  const authUser = useUser();
 
   return (
     <Footer>
@@ -57,32 +54,16 @@ function AppFooter() {
           </FooterExternalLink>
         </FooterTopCategory>
         <FooterTopCategory title="Navigation" n="4">
-          <FooterInternalLink href="/accueil">Accueil</FooterInternalLink>
-          <FooterInternalLink href="/campagnes">
-            Logements suivis
+          <FooterInternalLink href="/parc-de-logements">
+            Parc de logements
           </FooterInternalLink>
-          <FooterInternalLink href="/base-de-donnees">
-            Base de données
+          <FooterInternalLink href="/campagnes">Campagnes</FooterInternalLink>
+          <FooterInternalLink href="/informations-publiques">
+            Informations publiques
           </FooterInternalLink>
+          <FooterInternalLink href="/compte">Profil</FooterInternalLink>
+          <FooterInternalLink href="/messagerie">Messagerie</FooterInternalLink>
           <FooterInternalLink href="/ressources">Ressources</FooterInternalLink>
-          <FooterInternalLink href="/territoire">
-            Votre territoire
-          </FooterInternalLink>
-          <FooterInternalLink href="/utilisateurs">
-            Utilisateurs
-          </FooterInternalLink>
-          <FooterInternalLink
-            href={
-              authUser.isAdmin
-                ? '/suivi'
-                : `/suivi/etablissement/${authUser.establishment?.id}`
-            }
-          >
-            Suivi
-          </FooterInternalLink>
-          <FooterInternalLink href="/boite-de-reception">
-            Boite de réception
-          </FooterInternalLink>
         </FooterTopCategory>
       </FooterTop>
       <FooterBody description="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée.">

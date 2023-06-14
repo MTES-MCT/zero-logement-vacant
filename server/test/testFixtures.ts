@@ -33,6 +33,7 @@ import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
+import { UserAccountDTO } from '../../shared/models/UserDTO';
 
 const randomstring = require('randomstring');
 
@@ -106,7 +107,16 @@ export const genUserApi = (establishmentId: string) => {
     establishmentId,
     role: UserRoles.Usual,
     activatedAt: new Date(),
+    ...genUserAccountDTO,
   };
+};
+
+export const genUserAccountDTO: UserAccountDTO = {
+  firstName: randomstring.generate(),
+  lastName: randomstring.generate(),
+  phone: randomstring.generate(),
+  position: randomstring.generate(),
+  timePerWeek: randomstring.generate(),
 };
 
 export const genProspectApi = (establishment: EstablishmentApi) => {

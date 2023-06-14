@@ -13,8 +13,10 @@ import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
 import InternalLink from '../../components/InternalLink/InternalLink';
 import { getEstablishmentUrl } from '../../models/Establishment';
 import styles from './inbox-view.module.scss';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function InboxView() {
+  useDocumentTitle('Messagerie');
   const [selected, setSelected] = useState<string>();
   const dispatch = useAppDispatch();
   const establishment = useAppSelector(
@@ -83,7 +85,7 @@ function InboxView() {
             .
           </>
         }
-        title="Boite de réception"
+        title="Messagerie"
       />
       <Container as="article" spacing="py-4w">
         <InboxMessageList

@@ -120,33 +120,20 @@ const list = async (request: Request, response: Response) => {
       ? filters.establishmentIds
       : [establishmentId];
 
-  const housing: PaginatedResultApi<HousingApi> = pagination.paginate
-    ? await housingRepository.paginatedListWithFilters(
-        {
-          ...filters,
-          establishmentIds,
-        },
-        {
-          ...filtersForTotalCount,
-          establishmentIds,
-        },
-        pagination.page,
-        pagination.perPage,
-        sort
-      )
-    : await housingRepository
-        .listWithFilters({
-          ...filters,
-          establishmentIds,
-        })
-        .then((housing) => ({
-          entities: housing,
-          page: 1,
-          perPage: housing.length,
-          filteredCount: housing.length,
-          // Wrong but not used
-          totalCount: housing.length,
-        }));
+  const housing: PaginatedResultApi<HousingApi> =
+    await housingRepository.paginatedListWithFilters(
+      {
+        ...filters,
+        establishmentIds,
+      },
+      {
+        ...filtersForTotalCount,
+        establishmentIds,
+      },
+      pagination,
+      sort
+    );
+
   response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 

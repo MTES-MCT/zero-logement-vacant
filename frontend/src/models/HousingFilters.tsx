@@ -187,7 +187,8 @@ export const roomsCountOptions: SelectOption[] = [
   { value: '2', label: '2 pièces' },
   { value: '3', label: '3 pièces' },
   { value: '4', label: '4 pièces' },
-  { value: '5', label: '5 pièces et plus' },
+  { value: '5', label: '5 pièces', hidden: true },
+  { value: 'gt5', label: '5 pièces et plus' },
 ];
 
 export const cadastralClassificationOptions: SelectOption[] = [
@@ -394,36 +395,15 @@ export const vacancyReasonsOptions: {
   },
 ];
 
-export const hasFilters = (housingFilters: HousingFilters) => {
-  return Boolean(
-    housingFilters.ownerKinds?.length ||
-      housingFilters.ownerAges?.length ||
-      housingFilters.multiOwners?.length ||
-      housingFilters.beneficiaryCounts?.length ||
-      housingFilters.housingKinds?.length ||
-      housingFilters.cadastralClassifications?.length ||
-      housingFilters.housingAreas?.length ||
-      housingFilters.roomsCounts?.length ||
-      housingFilters.buildingPeriods?.length ||
-      housingFilters.vacancyDurations?.length ||
-      housingFilters.isTaxedValues?.length ||
-      housingFilters.ownershipKinds?.length ||
-      housingFilters.housingCounts?.length ||
-      housingFilters.vacancyRates?.length ||
-      housingFilters.campaignsCounts?.length ||
-      housingFilters.campaignIds?.length ||
-      housingFilters.localities?.length ||
-      housingFilters.localityKinds?.length ||
-      housingFilters.geoPerimetersIncluded?.length ||
-      housingFilters.geoPerimetersExcluded?.length ||
-      housingFilters.dataYearsIncluded?.length ||
-      housingFilters.dataYearsExcluded?.length ||
-      housingFilters.query?.length ||
-      housingFilters.energyConsumption?.length ||
-      housingFilters.energyConsumptionWorst?.length ||
-      housingFilters.occupancies?.length
-  );
+export const filterCount = (housingFilters: HousingFilters) => {
+  return Object.entries(housingFilters).filter(
+    ([_, v]) => v !== undefined && v !== null && (v as any[]).length > 0
+  ).length;
 };
+export const hasFilters = (housingFilters: HousingFilters) => {
+  return filterCount(housingFilters) > 0;
+};
+
 export const unselectedOptions = (
   options: SelectOption[],
   selectedValues?: string[]
@@ -431,3 +411,10 @@ export const unselectedOptions = (
   options.filter(
     (option: { value: any }) => !selectedValues?.includes(option.value)
   );
+
+export function hasPerimetersFilter(filters: HousingFilters): boolean {
+  return (
+    (filters.geoPerimetersIncluded ?? []).length > 0 ||
+    (filters.geoPerimetersExcluded ?? []).length > 0
+  );
+}

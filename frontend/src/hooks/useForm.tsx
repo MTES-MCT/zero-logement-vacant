@@ -150,18 +150,22 @@ export function useForm<
     return '';
   }
 
-  async function validate() {
+  async function validate(onValid?: () => void) {
     try {
       setIsTouched(true);
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
+      onValid?.();
     } catch (errors) {
       setErrors(errors as yup.ValidationError);
     }
   }
 
   useEffect(() => {
-    if (isTouched || options?.dependencies?.length) {
+    if (
+      (!options?.disableValidationOnTouch && isTouched) ||
+      options?.dependencies?.length
+    ) {
       validate();
     } else {
       if (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import HousingListView from './HousingListView';
@@ -28,16 +28,6 @@ jest.mock('../../components/Aside/Aside.tsx');
 describe('housing view', () => {
   const user = userEvent.setup();
   let store = appStore;
-
-  function setup() {
-    render(
-      <Provider store={store}>
-        <Router history={createMemoryHistory()}>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
-  }
 
   const defaultFetchMock = (request: Request) => {
     return Promise.resolve(
@@ -68,21 +58,7 @@ describe('housing view', () => {
     });
   });
 
-  test('should only show owner filters initially', async () => {
-    fetchMock.mockResponse(defaultFetchMock);
-    setup();
-
-    const favoriteFilters = await screen.findByText(
-      'Filtres les plus utilisés'
-    );
-    expect(favoriteFilters).toBeVisible();
-
-    const allFilters = await screen.findByText('Tous les filtres');
-    // Visibility: hidden does not work correctly in jest-dom
-    expect(allFilters.clientWidth).toBe(0);
-  });
-
-  test('should enable to show and hide additional filters', async () => {
+  test('should show filters side menu', async () => {
     fetchMock.mockResponse(defaultFetchMock);
     render(
       <Provider store={store}>
@@ -92,11 +68,11 @@ describe('housing view', () => {
       </Provider>
     );
 
-    const seeAllFilters = await screen.findByText(/Voir tous les filtres/);
-    await user.click(seeAllFilters);
+    const seeFilters = await screen.findByTestId('filter-button');
+    await user.click(seeFilters);
 
-    const additionalFilters = await screen.findByText('Tous les filtres');
-    expect(additionalFilters).toBeVisible();
+    const filters = await screen.findByText('Tous les filtres');
+    expect(filters).toBeVisible();
   });
 
   test('should filter', async () => {
@@ -110,8 +86,14 @@ describe('housing view', () => {
       </Provider>
     );
 
-    const ownerKindInput = await screen.findByLabelText('Type de propriétaire');
+    const seeFilters = await screen.findByTestId('filter-button');
+    await user.click(seeFilters);
+
+    const ownerFilters = await screen.findByTestId('ownerkind-filter');
+
+    const ownerKindInput = await within(ownerFilters).findByText(/Type/);
     await user.click(ownerKindInput);
+
     const ownerKindCheckboxes = await screen.findAllByLabelText(
       ownerKindOptions[0].label
     );
@@ -199,7 +181,7 @@ describe('housing view', () => {
     );
   });
 
-  test('should display an alert message on creating campaign if no housing are selected', async () => {
+  test('should not display the button to create campaign if no housing are selected', async () => {
     const housing = genHousing();
     const campaign = genCampaign();
     const paginated = genPaginatedResult([housing]);
@@ -226,14 +208,9 @@ describe('housing view', () => {
       </Provider>
     );
 
-    const createCampaignButton = await screen.findByTestId(
-      'create-campaign-button'
-    );
+    const createCampaignButton = screen.queryByTestId('create-campaign-button');
 
-    await user.click(createCampaignButton);
-
-    const noHousingAlert = screen.getByTestId('no-housing-alert');
-    expect(noHousingAlert).toBeInTheDocument();
+    expect(createCampaignButton).not.toBeInTheDocument();
   });
 
   test('should enable the creation of the campaign when at least a housing is selected', async () => {
@@ -262,10 +239,6 @@ describe('housing view', () => {
         </Router>
       </Provider>
     );
-
-    const createCampaignButton = await screen.findByTestId(
-      'create-campaign-button'
-    );
     const housing1Element = await screen.findByTestId(
       'housing-check-' + housing.id
     );
@@ -275,6 +248,10 @@ describe('housing view', () => {
     ) as HTMLInputElement;
 
     await user.click(housing1CheckboxElement);
+
+    const createCampaignButton = await screen.findByTestId(
+      'create-campaign-button'
+    );
     await user.click(createCampaignButton);
 
     const campaignCreationModal = screen.getByTestId('campaign-creation-modal');

@@ -12,14 +12,13 @@ import {
   Title,
 } from '@dataesr/react-dsfr';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
-import AppBreadcrumb from '../../components/AppBreadcrumb/AppBreadcrumb';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import InternalLink from '../../components/InternalLink/InternalLink';
 
 const CampaignsListView = () => {
-  useDocumentTitle('Logements suivis');
+  useDocumentTitle('Campagnes');
   const dispatch = useAppDispatch();
   const { campaignBundle: inProgressCampaignBundle } = useAppSelector(
     (state) => state.campaign
@@ -33,10 +32,9 @@ const CampaignsListView = () => {
     <>
       <div className="bg-100">
         <Container as="section" spacing="py-4w">
-          <AppBreadcrumb />
           <Row>
             <Title as="h1" className="fr-mb-4w">
-              Logements suivis
+              Campagnes
             </Title>
           </Row>
           <Row>
@@ -78,14 +76,14 @@ const CampaignsListView = () => {
           <Col>
             <Callout hasInfoIcon={false} className="fr-mr-4w">
               <CalloutTitle as="h3">
-                Vous souhaitez créer une nouvelle campagne ?
+                Vous souhaitez créer une nouvelle campagne ?
               </CalloutTitle>
               <CalloutText as="p">
                 Vous pouvez également en créer une nouvelle directement dans une
                 campagne existante (pour une relance par exemple)
               </CalloutText>
               <InternalLink
-                to="/base-de-donnees?campagne=true"
+                to="/parc-de-logements?campagne=true"
                 className="fr-btn--md fr-btn fr-btn--secondary"
               >
                 Créer votre nouvelle campagne
@@ -95,7 +93,7 @@ const CampaignsListView = () => {
           <Col>
             <Callout hasInfoIcon={false} className="fr-ml-4w">
               <CalloutTitle as="h3">
-                Vous souhaitez concevoir des courriers plus percutants ?
+                Vous souhaitez concevoir des courriers plus percutants ?
               </CalloutTitle>
               <CalloutText as="p">
                 Accédez à nos modèles de courriers et ceux envoyés par les

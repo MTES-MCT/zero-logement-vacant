@@ -39,14 +39,11 @@ function ContactPointPublicPage({ establishment }: Props) {
         <Col n="9" spacing="pl-4w">
           <Title as="h5">Page publique de {establishment.name}</Title>
           <Text>
-            Cette page publique sert à communiquer les informations relatives la
-            vacance sur votre territoire. Elle permettra aux propriétaires de
-            logements vacants de se renseigner sur les coordonnées... Pour cela
-            il est nécessaire que les informations sur les pages
-            <Text as="span" bold>
-               informations territoire 
-            </Text>
-            soient mises à jour et lisibles.
+            Cette page publique sert à communiquer auprès des propriétaires les
+            informations relatives à la lutte contre la vacance sur votre
+            territoire. Elle permet aux propriétaires de se renseigner et de
+            prendre contact avec vous à travers un formulaire. Les réponses à ce
+            formulaire sont lisibles dans votre boîte de réception ZLV.
           </Text>
           <Row>
             <Col n="6">
@@ -57,7 +54,7 @@ function ContactPointPublicPage({ establishment }: Props) {
                 <Icon name="ri-file-copy-line" iconPosition="left" size="1x" />
                 {clipboard.copied ? 'Copié !' : 'Copier le lien'}
               </Button>
-              <Link href={link} className="fr-btn">
+              <Link href={link} className="fr-btn" target="_blank">
                 <Icon name="ri-eye-fill" iconPosition="left" size="1x" />
                 S’y rendre
               </Link>

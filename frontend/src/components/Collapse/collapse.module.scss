@@ -1,31 +1,70 @@
 .article {
-  background-color: var(--grey-975);
-  padding: 0.5rem;
+  $background-color: var(--grey-975);
+
+  line-height: initial;
+  width: 350px;
+  text-align: left;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: $background-color;
+
+    &.clickable {
+      cursor: pointer;
+    }
+
+    &.clickable:hover {
+      background-color: var(--grey-950);
+    }
+
+    .headerLeft {
+      display: inline-flex;
+      align-items: center;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+
+  .content {
+    height: 0;
+    visibility: hidden;
+  }
+
+  &:not(.hidden) {
+    .header {
+      border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .content {
+      height: auto;
+      visibility: visible;
+      background-color: $background-color;
+      border-radius: 0 0 0.5rem 0.5rem;
+    }
+  }
 }
 
-.header {
-  display: flex;
-  flex-direction: row;
-  overflow-x: hidden;
-}
+.dropdown {
+  position: relative;
 
-.clickable {
-  cursor: pointer;
-}
+  .content {
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    margin-top: 0.5rem;
+    white-space: nowrap;
+  }
 
-.content:not(.hidden) {
-  margin-top: 0.5rem;
-  white-space: nowrap;
-}
-
-.hidden {
-  height: 0;
-  visibility: hidden;
-}
-
-.title {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  &:not(.hidden) {
+    .header {
+      border-radius: 0.5rem;
+    }
+  }
 }

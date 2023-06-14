@@ -16,7 +16,7 @@ import ownerRepository, {
   OwnerDBO,
   ownerTable,
 } from './ownerRepository';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
 import {
   HousingFiltersApi,
   HousingFiltersForTotalCountApi,
@@ -32,11 +32,17 @@ import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
-import { paginationQuery } from '../models/PaginationApi';
+import {
+  isPaginationEnable,
+  PaginationApi,
+  paginationQuery,
+} from '../models/PaginationApi';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
 import _ from 'lodash';
+import validator from 'validator';
+import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
 export const buildingTable = 'buildings';
@@ -375,7 +381,10 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         if (filters.roomsCounts?.indexOf('gt5') !== -1) {
           whereBuilder.orWhereRaw('rooms_count >= 5');
         }
-        whereBuilder.orWhereIn('rooms_count', filters.roomsCounts);
+        whereBuilder.orWhereIn(
+          'rooms_count',
+          filters.roomsCounts?.filter((_) => isNumeric(_))
+        );
       });
     }
     if (filters.cadastralClassifications?.length) {
@@ -651,10 +660,9 @@ const stream = (): Highland.Stream<HousingApi> => {
 const paginatedListWithFilters = async (
   filters: HousingFiltersApi,
   filtersForTotalCount: HousingFiltersForTotalCountApi,
-  page: number,
-  perPage: number,
+  pagination?: PaginationApi,
   sort?: HousingSortApi
-): Promise<PaginatedResultApi<HousingApi>> => {
+): Promise<HousingPaginatedResultApi> => {
   const filterQuery = listQuery(filters.establishmentIds).modify(
     filteredQuery(filters)
   );
@@ -678,23 +686,20 @@ const paginatedListWithFilters = async (
   }
 
   return Promise.all([
-    filterQuery.modify(
-      paginationQuery({
-        paginate: true,
-        page,
-        perPage,
-      })
-    ),
+    filterQuery.modify(paginationQuery(pagination)),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),
   ]).then(
-    ([results, filteredCount, totalCount]) =>
-      <PaginatedResultApi<HousingApi>>{
+    ([results, filteredCounts, totalCounts]) =>
+      <HousingPaginatedResultApi>{
         entities: results.map((result: any) => parseHousingApi(result)),
-        filteredCount,
-        totalCount,
-        page,
-        perPage,
+        filteredCount: filteredCounts.housingCount,
+        filteredOwnerCount: filteredCounts.ownerCount,
+        totalCount: totalCounts.housingCount,
+        page: isPaginationEnable(pagination) ? pagination.page : undefined,
+        perPage: isPaginationEnable(pagination)
+          ? pagination.perPage
+          : undefined,
       }
   );
 };
@@ -720,10 +725,11 @@ function whereVacant(year: number = ReferenceDataYear) {
 
 const countWithFilters = async (
   filters: HousingFiltersApi
-): Promise<number> => {
+): Promise<{ housingCount: number; ownerCount: number }> => {
   try {
     return db(housingTable)
-      .countDistinct(`${housingTable}.id`)
+      .countDistinct(`${housingTable}.id as housing_count`)
+      .countDistinct(`o.id as owner_count`)
       .join(ownersHousingTable, ownersHousingJoinClause)
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
       .leftJoin(
@@ -746,7 +752,10 @@ const countWithFilters = async (
         filters.establishmentIds ?? []
       )
       .modify(filteredQuery(filters))
-      .then((_) => Number(_[0].count));
+      .then((_) => ({
+        housingCount: Number(_[0].housing_count),
+        ownerCount: Number(_[0].owner_count),
+      }));
   } catch (err) {
     console.error('Listing housing failed', err);
     throw new Error('Listing housing failed');
@@ -863,7 +872,7 @@ interface HousingRecordDBO {
   taxed: boolean;
   vacancy_reasons: string[];
   data_years: number[];
-  building_location: string;
+  building_location?: string;
   ownership_kind?: OwnershipKindsApi;
   status?: HousingStatusApi;
   sub_status?: string;

@@ -3,7 +3,6 @@ import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 import campaignReducer from './reducers/campaignReducer';
 import ownerReducer from './reducers/ownerReducer';
-import monitoringReducer from './reducers/monitoringReducer';
 import establishmentReducer from './reducers/establishmentReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
@@ -15,13 +14,13 @@ import { userApi } from '../services/user.service';
 import { signupLinkApi } from '../services/signup-link.service';
 import { noteApi } from '../services/note.service';
 import { eventApi } from '../services/event.service';
+import { userAccountApi } from '../services/user-account.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
   campaign: campaignReducer.reducer,
   owner: ownerReducer.reducer,
-  monitoring: monitoringReducer.reducer,
   establishment: establishmentReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   settings: settingsReducer.reducer,
@@ -33,6 +32,7 @@ export const applicationReducer = {
   [noteApi.reducerPath]: noteApi.reducer,
   [signupLinkApi.reducerPath]: signupLinkApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
+  [userAccountApi.reducerPath]: userAccountApi.reducer,
 };
 
 export const applicationMiddlewares = [
@@ -43,6 +43,7 @@ export const applicationMiddlewares = [
   noteApi.middleware,
   signupLinkApi.middleware,
   userApi.middleware,
+  userAccountApi.middleware,
 ];
 
 export const store = configureStore({

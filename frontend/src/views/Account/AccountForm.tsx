@@ -8,6 +8,7 @@ import InternalLink from '../../components/InternalLink/InternalLink';
 import { useUpdateUserAccountMutation } from '../../services/user-account.service';
 import Alert from '../../components/Alert/Alert';
 import { User, UserAccount } from '../../models/User';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 interface Props {
   user: User;
@@ -26,25 +27,22 @@ const AccountForm = ({ user, userAccount }: Props) => {
   const [position, setPosition] = useState(userAccount.position ?? '');
   const [timePerWeek, setTimePerWeek] = useState(userAccount.timePerWeek ?? '');
 
-  const schema = yup.object().shape({
+  const shape = {
     firstName: yup.string(),
     lastName: yup.string(),
     phone: yup.string(),
     position: yup.string(),
     timePerWeek: yup.string(),
-  });
+  };
+  type FormShape = typeof shape;
 
-  const { message, messageType, validate } = useForm(
-    schema,
-    {
-      firstName,
-      lastName,
-      phone,
-      position,
-      timePerWeek,
-    },
-    { disableValidationOnTouch: true }
-  );
+  const form = useForm(yup.object().shape(shape), {
+    firstName,
+    lastName,
+    phone,
+    position,
+    timePerWeek,
+  });
 
   const timePerWeekOptions: SelectOption[] = [
     DefaultOption,
@@ -58,7 +56,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
   ];
 
   const submit = async () => {
-    await validate(() =>
+    await form.validate(() =>
       updateUserAccount({
         firstName,
         lastName,
@@ -111,49 +109,49 @@ const AccountForm = ({ user, userAccount }: Props) => {
       </div>
       <Row gutters spacing="pt-3w">
         <Col n="6">
-          <TextInput
+          <AppTextInput<FormShape>
             value={firstName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setFirstName(e.target.value)
             }
             label="Prénom"
-            messageType={messageType('firstName')}
-            message={message('firstName')}
+            inputForm={form}
+            inputKey="firstName"
           />
         </Col>
         <Col n="6">
-          <TextInput
+          <AppTextInput<FormShape>
             value={lastName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setLastName(e.target.value)
             }
             label="Nom"
-            messageType={messageType('lastName')}
-            message={message('lastName')}
+            inputForm={form}
+            inputKey="lastName"
           />
         </Col>
         <Col n="6">
-          <TextInput
+          <AppTextInput<FormShape>
             value={phone}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setPhone(e.target.value)
             }
             label="Téléphone"
-            messageType={messageType('phone')}
-            message={message('phone')}
+            inputForm={form}
+            inputKey="phone"
           />
         </Col>
         <Col n="6"></Col>
         <Col n="6">
-          <TextInput
+          <AppTextInput<FormShape>
             value={position}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setPosition(e.target.value)
             }
             label="Poste"
             placeholder="Ex : Chargé Habitat"
-            messageType={messageType('position')}
-            message={message('position')}
+            inputForm={form}
+            inputKey="position"
           />
         </Col>
         <Col n="6">
@@ -161,8 +159,8 @@ const AccountForm = ({ user, userAccount }: Props) => {
             label="Temps par semaine dédié à la vacance"
             options={timePerWeekOptions}
             selected={timePerWeek}
-            messageType={messageType('timePerWeek') as 'valid' | 'error'}
-            message={message('timePerWeek')}
+            messageType={form.messageType('timePerWeek') as 'valid' | 'error'}
+            message={form.message('timePerWeek')}
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
               setTimePerWeek(e.target.value)
             }

@@ -7,7 +7,6 @@ import {
   ModalFooter,
   ModalTitle,
   Select,
-  TextInput,
 } from '@dataesr/react-dsfr';
 import { useMemo, useState } from 'react';
 import * as yup from 'yup';
@@ -19,6 +18,7 @@ import { DefaultOption, Separator } from '../../../models/SelectOption';
 import AppMultiSelect from '../../AppMultiSelect/AppMultiSelect';
 import { Owner } from '../../../models/Owner';
 import { HousingNoteCreation, OwnerNoteCreation } from '../../../models/Note';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 interface HousingNoteModalProps {
   housingList: Housing[];
@@ -88,7 +88,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
     })),
   ];
 
-  const schema = yup.object().shape({
+  const shape = {
     title: yup.string().required('Veuillez donner un titre à votre note'),
     content: yup.string().required('Veuillez ajouter une note'),
     contactKind: yup
@@ -100,41 +100,47 @@ function HousingNoteModal(props: HousingNoteModalProps) {
       .required('Veuillez sélectionner le(s) logement(s) concerné(s)')
       .ensure()
       .min(1, 'Sélectionnez au moins 1 élément'),
-  });
-  const { isValid, message, messageType } = useForm(schema, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     title,
     content,
     contactKind,
     housing: selectedHousing,
   });
 
-  function submit(): Promise<void> | undefined {
-    if (selectedHousing.includes(OWNER) && props.owner) {
-      return props.onSubmitAboutOwner?.({
-        title,
-        content,
-        contactKind,
-        owner: props.owner,
-      });
-    }
+  async function submit() {
+    const onSubmit = () => {
+      if (selectedHousing.includes(OWNER) && props.owner) {
+        return props.onSubmitAboutOwner?.({
+          title,
+          content,
+          contactKind,
+          owner: props.owner,
+        });
+      }
 
-    if (selectedHousing.includes(ALL)) {
+      if (selectedHousing.includes(ALL)) {
+        return props.onSubmitAboutHousing({
+          title,
+          content,
+          contactKind,
+          housingList: props.housingList,
+        });
+      }
+
       return props.onSubmitAboutHousing({
         title,
         content,
         contactKind,
-        housingList: props.housingList,
+        housingList: props.housingList.filter((_) =>
+          selectedHousing.includes(_.id)
+        ),
       });
-    }
+    };
 
-    return props.onSubmitAboutHousing({
-      title,
-      content,
-      contactKind,
-      housingList: props.housingList.filter((_) =>
-        selectedHousing.includes(_.id)
-      ),
-    });
+    await form.validate(onSubmit);
   }
 
   return (
@@ -148,35 +154,34 @@ function HousingNoteModal(props: HousingNoteModalProps) {
       </ModalTitle>
       <ModalContent>
         <Container as="section" fluid>
-          <TextInput
-            label="Titre"
+          <AppTextInput<FormShape>
+            label="Titre (obligatoire)"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            messageType={messageType('title')}
-            message={message('title')}
+            inputForm={form}
+            inputKey="title"
             required
           />
-          <TextInput
-            label="Notes"
+          <AppTextInput<FormShape>
+            label="Notes (obligatoire)"
             textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            messageType={messageType('content')}
-            message={message('content')}
+            inputForm={form}
+            inputKey="content"
             required
           />
           <Select
-            label="Types d'interaction"
+            label="Types d'interaction (obligatoire)"
             options={contactKindOptions}
             selected={contactKind}
-            onChange={(e) => setContactKind(e.target.value)}
-            messageType={
-              messageType('contactKind') !== ''
-                ? (messageType('contactKind') as 'valid' | 'error')
-                : 'error'
-            }
-            message={message('contactKind')}
+            onChange={async (e) => {
+              setContactKind(e.target.value);
+              await form.validateAt('contactKind');
+            }}
+            messageType={form.messageType('contactKind') as 'valid' | 'error'}
+            message={form.message('contactKind')}
             required
           />
           <AppMultiSelect
@@ -185,8 +190,8 @@ function HousingNoteModal(props: HousingNoteModalProps) {
             options={housingOptions}
             initialValues={selectedHousing}
             onChange={(e) => selectHousing(e)}
-            messageType={messageType('housing')}
-            message={message('housing')}
+            messageType={form.messageType('housing')}
+            message={form.message('housing')}
             size="md"
           />
         </Container>
@@ -195,9 +200,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
         <Button secondary className="fr-mr-2w" onClick={() => props.onClose()}>
           Annuler
         </Button>
-        <Button disabled={!isValid()} onClick={() => submit()}>
-          Enregistrer
-        </Button>
+        <Button onClick={() => submit()}>Enregistrer</Button>
       </ModalFooter>
     </Modal>
   );

@@ -36,7 +36,7 @@ const HousingAdditionalOwnerCreation = ({ onSubmit, onCancel }: Props) => {
   });
 
   const submit = async () => {
-    form.validate(() =>
+    await form.validate(() =>
       onSubmit({
         fullName,
         birthDate: parseDateInput(birthDate),

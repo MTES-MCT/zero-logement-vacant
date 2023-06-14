@@ -110,7 +110,7 @@ function AccountPasswordCreationView() {
           onChange={(e) => setPassword(e.target.value)}
           inputForm={form}
           inputKey="password"
-          label="Créer votre mot de passe"
+          label="Créer votre mot de passe (obligatoire)"
           hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
           required
         />
@@ -127,7 +127,7 @@ function AccountPasswordCreationView() {
           inputForm={form}
           inputKey="confirmation"
           whenValid="Mots de passe identiques."
-          label="Confirmer votre mot de passe"
+          label="Confirmer votre mot de passe (obligatoire)"
           required
         />
         <Row alignItems="middle" className="justify-space-between">

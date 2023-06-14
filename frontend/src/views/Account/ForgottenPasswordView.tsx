@@ -97,7 +97,7 @@ function ForgottenPasswordView() {
                   inputKey="email"
                   whenValid="Email valide."
                   data-testid="email-input"
-                  label="Adresse email : "
+                  label="Adresse email (obligatoire)"
                   placeholder="exemple@gmail.com"
                   required
                 />

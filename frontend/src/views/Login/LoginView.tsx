@@ -94,7 +94,7 @@ const LoginView = () => {
               inputKey="email"
               whenValid="Email renseigné."
               data-testid="email-input"
-              label="Adresse email : "
+              label="Adresse email (obligatoire)"
               required
             />
             <AppTextInput<FormShape>
@@ -106,7 +106,7 @@ const LoginView = () => {
               inputKey="password"
               whenValid="Mot de passe renseigné."
               data-testid="password-input"
-              label="Mot de passe : "
+              label="Mot de passe (obligatoire)"
               required
             />
             {isAdminView && (

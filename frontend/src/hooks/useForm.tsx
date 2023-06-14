@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';

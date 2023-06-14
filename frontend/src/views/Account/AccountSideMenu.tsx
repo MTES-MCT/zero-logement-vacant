@@ -40,7 +40,7 @@ const AccountSideMenu = () => {
       </Text>
       <div className="fr-py-2w">
         <Link
-          href="https://consultdf.cerema.fr/consultdf/orion-cerema/login"
+          href="https://consultdf.cerema.fr/consultdf/"
           display="flex"
           target="_blank"
           icon="ri-group-fill"

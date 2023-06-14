@@ -140,12 +140,12 @@ export function useForm<
     return '';
   }
 
-  async function validate(onValid?: () => void) {
+  async function validate(onValid?: () => Promise<void> | void) {
     try {
       setTouchedKeys(new Set(Object.keys(schema.fields)));
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
-      onValid?.();
+      await onValid?.();
     } catch (errors) {
       setErrors((errors as yup.ValidationError).inner);
     }
@@ -157,10 +157,10 @@ export function useForm<
       await schema.validateAt(String(key), input, {
         abortEarly: !fullValidationKeys?.includes(key),
       });
-      setErrors([...(errors ?? [])?.filter((error) => error.path !== key)]);
+      setErrors([...(errors ?? []).filter((error) => error.path !== key)]);
     } catch (validationError) {
       setErrors([
-        ...(errors ?? [])?.filter((error) => error.path !== key),
+        ...(errors ?? []).filter((error) => error.path !== key),
         ...(!fullValidationKeys?.includes(key)
           ? [validationError as yup.ValidationError]
           : (validationError as yup.ValidationError).inner),
@@ -169,6 +169,7 @@ export function useForm<
   }
 
   useEffect(() => {
+    const validations: Promise<void>[] = [];
     Object.entries(input)
       .filter(([k1, v1]) =>
         Object.entries(previousInput.current || {}).find(
@@ -176,13 +177,16 @@ export function useForm<
         )
       )
       .filter(([key, _]) => touchedKeys.has(key))
-      .forEach(([key, _]) => validateAt(key));
+      .forEach(([key, _]) => validations.push(validateAt(key)));
+    (async () => await Promise.all(validations))();
     previousInput.current = input;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...Object.values(input)]);
 
   useEffect(() => {
-    fullValidationKeys?.forEach((key) => validateAt(key));
+    const validations: Promise<void>[] = [];
+    fullValidationKeys?.forEach((key) => validations.push(validateAt(key)));
+    (async () => await Promise.all(validations))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, fullValidationKeys);
 

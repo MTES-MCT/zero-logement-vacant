@@ -61,9 +61,9 @@ const AccountPasswordView = () => {
   );
 
   const submit = async () => {
-    await form.validate(() =>
-      updateUserPassword({ currentPassword, newPassword: password })
-    );
+    await form.validate(() => {
+      updateUserPassword({ currentPassword, newPassword: password });
+    });
   };
 
   return (

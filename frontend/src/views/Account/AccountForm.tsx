@@ -56,15 +56,15 @@ const AccountForm = ({ user, userAccount }: Props) => {
   ];
 
   const submit = async () => {
-    await form.validate(() =>
+    await form.validate(() => {
       updateUserAccount({
         firstName,
         lastName,
         phone,
         position,
         timePerWeek,
-      })
-    );
+      });
+    });
   };
 
   return (

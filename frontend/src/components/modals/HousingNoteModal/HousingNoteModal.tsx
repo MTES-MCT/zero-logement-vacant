@@ -113,7 +113,7 @@ function HousingNoteModal(props: HousingNoteModalProps) {
   async function submit() {
     const onSubmit = () => {
       if (selectedHousing.includes(OWNER) && props.owner) {
-        return props.onSubmitAboutOwner?.({
+        return props.onSubmitAboutOwner!({
           title,
           content,
           contactKind,

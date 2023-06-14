@@ -134,7 +134,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   async function downloadCSV(downloadOnly = false): Promise<void> {
     window.open(campaignBundle?.exportURL, '_self');
     if (!downloadOnly) {
-      validStep(CampaignSteps.Export);
+      await validStep(CampaignSteps.Export);
     }
   }
 

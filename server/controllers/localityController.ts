@@ -81,7 +81,7 @@ const updateLocalityTax = async (
 
   return localityRepository
     .update({ ...locality, taxRate, taxKind })
-    .then(() => response.sendStatus(constants.HTTP_STATUS_OK));
+    .then(() => response.status(constants.HTTP_STATUS_OK).send());
 };
 
 const localityController = {

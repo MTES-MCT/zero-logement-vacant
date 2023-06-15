@@ -23,13 +23,11 @@ import CampaignCreationModal from '../../components/modals/CampaignCreationModal
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
 import { CampaignKinds } from '../../models/Campaign';
-import { useLocation } from 'react-router-dom';
 import {
   HousingSort,
   SelectedHousing,
   selectedHousingCount,
 } from '../../models/Housing';
-import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import {
@@ -61,7 +59,6 @@ type ViewMode = 'list' | 'map';
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
   const dispatch = useAppDispatch();
-  const { search } = useLocation();
   const { trackEvent } = useMatomo();
   const { onResetFilters, setExpand, filters } = useFilters();
   const { data: perimeters } = useListGeoPerimetersQuery();
@@ -93,15 +90,6 @@ const HousingListView = () => {
     includedPerimeters.map((perimeter) => perimeter.kind),
     (perimeter) => perimeter.kind
   )(perimeters ?? []);
-
-  useEffect(() => {
-    const query = new URLSearchParams(search).get('q');
-    if (query) {
-      dispatch(changeHousingFiltering({ ...initialHousingFilters, query }));
-    } else {
-      dispatch(changeHousingFiltering(filters));
-    }
-  }, [search, dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const pagination: Pagination =
@@ -230,15 +218,6 @@ const HousingListView = () => {
       <Container as="section" spacing="py-4w mb-4w">
         {paginatedHousing && (
           <>
-            {new URLSearchParams(search).get('campagne') && (
-              <Alert
-                title="Création d’une campagne"
-                description="Pour créer une nouvelle campagne, sélectionnez les propriétaires que vous souhaitez cibler, puis cliquez sur le bouton “créer la campagne”."
-                className="fr-my-3w"
-                closable
-              />
-            )}
-
             {noHousingAlert && (
               <Alert
                 title=""
@@ -330,8 +309,8 @@ const HousingListView = () => {
                   <Map
                     housingList={paginatedHousing.entities}
                     hasPerimetersFilter={hasPerimetersFilter(filters)}
-                includedPerimeters={includedPerimeters}
-                excludedPerimeters={excludedPerimeters}
+                    includedPerimeters={includedPerimeters}
+                    excludedPerimeters={excludedPerimeters}
                     onMove={onMove}
                     viewState={mapViewState}
                   />

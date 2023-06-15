@@ -83,7 +83,7 @@ const CampaignsListView = () => {
                 campagne existante (pour une relance par exemple)
               </CalloutText>
               <InternalLink
-                to="/parc-de-logements?campagne=true"
+                to="/parc-de-logements"
                 className="fr-btn--md fr-btn fr-btn--secondary"
               >
                 Créer votre nouvelle campagne

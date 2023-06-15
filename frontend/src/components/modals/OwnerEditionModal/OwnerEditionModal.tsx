@@ -41,7 +41,7 @@ const OwnerEditionModal = ({
     fullName: yup.string().required("Veuillez saisir l'identité"),
     birthDate: dateValidator,
     rawAddress: yup.array().nullable(),
-    email: emailValidator.notRequired(),
+    email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),
   };
   type FormShape = typeof shape;

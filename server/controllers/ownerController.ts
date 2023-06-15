@@ -105,27 +105,61 @@ const update = async (
   const userId = (request as AuthenticatedRequest).auth.userId;
   const ownerApi = <OwnerApi>request.body.owner;
 
-  const updatedOwnerApi = await ownerRepository.update(ownerApi);
-
-  await banAddressesRepository.markAddressToBeNormalized(
-    updatedOwnerApi.id,
-    AddressKinds.Owner
-  );
-
-  await eventRepository.insertOwnerEvent({
-    id: uuidv4(),
-    name: 'Modification de coordonnées',
-    kind: 'Update',
-    category: 'Ownership',
-    section: 'Coordonnées propriétaire',
-    old: ownerApi,
-    new: updatedOwnerApi,
-    createdBy: userId,
-    createdAt: new Date(),
-    ownerId: ownerApi.id,
-  });
+  const updatedOwnerApi = await updateOwner(ownerApi, userId);
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi);
+};
+
+const updateOwner = async (
+  ownerApi: OwnerApi,
+  userId: string
+): Promise<OwnerApi | undefined> => {
+  console.log('Update owner', ownerApi.id);
+
+  const prevOwnerApi = await ownerRepository.get(ownerApi.id);
+
+  if (!prevOwnerApi) {
+    throw new OwnerMissingError(ownerApi.id);
+  }
+
+  if (
+    prevOwnerApi?.fullName !== ownerApi.fullName ||
+    prevOwnerApi?.birthDate !== ownerApi.birthDate ||
+    prevOwnerApi?.rawAddress !== ownerApi.rawAddress ||
+    prevOwnerApi?.email !== ownerApi.email ||
+    prevOwnerApi?.phone !== ownerApi.phone
+  ) {
+    const updatedOwnerApi = {
+      ...prevOwnerApi,
+      fullName: ownerApi.fullName,
+      birthDate: ownerApi.birthDate,
+      rawAddress: ownerApi.rawAddress,
+      email: ownerApi.email,
+      phone: ownerApi.phone,
+    };
+
+    await ownerRepository.update(updatedOwnerApi);
+
+    await banAddressesRepository.markAddressToBeNormalized(
+      ownerApi.id,
+      AddressKinds.Owner
+    );
+
+    await eventRepository.insertOwnerEvent({
+      id: uuidv4(),
+      name: 'Modification de coordonnées',
+      kind: 'Update',
+      category: 'Ownership',
+      section: 'Coordonnées propriétaire',
+      old: prevOwnerApi,
+      new: updatedOwnerApi,
+      createdBy: userId,
+      createdAt: new Date(),
+      ownerId: ownerApi.id,
+    });
+
+    return updatedOwnerApi;
+  }
 };
 
 const updateHousingOwners = async (
@@ -147,6 +181,12 @@ const updateHousingOwners = async (
   const housingOwnersApi = (<HousingOwnerApi[]>(
     request.body.housingOwners
   )).filter((_) => _.housingId === housingId);
+
+  await Promise.all(
+    housingOwnersApi.map((housingOwnerApi) =>
+      updateOwner(housingOwnerApi, userId)
+    )
+  );
 
   const prevHousingOwnersApi = await ownerRepository.listByHousing(housingId);
 

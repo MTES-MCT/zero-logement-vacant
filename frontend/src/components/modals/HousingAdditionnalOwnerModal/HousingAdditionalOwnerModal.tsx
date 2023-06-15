@@ -27,6 +27,32 @@ const HousingAdditionalOwnerModal = ({
 }: Props) => {
   const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('1');
 
+  // const dispatch = useAppDispatch();
+  //
+  // const { refetch: refetchHousingEvents } =
+  //     useFindEventsByHousingQuery(housingId);
+  //
+  // const submitHousingOwnersUpdate = (housingOwnersUpdated: HousingOwner[]) => {
+  //   dispatch(
+  //       updateHousingOwners(housingId, housingOwnersUpdated, refetchHousingEvents)
+  //   );
+  // };
+  //
+  // const submitAddingHousingOwner = (owner: Owner, rank: number) => {
+  //   dispatch(addHousingOwner(housingId, owner, rank, refetchHousingEvents));
+  // };
+  //
+  // const submitCreatingHousingOwner = (draftOwner: DraftOwner, rank: number) => {
+  //   dispatch(
+  //       createAdditionalOwner(
+  //           housingId,
+  //           draftOwner,
+  //           Number(rank),
+  //           refetchHousingEvents
+  //       )
+  //   );
+  // };
+
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: `Propriétaire principal` },
     ...Array.from(Array(activeOwnersCount).keys()).map((_) => ({

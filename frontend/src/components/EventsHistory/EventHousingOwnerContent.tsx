@@ -17,9 +17,9 @@ const EventHousingOwnerContent = ({ housingOwners }: Props) => {
       {sortedHousingOwners
         .map((_) => parseHousingOwner(_))
         .map((housingOwner) => (
-          <div className={styles.eventContent}>
+          <div className={styles.eventContent} key={housingOwner.id}>
             <span className="color-grey-625">
-              {getHousingOwnerRankLabel(housingOwner)}
+              {getHousingOwnerRankLabel(housingOwner.rank)}
             </span>
             <span>{housingOwner.fullName}</span>
             {housingOwner.birthDate && (

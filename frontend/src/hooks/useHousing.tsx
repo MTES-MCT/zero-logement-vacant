@@ -22,7 +22,8 @@ export function useHousing() {
 
   const { housing, housingOwners } = useAppSelector((state) => state.housing);
 
-  const mainHousingOwner = housingOwners?.filter((_) => _.rank === 1)[0];
+  const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
+  const coOwners = housingOwners?.filter((_) => _.rank !== 1);
 
   return {
     events,
@@ -30,6 +31,7 @@ export function useHousing() {
     refetchHousingEvents,
     refetchHousingNotes,
     mainHousingOwner,
+    coOwners,
     housingOwners,
     housing,
   };

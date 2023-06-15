@@ -17,8 +17,6 @@ import { pluralize } from '../../utils/stringUtils';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { updateHousing } from '../../store/actions/housingAction';
-import { HousingOwner } from '../../models/Owner';
-import HousingDetailsSubCardOwners from './HousingDetailsSubCardOwners';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
@@ -40,17 +38,11 @@ import { HousingNoteCreation, Note } from '../../models/Note';
 
 interface Props {
   housing: Housing;
-  housingOwners: HousingOwner[];
   housingEvents: Event[];
   housingNotes: Note[];
 }
 
-function HousingDetailsCard({
-  housing,
-  housingOwners,
-  housingEvents,
-  housingNotes,
-}: Props) {
+function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
   const dispatch = useAppDispatch();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
@@ -167,10 +159,6 @@ function HousingDetailsCard({
               </Col>
               <Col spacing="mx-1w">
                 <HousingDetailsSubCardSituation housing={housing} />
-                <HousingDetailsSubCardOwners
-                  housingId={housing.id}
-                  housingOwners={housingOwners}
-                />
               </Col>
             </Row>
           </Tab>

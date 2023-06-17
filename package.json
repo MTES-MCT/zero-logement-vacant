@@ -61,7 +61,7 @@
     "node-fetch": "^2.6.11",
     "nodemailer": "^6.9.3",
     "pg": "^8.11.0",
-    "pg-query-stream": "^4.4.0",
+    "pg-query-stream": "^4.5.0",
     "proj4": "^2.9.0",
     "randomstring": "^1.2.3",
     "shpjs": "^4.0.4",

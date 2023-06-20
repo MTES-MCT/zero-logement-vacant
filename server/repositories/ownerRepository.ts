@@ -4,11 +4,34 @@ import { AddressApi } from '../models/AddressApi';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { ownersHousingTable, ReferenceDataYear } from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { logger } from '../utils/logger';
 
 export const ownerTable = 'owners';
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
-  const owner = await db(ownerTable).where('id', ownerId).first();
+  const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();
+  return owner ? parseOwnerApi(owner) : null;
+};
+
+interface FindOneOptions {
+  id?: string;
+  fullName?: string;
+  rawAddress?: string[];
+  birthDate?: Date;
+}
+
+const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
+  const owner = await db<OwnerDBO>(ownerTable)
+    .where({
+      full_name: opts.fullName,
+      raw_address: opts.rawAddress,
+    })
+    .modify((builder) => {
+      return opts.birthDate === undefined
+        ? builder.whereNull('birth_date')
+        : builder.where('birth_date', opts.birthDate);
+    })
+    .first();
   return owner ? parseOwnerApi(owner) : null;
 };
 
@@ -116,6 +139,62 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
     throw new Error('Inserting owner failed');
   }
 };
+
+interface SaveOptions {
+  onConflict?: 'merge' | 'ignore';
+}
+
+async function save(owner: OwnerApi, opts?: SaveOptions): Promise<void> {
+  return saveMany([owner], opts);
+}
+
+async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
+  logger.trace(`Save ${owners.length} owner(s)`);
+
+  const ownersWithoutBirthdate = owners
+    .filter((owner) => !owner.birthDate)
+    .map(formatOwnerApi);
+  const ownersWithBirthdate = owners.filter((owner) => !!owner.birthDate);
+
+  const onConflict = opts?.onConflict ?? 'merge';
+
+  await db.transaction(async (transaction) => {
+    await Promise.all([
+      transaction<OwnerDBO>(ownerTable)
+        .insert(ownersWithBirthdate)
+        .modify((builder) => {
+          if (onConflict === 'merge') {
+            return builder
+              .onConflict(['full_name', 'raw_address', 'birth_date'])
+              .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+          }
+          return builder
+            .onConflict(['full_name', 'raw_address', 'birth_date'])
+            .ignore();
+        }),
+      transaction<OwnerDBO>(ownerTable)
+        .insert(ownersWithoutBirthdate)
+        .modify((builder) => {
+          if (onConflict === 'merge') {
+            return builder
+              .onConflict(
+                db.raw(
+                  '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                )
+              )
+              .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+          }
+          return builder
+            .onConflict(
+              db.raw(
+                '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+              )
+            )
+            .ignore();
+        }),
+    ]);
+  });
+}
 
 const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
   try {
@@ -274,9 +353,12 @@ export const formatHousingOwnerApi = (
 
 export default {
   get,
+  findOne,
   searchOwners,
   listByHousing,
   insert,
+  save,
+  saveMany,
   update,
   updateAddressList,
   deleteHousingOwners,

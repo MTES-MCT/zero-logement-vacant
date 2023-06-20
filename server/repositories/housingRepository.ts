@@ -131,7 +131,14 @@ export const queryOwnerHousingWhereClause = (
   }
 };
 
-const saveMany = async (housingList: HousingApi[]): Promise<void> => {
+interface SaveOptions {
+  onConflict?: 'merge' | 'ignore';
+}
+
+const saveMany = async (
+  housingList: HousingApi[],
+  opts?: SaveOptions
+): Promise<void> => {
   if (!housingList.length) {
     return;
   }
@@ -156,8 +163,12 @@ const saveMany = async (housingList: HousingApi[]): Promise<void> => {
   await db.transaction(async (transaction) => {
     await transaction(housingTable)
       .insert(housingList.map(formatHousingRecordApi))
-      .onConflict('local_id')
-      .merge();
+      .modify((builder) => {
+        if (opts?.onConflict === 'merge') {
+          return builder.onConflict('local_id').merge();
+        }
+        return builder.onConflict('local_id').ignore();
+      });
 
     // Owners should already be present
     const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);

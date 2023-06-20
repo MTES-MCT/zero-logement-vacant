@@ -1,3 +1,5 @@
+export type Refinement<A, B extends A> = (a: A) => a is B;
+
 export const enum Compare {
   A_GT_B = 1,
   A_EQ_B = 0,
@@ -5,8 +7,6 @@ export const enum Compare {
 }
 
 export type Predicate<A> = (a: A) => boolean;
-export type Refinement<A, B extends A> = (a: A) => a is B;
-
 export const isNull = <A>(a: A | null): a is null => a === null;
 
 export function not<A>(f: Predicate<A>): Predicate<A> {

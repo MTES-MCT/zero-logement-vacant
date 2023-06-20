@@ -1,6 +1,6 @@
 import highland from 'highland';
 import _ from 'lodash';
-import notion from './notion';
+import { logger } from './logger';
 
 type Finder<In = unknown, Out = unknown> = (data: In) => Promise<Out>;
 type AwaitedFinders<In, Out, T extends Record<string, Finder<In, Out>>> = {
@@ -34,9 +34,18 @@ export function appendAll<In, Out, U extends Record<string, Finder<In, Out>>>(
   };
 }
 
-export function count() {
-  return (stream: Highland.Stream<any>): Highland.Stream<number> => {
-    return stream.reduce(0, (i) => i + 1);
+export function count(msg: (nb: number) => string) {
+  return <T>(stream: Highland.Stream<T>): Highland.Stream<T> => {
+    stream
+      .observe()
+      .reduce(0, (count, items) => {
+        return Array.isArray(items) ? count + items.length : count + 1;
+      })
+      .head()
+      .tap((nb) => {
+        logger.info(msg(nb));
+      });
+    return stream;
   };
 }
 
@@ -50,15 +59,15 @@ export function errorHandler() {
         imported += Array.isArray(data) ? data.length : 1;
       })
       .errors((error) => {
-        console.log(error);
+        logger.error(error);
         errors.push(error);
       })
       .on('end', () => {
         const report = {
           imported,
-          errors,
+          errors: errors.length,
         };
-        notion.publish(report);
+        logger.info('Report', report);
       });
   };
 }

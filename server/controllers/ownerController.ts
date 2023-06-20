@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
-import { body, oneOf, validationResult } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
-import { AuthenticatedRequest } from 'express-jwt';
+import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
+import { isArrayOf, isString } from '../utils/validators';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -49,21 +50,11 @@ const listByHousing = async (
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
-const create = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
+const create = async (request: Request, response: Response) => {
   console.log('Create owner');
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const draftOwnerApi = <DraftOwnerApi>request.body.draftOwner;
+  const draftOwnerApi = <DraftOwnerApi>request.body;
 
   const createdOwnerApi = await ownerRepository.insert(draftOwnerApi);
 
@@ -87,23 +78,13 @@ const create = async (
   return response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi);
 };
 
-const update = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
+const update = async (request: JWTRequest, response: Response) => {
   const ownerId = request.params.ownerId;
 
-  console.log('Update owner', ownerId);
+  console.log('Update owner', ownerId, request.body);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const ownerApi = <OwnerApi>request.body.owner;
+  const ownerApi = { id: ownerId, ...request.body };
 
   const updatedOwnerApi = await updateOwner(ownerApi, userId);
 
@@ -166,13 +147,6 @@ const updateHousingOwners = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   const housingId = request.params.housingId;
 
   console.log('Update housing owners', housingId);
@@ -227,8 +201,13 @@ const updateHousingOwners = async (
   }
 };
 
-const ownerValidators = [
-  oneOf([body('owner.email').isEmpty(), body('owner.email').isEmail()]),
+const ownerValidators: ValidationChain[] = [
+  param('ownerId').isUUID().notEmpty(),
+  body('fullName').isString(),
+  body('birthDate').isString(),
+  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
+  body('email').optional({ checkFalsy: true }).isEmail(),
+  body('phone').isString().optional({ nullable: true }),
 ];
 
 const ownerController = {

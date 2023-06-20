@@ -4,15 +4,13 @@ import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
 import { HousingOwner } from '../../models/Owner';
-import { updateHousingOwners } from '../../store/actions/housingAction';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch } from '../../hooks/useStore';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
+import { useUpdateHousingOwnersMutation } from '../../services/owner.service';
 
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
-  const dispatch = useAppDispatch();
   const { housing, coOwners, mainHousingOwner, housingOwners, events, notes } =
     useHousing();
   const [isModalHousingOwnersOpen, setIsModalHousingOwnersOpen] =
@@ -22,19 +20,20 @@ const HousingView = () => {
     housing?.id ?? '',
     { skip: !housing }
   );
+  const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
   if (!housing) {
     return <></>;
   }
 
-  const submitHousingOwnersUpdate = (housingOwnersUpdated: HousingOwner[]) => {
-    dispatch(
-      updateHousingOwners(
-        housing.id,
-        housingOwnersUpdated,
-        refetchHousingEvents
-      )
-    );
+  const submitHousingOwnersUpdate = async (
+    housingOwnersUpdated: HousingOwner[]
+  ) => {
+    await updateHousingOwners({
+      housingId: housing.id,
+      housingOwners: housingOwnersUpdated,
+    });
+    await refetchHousingEvents();
     setIsModalHousingOwnersOpen(false);
   };
 
@@ -53,6 +52,7 @@ const HousingView = () => {
                   ></OwnerCard>
                   {isModalHousingOwnersOpen && (
                     <HousingOwnersModal
+                      housingId={housing.id}
                       housingOwners={housingOwners}
                       onSubmit={submitHousingOwnersUpdate}
                       onClose={() => setIsModalHousingOwnersOpen(false)}

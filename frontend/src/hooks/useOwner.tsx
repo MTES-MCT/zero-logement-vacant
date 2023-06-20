@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
-import { getOwner, getOwnerHousing } from '../store/actions/ownerAction';
+import { getOwnerHousing } from '../store/actions/ownerAction';
 import { useAppDispatch, useAppSelector } from './useStore';
 import { useFindEventsByOwnerQuery } from '../services/event.service';
+import { useGetOwnerQuery } from '../services/owner.service';
 
 export function useOwner() {
   const dispatch = useAppDispatch();
@@ -11,12 +12,13 @@ export function useOwner() {
   const { data: events, refetch: refetchOwnerEvents } =
     useFindEventsByOwnerQuery(ownerId);
 
+  const { data: owner } = useGetOwnerQuery(ownerId);
+
   useEffect(() => {
-    dispatch(getOwner(ownerId));
     dispatch(getOwnerHousing(ownerId));
   }, [ownerId, dispatch]);
 
-  const { housingList, housingTotalCount, owner } = useAppSelector(
+  const { housingList, housingTotalCount } = useAppSelector(
     (state) => state.owner
   );
 

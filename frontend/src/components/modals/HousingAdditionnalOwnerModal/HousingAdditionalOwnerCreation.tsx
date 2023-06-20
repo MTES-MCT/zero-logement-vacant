@@ -1,17 +1,18 @@
-import React, { ChangeEvent, useState } from 'react';
-import { Button, Col, Container, Row, Text } from '@dataesr/react-dsfr';
-import { DraftOwner } from '../../../models/Owner';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { Alert, Button, Col, Container, Row, Text } from '@dataesr/react-dsfr';
+import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../AppTextInput/AppTextInput';
+import { useCreateOwnerMutation } from '../../../services/owner.service';
 
 interface Props {
-  onSubmit: (draftOwner: DraftOwner) => void;
+  onAdd: (owner: Owner) => void;
   onCancel: () => void;
 }
 
-const HousingAdditionalOwnerCreation = ({ onSubmit, onCancel }: Props) => {
+const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [rawAddress, setRawAddress] = useState<string[] | undefined>(undefined);
@@ -35,17 +36,25 @@ const HousingAdditionalOwnerCreation = ({ onSubmit, onCancel }: Props) => {
     phone,
   });
 
+  const [createOwner, { data: owner, isError: isCreateError }] =
+    useCreateOwnerMutation();
   const submit = async () => {
-    await form.validate(() =>
-      onSubmit({
+    await form.validate(() => {
+      createOwner({
         fullName,
         birthDate: parseDateInput(birthDate),
         rawAddress: rawAddress ?? [],
         email,
         phone,
-      })
-    );
+      });
+    });
   };
+
+  useEffect(() => {
+    if (owner) {
+      onAdd(owner);
+    }
+  }, [owner]); //eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Container as="section">
@@ -106,6 +115,17 @@ const HousingAdditionalOwnerCreation = ({ onSubmit, onCancel }: Props) => {
           />
         </Col>
       </Row>
+
+      {isCreateError && (
+        <Row spacing="pt-3w">
+          <Alert
+            type="error"
+            description="Une erreur s'est produite, veuillez réessayer."
+            closable
+            className="fr-mb-2w"
+          />
+        </Row>
+      )}
       <Row spacing="pt-3w">
         <Button
           title="Annuler"

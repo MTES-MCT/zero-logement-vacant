@@ -8,11 +8,13 @@ import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNo
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCreateNoteMutation } from '../../services/note.service';
 import { HousingNoteCreation, OwnerNoteCreation } from '../../models/Note';
+import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
 
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
+  const [isModalOwnerEditionOpen, setIsModalOwnerEditionOpen] = useState(false);
 
   const { owner, housingList, refetchOwnerEvents } = useOwner();
 
@@ -45,7 +47,16 @@ const OwnerView = () => {
         )}
         <Row alignItems="top" gutters spacing="mt-3w mb-0">
           <Col n="4">
-            <OwnerCard owner={owner} />
+            <OwnerCard
+              owner={owner}
+              onModify={() => setIsModalOwnerEditionOpen(true)}
+            />
+            {isModalOwnerEditionOpen && (
+              <OwnerEditionModal
+                owner={owner}
+                onClose={() => setIsModalOwnerEditionOpen(false)}
+              />
+            )}
           </Col>
           <Col n="8">
             <header className={styles.header}>

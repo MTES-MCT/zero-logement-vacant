@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import {
   Accordion,
   AccordionItem,
@@ -24,14 +24,25 @@ import { format } from 'date-fns';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
+import styles from '../OwnerEditionModal/owner-edition-modal.module.scss';
+import HousingAdditionalOwnerModal from '../HousingAdditionnalOwnerModal/HousingAdditionalOwnerModal';
 
 interface Props {
+  housingId: string;
   housingOwners: HousingOwner[];
   onSubmit: (owners: HousingOwner[]) => void;
   onClose: () => void;
 }
 
-const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
+const HousingOwnersModal = ({
+  housingId,
+  housingOwners: initialHousingOwners,
+  onClose,
+  onSubmit,
+}: Props) => {
+  const [isModalAdditionalOwnerOpen, setIsModalAdditionalOwnerOpen] =
+    useState(false);
+
   type OwnerInput = Pick<
     HousingOwner,
     'id' | 'fullName' | 'rawAddress' | 'email' | 'phone'
@@ -40,24 +51,38 @@ const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
     birthDate: string;
   };
 
-  const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>(
-    housingOwners.map((ho) => ({
-      ...ho,
-      rank: String(ho.endDate ? 0 : ho.rank),
-      birthDate: ho?.birthDate ? format(ho.birthDate, 'yyyy-MM-dd') : '',
-    }))
+  const [housingOwners, setHousingOwners] =
+    useState<HousingOwner[]>(initialHousingOwners);
+
+  const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>([]);
+
+  useEffect(
+    () =>
+      setOwnerInputs(
+        housingOwners.map((housingOwner: HousingOwner) => ({
+          ...housingOwner,
+          rank: String(housingOwner.endDate ? 0 : housingOwner.rank),
+          birthDate: housingOwner?.birthDate
+            ? format(housingOwner.birthDate, 'yyyy-MM-dd')
+            : '',
+        }))
+      ),
+    [housingOwners]
   );
 
-  const ranks = Array.from(Array(housingOwners.length - 1).keys());
+  const ranks =
+    ownerInputs.length > 0
+      ? Array.from(Array(ownerInputs.length - 1).keys()).map((_) => _ + 1)
+      : [];
 
   const schema = yup.object().shape({
     ...ranks.reduce(
       (shape, currentRank) => ({
         ...shape,
-        [`ownerRanks${currentRank + 2}`]: yup
+        [`ownerRanks${currentRank + 1}`]: yup
           .array()
-          .compact((ownerRank) => ownerRank.rank !== String(currentRank + 2))
-          .max(1, `Il ne peut y avoir qu'un ${currentRank + 2}ème ayant-droit`),
+          .compact((ownerRank) => ownerRank.rank !== String(currentRank + 1))
+          .max(1, `Il ne peut y avoir qu'un ${currentRank + 1}ème ayant-droit`),
       }),
       {}
     ),
@@ -92,8 +117,8 @@ const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: `Propriétaire principal` },
     ...ranks.map((_) => ({
-      value: String(_ + 2),
-      label: _ + 2 + 'ème ayant droit',
+      value: String(_ + 1),
+      label: _ + 1 + 'ème ayant droit',
     })),
     { value: '0', label: `Ancien propriétaire` },
   ];
@@ -102,7 +127,7 @@ const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
     ...ranks.reduce(
       (inputs, currentRank) => ({
         ...inputs,
-        [`ownerRanks${currentRank + 2}`]: ownerInputs,
+        [`ownerRanks${currentRank + 1}`]: ownerInputs,
       }),
       {}
     ),
@@ -267,7 +292,7 @@ const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
         </Accordion>
       </ModalContent>
       <ModalFooter>
-        <Container as="section">
+        <Container as="section" spacing="p-0">
           {ranks
             .filter((rank) => hasError(`ownerRanks${rank}`))
             .map((rank) => (
@@ -275,7 +300,29 @@ const HousingOwnersModal = ({ housingOwners, onClose, onSubmit }: Props) => {
                 {message(`ownerRanks${rank}`)}
               </p>
             ))}
-          <Row>
+          <Row gutters>
+            <Col n="12" className="align-right">
+              <hr />
+              <Button
+                className={styles.addButton}
+                secondary
+                icon="ri-add-fill"
+                title="Ajouter un propriétaire"
+                onClick={() => setIsModalAdditionalOwnerOpen(true)}
+              >
+                Ajouter un propriétaire
+              </Button>
+              {isModalAdditionalOwnerOpen && (
+                <HousingAdditionalOwnerModal
+                  housingId={housingId}
+                  activeOwnersCount={housingOwners.filter((_) => _.rank).length}
+                  onAddOwner={(housingOwner) =>
+                    setHousingOwners([...housingOwners, housingOwner])
+                  }
+                  onClose={() => setIsModalAdditionalOwnerOpen(false)}
+                />
+              )}
+            </Col>
             <Col>
               <Button
                 title="Annuler"

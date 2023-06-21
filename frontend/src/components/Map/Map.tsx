@@ -135,33 +135,29 @@ function Map(props: MapProps) {
         fontFamily: 'Marianne, sans-serif',
       }}
     >
-      <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-      {includedPerimeters.length > 0 && showPerimeters && (
-        <Perimeters
-          id="included-perimeters"
-          backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
-          borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
-          perimeters={includedPerimeters}
-          map={map}
-        />
-      )}
-      {excludedPerimeters.length > 0 && showPerimeters && (
-        <Perimeters
-          id="excluded-perimeters"
-          backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
-          borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
-          perimeters={excludedPerimeters}
-          map={map}
-        />
-      )}
-      {points.length > 0 && (
-        <Clusters id="housing" points={points} map={map} onClick={popUp} />
-      )}
+      <Perimeters
+        id="excluded-perimeters"
+        backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
+        borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
+        isVisible={showPerimeters}
+        perimeters={excludedPerimeters}
+        map={map}
+      />
+      <Perimeters
+        id="included-perimeters"
+        backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
+        borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
+        isVisible={showPerimeters}
+        perimeters={includedPerimeters}
+        map={map}
+      />
+      <Clusters id="housing" points={points} map={map} onClick={popUp} />
       {popups}
       <MapControls
         perimeters={showPerimeters}
         onPerimetersChange={setShowPerimeters}
       />
+      <NavigationControl showCompass={false} showZoom visualizePitch={false} />
     </ReactiveMap>
   );
 }

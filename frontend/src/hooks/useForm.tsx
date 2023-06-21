@@ -140,6 +140,10 @@ export function useForm<
     return '';
   }
 
+  function errorsExcept<K extends keyof U>(key: K) {
+    return (errors ?? []).filter((error) => error.path !== key);
+  }
+
   async function validate(onValid?: () => Promise<void> | void) {
     try {
       setTouchedKeys(new Set(Object.keys(schema.fields)));
@@ -157,10 +161,10 @@ export function useForm<
       await schema.validateAt(String(key), input, {
         abortEarly: !fullValidationKeys?.includes(key),
       });
-      setErrors([...(errors ?? []).filter((error) => error.path !== key)]);
+      setErrors([...errorsExcept(key)]);
     } catch (validationError) {
       setErrors([
-        ...(errors ?? []).filter((error) => error.path !== key),
+        ...errorsExcept(key),
         ...(!fullValidationKeys?.includes(key)
           ? [validationError as yup.ValidationError]
           : (validationError as yup.ValidationError).inner),
@@ -178,8 +182,10 @@ export function useForm<
       )
       .filter(([key, _]) => touchedKeys.has(key))
       .forEach(([key, _]) => validations.push(validateAt(key)));
-    (async () => await Promise.all(validations))();
-    previousInput.current = input;
+    (async () => {
+      await Promise.all(validations);
+      previousInput.current = input;
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...Object.values(input)]);
 

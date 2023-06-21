@@ -173,15 +173,14 @@ export function useForm<
   }
 
   useEffect(() => {
-    const validations: Promise<void>[] = [];
-    Object.entries(input)
+    const validations = Object.entries(input)
       .filter(([k1, v1]) =>
         Object.entries(previousInput.current || {}).find(
           ([k2, v2]) => k1 === k2 && v1 !== v2
         )
       )
       .filter(([key, _]) => touchedKeys.has(key))
-      .forEach(([key, _]) => validations.push(validateAt(key)));
+      .map(([key, _]) => validateAt(key));
     (async () => {
       await Promise.all(validations);
       previousInput.current = input;
@@ -190,8 +189,9 @@ export function useForm<
   }, [...Object.values(input)]);
 
   useEffect(() => {
-    const validations: Promise<void>[] = [];
-    fullValidationKeys?.forEach((key) => validations.push(validateAt(key)));
+    const validations = (fullValidationKeys ?? []).map((key) =>
+      validateAt(key)
+    );
     (async () => await Promise.all(validations))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, fullValidationKeys);

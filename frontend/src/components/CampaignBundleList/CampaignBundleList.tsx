@@ -8,7 +8,6 @@ import {
   Tag,
   TagGroup,
   Text,
-  TextInput,
   Title,
 } from '@dataesr/react-dsfr';
 
@@ -46,6 +45,7 @@ import { dateShortFormat, parseDateInput } from '../../utils/dateUtils';
 import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
+import AppTextInput from '../AppTextInput/AppTextInput';
 
 interface ItemProps {
   campaignBundle: CampaignBundle;
@@ -79,26 +79,25 @@ const CampaignBundleItem = ({
     string[]
   >([]);
 
-  const schema = yup.object().shape({ sendingDate: dateValidator });
+  const shape = { sendingDate: dateValidator };
+  type FormShape = typeof shape;
 
-  const { isValid, message, messageType, validate } = useForm(schema, {
+  const form = useForm(yup.object().shape(shape), {
     sendingDate,
   });
 
-  const onSendingCampaign = (campaignId: string) => {
-    validate().then(() => {
-      if (isValid()) {
-        trackEvent({
-          category: TrackEventCategories.Campaigns,
-          action: TrackEventActions.Campaigns.ValidStep(CampaignSteps.Sending),
-        });
-        dispatch(
-          validCampaignStep(campaignId, CampaignSteps.Sending, {
-            sendingDate: parseDateInput(sendingDate),
-            skipConfirmation: true,
-          })
-        );
-      }
+  const onSendingCampaign = async (campaignId: string) => {
+    await form.validate(() => {
+      trackEvent({
+        category: TrackEventCategories.Campaigns,
+        action: TrackEventActions.Campaigns.ValidStep(CampaignSteps.Sending),
+      });
+      dispatch(
+        validCampaignStep(campaignId, CampaignSteps.Sending, {
+          sendingDate: parseDateInput(sendingDate),
+          skipConfirmation: true,
+        })
+      );
     });
   };
 
@@ -181,15 +180,15 @@ const CampaignBundleItem = ({
                 />
                 <Row alignItems="top">
                   <Col className="fr-pr-1w">
-                    <TextInput
+                    <AppTextInput<FormShape>
                       value={sendingDate}
                       type="date"
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         setSendingDate(e.target.value)
                       }
                       label="Date d'envoi"
-                      message={message('sendingDate')}
-                      messageType={messageType('sendingDate')}
+                      inputForm={form}
+                      inputKey="sendingDate"
                     />
                   </Col>
                   <Col className="fr-pt-4w">

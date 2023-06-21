@@ -8,20 +8,20 @@ import {
   Col,
   Container,
   Row,
-  TextInput,
   Title,
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
-  passwordValidator,
+  passwordFormatValidator,
   useForm,
 } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AccountSideMenu from './AccountSideMenu';
 import { useUpdatePasswordMutation } from '../../services/user-account.service';
 import { useHistory } from 'react-router-dom';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 const AccountPasswordView = () => {
   useDocumentTitle('Votre mot de passe');
@@ -37,23 +37,33 @@ const AccountPasswordView = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
 
-  const form = yup.object().shape({
+  const shape = {
     currentPassword: yup
       .string()
       .required('Veuillez renseigner votre mot de passe actuel.'),
-    password: passwordValidator,
+    password: yup
+      .string()
+      .required('Veuillez renseigner votre nouveau mot de passe.'),
+    passwordFormat: passwordFormatValidator,
     passwordConfirmation: passwordConfirmationValidator,
-  });
-  const { validate, message, messageList, messageType } = useForm(form, {
-    currentPassword,
-    password,
-    passwordConfirmation,
-  });
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(
+    yup.object().shape(shape),
+    {
+      currentPassword,
+      password,
+      passwordFormat: password,
+      passwordConfirmation,
+    },
+    ['passwordFormat']
+  );
 
   const submit = async () => {
-    await validate(() =>
-      updateUserPassword({ currentPassword, newPassword: password })
-    );
+    await form.validate(() => {
+      updateUserPassword({ currentPassword, newPassword: password });
+    });
   };
 
   return (
@@ -85,42 +95,40 @@ const AccountPasswordView = () => {
                   />
                 ) : (
                   <form id="account_password_form">
-                    <TextInput
+                    <AppTextInput<FormShape>
                       value={currentPassword}
                       type="password"
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      messageType={messageType('currentPassword')}
-                      message={message(
-                        'currentPassword',
-                        'Mot de passe renseigné.'
-                      )}
-                      label="Mot de passe actuel : "
+                      inputForm={form}
+                      inputKey="currentPassword"
+                      whenValid="Mot de passe renseigné."
+                      label="Mot de passe actuel (obligatoire)"
                       required
                     />
-                    <TextInput
+                    <AppTextInput<FormShape>
                       value={password}
                       type="password"
+                      textarea={false}
                       onChange={(e) => setPassword(e.target.value)}
-                      messageType={messageType('password')}
-                      label="Nouveau mot de passe : "
+                      inputForm={form}
+                      inputKey="password"
+                      label="Nouveau mot de passe (obligatoire)"
                       required
                     />
-                    {messageList('password')?.map((message, i) => (
+                    {form.messageList('passwordFormat')?.map((message, i) => (
                       <p className={`fr-${message.type}-text`} key={i}>
                         {message.text}
                       </p>
                     ))}
-                    <TextInput
+                    <AppTextInput<FormShape>
                       value={passwordConfirmation}
                       type="password"
                       className="fr-mt-3w"
                       onChange={(e) => setPasswordConfirmation(e.target.value)}
-                      messageType={messageType('passwordConfirmation')}
-                      message={message(
-                        'passwordConfirmation',
-                        'Mots de passe identiques.'
-                      )}
-                      label="Confirmation du nouveau mot de passe : "
+                      inputForm={form}
+                      inputKey="passwordConfirmation"
+                      whenValid="Mots de passe identiques."
+                      label="Confirmation du nouveau mot de passe (obligatoire)"
                       required
                     />
                     {updateError && (

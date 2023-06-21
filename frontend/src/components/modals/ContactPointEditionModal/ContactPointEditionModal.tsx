@@ -12,7 +12,6 @@ import {
   Row,
   SearchableSelect,
   Tag,
-  TextInput,
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
@@ -23,6 +22,7 @@ import {
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 interface Props {
   establishmentId: string;
@@ -53,17 +53,22 @@ const ContactPointEditionModal = ({
     (option) => !geoCodes.includes(option.value)
   );
 
-  const schema = yup.object().shape({
+  const shape = {
     title: yup.string().required('Veuillez saisir le titre du guichet'),
+    opening: yup.string(),
+    address: yup.string(),
     geoCodes: yup
       .array()
       .of(yup.string())
       .ensure()
       .min(1, 'Veuillez sélectionner au moins une commune'),
     email: emailValidator.nullable().optional(),
-  });
+    phone: yup.string(),
+    notes: yup.string(),
+  };
+  type FormShape = typeof shape;
 
-  const { isValid, message, messageType } = useForm(schema, {
+  const form = useForm(yup.object().shape(shape), {
     title,
     opening,
     address,
@@ -73,8 +78,8 @@ const ContactPointEditionModal = ({
     notes,
   });
 
-  const submitContactPointForm = () => {
-    if (isValid()) {
+  const submitContactPointForm = async () => {
+    await form.validate(() =>
       onSubmit({
         ...(contactPoint?.id ? { id: contactPoint.id } : {}),
         establishmentId,
@@ -85,8 +90,8 @@ const ContactPointEditionModal = ({
         email,
         phone,
         notes,
-      });
-    }
+      })
+    );
   };
 
   const isGlobal = _.isEqual(geoCodes, localitiesGeoCodes);
@@ -107,44 +112,44 @@ const ContactPointEditionModal = ({
           <form id="user_form">
             <Row spacing="my-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   value={title}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setTitle(e.target.value)
                   }
-                  messageType={messageType('title')}
-                  message={message('title')}
-                  label="Titre du guichet : "
+                  inputForm={form}
+                  inputKey="title"
+                  label="Titre du guichet (obligatoire)"
                   required
                 />
               </Col>
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   textarea
                   value={opening}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                     setOpening(e.target.value)
                   }
-                  messageType={messageType('opening')}
-                  message={message('opening')}
-                  label="Horaires et jours d’ouverture : "
+                  inputForm={form}
+                  inputKey="opening"
+                  label="Horaires et jours d’ouverture"
                   rows={2}
                 />
               </Col>
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   textarea
                   value={address}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                     setAddress(e.target.value)
                   }
-                  messageType={messageType('address')}
-                  message={message('address')}
-                  label="Adresse postale : "
+                  inputForm={form}
+                  inputKey="address"
+                  label="Adresse postale"
                   rows={3}
                 />
               </Col>
@@ -185,50 +190,50 @@ const ContactPointEditionModal = ({
                       {localities?.find((_) => _.geoCode === geoCode)?.name}
                     </Tag>
                   ))}
-                  {messageType('geoCodes') === 'error' && (
-                    <p className="fr-error-text">{message('geoCodes')}</p>
+                  {form.messageType('geoCodes') === 'error' && (
+                    <p className="fr-error-text">{form.message('geoCodes')}</p>
                   )}
                 </Col>
               </Row>
             )}
             <Row spacing="my-2w">
               <Col n="6">
-                <TextInput
+                <AppTextInput<FormShape>
                   value={phone}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setPhone(e.target.value)
                   }
-                  messageType={messageType('phone')}
-                  message={message('phone')}
-                  label="Téléphone : "
+                  inputForm={form}
+                  inputKey="phone"
+                  label="Téléphone"
                 />
               </Col>
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   value={email}
                   type="email"
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setEmail(e.target.value)
                   }
-                  messageType={messageType('email')}
-                  message={message('email')}
-                  label="Adresse email : "
+                  inputForm={form}
+                  inputKey="email"
+                  label="Adresse email"
                 />
               </Col>
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   textarea
                   value={notes}
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                     setNotes(e.target.value)
                   }
                   label="Notes"
-                  messageType={messageType('notes')}
-                  message={message('notes')}
+                  inputForm={form}
+                  inputKey="notes"
                   rows={3}
                 />
               </Col>

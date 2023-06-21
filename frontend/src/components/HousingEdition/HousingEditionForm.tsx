@@ -1,13 +1,5 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import {
-  Col,
-  Row,
-  Select,
-  Tag,
-  TagGroup,
-  Text,
-  TextInput,
-} from '@dataesr/react-dsfr';
+import { Col, Row, Select, Tag, TagGroup, Text } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../models/Housing';
 import {
   getStatusPrecisionOptions,
@@ -25,6 +17,7 @@ import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal
 import styles from './housing-edition-form.module.scss';
 import classNames from 'classnames';
 import { useForm } from '../../hooks/useForm';
+import AppTextInput from '../AppTextInput/AppTextInput';
 
 interface Props {
   currentStatus?: HousingStatus;
@@ -148,7 +141,7 @@ const HousingEditionForm = (
     },
   ];
 
-  const schema = yup.object().shape({
+  const shape = {
     status: yup.string().required('Veuillez sélectionner un statut.'),
     subStatus: yup
       .string()
@@ -166,19 +159,22 @@ const HousingEditionForm = (
           .string()
           .required("Veuillez sélectionner un type d'interaction."),
       }),
-  });
+    comment: yup.string().nullable(),
+  };
+  type FormShape = typeof shape;
 
-  const { isValid, message, messageType } = useForm(schema, {
+  const form = useForm(yup.object().shape(shape), {
     hasSubStatus: subStatusOptions !== undefined,
     hasContactKind: status !== HousingStatus.NeverContacted,
     status,
     subStatus,
     contactKind,
+    comment,
   });
 
   useImperativeHandle(ref, () => ({
-    submit: () => {
-      if (isValid()) {
+    submit: async () => {
+      await form.validate(() =>
         onSubmit({
           status: +(status ?? HousingStatus.Waiting),
           subStatus: subStatus,
@@ -189,8 +185,8 @@ const HousingEditionForm = (
               : contactKind,
           vacancyReasons,
           comment,
-        });
-      }
+        })
+      );
     },
   }));
 
@@ -222,11 +218,11 @@ const HousingEditionForm = (
               options={subStatusOptions}
               selected={subStatus}
               messageType={
-                messageType('subStatus') !== ''
-                  ? (messageType('subStatus') as 'valid' | 'error')
+                form.messageType('subStatus') !== ''
+                  ? (form.messageType('subStatus') as 'valid' | 'error')
                   : 'error'
               }
-              message={message('subStatus')}
+              message={form.message('subStatus')}
               onChange={(e: any) => selectSubStatus(status, e.target.value)}
               required
             />
@@ -296,16 +292,18 @@ const HousingEditionForm = (
           </Tag>
         ))}
       </TagGroup>
-      {messageType('contactKind') === 'error' && (
+      {form.messageType('contactKind') === 'error' && (
         <span className="fr-error-text fr-mt-0 fr-mb-2w">
-          {message('contactKind')}
+          {form.message('contactKind')}
         </span>
       )}
-      <TextInput
+      <AppTextInput<FormShape>
         textarea
         label="Ajouter une note"
         rows={3}
         onChange={(e) => setComment(e.target.value)}
+        inputForm={form}
+        inputKey="comment"
       />
     </>
   );

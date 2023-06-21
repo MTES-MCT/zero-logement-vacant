@@ -6,6 +6,7 @@ import { OwnerProspect } from '../../models/OwnerProspect';
 import { AddressSearchResult } from '../../services/address.service';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 import styles from './home.module.scss';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 interface Props {
   addressSearchResult?: AddressSearchResult;
@@ -27,8 +28,9 @@ const OwnerProspectForm = ({
   const [agreement, setAgreement] = useState(false);
   const [editAddress, setEditAddress] = useState(false);
 
-  const schema = yup.object().shape({
+  const shape = {
     address: yup.string().required('Veuillez renseigner votre adresse.'),
+    invariant: yup.string(),
     firstName: yup.string().required('Veuillez renseigner votre prénom.'),
     lastName: yup.string().required('Veuillez renseigner votre nom.'),
     email: emailValidator,
@@ -39,26 +41,22 @@ const OwnerProspectForm = ({
     agreement: yup
       .boolean()
       .oneOf([true], 'Veuillez accepter les conditions générales.'),
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
+    address,
+    invariant,
+    firstName,
+    lastName,
+    email,
+    phone,
+    notes,
+    agreement,
   });
 
-  const { isValid, message, messageType, validate } = useForm(
-    schema,
-    {
-      address,
-      invariant,
-      firstName,
-      lastName,
-      email,
-      phone,
-      notes,
-      agreement,
-    },
-    { disableValidationOnTouch: true }
-  );
-
-  const submitForm = () => {
-    validate();
-    if (isValid()) {
+  const submitForm = async () => {
+    await form.validate(() =>
       onCreateOwnerProspect({
         address,
         geoCode,
@@ -70,8 +68,8 @@ const OwnerProspectForm = ({
         notes,
         callBack: true,
         read: false,
-      });
-    }
+      })
+    );
   };
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
@@ -100,17 +98,22 @@ const OwnerProspectForm = ({
           ) : (
             <AddressSearchableSelect onSelectAddress={onSelectAddress} />
           )}
+          {form.messageType('address') === 'error' && (
+            <div className="fr-error-text fr-mt-0 fr-mb-2w">
+              {form.message('address')}
+            </div>
+          )}
         </Col>
       </Row>
       <Row gutters>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             value={invariant}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setInvariant(e.target.value)
             }
-            messageType={messageType('invariant')}
-            message={message('invariant')}
+            inputForm={form}
+            inputKey="invariant"
             label="Invariant fiscal"
             placeholder="ex : I9904012457A"
           />
@@ -118,62 +121,62 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             value={lastName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setLastName(e.target.value)
             }
-            messageType={messageType('lastName')}
-            message={message('lastName')}
-            label="Nom"
+            inputForm={form}
+            inputKey="lastName"
+            label="Nom (obligatoire)"
             required
           />
         </Col>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             value={firstName}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setFirstName(e.target.value)
             }
-            messageType={messageType('firstName')}
-            message={message('firstName')}
-            label="Prénom"
+            inputForm={form}
+            inputKey="firstName"
+            label="Prénom (obligatoire)"
             required
           />
         </Col>
       </Row>
       <Row gutters>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            messageType={messageType('email')}
-            message={message('email')}
-            label="Email : "
+            inputForm={form}
+            inputKey="email"
+            label="Email (obligatoire)"
             required
           />
         </Col>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            messageType={messageType('phone')}
-            message={message('phone')}
-            label="Téléphone : "
+            inputForm={form}
+            inputKey="phone"
+            label="Téléphone (obligatoire)"
             required
           />
         </Col>
       </Row>
       <Row gutters>
         <Col>
-          <TextInput
+          <AppTextInput<FormShape>
             textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            messageType={messageType('notes')}
-            message={message('notes')}
-            label="Notes : "
+            inputForm={form}
+            inputKey="notes"
+            label="Notes"
             rows={2}
           />
         </Col>
@@ -186,8 +189,8 @@ const OwnerProspectForm = ({
             }
             checked={agreement}
             label="J’accepte les Conditions Générales d’Utilisation du service et d’être recontacté.e dans le cadre d’une mission d’intérêt général"
-            messageType={messageType('agreement')}
-            message={message('agreement')}
+            messageType={form.messageType('agreement')}
+            message={form.message('agreement')}
           />
         </Col>
       </Row>

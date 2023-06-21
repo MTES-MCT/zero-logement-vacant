@@ -9,12 +9,12 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
-  TextInput,
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useForm } from '../../../hooks/useForm';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 const GeoPerimeterEditionModal = ({
   geoPerimeter,
@@ -28,20 +28,19 @@ const GeoPerimeterEditionModal = ({
   const [kind, setKind] = useState(geoPerimeter.kind);
   const [name, setName] = useState(geoPerimeter.name);
 
-  const schema = yup.object().shape({
+  const shape = {
     name: yup.string().required('Veuillez saisir le nom du périmètre'),
     kind: yup.string().required('Veuillez saisir le nom filtre'),
-  });
+  };
+  type FormShape = typeof shape;
 
-  const { isValid, message, messageType } = useForm(schema, {
+  const form = useForm(yup.object().shape(shape), {
     name,
     kind,
   });
 
-  const submitPerimeterForm = () => {
-    if (isValid()) {
-      onSubmit(kind, name);
-    }
+  const submitPerimeterForm = async () => {
+    await form.validate(() => onSubmit(kind, name));
   };
 
   return (
@@ -55,31 +54,31 @@ const GeoPerimeterEditionModal = ({
       </ModalTitle>
       <ModalContent>
         <Container as="section" fluid>
-          <form id="user_form">
+          <form id="geo_perimeter_form">
             <Row spacing="mb-2w">
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   value={name}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setName(e.target.value)
                   }
-                  messageType={messageType('name')}
-                  message={message('name')}
-                  label="Nom du périmètre : "
+                  inputForm={form}
+                  inputKey="name"
+                  label="Nom du périmètre (obligatoire)"
                   required
                 />
               </Col>
             </Row>
             <Row>
               <Col>
-                <TextInput
+                <AppTextInput<FormShape>
                   value={kind}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setKind(e.target.value)
                   }
-                  messageType={messageType('kind')}
-                  message={message('kind')}
-                  label="Nom du filtre : "
+                  inputForm={form}
+                  inputKey="kind"
+                  label="Nom du filtre (obligatoire)"
                   required
                 />
               </Col>

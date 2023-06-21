@@ -8,15 +8,15 @@ import {
   ModalContent,
   ModalFooter,
   ModalTitle,
-  TextInput,
 } from '@dataesr/react-dsfr';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
-import { ValidationError } from 'yup/es';
-import { format, isDate, parse } from 'date-fns';
+import { format } from 'date-fns';
 import styles from './owner-edition-modal.module.scss';
 import { parseDateInput } from '../../../utils/dateUtils';
+import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 const OwnerEditionModal = ({
   owner,
@@ -36,51 +36,37 @@ const OwnerEditionModal = ({
   );
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
-  const [errors, setErrors] = useState<any>({});
 
-  const ownerForm = yup.object().shape({
-    fullName: yup.string().required('Veuillez renseigner un nom.'),
-    email: yup
-      .string()
-      .email('Veuillez renseigner un email valide.')
-      .nullable(),
-    birthDate: yup
-      .date()
-      .nullable()
-      .transform((curr, originalValue) => {
-        return !originalValue.length
-          ? null
-          : isDate(originalValue)
-          ? originalValue
-          : parse(originalValue, 'yyyy-MM-dd', new Date());
-      })
-      .typeError('Veuillez renseigner une date valide.'),
+  const shape = {
+    fullName: yup.string().required("Veuillez saisir l'identité"),
+    birthDate: dateValidator,
+    rawAddress: yup.array().nullable(),
+    email: emailValidator.nullable().notRequired(),
+    phone: yup.string().nullable(),
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
+    fullName,
+    birthDate,
+    rawAddress,
+    email,
+    phone,
   });
 
-  const submit = () => {
-    ownerForm
-      .validate({ fullName, birthDate, email, phone }, { abortEarly: false })
-      .then(() => {
-        if (owner) {
-          onUpdate({
-            ...owner,
-            fullName,
-            birthDate: parseDateInput(birthDate),
-            rawAddress,
-            email,
-            phone,
-          });
-        }
-      })
-      .catch((err) => {
-        const object: any = {};
-        err.inner.forEach((x: ValidationError) => {
-          if (x.path !== undefined && x.errors.length) {
-            object[x.path] = x.errors[0];
-          }
+  const submit = async () => {
+    await form.validate(() => {
+      if (owner) {
+        onUpdate({
+          ...owner,
+          fullName,
+          birthDate: parseDateInput(birthDate),
+          rawAddress,
+          email,
+          phone,
         });
-        setErrors(object);
-      });
+      }
+    });
   };
 
   return (
@@ -99,63 +85,65 @@ const OwnerEditionModal = ({
             title="Identité"
             initExpand={true}
             className={
-              errors['fullName'] || errors['birthDate']
+              form.hasError('fullName') || form.hasError('birthDate')
                 ? styles.itemError
                 : undefined
             }
           >
-            <TextInput
+            <AppTextInput<FormShape>
               value={fullName}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setFullName(e.target.value)
               }
-              label="Nom prénom"
-              messageType={errors['fullName'] ? 'error' : ''}
-              message={errors['fullName']}
+              label="Identité (nom, prénom) (obligatoire)"
+              inputForm={form}
+              inputKey="fullName"
               required
             />
-            <TextInput
+            <AppTextInput<FormShape>
               value={birthDate}
               type="date"
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setBirthDate(e.target.value)
               }
               label="Date de naissance"
-              messageType={errors['birthDate'] ? 'error' : ''}
-              message={errors['birthDate']}
+              inputForm={form}
+              inputKey="birthDate"
             />
           </AccordionItem>
           <AccordionItem
             title="Coordonnées"
             className={
-              errors['address'] || errors['email'] || errors['phone']
+              form.hasError('rawAddress') ||
+              form.hasError('email') ||
+              form.hasError('phone')
                 ? styles.itemError
                 : undefined
             }
           >
-            <TextInput
+            <AppTextInput<FormShape>
               textarea
               value={rawAddress.join('\n')}
               onChange={(e) => setRawAddress(e.target.value.split('\n'))}
               label="Adresse postale"
-              messageType={errors['address'] ? 'error' : ''}
-              message={errors['address']}
+              inputForm={form}
+              inputKey="rawAddress"
               rows={3}
             />
-            <TextInput
+            <AppTextInput<FormShape>
               value={email}
               type="text"
               onChange={(e) => setEmail(e.target.value)}
               label="Adresse mail"
-              messageType={errors['email'] ? 'error' : ''}
-              message={errors['email']}
+              inputForm={form}
+              inputKey="email"
             />
-            <TextInput
+            <AppTextInput<FormShape>
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               label="Numéro de téléphone"
-              messageType={errors['phone'] ? 'error' : ''}
-              message={errors['phone']}
+              inputForm={form}
+              inputKey="phone"
             />
           </AccordionItem>
         </Accordion>

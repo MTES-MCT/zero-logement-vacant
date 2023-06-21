@@ -1,18 +1,10 @@
-import {
-  Button,
-  Col,
-  Container,
-  Row,
-  Text,
-  TextInput,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import React, { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
-  passwordValidator,
+  passwordFormatValidator,
   useForm,
 } from '../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
@@ -21,6 +13,7 @@ import { useEmailLink } from '../../hooks/useEmailLink';
 import Alert from '../../components/Alert/Alert';
 import resetLinkService from '../../services/reset-link.service';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');
@@ -33,22 +26,26 @@ function ResetPasswordView() {
     service: resetLinkService,
   });
 
-  const form = yup.object().shape({
-    password: passwordValidator,
+  const shape = {
+    password: yup.string().required('Veuillez renseigner votre mot de passe.'),
+    passwordFormat: passwordFormatValidator,
     passwordConfirmation: passwordConfirmationValidator,
-  });
-  const { isValid, message, messageList, messageType } = useForm(form, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     password,
+    passwordFormat: password,
     passwordConfirmation,
   });
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     try {
       e.preventDefault();
-      if (isValid()) {
+      await form.validate(async () => {
         await authService.resetPassword(resetLink.hash, password);
         setPasswordReset(true);
-      }
+      });
     } catch (err) {
       setError((err as Error).message);
     }
@@ -127,37 +124,34 @@ function ResetPasswordView() {
             Réinitialisation de votre mot de passe
           </Title>
           <form onSubmit={submit}>
-            <TextInput
+            <AppTextInput<FormShape>
               value={password}
               type="password"
               hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
               onChange={(e) => setPassword(e.target.value)}
-              messageType={messageType('password')}
-              label="Créer votre mot de passe : "
+              inputForm={form}
+              inputKey="password"
+              label="Créer votre mot de passe (obligatoire)"
               required
             />
-            {messageList('password')?.map((message, i) => (
+            {form.messageList('passwordFormat')?.map((message, i) => (
               <p className={`fr-${message.type}-text`} key={i}>
                 {message.text}
               </p>
             ))}
-            <TextInput
+            <AppTextInput<FormShape>
               value={passwordConfirmation}
               type="password"
               className="fr-mt-3w"
               onChange={(e) => setPasswordConfirmation(e.target.value)}
-              messageType={messageType('passwordConfirmation')}
-              message={message(
-                'passwordConfirmation',
-                'Mots de passe identiques.'
-              )}
-              label="Confirmer votre mot de passe : "
+              inputForm={form}
+              inputKey="passwordConfirmation"
+              whenValid="Mots de passe identiques."
+              label="Confirmer votre mot de passe (obligatoire)"
               required
             />
             <Row justifyContent="right">
-              <Button disabled={!isValid()} submit>
-                Enregistrer le nouveau mot de passe
-              </Button>
+              <Button submit>Enregistrer le nouveau mot de passe</Button>
             </Row>
           </form>
         </Col>

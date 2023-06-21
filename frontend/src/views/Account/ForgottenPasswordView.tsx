@@ -1,12 +1,4 @@
-import {
-  Button,
-  Col,
-  Container,
-  Row,
-  Text,
-  TextInput,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import building from '../../assets/images/building.svg';
 import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
@@ -18,16 +10,19 @@ import classNames from 'classnames';
 import styles from './forgotten-password-view.module.scss';
 import { useHide } from '../../hooks/useHide';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
-  const form = yup.object().shape({
+  const shape = {
     email: emailValidator,
-  });
-  const { isValid, message, messageType } = useForm(form, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     email,
   });
   const { hidden, setHidden } = useHide();
@@ -35,11 +30,11 @@ function ForgottenPasswordView() {
   async function submit(e?: FormEvent<HTMLFormElement>) {
     try {
       e?.preventDefault();
-      if (isValid()) {
+      await form.validate(async () => {
         await resetLinkService.sendResetEmail(email);
         setEmailSent(true);
         setHidden(false);
-      }
+      });
     } catch (err) {
       setError((err as Error).message);
     }
@@ -93,22 +88,21 @@ function ForgottenPasswordView() {
                 un nouveau mot de passe.
               </Text>
               <form onSubmit={submit}>
-                <TextInput
+                <AppTextInput<FormShape>
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   hint="Entrez l’adresse mail utilisée pour créer votre compte ZLV"
-                  messageType={messageType('email')}
-                  message={message('email', 'Email valide.')}
+                  inputForm={form}
+                  inputKey="email"
+                  whenValid="Email valide."
                   data-testid="email-input"
-                  label="Adresse email : "
+                  label="Adresse email (obligatoire)"
                   placeholder="exemple@gmail.com"
                   required
                 />
                 <Row justifyContent="right">
-                  <Button disabled={!isValid()} submit>
-                    Envoyer un email de réinitialisation
-                  </Button>
+                  <Button submit>Envoyer un email de réinitialisation</Button>
                 </Row>
               </form>
             </>

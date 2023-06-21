@@ -2,15 +2,16 @@ import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
-  passwordValidator,
+  passwordFormatValidator,
   useForm,
 } from '../../../hooks/useForm';
 import { Redirect, useHistory } from 'react-router-dom';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Button, Row, Text, TextInput, Title } from '@dataesr/react-dsfr';
+import { Button, Row, Text, Title } from '@dataesr/react-dsfr';
 import InternalLink from '../../../components/InternalLink/InternalLink';
 import { useProspect } from '../../../hooks/useProspect';
 import { Prospect } from '../../../models/Prospect';
+import AppTextInput from '../../../components/AppTextInput/AppTextInput';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -28,12 +29,16 @@ function AccountPasswordCreationView() {
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
 
-  const schema = yup.object().shape({
-    password: passwordValidator,
+  const shape = {
+    password: yup.string().required('Veuillez renseigner votre mot de passe.'),
+    passwordFormat: passwordFormatValidator,
     confirmation: passwordConfirmationValidator,
-  });
-  const { isValid, message, messageList, messageType } = useForm(schema, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     password,
+    passwordFormat: password,
     confirmation,
   });
 
@@ -77,15 +82,17 @@ function AccountPasswordCreationView() {
 
   async function next(e: FormEvent) {
     e.preventDefault();
-    if (isValid() && !!prospect) {
-      router.push({
-        pathname: '/inscription/campagne',
-        state: {
-          prospect,
-          password,
-        },
-      });
-    }
+    await form.validate(() => {
+      if (!!prospect) {
+        router.push({
+          pathname: '/inscription/campagne',
+          state: {
+            prospect,
+            password,
+          },
+        });
+      }
+    });
   }
 
   return (
@@ -97,28 +104,30 @@ function AccountPasswordCreationView() {
         nextStepTitle="Intentions opérationnelles"
       />
       <form onSubmit={next}>
-        <TextInput
+        <AppTextInput<FormShape>
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          messageType={messageType('password')}
-          label="Créer votre mot de passe"
+          inputForm={form}
+          inputKey="password"
+          label="Créer votre mot de passe (obligatoire)"
           hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
           required
         />
-        {messageList('password')?.map((message, i) => (
+        {form.messageList('passwordFormat')?.map((message, i) => (
           <p className={`fr-${message.type}-text`} key={i}>
             {message.text}
           </p>
         ))}
-        <TextInput
+        <AppTextInput<FormShape>
           type="password"
           className="fr-mt-3w"
           value={confirmation}
           onChange={(e) => setConfirmation(e.target.value)}
-          messageType={messageType('confirmation')}
-          message={message('confirmation', 'Mots de passe identiques.')}
-          label="Confirmer votre mot de passe"
+          inputForm={form}
+          inputKey="confirmation"
+          whenValid="Mots de passe identiques."
+          label="Confirmer votre mot de passe (obligatoire)"
           required
         />
         <Row alignItems="middle" className="justify-space-between">

@@ -76,16 +76,6 @@ const HousingOwnersModal = ({
       : [];
 
   const schema = yup.object().shape({
-    ...ranks.reduce(
-      (shape, currentRank) => ({
-        ...shape,
-        [`ownerRanks${currentRank + 1}`]: yup
-          .array()
-          .compact((ownerRank) => ownerRank.rank !== String(currentRank + 1))
-          .max(1, `Il ne peut y avoir qu'un ${currentRank + 1}ème ayant-droit`),
-      }),
-      {}
-    ),
     ...ownerInputs.reduce(
       (shape, ownerInput, index) => ({
         ...shape,
@@ -97,11 +87,30 @@ const HousingOwnersModal = ({
       }),
       {}
     ),
-    ownerRanks1: yup
-      .array()
-      .compact((ownerInput) => ownerInput.rank !== String(1))
-      .min(1, 'Il doit y avoir au moins un propriétaire principal')
-      .max(1, "Il ne peut y avoir qu'un propriétaire principal"),
+    ownerRanks: yup.array().test({
+      test(array, ctx) {
+        if ((array ?? []).filter((_) => _.rank === '1').length < 1) {
+          return ctx.createError({
+            message: 'Il doit y avoir au moins un propriétaire principal',
+          });
+        }
+        if ((array ?? []).filter((_) => _.rank === '1').length > 1) {
+          return ctx.createError({
+            message: "Il ne peut y avoir qu'un propriétaire principal",
+          });
+        }
+        for (const rank of ranks) {
+          if (
+            (array ?? []).filter((_) => _.rank === String(rank + 1)).length > 1
+          ) {
+            return ctx.createError({
+              message: `Il ne peut y avoir qu'un ${rank + 1}ème ayant-droit`,
+            });
+          }
+        }
+        return true;
+      },
+    }),
   });
 
   const changeOwnerInputs = (ownerInput: OwnerInput) => {
@@ -123,25 +132,22 @@ const HousingOwnersModal = ({
     { value: '0', label: `Ancien propriétaire` },
   ];
 
-  const form = useForm(schema, {
-    ...ranks.reduce(
-      (inputs, currentRank) => ({
-        ...inputs,
-        [`ownerRanks${currentRank + 1}`]: ownerInputs,
-      }),
-      {}
-    ),
-    ...ownerInputs.reduce(
-      (inputs, ownerInput, index) => ({
-        ...inputs,
-        [`fullName${index}`]: ownerInput.fullName,
-        [`email${index}`]: ownerInput.email,
-        [`birthDate${index}`]: ownerInput.birthDate,
-      }),
-      {}
-    ),
-    ownerRanks1: ownerInputs,
-  });
+  const form = useForm(
+    schema,
+    {
+      ...ownerInputs.reduce(
+        (inputs, ownerInput, index) => ({
+          ...inputs,
+          [`fullName${index}`]: ownerInput.fullName,
+          [`email${index}`]: ownerInput.email,
+          [`birthDate${index}`]: ownerInput.birthDate,
+        }),
+        {}
+      ),
+      ownerRanks: ownerInputs,
+    },
+    ['ownerRanks']
+  );
 
   const submit = async () => {
     await form.validate(() => {
@@ -293,13 +299,11 @@ const HousingOwnersModal = ({
       </ModalContent>
       <ModalFooter>
         <Container as="section" spacing="p-0">
-          {ranks
-            .filter((rank) => hasError(`ownerRanks${rank}`))
-            .map((rank) => (
-              <p className="fr-error-text fr-mb-2w fr-mt-0" key={rank}>
-                {message(`ownerRanks${rank}`)}
-              </p>
-            ))}
+          {hasError('ownerRanks') && (
+            <p className="fr-error-text fr-mb-2w fr-mt-0">
+              {message('ownerRanks')}
+            </p>
+          )}
           <Row gutters>
             <Col n="12" className="align-right">
               <hr />

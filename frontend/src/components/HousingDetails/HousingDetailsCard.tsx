@@ -20,8 +20,6 @@ import { updateHousing } from '../../store/actions/housingAction';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
-import HousingDetailsSubCardSituation from './HousingDetailsSubCardSituation';
-import HousingNoteModal from '../modals/HousingNoteModal/HousingNoteModal';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import { useAppDispatch } from '../../hooks/useStore';
@@ -29,12 +27,9 @@ import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingPrecisionsBadges from '../HousingStatusBadge/HousingPrecisionsBadges';
-import {
-  useCreateNoteMutation,
-  useFindNotesByHousingQuery,
-} from '../../services/note.service';
+import { useFindNotesByHousingQuery } from '../../services/note.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
-import { HousingNoteCreation, Note } from '../../models/Note';
+import { Note } from '../../models/Note';
 
 interface Props {
   housing: Housing;
@@ -47,9 +42,7 @@ function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
     useState(false);
-  const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
 
-  const [createNote] = useCreateNoteMutation();
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing.id
   );
@@ -70,21 +63,24 @@ function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
     setIsHousingListEditionExpand(false);
   };
 
-  const submitHousingNoteAboutHousing = async (
-    note: HousingNoteCreation
-  ): Promise<void> => {
-    await createNote(note).finally(() => {
-      refetchHousingNotes();
-      setIsModalNoteOpen(false);
-    });
-  };
-
   return (
     <Card hasArrow={false} hasBorder={false} size="sm">
       <CardTitle>
         <span className="card-title-icon">
           <Icon name="ri-home-fill" iconPosition="center" size="1x" />
         </span>
+        <Button
+          onClick={() => setIsHousingListEditionExpand(true)}
+          className="fr-ml-1w float-right"
+        >
+          Mettre à jour / Ajouter une note
+        </Button>
+        <HousingEditionSideMenu
+          housing={housing}
+          expand={isHousingListEditionExpand}
+          onSubmit={submitHousingUpdate}
+          onClose={() => setIsHousingListEditionExpand(false)}
+        />
         <Title as="h1" look="h4" spacing="mb-1w">
           {housing.rawAddress.join(' - ')}
           <Link
@@ -102,8 +98,6 @@ function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
       <CardDescription>
         <div className="bg-975 fr-p-2w">
           <div className={styles.reference}>
-            <span>Invariant fiscal : {housing.invariant}</span>
-            <span>Référence cadastrale : {housing.cadastralReference}</span>
             <span>
               {pluralize(housing.dataYears.length)('Millésime')} :{' '}
               {housing.dataYears.join(' - ')}
@@ -120,49 +114,19 @@ function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
             precisions={housing.precisions}
           />
         </div>
-        <Row spacing="pt-2w float" justifyContent="right">
-          <Button
-            secondary
-            icon="ri-sticky-note-fill"
-            onClick={() => setIsModalNoteOpen(true)}
-          >
-            Ajouter une note
-          </Button>
-          <Button
-            icon="ri-edit-2-fill"
-            onClick={() => setIsHousingListEditionExpand(true)}
-            className="fr-ml-1w"
-          >
-            Mettre à jour le dossier
-          </Button>
-          {isModalNoteOpen && (
-            <HousingNoteModal
-              housingList={[housing]}
-              onClose={() => setIsModalNoteOpen(false)}
-              onSubmitAboutHousing={submitHousingNoteAboutHousing}
-            />
-          )}
-          <HousingEditionSideMenu
-            housing={housing}
-            expand={isHousingListEditionExpand}
-            onSubmit={submitHousingUpdate}
-            onClose={() => setIsHousingListEditionExpand(false)}
-          />
-        </Row>
-        <Tabs className="fr-pt-3w">
+        <Tabs className={classNames(styles.tabs, 'fr-pt-3w')}>
           <Tab label="Caractéristiques" className="fr-px-0">
-            <Row>
-              <Col spacing="mx-1w">
-                <HousingDetailsSubCardLocation housing={housing} />
+            <Row gutters>
+              <Col>
                 <HousingDetailsSubCardProperties housing={housing} />
-                <HousingDetailsSubCardBuilding housing={housing} />
+                <HousingDetailsSubCardLocation housing={housing} />
               </Col>
-              <Col spacing="mx-1w">
-                <HousingDetailsSubCardSituation housing={housing} />
+              <Col>
+                <HousingDetailsSubCardBuilding housing={housing} />
               </Col>
             </Row>
           </Tab>
-          <Tab label="Suivi du logement">
+          <Tab label="Historique de suivi">
             <EventsHistory events={housingEvents} notes={housingNotes} />
           </Tab>
         </Tabs>

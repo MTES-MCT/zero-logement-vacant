@@ -1,6 +1,6 @@
 import { Text } from '@dataesr/react-dsfr';
 import React from 'react';
-import { Housing } from '../../models/Housing';
+import { Housing, OwnershipKindLabels } from '../../models/Housing';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 
@@ -10,36 +10,50 @@ interface Props {
 
 function HousingDetailsSubCardProperties({ housing }: Props) {
   return (
-    <HousingDetailsSubCard title="Caractéristiques">
+    <HousingDetailsSubCard title="Logement">
+      <div>
+        <Text size="sm" className="zlv-label">
+          Invariant fiscal
+        </Text>
+        <Text spacing="mb-1w">{housing.invariant}</Text>
+      </div>
+      <div>
+        <Text size="sm" className="zlv-label">
+          Type de propriété
+        </Text>
+        <Text spacing="mb-1w">
+          {OwnershipKindLabels[housing.ownershipKind]}
+        </Text>
+      </div>
       <div>
         <Text size="sm" className="zlv-label">
           Type
         </Text>
-        <Text>{housing.housingKind}</Text>
+        <Text spacing="mb-1w">{housing.housingKind}</Text>
       </div>
       <div>
         <Text size="sm" className="zlv-label">
           Surface
         </Text>
-        <Text>{housing.livingArea}</Text>
+        <Text spacing="mb-1w">{housing.livingArea}</Text>
       </div>
       <div>
         <Text size="sm" className="zlv-label">
           Pièces
         </Text>
-        <Text>{housing.roomsCount}</Text>
+        <Text spacing="mb-1w">{housing.roomsCount}</Text>
       </div>
       <div>
         <Text size="sm" className="zlv-label">
           Construction
         </Text>
-        <Text>{housing.buildingYear}</Text>
+        <Text spacing="mb-1w">{housing.buildingYear}</Text>
       </div>
       <div>
         <Text size="sm" className="zlv-label">
           Classement cadastral
         </Text>
-        <Text>
+        <Text spacing="mb-1w">
           {
             cadastralClassificationOptions.find(
               (_) => _.value === String(housing.cadastralClassification)

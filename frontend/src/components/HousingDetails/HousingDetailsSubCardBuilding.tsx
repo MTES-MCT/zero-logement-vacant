@@ -24,13 +24,13 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
         <Text size="sm" className="zlv-label">
           Nombre de logements
         </Text>
-        <Text>{housing.buildingHousingCount}</Text>
+        <Text spacing="mb-1w">{housing.buildingHousingCount}</Text>
       </div>
       <div>
         <Text size="sm" className="zlv-label">
           Taux de vacance
         </Text>
-        <Text>{housing.buildingVacancyRate}%</Text>
+        <Text spacing="mb-1w">{housing.buildingVacancyRate}%</Text>
       </div>
       {features.isEnabled('occupancy') ? (
         <>

@@ -129,7 +129,11 @@ function Map(props: MapProps) {
       mapStyle={STYLE.uri}
       onMove={onMove}
       reuseMaps
-      style={{ minHeight: '600px' }}
+      style={{
+        minHeight: '600px',
+        height: 'auto',
+        fontFamily: 'Marianne, sans-serif',
+      }}
     >
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />
       {includedPerimeters.length > 0 && showPerimeters && (

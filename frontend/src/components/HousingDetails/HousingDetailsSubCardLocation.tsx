@@ -1,12 +1,9 @@
 import { Text } from '@dataesr/react-dsfr';
 import React from 'react';
-import {
-  getBuildingLocation,
-  hasGeoPerimeters,
-  Housing,
-} from '../../models/Housing';
+import { getBuildingLocation, Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { LocalityKindLabels } from '../../models/Locality';
+import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 
 interface Props {
   housing: Housing;
@@ -19,12 +16,14 @@ function HousingDetailsCard({ housing }: Props) {
         <Text size="sm" className="zlv-label">
           Adresse postale
         </Text>
-        <Text className="color-bf113">{housing.rawAddress.join(' - ')}</Text>
+        <Text className="color-bf113" spacing="mb-1w">
+          {housing.rawAddress.join(' - ')}
+        </Text>
       </div>
-      {getBuildingLocation(housing) ? (
+      {getBuildingLocation(housing) && (
         <div>
           <Text size="sm" className="zlv-label">
-            Complément
+            Complément d'adresse
           </Text>
           <Text>
             {[
@@ -35,29 +34,32 @@ function HousingDetailsCard({ housing }: Props) {
             ].join(', ')}
           </Text>
         </div>
-      ) : (
-        <></>
       )}
-      {housing.localityKind ? (
+      {housing.localityKind && (
         <div>
           <Text size="sm" className="zlv-label">
             Périmètres
           </Text>
-          <Text>{LocalityKindLabels[housing.localityKind]}</Text>
-        </div>
-      ) : (
-        <></>
-      )}
-      {hasGeoPerimeters(housing) ? (
-        <div>
-          <Text size="sm" className="zlv-label">
-            Périmètres
+          <Text spacing="mb-1w">
+            {LocalityKindLabels[housing.localityKind]}
           </Text>
-          <Text>{housing.geoPerimeters?.join(', ')}</Text>
         </div>
-      ) : (
-        <></>
       )}
+      <div>
+        <Text size="sm" className="zlv-label">
+          Référence cadastrale
+        </Text>
+        <Text className="color-bf113" spacing="mb-1w">
+          <span>{housing.cadastralReference}</span>
+        </Text>
+      </div>
+      <div>
+        <Text size="sm" className="zlv-label">
+          Périmètres associés
+        </Text>
+        <Text spacing="mb-1w">{housing.geoPerimeters?.join(', ')}</Text>
+        <GeoPerimetersModalLink />
+      </div>
     </HousingDetailsSubCard>
   );
 }

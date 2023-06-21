@@ -7,7 +7,7 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 interface Props {
   title: string;
   onModify?: () => any;
-  children?: ReactElement | ReactElement[];
+  children?: ReactElement | (ReactElement | undefined)[];
 }
 
 function HousingDetailsSubCard({ title, onModify, children }: Props) {
@@ -16,7 +16,8 @@ function HousingDetailsSubCard({ title, onModify, children }: Props) {
       hasArrow={false}
       hasBorder={false}
       size="sm"
-      className={classNames(styles.subCard, 'app-card-xs')}
+      className={classNames(styles.subCard, 'app-card-xs', 'bg-975')}
+      hasBackground={true}
     >
       <CardTitle>
         <Title
@@ -41,7 +42,7 @@ function HousingDetailsSubCard({ title, onModify, children }: Props) {
             </ButtonLink>
           )}
         </Title>
-        <hr />
+        <hr className="fr-py-1w" />
       </CardTitle>
       <CardDescription className={styles.content}>{children}</CardDescription>
     </Card>

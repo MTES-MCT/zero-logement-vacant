@@ -25,7 +25,7 @@ import styles from './owner-card.module.scss';
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
   coOwners?: HousingOwner[];
-  onModify?: () => any;
+  onModify: () => any;
 }
 
 function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
@@ -35,20 +35,18 @@ function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
         <span className="card-title-icon">
           <Icon name="ri-user-fill" iconPosition="center" size="1x" />
         </span>
-        {onModify && (
-          <ButtonLink
-            className={classNames(styles.link, 'float-right')}
-            display="flex"
-            icon="ri-edit-2-fill"
-            iconPosition="left"
-            iconSize="1x"
-            isSimple
-            title="Modifier le propriétaire"
-            onClick={() => onModify()}
-          >
-            Modifier
-          </ButtonLink>
-        )}
+        <ButtonLink
+          className={classNames(styles.link, 'float-right')}
+          display="flex"
+          icon="ri-edit-2-fill"
+          iconPosition="left"
+          iconSize="1x"
+          isSimple
+          title="Modifier le propriétaire"
+          onClick={() => onModify()}
+        >
+          Modifier
+        </ButtonLink>
         <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">
           {owner.fullName}
         </Title>
@@ -70,7 +68,12 @@ function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
               '/proprietaires/' +
               owner.id
             }
-            className="fr-btn--md fr-btn fr-btn--secondary fr-mt-1w fr-px-6w"
+            className={classNames(
+              styles.housingBouton,
+              'fr-btn--md',
+              'fr-btn',
+              'fr-btn--secondary'
+            )}
           >
             Voir tous ses logements ({owner.housingCount})
           </InternalLink>

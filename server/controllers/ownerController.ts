@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { body, param, ValidationChain } from 'express-validator';
+import { body, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
@@ -202,7 +202,6 @@ const updateHousingOwners = async (
 };
 
 const ownerValidators: ValidationChain[] = [
-  param('ownerId').isUUID().notEmpty(),
   body('fullName').isString(),
   body('birthDate').isString(),
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),

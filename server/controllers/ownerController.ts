@@ -152,9 +152,9 @@ const updateHousingOwners = async (
   console.log('Update housing owners', housingId);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const housingOwnersApi = (<HousingOwnerApi[]>(
-    request.body.housingOwners
-  )).filter((_) => _.housingId === housingId);
+  const housingOwnersApi = (<HousingOwnerApi[]>request.body).filter(
+    (_) => _.housingId === housingId
+  );
 
   await Promise.all(
     housingOwnersApi.map((housingOwnerApi) =>

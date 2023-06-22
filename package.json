@@ -59,7 +59,7 @@
     "knex": "^2.4.2",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.11",
-    "nodemailer": "^6.9.2",
+    "nodemailer": "^6.9.3",
     "pg": "^8.11.0",
     "pg-query-stream": "^4.4.0",
     "proj4": "^2.9.0",

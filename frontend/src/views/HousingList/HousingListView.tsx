@@ -294,7 +294,7 @@ const HousingListView = () => {
               onReset={onResetFilters}
             />
 
-            <Text spacing="mb-0">
+            <Text spacing="mb-2w">
               {displayHousingCount(paginatedHousing)}
               {view === 'map' && (
                 <div className="d-inline-block fr-ml-2w">
@@ -329,7 +329,7 @@ const HousingListView = () => {
                       <SelectableListHeader
                         entity="logement"
                         default={
-                          <Help className="fr-my-2w fr-py-2w">
+                          <Help className="fr-mb-2w fr-py-2w">
                             <b>Sélectionnez</b> les logements que vous souhaitez
                             cibler, puis cliquez sur <b>Créer la campagne</b>.
                           </Help>

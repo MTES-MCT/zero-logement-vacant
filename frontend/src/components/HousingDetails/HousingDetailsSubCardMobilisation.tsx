@@ -1,4 +1,4 @@
-import { Col, Row, Text } from '@dataesr/react-dsfr';
+import { Col, Row, Tag, Text } from '@dataesr/react-dsfr';
 import React from 'react';
 import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
@@ -22,16 +22,19 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
     return <></>;
   }
 
+  const campaignInProgress = campaigns.filter((_) => !_?.archivedAt);
+
   return (
     <HousingDetailsSubCard
       title={
         <>
           Mobilisation
           <div className="fr-ml-2w">
-            <HousingStatusBadge status={housing.status} />
+            <HousingStatusBadge status={housing.status} inline />
             <HousingSubStatusBadge
               status={housing.status}
               subStatus={housing.subStatus}
+              inline
             />
           </div>
         </>
@@ -45,49 +48,79 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               <Text size="sm" className="zlv-label">
                 Dernière mise à jour
               </Text>
-              {housing.lastContact && (
-                <Text spacing="mb-1w">
-                  {format(housing.lastContact, 'dd/MM/yyyy')} (
-                  {differenceInDays(new Date(), housing.lastContact)} jours)
-                </Text>
-              )}
+              <Text spacing="mb-1w">
+                {housing.lastContact
+                  ? `${format(
+                      housing.lastContact,
+                      'dd/MM/yyyy'
+                    )} (${differenceInDays(
+                      new Date(),
+                      housing.lastContact
+                    )} jours)`
+                  : 'Aucune mise à jour'}
+              </Text>
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
                 Prise de contact
+              </Text>
+              <Text spacing="mb-1w">
+                {campaigns.length === 0
+                  ? 'Jamais contacté'
+                  : `Contacté ${campaigns.length} fois`}
               </Text>
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
                 Précisions ({housing.precisions?.length ?? 0})
               </Text>
+              <Text size="sm" spacing="mb-1w">
+                {(housing.precisions?.length ?? 0) === 0 ? (
+                  <>Aucune précision associée</>
+                ) : (
+                  housing.precisions?.map((precision, index) => (
+                    <Tag
+                      key={'precision_' + index}
+                      className="d-block fr-mb-1w"
+                    >
+                      {precision}
+                    </Tag>
+                  ))
+                )}
+              </Text>
             </Col>
           </Row>
         </Col>
         <Col n="4">
           <Text size="sm" className="zlv-label">
-            Campagnes en cours ({campaigns.length})
+            Campagnes en cours ({campaignInProgress.length})
           </Text>
-          {campaigns.map((campaign) => (
-            <div>
-              <InternalLink
-                title={campaign?.name}
-                key={campaign?.id}
-                isSimple
-                to={
-                  '/campagnes/' +
-                  campaignBundleIdUrlFragment({
-                    campaignNumber: campaign.campaignNumber,
-                    reminderNumber: campaign.reminderNumber,
-                  })
-                }
-                icon="ri-mail-fill"
-                iconPosition="left"
-              >
-                {campaignFullName(campaign)}
-              </InternalLink>
-            </div>
-          ))}
+          <Text spacing="mb-1w">
+            {campaignInProgress.length === 0 ? (
+              <>Aucune campagne associée</>
+            ) : (
+              campaignInProgress.map((campaign) => (
+                <div>
+                  <InternalLink
+                    title={campaign?.name}
+                    key={campaign?.id}
+                    isSimple
+                    to={
+                      '/campagnes/' +
+                      campaignBundleIdUrlFragment({
+                        campaignNumber: campaign.campaignNumber,
+                        reminderNumber: campaign.reminderNumber,
+                      })
+                    }
+                    icon="ri-mail-fill"
+                    iconPosition="left"
+                  >
+                    {campaignFullName(campaign)}
+                  </InternalLink>
+                </div>
+              ))
+            )}
+          </Text>
         </Col>
       </Row>
     </HousingDetailsSubCard>

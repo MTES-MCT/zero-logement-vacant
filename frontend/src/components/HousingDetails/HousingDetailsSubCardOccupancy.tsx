@@ -33,9 +33,22 @@ function HousingDetailsCardOccupancy({ housing }: Props) {
           <Text spacing="mb-1w">{housing.dataYears.join(', ')}</Text>
         </Col>
         <Col n="4">
-          <Text size="sm" className="zlv-label">
-            Logement passoire énergétique
-          </Text>
+          {features.isEnabled('occupancy') && (
+            <>
+              <Text size="sm" className="zlv-label">
+                Logement passoire énergétique
+              </Text>
+              {housing.energyConsumption ? (
+                <Tag className="d-block">
+                  {['F', 'G'].includes(housing.energyConsumption)
+                    ? 'Oui'
+                    : 'Non'}
+                </Tag>
+              ) : (
+                <Text spacing="mb-1w">Non renseigné</Text>
+              )}
+            </>
+          )}
         </Col>
         <Col n="4">
           <Text size="sm" className="zlv-label">
@@ -43,25 +56,27 @@ function HousingDetailsCardOccupancy({ housing }: Props) {
           </Text>
         </Col>
         <Col n="4">
-          <Text size="sm" className="zlv-label">
-            Taxe sur la vacance
-            <Tag className="d-block">{housing.taxed ? 'Oui' : 'Non'}</Tag>
-          </Text>
+          {housing.occupancy === 'V' && (
+            <Text size="sm" className="zlv-label">
+              Taxe sur la vacance
+              <Tag className="d-block">{housing.taxed ? 'Oui' : 'Non'}</Tag>
+            </Text>
+          )}
         </Col>
-        {features.isEnabled('occupancy') && (
-          <Col n="4">
+        <Col n="4">
+          {features.isEnabled('occupancy') && (
             <div className="fr-mb-3w">
               <Text size="sm" className="zlv-label">
-                Étiquette DPE (majoritaire)
+                Étiquette DPE (majo. immeuble)
               </Text>
               {housing.energyConsumption ? (
                 <DPE value={housing.energyConsumption} />
               ) : (
-                <Text spacing="mb-1w">Non fournie</Text>
+                <Text spacing="mb-1w">Non renseigné</Text>
               )}
             </div>
-          </Col>
-        )}
+          )}
+        </Col>
       </Row>
     </HousingDetailsSubCard>
   );

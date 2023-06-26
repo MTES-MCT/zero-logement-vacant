@@ -45,12 +45,6 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
       </div>
       <div>
         <Text size="sm" className="zlv-label">
-          Construction
-        </Text>
-        <Text spacing="mb-1w">{housing.buildingYear}</Text>
-      </div>
-      <div>
-        <Text size="sm" className="zlv-label">
           Classement cadastral
         </Text>
         <Text spacing="mb-1w">

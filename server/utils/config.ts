@@ -166,12 +166,12 @@ const config = convict<Config>({
       env: 'SENTRY_DSN',
       format: String,
       default: null,
-      nullable: process.env.NODE_ENV !== 'production',
+      nullable: true,
     },
     enabled: {
       env: 'SENTRY_ENABLED',
       format: 'strict-boolean',
-      default: true,
+      default: process.env.NODE_ENV === 'production',
     },
   },
   maxRate: {

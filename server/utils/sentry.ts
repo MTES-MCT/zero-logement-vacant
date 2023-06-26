@@ -3,6 +3,10 @@ import { Express } from 'express';
 import config from './config';
 
 const init = (app: Express): void => {
+  if (config.sentry.enabled && !config.sentry.dsn) {
+    throw new Error('Sentry must be initialized with a valid DSN');
+  }
+
   if (config.sentry.enabled && config.sentry.dsn) {
     const logLevel = ['error'];
 

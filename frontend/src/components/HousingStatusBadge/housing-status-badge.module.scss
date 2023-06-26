@@ -16,12 +16,16 @@
     margin-top: 8px;
   }
 
-  &.inline {
-    display: inline-block;
+  width: fit-content
+}
 
-    & + .inline {
-      margin-left: 8px;
-    }
+
+.statusBadgeContainerInline {
+
+  display: inline-block;
+
+  & + .statusBadgeContainerInline {
+    margin-left: 8px;
   }
 
   width: fit-content

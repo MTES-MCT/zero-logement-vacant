@@ -24,6 +24,8 @@ export interface Server {
 export function createServer(): Server {
   const app = express();
 
+  sentry.init(app);
+
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false,
@@ -98,8 +100,6 @@ export function createServer(): Server {
   app.use('/api', protectedRouter);
 
   if (config.environment === 'production') {
-    sentry.initCaptureConsoleWithHandler(app);
-
     app.use(express.static(path.join(__dirname, '../../frontend/build')));
     app.get('*', function (req: any, res: { sendFile: (arg0: any) => void }) {
       res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
@@ -109,6 +109,7 @@ export function createServer(): Server {
   app.all('*', () => {
     throw new RouteNotFoundError();
   });
+  sentry.errorHandler(app);
   app.use(errorHandler());
 
   function start(): Promise<void> {

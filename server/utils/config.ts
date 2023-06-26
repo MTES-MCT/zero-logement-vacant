@@ -53,7 +53,10 @@ interface Config {
   features: {
     enableTestAccounts: boolean;
   };
-  sentryDNS: string | null;
+  sentry: {
+    dsn: string | null;
+    enabled: boolean;
+  };
   maxRate: number;
   application: {
     batchSize: number;
@@ -158,11 +161,18 @@ const config = convict<Config>({
       default: process.env.NODE_ENV !== 'production',
     },
   },
-  sentryDNS: {
-    env: 'SENTRY_DNS',
-    format: String,
-    default: null,
-    nullable: true,
+  sentry: {
+    dsn: {
+      env: 'SENTRY_DSN',
+      format: String,
+      default: null,
+      nullable: process.env.NODE_ENV !== 'production',
+    },
+    enabled: {
+      env: 'SENTRY_ENABLED',
+      format: 'strict-boolean',
+      default: true,
+    },
   },
   maxRate: {
     env: 'MAX_RATE',

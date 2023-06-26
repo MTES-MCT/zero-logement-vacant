@@ -53,4 +53,8 @@ router.get('/localities/:geoCode', localityController.getLocalityValidators, val
 
 router.get('/contact-points/public', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(true));
 
+router.get('/fail', (req, res) => {
+  throw new Error("My first Sentry error!");
+})
+
 export default router;

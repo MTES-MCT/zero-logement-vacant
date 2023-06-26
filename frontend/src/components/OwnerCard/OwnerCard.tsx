@@ -128,57 +128,45 @@ function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
               Autres propriétaires ({coOwners.length})
             </Title>
             <hr />
-            {coOwners
-              .filter((_) => _.rank !== 1)
-              .map((housingOwner) => (
-                <Card
-                  key={'owner_' + housingOwner.rank}
-                  hasArrow={false}
-                  href={
-                    (window.location.pathname.indexOf('proprietaires') === -1
-                      ? window.location.pathname
-                      : '') +
-                    '/proprietaires/' +
-                    housingOwner.id
-                  }
-                  className={classNames(
-                    'fr-mb-1w',
-                    styles.coOwnerCard,
-                    'app-card-xs'
-                  )}
-                >
-                  <CardTitle>
-                    <span className="icon-xs">
-                      <Icon
-                        name="ri-user-fill"
-                        iconPosition="center"
-                        size="xs"
-                      />
-                    </span>
-                    <Text as="span">
-                      <b>{housingOwner.fullName}</b>
-                    </Text>
-                  </CardTitle>
-                  <CardDescription>
-                    <Text size="sm" className="zlv-label" as="span">
-                      {getHousingOwnerRankLabel(housingOwner.rank)}
-                    </Text>
-                    <Text
-                      as="span"
-                      spacing="mb-0 mr-1w"
-                      className="float-right fr-link"
-                    >
-                      Voir la fiche
-                      <Icon
-                        name="ri-arrow-right-line"
-                        size="lg"
-                        verticalAlign="middle"
-                        iconPosition="center"
-                      />
-                    </Text>
-                  </CardDescription>
-                </Card>
-              ))}
+            {coOwners.map((housingOwner) => (
+              <Card
+                key={'owner_' + housingOwner.rank}
+                hasArrow={false}
+                href={'/proprietaires/' + housingOwner.id}
+                className={classNames(
+                  'fr-mb-1w',
+                  styles.coOwnerCard,
+                  'app-card-xs'
+                )}
+              >
+                <CardTitle>
+                  <span className="icon-xs">
+                    <Icon name="ri-user-fill" iconPosition="center" size="xs" />
+                  </span>
+                  <Text as="span">
+                    <b>{housingOwner.fullName}</b>
+                  </Text>
+                </CardTitle>
+                <CardDescription>
+                  <Text size="sm" className="zlv-label" as="span">
+                    {getHousingOwnerRankLabel(housingOwner.rank)}
+                  </Text>
+                  <Text
+                    as="span"
+                    spacing="mb-0 mr-1w"
+                    className="float-right fr-link"
+                  >
+                    Voir la fiche
+                    <Icon
+                      name="ri-arrow-right-line"
+                      size="lg"
+                      verticalAlign="middle"
+                      iconPosition="center"
+                    />
+                  </Text>
+                </CardDescription>
+              </Card>
+            ))}
           </>
         )}
       </CardDescription>

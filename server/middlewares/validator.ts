@@ -14,7 +14,6 @@ function validate(
       // @ts-ignore
       request[location] = matchedData(request, { locations: [location] });
     });
-    console.log('next');
     return next();
   }
   response

@@ -9,9 +9,9 @@ interface Props {
   housing: Housing;
 }
 
-function HousingDetailsCard({ housing }: Props) {
+function HousingDetailsCardLocation({ housing }: Props) {
   return (
-    <HousingDetailsSubCard title="Emplacement">
+    <HousingDetailsSubCard title="Emplacement" isGrey>
       <div>
         <Text size="sm" className="zlv-label">
           Adresse postale
@@ -64,4 +64,4 @@ function HousingDetailsCard({ housing }: Props) {
   );
 }
 
-export default HousingDetailsCard;
+export default HousingDetailsCardLocation;

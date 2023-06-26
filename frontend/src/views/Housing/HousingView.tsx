@@ -8,11 +8,19 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { useUpdateHousingOwnersMutation } from '../../services/owner.service';
+import { Campaign } from '../../models/Campaign';
 
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
-  const { housing, coOwners, mainHousingOwner, housingOwners, events, notes } =
-    useHousing();
+  const {
+    housing,
+    coOwners,
+    mainHousingOwner,
+    housingOwners,
+    events,
+    notes,
+    campaigns,
+  } = useHousing();
   const [isModalHousingOwnersOpen, setIsModalHousingOwnersOpen] =
     useState(false);
 
@@ -68,6 +76,7 @@ const HousingView = () => {
                     housing={housing}
                     housingEvents={events ?? []}
                     housingNotes={notes ?? []}
+                    housingCampaigns={(campaigns as Campaign[]) ?? []}
                   />
                 </>
               )}

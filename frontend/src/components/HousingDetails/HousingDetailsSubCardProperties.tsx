@@ -10,7 +10,7 @@ interface Props {
 
 function HousingDetailsSubCardProperties({ housing }: Props) {
   return (
-    <HousingDetailsSubCard title="Logement">
+    <HousingDetailsSubCard title="Logement" isGrey>
       <div>
         <Text size="sm" className="zlv-label">
           Invariant fiscal

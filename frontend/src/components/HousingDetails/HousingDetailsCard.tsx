@@ -13,7 +13,6 @@ import {
 import React, { useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
-import { pluralize } from '../../utils/stringUtils';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { updateHousing } from '../../store/actions/housingAction';
@@ -24,20 +23,26 @@ import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import { useAppDispatch } from '../../hooks/useStore';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
-import HousingPrecisionsBadges from '../HousingStatusBadge/HousingPrecisionsBadges';
 import { useFindNotesByHousingQuery } from '../../services/note.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { Note } from '../../models/Note';
+import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
+import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
+import { Campaign } from '../../models/Campaign';
 
 interface Props {
   housing: Housing;
   housingEvents: Event[];
   housingNotes: Note[];
+  housingCampaigns: Campaign[];
 }
 
-function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
+function HousingDetailsCard({
+  housing,
+  housingEvents,
+  housingNotes,
+  housingCampaigns,
+}: Props) {
   const dispatch = useAppDispatch();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
@@ -96,24 +101,11 @@ function HousingDetailsCard({ housing, housingEvents, housingNotes }: Props) {
         </Title>
       </CardTitle>
       <CardDescription>
-        <div className="bg-975 fr-p-2w">
-          <div className={styles.reference}>
-            <span>
-              {pluralize(housing.dataYears.length)('Millésime')} :{' '}
-              {housing.dataYears.join(' - ')}
-            </span>
-          </div>
-          <HousingStatusBadge status={housing.status} />
-          <HousingSubStatusBadge
-            status={housing.status}
-            subStatus={housing.subStatus}
-          />
-          <HousingPrecisionsBadges
-            status={housing.status}
-            subStatus={housing.subStatus}
-            precisions={housing.precisions}
-          />
-        </div>
+        <HousingDetailsCardOccupancy housing={housing} />
+        <HousingDetailsCardMobilisation
+          housing={housing}
+          campaigns={housingCampaigns}
+        />
         <Tabs className={classNames(styles.tabs, 'fr-pt-3w')}>
           <Tab label="Caractéristiques" className="fr-px-0">
             <Row gutters>

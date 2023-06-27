@@ -82,6 +82,8 @@ function HousingDetailsCard({
         </Button>
         <HousingEditionSideMenu
           housing={housing}
+          housingEvents={housingEvents}
+          housingNotes={housingNotes}
           expand={isHousingListEditionExpand}
           onSubmit={submitHousingUpdate}
           onClose={() => setIsHousingListEditionExpand(false)}
@@ -106,7 +108,7 @@ function HousingDetailsCard({
           housing={housing}
           campaigns={housingCampaigns}
         />
-        <Tabs className={classNames(styles.tabs, 'fr-pt-3w')}>
+        <Tabs className="tabs-no-border fr-pt-3w">
           <Tab label="Caractéristiques" className="fr-px-0">
             <Row gutters>
               <Col>

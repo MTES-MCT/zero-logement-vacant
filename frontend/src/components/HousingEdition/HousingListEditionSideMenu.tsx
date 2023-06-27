@@ -1,10 +1,11 @@
 import React, { useRef } from 'react';
-import { Button, Container, Text } from '@dataesr/react-dsfr';
+import { Button, Container, Tabs } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../models/Housing';
 import { HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
+import Tab from '../Tab/Tab';
 
 interface Props {
   housingCount: number;
@@ -29,20 +30,25 @@ const HousingListEditionSideMenu = ({
     <Aside
       expand={open}
       onClose={onClose}
-      title={`Mettre à jour ${
-        housingCount === 1 ? 'le dossier' : 'les dossiers'
-      }`}
+      title={displayCount(housingCount, 'logement sélectionné')}
       content={
-        <Container as="aside">
-          <Text>{displayCount(housingCount, 'logement concerné')}.</Text>
-          <HousingEditionForm
-            currentStatus={initialStatus}
-            fromDefaultCampaign={fromDefaultCampaign}
-            onSubmit={onSubmit}
-            ref={statusFormRef}
-          />
+        <Container as="section" spacing="p-0">
+          <Tabs className="tabs-no-border first-tab-grey">
+            <Tab
+              label="+ Nouvelle mise à jour / note"
+              className="fr-p-0 bg-975"
+            >
+              <HousingEditionForm
+                currentStatus={initialStatus}
+                fromDefaultCampaign={fromDefaultCampaign}
+                onSubmit={onSubmit}
+                ref={statusFormRef}
+              />
+            </Tab>
+          </Tabs>
         </Container>
       }
+      className="fr-p-0"
       footer={
         <>
           <Button

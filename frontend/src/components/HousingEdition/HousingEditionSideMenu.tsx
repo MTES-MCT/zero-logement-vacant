@@ -1,5 +1,12 @@
 import React, { useRef } from 'react';
-import { Button, Container, Tabs, Text, Title } from '@dataesr/react-dsfr';
+import {
+  Button,
+  Container,
+  Link,
+  Tabs,
+  Text,
+  Title,
+} from '@dataesr/react-dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import Aside from '../Aside/Aside';
@@ -58,6 +65,15 @@ const HousingEditionSideMenu = ({
               hasBorder={false}
               onClick={onClose}
             />
+            <Link
+              href={'/logements/' + housing.id}
+              isSimple
+              display="flex"
+              target="_blank"
+              className="float-right"
+            >
+              Voir la fiche logement
+            </Link>
             <Title as="h6" className="fr-mb-0">
               {housing.rawAddress.join(' - ')}
             </Title>

@@ -111,7 +111,6 @@ describe('Housing controller', () => {
     const validBody = {
       housingUpdate: {
         status: HousingStatusApi.InProgress,
-        contactKind: 'Appel entrant',
         comment: randomstring.generate(),
       },
     };
@@ -157,18 +156,6 @@ describe('Housing controller', () => {
             },
           })
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              contactKind: undefined,
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should update the housing and return the updated result', async () => {
@@ -208,7 +195,6 @@ describe('Housing controller', () => {
               subStatus: Housing0.subStatus,
               precisions: Housing0.precisions,
               vacancyReasons: Housing0.vacancyReasons,
-              contactKind: 'Appel entrant',
               comment: '',
             },
           })
@@ -237,7 +223,6 @@ describe('Housing controller', () => {
           expect(result).toMatchObject(
             expect.objectContaining({
               housing_id: Housing1.id,
-              contact_kind: validBody.housingUpdate.contactKind,
               kind: 'Update',
               category: 'Followup',
               section: 'Situation',
@@ -276,7 +261,6 @@ describe('Housing controller', () => {
       allHousing: false,
       housingUpdate: {
         status: HousingStatusApi.InProgress,
-        contactKind: 'Appel entrant',
         comment: randomstring.generate(),
       },
     };
@@ -358,18 +342,6 @@ describe('Housing controller', () => {
             },
           })
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              contactKind: undefined,
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should update the housing list and return the updated result', async () => {
@@ -413,7 +385,6 @@ describe('Housing controller', () => {
           expect(result).toMatchObject(
             expect.objectContaining({
               housing_id: Housing1.id,
-              contact_kind: validBody.housingUpdate.contactKind,
               kind: 'Update',
               category: 'Followup',
               section: 'Situation',

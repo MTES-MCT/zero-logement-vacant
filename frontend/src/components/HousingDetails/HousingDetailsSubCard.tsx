@@ -14,7 +14,7 @@ function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
   return (
     <Card
       hasArrow={false}
-      hasBorder={hasBorder}
+      hasBorder={!!hasBorder}
       size="sm"
       className={classNames(styles.subCard, 'app-card-xs', {
         'bg-975': isGrey,

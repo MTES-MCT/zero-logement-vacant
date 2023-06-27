@@ -11,6 +11,7 @@ export interface AsideProps {
   expand?: boolean;
   onClose?: () => void;
   attachTo?: Element;
+  className?: string;
 }
 
 function Aside(props: AsideProps) {
@@ -21,12 +22,12 @@ function Aside(props: AsideProps) {
         [styles.collapsed]: !expand,
       })}
     >
-      <article className={styles.article}>
+      <article className={classNames(styles.article, props.className)}>
         <header>
           {props.title && typeof props.title === 'string' ? (
             <>
               <Button
-                title="Fermer les filtres"
+                title="Fermer"
                 className="fr-p-0"
                 icon="fr-icon-arrow-right-s-line-double"
                 tertiary

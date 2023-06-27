@@ -180,7 +180,6 @@ const updateHousingValidators = [
   param('housingId').isUUID(),
   body('housingUpdate').notEmpty(),
   body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
-  body('housingUpdate.contactKind').notEmpty(),
 ];
 
 const updateHousing = async (
@@ -259,7 +258,6 @@ const updateHousingListValidators = [
   body('currentStatus').notEmpty().isIn(Object.values(HousingStatusApi)),
   body('housingUpdate').notEmpty(),
   body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
-  body('housingUpdate.contactKind').notEmpty(),
 ];
 
 const updateHousingList = async (
@@ -337,7 +335,6 @@ const createHousingUpdateEvent = async (
           kind: 'Update',
           category: 'Followup',
           section: 'Situation',
-          contactKind: housingUpdateApi.contactKind,
           old: housingApi,
           new: {
             ...housingApi,

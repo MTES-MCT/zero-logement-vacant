@@ -4,7 +4,6 @@ export interface NoteApi {
   id: string;
   title: string;
   content?: string;
-  contactKind?: string;
   createdBy: string;
   createdAt: Date;
 }

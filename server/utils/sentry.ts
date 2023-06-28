@@ -1,24 +1,32 @@
 import * as Sentry from '@sentry/node';
 import { Express } from 'express';
 import config from './config';
-import * as sentryIntegrations from '@sentry/integrations';
 
-const initCaptureConsole = (dsn: string): void => {
-  const logLevel = ['error'];
+const init = (app: Express): void => {
+  if (config.sentry.enabled && !config.sentry.dsn) {
+    throw new Error('Sentry must be initialized with a valid DSN');
+  }
 
-  console.log(
-    `Initializing Sentry for log level "${logLevel}" and config: ${config.sentryDNS}`
-  );
+  if (config.sentry.enabled && config.sentry.dsn) {
+    const logLevel = ['error'];
 
-  Sentry.init({
-    dsn,
-    integrations: [new sentryIntegrations.CaptureConsole({ levels: logLevel })],
-  });
-};
+    console.log(
+      `Initializing Sentry for log level "${logLevel}" and config: ${config.sentry.dsn}`
+    );
 
-const initCaptureConsoleWithHandler = (app: Express): void => {
-  if (config.sentryDNS) {
-    initCaptureConsole(config.sentryDNS);
+    Sentry.init({
+      dsn: config.sentry.dsn,
+      tracesSampleRate: 1.0,
+      integrations: [
+        new Sentry.Integrations.Http({
+          tracing: true,
+        }),
+        new Sentry.Integrations.Express({
+          app,
+        }),
+        new Sentry.Integrations.Postgres(),
+      ],
+    });
 
     // RequestHandler creates a separate execution context using domains, so that every
     // transaction/span/breadcrumb is attached to its own Hub instance
@@ -26,14 +34,20 @@ const initCaptureConsoleWithHandler = (app: Express): void => {
 
     // TracingHandler creates a trace for every incoming request
     app.use(Sentry.Handlers.tracingHandler());
-  } else {
-    console.log(
-      'Sentry was not initialized as SENTRY_DNS env variable is missing'
-    );
+  }
+};
+
+/**
+ * The error handler must be before any other error middleware and after all controllers.
+ * @param app
+ */
+const errorHandler = (app: Express): void => {
+  if (config.sentry.enabled && config.sentry.dsn) {
+    app.use(Sentry.Handlers.errorHandler());
   }
 };
 
 export default {
-  initCaptureConsole,
-  initCaptureConsoleWithHandler,
+  init,
+  errorHandler,
 };

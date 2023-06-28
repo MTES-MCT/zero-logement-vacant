@@ -539,13 +539,15 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
-      queryBuilder
-        .joinRaw(
-          `left join ${geoPerimetersTable} as perimeter_inc on st_contains(perimeter_inc.geom, ST_SetSRID( ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
-        )
-        .whereRaw(`? && array[perimeter_inc.kind]::text[]`, [
-          filters.geoPerimetersIncluded,
-        ]);
+      queryBuilder.whereExists((builder: any) =>
+        builder
+          .select('*')
+          .from(geoPerimetersTable)
+          .whereRaw(
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+          )
+          .whereIn('kind', filters.geoPerimetersIncluded)
+      );
     }
     if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
       queryBuilder.whereNotExists(function (whereBuilder: any) {

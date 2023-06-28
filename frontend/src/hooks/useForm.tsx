@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';
@@ -9,9 +9,8 @@ export const emailValidator = yup
   .required('Veuillez renseigner votre adresse email.')
   .email("L'adresse doit être un email valide");
 
-export const passwordValidator = yup
+export const passwordFormatValidator = yup
   .string()
-  .required('Veuillez renseigner votre nouveau mot de passe.')
   .min(8, 'Au moins 8 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',
@@ -56,11 +55,6 @@ export const fileValidator = (supportedFormats: string[]) =>
       (value) => value && supportedFormats.includes(value.type)
     );
 
-interface UseFormOptions {
-  dependencies?: React.DependencyList;
-  disableValidationOnTouch?: boolean;
-}
-
 type MessageType = 'error' | 'valid' | '';
 
 interface Message {
@@ -71,14 +65,16 @@ interface Message {
 export function useForm<
   T extends ObjectShape,
   U extends Record<keyof T, unknown>
->(schema: yup.ObjectSchema<T>, input: U, options?: UseFormOptions) {
-  const [errors, setErrors] = useState<yup.ValidationError>();
-  const [isTouched, setIsTouched] = useState(false);
+>(schema: yup.ObjectSchema<T>, input: U, fullValidationKeys?: (keyof U)[]) {
+  const [errors, setErrors] = useState<yup.ValidationError[]>();
+  const [touchedKeys, setTouchedKeys] = useState<Set<keyof U>>(new Set());
+
+  const previousInput = useRef<U>();
 
   function error<K extends keyof U>(key?: K): yup.ValidationError | undefined {
-    return isTouched && key
-      ? errors?.inner.find((error) => error.path === key)
-      : errors;
+    return key && touchedKeys.has(key)
+      ? errors?.find((error) => error && error.path === key)
+      : undefined;
   }
 
   /**
@@ -88,9 +84,9 @@ export function useForm<
   function errorList<K extends keyof U>(
     key?: K
   ): yup.ValidationError[] | undefined {
-    return isTouched && key
-      ? errors?.inner.filter((error) => error.path === key)
-      : errors?.inner;
+    return key && touchedKeys.has(key)
+      ? errors?.filter((error) => error.path === key)
+      : undefined;
   }
 
   function hasError<K extends keyof U>(key?: K): boolean {
@@ -98,7 +94,7 @@ export function useForm<
   }
 
   function isValid(): boolean {
-    return isTouched && !hasError();
+    return !hasError();
   }
 
   function labels<K extends keyof U>(key?: K): string[] {
@@ -126,22 +122,16 @@ export function useForm<
    * @param key
    */
   function messageList<K extends keyof U>(key: K): Message[] {
-    if (!isTouched) {
-      return [];
-    }
-
-    return labels(key).map((label) => {
-      return {
-        text: label,
-        type: errorList(key)?.find((error) => error.message === label)
-          ? 'error'
-          : 'valid',
-      };
-    });
+    return labels(key).map((label) => ({
+      text: label,
+      type: errorList(key)?.find((error) => error.message === label)
+        ? 'error'
+        : 'valid',
+    }));
   }
 
   function messageType<K extends keyof U>(key: K): MessageType {
-    if (isTouched) {
+    if (touchedKeys.has(key)) {
       if (hasError(key)) {
         return 'error';
       }
@@ -150,42 +140,69 @@ export function useForm<
     return '';
   }
 
-  async function validate(onValid?: () => void) {
+  function errorsExcept<K extends keyof U>(key: K) {
+    return (errors ?? []).filter((error) => error.path !== key);
+  }
+
+  async function validate(onValid?: () => Promise<void> | void) {
     try {
-      setIsTouched(true);
+      setTouchedKeys(new Set(Object.keys(schema.fields)));
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
-      onValid?.();
+      await onValid?.();
     } catch (errors) {
-      setErrors(errors as yup.ValidationError);
+      setErrors((errors as yup.ValidationError).inner);
+    }
+  }
+
+  async function validateAt<K extends keyof U>(key: K) {
+    setTouchedKeys(touchedKeys.add(key));
+    try {
+      await schema.validateAt(String(key), input, {
+        abortEarly: !fullValidationKeys?.includes(key),
+      });
+      setErrors([...errorsExcept(key)]);
+    } catch (validationError) {
+      setErrors([
+        ...errorsExcept(key),
+        ...(!fullValidationKeys?.includes(key)
+          ? [validationError as yup.ValidationError]
+          : (validationError as yup.ValidationError).inner),
+      ]);
     }
   }
 
   useEffect(() => {
-    if (
-      (!options?.disableValidationOnTouch && isTouched) ||
-      options?.dependencies?.length
-    ) {
-      validate();
-    } else {
-      if (
-        !options?.disableValidationOnTouch &&
-        Object.values(input).some((value) => !!value)
-      ) {
-        setIsTouched(true);
-        validate();
-      }
-    }
+    const validations = Object.entries(input)
+      .filter(([k1, v1]) =>
+        Object.entries(previousInput.current || {}).find(
+          ([k2, v2]) => k1 === k2 && v1 !== v2
+        )
+      )
+      .filter(([key, _]) => touchedKeys.has(key))
+      .map(([key, _]) => validateAt(key));
+    (async () => {
+      await Promise.all(validations);
+      previousInput.current = input;
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...Object.values(input), ...(options?.dependencies ?? [])]);
+  }, [...Object.values(input)]);
+
+  useEffect(() => {
+    const validations = (fullValidationKeys ?? []).map((key) =>
+      validateAt(key)
+    );
+    (async () => await Promise.all(validations))();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, fullValidationKeys);
 
   return {
-    isTouched,
     isValid,
     hasError,
     messageList,
     message,
     messageType,
     validate,
+    validateAt,
   };
 }

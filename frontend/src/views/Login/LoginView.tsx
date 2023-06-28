@@ -1,15 +1,7 @@
 import React, { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import {
-  Button,
-  Col,
-  Container,
-  Row,
-  Text,
-  TextInput,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
 import { login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
@@ -20,6 +12,7 @@ import InternalLink from '../../components/InternalLink/InternalLink';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -34,7 +27,7 @@ const LoginView = () => {
     (state) => state.authentication
   );
 
-  const loginForm = yup.object().shape({
+  const shape = {
     isAdmin: yup.boolean(),
     email: emailValidator,
     password: yup.string().required('Veuillez renseigner un mot de passe.'),
@@ -42,26 +35,27 @@ const LoginView = () => {
       is: true,
       then: yup.string().min(1, 'Veuillez sélectionner un établissement.'),
     }),
-  });
-  const { isValid, message, messageType } = useForm(loginForm, {
+  };
+  type FormShape = typeof shape;
+
+  const form = useForm(yup.object().shape(shape), {
     isAdmin: pathname === '/admin',
     email,
     password,
     establishmentId,
   });
 
-  function submitLoginForm(e: FormEvent<HTMLFormElement>): void {
+  async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-
-    if (isValid()) {
+    await form.validate(() =>
       dispatch(
         login(
           email,
           password,
           establishmentId.length ? establishmentId : undefined
         )
-      );
-    }
+      )
+    );
   }
 
   const isAdminView = pathname === '/admin';
@@ -92,25 +86,27 @@ const LoginView = () => {
             Connexion
           </Title>
           <form onSubmit={submitLoginForm} id="login_form">
-            <TextInput
+            <AppTextInput<FormShape>
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              messageType={messageType('email')}
-              message={message('email', 'Email renseigné.')}
+              inputForm={form}
+              inputKey="email"
+              whenValid="Email renseigné."
               data-testid="email-input"
-              label="Adresse email : "
+              label="Adresse email (obligatoire)"
               required
             />
-            <TextInput
+            <AppTextInput<FormShape>
               type="password"
               value={password}
               className={isAdminView ? '' : 'fr-mb-1w'}
               onChange={(e) => setPassword(e.target.value)}
-              messageType={messageType('password')}
-              message={message('password', 'Mot de passe renseigné.')}
+              inputForm={form}
+              inputKey="password"
+              whenValid="Mot de passe renseigné."
               data-testid="password-input"
-              label="Mot de passe : "
+              label="Mot de passe (obligatoire)"
               required
             />
             {isAdminView && (

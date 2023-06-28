@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Layer, MapRef, Source } from 'react-map-gl';
 
 import { deserialize } from '../../utils/jsonUtils';
@@ -28,10 +28,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
     ? [24, 5, 36]
     : Object.entries(props.radius).flat().splice(1).map(Number);
 
-  const clusters = useMemo(
-    () => turf.clustersKmeans(turf.featureCollection(props.points)),
-    [props.points]
-  );
+  const clusters = turf.featureCollection(props.points);
 
   useEffect(() => {
     const { map } = props;
@@ -52,10 +49,6 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
       });
     }
   }, [props, props.map]);
-
-  if (!props.points.length) {
-    return <></>;
-  }
 
   return (
     <Source

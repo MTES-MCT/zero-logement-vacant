@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Button, Col, Link, Row, Text, TextInput } from '@dataesr/react-dsfr';
+import { Button, Col, Link, Row, Text } from '@dataesr/react-dsfr';
 import {
   changeCampaignHousingPagination,
   listCampaignBundleHousing,
@@ -32,6 +32,7 @@ import { useCampaignHousingSearch } from '../../hooks/useCampaignHousingSearch';
 import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import AppTextInput from '../../components/AppTextInput/AppTextInput';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -66,10 +67,11 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   const [sendingDate, setSendingDate] = useState(
     format(campaign?.sendingDate ?? new Date(), 'yyyy-MM-dd')
   );
-  const sendingForm = yup.object().shape({
-    sendingDate: dateValidator,
-  });
-  const { isValid, message, messageType } = useForm(sendingForm, {
+
+  const shape = { sendingDate: dateValidator };
+  type FormShape = typeof shape;
+
+  const sendingForm = useForm(yup.object().shape(shape), {
     sendingDate,
   });
 
@@ -93,16 +95,18 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     forceStep(CampaignSteps.OwnersValidation);
   }
 
-  const validStep = (step: CampaignSteps) => {
+  const validStep = async (step: CampaignSteps) => {
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.ValidStep(step),
     });
-    if (step === CampaignSteps.Sending && isValid()) {
-      dispatch(
-        validCampaignStep(campaignBundle.campaignIds[0], step, {
-          sendingDate: parseDateInput(sendingDate),
-        })
+    if (step === CampaignSteps.Sending) {
+      await sendingForm.validate(() =>
+        dispatch(
+          validCampaignStep(campaignBundle.campaignIds[0], step, {
+            sendingDate: parseDateInput(sendingDate),
+          })
+        )
       );
       next();
     } else {
@@ -130,7 +134,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   async function downloadCSV(downloadOnly = false): Promise<void> {
     window.open(campaignBundle?.exportURL, '_self');
     if (!downloadOnly) {
-      validStep(CampaignSteps.Export);
+      await validStep(CampaignSteps.Export);
     }
   }
 
@@ -271,37 +275,39 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
           content="Datez l'envoi qui marque le début de votre campagne."
           actions={
             isCompleted(CampaignSteps.Sending) ? (
-              <Row alignItems={isValid() ? 'bottom' : 'middle'} gutters>
+              <Row gutters>
                 <Col n="3">
-                  <TextInput
+                  <AppTextInput<FormShape>
                     value={sendingDate}
                     label="Date d'envoi"
-                    messageType={messageType('sendingDate')}
-                    message={message('sendingDate')}
+                    inputForm={sendingForm}
+                    inputKey="sendingDate"
                     readOnly
                     type="date"
                   />
                 </Col>
               </Row>
             ) : (
-              <Row alignItems={isValid() ? 'bottom' : 'middle'} gutters>
+              <Row
+                alignItems={
+                  sendingForm.hasError('sendingDate') ? 'middle' : 'bottom'
+                }
+                gutters
+              >
                 <Col n="3">
-                  <TextInput
+                  <AppTextInput<FormShape>
                     value={sendingDate}
                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                       setSendingDate(e.target.value)
                     }
                     label="Date d'envoi"
-                    messageType={messageType('sendingDate')}
-                    message={message('sendingDate')}
+                    inputForm={sendingForm}
+                    inputKey="sendingDate"
                     type="date"
                   />
                 </Col>
                 <Col>
-                  <Button
-                    onClick={() => validStep(CampaignSteps.Sending)}
-                    disabled={!isValid()}
-                  >
+                  <Button onClick={() => validStep(CampaignSteps.Sending)}>
                     Confirmer
                   </Button>
                 </Col>

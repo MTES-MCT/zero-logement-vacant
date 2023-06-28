@@ -31,6 +31,7 @@ describe('AccountEmailCreationView', () => {
 
     const input = screen.getByPlaceholderText('example@gmail.com');
     await user.type(input, 'invalid@email');
+    await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
       "L'adresse doit être un email valide"

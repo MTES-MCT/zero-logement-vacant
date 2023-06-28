@@ -1,12 +1,4 @@
-import {
-  Button,
-  Container,
-  Link,
-  Row,
-  Text,
-  TextInput,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Button, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
 import React, { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
@@ -15,18 +7,20 @@ import { emailValidator, useForm } from '../../../hooks/useForm';
 import InternalLink from '../../../components/InternalLink/InternalLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import styles from './account-email-creation-view.module.scss';
+import AppTextInput from '../../../components/AppTextInput/AppTextInput';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
   const router = useHistory();
   const { send: sendActivationEmail } = useActivationEmail();
 
-  const schema = yup.object().shape({ email: emailValidator });
-  const { isValid, message, messageType } = useForm(schema, { email });
+  const shape = { email: emailValidator };
+  type FormShape = typeof shape;
+  const form = useForm(yup.object().shape(shape), { email });
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (isValid()) {
+    await form.validate(async () => {
       await sendActivationEmail(email);
       return router.push({
         pathname: '/inscription/activation',
@@ -34,7 +28,7 @@ function AccountEmailCreationView() {
           email,
         },
       });
-    }
+    });
   }
 
   return (
@@ -57,14 +51,15 @@ function AccountEmailCreationView() {
           </Link>
         </Row>
       </Container>
-      <TextInput
+      <AppTextInput<FormShape>
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        messageType={messageType('email')}
-        message={message('email', 'Email valide.')}
+        inputForm={form}
+        inputKey="email"
+        whenValid="Email valide."
         placeholder="example@gmail.com"
-        label="Adresse email"
+        label="Adresse email (obligatoire)"
         hint="Veuillez renseigner l’adresse utilisée sur Démarches Simplifiées pour transmettre l’acte d'engagement."
         required
       />

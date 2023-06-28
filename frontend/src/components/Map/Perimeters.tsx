@@ -11,6 +11,7 @@ import { isNotNull } from '../../utils/compareUtils';
 interface Props {
   id: string;
   map?: MapRef;
+  isVisible?: boolean;
   perimeters: GeoPerimeter[];
   backgroundColor?: string;
   borderColor?: string;
@@ -32,9 +33,7 @@ function Perimeters(props: Props) {
       .filter(isNotNull)
   );
 
-  if (!props.perimeters.length) {
-    return <></>;
-  }
+  const isVisible = props.isVisible ?? true;
 
   return (
     <Source id={props.id} type="geojson" data={perimeters}>
@@ -43,7 +42,7 @@ function Perimeters(props: Props) {
         type="fill"
         paint={{
           'fill-color': props.backgroundColor ?? '#f6f6f6',
-          'fill-opacity': 0.51,
+          'fill-opacity': isVisible ? 0.51 : 0,
         }}
       />
       <Layer
@@ -52,6 +51,7 @@ function Perimeters(props: Props) {
         paint={{
           'line-color': props.borderColor ?? '#000091',
           'line-width': 2,
+          'line-opacity': isVisible ? 1 : 0,
         }}
       />
     </Source>

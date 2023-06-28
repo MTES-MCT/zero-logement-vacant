@@ -52,7 +52,7 @@ const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
   return (
     <SearchableSelect
       options={addressOptions}
-      label="Indiquer l'adresse de votre logement vacant"
+      label="Indiquer l'adresse de votre logement vacant (obligatoire)"
       placeholder="Indiquer l'adresse de votre logement vacant"
       required={true}
       onTextChange={(q: string) => quickSearch(q)}

@@ -11,13 +11,13 @@ import {
   ModalTitle,
   Row,
   Tag,
-  TextInput,
 } from '@dataesr/react-dsfr';
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import Help from '../../Help/Help';
+import AppTextInput from '../../AppTextInput/AppTextInput';
 
 interface Props {
   locality: Locality;
@@ -29,30 +29,26 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
 
-  const schema = yup.object().shape(
-    hasTHLV
-      ? {
-          taxRate: yup.number().typeError('Veuillez saisir un taux valide'),
-        }
-      : {}
-  );
+  const shape = {
+    taxRate: hasTHLV
+      ? yup.number().typeError('Veuillez saisir un taux valide')
+      : yup.string().nullable(),
+  };
 
-  const { isValid, message, messageType } = useForm(
-    schema,
-    {
-      taxRate,
-    },
-    { dependencies: [hasTHLV] }
-  );
+  type FormShape = typeof shape;
 
-  const submitContactPointForm = () => {
-    if (isValid()) {
+  const form = useForm(yup.object().shape(shape), {
+    taxRate,
+  });
+
+  const submitContactPointForm = async () => {
+    await form.validate(() => {
       if (hasTHLV && taxRate) {
         onSubmit(TaxKinds.THLV, Number(taxRate));
       } else {
         onSubmit(TaxKinds.None);
       }
-    }
+    });
   };
 
   return (
@@ -82,13 +78,13 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
             {hasTHLV ? (
               <Row spacing="my-2w">
                 <Col>
-                  <TextInput
+                  <AppTextInput<FormShape>
                     value={taxRate}
                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                       setTaxRate(e.target.value)
                     }
-                    messageType={messageType('taxRate')}
-                    message={message('taxRate')}
+                    inputForm={form}
+                    inputKey="taxRate"
                     label="Taux après 2 ans"
                   />
                 </Col>

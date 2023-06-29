@@ -1,4 +1,4 @@
-import { Housing } from '../../models/Housing';
+import { Housing, OccupancyKindLabels } from '../../models/Housing';
 import styles from './events-history.module.scss';
 import { getHousingState } from '../../models/HousingState';
 import React from 'react';
@@ -38,8 +38,14 @@ const EventPartialHousingContent = ({ partialHousing }: Props) => {
         )}
       {partialHousing.occupancy && (
         <>
-          <span className="color-grey-625">Statut d'occupation</span>
-          {partialHousing.occupancy}
+          <span className="color-grey-625">Occupation</span>
+          {OccupancyKindLabels[partialHousing.occupancy]}
+        </>
+      )}
+      {partialHousing.occupancyIntended && (
+        <>
+          <span className="color-grey-625">Occupation prévisionnelle</span>
+          {OccupancyKindLabels[partialHousing.occupancyIntended]}
         </>
       )}
     </div>

@@ -1,6 +1,11 @@
 import { SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
-import { OwnershipKindLabels, OwnershipKinds } from './Housing';
+import {
+  OccupancyKind,
+  OccupancyKindLabels,
+  OwnershipKindLabels,
+  OwnershipKinds,
+} from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/AppMultiSelect/EnergyConsumptionOption';
 
@@ -55,6 +60,13 @@ export const occupancyOptions: SelectOption[] = [
     label: 'Logement vacant',
   },
 ];
+
+export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)
+  .filter((_) => !(parseInt(_) >= 0))
+  .map((value) => ({
+    value,
+    label: OccupancyKindLabels[value],
+  }));
 
 export const ownerAgeOptions: SelectOption[] = [
   {

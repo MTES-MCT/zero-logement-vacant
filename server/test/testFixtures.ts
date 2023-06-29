@@ -244,9 +244,8 @@ export const genGeoPerimeterApi = (establishmentId: string) => {
 };
 
 export const genNoteCreationDTO = (): NoteCreationDTO => ({
-  title: randomstring.generate(),
   content: randomstring.generate(),
-  contactKind: randomstring.generate(),
+  noteKind: randomstring.generate(),
   housingIds: [uuidv4()],
   ownerId: uuidv4(),
 });

@@ -467,6 +467,7 @@ describe('Campaign controller', () => {
             expect.objectContaining({
               id: Housing1.id,
               status: HousingStatusApi.NeverContacted,
+              sub_status: null,
             })
           );
         });

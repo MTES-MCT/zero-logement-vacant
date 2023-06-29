@@ -10,6 +10,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+import { HousingApi } from '../models/HousingApi';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -309,9 +310,17 @@ const validateStep = async (
         campaignIds: [campaignId],
       });
 
-      const updatedHousingList = await housingRepository.updateHousingList(
-        housingList.filter((_) => !_.status).map((_) => _.id),
-        HousingStatusApi.Waiting
+      const updatedHousingList = housingList
+        .filter((_) => !_.status)
+        .map((housing) => ({
+          ...housing,
+          status: HousingStatusApi.Waiting,
+        }));
+
+      await Promise.all(
+        updatedHousingList.map((updatedHousing) =>
+          housingRepository.update(updatedHousing)
+        )
       );
 
       await eventRepository.insertManyHousingEvents(
@@ -472,10 +481,7 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
     .then((results) =>
       Promise.all([
         resetWaitingHousingWithoutCampaigns(
-          establishmentId,
-          results
-            .filter((_) => _.status === HousingStatusApi.Waiting)
-            .map((_) => _.id)
+          results.filter((_) => _.status === HousingStatusApi.Waiting)
         ),
         resetNotWaitingHousingWithoutCampaigns(
           establishmentId,
@@ -488,15 +494,17 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
 };
 
 const resetWaitingHousingWithoutCampaigns = async (
-  establishmentId: string,
-  housingIds: string[]
+  housingList: HousingApi[]
 ) => {
-  return housingIds.length
-    ? housingRepository.updateHousingList(
-        housingIds,
-        HousingStatusApi.NeverContacted
-      )
-    : Promise.resolve();
+  return Promise.all(
+    housingList.map((housing) =>
+      housingRepository.update({
+        ...housing,
+        status: HousingStatusApi.NeverContacted,
+        subStatus: undefined,
+      })
+    )
+  );
 };
 
 const resetNotWaitingHousingWithoutCampaigns = async (

@@ -424,11 +424,13 @@ export const updateCampaignHousingList = (
             paginatedHousing.perPage,
             currentStatus
           )(dispatch, getState);
-          changeCampaignHousingPagination(
-            paginatedHousing.page,
-            paginatedHousing.perPage,
-            housingUpdate.status
-          )(dispatch, getState);
+          if (housingUpdate.statusUpdate) {
+            changeCampaignHousingPagination(
+              paginatedHousing.page,
+              paginatedHousing.perPage,
+              housingUpdate.statusUpdate.status
+            )(dispatch, getState);
+          }
           if (campaignBundleFetchingId) {
             getCampaignBundle(campaignBundleFetchingId, searchQuery)(dispatch);
           }

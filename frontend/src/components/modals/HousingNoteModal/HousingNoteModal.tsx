@@ -112,32 +112,32 @@ function HousingNoteModal(props: HousingNoteModalProps) {
 
   async function submit() {
     const onSubmit = () => {
-      if (selectedHousing.includes(OWNER) && props.owner) {
-        return props.onSubmitAboutOwner!({
-          title,
-          content,
-          contactKind,
-          owner: props.owner,
-        });
-      }
-
-      if (selectedHousing.includes(ALL)) {
-        return props.onSubmitAboutHousing({
-          title,
-          content,
-          contactKind,
-          housingList: props.housingList,
-        });
-      }
-
-      return props.onSubmitAboutHousing({
-        title,
-        content,
-        contactKind,
-        housingList: props.housingList.filter((_) =>
-          selectedHousing.includes(_.id)
-        ),
-      });
+      // if (selectedHousing.includes(OWNER) && props.owner) {
+      //   return props.onSubmitAboutOwner!({
+      //     title,
+      //     content,
+      //     contactKind,
+      //     owner: props.owner,
+      //   });
+      // }
+      //
+      // if (selectedHousing.includes(ALL)) {
+      //   return props.onSubmitAboutHousing({
+      //     title,
+      //     content,
+      //     contactKind,
+      //     housingList: props.housingList,
+      //   });
+      // }
+      //
+      // return props.onSubmitAboutHousing({
+      //   title,
+      //   content,
+      //   contactKind,
+      //   housingList: props.housingList.filter((_) =>
+      //     selectedHousing.includes(_.id)
+      //   ),
+      // });
     };
 
     await form.validate(onSubmit);

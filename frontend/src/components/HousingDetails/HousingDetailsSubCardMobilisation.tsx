@@ -1,4 +1,4 @@
-import { Col, Row, Tag, Text } from '@dataesr/react-dsfr';
+import { Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
 import React from 'react';
 import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
@@ -11,6 +11,8 @@ import {
   campaignFullName,
 } from '../../models/Campaign';
 import { differenceInDays, format } from 'date-fns';
+import classNames from 'classnames';
+import styles from './housing-details-card.module.scss';
 
 interface Props {
   housing: Housing;
@@ -28,8 +30,15 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
     <HousingDetailsSubCard
       title={
         <>
-          Mobilisation
-          <div className="fr-ml-2w">
+          <Title
+            as="h2"
+            look="h6"
+            spacing="mb-1w"
+            className={classNames(styles.title, 'd-inline-block')}
+          >
+            Mobilisation :
+          </Title>
+          <div className="fr-ml-1w d-inline-block">
             <HousingStatusBadge status={housing.status} inline />
             <HousingSubStatusBadge
               status={housing.status}
@@ -74,7 +83,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               <Text size="sm" className="zlv-label">
                 Précisions ({housing.precisions?.length ?? 0})
               </Text>
-              <Text size="sm" spacing="mb-1w">
+              <Text spacing="mb-1w">
                 {(housing.precisions?.length ?? 0) === 0 ? (
                   <>Aucune précision associée</>
                 ) : (

@@ -1,11 +1,13 @@
-import { Col, Row, Tag, Text } from '@dataesr/react-dsfr';
+import { Badge, Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
 import React from 'react';
-import { Housing } from '../../models/Housing';
+import { Housing, OccupancyKindLabels } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { pluralize } from '../../utils/stringUtils';
 import DPE from '../DPE/DPE';
 import { useAppSelector } from '../../hooks/useStore';
 import { useFeature } from '../../hooks/useFeature';
+import classNames from 'classnames';
+import styles from './housing-details-card.module.scss';
 
 interface Props {
   housing: Housing;
@@ -19,7 +21,38 @@ function HousingDetailsCardOccupancy({ housing }: Props) {
     establishmentId: establishment?.id,
   });
   return (
-    <HousingDetailsSubCard title="Occupation" hasBorder>
+    <HousingDetailsSubCard
+      title={
+        <>
+          <Title
+            as="h2"
+            look="h6"
+            spacing="mb-1w"
+            className={classNames(styles.title, 'd-inline-block')}
+          >
+            Occupation :
+          </Title>
+          <div className="fr-ml-1w d-inline-block">
+            <Badge
+              text={OccupancyKindLabels[housing.occupancy]}
+              className="bg-975"
+            ></Badge>
+          </div>
+          <div className="d-inline-block float-right">
+            <span className="zlv-label">Occupation prévisionnelle : </span>
+            <Badge
+              text={
+                housing.occupancyIntended
+                  ? OccupancyKindLabels[housing.occupancyIntended]
+                  : "pas d'informations"
+              }
+              className="bg-975 fr-ml-1w"
+            ></Badge>
+          </div>
+        </>
+      }
+      hasBorder
+    >
       <Row>
         <Col n="4">
           <Text size="sm" className="zlv-label">

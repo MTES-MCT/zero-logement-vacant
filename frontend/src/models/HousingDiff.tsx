@@ -30,6 +30,10 @@ export const getHousingDiff = (
       newHousing.occupancy !== oldHousing.occupancy
         ? oldHousing.occupancy
         : undefined,
+    occupancyIntended:
+      newHousing.occupancyIntended !== oldHousing.occupancyIntended
+        ? oldHousing.occupancyIntended
+        : undefined,
   },
   new: {
     status:
@@ -51,8 +55,14 @@ export const getHousingDiff = (
       newHousing.occupancy !== oldHousing.occupancy
         ? newHousing.occupancy
         : undefined,
+    occupancyIntended:
+      newHousing.occupancyIntended !== oldHousing.occupancyIntended
+        ? newHousing.occupancyIntended
+        : undefined,
   },
 });
 
 export const hasValues = (partialHousing: Partial<Housing>) =>
-  Object.values(partialHousing).filter((_) => _ !== undefined).length > 0;
+  Object.values(partialHousing).filter(
+    (_) => _ !== undefined && _ !== null && (_ as any[]).length !== 0
+  ).length > 0;

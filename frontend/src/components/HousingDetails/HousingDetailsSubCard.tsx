@@ -21,14 +21,18 @@ function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
       })}
     >
       <CardTitle>
-        <Title
-          as="h2"
-          look="h6"
-          spacing="mb-1w"
-          className={classNames(styles.title, styles.titleInline)}
-        >
-          {title}
-        </Title>
+        {typeof title === 'string' ? (
+          <Title
+            as="h2"
+            look="h6"
+            spacing="mb-1w"
+            className={classNames(styles.title, styles.titleInline)}
+          >
+            {title}
+          </Title>
+        ) : (
+          title
+        )}
         <hr className="fr-py-1w" />
       </CardTitle>
       <CardDescription className={styles.content}>{children}</CardDescription>

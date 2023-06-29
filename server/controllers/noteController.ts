@@ -63,9 +63,8 @@ const create = async (request: Request, response: Response): Promise<void> => {
   const { userId } = (request as AuthenticatedRequest).auth;
 
   const noteApi: Omit<NoteApi, 'id'> = {
-    title: body.title,
     content: body.content,
-    contactKind: body.contactKind,
+    noteKind: body.noteKind,
     createdAt: new Date(),
     createdBy: userId,
   };

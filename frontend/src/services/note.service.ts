@@ -38,9 +38,8 @@ export const noteApi = createApi({
 const toNoteCreationDTO = (
   noteCreation: OwnerNoteCreation | HousingNoteCreation
 ): NoteCreationDTO => ({
-  title: noteCreation.title,
   content: noteCreation.content,
-  contactKind: noteCreation.contactKind,
+  noteKind: noteCreation.noteKind,
   ownerId: isOwnerNoteCreation(noteCreation)
     ? noteCreation.owner.id
     : undefined,

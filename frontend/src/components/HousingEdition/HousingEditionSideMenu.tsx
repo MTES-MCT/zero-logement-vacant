@@ -92,6 +92,8 @@ const HousingEditionSideMenu = ({
                 className="fr-p-0 bg-975"
               >
                 <HousingEditionForm
+                  currentOccupancy={housing.occupancy}
+                  currentOccupancyIntended={housing.occupancyIntended}
                   currentStatus={housing.status}
                   currentSubStatus={housing.subStatus}
                   currentPrecisions={housing.precisions}

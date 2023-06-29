@@ -248,6 +248,7 @@ const updateHousing = async (
 };
 
 const updateHousingListValidators = [
+  body('allHousing').isBoolean(),
   body('housingIds')
     .isArray()
     .custom((value) => value.every((v: any) => validator.isUUID(v))),
@@ -277,9 +278,7 @@ const updateHousingList = async (
 
   const campaignIds = await campaignRepository
     .listCampaigns(establishmentId)
-    .then((_) =>
-      _.map((_) => _.id).filter((_) => reqCampaignIds.indexOf(_) !== -1)
-    );
+    .then((_) => _.map((_) => _.id).filter((_) => reqCampaignIds.includes(_)));
 
   const housingList = await housingRepository
     .listWithFilters({
@@ -291,8 +290,8 @@ const updateHousingList = async (
     .then((_) =>
       _.filter((housing) =>
         allHousing
-          ? housingIds.indexOf(housing.id) === -1
-          : housingIds.indexOf(housing.id) !== -1
+          ? !housingIds.includes(housing.id)
+          : housingIds.includes(housing.id)
       )
     );
 

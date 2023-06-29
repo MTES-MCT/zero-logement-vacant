@@ -9,7 +9,6 @@ import {
   HousingPaginatedResult,
   PaginatedResult,
 } from '../models/PaginatedResult';
-import ownerService from './owner.service';
 import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
 import { HousingStatus } from '../models/HousingState';
@@ -17,6 +16,7 @@ import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions, createHttpService, toJSON } from '../utils/fetchUtils';
 import { PaginationOptions } from '../../../shared/models/Pagination';
+import { parseOwner } from './owner.service';
 
 const http = createHttpService('housing');
 
@@ -158,7 +158,7 @@ export const parseHousing = (h: any): Housing =>
     rawAddress: h.rawAddress
       .filter((_: string) => _)
       .map((_: string) => toTitleCase(_)),
-    owner: h.owner?.id ? ownerService.parseOwner(h.owner) : undefined,
+    owner: h.owner?.id ? parseOwner(h.owner) : undefined,
     lastContact: h.lastContact ? parseISO(h.lastContact) : undefined,
   } as Housing);
 

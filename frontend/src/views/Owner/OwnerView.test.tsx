@@ -3,7 +3,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import config from '../../utils/config';
-import authService from '../../services/auth.service';
 import OwnerView from './OwnerView';
 import { createMemoryHistory } from 'history';
 import { Route, Router } from 'react-router-dom';
@@ -17,7 +16,7 @@ import { format } from 'date-fns';
 import { capitalize } from '../../utils/stringUtils';
 import { store } from '../../store/store';
 
-describe('housing view', () => {
+describe('Owner view', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
   });
@@ -77,28 +76,6 @@ describe('housing view', () => {
       </Provider>
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/owners/${owner.id}`,
-      {
-        method: 'GET',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing/owner/${owner.id}`,
-      {
-        method: 'GET',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
     await waitFor(async () => {
       await screen.findByText(capitalize(owner.fullName));
     });
@@ -113,16 +90,5 @@ describe('housing view', () => {
     if (owner.phone) {
       await screen.findByText(owner.phone);
     }
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/owners/${owner.id}`,
-      {
-        method: 'GET',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    );
   });
 });

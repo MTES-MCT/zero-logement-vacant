@@ -241,6 +241,7 @@ const getHousingLightRow = (
   return {
     invariant: housingApi.invariant,
     cadastralReference: housingApi.cadastralReference,
+    geoCode: housingApi.geoCode,
     owner: housingApi.owner.fullName,
     ownerRawAddress: reduceStringArray(housingApi.owner.rawAddress),
     ownerRawAddress1: rawAddress[0],
@@ -270,6 +271,7 @@ const getHousingLightRow = (
 const housingLightColumns = [
   { header: 'Invariant', key: 'invariant' },
   { header: 'Référence cadastrale', key: 'cadastralReference' },
+  { header: 'Code INSEE commune du logement', key: 'geoCode' },
   { header: 'Propriétaire', key: 'owner' },
   { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
   {

@@ -6,26 +6,35 @@ import {
   ModalTitle,
   Select,
 } from '@dataesr/react-dsfr';
-import { DraftOwner, Owner } from '../../../models/Owner';
+import { HousingOwner, Owner } from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './housing-additional-owner-modal.module.scss';
 import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';
 import HousingAdditionalOwnerCreation from './HousingAdditionalOwnerCreation';
 
 interface Props {
+  housingId: string;
   activeOwnersCount: number;
-  onAddOwner?: (owner: Owner, rank: number) => void;
-  onCreateOwner?: (draftOwner: DraftOwner, rank: number) => void;
+  onAddOwner: (housingOwner: HousingOwner) => void;
   onClose: () => void;
 }
 
 const HousingAdditionalOwnerModal = ({
+  housingId,
   activeOwnersCount,
   onAddOwner,
-  onCreateOwner,
   onClose,
 }: Props) => {
   const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('1');
+
+  const submitAddingHousingOwner = (owner: Owner) => {
+    onAddOwner?.({
+      ...owner,
+      rank: Number(additionalOwnerRank),
+      housingId,
+    });
+    onClose();
+  };
 
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: `Propriétaire principal` },
@@ -52,20 +61,13 @@ const HousingAdditionalOwnerModal = ({
         />
         <hr />
         <div className="fr-py-2w fr-px-6w">
-          <HousingAdditionalOwnerSearch
-            onSelect={(owner: Owner) =>
-              onAddOwner?.(owner, Number(additionalOwnerRank))
-            }
-          />
+          <HousingAdditionalOwnerSearch onSelect={submitAddingHousingOwner} />
 
           <div className={styles.separator}>
             <span>ou</span>
           </div>
-
           <HousingAdditionalOwnerCreation
-            onSubmit={(draftOwner: DraftOwner) =>
-              onCreateOwner?.(draftOwner, Number(additionalOwnerRank))
-            }
+            onAdd={submitAddingHousingOwner}
             onCancel={onClose}
           />
         </div>

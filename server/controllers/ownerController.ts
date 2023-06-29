@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
-import { body, oneOf, validationResult } from 'express-validator';
+import { body, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
-import { AuthenticatedRequest } from 'express-jwt';
+import { AuthenticatedRequest, Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
+import { isArrayOf, isString } from '../utils/validators';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -49,21 +50,11 @@ const listByHousing = async (
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
-const create = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
+const create = async (request: Request, response: Response) => {
   console.log('Create owner');
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const draftOwnerApi = <DraftOwnerApi>request.body.draftOwner;
+  const draftOwnerApi = <DraftOwnerApi>request.body;
 
   const createdOwnerApi = await ownerRepository.insert(draftOwnerApi);
 
@@ -87,66 +78,89 @@ const create = async (
   return response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi);
 };
 
-const update = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
+const update = async (request: JWTRequest, response: Response) => {
   const ownerId = request.params.ownerId;
 
-  console.log('Update owner', ownerId);
+  console.log('Update owner', ownerId, request.body);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const ownerApi = <OwnerApi>request.body.owner;
+  const ownerApi = { id: ownerId, ...request.body };
 
-  const updatedOwnerApi = await ownerRepository.update(ownerApi);
-
-  await banAddressesRepository.markAddressToBeNormalized(
-    updatedOwnerApi.id,
-    AddressKinds.Owner
-  );
-
-  await eventRepository.insertOwnerEvent({
-    id: uuidv4(),
-    name: 'Modification de coordonnées',
-    kind: 'Update',
-    category: 'Ownership',
-    section: 'Coordonnées propriétaire',
-    old: ownerApi,
-    new: updatedOwnerApi,
-    createdBy: userId,
-    createdAt: new Date(),
-    ownerId: ownerApi.id,
-  });
+  const updatedOwnerApi = await updateOwner(ownerApi, userId);
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi);
+};
+
+const updateOwner = async (
+  ownerApi: OwnerApi,
+  userId: string
+): Promise<OwnerApi | undefined> => {
+  console.log('Update owner', ownerApi.id);
+
+  const prevOwnerApi = await ownerRepository.get(ownerApi.id);
+
+  if (!prevOwnerApi) {
+    throw new OwnerMissingError(ownerApi.id);
+  }
+
+  if (
+    prevOwnerApi?.fullName !== ownerApi.fullName ||
+    prevOwnerApi?.birthDate !== ownerApi.birthDate ||
+    prevOwnerApi?.rawAddress !== ownerApi.rawAddress ||
+    prevOwnerApi?.email !== ownerApi.email ||
+    prevOwnerApi?.phone !== ownerApi.phone
+  ) {
+    const updatedOwnerApi = {
+      ...prevOwnerApi,
+      fullName: ownerApi.fullName,
+      birthDate: ownerApi.birthDate,
+      rawAddress: ownerApi.rawAddress,
+      email: ownerApi.email,
+      phone: ownerApi.phone,
+    };
+
+    await ownerRepository.update(updatedOwnerApi);
+
+    await banAddressesRepository.markAddressToBeNormalized(
+      ownerApi.id,
+      AddressKinds.Owner
+    );
+
+    await eventRepository.insertOwnerEvent({
+      id: uuidv4(),
+      name: 'Modification de coordonnées',
+      kind: 'Update',
+      category: 'Ownership',
+      section: 'Coordonnées propriétaire',
+      old: prevOwnerApi,
+      new: updatedOwnerApi,
+      createdBy: userId,
+      createdAt: new Date(),
+      ownerId: ownerApi.id,
+    });
+
+    return updatedOwnerApi;
+  }
 };
 
 const updateHousingOwners = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  const errors = validationResult(request);
-  if (!errors.isEmpty()) {
-    return response
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .json({ errors: errors.array() });
-  }
-
   const housingId = request.params.housingId;
 
   console.log('Update housing owners', housingId);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const housingOwnersApi = (<HousingOwnerApi[]>(
-    request.body.housingOwners
-  )).filter((_) => _.housingId === housingId);
+  const housingOwnersApi = (<HousingOwnerApi[]>request.body).filter(
+    (_) => _.housingId === housingId
+  );
+
+  await Promise.all(
+    housingOwnersApi.map((housingOwnerApi) =>
+      updateOwner(housingOwnerApi, userId)
+    )
+  );
 
   const prevHousingOwnersApi = await ownerRepository.listByHousing(housingId);
 
@@ -187,8 +201,12 @@ const updateHousingOwners = async (
   }
 };
 
-const ownerValidators = [
-  oneOf([body('owner.email').isEmpty(), body('owner.email').isEmail()]),
+const ownerValidators: ValidationChain[] = [
+  body('fullName').isString(),
+  body('birthDate').isString(),
+  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
+  body('email').optional({ checkFalsy: true }).isEmail(),
+  body('phone').isString().optional({ nullable: true }),
 ];
 
 const ownerController = {

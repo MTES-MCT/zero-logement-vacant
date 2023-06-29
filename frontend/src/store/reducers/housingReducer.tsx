@@ -1,24 +1,15 @@
 import { Housing, HousingSort } from '../../models/Housing';
 import {
-  AdditionalOwnersFetchedAction,
   ExpandFiltersAction,
   FetchingAdditionalOwnersAction,
   FetchingHousingListAction,
   HousingFetchedAction,
   HousingListFetchedAction,
-  HousingOwnersFetchedAction,
-  HousingOwnersUpdateAction,
 } from '../actions/housingAction';
 import { HousingFilters } from '../../models/HousingFilters';
-import {
-  HousingPaginatedResult,
-  initialPaginatedResult,
-  PaginatedResult,
-} from '../../models/PaginatedResult';
+import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
-import { HousingOwner, Owner } from '../../models/Owner';
-import { FormState } from '../actions/FormState';
-import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface HousingState {
   paginate?: boolean;
@@ -26,13 +17,12 @@ export interface HousingState {
   filters: HousingFilters;
   filtersExpanded: boolean;
   housing?: Housing;
-  housingOwners?: HousingOwner[];
-  additionalOwners?: {
-    paginatedOwners: PaginatedResult<Owner>;
-    q?: string;
-  };
   checkedHousingIds?: string[];
-  housingOwnersUpdateFormState?: FormState;
+  additionalOwnersQuery?: {
+    page: number;
+    perPage: number;
+    q: string;
+  };
   sort?: HousingSort;
 }
 
@@ -98,58 +88,15 @@ const housingSlice = createSlice({
     ) => {
       state.housing = action.payload.housing;
     },
-    fetchingHousingOwners: (state: HousingState) => {
-      state.housingOwners = undefined;
-    },
-    housingOwnersFetched: (
-      state: HousingState,
-      action: PayloadAction<HousingOwnersFetchedAction>
-    ) => {
-      state.housingOwners = action.payload.housingOwners;
-    },
     fetchingAdditionalOwners: (
       state: HousingState,
       action: PayloadAction<FetchingAdditionalOwnersAction>
     ) => {
-      state.additionalOwners = {
-        paginatedOwners: {
-          ...initialPaginatedResult(),
-          page: action.payload.page,
-          perPage: action.payload.perPage,
-          loading: true,
-        },
+      state.additionalOwnersQuery = {
+        page: action.payload.page,
+        perPage: action.payload.perPage,
         q: action.payload.q,
       };
-    },
-    additionalOwnersFetched: (
-      state: HousingState,
-      action: PayloadAction<AdditionalOwnersFetchedAction>
-    ) => {
-      const isCurrentFetching =
-        action.payload.q === current(state).additionalOwners?.q &&
-        action.payload.paginatedOwners.page ===
-          current(state).additionalOwners?.paginatedOwners.page &&
-        action.payload.paginatedOwners.perPage ===
-          current(state).additionalOwners?.paginatedOwners.perPage;
-      if (isCurrentFetching) {
-        state.additionalOwners = {
-          ...current(state).additionalOwners,
-          paginatedOwners: {
-            ...(current(state).additionalOwners?.paginatedOwners ??
-              initialPaginatedResult()),
-            entities: action.payload.paginatedOwners.entities,
-            filteredCount: action.payload.paginatedOwners.filteredCount,
-            totalCount: action.payload.paginatedOwners.totalCount,
-            loading: false,
-          },
-        };
-      }
-    },
-    housingOwnersUpdate: (
-      state: HousingState,
-      action: PayloadAction<HousingOwnersUpdateAction>
-    ) => {
-      state.housingOwnersUpdateFormState = action.payload.formState;
     },
     fetchingHousingList: (
       state: HousingState,

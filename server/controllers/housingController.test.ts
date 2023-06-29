@@ -273,6 +273,7 @@ describe('Housing controller', () => {
       currentStatus: HousingStatusApi.Waiting,
       campaignIds: [Campaign1.id],
       housingIds: [Housing1.id],
+      allHousing: false,
       housingUpdate: {
         status: HousingStatusApi.InProgress,
         contactKind: 'Appel entrant',

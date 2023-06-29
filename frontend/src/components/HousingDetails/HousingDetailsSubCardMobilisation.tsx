@@ -89,6 +89,25 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                 )}
               </Text>
             </Col>
+            <Col n="6">
+              <Text size="sm" className="zlv-label">
+                Causes de la vacances ({housing.vacancyReasons?.length ?? 0})
+              </Text>
+              <Text spacing="mb-1w">
+                {(housing.vacancyReasons?.length ?? 0) === 0 ? (
+                  <>Aucune</>
+                ) : (
+                  housing.vacancyReasons?.map((vacancyReason, index) => (
+                    <Tag
+                      key={'vacancyReason_' + index}
+                      className="d-block fr-mb-1w"
+                    >
+                      {vacancyReason}
+                    </Tag>
+                  ))
+                )}
+              </Text>
+            </Col>
           </Row>
         </Col>
         <Col n="4">

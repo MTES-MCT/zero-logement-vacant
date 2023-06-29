@@ -1,32 +1,30 @@
 import React, { ChangeEvent, useState } from 'react';
 import {
-  Accordion,
-  AccordionItem,
+  Alert,
   Button,
+  Col,
   Modal,
   ModalClose,
   ModalContent,
   ModalFooter,
   ModalTitle,
+  Row,
 } from '@dataesr/react-dsfr';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { format } from 'date-fns';
-import styles from './owner-edition-modal.module.scss';
 import { parseDateInput } from '../../../utils/dateUtils';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../AppTextInput/AppTextInput';
+import { useUpdateOwnerMutation } from '../../../services/owner.service';
 
-const OwnerEditionModal = ({
-  owner,
-  onClose,
-  onUpdate,
-}: {
+interface Props {
   owner: Owner;
-  onUpdate: (owner: Owner) => void;
   onClose: () => void;
-}) => {
+}
+
+const OwnerEditionModal = ({ owner, onClose }: Props) => {
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
     owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
@@ -36,6 +34,8 @@ const OwnerEditionModal = ({
   );
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
+
+  const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
@@ -53,11 +53,10 @@ const OwnerEditionModal = ({
     email,
     phone,
   });
-
   const submit = async () => {
     await form.validate(() => {
       if (owner) {
-        onUpdate({
+        updateOwner({
           ...owner,
           fullName,
           birthDate: parseDateInput(birthDate),
@@ -65,31 +64,20 @@ const OwnerEditionModal = ({
           email,
           phone,
         });
+        onClose();
       }
     });
   };
 
   return (
-    <Modal isOpen={true} hide={() => onClose()}>
+    <Modal isOpen={true} hide={() => onClose()} size="lg">
       <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
         Fermer
       </ModalClose>
-      <ModalTitle>
-        {owner
-          ? 'Modifier la rubrique "propriétaire"'
-          : 'Créer un nouveau propriétaire'}
-      </ModalTitle>
+      <ModalTitle>Modifier la rubrique "propriétaire"</ModalTitle>
       <ModalContent>
-        <Accordion>
-          <AccordionItem
-            title="Identité"
-            initExpand={true}
-            className={
-              form.hasError('fullName') || form.hasError('birthDate')
-                ? styles.itemError
-                : undefined
-            }
-          >
+        <Row gutters>
+          <Col n="6">
             <AppTextInput<FormShape>
               value={fullName}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -100,6 +88,8 @@ const OwnerEditionModal = ({
               inputKey="fullName"
               required
             />
+          </Col>
+          <Col n="6">
             <AppTextInput<FormShape>
               value={birthDate}
               type="date"
@@ -110,17 +100,8 @@ const OwnerEditionModal = ({
               inputForm={form}
               inputKey="birthDate"
             />
-          </AccordionItem>
-          <AccordionItem
-            title="Coordonnées"
-            className={
-              form.hasError('rawAddress') ||
-              form.hasError('email') ||
-              form.hasError('phone')
-                ? styles.itemError
-                : undefined
-            }
-          >
+          </Col>
+          <Col n="12">
             <AppTextInput<FormShape>
               textarea
               value={rawAddress.join('\n')}
@@ -130,6 +111,8 @@ const OwnerEditionModal = ({
               inputKey="rawAddress"
               rows={3}
             />
+          </Col>
+          <Col n="6">
             <AppTextInput<FormShape>
               value={email}
               type="text"
@@ -138,6 +121,8 @@ const OwnerEditionModal = ({
               inputForm={form}
               inputKey="email"
             />
+          </Col>
+          <Col n="6">
             <AppTextInput<FormShape>
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -145,10 +130,18 @@ const OwnerEditionModal = ({
               inputForm={form}
               inputKey="phone"
             />
-          </AccordionItem>
-        </Accordion>
+          </Col>
+        </Row>
       </ModalContent>
       <ModalFooter>
+        {isUpdateError && (
+          <Alert
+            type="error"
+            description="Une erreur s'est produite, veuillez réessayer."
+            closable
+            className="fr-mb-2w"
+          />
+        )}
         <Button
           title="Annuler"
           secondary

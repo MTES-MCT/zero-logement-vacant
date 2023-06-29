@@ -1,34 +1,24 @@
 import React, { useState } from 'react';
 import { Button, Col, Container, Row, Tag, Title } from '@dataesr/react-dsfr';
 import styles from './owner.module.scss';
-import { update } from '../../store/actions/ownerAction';
-import { Owner } from '../../models/Owner';
-import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import { useOwner } from '../../hooks/useOwner';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
-import OwnerDetailsCard from '../../components/OwnerDetailsCard/OwnerDetailsCard';
 import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard';
 import HousingNoteModal from '../../components/modals/HousingNoteModal/HousingNoteModal';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch } from '../../hooks/useStore';
 import { useCreateNoteMutation } from '../../services/note.service';
 import { HousingNoteCreation, OwnerNoteCreation } from '../../models/Note';
+import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
-  const dispatch = useAppDispatch();
 
   const [isModalNoteOpen, setIsModalNoteOpen] = useState(false);
-  const [isModalOwnerOpen, setIsModalOwnerOpen] = useState(false);
+  const [isModalOwnerEditionOpen, setIsModalOwnerEditionOpen] = useState(false);
 
   const { owner, housingList, refetchOwnerEvents } = useOwner();
 
   const [createNote] = useCreateNoteMutation();
-
-  const updateOwner = (owner: Owner) => {
-    dispatch(update(owner, refetchOwnerEvents));
-    setIsModalOwnerOpen(false);
-  };
 
   async function submitHousingNote(
     note: OwnerNoteCreation | HousingNoteCreation
@@ -46,13 +36,6 @@ const OwnerView = () => {
   return (
     <Container as="main" className="bg-100" fluid>
       <Container as="section">
-        {isModalOwnerOpen && (
-          <OwnerEditionModal
-            owner={owner}
-            onUpdate={updateOwner}
-            onClose={() => setIsModalOwnerOpen(false)}
-          />
-        )}
         {isModalNoteOpen && (
           <HousingNoteModal
             owner={owner}
@@ -64,11 +47,16 @@ const OwnerView = () => {
         )}
         <Row alignItems="top" gutters spacing="mt-3w mb-0">
           <Col n="4">
-            <OwnerCard owner={owner} />
-            <OwnerDetailsCard
+            <OwnerCard
               owner={owner}
-              onModify={() => setIsModalOwnerOpen(true)}
+              onModify={() => setIsModalOwnerEditionOpen(true)}
             />
+            {isModalOwnerEditionOpen && (
+              <OwnerEditionModal
+                owner={owner}
+                onClose={() => setIsModalOwnerEditionOpen(false)}
+              />
+            )}
           </Col>
           <Col n="8">
             <header className={styles.header}>

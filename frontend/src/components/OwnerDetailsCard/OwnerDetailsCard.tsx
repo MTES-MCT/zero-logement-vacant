@@ -9,37 +9,24 @@ import {
 
 import { Owner } from '../../models/Owner';
 import styles from './owner-details-card.module.scss';
-import ButtonLink from '../ButtonLink/ButtonLink';
 import { capitalize, mailto } from '../../utils/stringUtils';
 
 interface OwnerDetailsCardProps {
-  onModify?: () => any;
   owner: Owner;
 }
 
-function OwnerDetailsCard({ onModify, owner }: OwnerDetailsCardProps) {
+function OwnerDetailsCard({ owner }: OwnerDetailsCardProps) {
   return (
     <Card
       hasArrow={false}
       hasBorder={false}
       size="sm"
       className="fr-mb-1w fr-px-1w"
+      isGrey
     >
       <CardTitle>
         <Title as="h2" look="h6" spacing="mb-1w" className={styles.titleInline}>
           Coordonnées
-          <ButtonLink
-            className={styles.link}
-            display="flex"
-            icon="ri-edit-2-fill"
-            iconPosition="left"
-            iconSize="1x"
-            isSimple
-            title="Modifier le propriétaire"
-            onClick={() => onModify?.()}
-          >
-            Modifier
-          </ButtonLink>
         </Title>
         <hr />
       </CardTitle>

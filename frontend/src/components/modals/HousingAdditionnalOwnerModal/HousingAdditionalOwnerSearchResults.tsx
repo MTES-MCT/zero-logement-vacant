@@ -1,26 +1,28 @@
 import React from 'react';
 import { Col, Pagination, Row, Table } from '@dataesr/react-dsfr';
-import { changeAdditionalOwnersPagination } from '../../../store/actions/housingAction';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
 import { usePagination } from '../../../hooks/usePagination';
-import { PaginatedResult } from '../../../models/PaginatedResult';
-import { useAppDispatch } from '../../../hooks/useStore';
+import { useFindOwnersQuery } from '../../../services/owner.service';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
+import housingSlice from '../../../store/reducers/housingReducer';
 
 interface Props {
-  paginatedOwners: PaginatedResult<Owner>;
   onSelect: (owner: Owner) => void;
 }
 
-const HousingAdditionalOwnerSearchResults = ({
-  paginatedOwners,
-  onSelect,
-}: Props) => {
+const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
   const dispatch = useAppDispatch();
+  const { additionalOwnersQuery } = useAppSelector((state) => state.housing);
+
+  const { data: additionalOwners } = useFindOwnersQuery(
+    additionalOwnersQuery!,
+    { skip: !additionalOwnersQuery }
+  );
 
   const { pageCount, rowNumber, hasPagination } =
-    usePagination(paginatedOwners);
+    usePagination(additionalOwners);
 
   const columns = () => [
     {
@@ -52,14 +54,18 @@ const HousingAdditionalOwnerSearchResults = ({
     },
   ];
 
+  if (!additionalOwners || !additionalOwnersQuery) {
+    return <></>;
+  }
+
   return (
     <>
-      {!paginatedOwners.loading && (
+      {!additionalOwners.loading && (
         <Row alignItems="middle" className="fr-py-1w">
           <Col>
             <b>
               {displayCount(
-                paginatedOwners.filteredCount,
+                additionalOwners.filteredCount,
                 'propriétaire trouvé'
               )}
             </b>
@@ -67,13 +73,13 @@ const HousingAdditionalOwnerSearchResults = ({
         </Row>
       )}
 
-      {paginatedOwners.filteredCount > 0 && (
+      {additionalOwners.filteredCount > 0 && (
         <>
           <Table
             caption="Propriétaires"
             captionPosition="none"
             rowKey="id"
-            data={paginatedOwners.entities.map((_, index) => ({
+            data={additionalOwners.entities.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),
             }))}
@@ -86,13 +92,13 @@ const HousingAdditionalOwnerSearchResults = ({
               <Pagination
                 onClick={(page: number) =>
                   dispatch(
-                    changeAdditionalOwnersPagination(
+                    housingSlice.actions.fetchingAdditionalOwners({
+                      ...additionalOwnersQuery,
                       page,
-                      paginatedOwners.perPage
-                    )
+                    })
                   )
                 }
-                currentPage={paginatedOwners.page}
+                currentPage={additionalOwners.page}
                 pageCount={pageCount}
               />
             </div>

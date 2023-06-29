@@ -16,6 +16,7 @@ import settingsController from '../controllers/settingsController';
 import ownerProspectController from "../controllers/ownerProspectController";
 import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
+import { param } from 'express-validator';
 
 const router = express.Router();
 
@@ -45,8 +46,8 @@ router.delete('/campaigns/bundles/number/:campaignNumber/:reminderNumber?', camp
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
-router.post('/owners/creation', ownerController.create);
-router.put('/owners/:ownerId', ownerController.ownerValidators, ownerController.update);
+router.post('/owners/creation', ownerController.ownerValidators, validator.validate, ownerController.create);
+router.put('/owners/:ownerId', [param('ownerId').isUUID().notEmpty(), ...ownerController.ownerValidators], validator.validate, ownerController.update);
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
 router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
 

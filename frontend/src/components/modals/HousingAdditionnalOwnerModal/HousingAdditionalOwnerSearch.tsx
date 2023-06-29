@@ -1,9 +1,9 @@
 import React from 'react';
-import { changeAdditionalOwnersSearching } from '../../../store/actions/housingAction';
 import { Owner } from '../../../models/Owner';
 import AppSearchBar from '../../AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
+import housingSlice from '../../../store/reducers/housingReducer';
 
 interface Props {
   onSelect: (owner: Owner) => void;
@@ -12,10 +12,15 @@ interface Props {
 const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
   const dispatch = useAppDispatch();
 
-  const { additionalOwners } = useAppSelector((state) => state.housing);
+  const { additionalOwnersQuery } = useAppSelector((state) => state.housing);
 
   const searchAdditionalOwners = (q: string) => {
-    dispatch(changeAdditionalOwnersSearching(q));
+    dispatch(
+      housingSlice.actions.fetchingAdditionalOwners({
+        ...(additionalOwnersQuery ?? { page: 1, perPage: 5 }),
+        q,
+      })
+    );
   };
 
   return (
@@ -24,12 +29,7 @@ const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
         onSearch={searchAdditionalOwners}
         placeholder="Rechercher un propriétaire dans la base de données"
       />
-      {additionalOwners && additionalOwners.paginatedOwners && (
-        <HousingAdditionalOwnerSearchResults
-          paginatedOwners={additionalOwners.paginatedOwners}
-          onSelect={onSelect}
-        />
-      )}
+      <HousingAdditionalOwnerSearchResults onSelect={onSelect} />
     </>
   );
 };

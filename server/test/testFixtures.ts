@@ -304,7 +304,6 @@ function genEventApi<T>(createdBy: string): EventApi<T> {
     kind: oneOf(EventKinds),
     category: oneOf(EventCategories),
     section: oneOf(EventSections),
-    contactKind: randomstring.generate(),
     conflict: genBoolean(),
     createdAt: new Date(),
     createdBy,

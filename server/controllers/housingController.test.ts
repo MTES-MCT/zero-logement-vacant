@@ -122,6 +122,7 @@ describe('Housing controller', () => {
         },
         note: {
           content: randomstring.generate(),
+          noteKind: randomstring.generate(),
         },
       },
     };

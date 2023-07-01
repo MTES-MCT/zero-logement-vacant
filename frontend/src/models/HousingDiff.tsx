@@ -1,66 +1,35 @@
+import fp from 'lodash/fp';
+
 import { Housing } from './Housing';
-import { isArrayEqual } from '../utils/arrayUtils';
 
 export interface HousingDiff {
   old: Partial<Housing>;
   new: Partial<Housing>;
 }
 
+function compare(a: Housing, b: Housing): Partial<Housing> {
+  return fp.pipe(
+    fp.pick([
+      'status',
+      'subStatus',
+      'precisions',
+      'vacancyReasons',
+      'occupancy',
+      'occupancyIntended',
+    ]),
+    fp.pickBy((value, key) => !fp.isEqual(value, b[key as keyof typeof value]))
+  )(a);
+}
+
 export const getHousingDiff = (
   oldHousing: Housing,
   newHousing: Housing
-): HousingDiff => ({
-  old: {
-    status:
-      newHousing.status !== oldHousing.status ? oldHousing.status : undefined,
-    subStatus:
-      newHousing.subStatus !== oldHousing.subStatus
-        ? oldHousing.subStatus
-        : undefined,
-    precisions: !isArrayEqual(newHousing.precisions, oldHousing.precisions)
-      ? oldHousing.precisions
-      : undefined,
-    vacancyReasons: !isArrayEqual(
-      newHousing.vacancyReasons,
-      oldHousing.vacancyReasons
-    )
-      ? oldHousing.vacancyReasons
-      : undefined,
-    occupancy:
-      newHousing.occupancy !== oldHousing.occupancy
-        ? oldHousing.occupancy
-        : undefined,
-    occupancyIntended:
-      newHousing.occupancyIntended !== oldHousing.occupancyIntended
-        ? oldHousing.occupancyIntended
-        : undefined,
-  },
-  new: {
-    status:
-      newHousing.status !== oldHousing.status ? newHousing.status : undefined,
-    subStatus:
-      newHousing.subStatus !== oldHousing.subStatus
-        ? newHousing.subStatus
-        : undefined,
-    precisions: !isArrayEqual(newHousing.precisions, oldHousing.precisions)
-      ? newHousing.precisions
-      : undefined,
-    vacancyReasons: !isArrayEqual(
-      newHousing.vacancyReasons,
-      oldHousing.vacancyReasons
-    )
-      ? newHousing.vacancyReasons
-      : undefined,
-    occupancy:
-      newHousing.occupancy !== oldHousing.occupancy
-        ? newHousing.occupancy
-        : undefined,
-    occupancyIntended:
-      newHousing.occupancyIntended !== oldHousing.occupancyIntended
-        ? newHousing.occupancyIntended
-        : undefined,
-  },
-});
+): HousingDiff => {
+  return {
+    old: compare(oldHousing, newHousing),
+    new: compare(newHousing, oldHousing),
+  };
+};
 
 export const hasValues = (partialHousing: Partial<Housing>) =>
   Object.values(partialHousing).filter(

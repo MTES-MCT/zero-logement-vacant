@@ -867,7 +867,7 @@ interface HousingRecordDBO {
   data_years: number[];
   building_location?: string;
   ownership_kind?: OwnershipKindsApi;
-  status?: HousingStatusApi;
+  status: HousingStatusApi;
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;

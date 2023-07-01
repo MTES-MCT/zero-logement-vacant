@@ -13,7 +13,7 @@ export const getHousingStatusApiLabel = (
 ) => {
   switch (housingStatusApi) {
     case HousingStatusApi.NeverContacted:
-      return 'Jamais contacté';
+      return 'Non suivi';
     case HousingStatusApi.Waiting:
       return 'En attente de retour';
     case HousingStatusApi.FirstContact:
@@ -21,11 +21,11 @@ export const getHousingStatusApiLabel = (
     case HousingStatusApi.InProgress:
       return 'Suivi en cours';
     case HousingStatusApi.NotVacant:
-      return 'Non-vacant';
+      return 'Suivi terminé';
     case HousingStatusApi.NoAction:
       return 'Bloqué';
     case HousingStatusApi.Exit:
-      return 'Sortie de la vacance';
+      return 'Suivi terminé';
     default:
       return '';
   }

@@ -1,6 +1,5 @@
 import { Housing } from '../../models/Housing';
 import styles from './events-history.module.scss';
-import { getHousingState } from '../../models/HousingState';
 import React from 'react';
 import { hasValues } from '../../models/HousingDiff';
 
@@ -14,7 +13,7 @@ const EventPartialHousingContent = ({ partialHousing }: Props) => {
       {partialHousing.status !== undefined && (
         <>
           <span className="color-grey-625">Statut</span>
-          {getHousingState(partialHousing.status).title}
+          {partialHousing.status}
         </>
       )}
       {partialHousing.subStatus && (

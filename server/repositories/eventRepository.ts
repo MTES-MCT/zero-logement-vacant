@@ -11,6 +11,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import { HousingApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { EventSection } from '../../shared/types/EventSection';
+import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -40,10 +41,10 @@ const insertManyHousingEvents = async (
         ...formatEventApi(housingEvent),
         new: Array.isArray(housingEvent.new)
           ? JSON.stringify(housingEvent.new)
-          : housingEvent.new,
+          : denormalizeStatus(housingEvent.new),
         old: Array.isArray(housingEvent.old)
           ? JSON.stringify(housingEvent.old)
-          : housingEvent.old,
+          : denormalizeStatus(housingEvent.old),
       }))
     );
     await HousingEvents().insert(
@@ -54,6 +55,12 @@ const insertManyHousingEvents = async (
     );
   }
 };
+
+function denormalizeStatus(housing: HousingApi | undefined) {
+  return housing
+    ? { ...housing, status: getHousingStatusApiLabel(housing.status) }
+    : undefined;
+}
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
   await Events().insert(formatEventApi(ownerEvent));

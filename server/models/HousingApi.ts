@@ -24,7 +24,7 @@ export interface HousingRecordApi {
   dataYears: number[];
   buildingLocation?: string;
   ownershipKind?: OwnershipKindsApi;
-  status?: HousingStatusApi;
+  status: HousingStatusApi;
   subStatus?: string;
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;

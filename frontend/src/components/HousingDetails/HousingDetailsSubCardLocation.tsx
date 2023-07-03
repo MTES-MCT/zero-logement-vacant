@@ -16,9 +16,7 @@ function HousingDetailsCardLocation({ housing }: Props) {
         <Text size="sm" className="zlv-label">
           Adresse postale
         </Text>
-        <Text className="color-bf113" spacing="mb-1w">
-          {housing.rawAddress.join(' - ')}
-        </Text>
+        <Text spacing="mb-1w">{housing.rawAddress.join(' - ')}</Text>
       </div>
       {getBuildingLocation(housing) && (
         <div>
@@ -49,7 +47,7 @@ function HousingDetailsCardLocation({ housing }: Props) {
         <Text size="sm" className="zlv-label">
           Référence cadastrale
         </Text>
-        <Text className="color-bf113" spacing="mb-1w">
+        <Text spacing="mb-1w">
           <span>{housing.cadastralReference}</span>
         </Text>
       </div>

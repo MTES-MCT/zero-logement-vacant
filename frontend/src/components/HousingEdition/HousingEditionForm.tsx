@@ -6,7 +6,7 @@ import {
   getSubStatusOptions,
   HousingStatus,
 } from '../../models/HousingState';
-import { DefaultOption, SelectOption } from '../../models/SelectOption';
+import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
@@ -227,7 +227,10 @@ const HousingEditionForm = (
             <Col n="6">
               <Select
                 label="Occupation prévisionnelle"
-                options={[DefaultOption, ...allOccupancyOptions]}
+                options={[
+                  { label: "Pas d'informations", value: '' },
+                  ...allOccupancyOptions,
+                ]}
                 selected={occupancyIntended}
                 messageType={
                   form.messageType('occupancyIntended') as 'valid' | 'error'
@@ -244,7 +247,7 @@ const HousingEditionForm = (
           Mobilisation du logement
         </Text>
         <Row gutters>
-          <Col n="6">
+          <Col n="12">
             <HousingStatusSelect
               selected={status}
               options={statusOptions(
@@ -259,7 +262,7 @@ const HousingEditionForm = (
               }}
             />
           </Col>
-          <Col n="6">
+          <Col n="12">
             {subStatusOptions && (
               <Select
                 label="Sous-statut"

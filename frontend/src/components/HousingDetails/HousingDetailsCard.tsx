@@ -103,7 +103,16 @@ function HousingDetailsCard({
         </Title>
       </CardTitle>
       <CardDescription>
-        <HousingDetailsCardOccupancy housing={housing} />
+        <HousingDetailsCardOccupancy
+          housing={housing}
+          lastOccupancyEvent={housingEvents.find(
+            (event) =>
+              event.category === 'Followup' &&
+              event.kind === 'Update' &&
+              event.section === 'Situation' &&
+              event.name === "Modification du statut d'occupation"
+          )}
+        />
         <HousingDetailsCardMobilisation
           housing={housing}
           campaigns={housingCampaigns}

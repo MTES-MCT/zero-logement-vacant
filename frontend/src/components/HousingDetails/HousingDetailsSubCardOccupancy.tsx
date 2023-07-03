@@ -1,6 +1,10 @@
 import { Badge, Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
 import React from 'react';
-import { Housing, OccupancyKindLabels } from '../../models/Housing';
+import {
+  Housing,
+  OccupancyKind,
+  OccupancyKindLabels,
+} from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { pluralize } from '../../utils/stringUtils';
 import DPE from '../DPE/DPE';
@@ -8,18 +12,28 @@ import { useAppSelector } from '../../hooks/useStore';
 import { useFeature } from '../../hooks/useFeature';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
+import { Event } from '../../models/Event';
+import { getYear } from 'date-fns';
 
 interface Props {
   housing: Housing;
+  lastOccupancyEvent?: Event;
 }
 
-function HousingDetailsCardOccupancy({ housing }: Props) {
+function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
   const features = useFeature({
     establishmentId: establishment?.id,
   });
+
+  const lastOccupancyChange = lastOccupancyEvent
+    ? getYear(lastOccupancyEvent.createdAt)
+    : housing.occupancy === 'V'
+    ? housing.vacancyStartYear
+    : undefined;
+
   return (
     <HousingDetailsSubCard
       title={
@@ -58,6 +72,13 @@ function HousingDetailsCardOccupancy({ housing }: Props) {
           <Text size="sm" className="zlv-label">
             Dans cette situation depuis
           </Text>
+          <Text spacing="mb-1w">
+            {lastOccupancyChange
+              ? `${
+                  getYear(new Date()) - lastOccupancyChange
+                } ans (${lastOccupancyChange})`
+              : 'Inconnu'}
+          </Text>
         </Col>
         <Col n="4">
           <Text size="sm" className="zlv-label">
@@ -86,6 +107,11 @@ function HousingDetailsCardOccupancy({ housing }: Props) {
         <Col n="4">
           <Text size="sm" className="zlv-label">
             Ancien statut d’occupation
+          </Text>
+          <Text spacing="mb-1w">
+            {OccupancyKindLabels[
+              lastOccupancyEvent?.old.occupancy as OccupancyKind
+            ] ?? 'Inconnu'}
           </Text>
         </Col>
         <Col n="4">

@@ -171,6 +171,10 @@ function mapPrecisions(housing: Housing): Housing {
     'Mauvais moment',
     'Recherche autre interlocuteur',
     'Besoin de précisions',
+    'Cause inconnue',
+    'N’est pas une résidence principale',
+    'Autre que logement',
+    `N’est plus un logement`,
   ]);
 
   const map: Record<string, Partial<Housing>> = {
@@ -337,16 +341,20 @@ function mapPrecisions(housing: Housing): Housing {
   };
 
   const changes: Partial<Housing> = housing.precisions
-    .filter((precision) => !removable.has(precision))
-    .map((precision) => map[precision])
-    .reduce((acc, changes) => {
-      return {
-        ...acc,
-        ...changes,
-        // TODO: check if precisions becomes undefined after merge
-        precisions: changes.precisions?.concat(acc.precisions ?? []),
-      };
-    }, {});
+    // Change or keep the precision as is
+    .map((precision) => ({ precisions: [precision], ...map[precision] }))
+    .reduce(
+      (acc, changes) => {
+        return {
+          ...acc,
+          ...changes,
+          precisions: acc.precisions.concat(
+            changes.precisions?.filter((precision) => !removable.has(precision))
+          ),
+        };
+      },
+      { precisions: [] }
+    );
   return {
     ...housing,
     ...changes,

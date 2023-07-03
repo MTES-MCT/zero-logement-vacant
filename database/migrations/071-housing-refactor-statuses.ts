@@ -32,14 +32,46 @@ exports.up = async function (knex: Knex) {
       const items = housingList.map((oldHousing) => {
         const mapHousing = fp.compose(mapPrecisions, mapSubStatus);
         const newHousing = mapHousing(oldHousing);
-        const event = createEvent(oldHousing, newHousing, admin.id);
+        const event = {
+          id: uuidv4(),
+          housing_id: oldHousing.id,
+          name: 'Modification arborescence de suivi',
+          kind: 'Update',
+          category: 'Followup',
+          section: 'Situation',
+          conflict: false,
+          old: denormalizeOldStatus(oldHousing),
+          new: denormalizeNewStatus(newHousing),
+          created_at: new Date(),
+          created_by: admin.id,
+        };
         return {
           event,
           housing: newHousing,
         };
       });
 
-      await saveEvents(knex)(items.map((item) => item.event));
+      const events: HousingEvent[] = items
+        .map((item) => item.event)
+        .flatMap((event) =>
+          event.old.sub_status === 'Absent du millésime suivant'
+            ? [
+                event,
+                {
+                  id: uuidv4(),
+                  housing_id: event.old.id,
+                  name: 'Absent du millésime 2023',
+                  kind: 'Delete',
+                  category: 'Followup',
+                  section: 'Situation',
+                  conflict: false,
+                  created_at: new Date(),
+                  created_by: event.created_by,
+                },
+              ]
+            : event
+        );
+      await saveEvents(knex)(events);
       await saveHousingList(knex)(items.map((item) => item.housing));
 
       length = housingList.length;
@@ -50,6 +82,13 @@ exports.up = async function (knex: Knex) {
 };
 
 exports.down = async function (knex: Knex) {
+  const email = 'admin@zerologementvacant.beta.gouv.fr';
+  const admin = await knex(usersTable).where({ email }).first();
+
+  if (!admin) {
+    throw new Error(`${email} not found`);
+  }
+
   let offset = 0;
   let length = 0;
 
@@ -77,9 +116,7 @@ exports.down = async function (knex: Knex) {
     async () => length < BATCH_SIZE
   );
 
-  await knex(eventsTable)
-    .where({ name: 'Modification arborescence de suivi' })
-    .delete();
+  await knex(eventsTable).where({ created_by: admin.id }).delete();
 
   function normalizeStatus(housing: HousingSerialized): Housing {
     const statuses = [
@@ -120,7 +157,6 @@ function mapSubStatus(housing: Housing): Housing {
     },
     'Absent du millésime suivant': {
       sub_status: 'Sortie de la vacance',
-      occupancy: 'Absent du nouveau millésime',
     },
     'Déclaré non-vacant': {
       sub_status: 'N’était pas vacant',
@@ -379,26 +415,6 @@ enum HousingStatus {
   NotVacant,
   NoAction,
   Exit,
-}
-
-function createEvent(
-  oldHousing: Housing,
-  newHousing: Housing,
-  createdBy: string
-): HousingEvent {
-  return {
-    id: uuidv4(),
-    housing_id: oldHousing.id,
-    name: 'Modification arborescence de suivi',
-    kind: 'Update',
-    category: 'Followup',
-    section: 'Situation',
-    conflict: false,
-    old: denormalizeOldStatus(oldHousing),
-    new: denormalizeNewStatus(newHousing),
-    created_at: new Date(),
-    created_by: createdBy,
-  };
 }
 
 interface HousingEvent {

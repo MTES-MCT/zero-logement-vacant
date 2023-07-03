@@ -20,11 +20,6 @@ describe('Note controller', () => {
       await withAccessToken(
         request(app)
           .post(testRoute)
-          .send({ ...genNoteCreationDTO(), title: '' })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
           .send({ ...genNoteCreationDTO(), housingIds: 'housing' })
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });

@@ -39,7 +39,6 @@ const listByHousingId = async (
 };
 
 const createNoteValidators: ValidationChain[] = [
-  body('title').optional().isString().notEmpty(),
   body('ownerId').optional().isUUID(),
   // TODO: validate more
   body('housingIds')
@@ -55,7 +54,7 @@ const createNoteValidators: ValidationChain[] = [
     )
     .withMessage('All items must be strings'),
   body('content').isString().notEmpty(),
-  body('contactKind').isString().notEmpty(),
+  body('noteKind').isString().notEmpty(),
 ];
 
 const create = async (request: Request, response: Response): Promise<void> => {

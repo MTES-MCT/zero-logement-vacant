@@ -24,7 +24,9 @@ const HousingListEditionSideMenu = ({
   onSubmit,
   onClose,
 }: Props) => {
-  const statusFormRef = useRef<{ submit: () => void }>();
+  const statusFormRef = useRef<{
+    submit: () => void;
+  }>();
 
   return (
     <Aside
@@ -59,8 +61,9 @@ const HousingListEditionSideMenu = ({
               className="fr-p-0 bg-975"
             >
               <HousingEditionForm
-                currentStatus={initialStatus}
+                current={{ status: initialStatus }}
                 fromDefaultCampaign={fromDefaultCampaign}
+                housingCount={housingCount}
                 onSubmit={onSubmit}
                 ref={statusFormRef}
               />

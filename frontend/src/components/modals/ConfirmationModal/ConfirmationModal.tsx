@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import {
   Button,
   Container,
@@ -9,15 +9,14 @@ import {
   ModalTitle,
 } from '@dataesr/react-dsfr';
 
-const ConfirmationModal = ({
-  children,
-  onSubmit,
-  onClose,
-}: {
-  children: any;
-  onSubmit: () => void;
+interface Props {
+  children: ReactNode | ReactNode[];
+  title?: string | ReactElement;
+  onSubmit: (param?: any) => void;
   onClose: () => void;
-}) => {
+}
+
+const ConfirmationModal = ({ children, title, onSubmit, onClose }: Props) => {
   return (
     <Modal isOpen={true} hide={() => onClose()}>
       <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
@@ -25,7 +24,7 @@ const ConfirmationModal = ({
       </ModalClose>
       <ModalTitle>
         <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        Confirmation
+        {title ?? 'Confirmation'}
       </ModalTitle>
       <ModalContent>
         <Container as="section" fluid>

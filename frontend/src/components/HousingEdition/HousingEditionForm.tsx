@@ -1,6 +1,6 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Row, Select, Text } from '@dataesr/react-dsfr';
-import { HousingUpdate, OccupancyKind } from '../../models/Housing';
+import { Alert, Col, Row, Select, Text } from '@dataesr/react-dsfr';
+import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import {
   getStatusPrecisionOptions,
   getSubStatusOptions,
@@ -20,46 +20,49 @@ import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../AppTextInput/AppTextInput';
 import _ from 'lodash';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
-  currentOccupancy?: OccupancyKind;
-  currentOccupancyIntended?: OccupancyKind;
-  currentStatus?: HousingStatus;
-  currentSubStatus?: string;
-  currentPrecisions?: string[];
-  currentVacancyReasons?: string[];
+  current: Pick<
+    Partial<Housing>,
+    | 'occupancy'
+    | 'occupancyIntended'
+    | 'status'
+    | 'subStatus'
+    | 'precisions'
+    | 'vacancyReasons'
+  >;
   fromDefaultCampaign?: boolean;
+  housingCount?: number;
+  withOccupancy?: boolean;
   onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
 const HousingEditionForm = (
   {
-    currentOccupancy,
-    currentOccupancyIntended,
-    currentStatus,
-    currentSubStatus,
-    currentPrecisions,
-    currentVacancyReasons,
+    current,
     fromDefaultCampaign,
+    withOccupancy,
+    housingCount,
     onSubmit,
   }: Props,
   ref: any
 ) => {
   const [occupancy, setOccupancy] = useState<OccupancyKind | undefined>(
-    currentOccupancy
+    current.occupancy
   );
   const [occupancyIntended, setOccupancyIntended] = useState<
     OccupancyKind | undefined
-  >(currentOccupancyIntended);
+  >(current.occupancyIntended);
   const [status, setStatus] = useState<HousingStatus>();
   const [subStatus, setSubStatus] = useState<string | undefined>(
-    currentSubStatus
+    current.subStatus
   );
   const [precisions, setPrecisions] = useState<string[] | undefined>(
-    currentPrecisions
+    current.precisions
   );
   const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(
-    currentVacancyReasons
+    current.vacancyReasons
   );
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
@@ -67,19 +70,21 @@ const HousingEditionForm = (
   const [noteKind, setNoteKind] = useState<string>();
   const [isVacancyReasonsModalOpen, setIsVacancyReasonsModalOpen] =
     useState<boolean>(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
-    selectStatus(currentStatus ?? HousingStatus.Waiting);
-  }, [currentStatus]); //eslint-disable-line react-hooks/exhaustive-deps
+    selectStatus(current.status ?? HousingStatus.Waiting);
+  }, [current.status]); //eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    selectSubStatus(currentStatus, currentSubStatus);
-  }, [currentStatus, currentSubStatus]); //eslint-disable-line react-hooks/exhaustive-deps
+    selectSubStatus(current.status, current.subStatus);
+  }, [current.status, current.subStatus]); //eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    setPrecisions(currentPrecisions);
-  }, [currentPrecisions]);
+    setPrecisions(current.precisions);
+  }, [current.precisions]);
   useEffect(() => {
-    setVacancyReasons(currentVacancyReasons);
-  }, [currentVacancyReasons]);
+    setVacancyReasons(current.vacancyReasons);
+  }, [current.vacancyReasons]);
 
   const selectStatus = (newStatus: HousingStatus) => {
     setStatus(+newStatus);
@@ -108,10 +113,14 @@ const HousingEditionForm = (
   };
 
   const shape = {
-    occupancy: yup
-      .string()
-      .required("Veuillez sélectionner un statut d'occupation."),
-    occupancyIntended: yup.string().nullable(),
+    ...(withOccupancy
+      ? {
+          occupancy: yup
+            .string()
+            .required("Veuillez sélectionner un statut d'occupation."),
+          occupancyIntended: yup.string().nullable(),
+        }
+      : {}),
     status: yup.string().required('Veuillez sélectionner un statut.'),
     subStatus: yup
       .string()
@@ -126,8 +135,12 @@ const HousingEditionForm = (
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
-    occupancy,
-    occupancyIntended,
+    ...(withOccupancy
+      ? {
+          occupancy,
+          occupancyIntended,
+        }
+      : {}),
     hasSubStatus: subStatusOptions !== undefined,
     status,
     subStatus,
@@ -136,44 +149,50 @@ const HousingEditionForm = (
   });
 
   const isStatusUpdate =
-    currentStatus !== status ||
-    currentSubStatus !== subStatus ||
-    !_.isEqual(currentPrecisions, precisions) ||
-    !_.isEqual(currentVacancyReasons, vacancyReasons);
+    current.status !== status ||
+    current.subStatus !== subStatus ||
+    !_.isEqual(current.precisions, precisions) ||
+    !_.isEqual(current.vacancyReasons, vacancyReasons);
 
   const isOccupancyUpdate =
-    currentOccupancy !== occupancy ||
-    currentOccupancyIntended !== occupancyIntended;
+    withOccupancy &&
+    (current.occupancy !== occupancy ||
+      current.occupancyIntended !== occupancyIntended);
+
+  const hasNote = comment && comment?.length > 0;
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
       await form.validate(() =>
-        onSubmit({
-          statusUpdate: isStatusUpdate
-            ? {
-                status: +(status ?? HousingStatus.Waiting),
-                subStatus: subStatus,
-                precisions,
-                vacancyReasons: vacancyReasons ?? [],
-              }
-            : undefined,
-          occupancyUpdate: isOccupancyUpdate
-            ? {
-                occupancy: occupancy!,
-                occupancyIntended,
-              }
-            : undefined,
-          note:
-            comment && comment?.length > 0
-              ? {
-                  content: comment,
-                  noteKind: noteKind!,
-                }
-              : undefined,
-        })
+        housingCount ? setIsConfirmationModalOpen(true) : submitForm()
       );
     },
   }));
+
+  const submitForm = () => {
+    onSubmit({
+      statusUpdate: isStatusUpdate
+        ? {
+            status: +(status ?? HousingStatus.Waiting),
+            subStatus: subStatus,
+            precisions,
+            vacancyReasons: vacancyReasons ?? [],
+          }
+        : undefined,
+      occupancyUpdate: isOccupancyUpdate
+        ? {
+            occupancy: occupancy!,
+            occupancyIntended,
+          }
+        : undefined,
+      note: hasNote
+        ? {
+            content: comment,
+            noteKind: noteKind!,
+          }
+        : undefined,
+    });
+  };
 
   const notesOptions: SelectOption[] = [
     'Note courante',
@@ -188,36 +207,38 @@ const HousingEditionForm = (
 
   return (
     <>
-      <div className="bg-white fr-m-2w fr-p-2w">
-        <Text size="lg" bold spacing="mb-2w">
-          Occupation du logement
-        </Text>
-        <Row gutters>
-          <Col n="6">
-            <Select
-              label="Occupation actuelle"
-              options={allOccupancyOptions}
-              selected={occupancy}
-              messageType={form.messageType('occupancy') as 'valid' | 'error'}
-              message={form.message('occupancy')}
-              onChange={(e: any) => setOccupancy(e.target.value)}
-              required
-            />
-          </Col>
-          <Col n="6">
-            <Select
-              label="Occupation prévisionnelle"
-              options={[DefaultOption, ...allOccupancyOptions]}
-              selected={occupancyIntended}
-              messageType={
-                form.messageType('occupancyIntended') as 'valid' | 'error'
-              }
-              message={form.message('occupancyIntended')}
-              onChange={(e: any) => setOccupancyIntended(e.target.value)}
-            />
-          </Col>
-        </Row>
-      </div>
+      {withOccupancy && (
+        <div className="bg-white fr-m-2w fr-p-2w">
+          <Text size="lg" bold spacing="mb-2w">
+            Occupation du logement
+          </Text>
+          <Row gutters>
+            <Col n="6">
+              <Select
+                label="Occupation actuelle"
+                options={allOccupancyOptions}
+                selected={occupancy}
+                messageType={form.messageType('occupancy') as 'valid' | 'error'}
+                message={form.message('occupancy')}
+                onChange={(e: any) => setOccupancy(e.target.value)}
+                required
+              />
+            </Col>
+            <Col n="6">
+              <Select
+                label="Occupation prévisionnelle"
+                options={[DefaultOption, ...allOccupancyOptions]}
+                selected={occupancyIntended}
+                messageType={
+                  form.messageType('occupancyIntended') as 'valid' | 'error'
+                }
+                message={form.message('occupancyIntended')}
+                onChange={(e: any) => setOccupancyIntended(e.target.value)}
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
       <div className="bg-white fr-m-2w fr-p-2w">
         <Text size="lg" bold spacing="mb-2w">
           Mobilisation du logement
@@ -228,8 +249,8 @@ const HousingEditionForm = (
               selected={status}
               options={statusOptions(
                 fromDefaultCampaign ||
-                  !currentStatus ||
-                  +currentStatus === HousingStatus.NeverContacted
+                  !current.status ||
+                  +current.status === HousingStatus.NeverContacted
                   ? []
                   : [HousingStatus.NeverContacted]
               )}
@@ -315,6 +336,22 @@ const HousingEditionForm = (
           onChange={(e: any) => setNoteKind(e.target.value)}
         />
       </div>
+      {isConfirmationModalOpen && (
+        <ConfirmationModal
+          onSubmit={submitForm}
+          onClose={() => setIsConfirmationModalOpen(false)}
+          title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
+        >
+          <Alert
+            type="warning"
+            description="Cette action écrasera les anciennes données."
+          ></Alert>
+          <ul className="fr-mt-2w">
+            {isStatusUpdate && <li>Mise à jour de la mobilisation</li>}
+            {hasNote && <li>Ajout d’une note</li>}
+          </ul>
+        </ConfirmationModal>
+      )}
     </>
   );
 };

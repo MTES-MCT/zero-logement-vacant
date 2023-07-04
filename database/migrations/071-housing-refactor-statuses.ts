@@ -30,7 +30,11 @@ exports.up = async function (knex: Knex) {
         .offset(offset);
 
       const items = housingList.map((oldHousing) => {
-        const mapHousing = fp.compose(mapPrecisions, mapSubStatus);
+        const mapHousing = fp.compose(
+          mapVacancyReasons,
+          mapPrecisions,
+          mapSubStatus
+        );
         const newHousing = mapHousing(oldHousing);
         const event = {
           id: uuidv4(),
@@ -216,7 +220,7 @@ function mapPrecisions(housing: Housing): Housing {
   const map: Record<string, Partial<Housing>> = {
     'Logement récemment vendu': {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'Autres',
+      occupancy: 'A',
     },
     'Aide aux travaux': {
       precisions: [
@@ -288,35 +292,35 @@ function mapPrecisions(housing: Housing): Housing {
     },
     Loué: {
       precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-      occupancy: 'Loué',
+      occupancy: 'L',
     },
     Vendu: {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'Autres',
+      occupancy: 'A',
     },
     'Occupation personnelle ou pour un proche': {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'Résidence principale',
+      occupancy: 'P',
     },
     'Occupé par le propriétaire ou proche': {
       precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-      occupancy: 'Résidence principale',
+      occupancy: 'P',
     },
     'Cause inconnue': {
-      occupancy: 'Résidence secondaire',
+      occupancy: 'RS',
     },
     'N’est pas une résidence principale': {
-      occupancy: 'Résidence secondaire',
+      occupancy: 'RS',
     },
     'Autre que logement': {
-      occupancy: 'Local commercial / Bureau',
+      occupancy: 'T',
     },
     'N’est plus un logement': {
-      occupancy: 'Local commercial / Bureau',
+      occupancy: 'T',
     },
     'Réserve personnelle ou pour une autre personne': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Réserve personnelle ou pour une autre personne',
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
       ],
     },
     'Montant travaux trop important': {
@@ -380,16 +384,116 @@ function mapPrecisions(housing: Housing): Housing {
     // Change or keep the precision as is
     .map((precision) => ({ precisions: [precision], ...map[precision] }))
     .reduce(
-      (acc, changes) => {
-        return {
-          ...acc,
-          ...changes,
-          precisions: acc.precisions.concat(
-            changes.precisions?.filter((precision) => !removable.has(precision))
-          ),
-        };
-      },
+      (acc, changes) => ({
+        ...acc,
+        ...changes,
+        precisions: acc.precisions.concat(
+          changes.precisions?.filter((precision) => !removable.has(precision))
+        ),
+      }),
       { precisions: [] }
+    );
+  return {
+    ...housing,
+    ...changes,
+  };
+}
+
+function mapVacancyReasons(housing: Housing): Housing {
+  if (!housing.vacancy_reasons) {
+    return housing;
+  }
+
+  const map: Record<string, Partial<Housing>> = {
+    'Liée au logement - pas d’accès indépendant': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Immeuble / Environnement > Pas d’accès indépendant',
+      ],
+    },
+    'Liée au logement - nuisances à proximité': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Immeuble / Environnement > Nuisances à proximité',
+      ],
+    },
+    'Liée au logement - logement trop énergivore': {
+      vacancy_reasons: ['TODO'],
+    },
+    'Liée au logement - nécessité de travaux': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux',
+      ],
+    },
+    'Liée au logement - montant travaux trop important': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible',
+      ],
+    },
+    'Liée au logement - ruine / à démolir': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Immeuble / Environnement > Ruine / Immeuble à démolir',
+      ],
+    },
+    'Liée à l’immeuble - blocage lié à la copropriété': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Tiers en cause > Copropriété en désaccord',
+      ],
+    },
+    'Blocage juridique - succession difficile, indivision en désaccord': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord',
+      ],
+    },
+    'Blocage juridique - expertise judiciaire': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire',
+      ],
+    },
+    'Blocage juridique - procédure contre les entrepreneurs': {
+      vacancy_reasons: [
+        'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut',
+      ],
+    },
+    'Vacance volontaire - réserve personnelle': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
+      ],
+    },
+    'Vacance volontaire - réserve pour une autre personne': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
+      ],
+    },
+    'Mauvaise expérience locative - dégradations': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
+      ],
+    },
+    'Mauvaise expérience locative - impayés de loyer': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
+      ],
+    },
+    'Liée au propriétaire - âge du propriétaire': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
+      ],
+    },
+    'Liée au propriétaire - difficultés de gestion': {
+      vacancy_reasons: [
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
+      ],
+    },
+  };
+
+  const changes: Partial<Housing> = housing.vacancy_reasons
+    .map((reason) => ({ vacancy_reasons: [reason], ...map[reason] }))
+    .reduce(
+      (acc, changes) => ({
+        ...acc,
+        ...changes,
+        vacancy_reasons: acc.vacancy_reasons.concat(changes.vacancy_reasons),
+      }),
+      { vacancy_reasons: [] }
     );
   return {
     ...housing,
@@ -402,6 +506,7 @@ interface Housing {
   status: number;
   sub_status?: string;
   precisions?: string[];
+  vacancy_reasons?: string[];
   occupancy: string;
 }
 

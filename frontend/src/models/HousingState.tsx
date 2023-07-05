@@ -112,17 +112,17 @@ export const HousingStates: HousingState[] = [
     subStatusList: [
       {
         title: InProgressWithSupportSubStatus,
-        color: '--black-50',
+        color: '--grey-main-525',
         bgcolor: '--pink-tuile-975',
       },
       {
         title: InProgressWithPublicSupportSubStatus,
-        color: '--black-50',
+        color: '--grey-main-525',
         bgcolor: '--pink-tuile-975',
       },
       {
         title: InProgressWithoutSupportSubStatus,
-        color: '--black-50',
+        color: '--grey-main-525',
         bgcolor: '--pink-tuile-975',
       },
     ],

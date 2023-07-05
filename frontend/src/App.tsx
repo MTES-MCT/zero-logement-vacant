@@ -82,67 +82,59 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <AppHeader/>
-        {isAuthenticated ?
-          <>
-            <ScrollToTop/>
+        <ScrollToTop/>
 
-            {campaignCreated && campaignBundleFetchingId &&
-              <Redirect push={true}
-                        to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`}/>
-            }
-
-            <Switch>
-              <Route exact path="/stats" component={StatsView}/>
-              <Route exact path="/accessibilite" component={AccessibilityView}/>
-              <Route exact path="/parc-de-logements" component={HousingListView}/>
-              <Route exact path="/campagnes" component={CampaignsListView}/>
-              <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView}/>
-              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView}/>
-              <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView}/>
-              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView}/>
-              <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>
-              <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>
-              <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="*/proprietaires/:ownerId" component={OwnerView}/>
-              <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>
-              <Route exact path="*/logements/:housingId" component={HousingView}/>
-              <Route exact path="/messagerie" component={InboxView}/>
-              <Route exact path="*/informations-publiques" component={EstablishmentView}/>
-              <Route exact path="/ressources" component={ResourcesView}/>
-              <Route exact path="/ressources/statuts" component={StatusView}/>
-              <Route exact path="/compte" component={AccountView}/>
-              <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>
-              <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>
-              <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>
-              <Route path="/*">
-                <Redirect to="/parc-de-logements"/>
-              </Route>
-            </Switch>
-          </> :
-          <Switch>
-            <Route path="/mentions-legales" component={LegalNoticesView}/>
-            <Route path="/inscription" component={AccountCreationView}/>
-            <Route exact path="/connexion" component={LoginView}/>
-            <Route exact path="/collectivites" component={EstablishmentHomeView}/>
-            <Route exact path="/proprietaires" component={OwnerGenericHomeView}/>
-            <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>
-            <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>
-            <Route exact path="/stats" component={StatsView}/>
-            <Route exact path="/accessibilite" component={AccessibilityView}/>
-            <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView}/>
-            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView}/>
-            <Route exact path="/admin" component={LoginView}/>
-            <Route exact path="/" component={EstablishmentHomeView}/>
-            <Route path="/*">
-              {isLoggedOut ? <Redirect to="/connexion"/> :
-                <Redirect to="/collectivites"/>}
-            </Route>
-          </Switch>
+        {isAuthenticated && campaignCreated && campaignBundleFetchingId &&
+            <Redirect push={true}
+                      to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`}/>
         }
+
+        <Switch>
+          <Route exact path="/stats" component={StatsView}/>
+          <Route exact path="/accessibilite" component={AccessibilityView}/>
+          <Route path="/mentions-legales" component={LegalNoticesView}/>,
+          <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
+          <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
+          <Route exact path="/collectivites" component={EstablishmentHomeView}/>,
+          <Route exact path="/proprietaires" component={OwnerGenericHomeView}/>,
+          {isAuthenticated ? [
+            <Route exact path="/parc-de-logements" component={HousingListView}/>,
+            <Route exact path="/campagnes" component={CampaignsListView}/>,
+            <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>,
+            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>,
+            <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="*/proprietaires/:ownerId" component={OwnerView}/>,
+            <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView}/>,
+            <Route exact path="*/logements/:housingId" component={HousingView}/>,
+            <Route exact path="/messagerie" component={InboxView}/>,
+            <Route exact path="*/informations-publiques" component={EstablishmentView}/>,
+            <Route exact path="/ressources" component={ResourcesView}/>,
+            <Route exact path="/ressources/statuts" component={StatusView}/>,
+            <Route exact path="/compte" component={AccountView}/>,
+            <Route exact path="/compte/mot-de-passe" component={AccountPasswordView}/>,
+            <Route path="/*">
+              <Redirect to="/parc-de-logements"/>
+            </Route>
+          ] : [
+            <Route path="/inscription" component={AccountCreationView}/>,
+            <Route exact path="/connexion" component={LoginView}/>,
+            <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView}/>,
+            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView}/>,
+            <Route exact path="/admin" component={LoginView}/>,
+            <Route exact path="/" component={EstablishmentHomeView}/>,
+            <Route path="/*">
+              {isLoggedOut ? <Redirect to="/connexion"/> : <Redirect to="/collectivites"/>}
+            </Route>
+          ]}
+        </Switch>
         <AppFooter/>
       </BrowserRouter>
     </React.Suspense>

@@ -144,7 +144,7 @@ const HousingEditionForm = (
       statusUpdate: isStatusUpdate
         ? {
             status: +(status ?? HousingStatus.Waiting),
-            subStatus: subStatus,
+            subStatus,
             precisions,
             vacancyReasons: vacancyReasons ?? [],
           }

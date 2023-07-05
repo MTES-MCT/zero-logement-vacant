@@ -251,8 +251,20 @@ const updateHousing = async (
 
   const updatedHousing = {
     ...housing,
-    ...(housingUpdate.occupancyUpdate ?? {}),
-    ...(housingUpdate.statusUpdate ?? {}),
+    ...(housingUpdate.occupancyUpdate
+      ? {
+          occupancy: housingUpdate.occupancyUpdate.occupancy,
+          occupancyIntended: housingUpdate.occupancyUpdate.occupancyIntended,
+        }
+      : {}),
+    ...(housingUpdate.statusUpdate
+      ? {
+          status: housingUpdate.statusUpdate.status,
+          subStatus: housingUpdate.statusUpdate.subStatus,
+          vacancyReasons: housingUpdate.statusUpdate.vacancyReasons,
+          precisions: housingUpdate.statusUpdate.precisions,
+        }
+      : {}),
   };
 
   await housingRepository.update(updatedHousing);

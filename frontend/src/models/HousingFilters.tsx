@@ -1,4 +1,4 @@
-import { SelectOption } from './SelectOption';
+import { SelectOption, OptionTreeElement } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
   OccupancyKind,
@@ -302,110 +302,126 @@ export const dataYearsExcludedOptions = [
   { value: '2023', label: '2023', badgeLabel: 'Millésime 2023 exclu' },
 ];
 
-export const vacancyReasonsOptions: {
-  subHeader: string;
-  options: SelectOption[];
-}[] = [
+export const BlockingPointOptions: OptionTreeElement[] = [
   {
-    subHeader: 'Liée au logement',
-    options: [
+    title: 'Liée au logement',
+    elements: [
       {
-        value: 'Liée au logement - pas d’accès indépendant',
-        label: 'pas d’accès indépendant',
+        title: 'Blocage involontaire',
+        elements: [
+          'Mise en location ou vente infructueuse',
+          'Succession difficile, indivision en désaccord',
+          "Défaut d'entretien / nécessité de travaux",
+          'Problèmes de financements / Dossier non-élligible',
+          "Manque de conseil en amont de l'achat",
+          'En incapacité (âge, handicap, précarité...)',
+        ],
       },
       {
-        value: 'Liée au logement - nuisances à proximité',
-        label: 'nuisances à proximité',
-      },
-      {
-        value: 'Liée au logement - logement trop énergivore',
-        label: 'logement trop énergivore',
-      },
-      {
-        value: 'Liée au logement - nécessité de travaux',
-        label: 'nécessité de travaux',
-      },
-      {
-        value: 'Liée au logement - montant travaux trop important',
-        label: 'montant travaux trop important',
-      },
-      {
-        value: 'Liée au logement - ruine / à démolir',
-        label: 'ruine / à démolir',
+        title: 'Blocage volontaire',
+        elements: [
+          'Réserve personnelle ou pour une autre personne',
+          'Stratégie de gestion',
+          'Mauvaise expérience locative',
+          'Montants des travaux perçus comme trop importants',
+          'Refus catégorique, sans raison',
+        ],
       },
     ],
   },
   {
-    subHeader: 'Liée à l’immeuble',
-    options: [
+    title: 'Extérieurs au propriétaire',
+    elements: [
       {
-        value: 'Liée à l’immeuble - blocage lié à la copropriété',
-        label: 'blocage lié à la copropriété',
+        title: 'Immeuble / Environnement',
+        elements: [
+          "Pas d'accès indépendant",
+          'Immeuble dégradé',
+          'Ruine / Immeuble à démolir',
+          'Nuisances à proximité',
+          'Risques Naturels / Technologiques',
+        ],
+      },
+      {
+        title: 'Tiers en cause',
+        elements: [
+          'Entreprise(s) en défaut',
+          'Copropriété en désaccord',
+          'Expertise judiciaire',
+          "Autorisation d'urbanisme refusée / Blocage ABF",
+          'Interdiction de location',
+        ],
       },
     ],
-  },
-  {
-    subHeader: 'Blocage juridique',
-    options: [
-      {
-        value:
-          'Blocage juridique - succession difficile, indivision en désaccord',
-        label: 'succession difficile, indivision en désaccord',
-      },
-      {
-        value: 'Blocage juridique - expertise judiciaire',
-        label: 'expertise judiciaire',
-      },
-      {
-        value: 'Blocage juridique - procédure contre les entrepreneurs',
-        label: 'procédure contre les entrepreneurs',
-      },
-    ],
-  },
-  {
-    subHeader: 'Vacance volontaire',
-    options: [
-      {
-        value: 'Vacance volontaire - réserve personnelle',
-        label: 'réserve personnelle',
-      },
-      {
-        value: 'Vacance volontaire - réserve pour une autre personne',
-        label: 'réserve pour une autre personne',
-      },
-    ],
-  },
-  {
-    subHeader: 'Mauvaise expérience locative',
-    options: [
-      {
-        value: 'Mauvaise expérience locative - dégradations',
-        label: 'dégradations',
-      },
-      {
-        value: 'Mauvaise expérience locative - impayés de loyer',
-        label: 'impayés de loyer',
-      },
-    ],
-  },
-  {
-    subHeader: 'Liée au propriétaire',
-    options: [
-      {
-        value: 'Liée au propriétaire - âge du propriétaire',
-        label: 'âge du propriétaire',
-      },
-      {
-        value: 'Liée au propriétaire - difficultés de gestion',
-        label: 'difficultés de gestion',
-      },
-    ],
-  },
-  {
-    subHeader: 'Autre cause',
-    options: [{ value: 'Autre cause', label: 'Autre (à préciser en notes)' }],
   },
 ];
+
+export const SupportOptions: OptionTreeElement[] = [
+  {
+    title: 'Dispositifs',
+    elements: [
+      {
+        title: 'Dispositifs incitatifs',
+        elements: [
+          'Conventionnement avec travaux',
+          'Aides locales travaux',
+          'Conventionnement sans travaux',
+          'Aides à la gestion locative',
+          'Intermédiation Locative (IML)',
+          'Dispositif fiscal',
+          'Prime locale vacance',
+          'Prime vacance France Ruralités',
+          'Ma Prime Renov',
+          'Prime Rénovation Globale',
+          'Prime locale rénovation énergétique',
+          'Accompagnement à la vente',
+          'Autre',
+        ],
+      },
+      {
+        title: 'Dispositifs coercitifs',
+        elements: [
+          'ORI - TIRORI',
+          'Bien sans maitre',
+          'Abandon manifeste',
+          'DIA - préemption',
+          "Procédure d'habitat indigne",
+          'Permis de louer',
+          'Permis de diviser',
+        ],
+      },
+      {
+        title: 'Hors dispositif public',
+        elements: [
+          'Accompagné par un professionnel (archi, agent immo...)',
+          'Propriétaire autonome',
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Mode opératoire',
+    elements: [
+      {
+        title: 'Travaux',
+        elements: ['À venir', 'En cours', 'Terminés'],
+      },
+      {
+        title: 'Location',
+        elements: ['À venir', 'En cours', 'Nouvelle occupation'],
+      },
+      {
+        title: 'Mutation',
+        elements: ['À venir', 'En cours', 'Effectuée'],
+      },
+    ],
+  },
+];
+
+export const OptionTreeSeparator = ' > ';
+
+export const supportsCount = (precisions?: string[]) =>
+  (precisions ?? []).filter((_) => _.startsWith('Dispositif'))?.length;
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(

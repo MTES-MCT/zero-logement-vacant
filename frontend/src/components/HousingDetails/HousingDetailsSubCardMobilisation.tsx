@@ -13,6 +13,10 @@ import {
 import { differenceInDays, format } from 'date-fns';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
+import {
+  OptionTreeSeparator,
+  supportsCount,
+} from '../../models/HousingFilters';
 
 interface Props {
   housing: Housing;
@@ -81,26 +85,28 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
-                Précisions ({housing.precisions?.length ?? 0})
+                Précisions ({supportsCount(housing.precisions)})
               </Text>
               <Text spacing="mb-1w">
-                {(housing.precisions?.length ?? 0) === 0 ? (
+                {supportsCount(housing.precisions) === 0 ? (
                   <>Aucune précision associée</>
                 ) : (
-                  housing.precisions?.map((precision, index) => (
-                    <Tag
-                      key={'precision_' + index}
-                      className="d-block fr-mb-1w"
-                    >
-                      {precision}
-                    </Tag>
-                  ))
+                  housing.precisions
+                    ?.filter((_) => _.startsWith('Dispositif'))
+                    .map((precision, index) => (
+                      <Tag
+                        key={'precision_' + index}
+                        className="d-block fr-mb-1w"
+                      >
+                        {precision.split(OptionTreeSeparator).reverse()[0]}
+                      </Tag>
+                    ))
                 )}
               </Text>
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
-                Causes de la vacances ({housing.vacancyReasons?.length ?? 0})
+                Points de blocage ({housing.vacancyReasons?.length ?? 0})
               </Text>
               <Text spacing="mb-1w">
                 {(housing.vacancyReasons?.length ?? 0) === 0 ? (
@@ -111,7 +117,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                       key={'vacancyReason_' + index}
                       className="d-block fr-mb-1w"
                     >
-                      {vacancyReason}
+                      {vacancyReason.split(OptionTreeSeparator).reverse()[0]}
                     </Tag>
                   ))
                 )}
@@ -128,7 +134,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               <>Aucune campagne associée</>
             ) : (
               campaignInProgress.map((campaign) => (
-                <div>
+                <div key={campaign.id}>
                   <InternalLink
                     title={campaign?.name}
                     key={campaign?.id}

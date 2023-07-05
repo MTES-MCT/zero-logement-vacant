@@ -1,26 +1,22 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
 import { Alert, Col, Row, Select, Text } from '@dataesr/react-dsfr';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
-import {
-  getStatusPrecisionOptions,
-  getSubStatusOptions,
-  HousingStatus,
-} from '../../models/HousingState';
+import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
 import {
   allOccupancyOptions,
   statusOptions,
+  supportsCount,
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../AppTextInput/AppTextInput';
 import _ from 'lodash';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
 
 interface Props {
   current: Pick<
@@ -65,10 +61,9 @@ const HousingEditionForm = (
     current.vacancyReasons
   );
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
-  const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
-  const [isVacancyReasonsModalOpen, setIsVacancyReasonsModalOpen] =
+  const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] =
     useState<boolean>(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
     useState<boolean>(false);
@@ -76,40 +71,15 @@ const HousingEditionForm = (
   useEffect(() => {
     selectStatus(current.status ?? HousingStatus.Waiting);
   }, [current.status]); //eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    selectSubStatus(current.status, current.subStatus);
-  }, [current.status, current.subStatus]); //eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    setPrecisions(current.precisions);
-  }, [current.precisions]);
-  useEffect(() => {
-    setVacancyReasons(current.vacancyReasons);
-  }, [current.vacancyReasons]);
 
   const selectStatus = (newStatus: HousingStatus) => {
     setStatus(+newStatus);
     setSubStatusOptions(getSubStatusOptions(newStatus));
-    selectSubStatus(
-      newStatus,
+    setSubStatus(
       getSubStatusOptions(newStatus)
         ?.map((_) => _.label)
         .find((_) => _ === subStatus)
     );
-  };
-
-  const selectSubStatus = (status?: HousingStatus, newSubStatus?: string) => {
-    setSubStatus(newSubStatus);
-    if (newSubStatus && status) {
-      setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
-      setPrecisions(
-        getStatusPrecisionOptions(status, newSubStatus)
-          ?.map((_) => _.label)
-          .filter((_) => precisions && precisions.indexOf(_) !== -1)
-      );
-    } else {
-      setPrecisions(undefined);
-      setPrecisionOptions(undefined);
-    }
   };
 
   const shape = {
@@ -246,74 +216,50 @@ const HousingEditionForm = (
         <Text size="lg" bold spacing="mb-2w">
           Mobilisation du logement
         </Text>
-        <Row gutters>
-          <Col n="12">
-            <HousingStatusSelect
-              selected={status}
-              options={statusOptions(
-                fromDefaultCampaign ||
-                  !current.status ||
-                  +current.status === HousingStatus.NeverContacted
-                  ? []
-                  : [HousingStatus.NeverContacted]
-              )}
-              onChange={(e: HousingStatus) => {
-                selectStatus(e);
-              }}
-            />
-          </Col>
-          <Col n="12">
-            {subStatusOptions && (
-              <Select
-                label="Sous-statut"
-                options={subStatusOptions}
-                selected={subStatus}
-                messageType={form.messageType('subStatus') as 'valid' | 'error'}
-                message={form.message('subStatus')}
-                onChange={(e: any) => selectSubStatus(status, e.target.value)}
-                required
-              />
+        <div className="fr-select-group">
+          <HousingStatusSelect
+            selected={status}
+            options={statusOptions(
+              fromDefaultCampaign ||
+                !current.status ||
+                +current.status === HousingStatus.NeverContacted
+                ? []
+                : [HousingStatus.NeverContacted]
             )}
-          </Col>
-          <Col n="12">
-            {precisionOptions && (
-              <AppMultiSelect
-                label="Précision(s)"
-                defaultOption="Aucune"
-                options={precisionOptions}
-                initialValues={precisions}
-                onChange={(values) => setPrecisions(values)}
-              />
-            )}
-          </Col>
-        </Row>
-        <Text className="fr-mt-3w fr-mb-0">
-          Causes de la vacance{' '}
-          {vacancyReasons?.length !== undefined &&
-            vacancyReasons?.length > 0 && <>({vacancyReasons.length})</>}
+            onChange={(e: HousingStatus) => {
+              selectStatus(e);
+            }}
+          />
+        </div>
+        {subStatusOptions && (
+          <Select
+            label="Sous-statut"
+            options={subStatusOptions}
+            selected={subStatus}
+            messageType={form.messageType('subStatus') as 'valid' | 'error'}
+            message={form.message('subStatus')}
+            onChange={(e: any) => setSubStatus(e.target.value)}
+            required
+          />
+        )}
+        <Text className="fr-mb-0">
+          <b>Précisions</b>
+          <br />
+          Dispositifs ({supportsCount(precisions)}) / Points de blocage (
+          {(vacancyReasons ?? []).length})
         </Text>
-        <Text className="fr-my-0">
-          {vacancyReasons?.map((reason, index) => (
-            <div key={`vacancy_reason_${index}`}>{reason}</div>
-          ))}
-        </Text>
-        <ButtonLink
-          isSimple
-          onClick={() => setIsVacancyReasonsModalOpen(true)}
-          icon={vacancyReasons?.length ? 'ri-edit-2-fill' : ''}
-          iconPosition="left"
-        >
-          {vacancyReasons?.length !== undefined && vacancyReasons?.length > 0
-            ? 'Modifier'
-            : 'Sélectionnez une ou plusieurs options'}
+        <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>
+          Ajouter / Modifier
         </ButtonLink>
-        {isVacancyReasonsModalOpen && (
-          <VacancyReasonModal
-            currentVacancyReasons={vacancyReasons}
-            onClose={() => setIsVacancyReasonsModalOpen(false)}
-            onSubmit={(vacancyReasons) => {
+        {isPrecisionsModalOpen && (
+          <PrecisionsModal
+            currentPrecisions={precisions ?? []}
+            currentVacancyReasons={vacancyReasons ?? []}
+            onClose={() => setIsPrecisionsModalOpen(false)}
+            onSubmit={(precisions, vacancyReasons) => {
               setVacancyReasons(vacancyReasons);
-              setIsVacancyReasonsModalOpen(false);
+              setPrecisions(precisions);
+              setIsPrecisionsModalOpen(false);
             }}
           />
         )}

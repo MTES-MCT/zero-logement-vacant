@@ -22,7 +22,7 @@ const StatusView = () => {
       <Container as="section" spacing="py-4w">
         <Alert
           title=""
-          description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts et précisions correspondantes."
+          description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts de suivi que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts correspondants."
           type="info"
           className="fr-mb-3w"
         />

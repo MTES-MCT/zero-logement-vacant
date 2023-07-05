@@ -63,7 +63,7 @@ export const HousingStates: HousingState[] = [
     title: 'En attente de retour',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire <b>n’a pas répondu à la campagne.</b>
+        Le propriétaire<b> n’a pas répondu au courrier.</b>
       </Text>
     ),
     color: '--blue-ecume-sun-247',
@@ -74,7 +74,7 @@ export const HousingStates: HousingState[] = [
     title: 'Premier contact',
     hint: (
       <Text spacing="mb-0" as="span">
-        Il y a eu <b>un retour ou un échange</b> avec le propriétaire.
+        Il y a eu<b> un retour ou un échange </b>avec le propriétaire.
       </Text>
     ),
     color: '--yellow-tournesol-850-active',
@@ -102,9 +102,9 @@ export const HousingStates: HousingState[] = [
     title: 'Suivi en cours',
     hint: (
       <Text spacing="mb-0" as="span">
-        La vacance du bien est confirmée et celui-ci fait l’objet d’un 
-        <b>projet de travaux</b>, d’une <b>vente en cours</b> ou est 
-        <b>accompagné par un partenaire</b> pour une remise sur le marché.
+        La vacance du bien est confirmée et celui-ci fait l’objet d’un
+        <b> projet de travaux</b>, d’une<b> vente en cours </b>ou est
+        <b> accompagné par un partenaire </b>pour une remise sur le marché.
       </Text>
     ),
     color: '--pink-tuile-850-active',
@@ -133,7 +133,7 @@ export const HousingStates: HousingState[] = [
     hint: (
       <Text spacing="mb-0" as="span">
         Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a
-        <b>jamais été vacant</b> ou qu’il a été vendu ou loué il y a plus de 2
+        <b> jamais été vacant </b>ou qu’il a été vendu ou loué il y a plus de 2
         ans. Retour traduisant une erreur dans la base de données.
       </Text>
     ),
@@ -167,9 +167,9 @@ export const HousingStates: HousingState[] = [
     title: 'Bloqué',
     hint: (
       <Text spacing="mb-0" as="span">
-        La vacance du bien est confirmée mais la <b>situation est complexe</b> 
-        et le propriétaire ne semble 
-        <b>pas être dans une dynamique de sortie de vacance.</b>
+        La vacance du bien est confirmée mais la<b> situation est complexe </b>
+        et le propriétaire ne semble
+        <b> pas être dans une dynamique de sortie de vacance. </b>
       </Text>
     ),
     color: '--purple-glycine-main-494',

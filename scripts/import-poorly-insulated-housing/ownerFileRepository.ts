@@ -16,11 +16,11 @@ import validator from './validator';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import Stream = Highland.Stream;
 
-class OwnerFileStreamRepository implements OwnerStreamRepository {
+class OwnerFileRepository implements OwnerStreamRepository {
   constructor(private file: string) {}
 
   stream(opts: StreamOptions): Stream<OwnerApi> {
-    logger.debug(`Stream owners from file`, {
+    logger.debug('Stream owners from file', {
       file: this.file,
       options: opts,
     });
@@ -59,7 +59,7 @@ async function fetchOwners(housing: NonVacantHousing): Promise<OwnerApi[]> {
 }
 
 function createOwnerFileStream(file: string): OwnerStreamRepository {
-  return new OwnerFileStreamRepository(file);
+  return new OwnerFileRepository(file);
 }
 
 export default createOwnerFileStream;

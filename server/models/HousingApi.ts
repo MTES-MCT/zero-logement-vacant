@@ -6,13 +6,14 @@ export interface HousingRecordApi {
   id: string;
   invariant: string;
   localId: string;
+  buildingId?: string;
   rawAddress: string[];
   geoCode: string;
   longitude?: number;
   latitude?: number;
-  cadastralClassification: number;
+  cadastralClassification?: number;
   uncomfortable: boolean;
-  vacancyStartYear: number;
+  vacancyStartYear?: number;
   housingKind: string;
   roomsCount: number;
   livingArea: number;
@@ -33,7 +34,7 @@ export interface HousingRecordApi {
 }
 
 export interface HousingApi extends HousingRecordApi {
-  localityKind: string;
+  localityKind?: string;
   geoPerimeters?: string[];
   owner: OwnerApi;
   /**

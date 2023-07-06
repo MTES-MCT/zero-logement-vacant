@@ -52,8 +52,12 @@ interface Config {
   databaseEnvironment: string;
   databaseUrl: string;
   databaseUrlTest: string;
+  datafoncier: {
+    token: string;
+  };
   features: {
     enableTestAccounts: boolean;
+    dpeExperimentEstablishments: string[];
   };
   sentry: {
     dsn: string | null;
@@ -159,11 +163,22 @@ const config = convict<Config>({
     format: String,
     default: null,
   },
+  datafoncier: {
+    env: 'DATAFONCIER_TOKEN',
+    format: String,
+    default: null,
+    sensitive: true,
+  },
   features: {
     enableTestAccounts: {
       env: 'ENABLE_TEST_ACCOUNTS',
       format: 'strict-boolean',
       default: process.env.NODE_ENV !== 'production',
+    },
+    dpeExperimentEstablishments: {
+      env: 'DPE_EXPERIMENT_ESTABLISHMENTS',
+      format: 'comma-separated string',
+      default: [],
     },
   },
   sentry: {

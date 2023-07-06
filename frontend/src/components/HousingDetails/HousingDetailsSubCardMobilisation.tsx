@@ -85,11 +85,11 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
-                Précisions ({supportsCount(housing.precisions)})
+                Dispositifs ({supportsCount(housing.precisions)})
               </Text>
               <Text spacing="mb-1w">
                 {supportsCount(housing.precisions) === 0 ? (
-                  <>Aucune précision associée</>
+                  <>Aucune dispositif associé</>
                 ) : (
                   housing.precisions
                     ?.filter((_) => _.startsWith('Dispositif'))

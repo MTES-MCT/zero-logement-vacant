@@ -8,7 +8,6 @@ import * as yup from 'yup';
 import {
   allOccupancyOptions,
   statusOptions,
-  supportsCount,
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import ButtonLink from '../ButtonLink/ButtonLink';
@@ -245,7 +244,7 @@ const HousingEditionForm = (
         <Text className="fr-mb-0">
           <b>Précisions</b>
           <br />
-          Dispositifs ({supportsCount(precisions)}) / Points de blocage (
+          Dispositifs ({(precisions ?? []).length}) / Points de blocage (
           {(vacancyReasons ?? []).length})
         </Text>
         <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>

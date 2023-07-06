@@ -17,7 +17,6 @@ import {
   BlockingPointOptions,
   OptionTreeSeparator,
   SupportOptions,
-  supportsCount,
 } from '../../../models/HousingFilters';
 import { OptionTreeElement } from '../../../models/SelectOption';
 import Tab from '../../Tab/Tab';
@@ -49,14 +48,14 @@ const PrecisionsModal = ({
         <ModalContent>
           <Container as="section" fluid>
             <Tabs className="tabs-no-border">
-              <Tab label={`Dispositifs (${supportsCount(precisions)})`}>
+              <Tab label={`Dispositifs (${precisions.length})`}>
                 <OptionsTreeCheckboxes
                   options={SupportOptions}
                   values={precisions}
                   onChange={setPrecisions}
                 />
               </Tab>
-              <Tab label={`Points de blocage (${vacancyReasons?.length})`}>
+              <Tab label={`Points de blocage (${vacancyReasons.length})`}>
                 <OptionsTreeCheckboxes
                   options={BlockingPointOptions}
                   values={vacancyReasons}

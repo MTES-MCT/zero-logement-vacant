@@ -13,10 +13,7 @@ import {
 import { differenceInDays, format } from 'date-fns';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
-import {
-  OptionTreeSeparator,
-  supportsCount,
-} from '../../models/HousingFilters';
+import { OptionTreeSeparator } from '../../models/HousingFilters';
 
 interface Props {
   housing: Housing;
@@ -85,22 +82,25 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
-                Dispositifs ({supportsCount(housing.precisions)})
+                Dispositifs ({housing.precisions?.length ?? 0})
               </Text>
               <Text spacing="mb-1w">
-                {supportsCount(housing.precisions) === 0 ? (
+                {(housing.precisions?.length ?? 0) === 0 ? (
                   <>Aucune dispositif associé</>
                 ) : (
-                  housing.precisions
-                    ?.filter((_) => _.startsWith('Dispositif'))
-                    .map((precision, index) => (
-                      <Tag
-                        key={'precision_' + index}
-                        className="d-block fr-mb-1w"
-                      >
-                        {precision.split(OptionTreeSeparator).reverse()[0]}
-                      </Tag>
-                    ))
+                  housing.precisions?.map((precision, index) => (
+                    <Tag
+                      key={'precision_' + index}
+                      className="d-block fr-mb-1w"
+                    >
+                      {precision.startsWith('Dispositif')
+                        ? precision.split(OptionTreeSeparator).reverse()[0]
+                        : precision
+                            .split(OptionTreeSeparator)
+                            .splice(1)
+                            .join(OptionTreeSeparator)}
+                    </Tag>
+                  ))
                 )}
               </Text>
             </Col>

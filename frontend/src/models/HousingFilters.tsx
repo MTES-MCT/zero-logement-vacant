@@ -407,7 +407,7 @@ export const SupportOptions: OptionTreeElement[] = [
         elements: ['À venir', 'En cours', 'Terminés'],
       },
       {
-        title: 'Location',
+        title: 'Location / Occupation',
         elements: ['À venir', 'En cours', 'Nouvelle occupation'],
       },
       {
@@ -419,9 +419,6 @@ export const SupportOptions: OptionTreeElement[] = [
 ];
 
 export const OptionTreeSeparator = ' > ';
-
-export const supportsCount = (precisions?: string[]) =>
-  (precisions ?? []).filter((_) => _.startsWith('Dispositif'))?.length;
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(

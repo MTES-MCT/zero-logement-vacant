@@ -46,7 +46,7 @@ export const CompletedNotVacant = "N'était pas vacant";
 export const CompletedWithPoorlyInsulatedExit =
   'Sortie de la passoire thermique';
 export const CompletedNotPoorlyInsulated = "N'était pas une passoire thermique";
-export const NoObjectiveAchieved = 'Aucun objectif rempli';
+export const OtherObjectiveAchieved = 'Autre objectif rempli';
 export const BlockedByOwnerInvoluntary = 'Blocage involontaire du propriétaire';
 export const BlockedByOwnerVoluntary = 'Blocage volontaire du propriétaire';
 export const BuildingEnvironment = 'Immeuble / Environnement';
@@ -105,7 +105,7 @@ export const HousingStates: HousingState[] = [
     hint: (
       <Text spacing="mb-0" as="span">
         La situation du logement est en cours d'évolution (vers une sortie de la
-        vacance ou de passoires thermiques).
+        vacance ou de passoire thermique).
       </Text>
     ),
     color: '--pink-tuile-850-active',
@@ -161,7 +161,7 @@ export const HousingStates: HousingState[] = [
         bgcolor: '--green-bourgeon-975',
       },
       {
-        title: NoObjectiveAchieved,
+        title: OtherObjectiveAchieved,
         color: '--grey-main-525',
         bgcolor: '--green-bourgeon-975',
       },

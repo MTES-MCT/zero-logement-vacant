@@ -23,15 +23,14 @@ export function compare({ before, now, modifications }: Comparison): Action {
         [
           HousingStatusApi.NeverContacted,
           HousingStatusApi.Waiting,
-          HousingStatusApi.NotVacant,
-          HousingStatusApi.Exit,
+          HousingStatusApi.Completed,
         ].includes(before.status)
       ) {
         return {
           housing: {
             ...before,
-            status: HousingStatusApi.Exit,
-            subStatus: 'Absent du millésime suivant',
+            status: HousingStatusApi.Completed,
+            subStatus: 'Sortie de la vacance',
           },
           events: [],
         };
@@ -72,17 +71,15 @@ export function compare({ before, now, modifications }: Comparison): Action {
 
     if (
       before.status !== undefined &&
-      [
-        HousingStatusApi.Waiting,
-        HousingStatusApi.NotVacant,
-        HousingStatusApi.Exit,
-      ].includes(before.status)
+      [HousingStatusApi.Waiting, HousingStatusApi.Completed].includes(
+        before.status
+      )
     ) {
       return {
         housing: {
           ...before,
-          status: HousingStatusApi.Exit,
-          subStatus: 'Absent du millésime suivant',
+          status: HousingStatusApi.Completed,
+          subStatus: 'Sortie de la vacance',
         },
         events: [ownershipConflict],
       };
@@ -152,10 +149,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
         };
       }
 
-      if (
-        before.status === HousingStatusApi.NotVacant ||
-        before.status === HousingStatusApi.Exit
-      ) {
+      if (before.status === HousingStatusApi.Completed) {
         const occupancyConflict: HousingEventApi = {
           id: uuidv4(),
           name: 'Conflit d’informations venant d’une source externe concernant le statut d’occupation',
@@ -216,10 +210,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
       };
     }
 
-    if (
-      before.status === HousingStatusApi.NotVacant ||
-      before.status === HousingStatusApi.Exit
-    ) {
+    if (before.status === HousingStatusApi.Completed) {
       const occupancyConflict: HousingEventApi = {
         id: uuidv4(),
         name: 'Conflit d’informations venant d’une source externe concernant le statut d’occupation',

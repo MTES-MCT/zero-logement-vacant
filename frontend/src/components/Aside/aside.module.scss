@@ -31,6 +31,10 @@
   flex: 1;
   max-width: 100%;
   padding: 2rem 1.5rem;
+
+  header, footer {
+    padding: 2rem 1.5rem;
+  }
 }
 
 .main {

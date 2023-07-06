@@ -1,7 +1,6 @@
 import { HousingOwnerApi, OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
-import _ from 'lodash';
 
 export interface HousingRecordApi {
   id: string;
@@ -24,12 +23,13 @@ export interface HousingRecordApi {
   dataYears: number[];
   buildingLocation?: string;
   ownershipKind?: OwnershipKindsApi;
-  status?: HousingStatusApi;
+  status: HousingStatusApi;
   subStatus?: string;
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionWorst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
+  occupancyIntended?: OccupancyKindApi;
 }
 
 export interface HousingApi extends HousingRecordApi {
@@ -46,24 +46,6 @@ export interface HousingApi extends HousingRecordApi {
   contactCount: number;
   lastContact?: Date;
 }
-
-export interface HousingUpdateApi {
-  status: HousingStatusApi;
-  subStatus?: string;
-  precisions?: string[];
-  contactKind: string;
-  vacancyReasons?: string[];
-  comment: string;
-}
-
-export const isHousingUpdated = (
-  housing: HousingApi,
-  housingUpdate: HousingUpdateApi
-) =>
-  housing.status !== housingUpdate.status ||
-  housing.subStatus !== housingUpdate.subStatus ||
-  !_.isEqual(housing.precisions, housingUpdate.precisions) ||
-  !_.isEqual(housing.vacancyReasons, housingUpdate.vacancyReasons);
 
 export type HousingSortableApi = Pick<HousingApi, 'owner' | 'rawAddress'>;
 export type HousingSortApi = Sort<HousingSortableApi>;
@@ -92,6 +74,13 @@ export const OwnershipKindValues = {
 export enum OccupancyKindApi {
   Vacant = 'V',
   Rent = 'L',
+  ShortRent = 'B',
+  PrimaryResidence = 'P',
+  SecondaryResidence = 'RS',
+  CommercialOrOffice = 'T',
+  Dependency = 'N',
+  DemolishedOrDivided = 'D',
+  Others = 'A',
 }
 
 export enum EnergyConsumptionGradesApi {

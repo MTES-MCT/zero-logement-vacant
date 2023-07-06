@@ -5,7 +5,7 @@ import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import styles from './housing-edition-form.module.scss';
+import styles from './housing-edition.module.scss';
 
 interface Props {
   selected?: HousingStatus;
@@ -38,7 +38,7 @@ const HousingStatusSelect = ({
           [`fr-select-group--${messageType}`]: messageType,
         })}
       >
-        <label className="fr-label">Nouveau statut</label>
+        <label className="fr-label">Statut de suivi</label>
         <button
           className="fr-select"
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}

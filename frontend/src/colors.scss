@@ -63,12 +63,14 @@
 
   --green-bourgeon-main-640: #68a532;
   --green-bourgeon-425: #447049;
-  --green-bourgeon-sun-425-active: #325336;
   --green-bourgeon-975: #e6feda;
   --green-bourgeon-950: #c9fcac;
   --green-bourgeon-925: #a9fb68;
   --green-bourgeon-850: #95e257;
   --green-bourgeon-850-hover: #77BB64;
+
+  --green-bourgeon-sun-425: #447049;
+  --green-bourgeon-sun-425-active: #325336;
 
   --green-emeraude-main-632: #00a95f;
   --green-emeraude-sun-425: #297254;
@@ -129,6 +131,7 @@
   --pink-tuile-950: #fee9e7;
   --pink-tuile-925: #fddfdb;
   --pink-tuile-850: #fcbfb7;
+  --pink-tuile-850-active: #fa7659;
 
   --yellow-tournesol-main-731: #c8aa39;
   --yellow-tournesol-407: #716043;
@@ -136,7 +139,7 @@
   --yellow-tournesol-950: #feecc2;
   --yellow-tournesol-925: #fde39c;
   --yellow-tournesol-850: #efcb3a;
-  --yellow-tournesol-moon-922-active: #ffef9f;
+  --yellow-tournesol-850-active: #a88e26;
 
   --yellow-moutarde-main-679: #c3992a;
   --yellow-moutarde-348: #695240;
@@ -181,9 +184,9 @@
   --beige-gris-galet-950: #f3ede5;
   --beige-gris-galet-925: #eee4d9;
   --beige-gris-galet-850: #e0cab0;
-}
 
-:root[data-fr-theme='dark'] {
+  --beige-gris-galet-sun-407: #6A6156;
+
   --info-moon-625: #518fff;
   --info-moon-200: #273961;
   --info-moon-125: #222a3f;
@@ -269,6 +272,7 @@
   --pink-tuile-moon-75: #281b19;
 
   --yellow-tournesol-moon-922: #ffe552;
+  --yellow-tournesol-moon-922-active: #ffef9f;
   --yellow-tournesol-moon-200: #43391a;
   --yellow-tournesol-moon-125: #302a1a;
   --yellow-tournesol-moon-100: #292416;

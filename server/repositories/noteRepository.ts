@@ -19,6 +19,13 @@ const insertOwnerNote = async (ownerNoteApi: OwnerNoteApi): Promise<void> => {
     owner_id: ownerNoteApi.ownerId,
   });
 };
+
+const insertHousingNote = async (
+  housingNote: HousingNoteApi
+): Promise<void> => {
+  await insertManyHousingNotes([housingNote]);
+};
+
 const insertManyHousingNotes = async (
   housingNotes: HousingNoteApi[]
 ): Promise<void> => {
@@ -61,9 +68,8 @@ const findHousingNotes = async (housingId: string): Promise<NoteApi[]> => {
 
 interface NoteDBO {
   id: string;
-  title: string;
-  content?: string;
-  contact_kind?: string;
+  content: string;
+  note_kind: string;
   created_by: string;
   created_at: Date;
 }
@@ -72,22 +78,21 @@ const formatNoteApi = (noteApi: NoteApi): NoteDBO => ({
   id: noteApi.id,
   created_by: noteApi.createdBy,
   created_at: noteApi.createdAt,
-  title: noteApi.title,
+  note_kind: noteApi.noteKind,
   content: noteApi.content,
-  contact_kind: noteApi.contactKind,
 });
 
 const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
   id: noteDbo.id,
   createdBy: noteDbo.created_by,
   createdAt: noteDbo.created_at,
-  title: noteDbo.title,
   content: noteDbo.content,
-  contactKind: noteDbo.contact_kind,
+  noteKind: noteDbo.note_kind,
 });
 
 export default {
   insertOwnerNote,
+  insertHousingNote,
   insertManyHousingNotes,
   findHousingNotes,
   findOwnerNotes,

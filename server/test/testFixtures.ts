@@ -244,9 +244,8 @@ export const genGeoPerimeterApi = (establishmentId: string) => {
 };
 
 export const genNoteCreationDTO = (): NoteCreationDTO => ({
-  title: randomstring.generate(),
   content: randomstring.generate(),
-  contactKind: randomstring.generate(),
+  noteKind: randomstring.generate(),
   housingIds: [uuidv4()],
   ownerId: uuidv4(),
 });
@@ -305,7 +304,6 @@ function genEventApi<T>(createdBy: string): EventApi<T> {
     kind: oneOf(EventKinds),
     category: oneOf(EventCategories),
     section: oneOf(EventSections),
-    contactKind: randomstring.generate(),
     conflict: genBoolean(),
     createdAt: new Date(),
     createdBy,

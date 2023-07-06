@@ -297,21 +297,14 @@ const CampaignInProgress = () => {
       dispatch(
         listCampaignBundleHousing(
           campaignBundle,
-          HousingStatus.NoAction,
+          HousingStatus.Blocked,
           searchQuery
         )
       );
       dispatch(
         listCampaignBundleHousing(
           campaignBundle,
-          HousingStatus.NotVacant,
-          searchQuery
-        )
-      );
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.Exit,
+          HousingStatus.Completed,
           searchQuery
         )
       );
@@ -359,14 +352,11 @@ const CampaignInProgress = () => {
           <Tab label={getTabLabel(HousingStatus.InProgress)}>
             <TabContent status={HousingStatus.InProgress} />
           </Tab>
-          <Tab label={getTabLabel(HousingStatus.Exit)}>
-            <TabContent status={HousingStatus.Exit} />
+          <Tab label={getTabLabel(HousingStatus.Completed)}>
+            <TabContent status={HousingStatus.Completed} />
           </Tab>
-          <Tab label={getTabLabel(HousingStatus.NotVacant)}>
-            <TabContent status={HousingStatus.NotVacant} />
-          </Tab>
-          <Tab label={getTabLabel(HousingStatus.NoAction)}>
-            <TabContent status={HousingStatus.NoAction} />
+          <Tab label={getTabLabel(HousingStatus.Blocked)}>
+            <TabContent status={HousingStatus.Blocked} />
           </Tab>
         </Tabs>
       </Row>

@@ -1,23 +1,12 @@
 import React from 'react';
 
 import { Alert, Col, Container, Row, Title } from '@dataesr/react-dsfr';
-import { HousingStates, HousingStatus } from '../../models/HousingState';
+import { HousingStates } from '../../models/HousingState';
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const StatusView = () => {
   useDocumentTitle('Arborescence des statuts');
-  const housingStatesSorted = [
-    ...HousingStates.slice(
-      0,
-      HousingStates.findIndex((_) => _.status === HousingStatus.NotVacant)
-    ),
-    HousingStates.find((_) => _.status === HousingStatus.Exit)!,
-    ...HousingStates.slice(
-      HousingStates.findIndex((_) => _.status === HousingStatus.NotVacant),
-      HousingStates.findIndex((_) => _.status === HousingStatus.Exit)
-    ),
-  ];
 
   return (
     <>
@@ -33,7 +22,7 @@ const StatusView = () => {
       <Container as="section" spacing="py-4w">
         <Alert
           title=""
-          description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts et précisions correspondantes."
+          description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts de suivi que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts correspondants."
           type="info"
           className="fr-mb-3w"
         />
@@ -44,14 +33,11 @@ const StatusView = () => {
           <Col n="4">
             <b>Sous statuts</b>
           </Col>
-          <Col n="4">
-            <b>Précisions</b>
-          </Col>
         </Row>
-        {housingStatesSorted.map((state, stateIndex) => (
+        {HousingStates.map((state, stateIndex) => (
           <Row
             className={classNames('fr-py-1w', {
-              'bordered-b': stateIndex !== housingStatesSorted.length - 1,
+              'bordered-b': stateIndex !== HousingStates.length - 1,
             })}
             key={state + '_' + stateIndex}
           >
@@ -68,13 +54,6 @@ const StatusView = () => {
                   key={state + '_' + subStatus + '_' + subStatusIndex}
                 >
                   <Col>{subStatus.title}</Col>
-                  <Col>
-                    {subStatus.precisions?.map((_, precisionIndex) => (
-                      <Row key={state + '_' + subStatus + '_' + precisionIndex}>
-                        <Col>{_.title}</Col>
-                      </Row>
-                    ))}
-                  </Col>
                 </Row>
               ))}
             </Col>

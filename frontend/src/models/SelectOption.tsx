@@ -28,3 +28,8 @@ export const Separator: SelectOption = {
   value: '',
   markup: () => <hr className="fr-mt-1w" />,
 };
+
+export interface OptionTreeElement {
+  title: string;
+  elements: OptionTreeElement[] | string[];
+}

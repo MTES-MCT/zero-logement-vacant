@@ -10,20 +10,17 @@ describe('HousingApi', () => {
       ${HousingStatusApi.Waiting}        | ${false}
       ${HousingStatusApi.FirstContact}   | ${false}
       ${HousingStatusApi.InProgress}     | ${true}
-      ${HousingStatusApi.NotVacant}      | ${true}
-      ${HousingStatusApi.NoAction}       | ${false}
-      ${HousingStatusApi.Exit}           | ${true}
+      ${HousingStatusApi.Completed}      | ${true}
+      ${HousingStatusApi.Blocked}        | ${false}
     `(
       'should be {expected} when the status is {status}',
       ({ status, expected }) => {
         const housing: HousingApi = { ...genHousingApi(), status };
         const actual =
           housing.status !== undefined &&
-          [
-            HousingStatusApi.InProgress,
-            HousingStatusApi.NotVacant,
-            HousingStatusApi.Exit,
-          ].includes(housing.status);
+          [HousingStatusApi.InProgress, HousingStatusApi.Completed].includes(
+            housing.status
+          );
         expect(actual).toBe(expected);
       }
     );

@@ -158,16 +158,15 @@ const ResourcesView = () => {
           </Col>
           <Col n="4">
             <ResourceTile
-              title="Comprendre les statuts"
+              title="Comprendre les statuts de suivi"
               linkHref="/ressources/statuts"
               linkHrefTarget="_self"
               icon="ri-node-tree"
             >
-              Statut “Premier contact” ou “Suivi en cours” ? “Sortie de la
-              vacance’ ou “Non-vacant” ? Il peut être compliqué de s’y retrouver
-              dans les statuts des dossiers sur ZLV… Découvrez ici l’ensemble
-              des statuts, sous-statuts et précisions que vous pouvez appliquer
-              aux dossiers.
+              Statut “Premier contact” ou “Suivi en cours” ? Il peut être
+              compliqué de s’y retrouver dans les statuts des dossiers sur ZLV…
+              Découvrez ici l’ensemble des statuts et sous-statuts que vous
+              pouvez appliquer aux dossiers.
             </ResourceTile>
           </Col>
         </Row>

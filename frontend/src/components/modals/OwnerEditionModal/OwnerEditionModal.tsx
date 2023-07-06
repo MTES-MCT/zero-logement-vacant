@@ -39,7 +39,7 @@ const OwnerEditionModal = ({ owner, onClose }: Props) => {
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
-    birthDate: dateValidator,
+    birthDate: dateValidator.nullable().notRequired(),
     rawAddress: yup.array().nullable(),
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),

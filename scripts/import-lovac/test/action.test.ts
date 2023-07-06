@@ -32,10 +32,8 @@ describe('Action', () => {
             it('should change the housing status to "exit"', () => {
               const action = compare({ before, now, modifications });
 
-              expect(action.housing?.status).toBe(HousingStatusApi.Exit);
-              expect(action.housing?.subStatus).toBe(
-                'Absent du millésime suivant'
-              );
+              expect(action.housing?.status).toBe(HousingStatusApi.Completed);
+              expect(action.housing?.subStatus).toBe('Sortie de la vacance');
             });
           });
 
@@ -43,8 +41,7 @@ describe('Action', () => {
             it.each`
               status
               ${HousingStatusApi.Waiting}
-              ${HousingStatusApi.NotVacant}
-              ${HousingStatusApi.Exit}
+              ${HousingStatusApi.Completed}
             `(
               'should change the housing status from $status to "exit"',
               ({ status }) => {
@@ -52,10 +49,8 @@ describe('Action', () => {
 
                 const action = compare({ before, now, modifications });
 
-                expect(action.housing?.status).toBe(HousingStatusApi.Exit);
-                expect(action.housing?.subStatus).toBe(
-                  'Absent du millésime suivant'
-                );
+                expect(action.housing?.status).toBe(HousingStatusApi.Completed);
+                expect(action.housing?.subStatus).toBe('Sortie de la vacance');
               }
             );
           });
@@ -114,8 +109,7 @@ describe('Action', () => {
             it.each`
               status
               ${HousingStatusApi.Waiting}
-              ${HousingStatusApi.NotVacant}
-              ${HousingStatusApi.Exit}
+              ${HousingStatusApi.Completed}
             `(
               'should change the housing status from $status to "exit"',
               ({ status }) => {
@@ -123,17 +117,15 @@ describe('Action', () => {
 
                 const action = compare({ before, now, modifications });
 
-                expect(action.housing?.status).toBe(HousingStatusApi.Exit);
-                expect(action.housing?.subStatus).toBe(
-                  'Absent du millésime suivant'
-                );
+                expect(action.housing?.status).toBe(HousingStatusApi.Completed);
+                expect(action.housing?.subStatus).toBe('Sortie de la vacance');
               }
             );
           });
 
           describe.each`
             status
-            ${HousingStatusApi.NoAction}
+            ${HousingStatusApi.Blocked}
             ${HousingStatusApi.InProgress}
             ${HousingStatusApi.FirstContact}
           `('If it is vacant (status: $status)', ({ status }) => {
@@ -210,8 +202,7 @@ describe('Action', () => {
 
           describe.each`
             status
-            ${HousingStatusApi.NotVacant}
-            ${HousingStatusApi.Exit}
+            ${HousingStatusApi.Completed}
           `('If it is not vacant (status: $status)', ({ status }) => {
             beforeAll(() => {
               before.status = status;
@@ -252,7 +243,7 @@ describe('Action', () => {
             ${HousingStatusApi.Waiting}
             ${HousingStatusApi.FirstContact}
             ${HousingStatusApi.InProgress}
-            ${HousingStatusApi.NoAction}
+            ${HousingStatusApi.Blocked}
           `('If it has another status (status: $status)', ({ status }) => {
             beforeAll(() => {
               before.status = status;
@@ -341,8 +332,7 @@ describe('Action', () => {
 
           describe.each`
             status
-            ${HousingStatusApi.NotVacant}
-            ${HousingStatusApi.Exit}
+            ${HousingStatusApi.Completed}
           `('If the housing is not vacant (status: $status)', ({ status }) => {
             beforeAll(() => {
               before.status = status;
@@ -381,7 +371,7 @@ describe('Action', () => {
             ${HousingStatusApi.Waiting}
             ${HousingStatusApi.FirstContact}
             ${HousingStatusApi.InProgress}
-            ${HousingStatusApi.NoAction}
+            ${HousingStatusApi.Blocked}
           `('If it has another status (status: $status)', ({ status }) => {
             beforeAll(() => {
               before.status = status;

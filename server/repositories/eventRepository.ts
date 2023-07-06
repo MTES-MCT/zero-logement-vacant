@@ -11,6 +11,7 @@ import { OwnerApi } from '../models/OwnerApi';
 import { HousingApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { EventSection } from '../../shared/types/EventSection';
+import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -40,10 +41,10 @@ const insertManyHousingEvents = async (
         ...formatEventApi(housingEvent),
         new: Array.isArray(housingEvent.new)
           ? JSON.stringify(housingEvent.new)
-          : housingEvent.new,
+          : denormalizeStatus(housingEvent.new),
         old: Array.isArray(housingEvent.old)
           ? JSON.stringify(housingEvent.old)
-          : housingEvent.old,
+          : denormalizeStatus(housingEvent.old),
       }))
     );
     await HousingEvents().insert(
@@ -54,6 +55,12 @@ const insertManyHousingEvents = async (
     );
   }
 };
+
+function denormalizeStatus(housing: HousingApi | undefined) {
+  return housing
+    ? { ...housing, status: getHousingStatusApiLabel(housing.status) }
+    : undefined;
+}
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
   await Events().insert(formatEventApi(ownerEvent));
@@ -134,7 +141,6 @@ function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
     kind: eventApi.kind,
     category: eventApi.category,
     section: eventApi.section,
-    contact_kind: eventApi.contactKind,
     conflict: eventApi.conflict,
     old: eventApi.old,
     new: eventApi.new,
@@ -150,7 +156,6 @@ function parseEventApi<T>(eventDbo: EventDBO<T>): EventApi<T> {
     kind: eventDbo.kind,
     category: eventDbo.category,
     section: eventDbo.section,
-    contactKind: eventDbo.contact_kind,
     conflict: eventDbo.conflict,
     old: eventDbo.old,
     new: eventDbo.new,

@@ -119,6 +119,8 @@ const updateOwner = async (
       phone: ownerApi.phone,
     };
 
+    console.log('updatedOwnerApi', updatedOwnerApi);
+
     await ownerRepository.update(updatedOwnerApi);
 
     await banAddressesRepository.markAddressToBeNormalized(
@@ -203,7 +205,7 @@ const updateHousingOwners = async (
 
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),
-  body('birthDate').isString(),
+  body('birthDate').isString().optional(),
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),

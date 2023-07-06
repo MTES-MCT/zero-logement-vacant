@@ -1,8 +1,3 @@
-.tagNotSelected {
-  background-color: revert !important;
-  color: revert !important;
-}
-
 .radioLabel {
   label {
     font-weight: bold;
@@ -11,4 +6,12 @@
       font-weight: normal;
     }
   }
+}
+
+.sideMenu {
+ aside {
+   article {
+     padding: 0 !important;
+   }
+ }
 }

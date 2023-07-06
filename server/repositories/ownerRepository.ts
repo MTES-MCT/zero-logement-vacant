@@ -126,11 +126,9 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
       .update({
         raw_address: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate
-          ? new Date(ownerApi.birthDate)
-          : undefined,
-        email: ownerApi.email,
-        phone: ownerApi.phone,
+        birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : null,
+        email: ownerApi.email ?? null,
+        phone: ownerApi.phone ?? null,
       })
       .returning('*')
       .then((_) => parseOwnerApi(_[0]));

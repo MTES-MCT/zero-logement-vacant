@@ -99,10 +99,20 @@ exports.down = async function (knex: Knex) {
   // knex stream does not work in a migration...
   await async.doUntil(
     async () => {
-      const events: HousingEvent[] = await knex(eventsTable)
-        .where({ name: 'Modification arborescence de suivi' })
-        .limit(BATCH_SIZE)
-        .offset(offset);
+      const events: HousingEvent[] = await knex
+        .raw(
+          'WITH events_by_housing AS (' +
+            'SELECT e.*, ' +
+            "ROW_NUMBER() OVER(PARTITION BY e.old->'id' " +
+            'ORDER BY e.created_at DESC) AS rank ' +
+            'FROM events e ' +
+            "where name = 'Modification arborescence de suivi') " +
+            'select * from events_by_housing where rank = 1 ' +
+            'limit ? ' +
+            'offset ? ',
+          [BATCH_SIZE, offset]
+        )
+        .then((_) => _.rows);
 
       const housingList: Housing[] = events
         .map((event) => event.old)

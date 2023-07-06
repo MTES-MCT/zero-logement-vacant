@@ -7,7 +7,7 @@ exports.up = function (knex: Knex) {
     })
     .then(() =>
       knex.schema.alterTable('housing', (table) => {
-        table.string('occupancy').notNullable();
+        table.string('occupancy');
         table.string('occupancy_intended');
       })
     )
@@ -15,6 +15,11 @@ exports.up = function (knex: Knex) {
       knex
         .table('housing')
         .update({ occupancy: knex.ref('occupancy_registered') })
+    )
+    .then(() =>
+      knex.schema.alterTable('housing', (table) => {
+        table.string('occupancy').notNullable().alter();
+      })
     );
 };
 

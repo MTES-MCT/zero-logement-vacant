@@ -268,7 +268,7 @@ function mapPrecisions(housing: Housing): Housing {
       precisions: ['Dispositifs > Dispositifs coercitifs > ORI - TIRORI'],
     },
     'Bien sans maitre': {
-      precisions: ['Dispositifs > Dispositifs coercitifs > Bien sans maitre'],
+      precisions: ['Dispositifs > Dispositifs coercitifs > Bien sans maître'],
     },
     'Abandon manifeste': {
       precisions: ['Dispositifs > Dispositifs coercitifs > Abandon manifeste'],

@@ -382,7 +382,7 @@ export const SupportOptions: OptionTreeElement[] = [
         title: 'Dispositifs coercitifs',
         elements: [
           'ORI - TIRORI',
-          'Bien sans maitre',
+          'Bien sans maître',
           'Abandon manifeste',
           'DIA - préemption',
           "Procédure d'habitat indigne",

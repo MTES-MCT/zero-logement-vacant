@@ -37,6 +37,7 @@ export function useHousing() {
       _.uniq(
         housing?.campaignIds
           .map((campaignId) => campaignList?.find((c) => c.id === campaignId))
+          .filter((_) => !!_)
           .sort(CampaignNumberSort)
       ),
     [housing, campaignList]

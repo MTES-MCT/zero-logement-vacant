@@ -53,7 +53,7 @@ const campaignSlice = createSlice({
   initialState,
   reducers: {
     fetchCampaignList: (state: CampaignState) => {
-      state.campaignList = [];
+      state.campaignList = undefined;
       state.loading = true;
     },
     campaignListFetched: (
@@ -64,7 +64,7 @@ const campaignSlice = createSlice({
       state.loading = false;
     },
     fetchCampaignBundleList: (state: CampaignState) => {
-      state.campaignBundleList = [];
+      state.campaignBundleList = undefined;
       state.loading = true;
     },
     campaignBundleListFetched: (

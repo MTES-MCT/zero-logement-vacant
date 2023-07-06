@@ -23,8 +23,8 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
     fullName: yup.string().required("Veuillez saisir l'identité"),
     birthDate: dateValidator,
     rawAddress: yup.array().nullable(),
-    email: emailValidator.notRequired(),
-    phone: yup.string().nullable(),
+    email: emailValidator.nullable().notRequired(),
+    phone: yup.string().nullable().notRequired(),
   };
   type FormShape = typeof shape;
 

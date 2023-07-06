@@ -83,7 +83,7 @@ const HousingOwnersModal = ({
           .string()
           .required('Veuillez renseigner un nom.'),
         [`email${index}`]: emailValidator.nullable().notRequired(),
-        [`birthDate${index}`]: dateValidator,
+        [`birthDate${index}`]: dateValidator.nullable().notRequired(),
       }),
       {}
     ),

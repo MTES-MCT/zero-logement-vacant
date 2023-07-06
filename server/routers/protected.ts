@@ -57,7 +57,6 @@ router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectVa
 router.get('/events/owner/:ownerId', [isUUIDParam('ownerId')], validator.validate, eventController.listByOwnerId);
 router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.validate, eventController.listByHousingId);
 
-router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
 router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 
 router.get('/account', [], validator.validate, accountController.get);

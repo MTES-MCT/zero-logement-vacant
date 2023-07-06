@@ -1,4 +1,9 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react';
+import React, {
+  ChangeEvent,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from 'react';
 import { Alert, Col, Row, Select, Text } from '@dataesr/react-dsfr';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
@@ -46,26 +51,18 @@ const HousingEditionForm = (
   const [occupancy, setOccupancy] = useState<OccupancyKind | undefined>(
     current.occupancy
   );
-  const [occupancyIntended, setOccupancyIntended] = useState<
-    OccupancyKind | undefined
-  >(current.occupancyIntended);
+  const [occupancyIntended, setOccupancyIntended] = useState(
+    current.occupancyIntended
+  );
   const [status, setStatus] = useState<HousingStatus>();
-  const [subStatus, setSubStatus] = useState<string | undefined>(
-    current.subStatus
-  );
-  const [precisions, setPrecisions] = useState<string[] | undefined>(
-    current.precisions
-  );
-  const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(
-    current.vacancyReasons
-  );
+  const [subStatus, setSubStatus] = useState(current.subStatus);
+  const [precisions, setPrecisions] = useState(current.precisions);
+  const [vacancyReasons, setVacancyReasons] = useState(current.vacancyReasons);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
-  const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] =
-    useState<boolean>(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
-    useState<boolean>(false);
+  const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   useEffect(() => {
     selectStatus(current.status ?? HousingStatus.Waiting);
@@ -281,7 +278,9 @@ const HousingEditionForm = (
           selected={noteKind}
           messageType={form.messageType('noteKind') as 'valid' | 'error'}
           message={form.message('noteKind')}
-          onChange={(e: any) => setNoteKind(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+            setNoteKind(e.target.value)
+          }
         />
       </div>
       {isConfirmationModalOpen && (

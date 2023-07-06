@@ -5,6 +5,7 @@ import { Compare } from '../utils/compareUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
+import { differenceInDays, format } from 'date-fns';
 
 export interface Housing {
   id: string;
@@ -173,6 +174,14 @@ export function hasCoordinates(
     housing.latitude <= MAX_LAT
   );
 }
+
+export const lastUpdate = (housing: Housing): String =>
+  housing.lastContact
+    ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
+        new Date(),
+        housing.lastContact
+      )} jours)`
+    : 'Aucune mise à jour';
 
 export enum OccupancyKind {
   Vacant = 'V',

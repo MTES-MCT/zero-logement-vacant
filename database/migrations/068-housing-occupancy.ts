@@ -7,7 +7,7 @@ exports.up = function (knex: Knex) {
     })
     .then(() =>
       knex.schema.alterTable('housing', (table) => {
-        table.string('occupancy').notNullable().defaultTo('V');
+        table.string('occupancy').notNullable();
         table.string('occupancy_intended');
       })
     )

@@ -11,6 +11,7 @@ import { body, param, validationResult } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
+import async from 'async';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -317,10 +318,8 @@ const validateStep = async (
           status: HousingStatusApi.Waiting,
         }));
 
-      await Promise.all(
-        updatedHousingList.map((updatedHousing) =>
-          housingRepository.update(updatedHousing)
-        )
+      await async.map(updatedHousingList, async (updatedHousing: HousingApi) =>
+        housingRepository.update(updatedHousing)
       );
 
       await eventRepository.insertManyHousingEvents(
@@ -473,9 +472,8 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
         HousingStatusApi.Waiting,
         HousingStatusApi.FirstContact,
         HousingStatusApi.InProgress,
-        HousingStatusApi.NotVacant,
-        HousingStatusApi.NoAction,
-        HousingStatusApi.Exit,
+        HousingStatusApi.Completed,
+        HousingStatusApi.Blocked,
       ],
     })
     .then((results) =>
@@ -496,14 +494,12 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
 const resetWaitingHousingWithoutCampaigns = async (
   housingList: HousingApi[]
 ) => {
-  return Promise.all(
-    housingList.map((housing) =>
-      housingRepository.update({
-        ...housing,
-        status: HousingStatusApi.NeverContacted,
-        subStatus: undefined,
-      })
-    )
+  return async.map(housingList, async (housing: HousingApi) =>
+    housingRepository.update({
+      ...housing,
+      status: HousingStatusApi.NeverContacted,
+      subStatus: undefined,
+    })
   );
 };
 

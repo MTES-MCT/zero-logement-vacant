@@ -3,9 +3,8 @@ export enum HousingStatusApi {
   Waiting,
   FirstContact,
   InProgress,
-  NotVacant,
-  NoAction,
-  Exit,
+  Completed,
+  Blocked,
 }
 
 export const getHousingStatusApiLabel = (
@@ -20,12 +19,10 @@ export const getHousingStatusApiLabel = (
       return 'Premier contact';
     case HousingStatusApi.InProgress:
       return 'Suivi en cours';
-    case HousingStatusApi.NotVacant:
+    case HousingStatusApi.Completed:
       return 'Suivi terminé';
-    case HousingStatusApi.NoAction:
+    case HousingStatusApi.Blocked:
       return 'Bloqué';
-    case HousingStatusApi.Exit:
-      return 'Suivi terminé';
     default:
       return '';
   }

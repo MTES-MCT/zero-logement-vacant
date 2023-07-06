@@ -1,6 +1,6 @@
 import { Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
 import React from 'react';
-import { Housing } from '../../models/Housing';
+import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
@@ -10,7 +10,6 @@ import {
   campaignBundleIdUrlFragment,
   campaignFullName,
 } from '../../models/Campaign';
-import { differenceInDays, format } from 'date-fns';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';
@@ -58,17 +57,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               <Text size="sm" className="zlv-label">
                 Dernière mise à jour
               </Text>
-              <Text spacing="mb-1w">
-                {housing.lastContact
-                  ? `${format(
-                      housing.lastContact,
-                      'dd/MM/yyyy'
-                    )} (${differenceInDays(
-                      new Date(),
-                      housing.lastContact
-                    )} jours)`
-                  : 'Aucune mise à jour'}
-              </Text>
+              <Text spacing="mb-1w">{lastUpdate(housing)}</Text>
             </Col>
             <Col n="6">
               <Text size="sm" className="zlv-label">
@@ -86,7 +75,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               </Text>
               <Text spacing="mb-1w">
                 {(housing.precisions?.length ?? 0) === 0 ? (
-                  <>Aucune dispositif associé</>
+                  <>Aucun dispositif indiqué</>
                 ) : (
                   housing.precisions?.map((precision, index) => (
                     <Tag
@@ -110,7 +99,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               </Text>
               <Text spacing="mb-1w">
                 {(housing.vacancyReasons?.length ?? 0) === 0 ? (
-                  <>Aucune</>
+                  <>Aucun blocage indiqué</>
                 ) : (
                   housing.vacancyReasons?.map((vacancyReason, index) => (
                     <Tag

@@ -110,19 +110,11 @@ const HousingEditionSideMenu = ({
         }
         footer={
           <>
-            <Button
-              title="Annuler"
-              secondary
-              className="fr-mr-2w"
-              onClick={() => onClose()}
-            >
+            <Button secondary className="fr-mr-2w" onClick={() => onClose()}>
               Annuler
             </Button>
             {
-              <Button
-                title="Enregistrer"
-                onClick={() => statusFormRef.current?.submit()}
-              >
+              <Button onClick={() => statusFormRef.current?.submit()}>
                 Enregistrer
               </Button>
             }

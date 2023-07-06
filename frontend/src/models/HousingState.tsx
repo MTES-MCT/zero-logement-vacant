@@ -42,10 +42,11 @@ export const InProgressWithPublicSupportSubStatus = 'Intervention publique';
 export const InProgressWithoutSupportSubStatus =
   'En sortie sans accompagnement';
 export const CompletedWithVacancyExit = 'Sortie de la vacance';
-export const CompletedNotVacant = 'N’était pas vacant';
+export const CompletedNotVacant = "N'était pas vacant";
 export const CompletedWithPoorlyInsulatedExit =
   'Sortie de la passoire thermique';
-export const CompletedNotPoorlyInsulated = 'N’était pas une passoire thermique';
+export const CompletedNotPoorlyInsulated = "N'était pas une passoire thermique";
+export const NoObjectiveAchieved = 'Aucun objectif rempli';
 export const BlockedByOwnerInvoluntary = 'Blocage involontaire du propriétaire';
 export const BlockedByOwnerVoluntary = 'Blocage volontaire du propriétaire';
 export const BuildingEnvironment = 'Immeuble / Environnement';
@@ -63,7 +64,7 @@ export const HousingStates: HousingState[] = [
     title: 'En attente de retour',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire<b> n’a pas répondu au courrier.</b>
+        Le propriétaire<b> n'a pas répondu au courrier.</b>
       </Text>
     ),
     color: '--blue-ecume-sun-247',
@@ -74,7 +75,8 @@ export const HousingStates: HousingState[] = [
     title: 'Premier contact',
     hint: (
       <Text spacing="mb-0" as="span">
-        Il y a eu<b> un retour ou un échange </b>avec le propriétaire.
+        Phase de qualification de la situation et d'engagement du propriétaire
+        pour l'évolution de sa situation.
       </Text>
     ),
     color: '--yellow-tournesol-850-active',
@@ -102,9 +104,8 @@ export const HousingStates: HousingState[] = [
     title: 'Suivi en cours',
     hint: (
       <Text spacing="mb-0" as="span">
-        La vacance du bien est confirmée et celui-ci fait l’objet d’un
-        <b> projet de travaux</b>, d’une<b> vente en cours </b>ou est
-        <b> accompagné par un partenaire </b>pour une remise sur le marché.
+        La situation du logement est en cours d'évolution (vers une sortie de la
+        vacance ou de passoires thermiques).
       </Text>
     ),
     color: '--pink-tuile-850-active',
@@ -132,9 +133,8 @@ export const HousingStates: HousingState[] = [
     title: 'Suivi terminé',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire (ou un acteur de terrain) a indiqué que le bien n’a
-        <b> jamais été vacant </b>ou qu’il a été vendu ou loué il y a plus de 2
-        ans. Retour traduisant une erreur dans la base de données.
+        Le dossier ne nécessite plus de suivi car la situation du logement a
+        évolué ou la base de données d'origine comportait une erreur.
       </Text>
     ),
     color: '--green-bourgeon-sun-425',
@@ -160,6 +160,11 @@ export const HousingStates: HousingState[] = [
         color: '--grey-main-525',
         bgcolor: '--green-bourgeon-975',
       },
+      {
+        title: NoObjectiveAchieved,
+        color: '--grey-main-525',
+        bgcolor: '--green-bourgeon-975',
+      },
     ],
   },
   {
@@ -167,9 +172,7 @@ export const HousingStates: HousingState[] = [
     title: 'Bloqué',
     hint: (
       <Text spacing="mb-0" as="span">
-        La vacance du bien est confirmée mais la<b> situation est complexe </b>
-        et le propriétaire ne semble
-        <b> pas être dans une dynamique de sortie de vacance. </b>
+        La situation ne peut pas évoluer à court ou moyen terme.
       </Text>
     ),
     color: '--purple-glycine-main-494',

@@ -352,11 +352,11 @@ const CampaignInProgress = () => {
           <Tab label={getTabLabel(HousingStatus.InProgress)}>
             <TabContent status={HousingStatus.InProgress} />
           </Tab>
-          <Tab label={getTabLabel(HousingStatus.Blocked)}>
-            <TabContent status={HousingStatus.Blocked} />
-          </Tab>
           <Tab label={getTabLabel(HousingStatus.Completed)}>
             <TabContent status={HousingStatus.Completed} />
+          </Tab>
+          <Tab label={getTabLabel(HousingStatus.Blocked)}>
+            <TabContent status={HousingStatus.Blocked} />
           </Tab>
         </Tabs>
       </Row>

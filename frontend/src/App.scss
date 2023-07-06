@@ -297,8 +297,7 @@ button.fr-select {
 }
 
 .campaignTabs {
-  li:last-child,
-  li:nth-last-child(2) {
+  li:last-child {
     .fr-tabs__tab:not([aria-selected='true']) {
       background-color: var(--grey-925);
     }

@@ -96,7 +96,12 @@ function HousingDetailsCard({
             target="_blank"
             icon="ri-map-pin-2-fill"
             iconPosition="left"
-            className={classNames(styles.link, 'fr-link', 'fr-ml-3w')}
+            className={classNames(
+              styles.link,
+              'fr-link',
+              'fr-ml-3w',
+              'float-right'
+            )}
           >
             Voir sur la carte
           </Link>

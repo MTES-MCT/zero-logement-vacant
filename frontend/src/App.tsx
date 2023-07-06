@@ -98,39 +98,43 @@ function App() {
           <Route exact path="/collectivites" component={EstablishmentHomeView}/>,
           <Route exact path="/proprietaires" component={OwnerGenericHomeView}/>,
           {isAuthenticated ? [
-            <Route exact path="/parc-de-logements" component={HousingListView} key={Math.random()}/>,
-            <Route exact path="/campagnes" component={CampaignsListView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber?" component={CampaignView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber?" component={CampaignView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="*/logements/:housingId/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="*/proprietaires/:ownerId" component={OwnerView} key={Math.random()}/>,
-            <Route exact path="*/proprietaires/:ownerId/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="*/logements/:housingId" component={HousingView} key={Math.random()}/>,
-            <Route exact path="/messagerie" component={InboxView} key={Math.random()}/>,
-            <Route exact path="*/informations-publiques" component={EstablishmentView} key={Math.random()}/>,
-            <Route exact path="/ressources" component={ResourcesView} key={Math.random()}/>,
-            <Route exact path="/ressources/statuts" component={StatusView} key={Math.random()}/>,
-            <Route exact path="/compte" component={AccountView} key={Math.random()}/>,
-            <Route exact path="/compte/mot-de-passe" component={AccountPasswordView} key={Math.random()}/>,
-            <Route path="/*" key={Math.random()}>
+            ...([
+              {path:"/parc-de-logements", component:HousingListView},
+              {path:"/campagnes", component:CampaignsListView},
+              {path:"/campagnes/C:campaignNumber?", component:CampaignView},
+              {path:"/campagnes/C:campaignNumber/R:reminderNumber?", component:CampaignView},
+              {path:"/campagnes/C:campaignNumber/proprietaires/:ownerId", component:OwnerView},
+              {path:"/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId", component:OwnerView},
+              {path:"/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
+              {path:"/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
+              {path:"/campagnes/C:campaignNumber/logements/:housingId", component:HousingView},
+              {path:"/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId", component:HousingView},
+              {path:"/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
+              {path:"/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
+              {path:"*/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
+              {path:"*/proprietaires/:ownerId", component:OwnerView},
+              {path:"*/proprietaires/:ownerId/logements/:housingId", component:HousingView},
+              {path:"*/logements/:housingId", component:HousingView},
+              {path:"/messagerie", component:InboxView},
+              {path:"*/informations-publiques", component:EstablishmentView},
+              {path:"/ressources", component:ResourcesView},
+              {path:"/ressources/statuts", component:StatusView},
+              {path:"/compte", component:AccountView},
+              {path:"/compte/mot-de-passe", component:AccountPasswordView},
+            ].map(route => <Route exact path={route.path} component={route.component} key={`route_${route.path}`} /> )),
+            <Route path="/*" key="route_default">
               <Redirect to="/parc-de-logements"/>
             </Route>
           ] : [
-            <Route path="/inscription" component={AccountCreationView} key={Math.random()}/>,
-            <Route exact path="/connexion" component={LoginView} key={Math.random()}/>,
-            <Route exact path="/mot-de-passe/oublie" component={ForgottenPasswordView} key={Math.random()}/>,
-            <Route exact path="/mot-de-passe/nouveau" component={ResetPasswordView} key={Math.random()}/>,
-            <Route exact path="/admin" component={LoginView} key={Math.random()}/>,
-            <Route exact path="/" component={EstablishmentHomeView} key={Math.random()}/>,
-            <Route path="/*" key={Math.random()}>
+            ...([
+              {path:"/inscription", component:AccountCreationView},
+              {path:"/connexion", component:LoginView},
+              {path:"/mot-de-passe/oublie", component:ForgottenPasswordView},
+              {path:"/mot-de-passe/nouveau", component:ResetPasswordView},
+              {path:"/admin", component:LoginView},
+              {path:"/", component:EstablishmentHomeView},
+            ].map(route => <Route exact path={route.path} component={route.component} key={`route_${route.path}`} /> )),
+            <Route path="/*" key="route_default">
               {isLoggedOut ? <Redirect to="/connexion"/> : <Redirect to="/collectivites"/>}
             </Route>
           ]}

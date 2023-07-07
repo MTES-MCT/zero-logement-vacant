@@ -50,9 +50,14 @@ import { displayCount } from '../../utils/stringUtils';
 import { filterCount, hasPerimetersFilter } from '../../models/HousingFilters';
 import GeoPerimetersModalLink from '../../components/modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import { excludeWith, includeExcludeWith } from '../../utils/arrayUtils';
+import {
+  excludeWith,
+  includeExcludeWith,
+  includeWith,
+} from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import { HousingPaginatedResult } from '../../models/PaginatedResult';
+import Label from '../../components/Label/Label';
 
 type ViewMode = 'list' | 'map';
 
@@ -80,14 +85,23 @@ const HousingListView = () => {
 
   const { paginatedHousing } = useAppSelector((state) => state.housing);
 
-  const includedPerimeters = includeExcludeWith<GeoPerimeter, 'kind'>(
-    filters.geoPerimetersIncluded ?? [],
-    filters.geoPerimetersExcluded ?? [],
-    (perimeter) => perimeter.kind
-  )(perimeters ?? []);
-  // Get all the perimeters minus the included ones
-  const excludedPerimeters = excludeWith<GeoPerimeter, 'kind'>(
-    includedPerimeters.map((perimeter) => perimeter.kind),
+  const perimetersIncluded = filters.geoPerimetersIncluded?.length
+    ? includeExcludeWith<GeoPerimeter, 'kind'>(
+        filters.geoPerimetersIncluded,
+        filters.geoPerimetersExcluded ?? [],
+        (perimeter) => perimeter.kind
+      )(perimeters ?? [])
+    : [];
+
+  const perimetersExcluded = filters.geoPerimetersExcluded?.length
+    ? includeWith<GeoPerimeter, 'kind'>(
+        filters.geoPerimetersExcluded ?? [],
+        (perimeter) => perimeter.kind
+      )(perimeters ?? [])
+    : [];
+
+  const remainingPerimeters = excludeWith<GeoPerimeter, 'kind'>(
+    [...perimetersIncluded, ...perimetersExcluded].map((p) => p.kind),
     (perimeter) => perimeter.kind
   )(perimeters ?? []);
 
@@ -306,14 +320,21 @@ const HousingListView = () => {
             {view === viewLoaded && (
               <>
                 {view === 'map' ? (
-                  <Map
-                    housingList={paginatedHousing.entities}
-                    hasPerimetersFilter={hasPerimetersFilter(filters)}
-                    includedPerimeters={includedPerimeters}
-                    excludedPerimeters={excludedPerimeters}
-                    onMove={onMove}
-                    viewState={mapViewState}
-                  />
+                  <>
+                    <Label spacing="mb-1w">
+                      Les nombres affichés dans les cercles correspondent aux
+                      nombres d'immeubles.
+                    </Label>
+                    <Map
+                      housingList={paginatedHousing.entities}
+                      hasPerimetersFilter={hasPerimetersFilter(filters)}
+                      perimeters={remainingPerimeters}
+                      perimetersIncluded={perimetersIncluded}
+                      perimetersExcluded={perimetersExcluded}
+                      onMove={onMove}
+                      viewState={mapViewState}
+                    />
+                  </>
                 ) : (
                   paginatedHousing.filteredCount > 0 && (
                     <HousingList

@@ -31,8 +31,9 @@ const STYLE = {
 export interface MapProps {
   housingList?: Housing[];
   hasPerimetersFilter?: boolean;
-  includedPerimeters?: GeoPerimeter[];
-  excludedPerimeters?: GeoPerimeter[];
+  perimeters?: GeoPerimeter[];
+  perimetersIncluded?: GeoPerimeter[];
+  perimetersExcluded?: GeoPerimeter[];
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
@@ -71,6 +72,7 @@ function Map(props: MapProps) {
     () => groupByBuilding(housingList),
     [housingList]
   );
+  console.log(Object.values(buildingsById));
 
   const points = useMemo(
     () =>
@@ -80,8 +82,9 @@ function Map(props: MapProps) {
     [buildingsById]
   );
 
-  const includedPerimeters = props.includedPerimeters ?? [];
-  const excludedPerimeters = props.excludedPerimeters ?? [];
+  const perimeters = props.perimeters ?? [];
+  const includedPerimeters = props.perimetersIncluded ?? [];
+  const excludedPerimeters = props.perimetersExcluded ?? [];
   const [showPerimeters, setShowPerimeters] = useState(true);
 
   useEffect(() => {
@@ -136,20 +139,26 @@ function Map(props: MapProps) {
       }}
     >
       <Perimeters
+        id="remaining-perimeters"
+        isVisible={showPerimeters}
+        map={map}
+        perimeters={perimeters}
+      />
+      <Perimeters
         id="excluded-perimeters"
         backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
         borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
         isVisible={showPerimeters}
-        perimeters={excludedPerimeters}
         map={map}
+        perimeters={excludedPerimeters}
       />
       <Perimeters
         id="included-perimeters"
         backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
         borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
         isVisible={showPerimeters}
-        perimeters={includedPerimeters}
         map={map}
+        perimeters={includedPerimeters}
       />
       <Clusters id="housing" points={points} map={map} onClick={popUp} />
       {popups}

@@ -54,11 +54,13 @@ const create = async (request: Request, response: Response) => {
       const byEstablishment = {
         establishmentIds: establishments.map((_) => _.id),
       };
-      const users = await userRepository.listWithFilters(
-        byEstablishment,
-        byEstablishment,
-        { paginate: false }
-      );
+
+      const users = await userRepository.find({
+        filters: byEstablishment,
+        pagination: {
+          paginate: false,
+        },
+      });
 
       const sendEmails = fp.pipe(
         fp.groupBy('establishmentId'),
@@ -68,7 +70,7 @@ const create = async (request: Request, response: Response) => {
         ),
         Object.values
       );
-      await Promise.all(sendEmails(users.entities));
+      await Promise.all(sendEmails(users));
     }
   } catch (error) {
     console.error(error);

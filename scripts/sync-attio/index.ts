@@ -1,16 +1,17 @@
-import { millisecondsInMinute, subHours } from 'date-fns';
+import { millisecondsInSecond, subHours } from 'date-fns';
 
 import config from '../../server/utils/config';
 import db from '../../server/repositories/db';
-import attio from './attio';
+import attio, { EstablishmentWithDomain } from './attio';
 import { counter, tapAllAsync } from './stream';
-import { UserRoles } from '../../server/models/UserApi';
+import { detectDomain, UserRoles } from '../../server/models/UserApi';
 import establishmentRepository from '../../server/repositories/establishmentRepository';
 import userRepository from '../../server/repositories/userRepository';
+import { appendAll } from '../import-lovac/stream';
 
-// Requests per minute (to comply with Attio's rate limit)
-const MAX_REQUESTS_PER_FRAME = 500;
-const FRAME = millisecondsInMinute;
+// Requests per second (to comply with Attio's rate limit)
+const MAX_REQUESTS_PER_FRAME = 100;
+const FRAME = millisecondsInSecond;
 const UPDATED_LESS_THAN_HOURS_AGO = 2; // hours
 
 async function run() {
@@ -35,6 +36,21 @@ async function run() {
           // Sync the establishments updated since the last run
           updatedAfter: subHours(new Date(), UPDATED_LESS_THAN_HOURS_AGO),
         })
+        .map((establishment) => ({ establishment }))
+        .through(
+          appendAll({
+            users: ({ establishment }) =>
+              userRepository.find({
+                filters: {
+                  establishmentIds: [establishment.id],
+                },
+              }),
+          })
+        )
+        .map<EstablishmentWithDomain>((data) => ({
+          ...data.establishment,
+          domain: detectDomain(data.users),
+        }))
         .ratelimit(MAX_REQUESTS_PER_FRAME, FRAME)
         .batch(100)
         .consume(tapAllAsync(attio.syncEstablishment))

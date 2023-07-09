@@ -37,7 +37,7 @@ async function upsert(request: Request, response: Response) {
 
   const knowEstablishmentWithCommitment: EstablishmentApi | undefined =
     await establishmentRepository
-      .listWithFilters({
+      .find({
         sirens: ceremaUsers
           .filter((user) => user.hasCommitment)
           .map((ceremaUser) => ceremaUser.establishmentSiren),

@@ -72,7 +72,6 @@ function Map(props: MapProps) {
     () => groupByBuilding(housingList),
     [housingList]
   );
-  console.log(Object.values(buildingsById));
 
   const points = useMemo(
     () =>

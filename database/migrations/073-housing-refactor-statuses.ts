@@ -23,6 +23,9 @@ exports.up = async function (knex: Knex) {
   let offset = 0;
   let length = 0;
 
+  const result = await knex(housingTable).count().first();
+  const count = Number(result?.count);
+
   await async.doUntil(
     async () => {
       const housingList = await knex(housingTable)
@@ -80,6 +83,7 @@ exports.up = async function (knex: Knex) {
 
       length = housingList.length;
       offset += BATCH_SIZE;
+      console.log(`${offset} / ${count} housing.`);
     },
     async () => length < BATCH_SIZE
   );

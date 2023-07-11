@@ -20,11 +20,12 @@ exports.up = async function (knex: Knex) {
     throw new Error(`${email} not found`);
   }
 
+  let count = 0;
   let offset = 0;
   let length = 0;
 
   const result = await knex(housingTable).count().first();
-  const count = Number(result?.count);
+  const total = Number(result?.count);
 
   await async.doUntil(
     async () => {
@@ -54,7 +55,7 @@ exports.up = async function (knex: Knex) {
         };
         return {
           event,
-          housing: newHousing,
+          housing: !equals(oldHousing, newHousing) ? newHousing : null,
         };
       });
 
@@ -79,11 +80,17 @@ exports.up = async function (knex: Knex) {
             : event
         );
       await saveEvents(knex)(events);
-      await saveHousingList(knex)(items.map((item) => item.housing));
+      await saveHousingList(knex)(
+        items
+          .map((item) => item.housing)
+          // Speed up the process by removing untouched housing
+          .filter((housing): housing is Housing => !!housing)
+      );
 
       length = housingList.length;
+      count += length;
       offset += BATCH_SIZE;
-      console.log(`${offset} / ${count} housing.`);
+      console.log(`${count} / ${total} housing.`);
     },
     async () => length < BATCH_SIZE
   );
@@ -154,6 +161,17 @@ exports.down = async function (knex: Knex) {
     return { ...housing, status };
   }
 };
+
+function equals(a: Housing, b: Housing): boolean {
+  const subset = fp.pick([
+    'status',
+    'sub_status',
+    'precisions',
+    'vacancy_reasons',
+    'occupancy',
+  ]);
+  return fp.isEqual(subset(a), subset(b));
+}
 
 function mapSubStatus(housing: Housing): Housing {
   if (!housing.sub_status) {
@@ -429,9 +447,6 @@ function mapVacancyReasons(housing: Housing): Housing {
         'Extérieurs au propriétaire > Immeuble / Environnement > Nuisances à proximité',
       ],
     },
-    'Liée au logement - logement trop énergivore': {
-      vacancy_reasons: ['TODO'],
-    },
     'Liée au logement - nécessité de travaux': {
       vacancy_reasons: [
         'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux',
@@ -515,7 +530,7 @@ function mapVacancyReasons(housing: Housing): Housing {
   };
 }
 
-interface Housing {
+export interface Housing {
   id: string;
   status: number;
   sub_status?: string;
@@ -526,7 +541,7 @@ interface Housing {
 
 type HousingSerialized = Omit<Housing, 'status'> & { status: string };
 
-enum HousingStatus {
+export enum HousingStatus {
   NeverContacted,
   Waiting,
   FirstContact,
@@ -536,7 +551,7 @@ enum HousingStatus {
   Exit,
 }
 
-interface HousingEvent {
+export interface HousingEvent {
   id: string;
   housing_id: string;
   name: string;
@@ -599,7 +614,13 @@ function saveHousingList(knex: Knex) {
       await knex(housingTable)
         .insert(housingList)
         .onConflict('id')
-        .merge(['status', 'sub_status', 'precisions', 'vacancy_reasons']);
+        .merge([
+          'status',
+          'sub_status',
+          'precisions',
+          'vacancy_reasons',
+          'occupancy',
+        ]);
     }
   };
 }

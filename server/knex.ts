@@ -1,6 +1,7 @@
 import { knex } from 'knex';
 
 import config from './utils/config';
+import path from 'path';
 
 type KnexConfig = Exclude<Parameters<typeof knex>[0], string>;
 
@@ -10,14 +11,14 @@ const defaultConfig: KnexConfig = {
   acquireConnectionTimeout: 10000,
   migrations: {
     tableName: 'knex_migrations',
-    directory: '../database/migrations',
+    directory: path.join(__dirname, '..', 'database', 'migrations'),
   },
 };
 
 const dummyConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
-    directory: '../database/seeds/dummy',
+    directory: path.join(__dirname, '..', 'database', 'seeds', 'dummy'),
     extension: 'ts',
   },
 };
@@ -27,10 +28,10 @@ const testConfig: KnexConfig = {
   connection: config.databaseUrlTest,
   migrations: {
     ...defaultConfig.migrations,
-    directory: './database/migrations',
+    directory: path.join(__dirname, '..', 'database', 'migrations'),
   },
   seeds: {
-    directory: './database/seeds/test',
+    directory: path.join(__dirname, '..', 'database', 'seeds', 'test'),
     extension: 'ts',
   },
 };
@@ -38,7 +39,7 @@ const testConfig: KnexConfig = {
 const productionConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
-    directory: '../database/seeds/production',
+    directory: path.join(__dirname, '..', 'database', 'seeds', 'production'),
     extension: 'ts',
   },
 };

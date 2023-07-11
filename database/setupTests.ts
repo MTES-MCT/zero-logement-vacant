@@ -1,7 +1,19 @@
-import { knex } from 'knex';
+import { Knex, knex } from 'knex';
 
-import knexConfig from '../server/knex';
 import db from '../server/repositories/db';
+import config from '../server/utils/config';
+import path from 'path';
+
+const knexConfig: Knex.Config = {
+  client: 'pg',
+  connection: config.databaseUrlTest,
+  acquireConnectionTimeout: 10000,
+  migrations: {
+    tableName: 'knex_migrations',
+    directory: path.join(__dirname, 'migrations'),
+    extension: 'ts',
+  },
+};
 
 global.beforeAll(async () => {
   const db = knex(knexConfig);

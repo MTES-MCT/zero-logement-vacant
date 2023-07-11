@@ -1,6 +1,7 @@
 import { knex } from 'knex';
 
 import knexConfig from '../server/knex';
+import db from '../server/repositories/db';
 
 global.beforeAll(async () => {
   const db = knex(knexConfig);
@@ -24,4 +25,8 @@ global.afterEach(async () => {
   } finally {
     await db.destroy();
   }
+});
+
+global.afterAll(async () => {
+  await db.destroy();
 });

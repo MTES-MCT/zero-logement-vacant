@@ -17,20 +17,15 @@ export function concat<T>(array: Array<T> | undefined, ...items: Array<T>) {
   return [...(array ?? []), ...items];
 }
 
-export const isArrayEqual = (a1?: string[], a2?: string[]) =>
-  fp.isEqual(
-    (a1 ?? []).filter((_) => _ !== undefined && _ !== null),
-    (a2 ?? []).filter((_) => _ !== undefined && _ !== null)
-  );
-
 export function includeWith<T, K extends keyof T>(
   included: Array<T[K]>,
   map: (item: T) => T[K]
 ) {
+  const set = new Set(included);
   return (array: Array<T>): Array<T> => {
     return included.length === 0
       ? array
-      : array.filter((item) => included.includes(map(item)));
+      : array.filter((item) => set.has(map(item)));
   };
 }
 
@@ -41,10 +36,11 @@ export function excludeWith<T, K extends keyof T>(
   excluded: Array<T[K]>,
   map: (item: T) => T[K]
 ) {
+  const set = new Set(excluded);
   return (array: Array<T>): Array<T> => {
     return excluded.length === 0
       ? array
-      : array.filter((item) => !excluded.includes(map(item)));
+      : array.filter((item) => !set.has(map(item)));
   };
 }
 

@@ -81,13 +81,7 @@ describe('073 Housing refactor statuses', () => {
             new: expect.objectContaining({ status: 'Non suivi' }),
           },
         ],
-        [housingList[1].id]: [
-          {
-            name: 'Modification arborescence de suivi',
-            old: expect.objectContaining({ status: 'En attente de retour' }),
-            new: expect.objectContaining({ status: 'En attente de retour' }),
-          },
-        ],
+        [housingList[1].id]: [],
         [housingList[2].id]: [
           {
             name: 'Modification arborescence de suivi',
@@ -144,6 +138,20 @@ describe('073 Housing refactor statuses', () => {
         expect(actual).toHaveLength(events.length);
         expect(actual).toIncludeAllPartialMembers(events);
       });
+    });
+
+    it('should avoid writing an event if the housing was not changed', async () => {
+      const housing = housingList[1];
+
+      const actual = await db(eventsTable)
+        .join(
+          `${housingEventsTable}`,
+          `${housingEventsTable}.event_id`,
+          `${eventsTable}.id`
+        )
+        .where({ housing_id: housing.id });
+
+      expect(actual).toHaveLength(0);
     });
   });
 

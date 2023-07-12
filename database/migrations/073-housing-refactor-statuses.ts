@@ -10,7 +10,7 @@ import {
 import { housingTable } from '../../server/repositories/housingRepository';
 import { usersTable } from '../../server/repositories/userRepository';
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 1000;
 
 exports.up = async function (knex: Knex) {
   const email = 'admin@zerologementvacant.beta.gouv.fr';
@@ -19,6 +19,19 @@ exports.up = async function (knex: Knex) {
   if (!admin) {
     throw new Error(`${email} not found`);
   }
+
+  // Leave some space for UPDATEs and allow Postgres to do use HOT update
+  // instead of DELETE + INSERT (useful for performance)
+  await knex.raw('ALTER TABLE housing SET (FILLFACTOR = 80)');
+
+  await knex.schema.createTable('housing_updated', (table) => {
+    table.uuid('id').primary().notNullable();
+    table.integer('status').notNullable();
+    table.string('sub_status');
+    table.specificType('precisions', 'text[]');
+    table.specificType('vacancy_reasons', 'text[]');
+    table.string('occupancy');
+  });
 
   let count = 0;
   let offset = 0;
@@ -30,6 +43,7 @@ exports.up = async function (knex: Knex) {
   await async.doUntil(
     async () => {
       const housingList = await knex(housingTable)
+        .orderBy('id')
         .limit(BATCH_SIZE)
         .offset(offset);
 
@@ -80,12 +94,23 @@ exports.up = async function (knex: Knex) {
             : event
         );
       await saveEvents(knex)(events);
-      await saveHousingList(knex)(
-        items
-          .map((item) => item.housing)
-          // Speed up the process by removing untouched housing
-          .filter((housing): housing is Housing => !!housing)
-      );
+      const compactHousingList = items
+        .map((item) => item.housing)
+        // Speed up the process by removing untouched housing
+        .filter((housing): housing is Housing => !!housing)
+        .map(
+          fp.pick([
+            'id',
+            'status',
+            'sub_status',
+            'precisions',
+            'vacancy_reasons',
+            'occupancy',
+          ])
+        );
+      if (compactHousingList.length > 0) {
+        await knex('housing_updated').insert(compactHousingList);
+      }
 
       length = housingList.length;
       count += length;
@@ -94,6 +119,20 @@ exports.up = async function (knex: Knex) {
     },
     async () => length < BATCH_SIZE
   );
+
+  await knex.raw(`
+    UPDATE housing h
+    SET
+        status = hu.status,
+        sub_status = hu.sub_status,
+        precisions = hu.precisions,
+        vacancy_reasons = hu.vacancy_reasons,
+        occupancy = hu.occupancy
+    FROM housing_updated hu
+    WHERE h.id = hu.id
+  `);
+  await knex.schema.dropTable('housing_updated');
+  await knex.raw('ALTER TABLE housing SET (FILLFACTOR = 100)');
 };
 
 exports.down = async function (knex: Knex) {
@@ -110,20 +149,13 @@ exports.down = async function (knex: Knex) {
   // knex stream does not work in a migration...
   await async.doUntil(
     async () => {
-      const events: HousingEvent[] = await knex
-        .raw(
-          'WITH events_by_housing AS (' +
-            'SELECT e.*, ' +
-            "ROW_NUMBER() OVER(PARTITION BY e.old->'id' " +
-            'ORDER BY e.created_at DESC) AS rank ' +
-            'FROM events e ' +
-            "where name = 'Modification arborescence de suivi') " +
-            'select * from events_by_housing where rank = 1 ' +
-            'limit ? ' +
-            'offset ? ',
-          [BATCH_SIZE, offset]
-        )
-        .then((_) => _.rows);
+      const events: HousingEvent[] = await knex(eventsTable)
+        .where({
+          name: 'Modification arborescence de suivi',
+        })
+        .orderBy('id')
+        .limit(BATCH_SIZE)
+        .offset(offset);
 
       const housingList: Housing[] = events
         .map((event) => event.old)
@@ -131,6 +163,15 @@ exports.down = async function (knex: Knex) {
           (housing): housing is NonNullable<HousingSerialized> =>
             !fp.isNil(housing)
         )
+        .map((h) => ({
+          ...h,
+          mutation_date:
+            // @ts-ignore
+            h.mutation_date === '-000001-12-31T23:50:39.000Z'
+              ? null
+              : // @ts-ignore
+                h.mutation_date,
+        }))
         .map(normalizeStatus);
 
       await saveHousingList(knex)(housingList);
@@ -254,7 +295,7 @@ function mapPrecisions(housing: Housing): Housing {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
       occupancy: 'A',
     },
-    'Aide aux travaux': {
+    'Aides aux travaux': {
       precisions: [
         'Dispositifs > Dispositifs incitatifs > Conventionnement avec travaux',
       ],
@@ -262,6 +303,11 @@ function mapPrecisions(housing: Housing): Housing {
     'Aides à la gestion locative': {
       precisions: [
         'Dispositifs > Dispositifs incitatifs > Aides à la gestion locative',
+      ],
+    },
+    'Intermédiation Locative (IML)': {
+      precisions: [
+        'Dispositifs > Dispositifs incitatifs > Intermédiation Locative (IML)',
       ],
     },
     'Sécurisation loyer': {

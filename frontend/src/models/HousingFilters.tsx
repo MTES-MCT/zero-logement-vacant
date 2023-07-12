@@ -312,7 +312,7 @@ export const BlockingPointOptions: OptionTreeElement[] = [
           'Mise en location ou vente infructueuse',
           'Succession difficile, indivision en désaccord',
           "Défaut d'entretien / nécessité de travaux",
-          'Problèmes de financements / Dossier non-élligible',
+          'Problèmes de financements / Dossier non-éligible',
           "Manque de conseil en amont de l'achat",
           'En incapacité (âge, handicap, précarité...)',
         ],

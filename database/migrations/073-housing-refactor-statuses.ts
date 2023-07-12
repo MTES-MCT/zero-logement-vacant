@@ -9,6 +9,7 @@ import {
 } from '../../server/repositories/eventRepository';
 import { housingTable } from '../../server/repositories/housingRepository';
 import { usersTable } from '../../server/repositories/userRepository';
+import { isNotNull } from '../../frontend/src/utils/compareUtils';
 
 const BATCH_SIZE = 1000;
 
@@ -47,31 +48,37 @@ exports.up = async function (knex: Knex) {
         .limit(BATCH_SIZE)
         .offset(offset);
 
-      const items = housingList.map((oldHousing) => {
-        const mapHousing = fp.compose(
-          mapVacancyReasons,
-          mapPrecisions,
-          mapSubStatus
-        );
-        const newHousing = mapHousing(oldHousing);
-        const event = {
-          id: uuidv4(),
-          housing_id: oldHousing.id,
-          name: 'Modification arborescence de suivi',
-          kind: 'Update',
-          category: 'Followup',
-          section: 'Situation',
-          conflict: false,
-          old: denormalizeOldStatus(oldHousing),
-          new: denormalizeNewStatus(newHousing),
-          created_at: new Date(),
-          created_by: admin.id,
-        };
-        return {
-          event,
-          housing: !equals(oldHousing, newHousing) ? newHousing : null,
-        };
-      });
+      const items = housingList
+        .map((oldHousing) => {
+          const mapHousing = fp.compose(
+            mapVacancyReasons,
+            mapPrecisions,
+            mapSubStatus
+          );
+          const newHousing = mapHousing(oldHousing);
+          const event = {
+            id: uuidv4(),
+            housing_id: oldHousing.id,
+            name: 'Modification arborescence de suivi',
+            kind: 'Update',
+            category: 'Followup',
+            section: 'Situation',
+            conflict: false,
+            old: denormalizeOldStatus(oldHousing),
+            new: denormalizeNewStatus(newHousing),
+            created_at: new Date(),
+            created_by: admin.id,
+          };
+
+          // Speed up the process by removing untouched housing
+          return equals(oldHousing, newHousing) && !statusChanges(oldHousing)
+            ? null
+            : {
+                event,
+                housing: newHousing,
+              };
+        })
+        .filter(isNotNull);
 
       const events: HousingEvent[] = items
         .map((item) => item.event)
@@ -96,8 +103,6 @@ exports.up = async function (knex: Knex) {
       await saveEvents(knex)(events);
       const compactHousingList = items
         .map((item) => item.housing)
-        // Speed up the process by removing untouched housing
-        .filter((housing): housing is Housing => !!housing)
         .map(
           fp.pick([
             'id',
@@ -202,6 +207,15 @@ exports.down = async function (knex: Knex) {
     return { ...housing, status };
   }
 };
+
+function statusChanges(housing: Housing): boolean {
+  const changingStatuses = [
+    HousingStatus.NeverContacted,
+    HousingStatus.Exit,
+    HousingStatus.NotVacant,
+  ];
+  return changingStatuses.includes(housing.status);
+}
 
 function equals(a: Housing, b: Housing): boolean {
   const subset = fp.pick([

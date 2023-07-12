@@ -1,4 +1,4 @@
-import { SelectOption, OptionTreeElement } from './SelectOption';
+import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
   OccupancyKind,
@@ -304,7 +304,7 @@ export const dataYearsExcludedOptions = [
 
 export const BlockingPointOptions: OptionTreeElement[] = [
   {
-    title: 'Liée au logement',
+    title: 'Liés au propriétaire',
     elements: [
       {
         title: 'Blocage involontaire',

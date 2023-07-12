@@ -2,9 +2,9 @@ import highland from 'highland';
 
 import db, { notDeleted } from './db';
 import { UserApi, UserRoles } from '../models/UserApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
+import { Knex } from 'knex';
 
 export const usersTable = 'users';
 
@@ -73,52 +73,46 @@ const stream = (options?: StreamOptions) => {
   return highland(stream).map((_) => parseUserApi(_ as UserDBO));
 };
 
-const listWithFilters = async (
-  filters: UserFiltersApi,
-  filtersForTotalCount: UserFiltersApi,
-  pagination: PaginationApi
-): Promise<PaginatedResultApi<UserApi>> => {
-  try {
-    const filter = (filters: UserFiltersApi) => (queryBuilder: any) => {
-      if (filters.establishmentIds?.length) {
-        queryBuilder.whereIn('establishment_id', filters.establishmentIds);
+interface FindOptions {
+  filters?: UserFiltersApi;
+  pagination?: PaginationApi;
+}
+
+const find = async (opts?: FindOptions): Promise<UserApi[]> => {
+  const users: UserDBO[] = await db<UserDBO>(usersTable)
+    .where(notDeleted)
+    .modify((builder) => {
+      if (opts?.filters?.establishmentIds?.length) {
+        builder.whereIn('establishment_id', opts.filters.establishmentIds);
       }
-    };
+    })
+    // TODO: flexible sort
+    .orderBy(['last_name', 'first_name'])
+    .modify(paginationQuery(opts?.pagination));
 
-    const filteredCount: number = await db(usersTable)
-      .where(notDeleted)
-      .modify(filter(filters))
-      .count('id')
-      .first()
-      .then((_) => Number(_.count));
+  return users.map(parseUserApi);
+};
 
-    const totalCount: number = await db(usersTable)
-      .where(notDeleted)
-      .modify(filter(filtersForTotalCount))
-      .count('id')
-      .first()
-      .then((_) => Number(_?.count));
+interface CountOptions {
+  filters?: UserFiltersApi;
+}
 
-    const results = await db(usersTable)
-      .where(notDeleted)
-      .modify((queryBuilder: any) => {
-        queryBuilder.orderBy('last_name');
-        queryBuilder.orderBy('first_name');
-      })
-      .modify(paginationQuery(pagination))
-      .modify(filter(filters));
+function filter(filters?: UserFiltersApi) {
+  return (builder: Knex.QueryBuilder<UserDBO>) => {
+    if (filters?.establishmentIds?.length) {
+      builder.whereIn('establishment_id', filters.establishmentIds);
+    }
+  };
+}
 
-    return <PaginatedResultApi<UserApi>>{
-      entities: results.map((result: any) => parseUserApi(result)),
-      filteredCount,
-      totalCount,
-      page: pagination.paginate ? pagination.page : 1,
-      perPage: pagination.paginate ? pagination.perPage : filteredCount,
-    };
-  } catch (err) {
-    console.error('Listing users failed', err);
-    throw new Error('Listing users failed');
-  }
+const count = async (opts?: CountOptions): Promise<number> => {
+  const result = await db<UserDBO>(usersTable)
+    .where(notDeleted)
+    .modify(filter(opts?.filters))
+    .count('id')
+    .first();
+
+  return Number(result?.count);
 };
 
 const remove = async (userId: string): Promise<void> => {
@@ -188,7 +182,8 @@ export default {
   get,
   getByEmail,
   update,
-  listWithFilters,
+  count,
+  find,
   stream,
   insert,
   formatUserApi,

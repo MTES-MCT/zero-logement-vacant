@@ -6,6 +6,8 @@ import { UserApi } from '../../server/models/UserApi';
 import { AttioOption, toOption } from './attio-option';
 import { Option } from './option';
 import { AttioCompany } from './attio-company';
+import { constants } from 'http2';
+import { millisecondsInSecond } from 'date-fns';
 
 const host = 'https://api.attio.com/v2';
 const token = config.attio.token;
@@ -30,6 +32,14 @@ async function listOptions(attribute: string): Promise<Option[]> {
     `${host}/objects/companies/attributes/${attribute}/options`,
     {
       method: 'GET',
+      retryOptions: {
+        retryOnHttpResponse(response) {
+          return (
+            response.status === constants.HTTP_STATUS_TOO_MANY_REQUESTS ||
+            response.status >= 500
+          );
+        },
+      },
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -60,27 +70,44 @@ async function getOption(
   );
 }
 
+export interface EstablishmentWithDomain extends EstablishmentApi {
+  domain: string | null;
+}
+
 async function syncEstablishment(
-  establishment: EstablishmentApi
-): Promise<EstablishmentApi> {
+  establishment: EstablishmentWithDomain
+): Promise<EstablishmentWithDomain> {
   const kind = await getOption('type_etablissement', establishment.kind);
   const priority = await getOption(
     'priorite',
     establishment.priority ?? 'standard'
   );
 
+  const matchingAttribute = establishment.domain ? 'domains' : 'siren';
   const response = await fetch(
-    `${host}/objects/companies/records?matching_attribute=siren`,
+    `${host}/objects/companies/records?matching_attribute=${matchingAttribute}`,
     {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      retryOptions: {
+        retryInitialDelay: millisecondsInSecond,
+        retryOnHttpResponse(response) {
+          return (
+            response.status === constants.HTTP_STATUS_TOO_MANY_REQUESTS ||
+            response.status >= 500
+          );
+        },
+      },
       body: JSON.stringify({
         data: {
           values: {
             id: [{ value: establishment.id }],
+            domains: establishment.domain
+              ? [{ domain: establishment.domain }]
+              : [],
             name: [{ value: establishment.name }],
             type_etablissement: [{ option: kind?.id }],
             siren: [{ value: establishment.siren }],
@@ -110,6 +137,14 @@ async function findCompany(id: string): Promise<AttioCompany | null> {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+    },
+    retryOptions: {
+      retryOnHttpResponse(response) {
+        return (
+          response.status === constants.HTTP_STATUS_TOO_MANY_REQUESTS ||
+          response.status >= 500
+        );
+      },
     },
     body: JSON.stringify({
       limit: 1,
@@ -144,6 +179,15 @@ async function syncUser(user: UserApi): Promise<UserApi> {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+      },
+      retryOptions: {
+        retryInitialDelay: millisecondsInSecond,
+        retryOnHttpResponse(response) {
+          return (
+            response.status === constants.HTTP_STATUS_TOO_MANY_REQUESTS ||
+            response.status >= 500
+          );
+        },
       },
       body: JSON.stringify({
         data: {

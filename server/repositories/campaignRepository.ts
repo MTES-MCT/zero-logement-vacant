@@ -32,13 +32,10 @@ const getCampaign = async (
           `count(*) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
         ),
         db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`
+          `count(*) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
         ),
         db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`
+          `count(*) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
         ),
         db.raw(
           `count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
@@ -92,13 +89,10 @@ const getCampaignBundle = async (
           `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
         ),
         db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`
+          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
         ),
         db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`
+          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
         ),
         db.raw(
           `count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
@@ -217,13 +211,10 @@ const listCampaignBundles = async (
           `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
         ),
         db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NotVacant}') as "notVacantCount"`
+          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
         ),
         db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NoAction}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Exit}') as "exitCount"`
+          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
         ),
         db.raw(
           `count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
@@ -379,7 +370,6 @@ const parseCampaignBundleApi = (result: any) =>
     inProgressCount: result.inProgressCount,
     notVacantCount: result.notVacantCount,
     noActionCount: result.noActionCount,
-    exitCount: result.exitCount,
     npaiCount: result.npaiCount,
     inProgressWithSupportCount: result.inProgressWithSupportCount,
     ownerCount: result.ownerCount,

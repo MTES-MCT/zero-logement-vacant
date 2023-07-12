@@ -10,16 +10,19 @@ import styles from './housing-status-badge.module.scss';
 interface Props {
   status?: HousingStatus;
   subStatus?: string;
+  inline?: boolean;
 }
 
-const HousingSubStatusBadge = ({ status, subStatus }: Props) => {
+const HousingSubStatusBadge = ({ status, subStatus, inline }: Props) => {
   return status && subStatus && subStatus !== getHousingState(status).title ? (
     <div
       style={{
         backgroundColor: `var(${getSubStatus(status, subStatus)?.bgcolor})`,
         color: `var(${getSubStatus(status, subStatus)?.color})`,
       }}
-      className={styles.statusBadgeContainer}
+      className={
+        inline ? styles.statusBadgeContainerInline : styles.statusBadgeContainer
+      }
     >
       <Badge text={subStatus} className={styles.statusBadgeLabel}></Badge>
     </div>

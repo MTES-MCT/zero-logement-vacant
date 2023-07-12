@@ -105,10 +105,7 @@ function AppFooter() {
         >
           Code source
         </FooterLink>
-        <FooterLink
-          href="https://zlv.notion.site/Politique-de-confidentialit-bb23ade15fc442fbbc3976a4ef840c76"
-          target="_blank"
-        >
+        <FooterLink href="/mentions-legales">
           Politique de confidentialité
         </FooterLink>
         <FooterLink href="/stats">Statistiques</FooterLink>

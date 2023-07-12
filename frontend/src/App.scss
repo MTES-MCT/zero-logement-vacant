@@ -297,8 +297,7 @@ button.fr-select {
 }
 
 .campaignTabs {
-  li:last-child,
-  li:nth-last-child(2) {
+  li:last-child {
     .fr-tabs__tab:not([aria-selected='true']) {
       background-color: var(--grey-925);
     }
@@ -424,6 +423,7 @@ a.fr-btn[target='_blank']:after {
   margin-bottom: 0 !important;
   color: var(--grey-625);
   font-weight: 500;
+  font-size: 14px;
 }
 
 @for $i from 1 through 9 {
@@ -507,5 +507,25 @@ li.error {
     button {
       color: var(--error-425) !important;
     }
+  }
+}
+
+.tabs-no-border {
+  box-shadow: none !important;
+  &:before{
+    box-shadow: inset 0 1px 0 0 var(--border-default-grey) !important;
+  }
+}
+
+.first-tab-grey {
+
+  ul {
+    li:first-of-type > button.fr-tabs__tab {
+      background-color: var(--grey-975) !important;
+    }
+  }
+
+  div.fr-tabs__panel:first-of-type {
+    z-index: 10;
   }
 }

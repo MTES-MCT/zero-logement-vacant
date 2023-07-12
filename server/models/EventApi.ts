@@ -11,7 +11,6 @@ export interface EventApi<T> {
   kind: EventKind;
   category: EventCategory;
   section: EventSection;
-  contactKind?: string;
   conflict?: boolean;
   old?: T;
   new?: T;

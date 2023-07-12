@@ -168,7 +168,7 @@ const saveMany = async (housingList: HousingApi[]): Promise<void> => {
 
 const get = async (
   housingId: string,
-  geoCodes: string[]
+  establishmentId: string
 ): Promise<HousingApi | null> => {
   const housing = await db
     .select(
@@ -197,6 +197,9 @@ const get = async (
       `${housingTable}.geo_code`,
       `${localitiesTable}.geo_code`
     )
+    .joinRaw(
+      `join ${establishmentsTable} on ${housingTable}.geo_code = any(localities_geo_code)`
+    )
     .leftJoin(ownersHousingTable, ownersHousingJoinClause)
     .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
     .leftJoin(
@@ -213,7 +216,9 @@ const get = async (
                     from campaigns_housing ch, campaigns c 
                     where housing.id = ch.housing_id 
                     and c.id = ch.campaign_id
-                ) campaigns on true`
+                    and c.establishment_id = (?)
+                ) campaigns on true`,
+      establishmentId
     )
     .joinRaw(
       `left join lateral (
@@ -231,7 +236,7 @@ const get = async (
       'ban.ref_id',
       'ban.address_kind'
     )
-    .whereIn(`${housingTable}.geo_code`, geoCodes)
+    .where(`${establishmentsTable}.id`, establishmentId)
     .andWhere(`${housingTable}.id`, housingId)
     .first();
 
@@ -785,35 +790,6 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
   }
 };
 
-const updateHousingList = async (
-  housingIds: string[],
-  status: HousingStatusApi,
-  subStatus?: string,
-  precisions?: string[],
-  vacancyReasons?: string[]
-): Promise<HousingApi[]> => {
-  console.log('update housing list', housingIds.length);
-
-  try {
-    return db(housingTable)
-      .whereIn('id', housingIds)
-      .update({
-        status: status,
-        sub_status: subStatus ?? null,
-        precisions: precisions ?? null,
-        vacancy_reasons: vacancyReasons ?? null,
-      })
-      .returning('*');
-  } catch (err) {
-    console.error(
-      'Updating campaign housing list failed',
-      err,
-      housingIds.length
-    );
-    throw new Error('Updating campaign housing list failed');
-  }
-};
-
 const countByStatusWithFilters = async (
   filters: MonitoringFiltersApi
 ): Promise<HousingStatusCountApi[]> => {
@@ -855,6 +831,21 @@ const monitoringQueryFilter =
     }
   };
 
+const update = async (housingApi: HousingApi): Promise<void> => {
+  console.log('Update housingApi', housingApi.id);
+
+  return db(housingTable)
+    .where('id', housingApi.id)
+    .update({
+      occupancy: housingApi.occupancy,
+      occupancy_intended: housingApi.occupancyIntended ?? null,
+      status: housingApi.status,
+      sub_status: housingApi.subStatus ?? null,
+      precisions: housingApi.precisions ?? null,
+      vacancy_reasons: housingApi.vacancyReasons ?? null,
+    });
+};
+
 interface HousingRecordDBO {
   id: string;
   invariant: string;
@@ -876,12 +867,13 @@ interface HousingRecordDBO {
   data_years: number[];
   building_location?: string;
   ownership_kind?: OwnershipKindsApi;
-  status?: HousingStatusApi;
+  status: HousingStatusApi;
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;
   energy_consumption_worst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
+  occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
 }
@@ -921,6 +913,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   energyConsumption: result.energy_consumption,
   energyConsumptionWorst: result.energy_consumption_worst,
   occupancy: result.occupancy,
+  occupancyIntended: result.occupancy_intended,
   localityKind: result.locality_kind,
   geoPerimeters: result.geo_perimeters,
   owner: {
@@ -974,6 +967,7 @@ const formatHousingRecordApi = (
   energy_consumption: housingRecordApi.energyConsumption,
   energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
   occupancy: housingRecordApi.occupancy,
+  occupancy_intended: housingRecordApi.occupancyIntended,
 });
 
 export default {
@@ -984,7 +978,7 @@ export default {
   countVacant,
   countWithFilters,
   listByIds,
-  updateHousingList,
+  update,
   countByStatusWithFilters,
   formatHousingRecordApi,
   saveMany,

@@ -1,147 +1,92 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Row, Select, Tag, TagGroup, Text } from '@dataesr/react-dsfr';
-import { HousingUpdate } from '../../models/Housing';
-import {
-  getStatusPrecisionOptions,
-  getSubStatusOptions,
-  HousingStatus,
-} from '../../models/HousingState';
+import React, {
+  ChangeEvent,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from 'react';
+import { Alert, Col, Row, Select, Text } from '@dataesr/react-dsfr';
+import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
+import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
-import { statusOptions } from '../../models/HousingFilters';
+import {
+  allOccupancyOptions,
+  statusOptions,
+} from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import ButtonLink from '../ButtonLink/ButtonLink';
-import VacancyReasonModal from '../modals/VacancyReasonsModal/VacancyReasonModal';
-import styles from './housing-edition-form.module.scss';
-import classNames from 'classnames';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../AppTextInput/AppTextInput';
+import _ from 'lodash';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
 
 interface Props {
-  currentStatus?: HousingStatus;
-  currentSubStatus?: string;
-  currentPrecisions?: string[];
-  currentVacancyReasons?: string[];
+  current: Pick<
+    Partial<Housing>,
+    | 'occupancy'
+    | 'occupancyIntended'
+    | 'status'
+    | 'subStatus'
+    | 'precisions'
+    | 'vacancyReasons'
+  >;
   fromDefaultCampaign?: boolean;
+  housingCount?: number;
+  withOccupancy?: boolean;
   onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
 const HousingEditionForm = (
   {
-    currentStatus,
-    currentSubStatus,
-    currentPrecisions,
-    currentVacancyReasons,
+    current,
     fromDefaultCampaign,
+    withOccupancy,
+    housingCount,
     onSubmit,
   }: Props,
   ref: any
 ) => {
+  const [occupancy, setOccupancy] = useState<OccupancyKind | undefined>(
+    current.occupancy
+  );
+  const [occupancyIntended, setOccupancyIntended] = useState(
+    current.occupancyIntended
+  );
   const [status, setStatus] = useState<HousingStatus>();
-  const [subStatus, setSubStatus] = useState<string | undefined>(
-    currentSubStatus
-  );
-  const [precisions, setPrecisions] = useState<string[] | undefined>(
-    currentPrecisions
-  );
-  const [vacancyReasons, setVacancyReasons] = useState<string[] | undefined>(
-    currentVacancyReasons
-  );
+  const [subStatus, setSubStatus] = useState(current.subStatus);
+  const [precisions, setPrecisions] = useState(current.precisions);
+  const [vacancyReasons, setVacancyReasons] = useState(current.vacancyReasons);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
-  const [precisionOptions, setPrecisionOptions] = useState<SelectOption[]>();
-  const [contactKind, setContactKind] = useState<string>();
   const [comment, setComment] = useState<string>();
-  const [isVacancyReasonsModalOpen, setIsVacancyReasonsModalOpen] =
-    useState<boolean>(false);
+  const [noteKind, setNoteKind] = useState<string>();
+  const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   useEffect(() => {
-    selectStatus(currentStatus ?? HousingStatus.Waiting);
-  }, [currentStatus]); //eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    selectSubStatus(currentStatus, currentSubStatus);
-  }, [currentStatus, currentSubStatus]); //eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    setPrecisions(currentPrecisions);
-  }, [currentPrecisions]);
-  useEffect(() => {
-    setVacancyReasons(currentVacancyReasons);
-  }, [currentVacancyReasons]);
+    selectStatus(current.status ?? HousingStatus.Waiting);
+  }, [current.status]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const selectStatus = (newStatus: HousingStatus) => {
     setStatus(+newStatus);
     setSubStatusOptions(getSubStatusOptions(newStatus));
-    selectSubStatus(
-      newStatus,
+    setSubStatus(
       getSubStatusOptions(newStatus)
         ?.map((_) => _.label)
         .find((_) => _ === subStatus)
     );
   };
 
-  const selectSubStatus = (status?: HousingStatus, newSubStatus?: string) => {
-    setSubStatus(newSubStatus);
-    if (newSubStatus && status) {
-      setPrecisionOptions(getStatusPrecisionOptions(status, newSubStatus));
-      setPrecisions(
-        getStatusPrecisionOptions(status, newSubStatus)
-          ?.map((_) => _.label)
-          .filter((_) => precisions && precisions.indexOf(_) !== -1)
-      );
-    } else {
-      setPrecisions(undefined);
-      setPrecisionOptions(undefined);
-    }
-  };
-
-  const contactKindOptions = [
-    { value: 'Appel entrant', label: 'Appel entrant', icon: 'ri-phone-fill' },
-    {
-      value: 'Appel sortant - relance',
-      label: 'Appel sortant - relance',
-      icon: 'ri-phone-fill',
-    },
-    {
-      value: 'Courrier entrant',
-      label: 'Courrier entrant',
-      icon: 'ri-mail-fill',
-    },
-    {
-      value: 'Courrier sortant',
-      label: 'Courrier sortant',
-      icon: 'ri-mail-send-fill',
-    },
-    {
-      value: 'Formulaire en ligne',
-      label: 'Formulaire en ligne',
-      icon: 'ri-survey-fill',
-    },
-    { value: 'Mail entrant', label: 'Mail entrant', icon: 'ri-message-2-fill' },
-    { value: 'Mail sortant', label: 'Mail sortant', icon: 'ri-message-2-fill' },
-    {
-      value: 'Retour indirect - via acteur terrain',
-      label: 'Retour indirect - via acteur terrain',
-      icon: 'ri-footprint-fill',
-    },
-    {
-      value: 'Retour poste - NPAI',
-      label: 'Retour poste - NPAI',
-      icon: 'ri-mail-close-fill',
-    },
-    {
-      value: 'Visite - Rencontre',
-      label: 'Visite - Rencontre',
-      icon: 'ri-service-fill',
-    },
-    {
-      value: 'Note personnelle',
-      label: 'Note personnelle',
-      icon: 'ri-phone-fill',
-    },
-  ];
-
   const shape = {
+    ...(withOccupancy
+      ? {
+          occupancy: yup
+            .string()
+            .required("Veuillez sélectionner un statut d'occupation."),
+          occupancyIntended: yup.string().nullable(),
+        }
+      : {}),
     status: yup.string().required('Veuillez sélectionner un statut.'),
     subStatus: yup
       .string()
@@ -150,59 +95,130 @@ const HousingEditionForm = (
         is: true,
         then: yup.string().required('Veuillez sélectionner un sous statut.'),
       }),
-    contactKind: yup
-      .string()
-      .nullable()
-      .when('hasContactKind', {
-        is: true,
-        then: yup
-          .string()
-          .required("Veuillez sélectionner un type d'interaction."),
-      }),
     comment: yup.string().nullable(),
+    noteKind: yup.string().nullable(),
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
+    ...(withOccupancy
+      ? {
+          occupancy,
+          occupancyIntended,
+        }
+      : {}),
     hasSubStatus: subStatusOptions !== undefined,
-    hasContactKind: status !== HousingStatus.NeverContacted,
     status,
     subStatus,
-    contactKind,
     comment,
+    noteKind,
   });
+
+  const isStatusUpdate =
+    current.status !== status ||
+    current.subStatus !== subStatus ||
+    !_.isEqual(current.precisions, precisions) ||
+    !_.isEqual(current.vacancyReasons, vacancyReasons);
+
+  const isOccupancyUpdate =
+    withOccupancy &&
+    (current.occupancy !== occupancy ||
+      current.occupancyIntended !== occupancyIntended);
+
+  const hasNote = comment && comment?.length > 0;
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
       await form.validate(() =>
-        onSubmit({
-          status: +(status ?? HousingStatus.Waiting),
-          subStatus: subStatus,
-          precisions,
-          contactKind:
-            status === HousingStatus.NeverContacted
-              ? 'Jamais contacté'
-              : contactKind,
-          vacancyReasons,
-          comment,
-        })
+        housingCount ? setIsConfirmationModalOpen(true) : submitForm()
       );
     },
   }));
 
+  const submitForm = () => {
+    onSubmit({
+      statusUpdate: isStatusUpdate
+        ? {
+            status: +(status ?? HousingStatus.Waiting),
+            subStatus,
+            precisions,
+            vacancyReasons: vacancyReasons ?? [],
+          }
+        : undefined,
+      occupancyUpdate: isOccupancyUpdate
+        ? {
+            occupancy: occupancy!,
+            occupancyIntended,
+          }
+        : undefined,
+      note: hasNote
+        ? {
+            content: comment,
+            noteKind: noteKind!,
+          }
+        : undefined,
+    });
+  };
+
+  const notesOptions: SelectOption[] = [
+    'Note courante',
+    'Échanges avec le(s) propriétaire(s)',
+    'Échanges avec une partie prenante',
+    'Diagnostic/Qualification',
+    'Avis de situation',
+  ].map((note) => ({
+    label: note,
+    value: note,
+  }));
+
   return (
     <>
-      <Text size="lg" bold spacing="mb-2w">
-        CHANGEMENT DE STATUT
-      </Text>
-      <Row gutters>
-        <Col n="12">
+      {withOccupancy && (
+        <div className="bg-white fr-m-2w fr-p-2w">
+          <Text size="lg" bold spacing="mb-2w">
+            Occupation du logement
+          </Text>
+          <Row gutters>
+            <Col n="6">
+              <Select
+                label="Occupation actuelle"
+                options={allOccupancyOptions}
+                selected={occupancy}
+                messageType={form.messageType('occupancy') as 'valid' | 'error'}
+                message={form.message('occupancy')}
+                onChange={(e: any) => setOccupancy(e.target.value)}
+                required
+              />
+            </Col>
+            <Col n="6">
+              <Select
+                label="Occupation prévisionnelle"
+                options={[
+                  { label: "Pas d'informations", value: '' },
+                  ...allOccupancyOptions,
+                ]}
+                selected={occupancyIntended}
+                messageType={
+                  form.messageType('occupancyIntended') as 'valid' | 'error'
+                }
+                message={form.message('occupancyIntended')}
+                onChange={(e: any) => setOccupancyIntended(e.target.value)}
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
+      <div className="bg-white fr-m-2w fr-p-2w">
+        <Text size="lg" bold spacing="mb-2w">
+          Mobilisation du logement
+        </Text>
+        <div className="fr-select-group">
           <HousingStatusSelect
             selected={status}
             options={statusOptions(
               fromDefaultCampaign ||
-                !currentStatus ||
-                +currentStatus === HousingStatus.NeverContacted
+                !current.status ||
+                +current.status === HousingStatus.NeverContacted
                 ? []
                 : [HousingStatus.NeverContacted]
             )}
@@ -210,101 +226,79 @@ const HousingEditionForm = (
               selectStatus(e);
             }}
           />
-        </Col>
-        <Col n="6">
-          {subStatusOptions && (
-            <Select
-              label="Sous-statut"
-              options={subStatusOptions}
-              selected={subStatus}
-              messageType={
-                form.messageType('subStatus') !== ''
-                  ? (form.messageType('subStatus') as 'valid' | 'error')
-                  : 'error'
-              }
-              message={form.message('subStatus')}
-              onChange={(e: any) => selectSubStatus(status, e.target.value)}
-              required
-            />
-          )}
-        </Col>
-        <Col n="6">
-          {precisionOptions && (
-            <AppMultiSelect
-              label="Précision(s)"
-              defaultOption="Aucune"
-              options={precisionOptions}
-              initialValues={precisions}
-              onChange={(values) => setPrecisions(values)}
-            />
-          )}
-        </Col>
-      </Row>
-      <Text className="fr-mt-3w fr-mb-0">
-        Causes de la vacance{' '}
-        {vacancyReasons?.length !== undefined && vacancyReasons?.length > 0 && (
-          <>({vacancyReasons.length})</>
+        </div>
+        {subStatusOptions && (
+          <Select
+            label="Sous-statut"
+            options={subStatusOptions}
+            selected={subStatus}
+            messageType={form.messageType('subStatus') as 'valid' | 'error'}
+            message={form.message('subStatus')}
+            onChange={(e: any) => setSubStatus(e.target.value)}
+            required
+          />
         )}
-      </Text>
-      <Text className="fr-my-0">
-        {vacancyReasons?.map((reason, index) => (
-          <div key={`vacancy_reason_${index}`}>{reason}</div>
-        ))}
-      </Text>
-      <ButtonLink
-        isSimple
-        onClick={() => setIsVacancyReasonsModalOpen(true)}
-        icon={vacancyReasons?.length ? 'ri-edit-2-fill' : ''}
-        iconPosition="left"
-      >
-        {vacancyReasons?.length !== undefined && vacancyReasons?.length > 0
-          ? 'Modifier'
-          : 'Sélectionnez une ou plusieurs options'}
-      </ButtonLink>
-      {isVacancyReasonsModalOpen && (
-        <VacancyReasonModal
-          currentVacancyReasons={vacancyReasons}
-          onClose={() => setIsVacancyReasonsModalOpen(false)}
-          onSubmit={(vacancyReasons) => {
-            setVacancyReasons(vacancyReasons);
-            setIsVacancyReasonsModalOpen(false);
-          }}
+        <Text className="fr-mb-0">
+          <b>Précisions</b>
+          <br />
+          Dispositifs ({(precisions ?? []).length}) / Points de blocage (
+          {(vacancyReasons ?? []).length})
+        </Text>
+        <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>
+          Ajouter / Modifier
+        </ButtonLink>
+        {isPrecisionsModalOpen && (
+          <PrecisionsModal
+            currentPrecisions={precisions ?? []}
+            currentVacancyReasons={vacancyReasons ?? []}
+            onClose={() => setIsPrecisionsModalOpen(false)}
+            onSubmit={(precisions, vacancyReasons) => {
+              setVacancyReasons(vacancyReasons);
+              setPrecisions(precisions);
+              setIsPrecisionsModalOpen(false);
+            }}
+          />
+        )}
+      </div>
+      <div className="bg-white fr-m-2w fr-p-2w">
+        <Text size="lg" bold spacing="mb-2w">
+          Note
+        </Text>
+        <AppTextInput<FormShape>
+          textarea
+          rows={3}
+          onChange={(e) => setComment(e.target.value)}
+          inputForm={form}
+          inputKey="comment"
+          placeholder="Tapez votre note ici..."
         />
+        <Select
+          label="Type de note"
+          options={notesOptions}
+          selected={noteKind}
+          messageType={form.messageType('noteKind') as 'valid' | 'error'}
+          message={form.message('noteKind')}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+            setNoteKind(e.target.value)
+          }
+        />
+      </div>
+      {isConfirmationModalOpen && (
+        <ConfirmationModal
+          onSubmit={submitForm}
+          onClose={() => setIsConfirmationModalOpen(false)}
+          title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
+        >
+          <Alert
+            type="warning"
+            description="Cette action écrasera les anciennes données."
+          ></Alert>
+          <ul className="fr-mt-2w">
+            {isStatusUpdate && <li>Mise à jour de la mobilisation</li>}
+            {hasNote && <li>Ajout d’une note</li>}
+          </ul>
+        </ConfirmationModal>
       )}
-      <Text className="fr-mb-2w fr-mt-4w">
-        <b>INFORMATIONS COMPLÉMENTAIRES</b>
-      </Text>
-      <Text className="fr-mb-1w">Sélectionnez le type d'interaction</Text>
-      <TagGroup>
-        {contactKindOptions.map((contactKindOption) => (
-          <Tag
-            small
-            icon={contactKindOption.icon}
-            iconPosition="left"
-            onClick={() => setContactKind(contactKindOption.value)}
-            selected={contactKind === contactKindOption.value}
-            key={contactKindOption.value}
-            className={classNames({
-              [styles.tagNotSelected]: contactKind !== contactKindOption.value,
-            })}
-          >
-            {contactKindOption.label}
-          </Tag>
-        ))}
-      </TagGroup>
-      {form.messageType('contactKind') === 'error' && (
-        <span className="fr-error-text fr-mt-0 fr-mb-2w">
-          {form.message('contactKind')}
-        </span>
-      )}
-      <AppTextInput<FormShape>
-        textarea
-        label="Ajouter une note"
-        rows={3}
-        onChange={(e) => setComment(e.target.value)}
-        inputForm={form}
-        inputKey="comment"
-      />
     </>
   );
 };

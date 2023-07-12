@@ -26,8 +26,8 @@ router.use(userCheck(true));
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
-router.post('/housing/list', housingController.updateHousingListValidators, validator.validate, housingController.updateHousingList);
-router.post('/housing/:housingId', housingController.updateHousingValidators, validator.validate, housingController.updateHousing);
+router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
+router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
 router.get('/housing/owner/:ownerId', housingController.listByOwner);
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
@@ -57,7 +57,6 @@ router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectVa
 router.get('/events/owner/:ownerId', [isUUIDParam('ownerId')], validator.validate, eventController.listByOwnerId);
 router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.validate, eventController.listByHousingId);
 
-router.post('/notes', noteController.createNoteValidators, validator.validate, noteController.create);
 router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 
 router.get('/account', [], validator.validate, accountController.get);

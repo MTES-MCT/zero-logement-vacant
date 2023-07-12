@@ -15,7 +15,7 @@ import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import { Housing0, Housing1 } from '../../database/seeds/test/005-housing';
+import { Housing1 } from '../../database/seeds/test/005-housing';
 import {
   eventsTable,
   housingEventsTable,
@@ -23,8 +23,10 @@ import {
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
-import { HousingApi } from '../models/HousingApi';
+import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { HousingEvent1 } from '../../database/seeds/test/011-events';
+import { HousingUpdateBody } from './housingController';
+import { housingNotesTable, notesTable } from '../repositories/noteRepository';
 
 const { app } = createServer();
 
@@ -108,11 +110,20 @@ describe('Housing controller', () => {
   });
 
   describe('updateHousing', () => {
-    const validBody = {
+    const validBody: { housingUpdate: HousingUpdateBody } = {
       housingUpdate: {
-        status: HousingStatusApi.InProgress,
-        contactKind: 'Appel entrant',
-        comment: randomstring.generate(),
+        statusUpdate: {
+          status: HousingStatusApi.InProgress,
+          vacancyReasons: [randomstring.generate()],
+        },
+        occupancyUpdate: {
+          occupancy: OccupancyKindApi.Vacant,
+          occupancyIntended: OccupancyKindApi.DemolishedOrDivided,
+        },
+        note: {
+          content: randomstring.generate(),
+          noteKind: randomstring.generate(),
+        },
       },
     };
 
@@ -130,142 +141,7 @@ describe('Housing controller', () => {
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should received a valid housingUpdate object', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({ ...validBody, housingUpdate: undefined })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({
-            ...validBody,
-            housingUpdate: { ...validBody.housingUpdate, status: undefined },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              status: randomstring.generate(),
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              contactKind: undefined,
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should update the housing and return the updated result', async () => {
-      const res = await withAccessToken(
-        request(app).post(testRoute(Housing1.id)).send(validBody)
-      ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: Housing1.id,
-            status: validBody.housingUpdate.status,
-          }),
-        ])
-      );
-
-      await db(housingTable)
-        .where('id', Housing1.id)
-        .first()
-        .then((result) =>
-          expect(result).toMatchObject(
-            expect.objectContaining({
-              id: Housing1.id,
-              status: validBody.housingUpdate.status,
-            })
-          )
-        );
-    });
-
-    it('should not create and event when no changes', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing0.id))
-          .send({
-            housingUpdate: {
-              status: Housing0.status,
-              subStatus: Housing0.subStatus,
-              precisions: Housing0.precisions,
-              vacancyReasons: Housing0.vacancyReasons,
-              contactKind: 'Appel entrant',
-              comment: '',
-            },
-          })
-      ).expect(constants.HTTP_STATUS_OK);
-
-      await db(housingEventsTable)
-        .where('housing_id', Housing1.id)
-        .andWhereNot('event_id', HousingEvent1.id)
-        .first()
-        .then((result) => expect(result).toBeUndefined());
-    });
-
-    it('should create and event related to the status change', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({ ...validBody })
-      ).expect(constants.HTTP_STATUS_OK);
-
-      await db(eventsTable)
-        .join(housingEventsTable, 'event_id', 'id')
-        .where('housing_id', Housing1.id)
-        .andWhereNot('id', HousingEvent1.id)
-        .first()
-        .then((result) =>
-          expect(result).toMatchObject(
-            expect.objectContaining({
-              housing_id: Housing1.id,
-              contact_kind: validBody.housingUpdate.contactKind,
-              kind: 'Update',
-              category: 'Followup',
-              section: 'Situation',
-              created_by: User1.id,
-            })
-          )
-        );
-    });
-
-    it('should remove housing from campaign when updating to status NeverContacted', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute(Housing1.id))
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              status: HousingStatusApi.NeverContacted,
-            },
-          })
-      ).expect(constants.HTTP_STATUS_OK);
-
-      await db(campaignsHousingTable)
-        .where('housing_id', Housing1.id)
-        .andWhere('campaign_id', Campaign1.id)
-        .first()
-        .then((result) => expect(result).toBeUndefined());
-    });
+    // All the others tests are covered by updateHousingList one's
   });
 
   describe('updateHousingList', () => {
@@ -275,9 +151,17 @@ describe('Housing controller', () => {
       housingIds: [Housing1.id],
       allHousing: false,
       housingUpdate: {
-        status: HousingStatusApi.InProgress,
-        contactKind: 'Appel entrant',
-        comment: randomstring.generate(),
+        statusUpdate: {
+          status: HousingStatusApi.InProgress,
+          vacancyReasons: [randomstring.generate()],
+        },
+        occupancyUpdate: {
+          occupancy: OccupancyKindApi.Vacant,
+          occupancyIntended: OccupancyKindApi.DemolishedOrDivided,
+        },
+        note: {
+          content: randomstring.generate(),
+        },
       },
     };
 
@@ -289,87 +173,93 @@ describe('Housing controller', () => {
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should received a valid housing ids array', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, housingIds: undefined })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+    it('should received a valid request', async () => {
+      const badRequestTest = async (payload?: Record<string, unknown>) => {
+        await withAccessToken(
+          request(app)
+            .post(testRoute)
+            .send(payload)
+            .expect(constants.HTTP_STATUS_BAD_REQUEST)
+        );
+      };
 
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, housingIds: [randomstring.generate()] })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should received a valid campaign ids array', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, campaignIds: undefined })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, campaignIds: [randomstring.generate()] })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should received a valid current status', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, currentStatus: undefined })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, currentStatus: randomstring.generate() })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-    });
-
-    it('should received a valid housingUpdate object', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({ ...validBody, housingUpdate: undefined })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({
-            ...validBody,
-            housingUpdate: { ...validBody.housingUpdate, status: undefined },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              status: randomstring.generate(),
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              contactKind: undefined,
-            },
-          })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+      await badRequestTest();
+      await badRequestTest({ ...validBody, housingIds: undefined });
+      await badRequestTest({
+        ...validBody,
+        housingIds: [randomstring.generate()],
+      });
+      await badRequestTest({ ...validBody, campaignIds: undefined });
+      await badRequestTest({
+        ...validBody,
+        campaignIds: [randomstring.generate()],
+      });
+      await badRequestTest({ ...validBody, currentStatus: undefined });
+      await badRequestTest({
+        ...validBody,
+        currentStatus: randomstring.generate(),
+      });
+      await badRequestTest({ ...validBody, housingUpdate: undefined });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          statusUpdate: {
+            ...validBody.housingUpdate.statusUpdate,
+            status: undefined,
+          },
+        },
+      });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          statusUpdate: {
+            ...validBody.housingUpdate.statusUpdate,
+            status: randomstring.generate(),
+          },
+        },
+      });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          occupancyUpdate: {
+            ...validBody.housingUpdate.occupancyUpdate,
+            occupancy: undefined,
+          },
+        },
+      });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          occupancyUpdate: {
+            ...validBody.housingUpdate.occupancyUpdate,
+            occupancy: randomstring.generate(),
+          },
+        },
+      });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          occupancyUpdate: {
+            ...validBody.housingUpdate.occupancyUpdate,
+            occupancyIntended: randomstring.generate(),
+          },
+        },
+      });
+      await badRequestTest({
+        ...validBody,
+        housingUpdate: {
+          ...validBody.housingUpdate,
+          note: {
+            ...validBody.housingUpdate.note,
+            content: undefined,
+          },
+        },
+      });
     });
 
     it('should update the housing list and return the updated result', async () => {
@@ -381,7 +271,10 @@ describe('Housing controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: Housing1.id,
-            status: validBody.housingUpdate.status,
+            status: validBody.housingUpdate.statusUpdate.status,
+            occupancy: validBody.housingUpdate.occupancyUpdate.occupancy,
+            occupancyIntended:
+              validBody.housingUpdate.occupancyUpdate.occupancyIntended,
           }),
         ])
       );
@@ -393,7 +286,10 @@ describe('Housing controller', () => {
           expect(result).toMatchObject(
             expect.objectContaining({
               id: Housing1.id,
-              status: validBody.housingUpdate.status,
+              status: validBody.housingUpdate.statusUpdate.status,
+              occupancy: validBody.housingUpdate.occupancyUpdate.occupancy,
+              occupancy_intended:
+                validBody.housingUpdate.occupancyUpdate.occupancyIntended,
             })
           )
         );
@@ -408,15 +304,65 @@ describe('Housing controller', () => {
         .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
         .andWhereNot('id', HousingEvent1.id)
+        .then((result) =>
+          expect(result).toMatchObject(
+            expect.arrayContaining([
+              expect.objectContaining({
+                housing_id: Housing1.id,
+                name: 'Modification du statut',
+                kind: 'Update',
+                category: 'Followup',
+                section: 'Situation',
+                created_by: User1.id,
+              }),
+            ])
+          )
+        );
+    });
+
+    it('should create and event related to the occupancy change', async () => {
+      await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({ ...validBody })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      await db(eventsTable)
+        .join(housingEventsTable, 'event_id', 'id')
+        .where('housing_id', Housing1.id)
+        .andWhereNot('id', HousingEvent1.id)
+        .then((result) =>
+          expect(result).toMatchObject(
+            expect.arrayContaining([
+              expect.objectContaining({
+                housing_id: Housing1.id,
+                name: "Modification du statut d'occupation",
+                kind: 'Update',
+                category: 'Followup',
+                section: 'Situation',
+                created_by: User1.id,
+              }),
+            ])
+          )
+        );
+    });
+
+    it('should create a note', async () => {
+      await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({ ...validBody })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      await db(notesTable)
+        .join(housingNotesTable, 'note_id', 'id')
+        .where('housing_id', Housing1.id)
         .first()
         .then((result) =>
           expect(result).toMatchObject(
             expect.objectContaining({
               housing_id: Housing1.id,
-              contact_kind: validBody.housingUpdate.contactKind,
-              kind: 'Update',
-              category: 'Followup',
-              section: 'Situation',
+              ...validBody.housingUpdate.note,
               created_by: User1.id,
             })
           )
@@ -431,7 +377,9 @@ describe('Housing controller', () => {
             ...validBody,
             housingUpdate: {
               ...validBody.housingUpdate,
-              status: HousingStatusApi.NeverContacted,
+              statusUpdate: {
+                status: HousingStatusApi.NeverContacted,
+              },
             },
           })
       ).expect(constants.HTTP_STATUS_OK);

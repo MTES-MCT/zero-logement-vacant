@@ -3,8 +3,7 @@ import housingRepository from '../repositories/housingRepository';
 import {
   HousingApi,
   HousingSortableApi,
-  HousingUpdateApi,
-  isHousingUpdated,
+  OccupancyKindApi,
 } from '../models/HousingApi';
 import {
   HousingFiltersApi,
@@ -13,12 +12,11 @@ import {
 import campaignRepository from '../repositories/campaignRepository';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
-import { HousingEventApi } from '../models/EventApi';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
-import { body, param, ValidationChain } from 'express-validator';
+import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
@@ -27,7 +25,10 @@ import paginationApi, { PaginationApi } from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
 import { v4 as uuidv4 } from 'uuid';
 import noteRepository from '../repositories/noteRepository';
-import { HousingNoteApi } from '../models/NoteApi';
+import { NoteApi } from '../models/NoteApi';
+import _ from 'lodash';
+import isIn = validator.isIn;
+import isEmpty = validator.isEmpty;
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -35,7 +36,7 @@ const get = async (request: Request, response: Response) => {
 
   console.log('Get housing', id);
 
-  const housing = await housingRepository.get(id, establishment.geoCodes);
+  const housing = await housingRepository.get(id, establishment.id);
   if (!housing) {
     throw new HousingMissingError(id);
   }
@@ -176,100 +177,138 @@ const listByOwner = async (
   );
 };
 
-const updateHousingValidators = [
-  param('housingId').isUUID(),
+export interface HousingUpdateBody {
+  statusUpdate?: Pick<
+    HousingApi,
+    'status' | 'subStatus' | 'precisions' | 'vacancyReasons'
+  >;
+  occupancyUpdate?: Pick<HousingApi, 'occupancy' | 'occupancyIntended'>;
+  note?: Pick<NoteApi, 'content' | 'noteKind'>;
+}
+
+const updateValidators = [
   body('housingUpdate').notEmpty(),
-  body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
-  body('housingUpdate.contactKind').notEmpty(),
+  body('housingUpdate.statusUpdate')
+    .optional()
+    .custom((value) =>
+      isIn(String(value.status), Object.values(HousingStatusApi))
+    ),
+  body('housingUpdate.occupancyUpdate')
+    .optional()
+    .custom((value) =>
+      isIn(String(value.occupancy), Object.values(OccupancyKindApi))
+    )
+    .custom(
+      (value) =>
+        !value.occupancyIntended ||
+        isIn(String(value.occupancyIntended), Object.values(OccupancyKindApi))
+    ),
+  body('housingUpdate.note')
+    .optional()
+    .custom((value) => value.content && !isEmpty(value.content)),
 ];
 
-const updateHousing = async (
+const update = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
   const housingId = request.params.housingId;
-  const { auth, establishment } = request as AuthenticatedRequest;
-  const { userId, establishmentId } = auth;
-  const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+  const housingUpdateApi = <HousingUpdateBody>request.body.housingUpdate;
 
+  const updatedHousing = await updateHousing(
+    housingId,
+    housingUpdateApi,
+    request as AuthenticatedRequest
+  );
+
+  return response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
+};
+
+const updateHousing = async (
+  housingId: string,
+  housingUpdate: HousingUpdateBody,
+  authUser: Pick<AuthenticatedRequest, 'user' | 'establishment'>
+): Promise<HousingApi> => {
   console.log('Update housing', housingId);
 
-  const housing = await housingRepository.get(
-    housingId,
-    establishment.geoCodes
-  );
+  const { establishment, user } = authUser;
+
+  const housing = await housingRepository.get(housingId, establishment.id);
   if (!housing) {
     throw new HousingMissingError(housingId);
   }
 
-  const campaignList = await campaignRepository.listCampaigns(establishmentId);
-
-  const lastCampaignId = housing.campaignIds.length
-    ? campaignList
-        .filter((_) => housing.campaignIds.indexOf(_.id) !== -1)
-        .reverse()[0].id
-    : campaignList.filter((_) => _.campaignNumber === 0)[0].id;
-
   if (!housing.campaignIds.length) {
-    await campaignHousingRepository.insertHousingList(lastCampaignId, [
-      housing.id,
-    ]);
+    await addHousingInDefaultCampaign(housing, establishment.id);
   }
 
-  if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
+  if (housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
-      [lastCampaignId],
+      housing.campaignIds,
       [housing.id]
     );
   }
 
-  const updatedHousingList = await housingRepository.updateHousingList(
-    [housing.id],
-    housingUpdateApi.status,
-    housingUpdateApi.subStatus,
-    housingUpdateApi.precisions,
-    housingUpdateApi.vacancyReasons
-  );
+  const updatedHousing = {
+    ...housing,
+    ...(housingUpdate.occupancyUpdate
+      ? {
+          occupancy: housingUpdate.occupancyUpdate.occupancy,
+          occupancyIntended: housingUpdate.occupancyUpdate.occupancyIntended,
+        }
+      : {}),
+    ...(housingUpdate.statusUpdate
+      ? {
+          status: housingUpdate.statusUpdate.status,
+          subStatus: housingUpdate.statusUpdate.subStatus,
+          vacancyReasons: housingUpdate.statusUpdate.vacancyReasons,
+          precisions: housingUpdate.statusUpdate.precisions,
+        }
+      : {}),
+  };
 
-  if (isHousingUpdated(housing, housingUpdateApi)) {
-    await createHousingUpdateEvent(
-      [housing],
-      housingUpdateApi,
-      [lastCampaignId],
-      userId
-    );
-  }
+  await housingRepository.update(updatedHousing);
 
-  if (housingUpdateApi.comment?.length) {
-    await createHousingUpdateNote([housing], housingUpdateApi, userId);
-  }
+  await createHousingUpdateEvents(housing, housingUpdate, user.id);
 
-  return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
+  await createHousingUpdateNote(housing.id, housingUpdate, user.id);
+
+  return updatedHousing;
 };
 
-const updateHousingListValidators = [
+const addHousingInDefaultCampaign = async (
+  housingApi: HousingApi,
+  establishmentId: string
+) => {
+  const establishmentCampaigns = await campaignRepository.listCampaigns(
+    establishmentId
+  );
+  const defaultCampaign = establishmentCampaigns.find(
+    (_) => _.campaignNumber === 0
+  );
+  if (defaultCampaign) {
+    await campaignHousingRepository.insertHousingList(defaultCampaign.id, [
+      housingApi.id,
+    ]);
+  }
+};
+
+const updateListValidators = [
   body('allHousing').isBoolean(),
-  body('housingIds')
-    .isArray()
-    .custom((value) => value.every((v: any) => validator.isUUID(v))),
-  body('campaignIds')
-    .notEmpty()
-    .isArray()
-    .custom((value) => value.every((v: any) => validator.isUUID(v))),
+  body('housingIds').custom(isArrayOf(isUUID)),
+  body('campaignIds').notEmpty().custom(isArrayOf(isUUID)),
   body('currentStatus').notEmpty().isIn(Object.values(HousingStatusApi)),
-  body('housingUpdate').notEmpty(),
-  body('housingUpdate.status').notEmpty().isIn(Object.values(HousingStatusApi)),
-  body('housingUpdate.contactKind').notEmpty(),
+  ...updateValidators,
 ];
 
-const updateHousingList = async (
+const updateList = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  console.log('Update campaign housing list');
+  console.log('Update housing list');
 
-  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
-  const housingUpdateApi = <HousingUpdateApi>request.body.housingUpdate;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
+  const housingUpdateApi = <HousingUpdateBody>request.body.housingUpdate;
   const reqCampaignIds = request.body.campaignIds;
   const allHousing = <boolean>request.body.allHousing;
   const housingIds = request.body.housingIds;
@@ -295,83 +334,86 @@ const updateHousingList = async (
       )
     );
 
-  if (housingUpdateApi.status === HousingStatusApi.NeverContacted) {
-    await campaignHousingRepository.deleteHousingFromCampaigns(
-      campaignIds,
-      housingList.map((_) => _.id)
-    );
-  }
-
-  const updatedHousingList = await housingRepository.updateHousingList(
-    housingList.map((_) => _.id),
-    housingUpdateApi.status,
-    housingUpdateApi.subStatus,
-    housingUpdateApi.precisions,
-    housingUpdateApi.vacancyReasons
+  const updatedHousingList = await Promise.all(
+    housingList.map((housing) =>
+      updateHousing(
+        housing.id,
+        housingUpdateApi,
+        request as AuthenticatedRequest
+      )
+    )
   );
-
-  await createHousingUpdateEvent(
-    housingList,
-    housingUpdateApi,
-    campaignIds,
-    userId
-  );
-
-  await createHousingUpdateNote(housingList, housingUpdateApi, userId);
 
   return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
-const createHousingUpdateEvent = async (
-  housingList: HousingApi[],
-  housingUpdateApi: HousingUpdateApi,
-  campaignIds: string[],
+const createHousingUpdateEvents = async (
+  housingApi: HousingApi,
+  housingUpdate: HousingUpdateBody,
   userId: string
-) => {
-  return eventRepository.insertManyHousingEvents(
-    housingList.map(
-      (housingApi) =>
-        <HousingEventApi>{
-          id: uuidv4(),
-          name: 'Modification du statut',
-          kind: 'Update',
-          category: 'Followup',
-          section: 'Situation',
-          contactKind: housingUpdateApi.contactKind,
-          old: housingApi,
-          new: {
-            ...housingApi,
-            status: housingUpdateApi.status,
-            subStatus: housingUpdateApi.subStatus,
-            precisions: housingUpdateApi.precisions,
-            vacancyReasons: housingUpdateApi.vacancyReasons,
-          },
-          createdBy: userId,
-          createdAt: new Date(),
-          housingId: housingApi.id,
-        }
-    )
-  );
+): Promise<void> => {
+  const statusUpdate = housingUpdate.statusUpdate;
+  if (
+    statusUpdate &&
+    (housingApi.status !== statusUpdate.status ||
+      housingApi.subStatus !== statusUpdate.subStatus ||
+      !_.isEqual(housingApi.precisions, statusUpdate.precisions) ||
+      !_.isEqual(housingApi.vacancyReasons, statusUpdate.vacancyReasons))
+  ) {
+    await eventRepository.insertHousingEvent({
+      id: uuidv4(),
+      name: 'Modification du statut',
+      kind: 'Update',
+      category: 'Followup',
+      section: 'Situation',
+      old: housingApi,
+      new: {
+        ...housingApi,
+        ...housingUpdate.statusUpdate,
+      },
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId: housingApi.id,
+    });
+  }
+
+  const occupancyUpdate = housingUpdate.occupancyUpdate;
+  if (
+    occupancyUpdate &&
+    (housingApi.occupancy !== occupancyUpdate.occupancy ||
+      housingApi.occupancyIntended !== occupancyUpdate.occupancyIntended)
+  ) {
+    await eventRepository.insertHousingEvent({
+      id: uuidv4(),
+      name: "Modification du statut d'occupation",
+      kind: 'Update',
+      category: 'Followup',
+      section: 'Situation',
+      old: housingApi,
+      new: {
+        ...housingApi,
+        ...housingUpdate.occupancyUpdate,
+      },
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId: housingApi.id,
+    });
+  }
 };
 const createHousingUpdateNote = async (
-  housingList: HousingApi[],
-  housingUpdateApi: HousingUpdateApi,
+  housingId: string,
+  housingUpdate: HousingUpdateBody,
   userId: string
 ) => {
-  return noteRepository.insertManyHousingNotes(
-    housingList.map(
-      (housingApi) =>
-        <HousingNoteApi>{
-          id: uuidv4(),
-          title: 'Note sur la mise à jour du dossier',
-          content: housingUpdateApi.comment,
-          contactKind: housingUpdateApi.contactKind,
-          createdBy: userId,
-          createdAt: new Date(),
-          housingId: housingApi.id,
-        }
-    )
-  );
+  if (housingUpdate.note) {
+    await noteRepository.insertHousingNote({
+      id: uuidv4(),
+      ...housingUpdate.note,
+      createdBy: userId,
+      createdAt: new Date(),
+      housingId,
+    });
+  }
 };
 
 const housingController = {
@@ -380,10 +422,10 @@ const housingController = {
   list,
   count,
   listByOwner,
-  updateHousingValidators,
-  updateHousing,
-  updateHousingListValidators,
-  updateHousingList,
+  updateValidators,
+  update,
+  updateListValidators,
+  updateList,
 };
 
 export default housingController;

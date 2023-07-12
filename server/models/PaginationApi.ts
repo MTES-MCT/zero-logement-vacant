@@ -5,13 +5,13 @@ import { Pagination } from '../../shared/models/Pagination';
 
 export type PaginationApi = PaginationEnabled | PaginationDisabled;
 
-interface PaginationEnabled {
+export interface PaginationEnabled {
   paginate: true;
   page: number;
   perPage: number;
 }
 
-interface PaginationDisabled {
+export interface PaginationDisabled {
   paginate: false;
 }
 

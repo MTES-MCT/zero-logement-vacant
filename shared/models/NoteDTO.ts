@@ -1,15 +1,13 @@
 export interface NoteCreationDTO {
-  title: string;
-  content?: string;
-  contactKind: string;
+  content: string;
+  noteKind: string;
   ownerId?: string;
   housingIds?: string[];
 }
 
 export interface NoteDTO {
-  title: string;
-  content?: string;
-  contactKind?: string;
+  content: string;
+  noteKind: string;
   createdBy: string;
   createdAt: string;
 }

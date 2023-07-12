@@ -2,9 +2,8 @@ import { Housing } from './Housing';
 import { Owner } from './Owner';
 
 export interface NoteCreation {
-  title: string;
   content: string;
-  contactKind: string;
+  noteKind: string;
 }
 
 export interface HousingNoteCreation extends NoteCreation {
@@ -27,7 +26,7 @@ export const isOwnerNoteCreation = (
   return (noteCreation as OwnerNoteCreation).owner !== undefined;
 };
 
-export interface Note extends Partial<NoteCreation> {
+export interface Note extends NoteCreation {
   createdBy: string;
   createdAt: Date;
 }

@@ -4,6 +4,8 @@ import { stringSort } from '../utils/stringUtils';
 import { Compare } from '../utils/compareUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
+import { Note } from './Note';
+import { differenceInDays, format } from 'date-fns';
 
 export interface Housing {
   id: string;
@@ -36,7 +38,8 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionWorst?: string;
-  occupancy?: string;
+  occupancy: OccupancyKind;
+  occupancyIntended?: OccupancyKind;
 }
 
 export interface SelectedHousing {
@@ -45,12 +48,12 @@ export interface SelectedHousing {
 }
 
 export interface HousingUpdate {
-  status: HousingStatus;
-  subStatus?: string;
-  precisions?: string[];
-  contactKind?: string;
-  vacancyReasons?: string[];
-  comment?: string;
+  statusUpdate?: Pick<
+    Housing,
+    'status' | 'subStatus' | 'precisions' | 'vacancyReasons'
+  >;
+  occupancyUpdate?: Pick<Housing, 'occupancy' | 'occupancyIntended'>;
+  note?: Pick<Note, 'content' | 'noteKind'>;
 }
 
 export interface BuildingLocation {
@@ -171,3 +174,35 @@ export function hasCoordinates(
     housing.latitude <= MAX_LAT
   );
 }
+
+export const lastUpdate = (housing: Housing): String =>
+  housing.lastContact
+    ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
+        new Date(),
+        housing.lastContact
+      )} jours)`
+    : 'Aucune mise à jour';
+
+export enum OccupancyKind {
+  Vacant = 'V',
+  Rent = 'L',
+  ShortRent = 'B',
+  PrimaryResidence = 'P',
+  SecondaryResidence = 'RS',
+  CommercialOrOffice = 'T',
+  Dependency = 'N',
+  DemolishedOrDivided = 'D',
+  Others = 'A',
+}
+
+export const OccupancyKindLabels = {
+  [OccupancyKind.Vacant]: 'Vacant',
+  [OccupancyKind.Rent]: 'Loué',
+  [OccupancyKind.ShortRent]: 'Location courte durée',
+  [OccupancyKind.PrimaryResidence]: 'Résidence principale',
+  [OccupancyKind.SecondaryResidence]: 'Résidence secondaire',
+  [OccupancyKind.CommercialOrOffice]: 'Local commercial ou bureau',
+  [OccupancyKind.Dependency]: 'Dépendance',
+  [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
+  [OccupancyKind.Others]: 'Autres',
+};

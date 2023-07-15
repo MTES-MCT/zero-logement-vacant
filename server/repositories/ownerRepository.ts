@@ -315,7 +315,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   rawAddress: result.raw_address.filter((_: string) => _ && _.length),
   fullName: result.full_name,
   administrator: result.administrator,
-  birthDate: result.birth_date,
+  birthDate: result.birth_date?.toISOString(),
   email: result.email,
   phone: result.phone,
 });

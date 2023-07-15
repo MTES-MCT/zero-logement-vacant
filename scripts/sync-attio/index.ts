@@ -7,7 +7,7 @@ import { counter, tapAllAsync } from './stream';
 import { detectDomain, UserRoles } from '../../server/models/UserApi';
 import establishmentRepository from '../../server/repositories/establishmentRepository';
 import userRepository from '../../server/repositories/userRepository';
-import { appendAll } from '../import-lovac/stream';
+import { appendAll } from '../../server/utils/stream';
 
 // Requests per second (to comply with Attio's rate limit)
 const MAX_REQUESTS_PER_FRAME = 100;

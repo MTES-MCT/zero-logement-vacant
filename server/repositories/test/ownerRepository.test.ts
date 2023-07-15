@@ -35,13 +35,15 @@ describe('Owner repository', () => {
       const actual = await ownerRepository.findOne({
         fullName: owner.fullName,
         rawAddress: owner.rawAddress,
-        birthDate: owner.birthDate,
+        birthDate: owner.birthDate ? new Date(owner.birthDate) : undefined,
       });
 
       expect(actual).toStrictEqual({
         ...owner,
         administrator: null,
-        birthDate: owner.birthDate ? startOfDay(owner.birthDate) : null,
+        birthDate: owner.birthDate
+          ? startOfDay(new Date(owner.birthDate))
+          : null,
       });
     });
   });

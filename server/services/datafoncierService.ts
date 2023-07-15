@@ -5,45 +5,35 @@ import fp from 'lodash/fp';
 import { URLSearchParams } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 
-import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
-import {
-  HousingApi,
-  OccupancyKindApi,
-  OwnershipKindsApi,
-} from '../models/HousingApi';
+import { OwnerApi } from '../models/OwnerApi';
 import { logger } from '../utils/logger';
-import { ReferenceDataYear } from '../repositories/housingRepository';
-import { HousingStatusApi } from '../models/HousingStatusApi';
 import { isNotNull } from '../../shared/utils/compare';
-import { appendAll } from '../utils/stream';
-import { PaginationApi } from '../models/PaginationApi';
+import { isPaginationEnabled, PaginationApi } from '../models/PaginationApi';
 import config from '../utils/config';
+import { untilEmpty } from '../utils/async';
 import Stream = Highland.Stream;
 
 const API = `https://apidf-preprod.cerema.fr`;
 
-type FindHousingListOptions = Partial<PaginationApi> & {
+type FindHousingListOptions = PaginationApi & {
   geoCode: string;
 };
 
 async function findHousingList(
   opts: FindHousingListOptions
-): Promise<HousingApi[]> {
-  const housingList = await findRawHousingList(opts);
-  return housingList.map((housing) => toHousingApi(housing, []));
-}
-
-async function findRawHousingList(
-  opts: FindHousingListOptions
 ): Promise<HousingDTO[]> {
+  logger.debug('Finding housing list', opts);
+
   const query = createQuery({
     fields: 'all',
     dteloc: '1,2',
     code_insee: opts.geoCode,
+    page: isPaginationEnabled(opts) ? opts.page.toString() : null,
+    page_size: isPaginationEnabled(opts) ? opts.perPage.toString() : null,
   });
   const response = await fetch(`${API}/ff/locaux?${query}`, {
     headers: {
-      Authorization: `Bearer ${config.datafoncier.token}`,
+      Authorization: `Token ${config.datafoncier.token}`,
     },
   });
 
@@ -58,63 +48,24 @@ interface StreamOptions {
   geoCodes: string[];
 }
 
-function untilEmpty<T>(
-  fn: (pagination: PaginationApi) => Promise<T[]>,
-  onProgress: (items: T[]) => void
-): Promise<void> {
-  const perPage = 100;
-  let page = 1;
-  let length = 0;
+function streamHousingList(opts: StreamOptions): Stream<HousingDTO> {
+  logger.debug('Stream housing list', opts);
 
-  return async.doUntil(
-    async () => {
-      const data = await fn({
-        paginate: true,
-        page,
-        perPage,
-      });
-      onProgress(data);
-      page++;
-      length = data.length;
-    },
-    async () => length < perPage
-  );
-}
-
-function streamHousingList(opts: StreamOptions): Stream<HousingApi> {
-  logger.debug('Stream housing list', {
-    options: opts,
-  });
-
-  return highland<HousingDTO[]>((push, next) => {
-    async
-      .forEachSeries(opts.geoCodes, async (geoCode) => {
-        await untilEmpty(
-          () => findRawHousingList({ geoCode }),
-          (housingList) => {
-            push(null, housingList);
-            next();
-          }
-        );
-      })
-      .catch((error) => {
-        push(error);
-        next();
-      });
-  })
-    .flatten()
-    .filter(occupancy('L'))
-    .map((housing) => ({ housing }))
-    .through(
-      appendAll({
-        owners: ({ housing }) =>
-          findOwners({
-            geoCode: housing.idcom,
-            forHousing: housing.idprocpte,
-          }),
+  return highland<string>(opts.geoCodes)
+    .flatMap((geoCode) =>
+      highland<HousingDTO[]>((push, next) => {
+        untilEmpty(
+          (pagination) => findHousingList({ geoCode, ...pagination }),
+          (housingList) => push(null, housingList)
+        )
+          .then(() => {
+            push(null, highland.nil);
+          })
+          .catch(push);
       })
     )
-    .map(({ housing, owners }) => toHousingApi(housing, owners));
+    .flatten()
+    .filter(occupancy('L'));
 }
 
 interface FindOwnersOptions {
@@ -136,7 +87,7 @@ async function findOwners(opts: FindOwnersOptions): Promise<OwnerApi[]> {
   });
   const response = await fetch(`${API}/ff/proprios?${query}`, {
     headers: {
-      Authorization: `Bearer ${config.datafoncier.token}`,
+      Authorization: `Token ${config.datafoncier.token}`,
     },
   });
 
@@ -200,7 +151,7 @@ interface ResultDTO<T> {
 /**
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/pb0010_local/last/
  */
-interface HousingDTO {
+export interface HousingDTO {
   idlocal: string;
   idbat: string;
   idpar: string;
@@ -323,43 +274,6 @@ interface HousingDTO {
   ban_cp: string;
   dis_ban_ff: number;
   idpk: number;
-}
-
-function toHousingApi(housing: HousingDTO, owners: OwnerApi[]): HousingApi {
-  const [owner, ...coowners] = owners;
-  // Should be erased later in the chain
-  // by the original housing id if it exists
-  const housingId = uuidv4();
-  return {
-    id: housingId,
-    invariant: housing.invar,
-    localId: housing.idlocal,
-    rawAddress: [`${housing.dnvoiri} ${housing.dvoilib}`, housing.idcomtxt],
-    geoCode: housing.idcom,
-    // TODO: no data
-    uncomfortable: false,
-    housingKind: housing.dteloc === '1' ? 'MAISON' : 'APPART',
-    roomsCount: housing.npiece_p2,
-    livingArea: housing.stoth,
-    cadastralReference: 'Nope',
-    buildingYear: housing.jannath,
-    taxed: false,
-    vacancyReasons: [],
-    dataYears: [ReferenceDataYear + 1],
-    buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
-    ownershipKind: housing.ctpdl as OwnershipKindsApi,
-    status: HousingStatusApi.NeverContacted,
-    occupancy: OccupancyKindApi.Rent,
-    // TODO: verify
-    contactCount: 0,
-    owner,
-    coowners: coowners.map<HousingOwnerApi>((coowner, i) => ({
-      ...coowner,
-      housingId,
-      rank: 2 + i,
-    })),
-    campaignIds: [],
-  };
 }
 
 /**

@@ -1,17 +1,19 @@
 import { formatDuration, intervalToDuration } from 'date-fns';
-import { errorHandler } from '../../server/utils/stream';
+import fp from 'lodash/fp';
 import { logger } from '../../server/utils/logger';
 import establishmentRepository from '../../server/repositories/establishmentRepository';
-import housingRepository from '../../server/repositories/housingRepository';
 import { tapAsync } from '../sync-attio/stream';
-import ownerRepository from '../../server/repositories/ownerRepository';
-import createOwnerDatafoncierStream from './ownerDatafoncierRepository';
 import createHousingDatafoncierStream from './housingDatafoncierRepository';
 import config from '../../server/utils/config';
-import fp from 'lodash/fp';
+import { HousingRecordApi } from '../../server/models/HousingApi';
+import db from '../../server/repositories/db';
+import {
+  formatHousingRecordApi,
+  housingTable,
+} from '../../server/repositories/housingRepository';
+import { Knex } from 'knex';
 
-const OWNER_BATCH_SIZE = 200;
-const HOUSING_BATCH_SIZE = 500;
+const HOUSING_BATCH_SIZE = 1_000;
 
 async function run(): Promise<void> {
   const start = new Date();
@@ -23,7 +25,6 @@ async function run(): Promise<void> {
   });
   const geoCodes = fp.uniq(establishments.flatMap((_) => _.geoCodes));
 
-  await importOwners(geoCodes);
   await importHousing(geoCodes);
 
   const end = new Date();
@@ -32,46 +33,42 @@ async function run(): Promise<void> {
   logger.info(`Done in ${elapsed}.`);
 }
 
-function importOwners(geoCodes: string[]): Promise<void> {
-  logger.info('Importing owners...');
-
-  return new Promise((resolve) => {
-    createOwnerDatafoncierStream()
-      .stream({
-        geoCodes,
-      })
-      .batch(OWNER_BATCH_SIZE)
-      .consume(tapAsync(ownerRepository.saveMany))
-      .through(errorHandler())
-      .done(() => {
-        logger.info('Owners imported.');
-        resolve();
-      });
-  });
-}
-
-function importHousing(geoCodes: string[]): Promise<void> {
+async function importHousing(geoCodes: string[]): Promise<void> {
   logger.info('Importing housing...');
 
-  return new Promise((resolve) => {
+  const transaction = await db.transaction();
+
+  return new Promise((resolve, reject) => {
     createHousingDatafoncierStream()
       .stream({
         geoCodes,
       })
       .batch(HOUSING_BATCH_SIZE)
-      .consume(
-        tapAsync((housingList) =>
-          housingRepository.saveMany(housingList, {
-            onConflict: 'ignore',
-          })
-        )
-      )
-      .through(errorHandler())
+      .tap((records) => {
+        logger.debug(`Saving ${records.length} records...`);
+      })
+      .consume(tapAsync(createHousingSaver(transaction)))
+      .stopOnError((error) => {
+        transaction.rollback(error);
+        reject(error);
+      })
       .done(() => {
         logger.info('Housing imported.');
+        transaction.commit();
         resolve();
       });
   });
 }
 
-run().catch(logger.error);
+function createHousingSaver(transaction: Knex.Transaction) {
+  return async (housingList: HousingRecordApi[]): Promise<void> => {
+    await transaction(housingTable)
+      .insert(housingList.map(formatHousingRecordApi))
+      .onConflict('local_id')
+      .ignore();
+  };
+}
+
+run()
+  .catch(logger.error.bind(logger))
+  .finally(() => db.destroy());

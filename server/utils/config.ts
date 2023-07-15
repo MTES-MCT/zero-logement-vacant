@@ -164,10 +164,12 @@ const config = convict<Config>({
     default: null,
   },
   datafoncier: {
-    env: 'DATAFONCIER_TOKEN',
-    format: String,
-    default: null,
-    sensitive: true,
+    token: {
+      env: 'DATAFONCIER_TOKEN',
+      format: String,
+      default: null,
+      sensitive: true,
+    },
   },
   features: {
     enableTestAccounts: {

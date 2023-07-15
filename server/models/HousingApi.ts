@@ -17,10 +17,10 @@ export interface HousingRecordApi {
   housingKind: string;
   roomsCount: number;
   livingArea: number;
-  cadastralReference: string;
+  cadastralReference?: string;
   buildingYear?: number;
-  taxed: boolean;
-  vacancyReasons: string[];
+  taxed?: boolean;
+  vacancyReasons?: string[];
   dataYears: number[];
   buildingLocation?: string;
   ownershipKind?: OwnershipKindsApi;

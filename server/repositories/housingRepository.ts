@@ -33,7 +33,7 @@ import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
 import {
-  isPaginationEnable,
+  isPaginationEnabled,
   PaginationApi,
   paginationQuery,
 } from '../models/PaginationApi';
@@ -714,8 +714,8 @@ const paginatedListWithFilters = async (
         filteredCount: filteredCounts.housingCount,
         filteredOwnerCount: filteredCounts.ownerCount,
         totalCount: totalCounts.housingCount,
-        page: isPaginationEnable(pagination) ? pagination.page : undefined,
-        perPage: isPaginationEnable(pagination)
+        page: isPaginationEnabled(pagination) ? pagination.page : undefined,
+        perPage: isPaginationEnabled(pagination)
           ? pagination.perPage
           : undefined,
       }
@@ -875,7 +875,7 @@ interface HousingRecordDBO {
   building_year?: number;
   taxed?: boolean;
   vacancy_reasons?: string[];
-  data_years?: number[];
+  data_years: number[];
   building_location?: string;
   ownership_kind?: OwnershipKindsApi;
   status: HousingStatusApi;
@@ -949,7 +949,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   lastContact: result.last_contact,
 });
 
-const formatHousingRecordApi = (
+export const formatHousingRecordApi = (
   housingRecordApi: HousingRecordApi
 ): HousingRecordDBO => ({
   id: housingRecordApi.id,

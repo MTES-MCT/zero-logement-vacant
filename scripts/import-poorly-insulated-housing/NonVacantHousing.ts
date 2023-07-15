@@ -143,7 +143,9 @@ export function toHousingApi(housing: NonVacantHousing): HousingApi {
     // TODO: owner
     // TODO: coowners
     occupancy:
-      housing.ff_ccthp === 'L' ? OccupancyKindApi.Rent : OccupancyKindApi.Other,
+      housing.ff_ccthp === 'L'
+        ? OccupancyKindApi.Rent
+        : OccupancyKindApi.Others,
   } as HousingApi;
 }
 

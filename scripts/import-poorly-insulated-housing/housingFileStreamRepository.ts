@@ -36,17 +36,6 @@ class HousingFileStreamRepository implements HousingStreamRepository {
   }
 }
 
-// function geoCode(...geoCodes: string[]) {
-//   const set = new Set(geoCodes);
-//
-//   return (housing: HousingDTO): boolean => {
-//     const department = lodash.padStart(housing.ccodep, 2, '0');
-//     const city = lodash.padStart(housing.commune, 3, '0');
-//     const geoCode = `${department}${city}`;
-//     return set.has(geoCode);
-//   };
-// }
-
 function createHousingFileStream(file: string): HousingStreamRepository {
   return new HousingFileStreamRepository(file);
 }

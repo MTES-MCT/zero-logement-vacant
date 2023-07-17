@@ -53,7 +53,7 @@ interface Config {
   databaseUrl: string;
   databaseUrlTest: string;
   datafoncier: {
-    token: string;
+    token: string | null;
   };
   features: {
     enableTestAccounts: boolean;
@@ -168,6 +168,7 @@ const config = convict<Config>({
       env: 'DATAFONCIER_TOKEN',
       format: String,
       default: null,
+      nullable: true,
       sensitive: true,
     },
   },

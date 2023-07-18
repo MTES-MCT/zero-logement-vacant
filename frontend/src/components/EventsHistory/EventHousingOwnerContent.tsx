@@ -3,7 +3,6 @@ import styles from './events-history.module.scss';
 import React from 'react';
 import { age, birthdate } from '../../utils/dateUtils';
 import { parseHousingOwner } from '../../services/owner.service';
-import { Text } from '@dataesr/react-dsfr';
 import { capitalize } from '../../utils/stringUtils';
 
 interface Props {

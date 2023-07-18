@@ -90,7 +90,15 @@ const EventsHistory = ({ events, notes }: Props) => {
                             'd-inline-block'
                           )}
                         >
-                          Ce logement est <b>NOUVEAU</b> dans Lovac
+                          {eventOrNote.new ? (
+                            <>
+                              Ce logement est <b>nouveau</b> dans Lovac
+                            </>
+                          ) : (
+                            <>
+                              Ce logement <b>n'est plus présent</b> dans Lovac
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

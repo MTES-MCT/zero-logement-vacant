@@ -215,7 +215,7 @@ const escapeValue = (value?: string) => {
 export interface OwnerDBO {
   id: string;
   full_name: string;
-  birth_date?: string;
+  birth_date?: Date;
   administrator?: string;
   raw_address: string[];
   owner_kind?: string;

@@ -10,6 +10,8 @@ import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
 import { isArrayOf, isString } from '../utils/validators';
+import { compare } from '../utils/compareUtils';
+import { parseISO } from 'date-fns';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -78,13 +80,27 @@ const create = async (request: Request, response: Response) => {
   return response.status(constants.HTTP_STATUS_OK).json(createdOwnerApi);
 };
 
+type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
+
+const parseHousingOwnerApi = (
+  housingOwnerBody: HousingOwnerBody
+): HousingOwnerApi => ({
+  ...housingOwnerBody,
+  birthDate: housingOwnerBody.birthDate
+    ? parseISO(housingOwnerBody.birthDate)
+    : undefined,
+});
+
 const update = async (request: JWTRequest, response: Response) => {
   const ownerId = request.params.ownerId;
 
-  console.log('Update owner', ownerId, request.body);
+  console.log('Update owner', ownerId);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const ownerApi = { id: ownerId, ...request.body };
+  const ownerApi = {
+    ...parseHousingOwnerApi(request.body as HousingOwnerBody),
+    id: ownerId,
+  };
 
   const updatedOwnerApi = await updateOwner(ownerApi, userId);
 
@@ -103,22 +119,26 @@ const updateOwner = async (
     throw new OwnerMissingError(ownerApi.id);
   }
 
-  if (
-    prevOwnerApi?.fullName !== ownerApi.fullName ||
-    prevOwnerApi?.birthDate !== ownerApi.birthDate ||
-    prevOwnerApi?.rawAddress !== ownerApi.rawAddress ||
-    prevOwnerApi?.email !== ownerApi.email ||
-    prevOwnerApi?.phone !== ownerApi.phone
-  ) {
-    const updatedOwnerApi = {
-      ...prevOwnerApi,
-      fullName: ownerApi.fullName,
-      birthDate: ownerApi.birthDate,
-      rawAddress: ownerApi.rawAddress,
-      email: ownerApi.email,
-      phone: ownerApi.phone,
-    };
+  const updatedOwnerApi = {
+    ...prevOwnerApi,
+    fullName: ownerApi.fullName,
+    birthDate: ownerApi.birthDate,
+    rawAddress: ownerApi.rawAddress,
+    email: ownerApi.email,
+    phone: ownerApi.phone,
+  };
 
+  const hasIdentityChanges =
+    Object.values(
+      compare(prevOwnerApi, updatedOwnerApi, ['fullName', 'birthDate'])
+    ).length > 0;
+
+  const hasContactChanges =
+    Object.values(
+      compare(prevOwnerApi, updatedOwnerApi, ['rawAddress', 'email', 'phone'])
+    ).length > 0;
+
+  if (hasIdentityChanges || hasContactChanges) {
     console.log('updatedOwnerApi', updatedOwnerApi);
 
     await ownerRepository.update(updatedOwnerApi);
@@ -128,18 +148,35 @@ const updateOwner = async (
       AddressKinds.Owner
     );
 
-    await eventRepository.insertOwnerEvent({
-      id: uuidv4(),
-      name: 'Modification de coordonnées',
-      kind: 'Update',
-      category: 'Ownership',
-      section: 'Coordonnées propriétaire',
-      old: prevOwnerApi,
-      new: updatedOwnerApi,
-      createdBy: userId,
-      createdAt: new Date(),
-      ownerId: ownerApi.id,
-    });
+    if (hasIdentityChanges) {
+      await eventRepository.insertOwnerEvent({
+        id: uuidv4(),
+        name: "Modification d'identité",
+        kind: 'Update',
+        category: 'Ownership',
+        section: 'Coordonnées propriétaire',
+        old: prevOwnerApi,
+        new: updatedOwnerApi,
+        createdBy: userId,
+        createdAt: new Date(),
+        ownerId: ownerApi.id,
+      });
+    }
+
+    if (hasContactChanges) {
+      await eventRepository.insertOwnerEvent({
+        id: uuidv4(),
+        name: 'Modification de coordonnées',
+        kind: 'Update',
+        category: 'Ownership',
+        section: 'Coordonnées propriétaire',
+        old: prevOwnerApi,
+        new: updatedOwnerApi,
+        createdBy: userId,
+        createdAt: new Date(),
+        ownerId: ownerApi.id,
+      });
+    }
 
     return updatedOwnerApi;
   }
@@ -154,9 +191,9 @@ const updateHousingOwners = async (
   console.log('Update housing owners', housingId);
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const housingOwnersApi = (<HousingOwnerApi[]>request.body).filter(
-    (_) => _.housingId === housingId
-  );
+  const housingOwnersApi = (<HousingOwnerBody[]>request.body)
+    .map((_) => parseHousingOwnerApi(_))
+    .filter((_) => _.housingId === housingId);
 
   await Promise.all(
     housingOwnersApi.map((housingOwnerApi) =>

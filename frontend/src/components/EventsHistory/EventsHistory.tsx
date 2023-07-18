@@ -9,7 +9,8 @@ import EventPartialHousingContent from './EventPartialHousingContent';
 import EventHousingOwnerContent from './EventHousingOwnerContent';
 import { Note } from '../../models/Note';
 import classNames from 'classnames';
-import { getHousingDiff } from '../../models/HousingDiff';
+import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
+import EventPartialOwnerContent from './EventPartialOwnerContent';
 
 interface Props {
   events: Event[];
@@ -103,43 +104,65 @@ const EventsHistory = ({ events, notes }: Props) => {
                       )}
                     </div>
                   )}
-                  {eventOrNote.category === 'Ownership' &&
-                    eventOrNote.section === 'Propriétaire' && (
-                      <div className={styles.eventContentRowContainer}>
-                        <EventHousingOwnerContent
-                          housingOwners={
-                            eventOrNote.old.owner
-                              ? [eventOrNote.old.owner]
-                              : eventOrNote.old
-                          }
-                        />
-                        <>
-                          {eventOrNote.conflict ? (
-                            <span className="fr-icon-error-warning-fill color-red-marianne-625" />
-                          ) : (
-                            <span className="fr-icon-arrow-right-s-line" />
-                          )}
-                        </>
-                        {eventOrNote.new ? (
+                  {eventOrNote.category === 'Ownership' && (
+                    <>
+                      {eventOrNote.section === 'Propriétaire' && (
+                        <div className={styles.eventContentRowContainer}>
                           <EventHousingOwnerContent
                             housingOwners={
-                              eventOrNote.new.owner
-                                ? [eventOrNote.new.owner]
-                                : eventOrNote.new
+                              eventOrNote.old.owner
+                                ? [eventOrNote.old.owner]
+                                : eventOrNote.old
                             }
                           />
-                        ) : (
-                          <div
-                            className={classNames(
-                              styles.eventContent,
-                              'd-inline-block'
+                          <>
+                            {eventOrNote.conflict ? (
+                              <span className="fr-icon-error-warning-fill color-red-marianne-625" />
+                            ) : (
+                              <span className="fr-icon-arrow-right-s-line" />
                             )}
-                          >
-                            Ce logement <b>n'est plus présent</b> dans Lovac
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          </>
+                          {eventOrNote.new ? (
+                            <EventHousingOwnerContent
+                              housingOwners={
+                                eventOrNote.new.owner
+                                  ? [eventOrNote.new.owner]
+                                  : eventOrNote.new
+                              }
+                            />
+                          ) : (
+                            <div
+                              className={classNames(
+                                styles.eventContent,
+                                'd-inline-block'
+                              )}
+                            >
+                              Ce logement <b>n'est plus présent</b> dans Lovac
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {eventOrNote.section === 'Coordonnées propriétaire' && (
+                        <div className={styles.eventContentRowContainer}>
+                          <EventPartialOwnerContent
+                            partialOwner={
+                              getOwnerDiff(eventOrNote.old, eventOrNote.new).old
+                            }
+                            ownerName={eventOrNote.old.fullName}
+                            eventName={eventOrNote.name}
+                          />
+                          <span className="fr-icon-arrow-right-s-line" />
+                          <EventPartialOwnerContent
+                            partialOwner={
+                              getOwnerDiff(eventOrNote.old, eventOrNote.new).new
+                            }
+                            ownerName={eventOrNote.new.fullName}
+                            eventName={eventOrNote.name}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </>
               ) : (
                 <>

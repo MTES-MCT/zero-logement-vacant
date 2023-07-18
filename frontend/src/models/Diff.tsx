@@ -1,0 +1,53 @@
+import fp from 'lodash/fp';
+
+import { Housing } from './Housing';
+import { Owner } from './Owner';
+
+export interface Diff<T> {
+  old: Partial<T>;
+  new: Partial<T>;
+}
+
+function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
+  return fp.pipe(
+    fp.pick(props),
+    fp.pickBy((value, key) => !fp.isEqual(value, b[key as keyof typeof value]))
+  )(a);
+}
+
+function getDiff<T>(a: T, b: T, props: Array<keyof T>): Diff<T> {
+  return {
+    old: compare(a, b, props),
+    new: compare(b, a, props),
+  };
+}
+
+export function hasValues<T>(partial: Partial<T>) {
+  return (
+    Object.values(partial).filter(
+      (_) => _ !== undefined && _ !== null && (_ as any[]).length !== 0
+    ).length > 0
+  );
+}
+
+export const getHousingDiff = (
+  oldHousing: Housing,
+  newHousing: Housing
+): Diff<Housing> =>
+  getDiff(oldHousing, newHousing, [
+    'status',
+    'subStatus',
+    'precisions',
+    'vacancyReasons',
+    'occupancy',
+    'occupancyIntended',
+  ]);
+
+export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
+  getDiff(oldOwner, newOwner, [
+    'fullName',
+    'birthDate',
+    'rawAddress',
+    'email',
+    'phone',
+  ]);

@@ -148,7 +148,10 @@ const EventsHistory = ({ events, notes }: Props) => {
                   </Text>
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: eventOrNote.content,
+                      __html: eventOrNote.content.replaceAll(
+                        /(\n|\\n)/g,
+                        '<br />'
+                      ),
                     }}
                     className={styles.eventContent}
                   />

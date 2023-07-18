@@ -18,7 +18,7 @@ describe('Establishment controller', () => {
         queryParams?.length ? '?' + queryParams.join('&&') : ''
       }`;
 
-    it('should received at least a query param', async () => {
+    it('should receive at least a query param', async () => {
       await request(app)
         .get(testRoute())
         .expect(constants.HTTP_STATUS_BAD_REQUEST);

@@ -46,7 +46,7 @@ const create = async (request: Request, response: Response) => {
 
   try {
     // Optional steps
-    const establishments = await establishmentRepository.listWithFilters({
+    const establishments = await establishmentRepository.find({
       available: true,
       geoCodes: [body.geoCode],
     });

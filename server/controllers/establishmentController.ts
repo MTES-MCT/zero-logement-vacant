@@ -4,6 +4,7 @@ import { constants } from 'http2';
 import { query, ValidationChain } from 'express-validator';
 import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
 import validator from 'validator';
+import BadRequestError from '../errors/badRequestError';
 
 const listValidators: ValidationChain[] = [
   query('available').optional({ nullable: true }).isBoolean(),
@@ -22,19 +23,16 @@ const listValidators: ValidationChain[] = [
     ),
 ];
 
-const list = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const list = async (request: Request, response: Response) => {
   console.log('list establishments');
 
   const available = request.query.available
     ? Boolean(request.query.available)
     : undefined;
-  const searchQuery = <string>request.query.query;
-  const name = <string>request.query.name;
-  const geoCodes = <string[]>request.query.geoCodes;
-  const kind = <EstablishmentKind>request.query.kind;
+  const searchQuery = request.query.query as string;
+  const name = request.query.name as string;
+  const geoCodes = request.query.geoCodes as string[];
+  const kind = request.query.kind as EstablishmentKind;
 
   if (
     available === undefined &&
@@ -42,12 +40,17 @@ const list = async (
     !geoCodes?.length &&
     !name?.length
   ) {
-    return response.sendStatus(constants.HTTP_STATUS_BAD_REQUEST);
+    throw new BadRequestError();
   }
 
-  return establishmentRepository
-    .listWithFilters({ available, query: searchQuery, geoCodes, kind, name })
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const establishments = await establishmentRepository.find({
+    available,
+    query: searchQuery,
+    geoCodes,
+    kind,
+    name,
+  });
+  response.status(constants.HTTP_STATUS_OK).json(establishments);
 };
 
 export default {

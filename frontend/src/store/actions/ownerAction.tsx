@@ -6,7 +6,6 @@ import ownerSlice from '../reducers/ownerReducer';
 
 export interface OwnerHousingFetchedAction {
   housingList: Housing[];
-  housingTotalCount: number;
 }
 
 const { ownerHousingFetched, fetchingOwnerHousing } = ownerSlice.actions;
@@ -22,7 +21,6 @@ export const getOwnerHousing = (ownerId: string) => {
       dispatch(
         ownerHousingFetched({
           housingList: result.entities,
-          housingTotalCount: result.totalCount,
         })
       );
     });

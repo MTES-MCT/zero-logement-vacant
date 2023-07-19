@@ -9,8 +9,7 @@ export function useOwner() {
   const dispatch = useAppDispatch();
   const { ownerId } = useParams<{ ownerId: string }>();
 
-  const { data: events, refetch: refetchOwnerEvents } =
-    useFindEventsByOwnerQuery(ownerId);
+  const { data: events } = useFindEventsByOwnerQuery(ownerId);
 
   const { data: owner } = useGetOwnerQuery(ownerId);
 
@@ -18,15 +17,11 @@ export function useOwner() {
     dispatch(getOwnerHousing(ownerId));
   }, [ownerId, dispatch]);
 
-  const { housingList, housingTotalCount } = useAppSelector(
-    (state) => state.owner
-  );
+  const { housingList } = useAppSelector((state) => state.owner);
 
   return {
     events,
-    refetchOwnerEvents,
     housingList,
-    housingTotalCount,
     owner,
   };
 }

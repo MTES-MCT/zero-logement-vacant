@@ -1,3 +1,7 @@
+import { differenceInDays } from 'date-fns';
+import highland from 'highland';
+import { Knex } from 'knex';
+
 import db, { likeUnaccent } from './db';
 import {
   EstablishmentApi,
@@ -8,12 +12,48 @@ import { usersTable } from './userRepository';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
-import { differenceInDays } from 'date-fns';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
-import highland from 'highland';
 
 export const establishmentsTable = 'establishments';
+
+type FindOptions = Partial<EstablishmentFilterApi>;
+
+const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
+  const establishments: EstablishmentDbo[] = await db<EstablishmentDbo>(
+    establishmentsTable
+  )
+    .modify(filter(opts))
+    .orderBy('name');
+
+  return establishments.map(parseEstablishmentApi);
+};
+
+function filter(filters?: EstablishmentFilterApi) {
+  return (builder: Knex.QueryBuilder<EstablishmentDbo>) => {
+    if (filters?.available) {
+      builder.where('available', true);
+    }
+    if (filters?.query?.length) {
+      builder.whereRaw(likeUnaccent('name', filters.query));
+    }
+    if (filters?.geoCodes) {
+      builder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
+    }
+    if (filters?.kind) {
+      builder.where('kind', filters.kind);
+    }
+    if (filters?.name) {
+      builder.whereRaw(
+        `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
+        filters?.name
+      );
+    }
+    if (filters?.sirens) {
+      builder.whereIn('siren', filters.sirens);
+    }
+  };
+}
 
 const get = async (
   establishmentId: string
@@ -44,20 +84,10 @@ const findOne = async (
   return result ? parseEstablishmentApi(result) : null;
 };
 
-const update = async (
-  establishmentApi: EstablishmentApi
-): Promise<EstablishmentApi> => {
-  try {
-    return db(establishmentsTable)
-      .where('id', establishmentApi.id)
-      .update({
-        ...formatEstablishmentApi(establishmentApi),
-        updated_at: new Date(),
-      });
-  } catch (err) {
-    console.error('Updating establishment failed', err, establishmentApi);
-    throw new Error('Updating establishmentA failed');
-  }
+const update = async (establishmentApi: EstablishmentApi): Promise<void> => {
+  await db<EstablishmentDbo>(establishmentsTable)
+    .where('id', establishmentApi.id)
+    .update(formatEstablishmentApi(establishmentApi));
 };
 
 interface StreamOptions {
@@ -74,39 +104,6 @@ const stream = (options?: StreamOptions) => {
     })
     .stream();
   return highland<EstablishmentDbo>(stream).map(parseEstablishmentApi);
-};
-
-const listWithFilters = async (
-  filters: EstablishmentFilterApi
-): Promise<EstablishmentApi[]> => {
-  const filter = (filters: EstablishmentFilterApi) => (queryBuilder: any) => {
-    if (filters.available) {
-      queryBuilder.where('available', true);
-    }
-    if (filters.query?.length) {
-      queryBuilder.whereRaw(likeUnaccent('name', filters.query));
-    }
-    if (filters.geoCodes) {
-      queryBuilder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
-    }
-    if (filters.kind) {
-      queryBuilder.where('kind', filters.kind);
-    }
-    if (filters.name) {
-      queryBuilder.whereRaw(
-        `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
-        filters.name
-      );
-    }
-    if (filters.sirens) {
-      queryBuilder.whereIn('siren', filters.sirens);
-    }
-  };
-
-  return db(establishmentsTable)
-    .modify(filter(filters))
-    .orderBy('name')
-    .then((_) => _.map(parseEstablishmentApi));
 };
 
 const listDataWithFilters = async (
@@ -225,6 +222,7 @@ interface EstablishmentDbo {
   campaign_intent?: string;
   priority?: string;
   kind: string;
+  updated_at: Date;
 }
 
 const formatEstablishmentApi = (
@@ -238,6 +236,7 @@ const formatEstablishmentApi = (
   campaign_intent: establishmentApi.campaignIntent,
   priority: establishmentApi.priority,
   kind: establishmentApi.kind,
+  updated_at: new Date(),
 });
 
 const parseEstablishmentApi = (
@@ -259,11 +258,11 @@ const parseEstablishmentApi = (
   };
 
 export default {
+  find,
   get,
   findOne,
   update,
   stream,
-  listWithFilters,
   listDataWithFilters,
   formatEstablishmentApi,
 };

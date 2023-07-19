@@ -127,7 +127,7 @@ function App() {
             </Route>
           ] : [
             ...([
-              {path:"/inscription", component:AccountCreationView},
+              {path:"/inscription*", component:AccountCreationView},
               {path:"/connexion", component:LoginView},
               {path:"/mot-de-passe/oublie", component:ForgottenPasswordView},
               {path:"/mot-de-passe/nouveau", component:ResetPasswordView},

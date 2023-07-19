@@ -49,7 +49,8 @@ const EventsHistory = ({ events, notes }: Props) => {
                   <Text size="md" bold spacing="mb-0">
                     {eventOrNote.name}
                   </Text>
-                  {eventOrNote.section === 'Situation' && (
+                  {(eventOrNote.section === 'Situation' ||
+                    eventOrNote.name === 'Changement de statut de suivi') && (
                     <div className={styles.eventContentRowContainer}>
                       {eventOrNote.old ? (
                         <>

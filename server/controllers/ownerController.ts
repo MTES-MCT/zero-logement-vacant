@@ -10,8 +10,8 @@ import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
 import { isArrayOf, isString } from '../utils/validators';
-import { compare } from '../utils/compareUtils';
 import { parse } from 'date-fns';
+import { compare } from '../utils/compareUtils';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -52,13 +52,19 @@ const listByHousing = async (
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
+type DraftOwnerBody = DraftOwnerApi & { birthDate: string };
 const create = async (request: Request, response: Response) => {
   console.log('Create owner');
 
   const userId = (request as AuthenticatedRequest).auth.userId;
-  const draftOwnerApi = <DraftOwnerApi>request.body;
+  const draftOwnerApi = <DraftOwnerBody>request.body;
 
-  const createdOwnerApi = await ownerRepository.insert(draftOwnerApi);
+  const createdOwnerApi = await ownerRepository.insert({
+    ...draftOwnerApi,
+    birthDate: draftOwnerApi.birthDate
+      ? parse(draftOwnerApi.birthDate, 'yyyy-MM-dd', new Date())
+      : undefined,
+  });
 
   await banAddressesRepository.markAddressToBeNormalized(
     createdOwnerApi.id,

@@ -54,12 +54,7 @@ export const ownerApi = createApi({
       query: (draftOwner) => ({
         url: 'creation',
         method: 'POST',
-        body: {
-          ...draftOwner,
-          birthDate: draftOwner.birthDate
-            ? format(draftOwner.birthDate, 'yyyy-MM-dd')
-            : undefined,
-        },
+        body: formatOwner(draftOwner),
       }),
       transformResponse: (result: any) => parseOwner(result),
     }),
@@ -67,12 +62,7 @@ export const ownerApi = createApi({
       query: (owner) => ({
         url: owner.id,
         method: 'PUT',
-        body: {
-          ...owner,
-          birthDate: owner.birthDate
-            ? format(owner.birthDate, 'yyyy-MM-dd')
-            : undefined,
-        },
+        body: formatOwner(owner),
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Owner', id }],
     }),
@@ -83,12 +73,7 @@ export const ownerApi = createApi({
       query: ({ housingId, housingOwners }) => ({
         url: `housing/${housingId}`,
         method: 'PUT',
-        body: housingOwners.map((ho) => ({
-          ...ho,
-          birthDate: ho.birthDate
-            ? format(ho.birthDate, 'yyyy-MM-dd')
-            : undefined,
-        })),
+        body: housingOwners.map((ho) => formatOwner(ho)),
       }),
       invalidatesTags: (result, error, { housingId }) => [
         { type: 'HousingOwner', housingId },
@@ -112,6 +97,13 @@ export const parseHousingOwner = (o: any): HousingOwner => ({
   ...parseOwner(o),
   startDate: o.startDate ? parseISO(o.startDate) : undefined,
   endDate: o.endDate ? parseISO(o.endDate) : undefined,
+});
+
+export const formatOwner = (owner: DraftOwner | Owner | HousingOwner) => ({
+  ...owner,
+  birthDate: owner.birthDate
+    ? format(owner.birthDate, 'yyyy-MM-dd')
+    : undefined,
 });
 
 export const {

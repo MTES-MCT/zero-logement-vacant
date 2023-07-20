@@ -105,9 +105,7 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
       .insert({
         raw_address: draftOwnerApi.rawAddress,
         full_name: draftOwnerApi.fullName,
-        birth_date: draftOwnerApi.birthDate
-          ? new Date(draftOwnerApi.birthDate)
-          : undefined,
+        birth_date: draftOwnerApi.birthDate,
         email: draftOwnerApi.email,
         phone: draftOwnerApi.phone,
       })
@@ -121,18 +119,12 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
 
 const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
   try {
-    console.log(
-      'update',
-      ownerApi.id,
-      ownerApi.birthDate,
-      ownerApi.birthDate ? new Date(ownerApi.birthDate) : null
-    );
     return db(ownerTable)
       .where('id', ownerApi.id)
       .update({
         raw_address: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : null,
+        birth_date: ownerApi.birthDate,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
       })
@@ -239,18 +231,15 @@ export interface HousingOwnerDBO {
   origin?: string;
 }
 
-export const parseOwnerApi = (result: OwnerDBO): OwnerApi => {
-  console.log('parseOwnerApi', result.id, result.birth_date);
-  return {
-    id: result.id,
-    rawAddress: result.raw_address.filter((_: string) => _ && _.length),
-    fullName: result.full_name,
-    administrator: result.administrator,
-    birthDate: result.birth_date,
-    email: result.email,
-    phone: result.phone,
-  };
-};
+export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
+  id: result.id,
+  rawAddress: result.raw_address.filter((_: string) => _ && _.length),
+  fullName: result.full_name,
+  administrator: result.administrator,
+  birthDate: result.birth_date,
+  email: result.email,
+  phone: result.phone,
+});
 
 export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
   ...parseOwnerApi(result),

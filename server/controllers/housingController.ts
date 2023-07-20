@@ -362,7 +362,7 @@ const createHousingUpdateEvents = async (
   ) {
     await eventRepository.insertHousingEvent({
       id: uuidv4(),
-      name: 'Modification du statut',
+      name: 'Changement de statut de suivi',
       kind: 'Update',
       category: 'Followup',
       section: 'Situation',

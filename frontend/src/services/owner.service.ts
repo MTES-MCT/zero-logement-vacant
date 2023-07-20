@@ -1,7 +1,7 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { DraftOwner, HousingOwner, Owner } from '../models/Owner';
-import { parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { toTitleCase } from '../utils/stringUtils';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { PaginatedResult } from '../models/PaginatedResult';
@@ -54,7 +54,7 @@ export const ownerApi = createApi({
       query: (draftOwner) => ({
         url: 'creation',
         method: 'POST',
-        body: draftOwner,
+        body: formatOwner(draftOwner),
       }),
       transformResponse: (result: any) => parseOwner(result),
     }),
@@ -62,7 +62,7 @@ export const ownerApi = createApi({
       query: (owner) => ({
         url: owner.id,
         method: 'PUT',
-        body: owner,
+        body: formatOwner(owner),
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Owner', id }],
     }),
@@ -73,7 +73,7 @@ export const ownerApi = createApi({
       query: ({ housingId, housingOwners }) => ({
         url: `housing/${housingId}`,
         method: 'PUT',
-        body: housingOwners,
+        body: housingOwners.map((ho) => formatOwner(ho)),
       }),
       invalidatesTags: (result, error, { housingId }) => [
         { type: 'HousingOwner', housingId },
@@ -97,6 +97,13 @@ export const parseHousingOwner = (o: any): HousingOwner => ({
   ...parseOwner(o),
   startDate: o.startDate ? parseISO(o.startDate) : undefined,
   endDate: o.endDate ? parseISO(o.endDate) : undefined,
+});
+
+export const formatOwner = (owner: DraftOwner | Owner | HousingOwner) => ({
+  ...owner,
+  birthDate: owner.birthDate
+    ? format(owner.birthDate, 'yyyy-MM-dd')
+    : undefined,
 });
 
 export const {

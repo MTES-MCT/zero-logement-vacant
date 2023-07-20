@@ -1,7 +1,7 @@
 import { Housing, OccupancyKindLabels } from '../../models/Housing';
 import styles from './events-history.module.scss';
 import React from 'react';
-import { hasValues } from '../../models/HousingDiff';
+import { hasValues } from '../../models/Diff';
 
 interface Props {
   partialHousing: Partial<Housing>;

@@ -77,12 +77,12 @@ export type LovacOwner = {
   full_name: string;
   administrator: string;
   owner_raw_address: string[];
-  birth_date: string;
+  birth_date: Date;
   owner_kind: string;
   owner_kind_detail: string;
 } & Record<`full_name${AdditionalOwnerIndex}`, string | undefined> &
   Record<`owner_raw_address${AdditionalOwnerIndex}`, string[]> &
-  Record<`birth_date${AdditionalOwnerIndex}`, string | undefined>;
+  Record<`birth_date${AdditionalOwnerIndex}`, Date | undefined>;
 
 function streamOwners(): Highland.Stream<LovacOwner> {
   const fields = [
@@ -135,13 +135,13 @@ type LovacHousingDBO = {
   full_name: string;
   administrator: string;
   owner_raw_address: string[];
-  birth_date: string;
+  birth_date: Date;
   owner_kind: string;
   owner_kind_detail: string;
 } & Record<`owner_id${AdditionalOwnerIndex}`, string | undefined> &
   Record<`full_name${AdditionalOwnerIndex}`, string | undefined> &
   Record<`owner_raw_address${AdditionalOwnerIndex}`, string[]> &
-  Record<`birth_date${AdditionalOwnerIndex}`, string | undefined>;
+  Record<`birth_date${AdditionalOwnerIndex}`, Date | undefined>;
 
 export type AdditionalOwnerIndex = 2 | 3 | 4 | 5 | 6;
 
@@ -191,7 +191,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
   function parseCoowner(i: AdditionalOwnerIndex): HousingOwnerApi | null {
     const id: string = housing[`owner_id${i}`] ?? uuidv4();
     const fullName: string | undefined = housing[`full_name${i}`];
-    const birthDate: string | undefined = housing[`birth_date${i}`];
+    const birthDate: Date | undefined = housing[`birth_date${i}`];
     const rawAddress: string[] | undefined = housing[`owner_raw_address${i}`];
     if (!fullName || !rawAddress) {
       return null;

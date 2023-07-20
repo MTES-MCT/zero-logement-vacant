@@ -880,7 +880,7 @@ interface HousingRecordDBO {
 
 interface HousingDBO extends HousingRecordDBO {
   owner_id: string;
-  owner_birth_date?: string;
+  owner_birth_date?: Date;
   coowners: OwnerDBO[];
   // TODO: fix this
   [key: string]: any;

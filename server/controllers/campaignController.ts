@@ -147,7 +147,9 @@ const createCampaign = async (
       category: 'Campaign',
       section: 'Suivi de campagne',
       old: housingList.find((_) => _.id === housingId),
-      new: newHousingList.find((_) => _.id === housingId),
+      new: newHousingList
+        .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
+        .find((_) => _.id === housingId),
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingId,

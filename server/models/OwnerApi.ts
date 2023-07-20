@@ -1,7 +1,7 @@
 export interface DraftOwnerApi {
   rawAddress: string[];
   fullName: string;
-  birthDate?: string;
+  birthDate?: Date;
   email?: string;
   phone?: string;
 }
@@ -11,7 +11,7 @@ export interface OwnerApi {
   rawAddress: string[];
   fullName: string;
   administrator?: string;
-  birthDate?: string;
+  birthDate?: Date;
   email?: string;
   phone?: string;
   kind?: string;

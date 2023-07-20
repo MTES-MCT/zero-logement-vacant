@@ -258,7 +258,7 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
   full_name: ownerApi.fullName,
   administrator: ownerApi.administrator,
-  birth_date: ownerApi.birthDate,
+  birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
   email: ownerApi.email,
   phone: ownerApi.phone,
 });

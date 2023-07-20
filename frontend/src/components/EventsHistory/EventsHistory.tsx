@@ -11,6 +11,9 @@ import { Note } from '../../models/Note';
 import classNames from 'classnames';
 import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
 import EventPartialOwnerContent from './EventPartialOwnerContent';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import InternalLink from '../InternalLink/InternalLink';
+import { Campaign, campaignBundleIdUrlFragment } from '../../models/Campaign';
 
 interface Props {
   events: Event[];
@@ -27,6 +30,13 @@ const EventsHistory = ({ events, notes }: Props) => {
   const isEvent = (e: Event | Note): e is Event => {
     return (e as Event).category !== undefined;
   };
+
+  const campaignList = useCampaignList();
+  const findNewCampaign = (event: Event): Campaign =>
+    event.new.campaignIds?.[0] &&
+    campaignList?.find(
+      (campaing) => campaing.id === event.new.campaignIds?.[0]
+    );
 
   return (
     <>
@@ -176,6 +186,36 @@ const EventsHistory = ({ events, notes }: Props) => {
                       )}
                     </>
                   )}
+                  {eventOrNote.category === 'Campaign' &&
+                    eventOrNote.name === 'Ajout dans une campagne' && (
+                      <div
+                        className={classNames(
+                          styles.eventContent,
+                          'd-inline-block'
+                        )}
+                      >
+                        Ce logement a été <b>ajouté dans une campagne</b>{' '}
+                        {findNewCampaign(eventOrNote) && (
+                          <InternalLink
+                            to={
+                              '/campagnes/' +
+                              campaignBundleIdUrlFragment({
+                                campaignNumber:
+                                  findNewCampaign(eventOrNote).campaignNumber,
+                                reminderNumber:
+                                  findNewCampaign(eventOrNote).reminderNumber,
+                              })
+                            }
+                            isSimple
+                            icon="ri-mail-fill"
+                            iconPosition="left"
+                            display="inline"
+                          >
+                            {findNewCampaign(eventOrNote).title}
+                          </InternalLink>
+                        )}
+                      </div>
+                    )}
                 </>
               ) : (
                 <>

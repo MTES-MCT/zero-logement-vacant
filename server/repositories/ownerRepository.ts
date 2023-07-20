@@ -121,6 +121,12 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
 
 const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
   try {
+    console.log(
+      'update',
+      ownerApi.id,
+      ownerApi.birthDate,
+      ownerApi.birthDate ? new Date(ownerApi.birthDate) : null
+    );
     return db(ownerTable)
       .where('id', ownerApi.id)
       .update({
@@ -233,15 +239,18 @@ export interface HousingOwnerDBO {
   origin?: string;
 }
 
-export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
-  id: result.id,
-  rawAddress: result.raw_address.filter((_: string) => _ && _.length),
-  fullName: result.full_name,
-  administrator: result.administrator,
-  birthDate: result.birth_date,
-  email: result.email,
-  phone: result.phone,
-});
+export const parseOwnerApi = (result: OwnerDBO): OwnerApi => {
+  console.log('parseOwnerApi', result.id, result.birth_date);
+  return {
+    id: result.id,
+    rawAddress: result.raw_address.filter((_: string) => _ && _.length),
+    fullName: result.full_name,
+    administrator: result.administrator,
+    birthDate: result.birth_date,
+    email: result.email,
+    phone: result.phone,
+  };
+};
 
 export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
   ...parseOwnerApi(result),

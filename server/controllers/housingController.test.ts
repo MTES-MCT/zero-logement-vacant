@@ -309,7 +309,7 @@ describe('Housing controller', () => {
             expect.arrayContaining([
               expect.objectContaining({
                 housing_id: Housing1.id,
-                name: 'Modification du statut',
+                name: 'Changement de statut de suivi',
                 kind: 'Update',
                 category: 'Followup',
                 section: 'Situation',

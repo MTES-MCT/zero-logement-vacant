@@ -109,7 +109,8 @@ const EventsHistory = ({ events, notes }: Props) => {
                     <>
                       {eventOrNote.section === 'Propriétaire' && (
                         <div className={styles.eventContentRowContainer}>
-                          {eventOrNote.kind === 'Create' ? (
+                          {eventOrNote.name ===
+                          "Création d'un nouveau propriétaire" ? (
                             <EventHousingOwnerContent
                               housingOwners={[eventOrNote.new]}
                             />

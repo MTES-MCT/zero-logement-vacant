@@ -105,9 +105,7 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
       .insert({
         raw_address: draftOwnerApi.rawAddress,
         full_name: draftOwnerApi.fullName,
-        birth_date: draftOwnerApi.birthDate
-          ? new Date(draftOwnerApi.birthDate)
-          : undefined,
+        birth_date: draftOwnerApi.birthDate,
         email: draftOwnerApi.email,
         phone: draftOwnerApi.phone,
       })
@@ -126,7 +124,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
       .update({
         raw_address: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : null,
+        birth_date: ownerApi.birthDate,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
       })
@@ -215,7 +213,7 @@ const escapeValue = (value?: string) => {
 export interface OwnerDBO {
   id: string;
   full_name: string;
-  birth_date?: string;
+  birth_date?: Date;
   administrator?: string;
   raw_address: string[];
   owner_kind?: string;
@@ -258,7 +256,7 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
   full_name: ownerApi.fullName,
   administrator: ownerApi.administrator,
-  birth_date: ownerApi.birthDate,
+  birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
   email: ownerApi.email,
   phone: ownerApi.phone,
 });

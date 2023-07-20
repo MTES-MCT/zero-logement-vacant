@@ -26,13 +26,27 @@ export function compare({ before, now, modifications }: Comparison): Action {
           HousingStatusApi.Completed,
         ].includes(before.status)
       ) {
+        const missingEvent: HousingEventApi = {
+          id: uuidv4(),
+          name: 'Absent du nouveau millésime LOVAC',
+          kind: 'Delete',
+          category: 'Followup',
+          section: 'Situation',
+          conflict: false,
+          housingId: before.id,
+          old: before,
+          new: undefined,
+          createdBy: 'system',
+          createdAt: new Date(),
+        };
+
         return {
           housing: {
             ...before,
             status: HousingStatusApi.Completed,
             subStatus: 'Sortie de la vacance',
           },
-          events: [],
+          events: [missingEvent],
         };
       }
 

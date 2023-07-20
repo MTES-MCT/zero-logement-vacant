@@ -3,7 +3,7 @@ import { HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
-import { addHours, formatISO } from 'date-fns';
+import { addHours } from 'date-fns';
 import {
   EnergyConsumptionGradesApi,
   HousingApi,
@@ -162,7 +162,7 @@ export const genOwnerApi = (): OwnerApi => {
   return {
     id: uuidv4(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
-    birthDate: formatISO(new Date()),
+    birthDate: new Date(),
     fullName: randomstring.generate(),
     email: genEmail(),
     phone: randomstring.generate(),

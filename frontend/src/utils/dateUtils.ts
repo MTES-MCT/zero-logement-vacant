@@ -4,6 +4,7 @@ import {
   differenceInYears,
   format,
   parse,
+  parseISO,
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -28,8 +29,12 @@ export const dateShortFormatWithMinutes = (d: Date) =>
 export const parseDateInput = (s: string) =>
   s.length ? parse(s, 'yyyy-MM-dd', new Date()) : undefined;
 
-export function birthdate(date: Date): string {
-  return format(date, 'dd/MM/yyyy', { locale: fr });
+export function birthdate(date: Date | string): string {
+  return format(
+    typeof date === 'string' ? parseISO(date) : date,
+    'dd/MM/yyyy',
+    { locale: fr }
+  );
 }
 
 export function age(date: Date): number {

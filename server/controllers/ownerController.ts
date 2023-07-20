@@ -11,7 +11,7 @@ import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
 import { isArrayOf, isString } from '../utils/validators';
 import { compare } from '../utils/compareUtils';
-import { parseISO } from 'date-fns';
+import { parse } from 'date-fns';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -87,7 +87,7 @@ const parseHousingOwnerApi = (
 ): HousingOwnerApi => ({
   ...housingOwnerBody,
   birthDate: housingOwnerBody.birthDate
-    ? parseISO(housingOwnerBody.birthDate)
+    ? parse(housingOwnerBody.birthDate, 'yyyy-MM-dd', new Date())
     : undefined,
 });
 

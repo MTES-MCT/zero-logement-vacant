@@ -142,21 +142,20 @@ const list = async (request: Request, response: Response) => {
   response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
-const count = async (request: Request, response: Response) => {
+const count = async (request: Request, response: Response): Promise<void> => {
   console.log('Count housing');
 
   const { establishmentId, role } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
 
-  return housingRepository
-    .countWithFilters({
-      ...filters,
-      establishmentIds:
-        role === UserRoles.Admin && filters.establishmentIds?.length
-          ? filters.establishmentIds
-          : [establishmentId],
-    })
-    .then((count) => response.status(constants.HTTP_STATUS_OK).json({ count }));
+  const count = await housingRepository.count({
+    ...filters,
+    establishmentIds:
+      role === UserRoles.Admin && filters.establishmentIds?.length
+        ? filters.establishmentIds
+        : [establishmentId],
+  });
+  response.status(constants.HTTP_STATUS_OK).json({ count });
 };
 
 const listByOwner = async (

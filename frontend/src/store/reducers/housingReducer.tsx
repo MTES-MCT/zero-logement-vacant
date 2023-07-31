@@ -12,6 +12,8 @@ import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface HousingState {
+  filteredCount: number;
+  totalCount: number;
   paginate?: boolean;
   paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
@@ -55,6 +57,8 @@ export const initialHousingFilters = {
 } as HousingFilters;
 
 const initialState: HousingState = {
+  filteredCount: 0,
+  totalCount: 0,
   paginate: true,
   paginatedHousing: {
     entities: [],
@@ -114,6 +118,8 @@ const housingSlice = createSlice({
       action: PayloadAction<HousingListFetchedAction>
     ) => {
       const paginate = action.payload.paginate ?? state.paginate;
+      state.filteredCount = action.payload.filteredCount;
+      state.totalCount = action.payload.totalCount;
       state.paginate = paginate;
       state.paginatedHousing = {
         page: paginate

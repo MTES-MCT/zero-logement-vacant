@@ -30,6 +30,8 @@ export interface FetchingHousingListAction {
 }
 
 export interface HousingListFetchedAction {
+  filteredCount: number;
+  totalCount: number;
   paginate?: boolean;
   paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
@@ -76,18 +78,23 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
+    Promise.all([
+      housingService.count(filters),
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
         {
           pagination,
           abortable: true,
         }
-      )
-      .then((result: HousingPaginatedResult) => {
+      ),
+    ])
+      .then(([count, total, result]) => {
         dispatch(
           housingListFetched({
+            filteredCount: count,
+            totalCount: total,
             paginatedHousing: result,
             filters,
           })
@@ -115,20 +122,28 @@ export const changeHousingPagination = (pagination: Pagination) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
+    Promise.all([
+      housingService.count(getState().housing.filters),
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.listHousing(
         getState().housing.filters,
         { dataYearsExcluded, dataYearsIncluded },
         {
           pagination,
           abortable: true,
         }
-      )
-      .then((result: HousingPaginatedResult) => {
+      ),
+    ])
+      .then(([count, total, result]) => {
         dispatch(
           housingListFetched({
+            filteredCount: count,
+            totalCount: total,
             paginate: pagination.paginate,
-            paginatedHousing: result,
+            paginatedHousing: {
+              ...result,
+              filteredCount: count,
+            },
             filters,
           })
         );
@@ -159,8 +174,10 @@ export const changeHousingSort = (sort: HousingSort) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
+    Promise.all([
+      housingService.count(filters),
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.listHousing(
         filters,
         { dataYearsExcluded, dataYearsIncluded },
         {
@@ -168,10 +185,13 @@ export const changeHousingSort = (sort: HousingSort) => {
           pagination,
           abortable: true,
         }
-      )
-      .then((result) => {
+      ),
+    ])
+      .then(([filteredCount, totalCount, result]) => {
         dispatch(
           housingListFetched({
+            filteredCount,
+            totalCount,
             paginatedHousing: result,
             filters,
           })

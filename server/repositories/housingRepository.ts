@@ -31,7 +31,7 @@ import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
-import SortApi from '../models/SortApi';
+import SortApi, { sortQuery } from '../models/SortApi';
 import {
   isPaginationEnabled,
   PaginationApi,
@@ -42,6 +42,7 @@ import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import validator from 'validator';
+import { PaginationOptions } from '../../shared/models/Pagination';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
@@ -634,6 +635,39 @@ const listQuery = (establishmentIds?: string[]) =>
     )
     .groupBy(`${housingTable}.id`, 'o.id');
 
+interface FindOptions extends PaginationOptions {
+  filters: HousingFiltersApi;
+  sort?: HousingSortApi;
+}
+
+const find = async (opts: FindOptions): Promise<HousingApi[]> => {
+  const housingList: HousingDBO[] = await db(housingTable)
+    .select(`${housingTable}.*`)
+    .from(housingTable)
+    .join(ownersHousingTable, ownersHousingJoinClause)
+    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .modify(filteredQuery(opts.filters))
+    .modify(
+      sortQuery(opts.sort, {
+        keys: {
+          owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
+          rawAddress: (query) => {
+            query
+              .orderBy(`${housingTable}.raw_address[2]`, opts.sort?.rawAddress)
+              .orderByRaw(
+                `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
+              )
+              .orderByRaw(
+                `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
+              );
+          },
+        },
+        default: (query) => query.orderBy('id'),
+      })
+    );
+  return housingList.map(parseHousingApi);
+};
+
 const listWithFilters = async (
   filters: HousingFiltersApi
 ): Promise<HousingApi[]> => {
@@ -686,7 +720,7 @@ const paginatedListWithFilters = async (
   );
 
   if (sort) {
-    SortApi.use(sort, {
+    SortApi.query(sort, {
       keys: {
         owner: () => filterQuery.orderBy('o.full_name', sort.owner),
         rawAddress: () => {
@@ -703,23 +737,17 @@ const paginatedListWithFilters = async (
     });
   }
 
-  return Promise.all([
-    filterQuery.modify(paginationQuery(pagination)),
-    countWithFilters(filters),
-    countWithFilters(filtersForTotalCount),
-  ]).then(
-    ([results, filteredCounts, totalCounts]) =>
-      <HousingPaginatedResultApi>{
-        entities: results.map((result: any) => parseHousingApi(result)),
-        filteredCount: filteredCounts.housingCount,
-        filteredOwnerCount: filteredCounts.ownerCount,
-        totalCount: totalCounts.housingCount,
-        page: isPaginationEnabled(pagination) ? pagination.page : undefined,
-        perPage: isPaginationEnabled(pagination)
-          ? pagination.perPage
-          : undefined,
-      }
+  const results: HousingDBO[] = await filterQuery.modify(
+    paginationQuery(pagination)
   );
+  return {
+    entities: results.map(parseHousingApi),
+    filteredCount: 100,
+    filteredOwnerCount: 100,
+    totalCount: 100,
+    page: isPaginationEnabled(pagination) ? pagination.page : 0,
+    perPage: isPaginationEnabled(pagination) ? pagination.perPage : 0,
+  };
 };
 
 const countVacant = async (): Promise<number> => {
@@ -740,6 +768,23 @@ function whereVacant(year: number = ReferenceDataYear) {
       .andWhereRaw('data_years && ?::integer[]', [[year]])
       .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
 }
+
+const count = async (filters: HousingFiltersApi): Promise<number> => {
+  const result = await db(housingTable)
+    .count()
+    .modify(filteredQuery(filters))
+    .first();
+  return Number(result?.count);
+};
+
+const countOwners = async (filters: HousingFiltersApi): Promise<number> => {
+  const result = await db(housingTable)
+    .countDistinct(`${ownersHousingTable}.owner_id`)
+    .join(ownersHousingTable, ownersHousingJoinClause)
+    .modify(filteredQuery(filters))
+    .first();
+  return Number(result?.count);
+};
 
 const countWithFilters = async (
   filters: HousingFiltersApi
@@ -986,9 +1031,12 @@ export const formatHousingRecordApi = (
 
 export default {
   get,
+  find,
   listWithFilters,
   stream,
   paginatedListWithFilters,
+  count,
+  countOwners,
   countVacant,
   countWithFilters,
   listByIds,

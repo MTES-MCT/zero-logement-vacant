@@ -113,6 +113,27 @@ const listByOwner = async (
     }));
 };
 
+const count = async (
+  filters: HousingFilters | HousingFiltersForTotalCount
+): Promise<number> => {
+  const response = await http.post(`${config.apiEndpoint}/api/housing/count`, {
+    headers: {
+      ...authService.authHeader(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      filters,
+    }),
+  });
+  if (!response.ok) {
+    console.log(response);
+    throw new Error('Bad response');
+  }
+
+  const { count } = await response.json();
+  return count;
+};
+
 const updateHousing = async (
   housingId: string,
   housingUpdate: HousingUpdate
@@ -166,6 +187,7 @@ const housingService = {
   getHousing,
   listHousing,
   listByOwner,
+  count,
   updateHousing,
   updateHousingList,
   quickSearchService,

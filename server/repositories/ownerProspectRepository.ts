@@ -1,13 +1,12 @@
 import db, { countQuery } from './db';
 import {
   OwnerProspectApi,
-  OwnerProspectSortableApi,
   OwnerProspectSortApi,
 } from '../models/OwnerProspectApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { establishmentsTable } from './establishmentRepository';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
-import SortApi from '../models/SortApi';
+import { sortQuery } from '../models/SortApi';
 
 export const ownerProspectsTable = 'owner_prospects';
 
@@ -45,19 +44,17 @@ const find = async (
   const totalCount = await countQuery(query.clone());
   const ownerProspects: OwnerProspectDbo[] = await query
     .select(`${ownerProspectsTable}.*`)
-    .modify((builder: ReturnType<typeof OwnerProspects>) => {
-      if (sort) {
-        SortApi.use<OwnerProspectSortableApi>(sort, {
-          keys: {
-            address: () => builder.orderBy('address', sort.address),
-            email: () => builder.orderBy('email', sort.email),
-            createdAt: () => builder.orderBy('created_at', sort.createdAt),
-          },
-        });
-      } else {
-        builder.orderBy('created_at', 'desc');
-      }
-    });
+    .modify(
+      sortQuery(sort, {
+        keys: {
+          address: (builder) => builder.orderBy('address', sort?.address),
+          email: (builder) => builder.orderBy('email', sort?.email),
+          createdAt: (builder) =>
+            builder.orderBy('created_at', sort?.createdAt),
+        },
+        default: (builder) => builder.orderBy('created_at', 'desc'),
+      })
+    );
 
   return {
     entities: ownerProspects.map(parseOwnerProspectApi),

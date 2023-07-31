@@ -83,7 +83,9 @@ const HousingListView = () => {
     setMapViewState(viewState);
   }
 
-  const { paginatedHousing } = useAppSelector((state) => state.housing);
+  const { filteredCount, totalCount, paginatedHousing } = useAppSelector(
+    (state) => state.housing
+  );
 
   const perimetersIncluded = filters.geoPerimetersIncluded?.length
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
@@ -197,6 +199,13 @@ const HousingListView = () => {
     );
   };
 
+  function housingCount({
+    filteredCount,
+    totalCount,
+  }: Pick<HousingPaginatedResult, 'filteredCount' | 'totalCount'>): string {
+    return displayCount(totalCount, 'logement', true, filteredCount);
+  }
+
   const displayHousingCount = (paginatedHousing: HousingPaginatedResult) => {
     const countItems = displayCount(
       paginatedHousing.totalCount,
@@ -309,6 +318,8 @@ const HousingListView = () => {
             />
 
             <Text spacing="mb-2w">
+              {housingCount({ filteredCount, totalCount })}
+              <br />
               {displayHousingCount(paginatedHousing)}
               {view === 'map' && (
                 <div className="d-inline-block fr-ml-2w">

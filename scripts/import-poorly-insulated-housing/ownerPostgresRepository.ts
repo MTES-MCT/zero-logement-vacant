@@ -12,6 +12,7 @@ import validator from './validator';
 import { Knex } from 'knex';
 
 const FIELDS = [
+  'idprodroit',
   'dlign3',
   'dlign4',
   'dlign5',

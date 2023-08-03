@@ -15,7 +15,7 @@ export interface PaginationDisabled {
   paginate: false;
 }
 
-export const isPaginationEnable = (
+export const isPaginationEnabled = (
   pagination?: PaginationApi
 ): pagination is PaginationEnabled =>
   pagination !== undefined && pagination.paginate;
@@ -51,7 +51,7 @@ export function createPagination(query: Required<Pagination>): PaginationApi {
 
 export function paginationQuery(pagination?: PaginationApi) {
   return (builder: Knex.QueryBuilder): void => {
-    if (isPaginationEnable(pagination)) {
+    if (isPaginationEnabled(pagination)) {
       const { page, perPage } = pagination;
       builder.offset((page - 1) * perPage).limit(perPage);
     }

@@ -1,0 +1,62 @@
+import highland from 'highland';
+
+import { OwnerStreamRepository, StreamOptions } from './ownerStreamRepository';
+import db from '../../server/repositories/db';
+import {
+  OwnerDatafoncier,
+  ownerDatafoncierSchema,
+  toOwnerApi,
+} from '../../server/models/OwnerDatafoncier';
+import { OwnerApi } from '../../server/models/OwnerApi';
+import validator from './validator';
+import { Knex } from 'knex';
+
+const FIELDS = [
+  'dlign3',
+  'dlign4',
+  'dlign5',
+  'dlign6',
+  'ddenom',
+  'jdatnss',
+  'catpro2txt',
+  'catpro3txt',
+];
+
+export const datafoncierOwnersTable = 'zlv_proprio_epci2';
+
+export function hasAddress() {
+  return (query: Knex.QueryBuilder<OwnerDatafoncier>) => {
+    query
+      .whereNotNull('dlign3')
+      .orWhereNotNull('dlign4')
+      .orWhereNotNull('dlign5')
+      .orWhereNotNull('dlign6');
+  };
+}
+
+export function hasName() {
+  return (query: Knex.QueryBuilder<OwnerDatafoncier>) => {
+    query.whereNotNull('ddenom');
+  };
+}
+
+class OwnerPostgresRepository implements OwnerStreamRepository {
+  stream(opts: StreamOptions): Highland.Stream<OwnerApi> {
+    const query = db<OwnerDatafoncier>(datafoncierOwnersTable)
+      .select(FIELDS)
+      // Avoid importing owners that have no address at all
+      .modify(hasAddress())
+      .modify(hasName())
+      .stream();
+
+    return highland<OwnerDatafoncier>(query)
+      .map(validator.validate(ownerDatafoncierSchema))
+      .map(toOwnerApi);
+  }
+}
+
+function createOwnerPostgresRepository(): OwnerStreamRepository {
+  return new OwnerPostgresRepository();
+}
+
+export default createOwnerPostgresRepository;

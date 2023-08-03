@@ -1,11 +1,11 @@
 import { Owner } from './Owner';
 import { HousingStatus } from './HousingState';
 import { stringSort } from '../utils/stringUtils';
-import { Compare } from '../utils/compareUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
 import { differenceInDays, format } from 'date-fns';
+import { Compare } from '../utils/compareUtils';
 
 export interface Housing {
   id: string;

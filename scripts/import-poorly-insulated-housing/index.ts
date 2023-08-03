@@ -50,27 +50,33 @@ async function run(): Promise<void> {
 }
 
 async function preprocess(): Promise<void> {
+  logger.debug('Removing duplicates from owners...');
   await db.raw(`
      CREATE TABLE unique_owners AS
-     SELECT DISTINCT ON (idprodroit) * FROM zlv_proprio_epci2;
+     SELECT DISTINCT ON (idprodroit) * FROM zlv_proprio_epci2
+  `);
 
-     DELETE FROM zlv_proprio_epci2;
+  await db.raw(`DELETE FROM zlv_proprio_epci2`);
+  await db.raw(`INSERT INTO zlv_proprio_epci2 SELECT * FROM unique_owners`);
 
-     INSERT INTO zlv_proprio_epci2 SELECT * FROM unique_owners;
-
+  await db.raw(`
      SELECT idprodroit, COUNT(idprodroit) FROM zlv_proprio_epci2
      GROUP BY idprodroit
      HAVING COUNT(idprodroit) > 1;
-
-     ALTER TABLE zlv_proprio_epci2 ADD PRIMARY KEY (idprodroit);
-     CREATE INDEX idprocpte_dnulp_idx ON zlv_proprio_epci2 (idprocpte, dnulp);
-     CREATE INDEX zlv_datafoncier_owners_datafoncier_id_idx ON zlv_datafoncier_owners (datafoncier_id);
-     
-     DROP TABLE unique_owners
   `);
+
+  logger.debug('Adding indexes...');
+  await db.raw(`ALTER TABLE zlv_proprio_epci2 ADD PRIMARY KEY (idprodroit)`);
+  await db.raw(
+    `CREATE INDEX idprocpte_dnulp_idx ON zlv_proprio_epci2 (idprocpte, dnulp)`
+  );
+
+  logger.debug('Removing unique_owners temporary table...');
+  await db.raw(`DROP TABLE unique_owners`);
 }
 
 async function cleanUp(): Promise<void> {
+  logger.debug('Cleaning up...');
   await db.raw(`
     DROP TABLE zlv_proprio_epci2;
     DROP TABLE zlv_logt_epic;
@@ -116,9 +122,13 @@ async function linkOwners(): Promise<void> {
           .inTable('zlv_proprio_epci2')
           .notNullable();
         table.unique(['zlv_id', 'datafoncier_id'], {
-          indexName: 'zlv_id_datafoncier_id_zlv_datafoncier_owners_unique_idx',
+          indexName: 'zlv_datafoncier_owners_zlv_id_datafoncier_id_unique_idx',
           useConstraint: true,
         });
+        table.index(
+          ['datafoncier_id'],
+          'zlv_datafoncier_owners_datafoncier_id_idx'
+        );
       }
     );
     logger.debug('Table zlv_datafoncier_owners created.');

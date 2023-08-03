@@ -13,3 +13,7 @@ ts-node scripts/import-lovac
 # In production
 scalingo -a zerologementvacant run --detached --size XL "npm i --production=false && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/import-lovac
 ```
+
+## TODO
+
+- [ ] Use the given geo codes to filter which housing should be imported

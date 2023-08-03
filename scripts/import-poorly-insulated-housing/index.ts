@@ -112,25 +112,22 @@ async function linkOwners(): Promise<void> {
 
   const tableExists = await db.schema.hasTable('zlv_datafoncier_owners');
   if (!tableExists) {
-    await db.schema.createTableIfNotExists(
-      'zlv_datafoncier_owners',
-      (table) => {
-        table.uuid('zlv_id').references('id').inTable('owners').notNullable();
-        table
-          .string('datafoncier_id', 13)
-          .references('idprodroit')
-          .inTable('zlv_proprio_epci2')
-          .notNullable();
-        table.unique(['zlv_id', 'datafoncier_id'], {
-          indexName: 'zlv_datafoncier_owners_zlv_id_datafoncier_id_unique_idx',
-          useConstraint: true,
-        });
-        table.index(
-          ['datafoncier_id'],
-          'zlv_datafoncier_owners_datafoncier_id_idx'
-        );
-      }
-    );
+    await db.schema.createTable('zlv_datafoncier_owners', (table) => {
+      table.uuid('zlv_id').references('id').inTable('owners').notNullable();
+      table
+        .string('datafoncier_id', 13)
+        .references('idprodroit')
+        .inTable('zlv_proprio_epci2')
+        .notNullable();
+      table.unique(['zlv_id', 'datafoncier_id'], {
+        indexName: 'zlv_datafoncier_owners_zlv_id_datafoncier_id_unique_idx',
+        useConstraint: true,
+      });
+      table.index(
+        ['datafoncier_id'],
+        'zlv_datafoncier_owners_datafoncier_id_idx'
+      );
+    });
     logger.debug('Table zlv_datafoncier_owners created.');
   } else {
     logger.debug('Table zlv_datafoncier_owners exists. Skipping...');
@@ -146,6 +143,7 @@ async function linkOwners(): Promise<void> {
         'dlign6',
         'ddenom',
         'catpro2txt',
+        'catpro3txt',
         'jdatnss'
       )
       .modify(hasAddress())

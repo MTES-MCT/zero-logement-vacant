@@ -884,6 +884,7 @@ interface HousingRecordDBO {
   energy_consumption?: EnergyConsumptionGradesApi;
   energy_consumption_worst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
+  occupancy_registered?: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
@@ -924,6 +925,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   energyConsumption: result.energy_consumption,
   energyConsumptionWorst: result.energy_consumption_worst,
   occupancy: result.occupancy,
+  occupancyRegistered: result.occupancy_registered,
   occupancyIntended: result.occupancy_intended,
   localityKind: result.locality_kind,
   geoPerimeters: result.geo_perimeters,
@@ -978,6 +980,7 @@ export const formatHousingRecordApi = (
   energy_consumption: housingRecordApi.energyConsumption,
   energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
   occupancy: housingRecordApi.occupancy,
+  occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
 });
 

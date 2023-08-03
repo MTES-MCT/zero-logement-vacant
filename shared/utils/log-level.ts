@@ -1,11 +1,11 @@
 export enum LogLevel {
-  SILLY,
-  TRACE,
-  DEBUG,
-  INFO,
-  WARN,
-  ERROR,
-  FATAL,
+  SILLY = 'silly',
+  TRACE = 'trace',
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
+  FATAL = 'fatal',
 }
 
 export const LOG_LEVELS = Object.values(LogLevel);

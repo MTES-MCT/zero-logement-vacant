@@ -3,14 +3,14 @@ import async from 'async';
 import highland from 'highland';
 import fp from 'lodash/fp';
 import { URLSearchParams } from 'url';
-import { v4 as uuidv4 } from 'uuid';
 
 import { OwnerApi } from '../models/OwnerApi';
 import { logger } from '../utils/logger';
-import { isNotNull } from '../../shared/utils/compare';
 import { isPaginationEnabled, PaginationApi } from '../models/PaginationApi';
 import config from '../utils/config';
 import { untilEmpty } from '../utils/async';
+import { HousingDatafoncier } from '../models/HousingDatafoncier';
+import { OwnerDatafoncier, toOwnerApi } from '../models/OwnerDatafoncier';
 import Stream = Highland.Stream;
 
 const API = `https://apidf-preprod.cerema.fr`;
@@ -21,7 +21,7 @@ type FindHousingListOptions = PaginationApi & {
 
 async function findHousingList(
   opts: FindHousingListOptions
-): Promise<HousingDTO[]> {
+): Promise<HousingDatafoncier[]> {
   logger.debug('Finding housing list', opts);
 
   const query = createQuery({
@@ -40,7 +40,7 @@ async function findHousingList(
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  const data: ResultDTO<HousingDTO> = await response.json();
+  const data: ResultDTO<HousingDatafoncier> = await response.json();
   return data.results;
 }
 
@@ -48,12 +48,12 @@ interface StreamOptions {
   geoCodes: string[];
 }
 
-function streamHousingList(opts: StreamOptions): Stream<HousingDTO> {
+function streamHousingList(opts: StreamOptions): Stream<HousingDatafoncier> {
   logger.debug('Stream housing list', opts);
 
   return highland<string>(opts.geoCodes)
     .flatMap((geoCode) =>
-      highland<HousingDTO[]>((push, next) => {
+      highland<HousingDatafoncier[]>((push, next) => {
         untilEmpty(
           (pagination) => findHousingList({ geoCode, ...pagination }),
           (housingList) => push(null, housingList)
@@ -94,7 +94,7 @@ async function findOwners(opts: FindOwnersOptions): Promise<OwnerApi[]> {
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  const data: ResultDTO<OwnerDTO> = await response.json();
+  const data: ResultDTO<OwnerDatafoncier> = await response.json();
   return data.results.map(toOwnerApi);
 }
 
@@ -131,7 +131,9 @@ function createQuery(
   )(params);
 }
 
-function filterHousing<T extends HousingDTO, K extends keyof T>(key: K) {
+function filterHousing<T extends HousingDatafoncier, K extends keyof T>(
+  key: K
+) {
   return (...values: T[K][]) => {
     const set = new Set(values);
 
@@ -146,221 +148,6 @@ interface ResultDTO<T> {
   next: string | null;
   previous: string | null;
   results: T[];
-}
-
-/**
- * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/pb0010_local/last/
- */
-export interface HousingDTO {
-  idlocal: string;
-  idbat: string;
-  idpar: string;
-  idtup: string;
-  idsec: string;
-  idvoie: string;
-  idprocpte: string;
-  idcom: string;
-  idcomtxt: string;
-  ccodep: string;
-  ccodir: string;
-  ccocom: string;
-  invar: string;
-  ccopre: string | null;
-  ccosec: string;
-  dnupla: string;
-  dnubat: string;
-  descc: string;
-  dniv: string;
-  dpor: string;
-  ccoriv: string;
-  ccovoi: string;
-  dnvoiri: string;
-  dindic: string | null;
-  ccocif: string;
-  dvoilib: string;
-  cleinvar: string;
-  ccpper: string;
-  gpdl: string;
-  ctpdl: string | null;
-  dnupro: string;
-  jdatat: string;
-  jdatatv: string;
-  jdatatan: number;
-  dnufnl: string | null;
-  ccoeva: string;
-  ccoevatxt: string;
-  dteloc: string;
-  dteloctxt: string;
-  logh: string;
-  loghmais: string;
-  loghappt: string | null;
-  gtauom: string;
-  dcomrd: string;
-  ccoplc: string | null;
-  ccoplctxt: string | null;
-  cconlc: string;
-  cconlctxt: string;
-  dvltrt: number;
-  cc48lc: string | null;
-  dloy48a: number | null;
-  top48a: string;
-  dnatlc: string;
-  ccthp: string;
-  proba_rprs: string;
-  typeact: string | null;
-  loghvac: string | null;
-  loghvac2a: string | null;
-  loghvac5a: string | null;
-  loghvacdeb: string | null;
-  cchpr: string | null;
-  jannat: string;
-  dnbniv: string;
-  nbetagemax: number;
-  nbnivssol: number | null;
-  hlmsem: string | null;
-  loghlls: string;
-  postel: string | null;
-  dnatcg: string | null;
-  jdatcgl: string;
-  fburx: number;
-  gimtom: string | null;
-  cbtabt: string | null;
-  jdbabt: string | null;
-  jrtabt: string | null;
-  cconac: string | null;
-  cconactxt: string | null;
-  toprev: string;
-  ccoifp: number;
-  jannath: number;
-  janbilmin: number;
-  npevph: number;
-  stoth: number;
-  stotdsueic: number;
-  npevd: number;
-  stotd: number;
-  npevp: number;
-  sprincp: number;
-  ssecp: number;
-  ssecncp: number;
-  sparkp: number;
-  sparkncp: number;
-  npevtot: number;
-  slocal: number;
-  npiece_soc: number;
-  npiece_ff: number;
-  npiece_i: number;
-  npiece_p2: number;
-  nbannexe: number;
-  nbgarpark: number;
-  nbagrement: number;
-  nbterrasse: number;
-  nbpiscine: number;
-  ndroit: number;
-  ndroitindi: number;
-  ndroitpro: number;
-  ndroitges: number;
-  catpro2: string;
-  catpro2txt: string;
-  catpro3: string;
-  catpropro2: string;
-  catproges2: string;
-  locprop: string;
-  locproptxt: string;
-  source_geo: string;
-  vecteur: string;
-  ban_id: string;
-  ban_type: string;
-  ban_score: any;
-  ban_cp: string;
-  dis_ban_ff: number;
-  idpk: number;
-}
-
-/**
- * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/proprietaire_droit/last/
- */
-interface OwnerDTO {
-  idprodroit: string;
-  idprocpte: string;
-  idpersonne: string;
-  idvoie: string;
-  idcom: string;
-  idcomtxt: string;
-  ccodep: string;
-  ccodir: string;
-  ccocom: string;
-  dnupro: string;
-  dnulp: string;
-  ccocif: string;
-  dnuper: string;
-  ccodro: string;
-  ccodrotxt: string;
-  typedroit: string;
-  ccodem: string;
-  ccodemtxt: string;
-  gdesip: string;
-  gtoper: string;
-  ccoqua: string;
-  dnatpr: string | null;
-  dnatprtxt: string | null;
-  ccogrm: string | null;
-  ccogrmtxt: string | null;
-  dsglpm: string | null;
-  dforme: string | null;
-  ddenom: string;
-  gtyp3: string;
-  gtyp4: string;
-  gtyp5: string;
-  gtyp6: string;
-  dlign3: string | null;
-  dlign4: string | null;
-  dlign5: string | null;
-  dlign6: string | null;
-  ccopay: string | null;
-  ccodep1a2: string;
-  ccodira: string;
-  ccocomadr: string;
-  ccovoi: string;
-  ccoriv: string;
-  dnvoiri: string;
-  dindic: string | null;
-  ccopos: string;
-  dqualp: string;
-  dnomlp: string;
-  dprnlp: string;
-  jdatnss: string | null;
-  dldnss: string;
-  dsiren: string | null;
-  topja: string | null;
-  datja: string | null;
-  dformjur: string | null;
-  dnomus: string;
-  dprnus: string;
-  locprop: string;
-  locproptxt: string;
-  catpro2: string;
-  catpro2txt: string;
-  catpro3: string;
-  catpro3txt: string;
-}
-
-function toOwnerApi(owner: OwnerDTO): OwnerApi {
-  const kinds: Record<string, string> = {
-    'PERSONNE PHYSIQUE': 'Particulier',
-    'INVESTISSEUR PROFESSIONNEL': 'Investisseur',
-    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI',
-  };
-
-  return {
-    id: uuidv4(),
-    rawAddress: [owner.dlign3, owner.dlign4, owner.dlign5, owner.dlign6].filter(
-      isNotNull
-    ),
-    fullName: owner.ddenom,
-    birthDate: owner.jdatnss ?? undefined,
-    kind: kinds[owner.catpro2txt] ?? 'Autre',
-    kindDetail: kinds[owner.catpro2txt] ?? 'Autre',
-  };
 }
 
 export default {

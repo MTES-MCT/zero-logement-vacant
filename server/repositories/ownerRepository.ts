@@ -141,6 +141,9 @@ const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
 };
 
 interface SaveOptions {
+  /**
+   * @default 'ignore'
+   */
   onConflict?: 'merge' | 'ignore';
 }
 
@@ -154,45 +157,58 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
   const ownersWithoutBirthdate = owners
     .filter((owner) => !owner.birthDate)
     .map(formatOwnerApi);
-  const ownersWithBirthdate = owners.filter((owner) => !!owner.birthDate);
+  const ownersWithBirthdate = owners
+    .filter((owner) => !!owner.birthDate)
+    .map(formatOwnerApi);
 
   const onConflict = opts?.onConflict ?? 'merge';
 
   await db.transaction(async (transaction) => {
-    await Promise.all([
-      transaction<OwnerDBO>(ownerTable)
-        .insert(ownersWithBirthdate)
-        .modify((builder) => {
-          if (onConflict === 'merge') {
+    const queries = [];
+
+    if (ownersWithBirthdate.length > 0) {
+      queries.push(
+        transaction<OwnerDBO>(ownerTable)
+          .insert(ownersWithBirthdate)
+          .modify((builder) => {
+            if (onConflict === 'merge') {
+              return builder
+                .onConflict(['full_name', 'raw_address', 'birth_date'])
+                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+            }
             return builder
               .onConflict(['full_name', 'raw_address', 'birth_date'])
-              .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
-          }
-          return builder
-            .onConflict(['full_name', 'raw_address', 'birth_date'])
-            .ignore();
-        }),
-      transaction<OwnerDBO>(ownerTable)
-        .insert(ownersWithoutBirthdate)
-        .modify((builder) => {
-          if (onConflict === 'merge') {
+              .ignore();
+          })
+      );
+    }
+
+    if (ownersWithoutBirthdate.length > 0) {
+      queries.push(
+        transaction<OwnerDBO>(ownerTable)
+          .insert(ownersWithoutBirthdate)
+          .modify((builder) => {
+            if (onConflict === 'merge') {
+              return builder
+                .onConflict(
+                  db.raw(
+                    '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                  )
+                )
+                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+            }
             return builder
               .onConflict(
                 db.raw(
                   '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
                 )
               )
-              .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
-          }
-          return builder
-            .onConflict(
-              db.raw(
-                '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
-              )
-            )
-            .ignore();
-        }),
-    ]);
+              .ignore();
+          })
+      );
+    }
+
+    await Promise.all(queries);
   });
 }
 
@@ -315,7 +331,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   rawAddress: result.raw_address.filter((_: string) => _ && _.length),
   fullName: result.full_name,
   administrator: result.administrator,
-  birthDate: result.birth_date?.toISOString(),
+  birthDate: result.birth_date,
   email: result.email,
   phone: result.phone,
 });

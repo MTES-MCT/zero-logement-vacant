@@ -4,7 +4,7 @@ import highland from 'highland';
 import { bulkSave, compare, Comparison } from './action';
 import housingRepository from '../../server/repositories/housingRepository';
 import db from '../../server/repositories/db';
-import { appendAll, errorHandler } from './stream';
+import { appendAll, errorHandler } from '../../server/utils/stream';
 import lovacRepository, {
   AdditionalOwnerIndex,
   LovacOwner,

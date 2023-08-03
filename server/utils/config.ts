@@ -3,6 +3,8 @@ import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
 import path from 'path';
 
+import { LOG_LEVELS, LogLevel } from '../../shared/utils/log-level';
+
 convict.addFormats(formats);
 
 convict.addFormat({
@@ -50,8 +52,12 @@ interface Config {
   databaseEnvironment: string;
   databaseUrl: string;
   databaseUrlTest: string;
+  datafoncier: {
+    token: string | null;
+  };
   features: {
     enableTestAccounts: boolean;
+    dpeExperimentEstablishments: string[];
   };
   sentry: {
     dsn: string | null;
@@ -66,6 +72,9 @@ interface Config {
   };
   feature: {
     occupancy: string[];
+  };
+  log: {
+    level: LogLevel;
   };
   mailer: {
     provider: 'sendinblue' | 'nodemailer';
@@ -154,11 +163,25 @@ const config = convict<Config>({
     format: String,
     default: null,
   },
+  datafoncier: {
+    token: {
+      env: 'DATAFONCIER_TOKEN',
+      format: String,
+      default: null,
+      nullable: true,
+      sensitive: true,
+    },
+  },
   features: {
     enableTestAccounts: {
       env: 'ENABLE_TEST_ACCOUNTS',
       format: 'strict-boolean',
       default: process.env.NODE_ENV !== 'production',
+    },
+    dpeExperimentEstablishments: {
+      env: 'DPE_EXPERIMENT_ESTABLISHMENTS',
+      format: 'comma-separated string',
+      default: [],
     },
   },
   sentry: {
@@ -206,6 +229,13 @@ const config = convict<Config>({
       env: 'REACT_APP_FEATURE_OCCUPANCY',
       format: 'comma-separated string',
       default: [],
+    },
+  },
+  log: {
+    level: {
+      env: 'LOG_LEVEL',
+      format: LOG_LEVELS,
+      default: LogLevel.DEBUG,
     },
   },
   mailer: {

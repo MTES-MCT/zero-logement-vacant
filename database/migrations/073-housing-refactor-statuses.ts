@@ -10,7 +10,7 @@ import {
 } from '../../server/repositories/eventRepository';
 import { housingTable } from '../../server/repositories/housingRepository';
 import { usersTable } from '../../server/repositories/userRepository';
-import { isNotNull } from '../../frontend/src/utils/compareUtils';
+import { isNotNull } from '../../shared/utils/compare';
 
 const BATCH_SIZE = 100_000;
 

@@ -33,7 +33,7 @@ import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import SortApi from '../models/SortApi';
 import {
-  isPaginationEnable,
+  isPaginationEnabled,
   PaginationApi,
   paginationQuery,
 } from '../models/PaginationApi';
@@ -131,7 +131,14 @@ export const queryOwnerHousingWhereClause = (
   }
 };
 
-const saveMany = async (housingList: HousingApi[]): Promise<void> => {
+interface SaveOptions {
+  onConflict?: 'merge' | 'ignore';
+}
+
+const saveMany = async (
+  housingList: HousingApi[],
+  opts?: SaveOptions
+): Promise<void> => {
   if (!housingList.length) {
     return;
   }
@@ -156,8 +163,12 @@ const saveMany = async (housingList: HousingApi[]): Promise<void> => {
   await db.transaction(async (transaction) => {
     await transaction(housingTable)
       .insert(housingList.map(formatHousingRecordApi))
-      .onConflict('local_id')
-      .merge();
+      .modify((builder) => {
+        if (opts?.onConflict === 'merge') {
+          return builder.onConflict('local_id').merge();
+        }
+        return builder.onConflict('local_id').ignore();
+      });
 
     // Owners should already be present
     const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);
@@ -703,8 +714,8 @@ const paginatedListWithFilters = async (
         filteredCount: filteredCounts.housingCount,
         filteredOwnerCount: filteredCounts.ownerCount,
         totalCount: totalCounts.housingCount,
-        page: isPaginationEnable(pagination) ? pagination.page : undefined,
-        perPage: isPaginationEnable(pagination)
+        page: isPaginationEnabled(pagination) ? pagination.page : undefined,
+        perPage: isPaginationEnabled(pagination)
           ? pagination.perPage
           : undefined,
       }
@@ -854,16 +865,16 @@ interface HousingRecordDBO {
   geo_code: string;
   longitude?: number;
   latitude?: number;
-  cadastral_classification: number;
+  cadastral_classification?: number;
   uncomfortable: boolean;
-  vacancy_start_year: number;
+  vacancy_start_year?: number;
   housing_kind: string;
   rooms_count: number;
   living_area: number;
-  cadastral_reference: string;
+  cadastral_reference?: string;
   building_year?: number;
-  taxed: boolean;
-  vacancy_reasons: string[];
+  taxed?: boolean;
+  vacancy_reasons?: string[];
   data_years: number[];
   building_location?: string;
   ownership_kind?: OwnershipKindsApi;
@@ -873,6 +884,7 @@ interface HousingRecordDBO {
   energy_consumption?: EnergyConsumptionGradesApi;
   energy_consumption_worst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
+  occupancy_registered?: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
@@ -913,6 +925,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   energyConsumption: result.energy_consumption,
   energyConsumptionWorst: result.energy_consumption_worst,
   occupancy: result.occupancy,
+  occupancyRegistered: result.occupancy_registered,
   occupancyIntended: result.occupancy_intended,
   localityKind: result.locality_kind,
   geoPerimeters: result.geo_perimeters,
@@ -938,7 +951,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   lastContact: result.last_contact,
 });
 
-const formatHousingRecordApi = (
+export const formatHousingRecordApi = (
   housingRecordApi: HousingRecordApi
 ): HousingRecordDBO => ({
   id: housingRecordApi.id,
@@ -967,6 +980,7 @@ const formatHousingRecordApi = (
   energy_consumption: housingRecordApi.energyConsumption,
   energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
   occupancy: housingRecordApi.occupancy,
+  occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
 });
 

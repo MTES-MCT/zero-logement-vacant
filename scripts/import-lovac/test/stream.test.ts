@@ -1,5 +1,5 @@
 import highland from 'highland';
-import { appendAll } from '../stream';
+import { appendAll } from '../../../server/utils/stream';
 
 describe('Import Lovac', () => {
   describe('appendAll', () => {

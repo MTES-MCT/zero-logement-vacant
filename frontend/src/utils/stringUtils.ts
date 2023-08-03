@@ -1,4 +1,4 @@
-import { Compare } from '../../../shared/utils/compare';
+import { Compare } from './compareUtils';
 
 export const capitalize = (string: string) => {
   return string

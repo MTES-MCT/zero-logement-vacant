@@ -1,6 +1,5 @@
 import { byAddress, Housing } from '../Housing';
-
-import { Compare } from '../../../../shared/utils/compare';
+import { Compare } from '../../utils/compareUtils';
 
 describe('Housing', () => {
   describe('#byAddress', () => {

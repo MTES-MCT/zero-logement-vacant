@@ -6,8 +6,7 @@ import {
   GeoPerimeter,
   GeoPerimeterProperties,
 } from '../../models/GeoPerimeter';
-
-import { isNotNull } from '../../../../shared/utils/compare';
+import { isNotNull } from '../../utils/compareUtils';
 
 interface Props {
   id: string;

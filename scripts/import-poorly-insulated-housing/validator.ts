@@ -1,7 +1,4 @@
 import joi from 'joi';
-import date from '@joi/date';
-
-joi.extend(date);
 
 function validate<T>(schema: joi.Schema<T>) {
   return (value: T): T => {

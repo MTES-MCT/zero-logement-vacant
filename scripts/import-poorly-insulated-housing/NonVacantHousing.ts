@@ -1,5 +1,4 @@
 import joi from 'joi';
-import date from '@joi/date';
 
 import { OwnerApi } from '../../server/models/OwnerApi';
 import {
@@ -7,8 +6,6 @@ import {
   HousingApi,
   OccupancyKindApi,
 } from '../../server/models/HousingApi';
-
-joi.extend(date);
 
 export type NonVacantHousing = {
   invariant: string;
@@ -81,7 +78,7 @@ export const nonVacantHousingSchema = joi
     ff_stoth: joi.number().positive(),
     ff_jannath: joi.number(),
     // TODO: verify CSV values
-    ff_jdatat: joi.date().utc().format('DDMMYYYY'),
+    ff_jdatat: joi.date(),
     txtlv: joi.string().trim(),
     ff_ndroit: joi.number().integer().min(1).max(6),
     batloc: joi.string().trim(),

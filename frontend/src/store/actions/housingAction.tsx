@@ -74,12 +74,12 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     housingService
       .listHousing(
         filters,
-        { dataYearsExcluded, dataYearsIncluded },
+        { dataYearsExcluded, dataYearsIncluded, occupancies },
         {
           pagination,
           abortable: true,
@@ -113,12 +113,12 @@ export const changeHousingPagination = (pagination: Pagination) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     housingService
       .listHousing(
         getState().housing.filters,
-        { dataYearsExcluded, dataYearsIncluded },
+        { dataYearsExcluded, dataYearsIncluded, occupancies },
         {
           pagination,
           abortable: true,
@@ -157,12 +157,12 @@ export const changeHousingSort = (sort: HousingSort) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     housingService
       .listHousing(
         filters,
-        { dataYearsExcluded, dataYearsIncluded },
+        { dataYearsExcluded, dataYearsIncluded, occupancies },
         {
           sort,
           pagination,

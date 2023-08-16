@@ -260,7 +260,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
-      queryBuilder.where(
+      queryBuilder.whereRaw(
         'vacancy_start_year <= ?',
         referenceDataYearFromFilters(filters) - 2
       );

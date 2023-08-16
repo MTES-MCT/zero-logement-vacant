@@ -49,6 +49,7 @@ export type HousingFiltersForTotalCount = Pick<
   | 'dataYearsExcluded'
   | 'status'
   | 'campaignIds'
+  | 'occupancies'
 >;
 
 export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)

@@ -22,6 +22,7 @@ import {
   applicationReducer,
   store as appStore,
 } from '../../store/store';
+import { OccupancyKind } from '../../models/Housing';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -115,6 +116,7 @@ describe('housing view', () => {
           filtersForTotalCount: {
             dataYearsExcluded: [],
             dataYearsIncluded: [2023],
+            occupancies: [OccupancyKind.Vacant],
           },
           paginate: true,
           page: 1,
@@ -172,6 +174,7 @@ describe('housing view', () => {
           filtersForTotalCount: {
             dataYearsExcluded: [],
             dataYearsIncluded: [2023],
+            occupancies: [OccupancyKind.Vacant],
           },
           paginate: true,
           page: 1,

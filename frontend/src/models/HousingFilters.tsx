@@ -2,6 +2,7 @@ import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
   OccupancyKind,
+  OccupancyKindBadgeLabels,
   OccupancyKindLabels,
   OwnershipKindLabels,
   OwnershipKinds,
@@ -50,22 +51,12 @@ export type HousingFiltersForTotalCount = Pick<
   | 'campaignIds'
 >;
 
-export const occupancyOptions: SelectOption[] = [
-  {
-    value: 'L',
-    label: 'Logement locatif',
-  },
-  {
-    value: 'V',
-    label: 'Logement vacant',
-  },
-];
-
 export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)
   .filter((_) => !(parseInt(_) >= 0))
   .map((value) => ({
     value,
     label: OccupancyKindLabels[value],
+    badgeLabel: OccupancyKindBadgeLabels[value],
   }));
 
 export const ownerAgeOptions: SelectOption[] = [

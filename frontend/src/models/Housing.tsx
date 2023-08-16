@@ -206,3 +206,8 @@ export const OccupancyKindLabels = {
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
 };
+
+export const OccupancyKindBadgeLabels = {
+  ...OccupancyKindLabels,
+  [OccupancyKind.Others]: 'Occupation : Autres',
+};

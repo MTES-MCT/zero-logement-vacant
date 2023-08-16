@@ -1,4 +1,4 @@
-import { Housing, HousingSort } from '../../models/Housing';
+import { Housing, HousingSort, OccupancyKind } from '../../models/Housing';
 import {
   ExpandFiltersAction,
   FetchingAdditionalOwnersAction,
@@ -51,6 +51,7 @@ export const initialHousingFilters = {
   dataYearsExcluded: [],
   energyConsumption: [],
   energyConsumptionWorst: [],
+  occupancies: [OccupancyKind.Vacant],
   query: '',
 } as HousingFilters;
 

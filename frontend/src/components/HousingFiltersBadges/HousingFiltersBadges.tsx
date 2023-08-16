@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+  allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
@@ -14,7 +15,6 @@ import {
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
-  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -266,7 +266,7 @@ const HousingFiltersBadges = ({
         }
       />
       <FilterBadges
-        options={occupancyOptions}
+        options={allOccupancyOptions}
         filters={filters.occupancies}
         small={small}
         onChange={onChange && ((values) => onChange({ occupancies: values }))}

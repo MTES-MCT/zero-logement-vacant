@@ -256,23 +256,15 @@ const get = async (
 
 const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: any) => {
-    queryBuilder.where(function (whereBuilder: any) {
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Vacant)
-      ) {
-        whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
-          OccupancyKindApi.Vacant,
-          referenceDataYearFromFilters(filters) - 2,
-        ]);
-      }
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Rent)
-      ) {
-        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
-      }
-    });
+    if (filters.occupancies?.length) {
+      queryBuilder.whereIn('occupancy', filters.occupancies);
+    }
+    if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
+      queryBuilder.where(
+        'vacancy_start_year <= ?',
+        referenceDataYearFromFilters(filters) - 2
+      );
+    }
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }

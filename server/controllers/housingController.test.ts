@@ -104,7 +104,7 @@ describe('Housing controller', () => {
         page: 1,
         perPage: 10,
         filteredCount: 1,
-        totalCount: 4,
+        totalCount: 5,
       });
     });
   });

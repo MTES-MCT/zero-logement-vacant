@@ -704,7 +704,7 @@ const paginatedListWithFilters = async (
   }
 
   return Promise.all([
-    filterQuery.modify(paginationQuery(pagination)).debug(true),
+    filterQuery.modify(paginationQuery(pagination)),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),
   ]).then(

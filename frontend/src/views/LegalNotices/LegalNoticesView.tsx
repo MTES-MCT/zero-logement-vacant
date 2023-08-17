@@ -23,10 +23,7 @@ function LegalNoticesView() {
           </Text>
           <Text spacing="mb-0">1 place Carpeaux, 92800 Puteaux, France</Text>
           <Text>+33 1 40 81 21 22</Text>
-          <Text>
-            Directeur de publication : Stéphanie Dupuy-Lyon, directrice générale
-            de l’aménagement, du logement et de la nature
-          </Text>
+          <Text>Directrice de publication : Stéphanie Dupuy-Lyon</Text>
 
           <Title as="h3" spacing="mt-4w">
             Prestataire d’hébergement

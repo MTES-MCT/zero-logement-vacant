@@ -68,6 +68,10 @@ export const ownersHousingJoinClause = (query: any) => {
 };
 export const queryHousingEventsJoinClause = (queryBuilder: any) => {
   queryBuilder
+    .select(
+      db.raw(`count(${eventsTable}) as contact_count`),
+      db.raw(`max(${eventsTable}.created_at) as last_contact`)
+    )
     .leftJoin(
       housingEventsTable,
       `${housingEventsTable}.housing_id`,
@@ -193,8 +197,6 @@ const get = async (
       `${buildingTable}.housing_count`,
       `${buildingTable}.vacant_housing_count`,
       `${localitiesTable}.locality_kind`,
-      db.raw(`count(${eventsTable}) as contact_count`),
-      db.raw(`max(${eventsTable}.created_at) as last_contact`),
       db.raw(
         `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
       ),
@@ -598,9 +600,7 @@ const listQuery = (establishmentIds?: string[]) =>
       'o.administrator',
       'o.email',
       'o.phone',
-      db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-      db.raw(`count(${eventsTable}) as contact_count`),
-      db.raw(`max(${eventsTable}.created_at) as last_contact`)
+      db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
     )
     .from(housingTable)
     .join(ownersHousingTable, ownersHousingJoinClause)
@@ -624,7 +624,6 @@ const listQuery = (establishmentIds?: string[]) =>
                 ) campaigns on true`,
       establishmentIds ?? []
     )
-    .modify(queryHousingEventsJoinClause)
     .groupBy(`${housingTable}.id`, 'o.id');
 
 const listWithFilters = async (
@@ -632,6 +631,7 @@ const listWithFilters = async (
 ): Promise<HousingApi[]> => {
   return listQuery(filters.establishmentIds)
     .modify(filteredQuery(filters))
+    .modify(queryHousingEventsJoinClause)
     .then((_) => _.map((result: any) => parseHousingApi(result)));
 };
 
@@ -696,7 +696,7 @@ const paginatedListWithFilters = async (
   }
 
   return Promise.all([
-    filterQuery.modify(paginationQuery(pagination)),
+    filterQuery.modify(paginationQuery(pagination)).debug(true),
     countWithFilters(filters),
     countWithFilters(filtersForTotalCount),
   ]).then(

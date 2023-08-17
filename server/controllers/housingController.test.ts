@@ -295,7 +295,7 @@ describe('Housing controller', () => {
         );
     });
 
-    it('should create and event related to the status change', async () => {
+    it('should create and event related to the status change only when there are some changes', async () => {
       await withAccessToken(
         request(app).post(testRoute).send(validBody)
       ).expect(constants.HTTP_STATUS_OK);
@@ -303,7 +303,7 @@ describe('Housing controller', () => {
       await db(eventsTable)
         .join(housingEventsTable, 'event_id', 'id')
         .where('housing_id', Housing1.id)
-        .andWhereNot('id', HousingEvent1.id)
+        .andWhere('name', 'Changement de statut de suivi')
         .then((result) =>
           expect(result).toMatchObject(
             expect.arrayContaining([
@@ -318,6 +318,23 @@ describe('Housing controller', () => {
             ])
           )
         );
+
+      await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            ...validBody,
+            currentStatus: validBody.housingUpdate.statusUpdate.status,
+          })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      await db(eventsTable)
+        .join(housingEventsTable, 'event_id', 'id')
+        .where('housing_id', Housing1.id)
+        .andWhere('name', 'Changement de statut de suivi')
+        .count()
+        .first()
+        .then((result) => expect(result?.count).toBe('1'));
     });
 
     it('should create and event related to the occupancy change', async () => {

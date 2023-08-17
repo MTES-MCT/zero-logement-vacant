@@ -238,11 +238,17 @@ const updateHousing = async (
     throw new HousingMissingError(housingId);
   }
 
-  if (!housing.campaignIds.length) {
+  if (
+    housingUpdate.statusUpdate?.status !== HousingStatusApi.NeverContacted &&
+    housing.campaignIds.length === 0
+  ) {
     await addHousingInDefaultCampaign(housing, establishment.id);
   }
 
-  if (housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted) {
+  if (
+    housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted &&
+    housing.campaignIds.length > 0
+  ) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       housing.campaignIds,
       [housing.id]

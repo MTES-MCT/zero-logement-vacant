@@ -174,7 +174,7 @@ const listByOwner = async (
       establishmentIds: [establishmentId],
       ownerIds: [ownerId],
     }),
-    housingRepository.countWithFilters({ ownerIds: [ownerId] }),
+    housingRepository.count({ ownerIds: [ownerId] }),
   ]).then(([list, totalCount]) =>
     response
       .status(constants.HTTP_STATUS_OK)

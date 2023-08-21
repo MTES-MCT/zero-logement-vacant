@@ -16,11 +16,7 @@ import ownerRepository, {
   OwnerDBO,
   ownerTable,
 } from './ownerRepository';
-import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
-import {
-  HousingFiltersApi,
-  HousingFiltersForTotalCountApi,
-} from '../models/HousingFiltersApi';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
 import {
   HousingStatusApi,
@@ -31,12 +27,8 @@ import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
-import SortApi, { sortQuery } from '../models/SortApi';
-import {
-  isPaginationEnabled,
-  PaginationApi,
-  paginationQuery,
-} from '../models/PaginationApi';
+import { sortQuery } from '../models/SortApi';
+import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
@@ -716,47 +708,6 @@ const stream = (): Highland.Stream<HousingApi> => {
     });
 };
 
-const paginatedListWithFilters = async (
-  filters: HousingFiltersApi,
-  filtersForTotalCount: HousingFiltersForTotalCountApi,
-  pagination?: PaginationApi,
-  sort?: HousingSortApi
-): Promise<HousingPaginatedResultApi> => {
-  const filterQuery = listQuery(filters.establishmentIds).modify(
-    filteredQuery(filters)
-  );
-
-  if (sort) {
-    SortApi.query(sort, {
-      keys: {
-        owner: () => filterQuery.orderBy('o.full_name', sort.owner),
-        rawAddress: () => {
-          filterQuery
-            .orderBy(`${housingTable}.raw_address[2]`, sort.rawAddress)
-            .orderByRaw(
-              `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${sort.rawAddress}`
-            )
-            .orderByRaw(
-              `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${sort.rawAddress}`
-            );
-        },
-      },
-    });
-  }
-
-  const results: HousingDBO[] = await filterQuery.modify(
-    paginationQuery(pagination)
-  );
-  return {
-    entities: results.map(parseHousingApi),
-    filteredCount: 100,
-    filteredOwnerCount: 100,
-    totalCount: 100,
-    page: isPaginationEnabled(pagination) ? pagination.page : 0,
-    perPage: isPaginationEnabled(pagination) ? pagination.perPage : 0,
-  };
-};
-
 const countVacant = async (): Promise<number> => {
   const value = await db(housingTable)
     .countDistinct(`${housingTable}.id`)
@@ -791,54 +742,6 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
     housing: Number(result?.housing),
     owners: Number(result?.owners),
   };
-};
-
-const countOwners = async (filters: HousingFiltersApi): Promise<number> => {
-  const result = await db(housingTable)
-    .countDistinct(`${ownersHousingTable}.owner_id`)
-    .join(ownersHousingTable, ownersHousingJoinClause)
-    .modify(filteredQuery(filters))
-    .first();
-  return Number(result?.count);
-};
-
-const countWithFilters = async (
-  filters: HousingFiltersApi
-): Promise<{ housingCount: number; ownerCount: number }> => {
-  try {
-    return db(housingTable)
-      .countDistinct(`${housingTable}.id as housing_count`)
-      .countDistinct(`o.id as owner_count`)
-      .join(ownersHousingTable, ownersHousingJoinClause)
-      .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .leftJoin(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
-      )
-      .joinRaw(
-        `left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count
-                    from campaigns_housing ch, campaigns c
-                    where housing.id = ch.housing_id
-                    and c.id = ch.campaign_id
-                    ${
-                      filters.establishmentIds?.length
-                        ? ` and c.establishment_id in (?)`
-                        : ''
-                    }
-                ) campaigns on true`,
-        filters.establishmentIds ?? []
-      )
-      .modify(filteredQuery(filters))
-      .then((_) => ({
-        housingCount: Number(_[0].housing_count),
-        ownerCount: Number(_[0].owner_count),
-      }));
-  } catch (err) {
-    console.error('Listing housing failed', err);
-    throw new Error('Listing housing failed');
-  }
 };
 
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
@@ -1050,11 +953,8 @@ export default {
   find,
   listWithFilters,
   stream,
-  paginatedListWithFilters,
   count,
-  countOwners,
   countVacant,
-  countWithFilters,
   listByIds,
   update,
   countByStatusWithFilters,

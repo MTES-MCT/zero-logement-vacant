@@ -31,7 +31,9 @@ export interface HousingState {
   };
 }
 
-export const initialHousingFilters = {} as HousingFilters;
+export const initialHousingFilters = {
+  dataYearsIncluded: [config.dataYear + 1],
+} as HousingFilters;
 
 const initialState: HousingState = {
   filteredCount: 0,

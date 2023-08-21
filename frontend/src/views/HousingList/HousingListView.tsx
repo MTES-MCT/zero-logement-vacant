@@ -83,7 +83,7 @@ const HousingListView = () => {
     setMapViewState(viewState);
   }
 
-  const { totalCount, paginatedHousing, pagination } = useAppSelector(
+  const { totalCount, paginatedHousing } = useAppSelector(
     (state) => state.housing
   );
 
@@ -108,16 +108,9 @@ const HousingListView = () => {
   )(perimeters ?? []);
 
   useEffect(() => {
-    const p: Pagination =
-      view === 'map'
-        ? { paginate: false }
-        : {
-            page: pagination?.page,
-            perPage: pagination?.perPage,
-            paginate: true,
-          };
+    const p: Pagination = view === 'map' ? { paginate: false } : {};
     dispatch(changeHousingPagination(p));
-  }, [dispatch, view, pagination?.page, pagination?.perPage]);
+  }, [dispatch, view]);
 
   useEffect(() => {
     if (!paginatedHousing.loading) {

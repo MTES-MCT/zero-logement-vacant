@@ -39,7 +39,9 @@ const initialState: HousingState = {
   filteredCount: 0,
   totalCount: 0,
   totalOwnerCount: 0,
-  paginate: true,
+  pagination: {
+    perPage: config.perPageDefault,
+  },
   paginatedHousing: {
     entities: [],
     page: 1,

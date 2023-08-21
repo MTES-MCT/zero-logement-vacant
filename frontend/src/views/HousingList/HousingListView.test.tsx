@@ -42,6 +42,11 @@ describe('housing view', () => {
         ? { body: JSON.stringify([]), init: { status: 200 } }
         : request.url.startsWith(`${config.apiEndpoint}/api/localities`)
         ? { body: JSON.stringify([]), init: { status: 200 } }
+        : request.url === `${config.apiEndpoint}/api/housing/count`
+        ? {
+            body: JSON.stringify({ housing: 1, owners: 1 }),
+            init: { status: 200 },
+          }
         : { body: '', init: { status: 404 } }
     );
   };
@@ -112,16 +117,24 @@ describe('housing view', () => {
             ...initialHousingFilters,
             ownerKinds: [ownerKindOptions[0].value],
           },
-          filtersForTotalCount: {
-            dataYearsExcluded: [],
-            dataYearsIncluded: [2023],
-          },
-          paginate: true,
           page: 1,
-          perPage: config.perPageDefault,
         }),
         abortId: 'list-housing',
         signal: expect.anything(),
+      }
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${config.apiEndpoint}/api/housing/count`,
+      {
+        method: 'POST',
+        headers: {
+          ...authService.authHeader(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filters: initialHousingFilters,
+        }),
       }
     );
   });
@@ -141,6 +154,11 @@ describe('housing view', () => {
           ? { body: JSON.stringify([]), init: { status: 200 } }
           : request.url.startsWith(`${config.apiEndpoint}/api/localities`)
           ? { body: JSON.stringify([]), init: { status: 200 } }
+          : request.url === `${config.apiEndpoint}/api/housing/count`
+          ? {
+              body: JSON.stringify({ housing: 1, owners: 1 }),
+              init: { status: 200 },
+            }
           : { body: '', init: { status: 404 } }
       );
     });
@@ -169,13 +187,7 @@ describe('housing view', () => {
         },
         body: JSON.stringify({
           filters: { ...initialHousingFilters, query: 'my search' },
-          filtersForTotalCount: {
-            dataYearsExcluded: [],
-            dataYearsIncluded: [2023],
-          },
-          paginate: true,
           page: 1,
-          perPage: config.perPageDefault,
         }),
         abortId: 'list-housing',
         signal: expect.anything(),
@@ -198,6 +210,11 @@ describe('housing view', () => {
           ? { body: JSON.stringify([]), init: { status: 200 } }
           : request.url.startsWith(`${config.apiEndpoint}/api/localities`)
           ? { body: JSON.stringify([]), init: { status: 200 } }
+          : request.url === `${config.apiEndpoint}/api/housing/count`
+          ? {
+              body: JSON.stringify({ housing: 1, owners: 1 }),
+              init: { status: 200 },
+            }
           : { body: '', init: { status: 404 } }
       );
     });
@@ -230,6 +247,11 @@ describe('housing view', () => {
           ? { body: JSON.stringify([]), init: { status: 200 } }
           : request.url.startsWith(`${config.apiEndpoint}/api/localities`)
           ? { body: JSON.stringify([]), init: { status: 200 } }
+          : request.url === `${config.apiEndpoint}/api/housing/count`
+          ? {
+              body: JSON.stringify({ housing: 1, owners: 1 }),
+              init: { status: 200 },
+            }
           : { body: '', init: { status: 404 } }
       );
     });

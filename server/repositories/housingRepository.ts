@@ -43,6 +43,8 @@ import { Knex } from 'knex';
 import _ from 'lodash';
 import validator from 'validator';
 import { PaginationOptions } from '../../shared/models/Pagination';
+import { logger } from '../utils/logger';
+import { HousingCountApi } from '../models/HousingCountApi';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
@@ -257,9 +259,9 @@ const get = async (
   return housing ? parseHousingApi(housing) : null;
 };
 
-const filteredQuery = (filters: HousingFiltersApi) => {
-  return (queryBuilder: any) => {
-    queryBuilder.where(function (whereBuilder: any) {
+export const filteredQuery = (filters: HousingFiltersApi) => {
+  return (queryBuilder: Knex.QueryBuilder) => {
+    queryBuilder.where((whereBuilder) => {
       if (
         !filters.occupancies?.length ||
         filters.occupancies?.includes(OccupancyKindApi.Vacant)
@@ -269,11 +271,12 @@ const filteredQuery = (filters: HousingFiltersApi) => {
           referenceDataYearFromFilters(filters) - 2,
         ]);
       }
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Rent)
-      ) {
-        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
+
+      const otherOccupancies = filters.occupancies?.filter(
+        (occupancy) => occupancy !== OccupancyKindApi.Vacant
+      );
+      if (otherOccupancies?.length) {
+        whereBuilder.orWhereIn('occupancy', otherOccupancies);
       }
     });
     if (filters.energyConsumption?.length) {
@@ -287,7 +290,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
-        `join ${establishmentsTable} e on geo_code  = any(e.localities_geo_code) and e.id in (?)`,
+        `join ${establishmentsTable} e on geo_code = any(e.localities_geo_code) and e.id in (?)`,
         filters.establishmentIds
       );
     }
@@ -641,11 +644,11 @@ interface FindOptions extends PaginationOptions {
 }
 
 const find = async (opts: FindOptions): Promise<HousingApi[]> => {
-  const housingList: HousingDBO[] = await db(housingTable)
-    .select(`${housingTable}.*`)
-    .from(housingTable)
-    .join(ownersHousingTable, ownersHousingJoinClause)
-    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+  logger.trace('housingRepository.find', opts);
+
+  const housingList: HousingDBO[] = await listQuery(
+    opts.filters.establishmentIds
+  )
     .modify(filteredQuery(opts.filters))
     .modify(
       sortQuery(opts.sort, {
@@ -664,7 +667,11 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
         },
         default: (query) => query.orderBy('id'),
       })
-    );
+    )
+    // TODO: avoid cast
+    .modify(paginationQuery(opts.pagination as PaginationApi));
+
+  logger.trace('housingRepository.find', { housing: housingList.length });
   return housingList.map(parseHousingApi);
 };
 
@@ -769,12 +776,21 @@ function whereVacant(year: number = ReferenceDataYear) {
       .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
 }
 
-const count = async (filters: HousingFiltersApi): Promise<number> => {
-  const result = await db(housingTable)
-    .count()
-    .modify(filteredQuery(filters))
+const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
+  const result = await db
+    .with(
+      'list',
+      listQuery(filters.establishmentIds).modify(filteredQuery(filters))
+    )
+    .countDistinct('id as housing')
+    .countDistinct('owner_id as owners')
+    .from('list')
     .first();
-  return Number(result?.count);
+
+  return {
+    housing: Number(result?.housing),
+    owners: Number(result?.owners),
+  };
 };
 
 const countOwners = async (filters: HousingFiltersApi): Promise<number> => {

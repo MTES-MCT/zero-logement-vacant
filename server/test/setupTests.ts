@@ -1,4 +1,5 @@
 import { enableFetchMocks } from 'jest-fetch-mock';
+import 'jest-sorted';
 import { knex } from 'knex';
 
 import knexConfig from '../knex';

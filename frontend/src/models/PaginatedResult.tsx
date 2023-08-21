@@ -3,6 +3,9 @@ import { Housing } from './Housing';
 
 export interface PaginatedResult<T> {
   filteredCount: number;
+  /**
+   * @deprecated
+   */
   totalCount: number;
   entities: Array<T>;
   page: number;

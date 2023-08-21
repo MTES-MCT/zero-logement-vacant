@@ -83,7 +83,7 @@ const HousingListView = () => {
     setMapViewState(viewState);
   }
 
-  const { filteredCount, totalCount, paginatedHousing } = useAppSelector(
+  const { totalCount, paginatedHousing, pagination } = useAppSelector(
     (state) => state.housing
   );
 
@@ -108,16 +108,16 @@ const HousingListView = () => {
   )(perimeters ?? []);
 
   useEffect(() => {
-    const pagination: Pagination =
+    const p: Pagination =
       view === 'map'
         ? { paginate: false }
         : {
-            page: paginatedHousing.page,
-            perPage: paginatedHousing.perPage,
+            page: pagination?.page,
+            perPage: pagination?.perPage,
             paginate: true,
           };
-    dispatch(changeHousingPagination(pagination));
-  }, [dispatch, view, paginatedHousing.page, paginatedHousing.perPage]);
+    dispatch(changeHousingPagination(p));
+  }, [dispatch, view, pagination?.page, pagination?.perPage]);
 
   useEffect(() => {
     if (!paginatedHousing.loading) {
@@ -201,29 +201,25 @@ const HousingListView = () => {
 
   function housingCount({
     filteredCount,
+    filteredOwnerCount,
     totalCount,
-  }: Pick<HousingPaginatedResult, 'filteredCount' | 'totalCount'>): string {
-    return displayCount(totalCount, 'logement', true, filteredCount);
-  }
-
-  const displayHousingCount = (paginatedHousing: HousingPaginatedResult) => {
-    const countItems = displayCount(
-      paginatedHousing.totalCount,
+  }: Pick<
+    HousingPaginatedResult,
+    'filteredCount' | 'filteredOwnerCount' | 'totalCount'
+  >): string {
+    const items = displayCount(
+      totalCount,
       'logement',
       true,
-      paginatedHousing.filteredCount
+      filteredCount
     ).split(' ');
-    countItems.splice(
+    items.splice(
       2,
       0,
-      `(${displayCount(
-        paginatedHousing.filteredOwnerCount,
-        'propriétaire',
-        false
-      )})`
+      `(${displayCount(filteredOwnerCount, 'propriétaire', false)})`
     );
-    return countItems.join(' ');
-  };
+    return items.join(' ');
+  }
 
   return (
     <>
@@ -318,9 +314,11 @@ const HousingListView = () => {
             />
 
             <Text spacing="mb-2w">
-              {housingCount({ filteredCount, totalCount })}
-              <br />
-              {displayHousingCount(paginatedHousing)}
+              {housingCount({
+                filteredCount: paginatedHousing.filteredCount,
+                filteredOwnerCount: paginatedHousing.filteredOwnerCount,
+                totalCount,
+              })}
               {view === 'map' && (
                 <div className="d-inline-block fr-ml-2w">
                   <GeoPerimetersModalLink />

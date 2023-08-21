@@ -6,10 +6,7 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import {
-  HousingFiltersApi,
-  HousingFiltersForTotalCountApi,
-} from '../models/HousingFiltersApi';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
@@ -20,18 +17,20 @@ import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
-import sortApi from '../models/SortApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
-import paginationApi, { PaginationApi } from '../models/PaginationApi';
+import paginationApi from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
 import { v4 as uuidv4 } from 'uuid';
 import noteRepository from '../repositories/noteRepository';
 import { NoteApi } from '../models/NoteApi';
 import _ from 'lodash';
 import { logger } from '../utils/logger';
+import fp from 'lodash/fp';
+import { Pagination } from '../../shared/models/Pagination';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
+import sortApi from "../models/SortApi";
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -86,60 +85,63 @@ const listValidators: ValidationChain[] = [
     .default([])
     .custom(isArrayOf(isString)),
   body('filters.occupancies').default([]).custom(isArrayOf(isString)),
-  body('filtersForTotalCount').default({}).isObject({ strict: true }),
-  body('filtersForTotalCount.establishmentIds')
-    .default([])
-    .custom(isArrayOf(isString)),
-  body('filtersForTotalCount.dataYearsIncluded')
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.dataYearsExcluded')
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.campaignIds')
-    .default([])
-    .custom(isArrayOf(isString)),
   ...sortApi.queryValidators,
   ...paginationApi.validators,
 ];
 
-const list = async (request: Request, response: Response) => {
-  console.log('List housing');
-
-  const { auth, user } = request as AuthenticatedRequest;
+const list = async (
+  request: Request,
+  response: Response<HousingPaginatedResultApi>
+) => {
+  const { auth, body, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const pagination = request.body as Required<PaginationApi>;
-  const filters = request.body.filters as HousingFiltersApi;
-  const filtersForTotalCount = request.body
-    .filtersForTotalCount as HousingFiltersForTotalCountApi;
+  const pagination: Required<Pagination> = fp.pick(
+    ['paginate', 'perPage', 'page'],
+    body
+  );
 
   const role = user.role;
-  const establishmentId = auth.establishmentId;
   const sort = SortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
+  const filters: HousingFiltersApi = {
+    ...body.filters,
+    establishmentIds:
+      role === UserRoles.Admin && body.filters.establishmentIds?.length
+        ? body.filters.establishmentIds
+        : [auth.establishmentId],
+  };
 
-  const establishmentIds =
-    role === UserRoles.Admin && filters.establishmentIds?.length
-      ? filters.establishmentIds
-      : [establishmentId];
+  logger.trace('List housing', {
+    pagination,
+    filters,
+    sort,
+  });
 
-  const housing: PaginatedResultApi<HousingApi> =
-    await housingRepository.paginatedListWithFilters(
-      {
-        ...filters,
-        establishmentIds,
-      },
-      {
-        ...filtersForTotalCount,
-        establishmentIds,
-      },
+  const [housing, count] = await Promise.all([
+    housingRepository.find({
+      filters,
       pagination,
-      sort
-    );
+      sort,
+    }),
+    housingRepository.count(filters),
+  ]);
 
-  response.status(constants.HTTP_STATUS_OK).json(housing);
+  const offset = (pagination.page - 1) * pagination.perPage;
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .setHeader(
+      'Content-Range',
+      `housing ${offset}-${offset + housing.length - 1}/${count.housing}`
+    )
+    .json({
+      entities: housing,
+      filteredCount: count.housing,
+      filteredOwnerCount: count.owners,
+      page: pagination.page,
+      perPage: pagination.perPage,
+      totalCount: 0,
+    });
 };
 
 const count = async (request: Request, response: Response): Promise<void> => {
@@ -155,7 +157,7 @@ const count = async (request: Request, response: Response): Promise<void> => {
         ? filters.establishmentIds
         : [establishmentId],
   });
-  response.status(constants.HTTP_STATUS_OK).json({ count });
+  response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
 const listByOwner = async (

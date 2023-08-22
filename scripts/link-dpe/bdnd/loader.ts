@@ -8,6 +8,7 @@ export async function load(dir: string): Promise<void> {
 
   const cmd = `psql $DATABASE_URL -f ${path.join(dir, 'bdnb.sql')}`;
   const exec = require('child_process').exec;
+
   return new Promise((resolve) => {
     exec(cmd, (error: any, stdout: any, stderr: any) => {
       if (error) {
@@ -16,6 +17,8 @@ export async function load(dir: string): Promise<void> {
       if (stderr) {
         console.warn(`stderr: ${stderr}`);
       }
+
+      logger.info(`Loading done`);
       resolve(stdout ? stdout : stderr);
     });
   });

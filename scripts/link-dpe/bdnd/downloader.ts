@@ -38,6 +38,8 @@ export async function download(department: string): Promise<void> {
   await dl(url, dir, {
     extract: true,
   });
+
+  logger.info(`Downloading done`);
 }
 
 const downloader = {

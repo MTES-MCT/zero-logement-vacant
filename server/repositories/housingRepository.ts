@@ -18,11 +18,7 @@ import ownerRepository, {
 } from './ownerRepository';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import {
-  HousingStatusApi,
-  HousingStatusCountApi,
-} from '../models/HousingStatusApi';
-import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
@@ -765,47 +761,6 @@ const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
   }
 };
 
-const countByStatusWithFilters = async (
-  filters: MonitoringFiltersApi
-): Promise<HousingStatusCountApi[]> => {
-  try {
-    return db(housingTable)
-      .select('status', 'precisions', 'sub_status', db.raw('count(*)'))
-      .groupBy('status')
-      .groupBy('sub_status')
-      .groupBy('precisions')
-      .modify(monitoringQueryFilter(filters))
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <HousingStatusCountApi>{
-              status: result.status,
-              subStatus: result.sub_status,
-              precisions: result.precisions?.filter((_: any) => _?.length),
-              count: result.count,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Count housing by status failed', err);
-    throw new Error('Count housing by status failed');
-  }
-};
-
-const monitoringQueryFilter =
-  (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
-    if (filters.establishmentIds?.length) {
-      queryBuilder
-        .joinRaw(
-          `join ${establishmentsTable} e on geo_code  = any (e.localities_geo_code)`
-        )
-        .whereIn('e.id', filters.establishmentIds);
-    }
-    if (filters.dataYears?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears]);
-    }
-  };
-
 const update = async (housingApi: HousingApi): Promise<void> => {
   console.log('Update housingApi', housingApi.id);
 
@@ -957,7 +912,6 @@ export default {
   countVacant,
   listByIds,
   update,
-  countByStatusWithFilters,
   formatHousingRecordApi,
   saveMany,
 };

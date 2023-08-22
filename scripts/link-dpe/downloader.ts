@@ -28,7 +28,7 @@ export async function exists(
 }
 
 export async function download(department: string): Promise<void> {
-  const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_csv.zip`;
+  const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
   const dir = getArchive(department);
   logger.info(`Downloading file from BNDB...`, {
     department,

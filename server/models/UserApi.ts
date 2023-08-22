@@ -3,14 +3,8 @@ import fp from 'lodash/fp';
 
 export const SALT_LENGTH = 10;
 
-export interface UserApi {
-  id: string;
-  email: string;
+export interface UserApi extends UserDTO {
   password: string;
-  firstName?: string;
-  lastName?: string;
-  establishmentId?: string;
-  role: number;
   activatedAt?: Date;
   lastAuthenticatedAt?: Date;
   deletedAt?: Date;

@@ -1,3 +1,6 @@
+import { logger } from '../../../server/utils/logger';
+import { Feature } from '../../../shared/models/Feature';
+
 export type Refinement<A, B extends A> = (a: A) => a is B;
 
 export const enum Compare {
@@ -13,4 +16,7 @@ export function not<A>(f: Predicate<A>): Predicate<A> {
   return (a) => !f(a);
 }
 
-export const isNotNull = <A>(a: A | null): a is A => not(isNull)(a);
+export { isNotNull } from '../../../shared/utils/compare';
+
+const feat: Feature = 'occupancy';
+logger.info(feat);

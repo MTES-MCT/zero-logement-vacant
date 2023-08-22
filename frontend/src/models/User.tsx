@@ -1,4 +1,5 @@
 import { Establishment } from './Establishment';
+import { UserDTO } from '../../../shared/models/UserDTO';
 
 export interface AuthUser {
   user: User;
@@ -6,11 +7,7 @@ export interface AuthUser {
   establishment: Establishment;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
+export interface User extends UserDTO {
   role: UserRoles;
   activatedAt: Date;
   establishmentId: string;

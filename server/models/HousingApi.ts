@@ -130,3 +130,7 @@ export function getBuildingLocation(housing: HousingApi) {
     }
   }
 }
+
+export function hasCampaigns(housing: HousingApi): boolean {
+  return housing.campaignIds.length > 0;
+}

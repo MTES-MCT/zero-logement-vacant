@@ -1,3 +1,5 @@
+import { query, ValidationChain } from 'express-validator';
+
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
   Record<keyof Sortable, Direction>
@@ -49,7 +51,15 @@ function use<Sortable extends object = object>(
   });
 }
 
+export const queryValidators: ValidationChain[] = [
+  query('sort')
+    .isString()
+    .matches(/^-?[a-z]+(,-?[a-z]+)*$/i)
+    .optional(),
+];
+
 export default {
   parse,
   use,
+  queryValidators,
 };

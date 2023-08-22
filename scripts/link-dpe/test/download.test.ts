@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { exists } from '../downloader';
+import { exists } from '../bdnd/downloader';
 
 describe('Downloader', () => {
   describe('isPresent', () => {

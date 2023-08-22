@@ -741,24 +741,8 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
 };
 
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
-  try {
-    return db
-      .select(
-        `${housingTable}.*`,
-        'o.id as owner_id',
-        'o.raw_address as owner_raw_address',
-        'o.full_name',
-        'o.administrator'
-      )
-      .from(housingTable)
-      .join(ownersHousingTable, ownersHousingJoinClause)
-      .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .whereIn(`${housingTable}.id`, ids)
-      .then((_) => _.map((_) => parseHousingApi(_)));
-  } catch (err) {
-    console.error('Listing housing failed', err);
-    throw new Error('Listing housing failed');
-  }
+  const housingList = await listQuery().whereIn(`${housingTable}.id`, ids);
+  return housingList.map(parseHousingApi);
 };
 
 const update = async (housingApi: HousingApi): Promise<void> => {

@@ -12,7 +12,12 @@ describe('Downloader', () => {
       const actual = await downloader.exists('01', { cwd: __dirname });
 
       expect(actual).toBeTrue();
-      await fs.rm(file);
+
+      await downloader.cleanup('01', { cwd: __dirname });
+
+      const actual2 = await downloader.exists('01', { cwd: __dirname });
+
+      expect(actual2).toBeFalse();
     });
   });
 });

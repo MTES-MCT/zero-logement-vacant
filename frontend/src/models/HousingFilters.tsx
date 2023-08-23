@@ -221,13 +221,11 @@ export const multiOwnerOptions: SelectOption[] = [
 export const vacancyDurationOptions: SelectOption[] = [
   {
     value: 'lt2',
-    label: 'Moins de 2 ans',
-    badgeLabel: 'Durée de vacance : moins de 2 ans',
+    label: 'Vacance conjoncturelle (Moins de 2 ans)',
   },
   {
     value: 'gt2',
-    label: 'Plus de 2 ans',
-    badgeLabel: 'Durée de vacance : plus de 2 ans',
+    label: 'Vacance structurelle (2 ans et plus)',
   },
   {
     value: '2',

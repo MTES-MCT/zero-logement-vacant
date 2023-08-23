@@ -1,6 +1,6 @@
 import { logger } from '../../server/utils/logger';
-import downloader from './bdnd/downloader';
-import loader from './bdnd/loader';
+import downloader from './downloader';
+import loader from './loader';
 
 const department = '01';
 

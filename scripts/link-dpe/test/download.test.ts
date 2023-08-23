@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-
-import { exists } from '../bdnd/downloader';
+import downloader from '../downloader';
 
 describe('Downloader', () => {
   describe('isPresent', () => {
@@ -9,7 +8,7 @@ describe('Downloader', () => {
       const file = path.join(__dirname, 'dpe-01.zip');
       await fs.writeFile(file, '', 'utf8');
 
-      const actual = await exists('01', { cwd: __dirname });
+      const actual = await downloader.exists('01', { cwd: __dirname });
 
       expect(actual).toBeTrue();
       await fs.rm(file);

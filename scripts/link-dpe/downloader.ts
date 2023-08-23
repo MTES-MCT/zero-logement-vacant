@@ -1,7 +1,7 @@
 import dl from 'download';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
-import { logger } from '../../../server/utils/logger';
+import { logger } from '../../server/utils/logger';
 import fs from 'fs';
 
 const getArchiveDir = (department: string, opts?: PathOptions): string => {

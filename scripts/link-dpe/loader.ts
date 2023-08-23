@@ -1,7 +1,7 @@
 import path from 'path';
-import { logger } from '../../../server/utils/logger';
-import db from '../../../server/repositories/db';
-import { housingTable } from '../../../server/repositories/housingRepository';
+import { logger } from '../../server/utils/logger';
+import db from '../../server/repositories/db';
+import { housingTable } from '../../server/repositories/housingRepository';
 import downloader from './downloader';
 
 const schema = (department: string) =>

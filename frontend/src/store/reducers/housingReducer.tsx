@@ -36,7 +36,7 @@ export const initialHousingFilters = {
   housingAreas: [],
   roomsCounts: [],
   buildingPeriods: [],
-  vacancyDurations: [],
+  vacancyDurations: ['gt2'],
   isTaxedValues: [],
   ownershipKinds: [],
   housingCounts: [],

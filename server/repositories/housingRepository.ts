@@ -261,12 +261,6 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     if (filters.occupancies?.length) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
-    if (filters.occupancies?.includes(OccupancyKindApi.Vacant)) {
-      queryBuilder.whereRaw(
-        'vacancy_start_year <= ?',
-        referenceDataYearFromFilters(filters) - 2
-      );
-    }
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }
@@ -425,6 +419,12 @@ const filteredQuery = (filters: HousingFiltersApi) => {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 1,
             referenceDataYearFromFilters(filters),
+          ]);
+        }
+        if (filters.vacancyDurations?.indexOf('gt2') !== -1) {
+          whereBuilder.orWhereBetween('vacancy_start_year', [
+            0,
+            referenceDataYearFromFilters(filters) - 2,
           ]);
         }
         if (filters.vacancyDurations?.indexOf('2') !== -1) {

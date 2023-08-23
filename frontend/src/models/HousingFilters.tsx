@@ -225,6 +225,11 @@ export const vacancyDurationOptions: SelectOption[] = [
     badgeLabel: 'Durée de vacance : moins de 2 ans',
   },
   {
+    value: 'gt2',
+    label: 'Plus de 2 ans',
+    badgeLabel: 'Durée de vacance : plus de 2 ans',
+  },
+  {
     value: '2',
     label: '2 ans',
     badgeLabel: 'Durée de vacance : 2 ans',

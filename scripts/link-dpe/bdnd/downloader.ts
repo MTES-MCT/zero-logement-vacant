@@ -2,34 +2,37 @@ import dl from 'download';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { logger } from '../../../server/utils/logger';
+import fs from 'fs';
 
-const getArchive = (department: string): string => `dpe-${department}`;
+const getArchiveDir = (department: string, opts?: PathOptions): string => {
+  const cwd = opts?.cwd ?? '.';
+  return path.join(cwd, `dpe-${department}`);
+};
 
-interface IsPresentOptions {
+interface PathOptions {
   cwd?: string;
 }
 
-export async function exists(
+const exists = async (
   department: string,
-  opts?: IsPresentOptions
-): Promise<boolean> {
-  const cwd = opts?.cwd ?? '.';
-  const archive = path.join(cwd, getArchive(department));
+  opts?: PathOptions
+): Promise<boolean> => {
+  const dir = getArchiveDir(department, opts);
   try {
-    const stats = await stat(archive);
+    const stats = await stat(dir);
     const exists = stats.isDirectory();
     if (exists) {
-      logger.info(`Found directory ${archive}.`);
+      logger.info(`Found directory ${dir}.`);
     }
     return exists;
   } catch {
     return false;
   }
-}
+};
 
-export async function download(department: string): Promise<void> {
+const download = async (department: string): Promise<void> => {
   const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
-  const dir = getArchive(department);
+  const dir = getArchiveDir(department);
   logger.info(`Downloading file from BNDB...`, {
     department,
     url,
@@ -40,12 +43,20 @@ export async function download(department: string): Promise<void> {
   });
 
   logger.info(`Downloading done`);
-}
+};
+
+const cleanup = async (
+  department: string,
+  opts?: PathOptions
+): Promise<void> => {
+  fs.rmSync(getArchiveDir(department, opts), { recursive: true, force: true });
+};
 
 const downloader = {
   download,
   exists,
-  getArchive,
+  getArchiveDir,
+  cleanup,
 };
 
 export default downloader;

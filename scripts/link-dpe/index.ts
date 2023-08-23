@@ -2,12 +2,20 @@ import { logger } from '../../server/utils/logger';
 import downloader from './bdnd/downloader';
 import loader from './bdnd/loader';
 
+const department = '01';
+
 async function run(): Promise<void> {
-  const hasFile = await downloader.exists('01');
+  const hasFile = await downloader.exists(department);
   if (!hasFile) {
-    await downloader.download('01');
+    await downloader.download(department);
   }
-  await loader.load(downloader.getArchive('01'));
+  await loader.loadSchema(department);
+
+  await loader.updateHousingEnergyConsumption(department);
+
+  await loader.dropSchema(department);
+
+  await downloader.cleanup(department);
 }
 
 run()

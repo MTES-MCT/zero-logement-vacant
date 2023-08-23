@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import {
+  hasCampaigns,
   HousingApi,
   HousingSortableApi,
   OccupancyKindApi,
@@ -19,6 +20,7 @@ import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
+import sortApi from '../models/SortApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 import paginationApi, { PaginationApi } from '../models/PaginationApi';
@@ -27,6 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 import noteRepository from '../repositories/noteRepository';
 import { NoteApi } from '../models/NoteApi';
 import _ from 'lodash';
+import { logger } from '../utils/logger';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
@@ -97,6 +100,7 @@ const listValidators: ValidationChain[] = [
   body('filtersForTotalCount.campaignIds')
     .default([])
     .custom(isArrayOf(isString)),
+  ...sortApi.queryValidators,
   ...paginationApi.validators,
 ];
 
@@ -208,12 +212,9 @@ const updateValidators = [
     .custom((value) => value.content && !isEmpty(value.content)),
 ];
 
-const update = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const update = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
-  const housingUpdateApi = <HousingUpdateBody>request.body.housingUpdate;
+  const housingUpdateApi = request.body.housingUpdate as HousingUpdateBody;
 
   const updatedHousing = await updateHousing(
     housingId,
@@ -221,7 +222,7 @@ const update = async (
     request as AuthenticatedRequest
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
+  response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
 };
 
 const updateHousing = async (
@@ -229,7 +230,10 @@ const updateHousing = async (
   housingUpdate: HousingUpdateBody,
   authUser: Pick<AuthenticatedRequest, 'user' | 'establishment'>
 ): Promise<HousingApi> => {
-  console.log('Update housing', housingId);
+  logger.trace('Update housing', {
+    id: housingId,
+    update: housingUpdate,
+  });
 
   const { establishment, user } = authUser;
 
@@ -240,14 +244,14 @@ const updateHousing = async (
 
   if (
     housingUpdate.statusUpdate?.status !== HousingStatusApi.NeverContacted &&
-    housing.campaignIds.length === 0
+    !hasCampaigns(housing)
   ) {
     await addHousingInDefaultCampaign(housing, establishment.id);
   }
 
   if (
     housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted &&
-    housing.campaignIds.length > 0
+    hasCampaigns(housing)
   ) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       housing.campaignIds,
@@ -255,7 +259,7 @@ const updateHousing = async (
     );
   }
 
-  const updatedHousing = {
+  const updatedHousing: HousingApi = {
     ...housing,
     ...(housingUpdate.occupancyUpdate
       ? {
@@ -307,10 +311,7 @@ const updateListValidators = [
   ...updateValidators,
 ];
 
-const updateList = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const updateList = async (request: Request, response: Response) => {
   console.log('Update housing list');
 
   const { establishmentId } = (request as AuthenticatedRequest).auth;
@@ -350,7 +351,7 @@ const updateList = async (
     )
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
+  response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
 const createHousingUpdateEvents = async (

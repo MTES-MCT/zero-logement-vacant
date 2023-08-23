@@ -15,7 +15,6 @@ import {
   HousingSort,
   HousingUpdate,
   SelectedHousing,
-  selectedHousingCount,
 } from '../../models/Housing';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import {
@@ -37,16 +36,13 @@ import HousingEditionSideMenu from '../../components/HousingEdition/HousingEditi
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import HousingStatusBadge from '../../components/HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../../components/HousingStatusBadge/HousingSubStatusBadge';
+import { useSelection } from '../../hooks/useSelection';
 
 const TabContent = ({ status }: { status: HousingStatus }) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle();
 
-  const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({
-    all: false,
-    ids: [],
-  });
   const [updatingHousing, setUpdatingHousing] = useState<Housing | undefined>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
     SelectedHousing | undefined
@@ -55,24 +51,18 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     useState<SelectedHousing | undefined>();
   const [actionAlert, setActionAlert] = useState(false);
 
-  function hasSelected(): boolean {
-    return selectedHousing.all || selectedHousing.ids.length > 0;
-  }
-
   const { campaignBundleHousingByStatus, campaignBundle } = useAppSelector(
     (state) => state.campaign
+  );
+
+  const paginatedCampaignHousing = campaignBundleHousingByStatus[status];
+  const { hasSelected, selectedCount, selected, setSelected } = useSelection(
+    paginatedCampaignHousing.filteredCount
   );
 
   if (!campaignBundle) {
     return <></>;
   }
-
-  const paginatedCampaignHousing = campaignBundleHousingByStatus[status];
-
-  const selectedCount = selectedHousingCount(
-    selectedHousing,
-    paginatedCampaignHousing.filteredCount
-  );
 
   const modifyColumn = {
     name: 'modify',
@@ -122,28 +112,25 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.UpdateHousing,
-      value: selectedHousingCount(
-        selectedHousing,
-        paginatedCampaignHousing.filteredCount
-      ),
+      value: selectedCount,
     });
     dispatch(
       updateCampaignHousingList(
         housingUpdate,
         status,
-        selectedHousing.all,
-        selectedHousing.ids
+        selected.all,
+        selected.ids
       )
     );
     setUpdatingSelectedHousing(undefined);
   };
 
   const handleCampaignReminder = () => {
-    if (!selectedHousing?.all && selectedHousing?.ids.length === 0) {
+    if (!selected?.all && selected?.ids.length === 0) {
       setActionAlert(true);
     } else {
       setActionAlert(false);
-      setReminderModalSelectedHousing(selectedHousing);
+      setReminderModalSelectedHousing(selected);
     }
   };
 
@@ -151,8 +138,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     dispatch(
       createCampaignBundleReminder(
         campaignBundle.kind,
-        selectedHousing.all,
-        selectedHousing.ids
+        selected.all,
+        selected.ids
       )
     );
   };
@@ -163,7 +150,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
 
   return (
     <>
-      {!hasSelected() && (
+      {!hasSelected && (
         <Row>
           <Col>
             <Help className="d-block">
@@ -205,15 +192,13 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
         }
         onSort={onSort}
         displayKind={HousingDisplayKey.Owner}
-        onSelectHousing={(selectedHousing: SelectedHousing) =>
-          setSelectedHousing(selectedHousing)
-        }
+        onSelectHousing={setSelected}
         additionalColumns={[statusColumn, modifyColumn]}
         tableClassName="campaign"
       >
         <SelectableListHeader entity="logement">
           <SelectableListHeaderActions>
-            {hasSelected() && (
+            {hasSelected && (
               <Row justifyContent="right">
                 <Button
                   title="Créer une campagne de relance"
@@ -225,7 +210,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
                 </Button>
                 <Button
                   title="Mettre à jour le statut"
-                  onClick={() => setUpdatingSelectedHousing(selectedHousing)}
+                  onClick={() => setUpdatingSelectedHousing(selected)}
                 >
                   Mettre à jour le statut
                 </Button>

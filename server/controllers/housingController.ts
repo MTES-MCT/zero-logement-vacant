@@ -308,6 +308,7 @@ const updateListValidators = [
   body('housingIds').custom(isArrayOf(isUUID)),
   body('campaignIds').notEmpty().custom(isArrayOf(isUUID)),
   body('currentStatus').notEmpty().isIn(Object.values(HousingStatusApi)),
+  body('query').optional().isString().isAlphanumeric('fr-FR'),
   ...updateValidators,
 ];
 

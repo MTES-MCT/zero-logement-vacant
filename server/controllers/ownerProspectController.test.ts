@@ -154,7 +154,7 @@ describe('Owner prospect controller', () => {
       expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
         {
           page: 1,
-          perPage: 25,
+          perPage: 50,
           filteredCount: expectedCount,
           totalCount: expectedCount,
         }

@@ -3,11 +3,11 @@ import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
 import housingService from '../../services/housing.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { HousingFilters } from '../../models/HousingFilters';
-import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import { handleAbort } from '../../utils/fetchUtils';
 import housingReducer from '../reducers/housingReducer';
 import { AppState } from '../store';
 import { Pagination } from '../../../../shared/models/Pagination';
+import { HousingPaginatedResult } from '../../models/PaginatedResult';
 
 export interface ExpandFiltersAction {
   value: boolean;
@@ -30,6 +30,8 @@ export interface FetchingHousingListAction {
 }
 
 export interface HousingListFetchedAction {
+  totalCount: number;
+  totalOwnerCount: number;
   paginate?: boolean;
   paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
@@ -58,14 +60,8 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const { paginate, paginatedHousing } = getState().housing;
-    const page = 1;
-    const perPage = paginatedHousing.perPage;
-    const pagination: Pagination = {
-      paginate,
-      page,
-      perPage,
-    };
+    const state = getState().housing;
+    const pagination: Pagination = { ...state.pagination, page: 1 };
 
     dispatch(
       fetchingHousingList({
@@ -76,18 +72,19 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
+    Promise.all([
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.find({
         filters,
-        { dataYearsExcluded, dataYearsIncluded },
-        {
-          pagination,
-          abortable: true,
-        }
-      )
-      .then((result: HousingPaginatedResult) => {
+        pagination,
+        abortable: true,
+      }),
+    ])
+      .then(([total, result]) => {
         dispatch(
           housingListFetched({
+            totalCount: total.housing,
+            totalOwnerCount: total.owners,
             paginatedHousing: result,
             filters,
           })
@@ -115,20 +112,21 @@ export const changeHousingPagination = (pagination: Pagination) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
-        getState().housing.filters,
-        { dataYearsExcluded, dataYearsIncluded },
-        {
-          pagination,
-          abortable: true,
-        }
-      )
-      .then((result: HousingPaginatedResult) => {
+    Promise.all([
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.find({
+        filters: getState().housing.filters,
+        pagination,
+        abortable: true,
+      }),
+    ])
+      .then(([total, paginatedHousing]) => {
         dispatch(
           housingListFetched({
+            totalCount: total.housing,
+            totalOwnerCount: total.owners,
+            paginatedHousing,
             paginate: pagination.paginate,
-            paginatedHousing: result,
             filters,
           })
         );
@@ -159,20 +157,21 @@ export const changeHousingSort = (sort: HousingSort) => {
 
     const { dataYearsExcluded, dataYearsIncluded } = filters;
 
-    housingService
-      .listHousing(
+    Promise.all([
+      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.find({
         filters,
-        { dataYearsExcluded, dataYearsIncluded },
-        {
-          sort,
-          pagination,
-          abortable: true,
-        }
-      )
-      .then((result) => {
+        sort,
+        pagination,
+        abortable: true,
+      }),
+    ])
+      .then(([count, paginatedHousing]) => {
         dispatch(
           housingListFetched({
-            paginatedHousing: result,
+            totalCount: count.housing,
+            totalOwnerCount: count.owners,
+            paginatedHousing,
             filters,
           })
         );

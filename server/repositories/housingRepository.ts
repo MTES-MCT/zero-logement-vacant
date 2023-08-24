@@ -16,32 +16,23 @@ import ownerRepository, {
   OwnerDBO,
   ownerTable,
 } from './ownerRepository';
-import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
-import {
-  HousingFiltersApi,
-  HousingFiltersForTotalCountApi,
-} from '../models/HousingFiltersApi';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { localitiesTable } from './localityRepository';
-import {
-  HousingStatusApi,
-  HousingStatusCountApi,
-} from '../models/HousingStatusApi';
-import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { establishmentsTable } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
-import SortApi from '../models/SortApi';
-import {
-  isPaginationEnabled,
-  PaginationApi,
-  paginationQuery,
-} from '../models/PaginationApi';
+import { sortQuery } from '../models/SortApi';
+import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import validator from 'validator';
+import { PaginationOptions } from '../../shared/models/Pagination';
+import { logger } from '../utils/logger';
+import { HousingCountApi } from '../models/HousingCountApi';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
@@ -256,9 +247,9 @@ const get = async (
   return housing ? parseHousingApi(housing) : null;
 };
 
-const filteredQuery = (filters: HousingFiltersApi) => {
-  return (queryBuilder: any) => {
-    queryBuilder.where(function (whereBuilder: any) {
+export const filteredQuery = (filters: HousingFiltersApi) => {
+  return (queryBuilder: Knex.QueryBuilder) => {
+    queryBuilder.where((whereBuilder) => {
       if (
         !filters.occupancies?.length ||
         filters.occupancies?.includes(OccupancyKindApi.Vacant)
@@ -268,11 +259,12 @@ const filteredQuery = (filters: HousingFiltersApi) => {
           referenceDataYearFromFilters(filters) - 2,
         ]);
       }
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Rent)
-      ) {
-        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
+
+      const otherOccupancies = filters.occupancies?.filter(
+        (occupancy) => occupancy !== OccupancyKindApi.Vacant
+      );
+      if (otherOccupancies?.length) {
+        whereBuilder.orWhereIn('occupancy', otherOccupancies);
       }
     });
     if (filters.energyConsumption?.length) {
@@ -286,7 +278,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
-        `join ${establishmentsTable} e on geo_code  = any(e.localities_geo_code) and e.id in (?)`,
+        `join ${establishmentsTable} e on geo_code = any(e.localities_geo_code) and e.id in (?)`,
         filters.establishmentIds
       );
     }
@@ -634,6 +626,43 @@ const listQuery = (establishmentIds?: string[]) =>
     )
     .groupBy(`${housingTable}.id`, 'o.id');
 
+interface FindOptions extends PaginationOptions {
+  filters: HousingFiltersApi;
+  sort?: HousingSortApi;
+}
+
+const find = async (opts: FindOptions): Promise<HousingApi[]> => {
+  logger.trace('housingRepository.find', opts);
+
+  const housingList: HousingDBO[] = await listQuery(
+    opts.filters.establishmentIds
+  )
+    .modify(filteredQuery(opts.filters))
+    .modify(
+      sortQuery(opts.sort, {
+        keys: {
+          owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
+          rawAddress: (query) => {
+            query
+              .orderBy(`${housingTable}.raw_address[2]`, opts.sort?.rawAddress)
+              .orderByRaw(
+                `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
+              )
+              .orderByRaw(
+                `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
+              );
+          },
+        },
+        default: (query) => query.orderBy('id'),
+      })
+    )
+    // TODO: avoid cast
+    .modify(paginationQuery(opts.pagination as PaginationApi));
+
+  logger.trace('housingRepository.find', { housing: housingList.length });
+  return housingList.map(parseHousingApi);
+};
+
 const listWithFilters = async (
   filters: HousingFiltersApi
 ): Promise<HousingApi[]> => {
@@ -675,53 +704,6 @@ const stream = (): Highland.Stream<HousingApi> => {
     });
 };
 
-const paginatedListWithFilters = async (
-  filters: HousingFiltersApi,
-  filtersForTotalCount: HousingFiltersForTotalCountApi,
-  pagination?: PaginationApi,
-  sort?: HousingSortApi
-): Promise<HousingPaginatedResultApi> => {
-  const filterQuery = listQuery(filters.establishmentIds).modify(
-    filteredQuery(filters)
-  );
-
-  if (sort) {
-    SortApi.use(sort, {
-      keys: {
-        owner: () => filterQuery.orderBy('o.full_name', sort.owner),
-        rawAddress: () => {
-          filterQuery
-            .orderBy(`${housingTable}.raw_address[2]`, sort.rawAddress)
-            .orderByRaw(
-              `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${sort.rawAddress}`
-            )
-            .orderByRaw(
-              `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${sort.rawAddress}`
-            );
-        },
-      },
-    });
-  }
-
-  return Promise.all([
-    filterQuery.modify(paginationQuery(pagination)),
-    countWithFilters(filters),
-    countWithFilters(filtersForTotalCount),
-  ]).then(
-    ([results, filteredCounts, totalCounts]) =>
-      <HousingPaginatedResultApi>{
-        entities: results.map((result: any) => parseHousingApi(result)),
-        filteredCount: filteredCounts.housingCount,
-        filteredOwnerCount: filteredCounts.ownerCount,
-        totalCount: totalCounts.housingCount,
-        page: isPaginationEnabled(pagination) ? pagination.page : undefined,
-        perPage: isPaginationEnabled(pagination)
-          ? pagination.perPage
-          : undefined,
-      }
-  );
-};
-
 const countVacant = async (): Promise<number> => {
   const value = await db(housingTable)
     .countDistinct(`${housingTable}.id`)
@@ -741,106 +723,27 @@ function whereVacant(year: number = ReferenceDataYear) {
       .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
 }
 
-const countWithFilters = async (
-  filters: HousingFiltersApi
-): Promise<{ housingCount: number; ownerCount: number }> => {
-  try {
-    return db(housingTable)
-      .countDistinct(`${housingTable}.id as housing_count`)
-      .countDistinct(`o.id as owner_count`)
-      .join(ownersHousingTable, ownersHousingJoinClause)
-      .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .leftJoin(
-        buildingTable,
-        `${housingTable}.building_id`,
-        `${buildingTable}.id`
-      )
-      .joinRaw(
-        `left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count
-                    from campaigns_housing ch, campaigns c
-                    where housing.id = ch.housing_id
-                    and c.id = ch.campaign_id
-                    ${
-                      filters.establishmentIds?.length
-                        ? ` and c.establishment_id in (?)`
-                        : ''
-                    }
-                ) campaigns on true`,
-        filters.establishmentIds ?? []
-      )
-      .modify(filteredQuery(filters))
-      .then((_) => ({
-        housingCount: Number(_[0].housing_count),
-        ownerCount: Number(_[0].owner_count),
-      }));
-  } catch (err) {
-    console.error('Listing housing failed', err);
-    throw new Error('Listing housing failed');
-  }
+const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
+  const result = await db
+    .with(
+      'list',
+      listQuery(filters.establishmentIds).modify(filteredQuery(filters))
+    )
+    .countDistinct('id as housing')
+    .countDistinct('owner_id as owners')
+    .from('list')
+    .first();
+
+  return {
+    housing: Number(result?.housing),
+    owners: Number(result?.owners),
+  };
 };
 
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
-  try {
-    return db
-      .select(
-        `${housingTable}.*`,
-        'o.id as owner_id',
-        'o.raw_address as owner_raw_address',
-        'o.full_name',
-        'o.administrator'
-      )
-      .from(housingTable)
-      .join(ownersHousingTable, ownersHousingJoinClause)
-      .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .whereIn(`${housingTable}.id`, ids)
-      .then((_) => _.map((_) => parseHousingApi(_)));
-  } catch (err) {
-    console.error('Listing housing failed', err);
-    throw new Error('Listing housing failed');
-  }
+  const housingList = await listQuery().whereIn(`${housingTable}.id`, ids);
+  return housingList.map(parseHousingApi);
 };
-
-const countByStatusWithFilters = async (
-  filters: MonitoringFiltersApi
-): Promise<HousingStatusCountApi[]> => {
-  try {
-    return db(housingTable)
-      .select('status', 'precisions', 'sub_status', db.raw('count(*)'))
-      .groupBy('status')
-      .groupBy('sub_status')
-      .groupBy('precisions')
-      .modify(monitoringQueryFilter(filters))
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <HousingStatusCountApi>{
-              status: result.status,
-              subStatus: result.sub_status,
-              precisions: result.precisions?.filter((_: any) => _?.length),
-              count: result.count,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Count housing by status failed', err);
-    throw new Error('Count housing by status failed');
-  }
-};
-
-const monitoringQueryFilter =
-  (filters: MonitoringFiltersApi) => (queryBuilder: any) => {
-    if (filters.establishmentIds?.length) {
-      queryBuilder
-        .joinRaw(
-          `join ${establishmentsTable} e on geo_code  = any (e.localities_geo_code)`
-        )
-        .whereIn('e.id', filters.establishmentIds);
-    }
-    if (filters.dataYears?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [filters.dataYears]);
-    }
-  };
 
 const update = async (housingApi: HousingApi): Promise<void> => {
   console.log('Update housingApi', housingApi.id);
@@ -986,14 +889,13 @@ export const formatHousingRecordApi = (
 
 export default {
   get,
+  find,
   listWithFilters,
   stream,
-  paginatedListWithFilters,
+  count,
   countVacant,
-  countWithFilters,
   listByIds,
   update,
-  countByStatusWithFilters,
   formatHousingRecordApi,
   saveMany,
 };

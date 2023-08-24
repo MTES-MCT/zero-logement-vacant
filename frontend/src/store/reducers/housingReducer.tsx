@@ -10,8 +10,14 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Pagination } from '../../../../shared/models/Pagination';
 
 export interface HousingState {
+  filteredCount: number;
+  totalCount: number;
+  totalOwnerCount: number;
+  pagination?: Pagination;
+  sort?: HousingSort;
   paginate?: boolean;
   paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
@@ -23,39 +29,19 @@ export interface HousingState {
     perPage: number;
     q: string;
   };
-  sort?: HousingSort;
 }
 
 export const initialHousingFilters = {
-  ownerKinds: [],
-  ownerAges: [],
-  multiOwners: [],
-  beneficiaryCounts: [],
-  housingKinds: [],
-  cadastralClassifications: [],
-  housingAreas: [],
-  roomsCounts: [],
-  buildingPeriods: [],
-  vacancyDurations: [],
-  isTaxedValues: [],
-  ownershipKinds: [],
-  housingCounts: [],
-  vacancyRates: [],
-  campaignsCounts: [],
-  campaignIds: [],
-  localities: [],
-  localityKinds: [],
-  geoPerimetersIncluded: [],
-  geoPerimetersExcluded: [],
   dataYearsIncluded: [config.dataYear + 1],
-  dataYearsExcluded: [],
-  energyConsumption: [],
-  energyConsumptionWorst: [],
-  query: '',
 } as HousingFilters;
 
 const initialState: HousingState = {
-  paginate: true,
+  filteredCount: 0,
+  totalCount: 0,
+  totalOwnerCount: 0,
+  pagination: {
+    perPage: config.perPageDefault,
+  },
   paginatedHousing: {
     entities: [],
     page: 1,
@@ -102,6 +88,8 @@ const housingSlice = createSlice({
       state: HousingState,
       action: PayloadAction<FetchingHousingListAction>
     ) => {
+      state.pagination = action.payload.pagination;
+      state.sort = action.payload.sort;
       state.paginate = action.payload.pagination.paginate ?? state.paginate;
       state.paginatedHousing = {
         ...state.paginatedHousing,
@@ -114,6 +102,8 @@ const housingSlice = createSlice({
       action: PayloadAction<HousingListFetchedAction>
     ) => {
       const paginate = action.payload.paginate ?? state.paginate;
+      state.totalCount = action.payload.totalCount;
+      state.totalOwnerCount = action.payload.totalOwnerCount;
       state.paginate = paginate;
       state.paginatedHousing = {
         page: paginate
@@ -125,7 +115,8 @@ const housingSlice = createSlice({
         entities: action.payload.paginatedHousing.entities,
         filteredCount: action.payload.paginatedHousing.filteredCount,
         filteredOwnerCount: action.payload.paginatedHousing.filteredOwnerCount,
-        totalCount: action.payload.paginatedHousing.totalCount,
+        // @deprecated
+        totalCount: action.payload.totalCount,
         loading: false,
       };
       state.filters = action.payload.filters;

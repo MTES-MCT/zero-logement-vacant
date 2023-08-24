@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import {
+  hasCampaigns,
   HousingApi,
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import {
-  HousingFiltersApi,
-  HousingFiltersForTotalCountApi,
-} from '../models/HousingFiltersApi';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import campaignRepository from '../repositories/campaignRepository';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
@@ -19,16 +17,20 @@ import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import SortApi from '../models/SortApi';
-import { PaginatedResultApi } from '../models/PaginatedResultApi';
+import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
-import paginationApi, { PaginationApi } from '../models/PaginationApi';
+import paginationApi from '../models/PaginationApi';
 import HousingMissingError from '../errors/housingMissingError';
 import { v4 as uuidv4 } from 'uuid';
 import noteRepository from '../repositories/noteRepository';
 import { NoteApi } from '../models/NoteApi';
 import _ from 'lodash';
+import { logger } from '../utils/logger';
+import fp from 'lodash/fp';
+import { Pagination } from '../../shared/models/Pagination';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
+import sortApi from "../models/SortApi";
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -83,76 +85,79 @@ const listValidators: ValidationChain[] = [
     .default([])
     .custom(isArrayOf(isString)),
   body('filters.occupancies').default([]).custom(isArrayOf(isString)),
-  body('filtersForTotalCount').default({}).isObject({ strict: true }),
-  body('filtersForTotalCount.establishmentIds')
-    .default([])
-    .custom(isArrayOf(isString)),
-  body('filtersForTotalCount.dataYearsIncluded')
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.dataYearsExcluded')
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.status').default([]).custom(isArrayOf(isInteger)),
-  body('filtersForTotalCount.campaignIds')
-    .default([])
-    .custom(isArrayOf(isString)),
+  ...sortApi.queryValidators,
   ...paginationApi.validators,
 ];
 
-const list = async (request: Request, response: Response) => {
-  console.log('List housing');
-
-  const { auth, user } = request as AuthenticatedRequest;
+const list = async (
+  request: Request,
+  response: Response<HousingPaginatedResultApi>
+) => {
+  const { auth, body, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const pagination = request.body as Required<PaginationApi>;
-  const filters = request.body.filters as HousingFiltersApi;
-  const filtersForTotalCount = request.body
-    .filtersForTotalCount as HousingFiltersForTotalCountApi;
+  const pagination: Required<Pagination> = fp.pick(
+    ['paginate', 'perPage', 'page'],
+    body
+  );
 
   const role = user.role;
-  const establishmentId = auth.establishmentId;
   const sort = SortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
+  const filters: HousingFiltersApi = {
+    ...body.filters,
+    establishmentIds:
+      role === UserRoles.Admin && body.filters.establishmentIds?.length
+        ? body.filters.establishmentIds
+        : [auth.establishmentId],
+  };
 
-  const establishmentIds =
-    role === UserRoles.Admin && filters.establishmentIds?.length
-      ? filters.establishmentIds
-      : [establishmentId];
+  logger.trace('List housing', {
+    pagination,
+    filters,
+    sort,
+  });
 
-  const housing: PaginatedResultApi<HousingApi> =
-    await housingRepository.paginatedListWithFilters(
-      {
-        ...filters,
-        establishmentIds,
-      },
-      {
-        ...filtersForTotalCount,
-        establishmentIds,
-      },
+  const [housing, count] = await Promise.all([
+    housingRepository.find({
+      filters,
       pagination,
-      sort
-    );
+      sort,
+    }),
+    housingRepository.count(filters),
+  ]);
 
-  response.status(constants.HTTP_STATUS_OK).json(housing);
+  const offset = (pagination.page - 1) * pagination.perPage;
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .setHeader(
+      'Content-Range',
+      `housing ${offset}-${offset + housing.length - 1}/${count.housing}`
+    )
+    .json({
+      entities: housing,
+      filteredCount: count.housing,
+      filteredOwnerCount: count.owners,
+      page: pagination.page,
+      perPage: pagination.perPage,
+      totalCount: 0,
+    });
 };
 
-const count = async (request: Request, response: Response) => {
+const count = async (request: Request, response: Response): Promise<void> => {
   console.log('Count housing');
 
   const { establishmentId, role } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
 
-  return housingRepository
-    .countWithFilters({
-      ...filters,
-      establishmentIds:
-        role === UserRoles.Admin && filters.establishmentIds?.length
-          ? filters.establishmentIds
-          : [establishmentId],
-    })
-    .then((count) => response.status(constants.HTTP_STATUS_OK).json({ count }));
+  const count = await housingRepository.count({
+    ...filters,
+    establishmentIds:
+      role === UserRoles.Admin && filters.establishmentIds?.length
+        ? filters.establishmentIds
+        : [establishmentId],
+  });
+  response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
 const listByOwner = async (
@@ -169,7 +174,7 @@ const listByOwner = async (
       establishmentIds: [establishmentId],
       ownerIds: [ownerId],
     }),
-    housingRepository.countWithFilters({ ownerIds: [ownerId] }),
+    housingRepository.count({ ownerIds: [ownerId] }),
   ]).then(([list, totalCount]) =>
     response
       .status(constants.HTTP_STATUS_OK)
@@ -208,12 +213,9 @@ const updateValidators = [
     .custom((value) => value.content && !isEmpty(value.content)),
 ];
 
-const update = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const update = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
-  const housingUpdateApi = <HousingUpdateBody>request.body.housingUpdate;
+  const housingUpdateApi = request.body.housingUpdate as HousingUpdateBody;
 
   const updatedHousing = await updateHousing(
     housingId,
@@ -221,7 +223,7 @@ const update = async (
     request as AuthenticatedRequest
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
+  response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
 };
 
 const updateHousing = async (
@@ -229,7 +231,10 @@ const updateHousing = async (
   housingUpdate: HousingUpdateBody,
   authUser: Pick<AuthenticatedRequest, 'user' | 'establishment'>
 ): Promise<HousingApi> => {
-  console.log('Update housing', housingId);
+  logger.trace('Update housing', {
+    id: housingId,
+    update: housingUpdate,
+  });
 
   const { establishment, user } = authUser;
 
@@ -240,14 +245,14 @@ const updateHousing = async (
 
   if (
     housingUpdate.statusUpdate?.status !== HousingStatusApi.NeverContacted &&
-    housing.campaignIds.length === 0
+    !hasCampaigns(housing)
   ) {
     await addHousingInDefaultCampaign(housing, establishment.id);
   }
 
   if (
     housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted &&
-    housing.campaignIds.length > 0
+    hasCampaigns(housing)
   ) {
     await campaignHousingRepository.deleteHousingFromCampaigns(
       housing.campaignIds,
@@ -255,7 +260,7 @@ const updateHousing = async (
     );
   }
 
-  const updatedHousing = {
+  const updatedHousing: HousingApi = {
     ...housing,
     ...(housingUpdate.occupancyUpdate
       ? {
@@ -304,13 +309,11 @@ const updateListValidators = [
   body('housingIds').custom(isArrayOf(isUUID)),
   body('campaignIds').notEmpty().custom(isArrayOf(isUUID)),
   body('currentStatus').notEmpty().isIn(Object.values(HousingStatusApi)),
+  body('query').optional().isString().isAlphanumeric('fr-FR'),
   ...updateValidators,
 ];
 
-const updateList = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const updateList = async (request: Request, response: Response) => {
   console.log('Update housing list');
 
   const { establishmentId } = (request as AuthenticatedRequest).auth;
@@ -350,7 +353,7 @@ const updateList = async (
     )
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
+  response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
 };
 
 const createHousingUpdateEvents = async (

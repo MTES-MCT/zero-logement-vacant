@@ -25,13 +25,13 @@ export const MAX_PER_PAGE = 500;
 export const validators: ValidationChain[] = [
   body('paginate').default(true).isBoolean(),
   body('page').default(1).isInt({ min: 1 }).toInt(10),
-  body('perPage').default(25).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
+  body('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
 ];
 
 export const queryValidators: ValidationChain[] = [
   query('paginate').default(true).isBoolean(),
   query('page').default(1).isInt({ min: 1 }).toInt(10),
-  query('perPage').default(25).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
+  query('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
 ];
 
 /**

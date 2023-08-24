@@ -1,3 +1,8 @@
+import { query, ValidationChain } from 'express-validator';
+import { Knex } from 'knex';
+
+import { keys } from '../utils/object';
+
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
   Record<keyof Sortable, Direction>
@@ -37,19 +42,34 @@ function parse<Sortable extends object = object>(
 }
 
 interface FormatOptions<Sortable> {
-  keys?: Partial<Record<keyof Sortable, () => void>>;
+  keys?: Partial<Record<keyof Sortable, (query: Knex.QueryBuilder) => void>>;
+  default?: (query: Knex.QueryBuilder) => void;
 }
 
-function use<Sortable extends object = object>(
-  sort: Sort,
+export function sortQuery<Sortable extends object>(
+  sort?: Sort<Sortable>,
   options?: FormatOptions<Sortable>
-): void {
-  return Object.keys(sort).forEach((key) => {
-    options?.keys?.[key as keyof Sortable]?.();
-  });
+) {
+  return (query: Knex.QueryBuilder): void => {
+    if (sort) {
+      keys(sort).forEach((key) => {
+        options?.keys?.[key]?.(query);
+      });
+    } else {
+      options?.default?.(query);
+    }
+  };
 }
+
+export const queryValidators: ValidationChain[] = [
+  query('sort')
+    .isString()
+    .matches(/^-?[a-z]+(,-?[a-z]+)*$/i)
+    .optional(),
+];
 
 export default {
   parse,
-  use,
+  query: sortQuery,
+  queryValidators,
 };

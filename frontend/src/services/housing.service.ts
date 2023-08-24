@@ -17,6 +17,7 @@ import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions, createHttpService, toJSON } from '../utils/fetchUtils';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { parseOwner } from './owner.service';
+import { HousingCount } from '../models/HousingCount';
 
 const http = createHttpService('housing');
 
@@ -32,17 +33,16 @@ const getHousing = async (id: string): Promise<Housing> => {
     .then((_) => parseHousing(_));
 };
 
-type ListHousingOptions = PaginationOptions &
-  SortOptions<HousingSort> &
-  AbortOptions;
+interface FindOptions
+  extends PaginationOptions,
+    SortOptions<HousingSort>,
+    AbortOptions {
+  filters: HousingFilters;
+}
 
-const listHousing = async (
-  filters: HousingFilters,
-  filtersForTotalCount: HousingFiltersForTotalCount,
-  options?: ListHousingOptions
-): Promise<HousingPaginatedResult> => {
+const find = async (opts?: FindOptions): Promise<HousingPaginatedResult> => {
   const query =
-    toQuery(options?.sort).length > 0 ? `?sort=${toQuery(options?.sort)}` : '';
+    toQuery(opts?.sort).length > 0 ? `?sort=${toQuery(opts?.sort)}` : '';
 
   return http
     .fetch(`${config.apiEndpoint}/api/housing${query}`, {
@@ -52,11 +52,10 @@ const listHousing = async (
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        filters,
-        filtersForTotalCount,
-        ...options?.pagination,
+        filters: opts?.filters,
+        ...opts?.pagination,
       }),
-      abortId: options?.abortable ? 'list-housing' : undefined,
+      abortId: opts?.abortable ? 'list-housing' : undefined,
     })
     .then(toJSON)
     .then((result) => ({
@@ -113,6 +112,27 @@ const listByOwner = async (
     }));
 };
 
+const count = async (
+  filters: HousingFilters | HousingFiltersForTotalCount
+): Promise<HousingCount> => {
+  const response = await http.post(`${config.apiEndpoint}/api/housing/count`, {
+    headers: {
+      ...authService.authHeader(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      filters,
+    }),
+  });
+  if (!response.ok) {
+    console.log(response);
+    throw new Error('Bad response');
+  }
+
+  const count = await response.json();
+  return count;
+};
+
 const updateHousing = async (
   housingId: string,
   housingUpdate: HousingUpdate
@@ -164,8 +184,9 @@ export const parseHousing = (h: any): Housing =>
 
 const housingService = {
   getHousing,
-  listHousing,
+  find,
   listByOwner,
+  count,
   updateHousing,
   updateHousingList,
   quickSearchService,

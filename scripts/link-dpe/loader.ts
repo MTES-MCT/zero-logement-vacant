@@ -57,6 +57,7 @@ const updateHousingEnergyConsumption = async (department: string) => {
     AND occupancy_registered = 'L'
     AND plot_id is not null
     AND geo_code like '${department}%'
+    AND ${batEnergyTable(department)}.classe_bilan_dpe is not null
     AND ${batEnergyTable(department)}.arrete_2021`);
 };
 

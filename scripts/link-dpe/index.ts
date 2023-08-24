@@ -2,7 +2,7 @@ import { logger } from '../../server/utils/logger';
 import downloader from './downloader';
 import loader from './loader';
 
-const department = '01';
+const department: string = process.argv[2];
 
 async function run(): Promise<void> {
   const hasFile = await downloader.exists(department);
@@ -22,4 +22,5 @@ run()
   .catch(logger.error.bind(logger))
   .finally(() => {
     logger.info('Done.');
+    process.exit();
   });

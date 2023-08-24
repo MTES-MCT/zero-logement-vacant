@@ -12,14 +12,14 @@ set plot_id = (select idpar from zlv_logt_epci e where h.local_id = e.idlocal);
 ```
 
 ### Use
-The department code must be passed as an argument 
+The department codes must be passed separated by commas as a unique argument (01,08,14,15,17,22,24,28,36,37,38,43,54,50,54,55,59,61,62,69,71,75,76,85)
 
 ```shell
 
 # In local dev
-ts-node scripts/link-dpe [DEP]
+ts-node scripts/link-dpe [DEPS]
 # In production
-scalingo -a zerologementvacant run --detached --size XL "npm i --omit=dev && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/link-dpe [DEP]"
+scalingo -a zerologementvacant run --detached --size XL "npm i --omit=dev && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/link-dpe [DEPS]"
 ```
 
 

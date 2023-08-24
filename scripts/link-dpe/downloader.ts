@@ -3,6 +3,7 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { logger } from '../../server/utils/logger';
 import fs from 'fs';
+import unzip from 'unzip-stream';
 
 const getArchiveDir = (department: string, opts?: PathOptions): string => {
   const cwd = opts?.cwd ?? '.';
@@ -31,18 +32,22 @@ const exists = async (
 };
 
 const download = async (department: string): Promise<void> => {
-  const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
-  const dir = getArchiveDir(department);
-  logger.info(`Downloading file from BNDB...`, {
-    department,
-    url,
-  });
+  return new Promise((resolve) => {
+    const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
+    const dir = getArchiveDir(department);
 
-  await dl(url, dir, {
-    extract: true,
-  });
+    logger.info(`Downloading file from BNDB...`, {
+      department,
+      url,
+    });
 
-  logger.info(`Downloading done`);
+    dl(url)
+      .pipe(unzip.Extract({ path: dir }), { end: true })
+      .on('end', () => {
+        logger.info(`Downloading done`);
+        resolve();
+      });
+  });
 };
 
 const cleanup = async (

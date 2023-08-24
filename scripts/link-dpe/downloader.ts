@@ -32,7 +32,7 @@ const exists = async (
 };
 
 const download = async (department: string): Promise<void> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
     const dir = getArchiveDir(department);
 
@@ -43,6 +43,9 @@ const download = async (department: string): Promise<void> => {
 
     dl(url)
       .pipe(unzip.Extract({ path: dir }), { end: true })
+      .on('data', (chunk) => {
+        console.log(`Received ${chunk.length} bytes of data.`);
+      })
       .on('end', () => {
         logger.info(`Downloading done`);
         resolve();

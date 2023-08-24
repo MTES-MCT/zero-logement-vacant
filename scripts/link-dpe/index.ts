@@ -2,9 +2,15 @@ import { logger } from '../../server/utils/logger';
 import downloader from './downloader';
 import loader from './loader';
 
-const department: string = process.argv[2];
+const departments: string = process.argv[2];
 
 async function run(): Promise<void> {
+  for (const departement of departments.split(',')) {
+    await processDepartement(departement);
+  }
+}
+
+async function processDepartement(department: string): Promise<void> {
   const hasFile = await downloader.exists(department);
   if (!hasFile) {
     await downloader.download(department);

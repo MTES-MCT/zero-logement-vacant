@@ -21,3 +21,6 @@ ts-node scripts/link-dpe [DEP]
 # In production
 scalingo -a zerologementvacant run --detached --size XL "npm i --omit=dev && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/link-dpe [DEP]"
 ```
+
+
+

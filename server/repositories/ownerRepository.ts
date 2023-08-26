@@ -5,12 +5,35 @@ import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { ownersHousingTable, ReferenceDataYear } from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
+import highland from 'highland';
+import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();
   return owner ? parseOwnerApi(owner) : null;
+};
+
+interface FindOptions {
+  fullName?: string;
+}
+
+const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
+  const owners = await db<OwnerDBO>(ownerTable)
+    .modify((query) => {
+      if (opts?.fullName) {
+        query.where('full_name', opts.fullName);
+      }
+    })
+    .orderBy('full_name');
+  return owners.map(parseOwnerApi);
+};
+
+const stream = (): Stream<OwnerApi> => {
+  const stream = db<OwnerDBO>(ownerTable).orderBy('full_name').stream();
+
+  return highland<OwnerDBO>(stream).map(parseOwnerApi);
 };
 
 interface FindOneOptions {
@@ -368,6 +391,8 @@ export const formatHousingOwnerApi = (
 });
 
 export default {
+  find,
+  stream,
   get,
   findOne,
   searchOwners,

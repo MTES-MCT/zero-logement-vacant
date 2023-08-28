@@ -260,13 +260,14 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
         ]);
       }
 
-      const otherOccupancies = filters.occupancies?.filter(
-        (occupancy) => occupancy !== OccupancyKindApi.Vacant
-      );
-      if (otherOccupancies?.length) {
-        whereBuilder.orWhereIn('occupancy', otherOccupancies);
+      if (
+        !filters.occupancies?.length ||
+        filters.occupancies?.includes(OccupancyKindApi.Rent)
+      ) {
+        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
       }
     });
+
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }

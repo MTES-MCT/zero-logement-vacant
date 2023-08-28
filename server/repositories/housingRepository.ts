@@ -249,25 +249,9 @@ const get = async (
 
 export const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: Knex.QueryBuilder) => {
-    queryBuilder.where((whereBuilder) => {
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Vacant)
-      ) {
-        whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
-          OccupancyKindApi.Vacant,
-          referenceDataYearFromFilters(filters) - 2,
-        ]);
-      }
-
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Rent)
-      ) {
-        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
-      }
-    });
-
+    if (filters.occupancies?.length) {
+      queryBuilder.whereIn('occupancy', filters.occupancies);
+    }
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }
@@ -426,6 +410,12 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 1,
             referenceDataYearFromFilters(filters),
+          ]);
+        }
+        if (filters.vacancyDurations?.indexOf('gt2') !== -1) {
+          whereBuilder.orWhereBetween('vacancy_start_year', [
+            0,
+            referenceDataYearFromFilters(filters) - 2,
           ]);
         }
         if (filters.vacancyDurations?.indexOf('2') !== -1) {

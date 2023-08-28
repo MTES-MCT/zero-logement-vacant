@@ -70,10 +70,14 @@ export const changeHousingFiltering = (filters: HousingFilters) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     Promise.all([
-      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.count({
+        dataYearsExcluded,
+        dataYearsIncluded,
+        occupancies,
+      }),
       housingService.find({
         filters,
         pagination,
@@ -110,10 +114,14 @@ export const changeHousingPagination = (pagination: Pagination) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     Promise.all([
-      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.count({
+        dataYearsExcluded,
+        dataYearsIncluded,
+        occupancies,
+      }),
       housingService.find({
         filters: getState().housing.filters,
         pagination,
@@ -155,10 +163,14 @@ export const changeHousingSort = (sort: HousingSort) => {
       })
     );
 
-    const { dataYearsExcluded, dataYearsIncluded } = filters;
+    const { dataYearsExcluded, dataYearsIncluded, occupancies } = filters;
 
     Promise.all([
-      housingService.count({ dataYearsExcluded, dataYearsIncluded }),
+      housingService.count({
+        dataYearsExcluded,
+        dataYearsIncluded,
+        occupancies,
+      }),
       housingService.find({
         filters,
         sort,

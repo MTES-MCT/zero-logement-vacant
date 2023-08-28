@@ -2,6 +2,7 @@ import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
   OccupancyKind,
+  OccupancyKindBadgeLabels,
   OccupancyKindLabels,
   OwnershipKindLabels,
   OwnershipKinds,
@@ -48,24 +49,15 @@ export type HousingFiltersForTotalCount = Pick<
   | 'dataYearsExcluded'
   | 'status'
   | 'campaignIds'
+  | 'occupancies'
 >;
-
-export const occupancyOptions: SelectOption[] = [
-  {
-    value: 'L',
-    label: 'Logement locatif',
-  },
-  {
-    value: 'V',
-    label: 'Logement vacant',
-  },
-];
 
 export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)
   .filter((_) => !(parseInt(_) >= 0))
   .map((value) => ({
     value,
     label: OccupancyKindLabels[value],
+    badgeLabel: OccupancyKindBadgeLabels[value],
   }));
 
 export const ownerAgeOptions: SelectOption[] = [
@@ -229,8 +221,11 @@ export const multiOwnerOptions: SelectOption[] = [
 export const vacancyDurationOptions: SelectOption[] = [
   {
     value: 'lt2',
-    label: 'Moins de 2 ans',
-    badgeLabel: 'Durée de vacance : moins de 2 ans',
+    label: 'Vacance conjoncturelle (Moins de 2 ans)',
+  },
+  {
+    value: 'gt2',
+    label: 'Vacance structurelle (2 ans et plus)',
   },
   {
     value: '2',

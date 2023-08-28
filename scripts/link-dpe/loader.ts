@@ -26,10 +26,10 @@ const loadSchema = async (department: string): Promise<void> => {
   return new Promise((resolve) => {
     exec(cmd, (error: any, stdout: any, stderr: any) => {
       if (error) {
-        console.error(`error: ${error.message}`);
+        logger.error(`error: ${error.message}`);
       }
       if (stderr) {
-        console.warn(`stderr: ${stderr}`);
+        logger.warn(`stderr: ${stderr}`);
       }
 
       logger.info(`Loading done`);

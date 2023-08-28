@@ -44,7 +44,7 @@ const download = async (department: string): Promise<void> => {
     dl(url)
       .pipe(unzip.Extract({ path: dir }), { end: true })
       .on('data', (chunk) => {
-        console.log(`Received ${chunk.length} bytes of data.`);
+        logger.info(`Received ${chunk.length} bytes of data.`);
       })
       .on('end', () => {
         logger.info(`Downloading done`);

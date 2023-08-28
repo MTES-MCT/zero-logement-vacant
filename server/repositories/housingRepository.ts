@@ -255,12 +255,6 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
     }
-    if (filters.energyConsumptionWorst?.length) {
-      queryBuilder.whereIn(
-        'energy_consumption_worst',
-        filters.energyConsumptionWorst
-      );
-    }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
         `join ${establishmentsTable} e on geo_code = any(e.localities_geo_code) and e.id in (?)`,
@@ -776,7 +770,6 @@ interface HousingRecordDBO {
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;
-  energy_consumption_worst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
   occupancy_registered?: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
@@ -817,7 +810,6 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   subStatus: result.sub_status ?? undefined,
   precisions: result.precisions ?? undefined,
   energyConsumption: result.energy_consumption,
-  energyConsumptionWorst: result.energy_consumption_worst,
   occupancy: result.occupancy,
   occupancyRegistered: result.occupancy_registered,
   occupancyIntended: result.occupancy_intended,
@@ -872,7 +864,6 @@ export const formatHousingRecordApi = (
   sub_status: housingRecordApi.subStatus,
   precisions: housingRecordApi.precisions,
   energy_consumption: housingRecordApi.energyConsumption,
-  energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,

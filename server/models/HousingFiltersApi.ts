@@ -33,7 +33,6 @@ export interface HousingFiltersApi {
   subStatus?: string[];
   query?: string;
   energyConsumption?: EnergyConsumptionGradesApi[];
-  energyConsumptionWorst?: EnergyConsumptionGradesApi[];
   occupancies?: OccupancyKindApi[];
 }
 

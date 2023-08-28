@@ -28,7 +28,6 @@ export interface HousingRecordApi {
   subStatus?: string;
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;
-  energyConsumptionWorst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
   occupancyRegistered?: OccupancyKindApi;
   occupancyIntended?: OccupancyKindApi;

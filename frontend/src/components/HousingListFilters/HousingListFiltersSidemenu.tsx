@@ -21,7 +21,6 @@ import {
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
   energyConsumptionOptions,
-  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   housingKindOptions,
@@ -333,19 +332,6 @@ function HousingListFiltersSidemenu() {
                           onChangeFilters(
                             { energyConsumption: values },
                             'Étiquette DPE (majoritaire)'
-                          )
-                        }
-                      />
-                    </Col>
-                    <Col n="6">
-                      <AppMultiSelect
-                        label="Étiquette DPE (+ mauvaise)"
-                        options={energyConsumptionWorstOptions}
-                        initialValues={filters.energyConsumptionWorst}
-                        onChange={(values) =>
-                          onChangeFilters(
-                            { energyConsumptionWorst: values },
-                            'Étiquette DPE (+ mauvaise)'
                           )
                         }
                       />

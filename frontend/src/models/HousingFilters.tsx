@@ -38,7 +38,6 @@ export interface HousingFilters {
   subStatus?: string[];
   query?: string;
   energyConsumption?: string[];
-  energyConsumptionWorst?: string[];
   occupancies?: string[];
 }
 
@@ -161,17 +160,6 @@ export const energyConsumptionOptions: SelectOption[] =
       <EnergyConsumptionOption {...props} label={grade} value={grade} />
     ),
     badgeLabel: `DPE ${grade} (majoritaire)`,
-  }));
-
-// @ts-ignore: label is defined as a string but passed as a component
-export const energyConsumptionWorstOptions: SelectOption[] =
-  energyConsumptionGrades.map((grade) => ({
-    value: grade,
-    label: grade,
-    markup: (props) => (
-      <EnergyConsumptionOption {...props} label={grade} value={grade} />
-    ),
-    badgeLabel: `DPE ${grade} (+ mauvaise)`,
   }));
 
 export const housingKindOptions: SelectOption[] = [

@@ -8,7 +8,6 @@ import {
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
   energyConsumptionOptions,
-  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
@@ -278,12 +277,6 @@ const HousingFiltersBadges = ({
         onChange={
           onChange && ((values) => onChange({ energyConsumption: values }))
         }
-      />
-      <FilterBadges
-        options={energyConsumptionWorstOptions}
-        filters={filters.energyConsumptionWorst}
-        small={small}
-        onChange={(values) => onChange?.({ energyConsumptionWorst: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}

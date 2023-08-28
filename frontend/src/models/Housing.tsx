@@ -37,7 +37,6 @@ export interface Housing {
   precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
-  energyConsumptionWorst?: string;
   occupancy: OccupancyKind;
   occupancyIntended?: OccupancyKind;
 }

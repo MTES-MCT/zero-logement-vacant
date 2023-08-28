@@ -22,7 +22,6 @@ import {
   applicationReducer,
   store as appStore,
 } from '../../store/store';
-import { OccupancyKind } from '../../models/Housing';
 
 jest.mock('../../components/Aside/Aside.tsx');
 

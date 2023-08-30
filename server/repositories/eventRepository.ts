@@ -134,7 +134,7 @@ interface EventDBO<T> {
   created_by: string;
 }
 
-function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
+export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   return {
     id: eventApi.id,
     name: eventApi.name,
@@ -149,7 +149,7 @@ function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   };
 }
 
-function parseEventApi<T>(eventDbo: EventDBO<T>): EventApi<T> {
+export function parseEventApi<T>(eventDbo: EventDBO<T>): EventApi<T> {
   return {
     id: eventDbo.id,
     name: eventDbo.name,

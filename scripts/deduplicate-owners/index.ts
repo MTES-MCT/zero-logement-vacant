@@ -13,61 +13,70 @@ import {
   findBest,
   needsManualReview,
   suggest,
-  THRESHOLD,
 } from './duplicates';
 import { Comparison } from './comparison';
 import db from '../../server/repositories/db';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
-import Stream = Highland.Stream;
+import ownerCache from './owner-cache';
+import merger from './merger';
 
 const recorder = createRecorder();
 const file = fs.createWriteStream('duplicates.json', 'utf8');
 
-async function run(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const comparisons = ownerRepository
-      .stream()
-      .through(avoidRepetition())
-      .flatMap((owner) => highland(process(owner)));
+function run(): void {
+  const comparisons = ownerRepository
+    .stream()
+    .flatMap((owner) => highland(process(owner)));
 
-    comparisons
-      .observe()
-      .through(recorder.record())
-      .map(createReporter('json').toString)
-      .pipe(fs.createWriteStream('report.json', 'utf8'));
+  comparisons
+    .observe()
+    .through(recorder.record())
+    .map(createReporter('json').toString)
+    .pipe(fs.createWriteStream('report.json', 'utf8'))
+    .on('finish', () => {
+      script.exit();
+    });
 
-    comparisons
-      .filter((comparison) => comparison.score >= THRESHOLD)
-      .tap(logger.trace.bind(logger))
-      .through(stringify('[\n', ',\n', '\n]\n'))
-      .stopOnError(reject)
-      .pipe(file)
-      .on('finish', resolve);
-  });
-}
+  comparisons
+    .observe()
+    .filter((comparison) => comparison.suggestion !== null)
+    .tap(logger.trace.bind(logger))
+    .through(stringify('[\n', ',\n', '\n]\n'))
+    .stopOnError(logger.error.bind(logger))
+    .pipe(file);
 
-function avoidRepetition() {
-  let previous = '';
-  return (stream: Stream<OwnerApi>) =>
-    stream
-      .filter((owner) => owner.fullName !== previous)
-      .tap((owner) => {
-        previous = owner.fullName;
-      });
+  comparisons
+    .filter((comparison) => comparison.suggestion !== null)
+    .filter((comparison) => {
+      return !comparison.needsReview;
+    })
+    .flatMap((comparison) => highland(merger.merge(comparison)))
+    .errors((error) => {
+      logger.error('Comparison error', error);
+    })
+    .done(() => {
+      logger.info('Everything all right!');
+    });
 }
 
 async function process(owner: OwnerApi): Promise<Comparison> {
   // Find duplicates
   const dups = await duplicates(owner);
-  const scores = dups.map((dup) => ({
-    value: dup,
-    score: compare(owner, dup),
-  }));
-  // Attach other duplicates' entities to the remaining owner
-  // Remove other owners
-  // If not, log a conflict for human intervention
+
+  ownerCache.currentName(owner.fullName);
+  const scores = dups
+    .filter((dup) => !ownerCache.has(owner.id, dup.id))
+    .map((dup) => ({
+      value: dup,
+      score: compare(owner, dup),
+    }))
+    .map((comparison) => {
+      ownerCache.add(owner.id, comparison.value.id);
+      return comparison;
+    });
+
   const best = findBest(scores);
   const suggestion = suggest(owner, scores);
   return {
@@ -76,6 +85,7 @@ async function process(owner: OwnerApi): Promise<Comparison> {
     // If possible, determine which owner to keep
     suggestion: suggestion,
     score: best?.score ?? 0,
+    // Log a conflict for human intervention
     needsReview: best ? needsManualReview(owner, best) : false,
   };
 }
@@ -97,13 +107,13 @@ function cleanUp() {
 
 const start = new Date();
 
-run()
-  .catch(logger.error.bind(logger))
-  .finally(() => {
-    const end = new Date();
-    const duration = intervalToDuration({ start, end });
-    const elapsed = formatDuration(duration);
-    logger.info(`Done in ${elapsed}.`);
+script.on('exit', () => {
+  const end = new Date();
+  const duration = intervalToDuration({ start, end });
+  const elapsed = formatDuration(duration);
+  logger.info(`Done in ${elapsed}.`);
 
-    return db.destroy();
-  });
+  return db.destroy();
+});
+
+run();

@@ -4,12 +4,12 @@ import { jarowinkler } from 'wuzzy';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import { ScoredOwner } from './comparison';
-import { isEqual } from 'date-fns';
+import { addDays, addYears, isEqual, subDays, subYears } from 'date-fns';
 
-export const THRESHOLD = 0.8;
+export const REVIEW_THRESHOLD = 0.7;
+export const MATCH_THRESHOLD = 0.8;
 
 export async function duplicates(owner: OwnerApi): Promise<OwnerApi[]> {
-  // TODO: duplicates using the same address and birth date
   const dups = await ownerRepository.find({
     fullName: owner.fullName,
   });
@@ -22,18 +22,21 @@ export async function duplicates(owner: OwnerApi): Promise<OwnerApi[]> {
  * 0 is a miss. 1 is a full match.
  */
 export function compare(source: OwnerApi, duplicate: OwnerApi): number {
-  if (source.rawAddress?.length > 0 && duplicate.rawAddress?.length > 0) {
-    const score = jarowinkler(
-      source.rawAddress.join(''),
-      duplicate.rawAddress.join('')
-    );
-    return source.birthDate &&
-      duplicate.birthDate &&
-      isEqual(source.birthDate, duplicate.birthDate)
-      ? fp.mean([score, 1])
-      : score;
-  }
-  return 0;
+  const addressScore =
+    source.rawAddress.length && duplicate.rawAddress.length
+      ? jarowinkler(source.rawAddress.join(''), duplicate.rawAddress.join(''))
+      : null;
+
+  const birthdayScore =
+    source.birthDate && duplicate.birthDate
+      ? jarowinkler(
+          source.birthDate.toISOString(),
+          duplicate.birthDate.toISOString()
+        )
+      : null;
+
+  const computeScore = fp.pipe(fp.compact, fp.mean);
+  return computeScore([addressScore, birthdayScore]) ?? 0;
 }
 
 export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
@@ -41,16 +44,30 @@ export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
   return best ?? null;
 }
 
+export function isMatch(scored: ScoredOwner): boolean {
+  return scored.score >= MATCH_THRESHOLD;
+}
+
 export function needsManualReview(
   source: OwnerApi,
   best: ScoredOwner
 ): boolean {
   return (
-    best.score >= THRESHOLD &&
+    best.score >= REVIEW_THRESHOLD &&
     best.score <= 1 &&
     !!source.birthDate &&
     !!best.value.birthDate &&
-    isEqual(source.birthDate, best.value.birthDate)
+    haveSimilarBirthdates(source.birthDate, best.value.birthDate)
+  );
+}
+
+function haveSimilarBirthdates(a: Date, b: Date): boolean {
+  return (
+    isEqual(a, b) ||
+    isEqual(a, subDays(b, 1)) ||
+    isEqual(a, addDays(b, 1)) ||
+    isEqual(a, subYears(b, 1)) ||
+    isEqual(a, addYears(b, 1))
   );
 }
 
@@ -59,14 +76,19 @@ export function suggest(
   scores: ScoredOwner[]
 ): OwnerApi | null {
   const best = findBest(scores);
-  if (!best || best.score < THRESHOLD) {
+  if (!best || best.score < MATCH_THRESHOLD) {
     return null;
   }
 
   const owners = [source, best.value];
-  return (
-    owners.find((owner) => !!owner.birthDate) ??
-    fp.maxBy((owner) => owner.rawAddress.length, owners) ??
-    null
-  );
+
+  // If both owners have a birth date, we take the most complete address
+  if (owners.every((owner) => owner.birthDate)) {
+    return (
+      fp.maxBy((owner) => owner.rawAddress.join(' ').length, owners) ?? null
+    );
+  }
+
+  // Otherwise, we take the first one with a birth date
+  return owners.find((owner) => !!owner.birthDate) ?? null;
 }

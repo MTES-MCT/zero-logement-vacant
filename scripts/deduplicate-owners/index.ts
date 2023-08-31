@@ -11,8 +11,8 @@ import {
   compare,
   duplicates,
   findBest,
+  isMatch,
   needsManualReview,
-  suggest,
 } from './duplicates';
 import { Comparison } from './comparison';
 import db from '../../server/repositories/db';
@@ -36,25 +36,24 @@ function run(): void {
     .map(createReporter('json').toString)
     .pipe(fs.createWriteStream('report.json', 'utf8'))
     .on('finish', () => {
+      logger.info('Report written to report.json');
       script.exit();
     });
 
   comparisons
     .observe()
-    .filter((comparison) => comparison.suggestion !== null)
+    .filter((comparison) => isMatch(comparison.score))
     .tap(logger.trace.bind(logger))
     .through(stringify('[\n', ',\n', '\n]\n'))
     .stopOnError(logger.error.bind(logger))
     .pipe(file);
 
   comparisons
-    .filter((comparison) => comparison.suggestion !== null)
-    .filter((comparison) => {
-      return !comparison.needsReview;
-    })
+    .filter((comparison) => isMatch(comparison.score))
+    .filter((comparison) => !comparison.needsReview)
     .flatMap((comparison) => highland(merger.merge(comparison)))
     .errors((error) => {
-      logger.error('Comparison error', error);
+      logger.error(error);
     })
     .done(() => {
       logger.info('Everything all right!');
@@ -78,15 +77,12 @@ async function process(owner: OwnerApi): Promise<Comparison> {
     });
 
   const best = findBest(scores);
-  const suggestion = suggest(owner, scores);
   return {
     source: owner,
     duplicates: scores,
-    // If possible, determine which owner to keep
-    suggestion: suggestion,
     score: best?.score ?? 0,
     // Log a conflict for human intervention
-    needsReview: best ? needsManualReview(owner, best) : false,
+    needsReview: best ? needsManualReview(owner, scores) : false,
   };
 }
 

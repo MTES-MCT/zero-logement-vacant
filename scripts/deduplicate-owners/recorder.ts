@@ -1,6 +1,7 @@
 import { Comparison } from './comparison';
 import { Report } from './report';
 import { logger } from '../../server/utils/logger';
+import { isMatch } from './duplicates';
 import Stream = Highland.Stream;
 
 class Recorder {
@@ -19,12 +20,15 @@ class Recorder {
     return (stream: Stream<Comparison>): Stream<Report> => {
       return stream
         .reduce(this.report, (acc, comparison) => {
-          const isMatch = comparison.suggestion !== null;
+          const matches = comparison.duplicates.filter((_) => isMatch(_.score));
+          const nonMatches = comparison.duplicates.filter(
+            (_) => !isMatch(_.score)
+          );
 
           this.report = {
             overall: acc.overall + 1,
-            match: acc.match + (isMatch ? 1 : 0),
-            nonMatch: acc.nonMatch + (!isMatch ? 1 : 0),
+            match: acc.match + matches.length,
+            nonMatch: acc.nonMatch + nonMatches.length,
             needReview: acc.needReview + (comparison.needsReview ? 1 : 0),
             score: {
               sum: acc.score.sum + comparison.score,

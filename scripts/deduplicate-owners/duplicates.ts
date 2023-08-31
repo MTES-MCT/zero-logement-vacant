@@ -4,10 +4,11 @@ import { jarowinkler } from 'wuzzy';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import { ScoredOwner } from './comparison';
-import { addDays, addYears, isEqual, subDays, subYears } from 'date-fns';
+import { isDefined, isNotNull } from '../../shared/utils/compare';
+import { isEqual } from 'date-fns';
 
 export const REVIEW_THRESHOLD = 0.7;
-export const MATCH_THRESHOLD = 0.8;
+export const MATCH_THRESHOLD = 0.85;
 
 export async function duplicates(owner: OwnerApi): Promise<OwnerApi[]> {
   const dups = await ownerRepository.find({
@@ -44,51 +45,36 @@ export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
   return best ?? null;
 }
 
-export function isMatch(scored: ScoredOwner): boolean {
-  return scored.score >= MATCH_THRESHOLD;
+export function isReviewMatch(score: number): boolean {
+  return REVIEW_THRESHOLD <= score && score < MATCH_THRESHOLD;
+}
+
+export function isMatch(score: number): boolean {
+  return score >= MATCH_THRESHOLD;
+}
+
+export function isPerfectMatch(score: number): boolean {
+  return score === 1;
 }
 
 export function needsManualReview(
   source: OwnerApi,
-  best: ScoredOwner
+  duplicates: ScoredOwner[]
 ): boolean {
+  const matches = duplicates
+    .filter((_) => isReviewMatch(_.score) || isMatch(_.score))
+    .filter((_) => !isPerfectMatch(_.score));
+
+  const owners = [source, ...duplicates.map((_) => _.value)];
   return (
-    best.score >= REVIEW_THRESHOLD &&
-    best.score <= 1 &&
-    !!source.birthDate &&
-    !!best.value.birthDate &&
-    haveSimilarBirthdates(source.birthDate, best.value.birthDate)
+    matches.some((match) => isReviewMatch(match.score)) || dateConflict(owners)
   );
 }
 
-function haveSimilarBirthdates(a: Date, b: Date): boolean {
-  return (
-    isEqual(a, b) ||
-    isEqual(a, subDays(b, 1)) ||
-    isEqual(a, addDays(b, 1)) ||
-    isEqual(a, subYears(b, 1)) ||
-    isEqual(a, addYears(b, 1))
-  );
-}
-
-export function suggest(
-  source: OwnerApi,
-  scores: ScoredOwner[]
-): OwnerApi | null {
-  const best = findBest(scores);
-  if (!best || best.score < MATCH_THRESHOLD) {
-    return null;
-  }
-
-  const owners = [source, best.value];
-
-  // If both owners have a birth date, we take the most complete address
-  if (owners.every((owner) => owner.birthDate)) {
-    return (
-      fp.maxBy((owner) => owner.rawAddress.join(' ').length, owners) ?? null
-    );
-  }
-
-  // Otherwise, we take the first one with a birth date
-  return owners.find((owner) => !!owner.birthDate) ?? null;
+function dateConflict(owners: OwnerApi[]): boolean {
+  const dates = owners
+    .map((owner) => owner.birthDate)
+    .filter(isDefined)
+    .filter(isNotNull);
+  return dates.length >= 2 && dates.some((date) => !isEqual(date, dates[0]));
 }

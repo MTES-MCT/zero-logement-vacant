@@ -3,7 +3,6 @@ import { OwnerApi } from '../../server/models/OwnerApi';
 export interface Comparison {
   source: OwnerApi;
   duplicates: Scored<OwnerApi>[];
-  suggestion: OwnerApi | null;
   /**
    * A number between 0 and 1
    */

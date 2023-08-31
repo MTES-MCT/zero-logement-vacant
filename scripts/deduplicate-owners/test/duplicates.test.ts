@@ -1,100 +1,71 @@
-import { needsManualReview, suggest } from '../duplicates';
+import {
+  MATCH_THRESHOLD,
+  needsManualReview,
+  REVIEW_THRESHOLD,
+} from '../duplicates';
 import { genOwnerApi } from '../../../server/test/testFixtures';
 import { OwnerApi } from '../../../server/models/OwnerApi';
 import { ScoredOwner } from '../comparison';
 
 describe('Duplicates', () => {
   describe('needsManualReview', () => {
-    const createOwner = (birthDate: Date): OwnerApi => ({
-      ...genOwnerApi(),
-      birthDate,
-    });
-
-    it('should return true if the score is above threshold and the birth dates match', () => {
-      const source = createOwner(new Date('2000-01-01'));
-      const best = createOwner(new Date('2000-01-01'));
-
-      const actual = needsManualReview(source, { score: 0.8, value: best });
-
-      expect(actual).toBeTrue();
-    });
-
-    // This tests a bug where a housing would have duplicate owners with very close birth dates
-    it('should return true if the score is above threshold and the birth dates differ by one day', () => {
-      const source = createOwner(new Date('2000-01-01'));
-      const best = createOwner(new Date('2000-01-02'));
-
-      const actual = needsManualReview(source, { score: 0.8, value: best });
-
-      expect(actual).toBeTrue();
-    });
-
-    // This tests a bug where a housing would have duplicate owners with very close birth dates
-    it('should return true if the score is above threshold and the birth dates differ by one year', () => {
-      const source = createOwner(new Date('1931-05-08T23:00:00.000Z'));
-      const best = createOwner(new Date('1932-05-08T23:00:00.000Z'));
-
-      const actual = needsManualReview(source, { score: 0.8, value: best });
-
-      expect(actual).toBeTrue();
-    });
-  });
-
-  describe('suggest', () => {
-    const createOwner = (address: string[]): OwnerApi => ({
-      ...genOwnerApi(),
-      birthDate: undefined,
-      rawAddress: address,
-    });
-
-    it('should suggest the best match or the source whoever has a birth date', () => {
-      const source: OwnerApi = { ...genOwnerApi(), birthDate: undefined };
-      const scores: ScoredOwner[] = [
+    it("should need review if one of the duplicates' score is above the review threshold but under the match threshold", () => {
+      const source = genOwnerApi();
+      const duplicates: ScoredOwner[] = [
         {
-          score: 0.8,
+          score: REVIEW_THRESHOLD + 0.001,
           value: genOwnerApi(),
         },
         {
-          score: 0.7,
+          score: MATCH_THRESHOLD,
           value: genOwnerApi(),
         },
-        {
-          score: 0.9,
-          value: {
-            ...genOwnerApi(),
-            birthDate: new Date(),
+      ];
+
+      const actual = needsManualReview(source, duplicates);
+
+      expect(actual).toBeTrue();
+    });
+
+    describe('If no duplicate is on the review threshold', () => {
+      it('should need review if birth dates do not match', () => {
+        const source: OwnerApi = {
+          ...genOwnerApi(),
+          birthDate: new Date('2000-01-01'),
+        };
+        const duplicates: ScoredOwner[] = [
+          {
+            score: MATCH_THRESHOLD,
+            value: { ...genOwnerApi(), birthDate: new Date('1999-02-03') },
           },
-        },
-      ];
+          {
+            score: MATCH_THRESHOLD,
+            value: { ...genOwnerApi(), birthDate: undefined },
+          },
+        ];
 
-      const actual = suggest(source, scores);
+        const actual = needsManualReview(source, duplicates);
 
-      expect(actual).toStrictEqual(scores[2].value);
-    });
+        expect(actual).toBeTrue();
+      });
 
-    it('should suggest the owner with the most complete address otherwise', () => {
-      const source: OwnerApi = createOwner([
-        '123 RUE DE LA NON-EXISTENCE',
-        '64500 ST JEAN DE LUZ',
-      ]);
-      const scores: ScoredOwner[] = [
-        {
-          score: 0.404,
-          value: createOwner(['404 MAUVAIS MATCH', '64500 ST JEAN DE LUZ']),
-        },
-        {
-          score: 0.9,
-          value: createOwner([
-            '123 RUE DE LA NON-EXISTENCE',
-            'SAINT JEAN DE LUZ',
-            '64500 ST JEAN DE LUZ',
-          ]),
-        },
-      ];
+      it('should not need review if at most one birth date is filled', () => {
+        const source: OwnerApi = { ...genOwnerApi(), birthDate: undefined };
+        const duplicates: ScoredOwner[] = [
+          {
+            score: MATCH_THRESHOLD,
+            value: { ...genOwnerApi(), birthDate: new Date('2000-01-01') },
+          },
+          {
+            score: MATCH_THRESHOLD,
+            value: { ...genOwnerApi(), birthDate: undefined },
+          },
+        ];
 
-      const actual = suggest(source, scores);
+        const actual = needsManualReview(source, duplicates);
 
-      expect(actual).toStrictEqual(scores[1].value);
+        expect(actual).toBeFalse();
+      });
     });
   });
 });

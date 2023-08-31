@@ -67,7 +67,6 @@ describe('Merger', () => {
             value: duplicates[0],
           },
         ],
-        suggestion,
         needsReview: true,
       };
 
@@ -82,29 +81,6 @@ describe('Merger', () => {
       );
     });
 
-    it('should abort if there is no suggestion available', async () => {
-      const comparison: Comparison = {
-        score: 0.6,
-        source,
-        duplicates: [
-          {
-            score: 0.6,
-            value: duplicates[0],
-          },
-        ],
-        suggestion: null,
-        needsReview: false,
-      };
-
-      await merger.merge(comparison);
-
-      const ownerEvents = await db(ownerEventsTable).whereIn(
-        'event_id',
-        events.map((event) => event.id)
-      );
-      expect(ownerEvents).toSatisfyAll((event) => event.owner_id !== source.id);
-    });
-
     it('should transfer housing, events and notes to the owner we keep', async () => {
       const comparison: Comparison = {
         score: 1,
@@ -113,7 +89,6 @@ describe('Merger', () => {
           score: 1,
           value: duplicate,
         })),
-        suggestion,
         needsReview: false,
       };
 
@@ -142,7 +117,6 @@ describe('Merger', () => {
           score: 1,
           value: duplicate,
         })),
-        suggestion,
         needsReview: false,
       };
 

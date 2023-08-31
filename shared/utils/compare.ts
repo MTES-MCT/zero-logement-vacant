@@ -8,9 +8,12 @@ export const enum Compare {
 
 export type Predicate<A> = (a: A) => boolean;
 export const isNull = <A>(a: A | null): a is null => a === null;
+export const isUndefined = <A>(a: A | undefined): a is undefined =>
+  a === undefined;
 
 export function not<A>(f: Predicate<A>): Predicate<A> {
   return (a) => !f(a);
 }
 
 export const isNotNull = <A>(a: A | null): a is A => not(isNull)(a);
+export const isDefined = <A>(a: A | undefined): a is A => not(isUndefined)(a);

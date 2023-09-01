@@ -9,7 +9,7 @@ psql -v ON_ERROR_STOP=1 postgres://... -f datafoncier-owners.sql
 psql -v ON_ERROR_STOP=1 postgres://... -f datafoncier-housing.sql
 
 # In local dev
-ts-node scripts/import-lovac
+ts-node scripts/import-poorly-insulated-housing
 # In production
 scalingo -a zerologementvacant run --detached --size XL "npm i --production=false && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/import-lovac
 ```

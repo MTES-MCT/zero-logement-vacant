@@ -27,6 +27,17 @@ import config from '../../server/utils/config';
 const OWNERS_BATCH_SIZE = 1_000;
 const HOUSING_BATCH_SIZE = 1_000;
 
+type Command =
+  | 'Preprocess'
+  | 'ImportOwners'
+  | 'LinkOwners'
+  | 'ImportHousing'
+  | 'CleanUp';
+
+const commands: Command[] = process.argv[2]
+  ? <Command[]>process.argv[2].split(',')
+  : ['Preprocess', 'ImportOwners', 'LinkOwners', 'ImportHousing', 'CleanUp'];
+
 async function run(): Promise<void> {
   const start = new Date();
 
@@ -37,11 +48,21 @@ async function run(): Promise<void> {
   });
   const geoCodes = fp.uniq(establishments.flatMap((_) => _.geoCodes));
 
-  await preprocess();
-  await importOwners(geoCodes);
-  await linkOwners();
-  await importHousing(geoCodes);
-  await cleanUp();
+  if (commands.includes('Preprocess')) {
+    await preprocess();
+  }
+  if (commands.includes('ImportOwners')) {
+    await importOwners(geoCodes);
+  }
+  if (commands.includes('LinkOwners')) {
+    await linkOwners();
+  }
+  if (commands.includes('ImportHousing')) {
+    await importHousing(geoCodes);
+  }
+  if (commands.includes('CleanUp')) {
+    await cleanUp();
+  }
 
   const end = new Date();
   const duration = intervalToDuration({ start, end });

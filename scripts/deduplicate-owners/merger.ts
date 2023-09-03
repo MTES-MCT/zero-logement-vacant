@@ -7,7 +7,7 @@ import { ownerTable } from '../../server/repositories/ownerRepository';
 import db from '../../server/repositories/db';
 import { isMatch } from './duplicates';
 import fp from 'lodash/fp';
-import { ComparisonMergeError } from './comparison-merge-error';
+import { ComparisonMergeError } from './comparisonMergeError';
 
 async function merge(comparison: Comparison): Promise<void> {
   if (comparison.needsReview) {

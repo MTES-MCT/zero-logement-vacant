@@ -1,5 +1,4 @@
 import highland from 'highland';
-import { stringify } from 'jsonstream';
 import fs from 'node:fs';
 
 import script from 'node:process';
@@ -19,11 +18,12 @@ import db from '../../server/repositories/db';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
-import ownerCache from './owner-cache';
+import ownerCache from './ownerCache';
 import merger from './merger';
+import ownersDuplicatesRepository from './ownersDuplicatesRepository';
+import { OwnerDuplicate } from './OwnerDuplicate';
 
 const recorder = createRecorder();
-const file = fs.createWriteStream('duplicates.json', 'utf8');
 
 function run(): void {
   const comparisons = ownerRepository
@@ -42,11 +42,28 @@ function run(): void {
 
   comparisons
     .observe()
-    .filter((comparison) => isMatch(comparison.score))
     .tap(logger.trace.bind(logger))
-    .through(stringify('[\n', ',\n', '\n]\n'))
+    .filter((comparison) => comparison.needsReview)
+    .map((comparison) =>
+      comparison.duplicates
+        .filter((duplicate) =>
+          needsManualReview(comparison.source, [duplicate])
+        )
+        .map<OwnerDuplicate>((duplicate) => ({
+          ...duplicate.value,
+          sourceId: comparison.source.id,
+        }))
+    )
+    .flatten()
+    .tap(logger.trace.bind(logger))
+    .batch(1000)
+    .flatMap((duplicates) =>
+      highland(ownersDuplicatesRepository.save(...duplicates))
+    )
     .stopOnError(logger.error.bind(logger))
-    .pipe(file);
+    .done(() => {
+      logger.info('Done writing to the database.');
+    });
 
   comparisons
     .filter((comparison) => isMatch(comparison.score))
@@ -94,11 +111,7 @@ function cleanUp() {
   const report = createReporter('json').toString(recorder.report);
   fs.writeFileSync('report.json', report, 'utf8');
   logger.info('Report written to report.json');
-  file.write('\n]', () => {
-    file.close(() => {
-      script.exit();
-    });
-  });
+  script.exit();
 }
 
 const start = new Date();

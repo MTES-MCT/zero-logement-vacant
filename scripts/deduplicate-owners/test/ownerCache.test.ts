@@ -1,4 +1,4 @@
-import ownerCache from '../owner-cache';
+import ownerCache from '../ownerCache';
 
 describe('Owner cache', () => {
   const a = 'A';

@@ -41,7 +41,7 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
         <>
           <div className="fr-mb-1w">
             <Text size="sm" className="zlv-label">
-              Étiquette DPE (majoritaire)
+              Étiquette DPE représentatif (CSTB)
             </Text>
             {housing.energyConsumption ? (
               <DPE value={housing.energyConsumption} />

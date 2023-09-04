@@ -126,7 +126,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           {features.isEnabled('occupancy') && (
             <div className="fr-mb-3w">
               <Text size="sm" className="zlv-label">
-                Étiquette DPE (majo. immeuble)
+                Étiquette DPE représentatif (CSTB)
               </Text>
               {housing.energyConsumption ? (
                 <DPE value={housing.energyConsumption} />

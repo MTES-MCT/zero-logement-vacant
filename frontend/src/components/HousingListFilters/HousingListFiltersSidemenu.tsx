@@ -325,13 +325,13 @@ function HousingListFiltersSidemenu() {
                   <>
                     <Col n="6">
                       <AppMultiSelect
-                        label="Étiquette DPE (majoritaire)"
+                        label="Étiquette DPE représentatif (CSTB)"
                         options={energyConsumptionOptions}
                         initialValues={filters.energyConsumption}
                         onChange={(values) =>
                           onChangeFilters(
                             { energyConsumption: values },
-                            'Étiquette DPE (majoritaire)'
+                            'Étiquette DPE représentatif (CSTB)'
                           )
                         }
                       />

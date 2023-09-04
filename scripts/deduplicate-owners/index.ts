@@ -31,7 +31,7 @@ function run(): void {
     .flatMap((owner) => highland(process(owner)));
 
   comparisons
-    .observe()
+    .fork()
     .through(recorder.record())
     .map(createReporter('json').toString)
     .pipe(fs.createWriteStream('report.json', 'utf8'))
@@ -41,7 +41,7 @@ function run(): void {
     });
 
   comparisons
-    .observe()
+    .fork()
     .tap(logger.trace.bind(logger))
     .filter((comparison) => comparison.needsReview)
     .map((comparison) =>
@@ -66,6 +66,7 @@ function run(): void {
     });
 
   comparisons
+    .fork()
     .filter((comparison) => isMatch(comparison.score))
     .filter((comparison) => !comparison.needsReview)
     .flatMap((comparison) => highland(merger.merge(comparison)))

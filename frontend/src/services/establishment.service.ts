@@ -1,6 +1,5 @@
 import config from '../utils/config';
 import { Establishment } from '../models/Establishment';
-import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
 import {
   createHttpService,
   getURLSearchParams,
@@ -13,9 +12,7 @@ const http = createHttpService('establishment', {
   json: true,
 });
 
-const listEstablishments = async (
-  filters: EstablishmentFilterApi
-): Promise<Establishment[]> => {
+const listEstablishments = async (filters: any): Promise<Establishment[]> => {
   const params = getURLSearchParams({
     ...filters,
     name: filters.name ? normalizeUrlSegment(filters.name) : undefined,

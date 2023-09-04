@@ -138,23 +138,6 @@ const saveMany = async (
     return;
   }
 
-  const mainOwners: HousingOwnerApi[] = housingList.map((housing) => ({
-    ...housing.owner,
-    rank: 1,
-    housingId: housing.id,
-  }));
-  const coowners = housingList.flatMap((housing) =>
-    housing.coowners.map((coowner) => ({
-      ...coowner,
-      housingId: housing.id,
-    }))
-  );
-  const owners: HousingOwnerApi[] = fp.pipe(fp.uniqBy('id'))([
-    ...mainOwners,
-    ...coowners,
-  ]);
-  const ids = housingList.map((housing) => housing.id);
-
   await db.transaction(async (transaction) => {
     await transaction(housingTable)
       .insert(housingList.map(formatHousingRecordApi))
@@ -164,6 +147,36 @@ const saveMany = async (
         }
         return builder.onConflict('local_id').ignore();
       });
+
+    const newHousingList: HousingApi[] = await transaction(housingTable)
+      .whereIn(
+        'local_id',
+        housingList.map((h) => h.localId)
+      )
+      .then((results) =>
+        housingList.map(
+          (h) => <HousingApi>fp.merge(
+              h,
+              results.find((_) => _.local_id === h.localId)
+            )
+        )
+      );
+
+    const mainOwners: HousingOwnerApi[] = newHousingList.map((housing) => ({
+      ...housing.owner,
+      rank: 1,
+      housingId: housing.id,
+    }));
+    const coowners = newHousingList.flatMap((housing) =>
+      housing.coowners.map((coowner) => ({
+        ...coowner,
+        housingId: housing.id,
+      }))
+    );
+    const owners: HousingOwnerApi[] = fp.pipe(
+      fp.uniqBy((o: HousingOwnerApi) => o.id + o.housingId)
+    )([...mainOwners, ...coowners]);
+    const ids = newHousingList.map((housing) => housing.id);
 
     // Owners should already be present
     const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);

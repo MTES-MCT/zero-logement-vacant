@@ -72,6 +72,12 @@ const HousingFiltersBadges = ({
   return (
     <TagGroup>
       <FilterBadges
+        options={allOccupancyOptions}
+        filters={filters.occupancies}
+        small={small}
+        onChange={onChange && ((values) => onChange({ occupancies: values }))}
+      />
+      <FilterBadges
         options={ownerKindOptions}
         filters={filters.ownerKinds}
         small={small}
@@ -263,12 +269,6 @@ const HousingFiltersBadges = ({
           onChange &&
           ((values) => onChange({ dataYearsExcluded: values.map(Number) }))
         }
-      />
-      <FilterBadges
-        options={allOccupancyOptions}
-        filters={filters.occupancies}
-        small={small}
-        onChange={onChange && ((values) => onChange({ occupancies: values }))}
       />
       <FilterBadges
         options={energyConsumptionOptions}

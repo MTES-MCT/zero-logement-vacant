@@ -19,8 +19,5 @@ The department codes must be passed separated by commas as a unique argument (01
 # In local dev
 ts-node scripts/link-dpe [DEPS]
 # In production
-scalingo -a zerologementvacant run --detached --size XL "npm i --omit=dev && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/link-dpe [DEPS]"
+scalingo -a zerologementvacant run --detached --size XL "npm i --production=false && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/link-dpe [DEPS]"
 ```
-
-
-

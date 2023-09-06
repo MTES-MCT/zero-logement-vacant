@@ -37,7 +37,6 @@ export interface Housing {
   precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
-  energyConsumptionWorst?: string;
   occupancy: OccupancyKind;
   occupancyIntended?: OccupancyKind;
 }
@@ -197,12 +196,17 @@ export enum OccupancyKind {
 
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
-  [OccupancyKind.Rent]: 'Loué',
-  [OccupancyKind.ShortRent]: 'Location courte durée',
-  [OccupancyKind.PrimaryResidence]: 'Résidence principale',
-  [OccupancyKind.SecondaryResidence]: 'Résidence secondaire',
+  [OccupancyKind.Rent]: 'En location',
+  [OccupancyKind.ShortRent]: 'Meublé de tourisme',
+  [OccupancyKind.PrimaryResidence]: 'Occupé par le propriétaire',
+  [OccupancyKind.SecondaryResidence]: 'Résidence secondaire non louée',
   [OccupancyKind.CommercialOrOffice]: 'Local commercial ou bureau',
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
+};
+
+export const OccupancyKindBadgeLabels = {
+  ...OccupancyKindLabels,
+  [OccupancyKind.Others]: 'Occupation : Autres',
 };

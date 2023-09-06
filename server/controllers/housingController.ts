@@ -30,7 +30,7 @@ import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
-import sortApi from "../models/SortApi";
+import sortApi from '../models/SortApi';
 
 const get = async (request: Request, response: Response) => {
   const id = request.params.id;
@@ -81,9 +81,6 @@ const listValidators: ValidationChain[] = [
   body('filters.subStatus').default([]).custom(isArrayOf(isString)),
   body('filters.query').default('').isString(),
   body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),
-  body('filters.energyConsumptionWorst')
-    .default([])
-    .custom(isArrayOf(isString)),
   body('filters.occupancies').default([]).custom(isArrayOf(isString)),
   ...sortApi.queryValidators,
   ...paginationApi.validators,

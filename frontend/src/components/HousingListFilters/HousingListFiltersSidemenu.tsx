@@ -13,6 +13,7 @@ import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
 import { useFilters } from '../../hooks/useFilters';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
 import {
+  allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
@@ -20,13 +21,11 @@ import {
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
   energyConsumptionOptions,
-  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
-  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -162,31 +161,29 @@ function HousingListFiltersSidemenu() {
               </Row>
             </Container>
           </AccordionItem>
-          {feature.isEnabled('occupancy') && (
-            <AccordionItem
-              title={
-                <TitleWithIcon icon="ri-map-pin-user-fill" title="Occupation" />
-              }
-            >
-              <Container as="section" fluid>
-                <Row gutters>
-                  <Col>
-                    <AppMultiSelect
-                      label="Statut d’occupation"
-                      options={occupancyOptions}
-                      initialValues={filters.occupancies}
-                      onChange={(values) =>
-                        onChangeFilters(
-                          { occupancies: values },
-                          'Statut d’occupation'
-                        )
-                      }
-                    />
-                  </Col>
-                </Row>
-              </Container>
-            </AccordionItem>
-          )}
+          <AccordionItem
+            title={
+              <TitleWithIcon icon="ri-map-pin-user-fill" title="Occupation" />
+            }
+          >
+            <Container as="section" fluid>
+              <Row gutters>
+                <Col>
+                  <AppMultiSelect
+                    label="Statut d’occupation"
+                    options={allOccupancyOptions}
+                    initialValues={filters.occupancies}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { occupancies: values },
+                        'Statut d’occupation'
+                      )
+                    }
+                  />
+                </Col>
+              </Row>
+            </Container>
+          </AccordionItem>
           <AccordionItem
             title={<TitleWithIcon icon="ri-home-fill" title="Logement" />}
           >
@@ -328,26 +325,13 @@ function HousingListFiltersSidemenu() {
                   <>
                     <Col n="6">
                       <AppMultiSelect
-                        label="Étiquette DPE (majoritaire)"
+                        label="Étiquette DPE représentatif (CSTB)"
                         options={energyConsumptionOptions}
                         initialValues={filters.energyConsumption}
                         onChange={(values) =>
                           onChangeFilters(
                             { energyConsumption: values },
-                            'Étiquette DPE (majoritaire)'
-                          )
-                        }
-                      />
-                    </Col>
-                    <Col n="6">
-                      <AppMultiSelect
-                        label="Étiquette DPE (+ mauvaise)"
-                        options={energyConsumptionWorstOptions}
-                        initialValues={filters.energyConsumptionWorst}
-                        onChange={(values) =>
-                          onChangeFilters(
-                            { energyConsumptionWorst: values },
-                            'Étiquette DPE (+ mauvaise)'
+                            'Étiquette DPE représentatif (CSTB)'
                           )
                         }
                       />

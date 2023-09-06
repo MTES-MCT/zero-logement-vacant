@@ -194,7 +194,6 @@ describe('Action', () => {
                 precisions: before.precisions,
                 vacancyReasons: before.vacancyReasons,
                 energyConsumption: before.energyConsumption,
-                energyConsumptionWorst: before.energyConsumptionWorst,
                 dataYears: [...now.dataYears, ...before.dataYears],
               });
             });

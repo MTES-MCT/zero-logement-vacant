@@ -2,6 +2,7 @@ import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
   OccupancyKind,
+  OccupancyKindBadgeLabels,
   OccupancyKindLabels,
   OwnershipKindLabels,
   OwnershipKinds,
@@ -37,7 +38,6 @@ export interface HousingFilters {
   subStatus?: string[];
   query?: string;
   energyConsumption?: string[];
-  energyConsumptionWorst?: string[];
   occupancies?: string[];
 }
 
@@ -48,24 +48,15 @@ export type HousingFiltersForTotalCount = Pick<
   | 'dataYearsExcluded'
   | 'status'
   | 'campaignIds'
+  | 'occupancies'
 >;
-
-export const occupancyOptions: SelectOption[] = [
-  {
-    value: 'L',
-    label: 'Logement locatif',
-  },
-  {
-    value: 'V',
-    label: 'Logement vacant',
-  },
-];
 
 export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)
   .filter((_) => !(parseInt(_) >= 0))
   .map((value) => ({
     value,
     label: OccupancyKindLabels[value],
+    badgeLabel: OccupancyKindBadgeLabels[value],
   }));
 
 export const ownerAgeOptions: SelectOption[] = [
@@ -168,18 +159,7 @@ export const energyConsumptionOptions: SelectOption[] =
     markup: (props) => (
       <EnergyConsumptionOption {...props} label={grade} value={grade} />
     ),
-    badgeLabel: `DPE ${grade} (majoritaire)`,
-  }));
-
-// @ts-ignore: label is defined as a string but passed as a component
-export const energyConsumptionWorstOptions: SelectOption[] =
-  energyConsumptionGrades.map((grade) => ({
-    value: grade,
-    label: grade,
-    markup: (props) => (
-      <EnergyConsumptionOption {...props} label={grade} value={grade} />
-    ),
-    badgeLabel: `DPE ${grade} (+ mauvaise)`,
+    badgeLabel: `DPE représentatif (CSTB) ${grade}`,
   }));
 
 export const housingKindOptions: SelectOption[] = [
@@ -229,8 +209,11 @@ export const multiOwnerOptions: SelectOption[] = [
 export const vacancyDurationOptions: SelectOption[] = [
   {
     value: 'lt2',
-    label: 'Moins de 2 ans',
-    badgeLabel: 'Durée de vacance : moins de 2 ans',
+    label: 'Vacance conjoncturelle (Moins de 2 ans)',
+  },
+  {
+    value: 'gt2',
+    label: 'Vacance structurelle (2 ans et plus)',
   },
   {
     value: '2',

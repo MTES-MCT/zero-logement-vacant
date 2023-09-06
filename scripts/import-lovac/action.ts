@@ -156,7 +156,6 @@ export function compare({ before, now, modifications }: Comparison): Action {
             precisions: before.precisions,
             vacancyReasons: before.vacancyReasons,
             energyConsumption: before.energyConsumption,
-            energyConsumptionWorst: before.energyConsumptionWorst,
             dataYears,
           },
           events,

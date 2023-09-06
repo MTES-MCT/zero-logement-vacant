@@ -115,7 +115,8 @@ function HousingDetailsCard({
               event.category === 'Followup' &&
               event.kind === 'Update' &&
               event.section === 'Situation' &&
-              event.name === "Modification du statut d'occupation"
+              event.name === "Modification du statut d'occupation" &&
+              event.old.occupancy !== event.new.occupancy
           )}
         />
         <HousingDetailsCardMobilisation

@@ -133,7 +133,11 @@ describe('housing view', () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          filters: initialHousingFilters,
+          filters: {
+            dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
+            dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
+            occupancies: initialHousingFilters.occupancies,
+          },
         }),
       }
     );

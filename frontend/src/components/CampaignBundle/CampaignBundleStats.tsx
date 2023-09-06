@@ -21,11 +21,6 @@ const CampaignBundleStats = ({ campaignBundle, isArchived }: Props) => {
               <b>{returnRate(bundle)}%</b> de retour
             </Text>
           </AppCard>
-          <AppCard icon="ri-phone-fill" isGrey={isArchived}>
-            <Text as="span">
-              <b>{bundle.neverContactedCount}</b> à recontacter
-            </Text>
-          </AppCard>
           <AppCard icon="ri-hand-coin-fill" isGrey={isArchived}>
             <Text as="span">
               <b>{bundle.inProgressWithSupportCount}</b> en accompagnement

@@ -138,23 +138,6 @@ const saveMany = async (
     return;
   }
 
-  const mainOwners: HousingOwnerApi[] = housingList.map((housing) => ({
-    ...housing.owner,
-    rank: 1,
-    housingId: housing.id,
-  }));
-  const coowners = housingList.flatMap((housing) =>
-    housing.coowners.map((coowner) => ({
-      ...coowner,
-      housingId: housing.id,
-    }))
-  );
-  const owners: HousingOwnerApi[] = fp.pipe(fp.uniqBy('id'))([
-    ...mainOwners,
-    ...coowners,
-  ]);
-  const ids = housingList.map((housing) => housing.id);
-
   await db.transaction(async (transaction) => {
     await transaction(housingTable)
       .insert(housingList.map(formatHousingRecordApi))
@@ -164,6 +147,36 @@ const saveMany = async (
         }
         return builder.onConflict('local_id').ignore();
       });
+
+    const newHousingList: HousingApi[] = await transaction(housingTable)
+      .whereIn(
+        'local_id',
+        housingList.map((h) => h.localId)
+      )
+      .then((results) =>
+        housingList.map(
+          (h) => <HousingApi>fp.merge(
+              h,
+              results.find((_) => _.local_id === h.localId)
+            )
+        )
+      );
+
+    const mainOwners: HousingOwnerApi[] = newHousingList.map((housing) => ({
+      ...housing.owner,
+      rank: 1,
+      housingId: housing.id,
+    }));
+    const coowners = newHousingList.flatMap((housing) =>
+      housing.coowners.map((coowner) => ({
+        ...coowner,
+        housingId: housing.id,
+      }))
+    );
+    const owners: HousingOwnerApi[] = fp.pipe(
+      fp.uniqBy((o: HousingOwnerApi) => o.id + o.housingId)
+    )([...mainOwners, ...coowners]);
+    const ids = newHousingList.map((housing) => housing.id);
 
     // Owners should already be present
     const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);
@@ -249,33 +262,11 @@ const get = async (
 
 export const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: Knex.QueryBuilder) => {
-    queryBuilder.where((whereBuilder) => {
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Vacant)
-      ) {
-        whereBuilder.orWhereRaw('occupancy = ? and vacancy_start_year <= ?', [
-          OccupancyKindApi.Vacant,
-          referenceDataYearFromFilters(filters) - 2,
-        ]);
-      }
-
-      if (
-        !filters.occupancies?.length ||
-        filters.occupancies?.includes(OccupancyKindApi.Rent)
-      ) {
-        whereBuilder.orWhere('occupancy', OccupancyKindApi.Rent);
-      }
-    });
-
+    if (filters.occupancies?.length) {
+      queryBuilder.whereIn('occupancy', filters.occupancies);
+    }
     if (filters.energyConsumption?.length) {
       queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
-    }
-    if (filters.energyConsumptionWorst?.length) {
-      queryBuilder.whereIn(
-        'energy_consumption_worst',
-        filters.energyConsumptionWorst
-      );
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
@@ -426,6 +417,12 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 1,
             referenceDataYearFromFilters(filters),
+          ]);
+        }
+        if (filters.vacancyDurations?.indexOf('gt2') !== -1) {
+          whereBuilder.orWhereBetween('vacancy_start_year', [
+            0,
+            referenceDataYearFromFilters(filters) - 2,
           ]);
         }
         if (filters.vacancyDurations?.indexOf('2') !== -1) {
@@ -786,7 +783,6 @@ interface HousingRecordDBO {
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;
-  energy_consumption_worst?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
   occupancy_registered?: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
@@ -827,7 +823,6 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   subStatus: result.sub_status ?? undefined,
   precisions: result.precisions ?? undefined,
   energyConsumption: result.energy_consumption,
-  energyConsumptionWorst: result.energy_consumption_worst,
   occupancy: result.occupancy,
   occupancyRegistered: result.occupancy_registered,
   occupancyIntended: result.occupancy_intended,
@@ -882,7 +877,6 @@ export const formatHousingRecordApi = (
   sub_status: housingRecordApi.subStatus,
   precisions: housingRecordApi.precisions,
   energy_consumption: housingRecordApi.energyConsumption,
-  energy_consumption_worst: housingRecordApi.energyConsumptionWorst,
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,

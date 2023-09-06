@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+  allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
@@ -7,14 +8,12 @@ import {
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
   energyConsumptionOptions,
-  energyConsumptionWorstOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
-  occupancyOptions,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -72,6 +71,12 @@ const HousingFiltersBadges = ({
 
   return (
     <TagGroup>
+      <FilterBadges
+        options={allOccupancyOptions}
+        filters={filters.occupancies}
+        small={small}
+        onChange={onChange && ((values) => onChange({ occupancies: values }))}
+      />
       <FilterBadges
         options={ownerKindOptions}
         filters={filters.ownerKinds}
@@ -266,24 +271,12 @@ const HousingFiltersBadges = ({
         }
       />
       <FilterBadges
-        options={occupancyOptions}
-        filters={filters.occupancies}
-        small={small}
-        onChange={onChange && ((values) => onChange({ occupancies: values }))}
-      />
-      <FilterBadges
         options={energyConsumptionOptions}
         filters={filters.energyConsumption}
         small={small}
         onChange={
           onChange && ((values) => onChange({ energyConsumption: values }))
         }
-      />
-      <FilterBadges
-        options={energyConsumptionWorstOptions}
-        filters={filters.energyConsumptionWorst}
-        small={small}
-        onChange={(values) => onChange?.({ energyConsumptionWorst: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}

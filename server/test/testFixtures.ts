@@ -201,7 +201,6 @@ export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,
     energyConsumption: EnergyConsumptionGradesApi.A,
-    energyConsumptionWorst: EnergyConsumptionGradesApi.B,
     occupancy: OccupancyKindApi.Vacant,
     buildingVacancyRate: genNumber(2),
     campaignIds: [],

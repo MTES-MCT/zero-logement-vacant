@@ -196,7 +196,7 @@ export enum OccupancyKind {
 
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
-  [OccupancyKind.Rent]: 'Occupé par un locataire',
+  [OccupancyKind.Rent]: 'En location',
   [OccupancyKind.ShortRent]: 'Meublé de tourisme',
   [OccupancyKind.PrimaryResidence]: 'Occupé par le propriétaire',
   [OccupancyKind.SecondaryResidence]: 'Résidence secondaire non louée',

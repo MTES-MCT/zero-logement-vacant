@@ -45,6 +45,9 @@ class OwnerPostgresRepository implements OwnerStreamRepository {
   stream(opts: StreamOptions): Highland.Stream<OwnerApi> {
     const query = db<OwnerDatafoncier>(datafoncierOwnersTable)
       .select(FIELDS)
+      .where((whereBuilder) =>
+        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
+      )
       // Avoid importing owners that have no address at all
       .modify(hasAddress())
       .modify(hasName())

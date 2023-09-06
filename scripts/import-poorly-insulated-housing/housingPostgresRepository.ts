@@ -32,9 +32,6 @@ class HousingPostgresRepository implements HousingStreamRepository {
         ccthp: 'L',
       })
       .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
-      .where((whereBuilder) =>
-        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
-      )
       .stream();
 
     return highland<HousingDatafoncier>(query)

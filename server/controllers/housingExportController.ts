@@ -17,10 +17,10 @@ import { reduceStringArray } from '../utils/stringUtils';
 import highland from 'highland';
 import { CampaignApi } from '../models/CampaignApi';
 import { logger } from '../utils/logger';
-import stream from 'exceljs/index';
 import excelUtils from '../utils/excelUtils';
 import Stream = Highland.Stream;
-import WorkbookWriter = stream.xlsx.WorkbookWriter;
+import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
+import exceljs from 'exceljs';
 
 const exportHousingByCampaignBundle = async (
   request: Request,

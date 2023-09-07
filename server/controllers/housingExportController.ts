@@ -182,37 +182,29 @@ const writeWorkbook = (
           reduceStringArray(housingWithAddresses.rawAddress),
           reduceAddressApi(housingWithAddresses.housingAddress ?? undefined)
         );
+        const headerRow = ownerWorksheet.getRow(1);
+        if (row.cellCount > headerRow.cellCount) {
+          headerRow.splice(
+            headerRow.cellCount + 1,
+            0,
+            ...[
+              `Adresse LOVAC du logement ${
+                (row.cellCount - ownerWorksheetColumns.length) / 2
+              }`,
+              `Adresse BAN du logement ${
+                (row.cellCount - ownerWorksheetColumns.length) / 2
+              }`,
+            ]
+          );
+        }
+        console.log('row count after', row.cellCount);
       }
     })
     .collect()
     .tap(() => {
-      if (housingLightWorksheet) {
-        excelUtils.formatWorksheet(housingLightWorksheet);
-        housingLightWorksheet.commit();
-      }
-      if (housingCompleteWorksheet) {
-        excelUtils.formatWorksheet(housingCompleteWorksheet);
-        housingCompleteWorksheet?.commit();
-      }
-      if (ownerWorksheet) {
-        const headerRow = ownerWorksheet.getRow(1);
-        headerRow.splice(
-          headerRow.cellCount + 1,
-          0,
-          ...[
-            ...Array(
-              (ownerWorksheetColumns.length - headerRow.cellCount) / 2
-            ).keys(),
-          ]
-            .map((index) => [
-              `Adresse LOVAC du logement ${index + 1}`,
-              `Adresse BAN du logement ${index + 1}`,
-            ])
-            .flat()
-        );
-        excelUtils.formatWorksheet(ownerWorksheet);
-        ownerWorksheet.commit();
-      }
+      excelUtils.formatWorksheet(housingLightWorksheet);
+      excelUtils.formatWorksheet(housingCompleteWorksheet);
+      excelUtils.formatWorksheet(ownerWorksheet);
       workbook.commit();
     });
 };

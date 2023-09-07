@@ -15,8 +15,8 @@ const getByRefId = async (
   refId: string,
   addressKind: AddressKinds
 ): Promise<AddressApi | null> => {
-  logger.info('Get ban adresse with ref id', refId, addressKind);
-  const address = db(banAddressesTable)
+  logger.debug('Get ban adresse with ref id', refId, addressKind);
+  const address = await db(banAddressesTable)
     .where('ref_id', refId)
     .andWhere('address_kind', addressKind)
     .first();

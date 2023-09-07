@@ -123,8 +123,8 @@ const writeWorkbook = (
         housingLightWorksheet.addRow(
           getHousingLightRow(
             housingWithAddresses,
-            housingWithAddresses.housingAddress,
-            housingWithAddresses.ownerAddress
+            housingWithAddresses.housingAddress ?? undefined,
+            housingWithAddresses.ownerAddress ?? undefined
           )
         );
       }
@@ -132,8 +132,8 @@ const writeWorkbook = (
         housingCompleteWorksheet.addRow({
           ...getHousingLightRow(
             housingWithAddresses,
-            housingWithAddresses.housingAddress,
-            housingWithAddresses.ownerAddress
+            housingWithAddresses.housingAddress ?? undefined,
+            housingWithAddresses.ownerAddress ?? undefined
           ),
           latitude: housingWithAddresses.latitude,
           longitude: housingWithAddresses.longitude,
@@ -155,7 +155,7 @@ const writeWorkbook = (
       }
       if (ownerWorksheet) {
         if (!ownersRowNumber.includes(housingWithAddresses.owner.id)) {
-          const ownerAddress = housingWithAddresses.ownerAddress;
+          const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
           const rawAddress = housingWithAddresses.owner.rawAddress;
           ownerWorksheet.addRow({
             owner: housingWithAddresses.owner.fullName,
@@ -180,7 +180,7 @@ const writeWorkbook = (
           row.cellCount + 1,
           0,
           reduceStringArray(housingWithAddresses.rawAddress),
-          reduceAddressApi(housingWithAddresses.housingAddress)
+          reduceAddressApi(housingWithAddresses.housingAddress ?? undefined)
         );
       }
     })
@@ -263,8 +263,8 @@ const addOwnerWorksheet = (workbook: WorkbookWriter) => {
 
 const getHousingLightRow = (
   housingApi: HousingApi,
-  housingAddress: AddressApi,
-  ownerAddress: AddressApi
+  housingAddress?: AddressApi,
+  ownerAddress?: AddressApi
 ) => {
   const rawAddress = housingApi.owner.rawAddress;
   const building = getBuildingLocation(housingApi);

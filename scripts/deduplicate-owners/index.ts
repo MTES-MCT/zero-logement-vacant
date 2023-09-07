@@ -28,6 +28,7 @@ const recorder = createRecorder();
 function run(): void {
   const comparisons = ownerRepository
     .stream()
+    .tap(logger.trace.bind(logger))
     .flatMap((owner) => highland(process(owner)));
 
   comparisons
@@ -37,12 +38,10 @@ function run(): void {
     .pipe(fs.createWriteStream('report.json', 'utf8'))
     .on('finish', () => {
       logger.info('Report written to report.json');
-      script.exit();
     });
 
-  comparisons
+  const duplicateWriter = comparisons
     .fork()
-    .tap(logger.trace.bind(logger))
     .filter((comparison) => comparison.needsReview)
     .map((comparison) =>
       comparison.duplicates
@@ -59,22 +58,26 @@ function run(): void {
     .batch(1000)
     .flatMap((duplicates) =>
       highland(ownersDuplicatesRepository.save(...duplicates))
-    )
-    .stopOnError(logger.error.bind(logger))
-    .done(() => {
-      logger.info('Done writing to the database.');
-    });
+    );
 
-  comparisons
+  const ownerMerger = comparisons
     .fork()
     .filter((comparison) => isMatch(comparison.score))
     .filter((comparison) => !comparison.needsReview)
-    .flatMap((comparison) => highland(merger.merge(comparison)))
+    .flatMap((comparison) => highland(merger.merge(comparison)));
+
+  highland([duplicateWriter, ownerMerger])
+    .merge()
     .errors((error) => {
       logger.error(error);
     })
     .done(() => {
-      logger.info('Everything all right!');
+      logger.info('Duplicates written.');
+      logger.info('Owners merged.');
+
+      ownersDuplicatesRepository.removeOrphans().then(() => {
+        script.exit();
+      });
     });
 }
 

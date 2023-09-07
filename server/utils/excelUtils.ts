@@ -1,4 +1,4 @@
-import { Worksheet, Workbook } from 'exceljs';
+import ExcelJS, { Worksheet } from 'exceljs';
 import { Response } from 'express';
 
 const formatWorksheet = (worksheet: Worksheet) => {
@@ -10,29 +10,20 @@ const formatWorksheet = (worksheet: Worksheet) => {
   });
 };
 
-const formatWorkbook = (workbook: Workbook) => {
-  workbook.worksheets.forEach((worksheet) => formatWorksheet(worksheet));
-};
-
-const sendWorkbook = (
-  workbook: Workbook,
-  fileName: string,
-  response: Response
-): Promise<Response> => {
-  formatWorkbook(workbook);
-
+const initWorkbook = (fileName: string, response: Response) => {
   response.setHeader(
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   );
+  response.setHeader('Transfer-Encoding', 'chunked');
   response.setHeader('Content-Disposition', 'attachment; filename=' + fileName);
 
-  return workbook.xlsx.write(response).then(() => {
-    response.end();
-    return response;
+  return new ExcelJS.stream.xlsx.WorkbookWriter({
+    stream: response,
   });
 };
 
 export default {
-  sendWorkbook,
+  formatWorksheet,
+  initWorkbook,
 };

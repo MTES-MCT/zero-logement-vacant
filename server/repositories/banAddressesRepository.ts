@@ -10,6 +10,21 @@ import config from '../utils/config';
 
 export const banAddressesTable = 'ban_addresses';
 
+const getByRefId = async (
+  refId: string,
+  addressKind: AddressKinds
+): Promise<AddressApi> => {
+  try {
+    return db(banAddressesTable)
+      .where('ref_id', refId)
+      .andWhere('address_kind', addressKind)
+      .first()
+      .then(parseAddressApi);
+  } catch (err) {
+    console.error('Listing addresses failed', err);
+    throw new Error('Listing addresses failed');
+  }
+};
 const listByRefIds = async (
   refIds: string[],
   addressKind: AddressKinds
@@ -171,6 +186,7 @@ const formatAddressApi = (addressApi: AddressApi) => ({
 });
 
 export default {
+  getByRefId,
   listByRefIds,
   listAddressesToNormalize,
   markAddressToBeNormalized,

@@ -14,6 +14,7 @@ import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
+import { logger } from '../utils/logger';
 
 export const establishmentsTable = 'establishments';
 
@@ -58,7 +59,7 @@ function filter(filters?: EstablishmentFilterApi) {
 const get = async (
   establishmentId: string
 ): Promise<EstablishmentApi | null> => {
-  console.log('Get establishments by id', establishmentId);
+  logger.debug('Get establishments by id', establishmentId);
 
   const result = await db(establishmentsTable)
     .where(`${establishmentsTable}.id`, establishmentId)

@@ -79,8 +79,8 @@ export function oneOf<T>(array: Array<T>): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-export const genLocalityApi = (geoCode = genGeoCode()) => {
-  return <LocalityApi>{
+export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
+  return {
     id: uuidv4(),
     geoCode,
     name: randomstring.generate(),

@@ -73,8 +73,6 @@ const exportHousingByCampaignBundle = async (
     mailService.emit('housing:exported', user.email, {
       priority: establishment.priority,
     });
-
-    return response;
   });
 };
 
@@ -99,24 +97,22 @@ const writeWorkbook = (
 
   return stream
     .flatMap((housingApi) =>
-      highland([
-        highland(
-          banAddressesRepository.getByRefId(housingApi.id, AddressKinds.Housing)
-        ),
-        highland(
+      highland(
+        Promise.all([
+          banAddressesRepository.getByRefId(
+            housingApi.id,
+            AddressKinds.Housing
+          ),
           banAddressesRepository.getByRefId(
             housingApi.owner.id,
             AddressKinds.Owner
-          )
-        ),
-      ])
-        .parallel(2)
-        .collect()
-        .map(([housingAddress, ownerAddress]) => ({
+          ),
+        ]).then(([housingAddress, ownerAddress]) => ({
           ...housingApi,
           housingAddress,
           ownerAddress,
         }))
+      )
     )
     .tap((housingWithAddresses) => {
       if (housingLightWorksheet) {
@@ -197,7 +193,6 @@ const writeWorkbook = (
             ]
           );
         }
-        console.log('row count after', row.cellCount);
       }
     })
     .collect()

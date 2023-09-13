@@ -669,6 +669,16 @@ const listWithFilters = async (
     .modify(queryHousingEventsJoinClause)
     .then((_) => _.map((result: any) => parseHousingApi(result)));
 };
+const streamWithFilters = (
+  filters: HousingFiltersApi
+): Highland.Stream<HousingApi> => {
+  const stream = listQuery(filters.establishmentIds)
+    .modify(filteredQuery(filters))
+    .modify(queryHousingEventsJoinClause)
+    .stream();
+
+  return highland<HousingDBO>(stream).map(parseHousingApi);
+};
 
 const stream = (): Highland.Stream<HousingApi> => {
   const stream = db
@@ -886,6 +896,7 @@ export default {
   get,
   find,
   listWithFilters,
+  streamWithFilters,
   stream,
   count,
   countVacant,

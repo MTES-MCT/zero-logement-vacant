@@ -7,22 +7,20 @@ import db from './db';
 import { housingTable } from './housingRepository';
 import { ownerTable } from './ownerRepository';
 import config from '../utils/config';
+import { logger } from '../utils/logger';
 
 export const banAddressesTable = 'ban_addresses';
 
-const listByRefIds = async (
-  refIds: string[],
+const getByRefId = async (
+  refId: string,
   addressKind: AddressKinds
-): Promise<AddressApi[]> => {
-  try {
-    return db(banAddressesTable)
-      .whereIn('ref_id', refIds)
-      .andWhere('address_kind', addressKind)
-      .then((_) => _.map((_) => parseAddressApi(_)));
-  } catch (err) {
-    console.error('Listing addresses failed', err);
-    throw new Error('Listing addresses failed');
-  }
+): Promise<AddressApi | null> => {
+  logger.debug('Get ban adresse with ref id', refId, addressKind);
+  const address = await db(banAddressesTable)
+    .where('ref_id', refId)
+    .andWhere('address_kind', addressKind)
+    .first();
+  return address ? parseAddressApi(address) : null;
 };
 
 const orderWithLimit = (query: any) => {
@@ -171,7 +169,7 @@ const formatAddressApi = (addressApi: AddressApi) => ({
 });
 
 export default {
-  listByRefIds,
+  getByRefId,
   listAddressesToNormalize,
   markAddressToBeNormalized,
   upsertList,

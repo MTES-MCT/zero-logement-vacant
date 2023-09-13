@@ -5,11 +5,21 @@
   display: flex;
   top: 0;
   right: 0;
-  width: 33%;
+  width: 500px;
   background-color: var(--background-default-grey);
   box-shadow: var(--overlap-shadow);
   overflow-x: hidden;
   visibility: visible;
+  
+  @media (min-width: 1280px) {
+    width: 600px;
+  }
+  @media (min-width: 1440px) {
+    width: 700px;
+  }
+  @media (min-width: 1920px) {
+    width: 800px;
+  }
 }
 
 .aside.collapsed {

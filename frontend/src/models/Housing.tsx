@@ -93,15 +93,6 @@ export const getBuildingLocation = (housing: Housing) => {
   }
 };
 
-export const selectedHousingCount = (
-  selectedHousing: SelectedHousing,
-  filteredCount: number
-) => {
-  return selectedHousing.all
-    ? filteredCount - selectedHousing.ids.length
-    : selectedHousing.ids.length;
-};
-
 export const housingSort = (h1: Housing, h2: Housing) =>
   Math.max(...h1.dataYears) === Math.max(...h2.dataYears)
     ? h1.invariant.localeCompare(h2.invariant)

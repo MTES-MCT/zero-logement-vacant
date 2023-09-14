@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Button, Col, Row, Tabs } from '@dataesr/react-dsfr';
-import {
-  changeCampaignHousingPagination,
-  changeCampaignHousingSort,
-  createCampaignBundleReminder,
-  listCampaignBundleHousing,
-  updateCampaignHousingList,
-} from '../../store/actions/campaignAction';
+import { createCampaignBundleReminder } from '../../store/actions/campaignAction';
 import HousingList, {
   HousingDisplayKey,
 } from '../../components/HousingList/HousingList';
@@ -37,11 +31,25 @@ import HousingListEditionSideMenu from '../../components/HousingEdition/HousingL
 import HousingStatusBadge from '../../components/HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../../components/HousingStatusBadge/HousingSubStatusBadge';
 import { useSelection } from '../../hooks/useSelection';
+import { useHousingList } from '../../hooks/useHousingList';
+import campaignSlice from '../../store/reducers/campaignReducer';
+import {
+  useUpdateHousingListMutation,
+  useUpdateHousingMutation,
+} from '../../services/housing.service';
 
-const TabContent = ({ status }: { status: HousingStatus }) => {
+interface TabContentProps {
+  status: HousingStatus;
+  query?: string;
+}
+
+const TabContent = ({ status, query }: TabContentProps) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle();
+
+  const [updateHousing] = useUpdateHousingMutation();
+  const [updateHousingList] = useUpdateHousingListMutation();
 
   const [updatingHousing, setUpdatingHousing] = useState<Housing | undefined>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
@@ -51,14 +59,30 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     useState<SelectedHousing | undefined>();
   const [actionAlert, setActionAlert] = useState(false);
 
-  const { campaignBundleHousingByStatus, campaignBundle } = useAppSelector(
-    (state) => state.campaign
+  const { campaignBundle } = useAppSelector((state) => state.campaign);
+
+  const { pagination, sort } = useAppSelector(
+    (state) => state.campaign.housingByStatus[status]
   );
 
-  const paginatedCampaignHousing = campaignBundleHousingByStatus[status];
-  const { hasSelected, selectedCount, selected, setSelected } = useSelection(
-    paginatedCampaignHousing.filteredCount
+  const { paginatedHousing } = useHousingList(
+    {
+      filters: {
+        campaignIds: campaignBundle?.campaignIds,
+        status: [status],
+        query,
+      },
+      pagination,
+      sort,
+    },
+    { skip: !campaignBundle }
   );
+
+  const { hasSelected, selectedCount, selected, setSelected } = useSelection(
+    paginatedHousing?.filteredCount
+  );
+
+  const { changePagination, changeSort } = campaignSlice.actions;
 
   if (!campaignBundle) {
     return <></>;
@@ -93,7 +117,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
     ),
   };
 
-  const submitHousingUpdate = (
+  const submitHousingUpdate = async (
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
@@ -102,26 +126,29 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
       action: TrackEventActions.Campaigns.UpdateHousing,
       value: 1,
     });
-    dispatch(
-      updateCampaignHousingList(housingUpdate, status, false, [housing.id])
-    );
+    await updateHousing({
+      housingId: housing.id,
+      housingUpdate,
+    });
     setUpdatingHousing(undefined);
   };
 
-  const submitSelectedHousingUpdate = (housingUpdate: HousingUpdate) => {
+  const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.UpdateHousing,
       value: selectedCount,
     });
-    dispatch(
-      updateCampaignHousingList(
-        housingUpdate,
-        status,
-        selected.all,
-        selected.ids
-      )
-    );
+    await updateHousingList({
+      housingUpdate,
+      allHousing: selected.all,
+      housingIds: selected.ids,
+      filters: {
+        status: [status],
+        campaignIds: campaignBundle.campaignIds,
+        query,
+      },
+    });
     setUpdatingSelectedHousing(undefined);
   };
 
@@ -145,7 +172,7 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
   };
 
   const onSort = (sort: HousingSort) => {
-    dispatch(changeCampaignHousingSort(sort, status));
+    dispatch(changeSort({ status, sort }));
   };
 
   return (
@@ -156,9 +183,9 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
             <Help className="d-block">
               <b>{getHousingState(status).title} : </b>
               {getHousingState(status).hint}
-              <Link to="/ressources" className="float-right">
-                En savoir plus sur les statuts
-              </Link>
+              <div className="fr-pl-3w">
+                <Link to="/ressources">En savoir plus sur les statuts</Link>
+              </div>
             </Help>
           </Col>
           {status === HousingStatus.Waiting && isCampaign && (
@@ -186,9 +213,9 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
         />
       )}
       <HousingList
-        paginatedHousing={paginatedCampaignHousing}
+        paginatedHousing={paginatedHousing}
         onChangePagination={(page, perPage) =>
-          dispatch(changeCampaignHousingPagination(page, perPage, status))
+          dispatch(changePagination({ status, pagination: { page, perPage } }))
         }
         onSort={onSort}
         displayKind={HousingDisplayKey.Owner}
@@ -208,12 +235,14 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
                 >
                   Créer une campagne de relance
                 </Button>
-                <Button
-                  title="Mettre à jour le statut"
-                  onClick={() => setUpdatingSelectedHousing(selected)}
-                >
-                  Mettre à jour le statut
-                </Button>
+                {selectedCount > 1 && (
+                  <Button
+                    title="Mettre à jour"
+                    onClick={() => setUpdatingSelectedHousing(selected)}
+                  >
+                    Mettre à jour
+                  </Button>
+                )}
               </Row>
             )}
           </SelectableListHeaderActions>
@@ -228,11 +257,8 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
       <HousingListEditionSideMenu
         housingCount={selectedCount}
         open={!!updatingSelectedHousing}
-        initialStatus={status}
         fromDefaultCampaign={campaignBundle.campaignNumber === 0}
-        onSubmit={(campaignHousingUpdate) =>
-          submitSelectedHousingUpdate(campaignHousingUpdate)
-        }
+        onSubmit={submitSelectedHousingUpdate}
         onClose={() => setUpdatingSelectedHousing(undefined)}
       />
       {reminderModalSelectedHousing && (
@@ -249,58 +275,75 @@ const TabContent = ({ status }: { status: HousingStatus }) => {
 };
 
 const CampaignInProgress = () => {
-  const dispatch = useAppDispatch();
+  const [query, setQuery] = useState<string>();
 
-  const { campaignBundleHousingByStatus, campaignBundle } = useAppSelector(
-    (state) => state.campaign
-  );
-  const [searchQuery, setSearchQuery] = useState<string>();
+  const { campaignBundle } = useAppSelector((state) => state.campaign);
 
-  useEffect(() => {
-    if (campaignBundle) {
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.Waiting,
-          searchQuery
-        )
-      );
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.FirstContact,
-          searchQuery
-        )
-      );
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.InProgress,
-          searchQuery
-        )
-      );
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.Blocked,
-          searchQuery
-        )
-      );
-      dispatch(
-        listCampaignBundleHousing(
-          campaignBundle,
-          HousingStatus.Completed,
-          searchQuery
-        )
-      );
-    }
-  }, [dispatch, searchQuery]); //eslint-disable-line react-hooks/exhaustive-deps
+  const filters = {
+    campaignIds: campaignBundle?.campaignIds,
+    query,
+  };
+
+  const housingCountByStatus = [
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.NeverContacted],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.Waiting],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.FirstContact],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.InProgress],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.Completed],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+    useHousingList(
+      {
+        filters: {
+          ...filters,
+          status: [HousingStatus.Blocked],
+        },
+      },
+      { skip: !campaignBundle }
+    ).paginatedHousing?.filteredCount,
+  ];
 
   const getTabLabel = (status: HousingStatus) => {
     return `${getHousingState(status).title} (${
-      campaignBundleHousingByStatus[status].loading
-        ? '...'
-        : campaignBundleHousingByStatus[status].filteredCount
+      housingCountByStatus[status] ?? '...'
     })`;
   };
 
@@ -310,18 +353,18 @@ const CampaignInProgress = () => {
         <Col n="3">
           <AppSearchBar
             onSearch={(input: string) => {
-              setSearchQuery(input);
+              setQuery(input);
             }}
           />
         </Col>
       </Row>
-      {searchQuery && (
+      {query && (
         <Row className="fr-pb-2w">
           <Col>
             <FilterBadges
-              options={[{ value: searchQuery, label: searchQuery }]}
-              filters={[searchQuery]}
-              onChange={() => setSearchQuery('')}
+              options={[{ value: query, label: query }]}
+              filters={[query]}
+              onChange={() => setQuery('')}
             />
           </Col>
         </Row>
@@ -329,19 +372,19 @@ const CampaignInProgress = () => {
       <Row>
         <Tabs className="campaignTabs">
           <Tab label={getTabLabel(HousingStatus.Waiting)}>
-            <TabContent status={HousingStatus.Waiting} />
+            <TabContent status={HousingStatus.Waiting} query={query} />
           </Tab>
           <Tab label={getTabLabel(HousingStatus.FirstContact)}>
-            <TabContent status={HousingStatus.FirstContact} />
+            <TabContent status={HousingStatus.FirstContact} query={query} />
           </Tab>
           <Tab label={getTabLabel(HousingStatus.InProgress)}>
-            <TabContent status={HousingStatus.InProgress} />
+            <TabContent status={HousingStatus.InProgress} query={query} />
           </Tab>
           <Tab label={getTabLabel(HousingStatus.Completed)}>
-            <TabContent status={HousingStatus.Completed} />
+            <TabContent status={HousingStatus.Completed} query={query} />
           </Tab>
           <Tab label={getTabLabel(HousingStatus.Blocked)}>
-            <TabContent status={HousingStatus.Blocked} />
+            <TabContent status={HousingStatus.Blocked} query={query} />
           </Tab>
         </Tabs>
       </Row>

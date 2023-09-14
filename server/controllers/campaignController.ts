@@ -12,6 +12,7 @@ import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
 import async from 'async';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -530,15 +531,15 @@ const removeHousingList = async (
   console.log('Remove campaign housing list');
 
   const campaignId = request.params.campaignId;
-  const campaignHousingStatusApi = <HousingStatusApi>request.body.status;
+  const filters = <HousingFiltersApi>request.body.filters;
   const allHousing = <boolean>request.body.allHousing;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   const housingIds = await housingRepository
     .listWithFilters({
+      ...filters,
       establishmentIds: [establishmentId],
       campaignIds: [campaignId],
-      status: campaignHousingStatusApi ? [campaignHousingStatusApi] : [],
     })
     .then((_) =>
       _.map((_) => _.id).filter((id) =>

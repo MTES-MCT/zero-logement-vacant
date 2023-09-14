@@ -28,6 +28,7 @@ export interface HousingFilters {
   vacancyRates?: string[];
   campaignsCounts?: string[];
   campaignIds?: string[];
+  ownerIds?: string[];
   localities?: string[];
   localityKinds?: string[];
   geoPerimetersIncluded?: string[];

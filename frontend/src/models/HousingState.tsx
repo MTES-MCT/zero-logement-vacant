@@ -227,7 +227,10 @@ export const getSubStatusOptions = (status: HousingStatus) => {
   const housingState = getHousingState(status);
   return housingState.subStatusList
     ? [
-        DefaultOption,
+        {
+          ...DefaultOption,
+          label: 'Sélectionnez un sous-statut de suivi',
+        },
         ...housingState.subStatusList.map((subStatus) => ({
           value: subStatus.title,
           label: subStatus.title,

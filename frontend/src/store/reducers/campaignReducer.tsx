@@ -5,28 +5,33 @@ import {
 } from '../../models/Campaign';
 import {
   CampaignBundleFetchedAction,
-  CampaignBundleHousingListFetchedAction,
   CampaignBundleListFetchedAction,
   CampaignCreatedAction,
   CampaignListFetchedAction,
   CampaignUpdatedAction,
   FetchCampaignBundleAction,
-  FetchCampaignBundleHousingListAction,
 } from '../actions/campaignAction';
-import {
-  initialPaginatedResult,
-  PaginatedResult,
-} from '../../models/PaginatedResult';
-import { Housing } from '../../models/Housing';
 import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
+import { HousingStatus } from '../../models/HousingState';
+import { Pagination } from '../../../../shared/models/Pagination';
+import { HousingSort } from '../../models/Housing';
+import config from '../../utils/config';
+
+const DefaultPagination: Pagination = {
+  paginate: true,
+  page: 1,
+  perPage: config.perPageDefault,
+};
 
 export interface CampaignState {
   campaignList?: Campaign[];
   campaignBundleList?: CampaignBundle[];
   campaignBundle?: CampaignBundle;
   campaignBundleFetchingId?: CampaignBundleId;
-  campaignBundleHousingByStatus: PaginatedResult<Housing>[];
-  campaignBundleHousing: PaginatedResult<Housing>;
+  housingByStatus: {
+    pagination?: Pagination;
+    sort?: HousingSort;
+  }[];
   campaignIds?: string[];
   loading: boolean;
   campaignCreated: boolean;
@@ -34,16 +39,14 @@ export interface CampaignState {
 }
 
 const initialState: CampaignState = {
-  campaignBundleHousingByStatus: [
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
+  housingByStatus: [
+    { pagination: DefaultPagination },
+    { pagination: DefaultPagination },
+    { pagination: DefaultPagination },
+    { pagination: DefaultPagination },
+    { pagination: DefaultPagination },
+    { pagination: DefaultPagination },
   ],
-  campaignBundleHousing: initialPaginatedResult(),
   loading: false,
   campaignCreated: false,
 };
@@ -99,94 +102,6 @@ const campaignSlice = createSlice({
         state.loading = false;
       }
     },
-    fetchCampaignBundleHousingList: (
-      state: CampaignState,
-      action: PayloadAction<FetchCampaignBundleHousingListAction>
-    ) => {
-      state.campaignIds = action.payload.campaignIds;
-      state.campaignBundleHousingByStatus = action.payload.status
-        ? [
-            ...state.campaignBundleHousingByStatus.filter(
-              (_, index) => index < action.payload.status!
-            ),
-            {
-              entities: [],
-              totalCount: 0,
-              filteredCount: 0,
-              page: action.payload.page,
-              perPage: action.payload.perPage,
-              loading: true,
-            },
-            ...state.campaignBundleHousingByStatus.filter(
-              (_, index) => index > action.payload.status!
-            ),
-          ]
-        : state.campaignBundleHousingByStatus;
-      state.campaignBundleHousing = action.payload.status
-        ? state.campaignBundleHousing
-        : {
-            entities: [],
-            totalCount: 0,
-            filteredCount: 0,
-            page: action.payload.page,
-            perPage: action.payload.perPage,
-            loading: true,
-          };
-      state.searchQuery = action.payload.searchQuery;
-    },
-    campaignBundleHousingListFetched: (
-      state: CampaignState,
-      action: PayloadAction<CampaignBundleHousingListFetchedAction>
-    ) => {
-      const isCurrentFetching =
-        action.payload.campaignIds === current(state).campaignIds &&
-        action.payload.searchQuery === current(state).searchQuery &&
-        action.payload.paginatedHousing.page ===
-          (action.payload.status
-            ? current(state).campaignBundleHousingByStatus[
-                action.payload.status
-              ]
-            : current(state).campaignBundleHousing
-          ).page &&
-        action.payload.paginatedHousing.perPage ===
-          (action.payload.status
-            ? current(state).campaignBundleHousingByStatus[
-                action.payload.status
-              ]
-            : current(state).campaignBundleHousing
-          ).perPage;
-      if (isCurrentFetching) {
-        state.campaignBundleHousingByStatus = action.payload.status
-          ? [
-              ...current(state).campaignBundleHousingByStatus.filter(
-                (_, index) => index < action.payload.status!
-              ),
-              {
-                ...current(state).campaignBundleHousingByStatus[
-                  action.payload.status
-                ],
-                entities: action.payload.paginatedHousing.entities,
-                filteredCount: action.payload.paginatedHousing.filteredCount,
-                totalCount: action.payload.paginatedHousing.totalCount,
-                loading: false,
-              },
-              ...current(state).campaignBundleHousingByStatus.filter(
-                (_, index) => index > action.payload.status!
-              ),
-            ]
-          : current(state).campaignBundleHousingByStatus;
-        state.campaignBundleHousing = action.payload.status
-          ? current(state).campaignBundleHousing
-          : {
-              ...current(state).campaignBundleHousing,
-              entities: action.payload.paginatedHousing.entities,
-              filteredCount: action.payload.paginatedHousing.filteredCount,
-              totalCount: action.payload.paginatedHousing.filteredCount,
-              loading: false,
-            };
-        state.searchQuery = action.payload.searchQuery;
-      }
-    },
     campaignCreated: (
       state: CampaignState,
       action: PayloadAction<CampaignCreatedAction>
@@ -200,6 +115,26 @@ const campaignSlice = createSlice({
       action: PayloadAction<CampaignUpdatedAction>
     ) => {
       state.campaignBundleFetchingId = action.payload.campaignBundleFetchingId;
+    },
+    changePagination: (
+      state: CampaignState,
+      action: PayloadAction<{ status: HousingStatus; pagination: Pagination }>
+    ) => {
+      const { status, pagination } = action.payload;
+      state.housingByStatus[status] = {
+        ...state.housingByStatus[status],
+        pagination,
+      };
+    },
+    changeSort: (
+      state: CampaignState,
+      action: PayloadAction<{ status: HousingStatus; sort: HousingSort }>
+    ) => {
+      const { status, sort } = action.payload;
+      state.housingByStatus[status] = {
+        ...state.housingByStatus[status],
+        sort,
+      };
     },
   },
 });

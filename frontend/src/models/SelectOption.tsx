@@ -18,7 +18,7 @@ interface SelectOptionProps {
 }
 
 export const DefaultOption: SelectOption = {
-  label: 'Sélectionner',
+  label: 'Sélectionnez une valeur',
   value: '',
   hidden: true,
 };

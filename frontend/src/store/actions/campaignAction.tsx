@@ -12,13 +12,9 @@ import campaignService, {
   ValidateCampaignStepParams,
 } from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { PaginatedResult } from '../../models/PaginatedResult';
-import { Housing, HousingSort, HousingUpdate } from '../../models/Housing';
-import { HousingStatus } from '../../models/HousingState';
-import housingService from '../../services/housing.service';
 import campaignSlice from '../reducers/campaignReducer';
 import { AppState } from '../store';
-import { Pagination } from '../../../../shared/models/Pagination';
+import { HousingFilters } from '../../models/HousingFilters';
 
 export interface CampaignListFetchedAction {
   campaignList: Campaign[];
@@ -37,21 +33,6 @@ export interface CampaignBundleFetchedAction {
   campaignBundleFetchingId: CampaignBundleId;
 }
 
-export interface FetchCampaignBundleHousingListAction {
-  campaignIds: string[];
-  status?: HousingStatus;
-  page: number;
-  perPage: number;
-  searchQuery?: string;
-}
-
-export interface CampaignBundleHousingListFetchedAction {
-  campaignIds: string[];
-  status?: HousingStatus;
-  paginatedHousing: PaginatedResult<Housing>;
-  searchQuery?: string;
-}
-
 export interface CampaignCreatedAction {
   campaignBundleFetchingId?: CampaignBundleId;
 }
@@ -64,11 +45,9 @@ const {
   campaignUpdated,
   campaignCreated,
   campaignBundleListFetched,
-  campaignBundleHousingListFetched,
   fetchCampaignBundle,
   campaignBundleFetched,
   campaignListFetched,
-  fetchCampaignBundleHousingList,
   fetchCampaignBundleList,
   fetchCampaignList,
 } = campaignSlice.actions;
@@ -133,154 +112,6 @@ export const getCampaignBundle = (
           })
         );
       });
-  };
-};
-
-export const listCampaignBundleHousing = (
-  campaignBundle: CampaignBundle,
-  status?: HousingStatus,
-  searchQuery?: string
-) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
-    dispatch(showLoading());
-
-    const page = 1;
-    const perPage = (
-      status
-        ? getState().campaign.campaignBundleHousingByStatus[status]
-        : getState().campaign.campaignBundleHousing
-    ).perPage;
-
-    dispatch(
-      fetchCampaignBundleHousingList({
-        campaignIds: campaignBundle.campaignIds,
-        status,
-        page,
-        perPage,
-        searchQuery,
-      })
-    );
-
-    const filters = {
-      campaignIds: campaignBundle.campaignIds,
-      status: status ? [status] : [],
-    };
-
-    housingService
-      .find({
-        filters: { ...filters, query: searchQuery },
-        pagination: { page, perPage },
-      })
-      .then((result: PaginatedResult<Housing>) => {
-        dispatch(hideLoading());
-        dispatch(
-          campaignBundleHousingListFetched({
-            campaignIds: campaignBundle.campaignIds,
-            status,
-            paginatedHousing: result,
-            searchQuery,
-          })
-        );
-      });
-  };
-};
-
-export const changeCampaignHousingPagination = (
-  page: number,
-  perPage: number,
-  status?: HousingStatus
-) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
-    const campaignBundle = getState().campaign.campaignBundle;
-    const searchQuery = getState().campaign.searchQuery;
-
-    if (campaignBundle) {
-      dispatch(showLoading());
-
-      dispatch(
-        fetchCampaignBundleHousingList({
-          campaignIds: campaignBundle.campaignIds,
-          status,
-          page,
-          perPage,
-          searchQuery,
-        })
-      );
-
-      const filters = {
-        campaignIds: campaignBundle.campaignIds,
-        status: status ? [status] : [],
-      };
-
-      housingService
-        .find({
-          filters: { ...filters, query: searchQuery },
-          pagination: { page, perPage },
-        })
-        .then((result: PaginatedResult<Housing>) => {
-          dispatch(hideLoading());
-          dispatch(
-            campaignBundleHousingListFetched({
-              campaignIds: campaignBundle.campaignIds,
-              status,
-              paginatedHousing: result,
-              searchQuery,
-            })
-          );
-        });
-    }
-  };
-};
-
-export const changeCampaignHousingSort = (
-  sort: HousingSort,
-  status?: HousingStatus
-) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
-    const { campaignBundle, searchQuery, campaignBundleHousing } =
-      getState().campaign;
-
-    if (campaignBundle) {
-      dispatch(showLoading());
-
-      const pagination: Pagination = {
-        page: 1,
-        perPage: campaignBundleHousing.perPage,
-      };
-
-      dispatch(
-        fetchCampaignBundleHousingList({
-          campaignIds: campaignBundle.campaignIds,
-          status,
-          page: 1,
-          perPage: campaignBundleHousing.perPage,
-          searchQuery,
-        })
-      );
-
-      const filters = {
-        campaignIds: campaignBundle.campaignIds,
-        status: status ? [status] : [],
-      };
-
-      housingService
-        .find({
-          filters,
-          pagination,
-          sort,
-        })
-        .then((result: PaginatedResult<Housing>) => {
-          dispatch(hideLoading());
-          dispatch(
-            campaignBundleHousingListFetched({
-              campaignIds: campaignBundle.campaignIds,
-              status,
-              paginatedHousing: result,
-              searchQuery,
-            })
-          );
-        });
-    }
   };
 };
 
@@ -390,79 +221,22 @@ export const validCampaignStep = (
   };
 };
 
-export const updateCampaignHousingList = (
-  housingUpdate: HousingUpdate,
-  currentStatus: HousingStatus,
-  allHousing: boolean,
-  housingIds: string[]
-) => {
-  return function (dispatch: Dispatch, getState: () => AppState) {
-    const campaignIds = getState().campaign.campaignBundle?.campaignIds;
-    const searchQuery = getState().campaign.searchQuery;
-
-    if (campaignIds && currentStatus) {
-      dispatch(showLoading());
-
-      const paginatedHousing =
-        getState().campaign.campaignBundleHousingByStatus[currentStatus];
-      const campaignBundleFetchingId =
-        getState().campaign.campaignBundleFetchingId;
-
-      housingService
-        .updateHousingList(
-          housingUpdate,
-          campaignIds,
-          allHousing,
-          housingIds,
-          currentStatus,
-          searchQuery
-        )
-        .then(() => {
-          dispatch(hideLoading());
-          changeCampaignHousingPagination(
-            paginatedHousing.page,
-            paginatedHousing.perPage,
-            currentStatus
-          )(dispatch, getState);
-          if (housingUpdate.statusUpdate) {
-            changeCampaignHousingPagination(
-              paginatedHousing.page,
-              paginatedHousing.perPage,
-              housingUpdate.statusUpdate.status
-            )(dispatch, getState);
-          }
-          if (campaignBundleFetchingId) {
-            getCampaignBundle(campaignBundleFetchingId, searchQuery)(dispatch);
-          }
-        });
-    }
-  };
-};
-
 export const removeCampaignHousingList = (
   campaignId: string,
   allHousing: boolean,
   housingIds: string[],
-  currentStatus?: HousingStatus
+  filters: HousingFilters
 ) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     dispatch(showLoading());
 
-    const paginatedHousing = currentStatus
-      ? getState().campaign.campaignBundleHousingByStatus[currentStatus]
-      : getState().campaign.campaignBundleHousing;
     const campaignBundleFetchingId =
       getState().campaign.campaignBundleFetchingId;
 
     campaignService
-      .removeHousingList(campaignId, allHousing, housingIds, currentStatus)
+      .removeHousingList(campaignId, allHousing, housingIds, filters)
       .then(() => {
         dispatch(hideLoading());
-        changeCampaignHousingPagination(
-          paginatedHousing.page,
-          paginatedHousing.perPage,
-          currentStatus
-        )(dispatch, getState);
         if (campaignBundleFetchingId) {
           getCampaignBundle(campaignBundleFetchingId)(dispatch);
         }

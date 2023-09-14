@@ -33,6 +33,7 @@ export const TrackEventActions = {
     Search: 'Rechercher un logement',
     MapView: 'Affichage de la cartographie (via le bouton)',
     ListView: 'Affichage de la liste (via le bouton)',
+    UpdateHousing: 'Mise à jour groupée',
   },
   Campaigns: {
     ValidStep: (step: CampaignSteps) =>

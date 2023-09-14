@@ -89,7 +89,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
 
   useEffect(() => {
     refetchPaginatedHousing();
-  }, [campaignBundle]);
+  }, [campaignBundle]); //eslint-disable-line react-hooks/exhaustive-deps
 
   if (!campaignBundle) {
     return <></>;

@@ -15,13 +15,12 @@ import { noteApi } from '../services/note.service';
 import { eventApi } from '../services/event.service';
 import { userAccountApi } from '../services/user-account.service';
 import { ownerApi } from '../services/owner.service';
-import ownerReducer from './reducers/ownerReducer';
+import { housingApi } from '../services/housing.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
   campaign: campaignReducer.reducer,
-  owner: ownerReducer.reducer,
   establishment: establishmentReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   settings: settingsReducer.reducer,
@@ -35,6 +34,7 @@ export const applicationReducer = {
   [userApi.reducerPath]: userApi.reducer,
   [userAccountApi.reducerPath]: userAccountApi.reducer,
   [ownerApi.reducerPath]: ownerApi.reducer,
+  [housingApi.reducerPath]: housingApi.reducer,
 };
 
 export const applicationMiddlewares = [
@@ -47,6 +47,7 @@ export const applicationMiddlewares = [
   userApi.middleware,
   userAccountApi.middleware,
   ownerApi.middleware,
+  housingApi.middleware,
 ];
 
 export const store = configureStore({

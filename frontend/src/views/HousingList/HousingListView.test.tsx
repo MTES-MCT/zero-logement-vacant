@@ -22,6 +22,7 @@ import {
   applicationReducer,
   store as appStore,
 } from '../../store/store';
+import { getRequestCalls } from '../../utils/test/requestUtils';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -104,43 +105,32 @@ describe('housing view', () => {
     );
     await user.click(ownerKindCheckboxes[0]);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing`,
-      {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: {
-            ...initialHousingFilters,
-            ownerKinds: [ownerKindOptions[0].value],
-          },
-          page: 1,
-        }),
-        abortId: 'list-housing',
-        signal: expect.anything(),
-      }
-    );
+    const requests = await getRequestCalls(fetchMock);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing/count`,
-      {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: {
+          ...initialHousingFilters,
+          ownerKinds: [ownerKindOptions[0].value],
         },
-        body: JSON.stringify({
-          filters: {
-            dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
-            dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
-            occupancies: initialHousingFilters.occupancies,
-          },
-        }),
-      }
-    );
+        page: 1,
+        perPage: config.perPageDefault,
+      },
+    });
+
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing/count`,
+      method: 'POST',
+      body: {
+        filters: {
+          dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
+          dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
+          occupancies: initialHousingFilters.occupancies,
+        },
+      },
+    });
   });
 
   test('should search', async () => {
@@ -181,22 +171,17 @@ describe('housing view', () => {
     await user.type(searchInputElement, 'my search');
     await user.click(searchButtonElement);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing`,
-      {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: { ...initialHousingFilters, query: 'my search' },
-          page: 1,
-        }),
-        abortId: 'list-housing',
-        signal: expect.anything(),
-      }
-    );
+    const requests = await getRequestCalls(fetchMock);
+
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: { ...initialHousingFilters, query: 'my search' },
+        page: 1,
+        perPage: config.perPageDefault,
+      },
+    });
   });
 
   test('should not display the button to create campaign if no housing are selected', async () => {

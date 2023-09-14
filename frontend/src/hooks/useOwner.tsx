@@ -1,27 +1,22 @@
 import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import { getOwnerHousing } from '../store/actions/ownerAction';
-import { useAppDispatch, useAppSelector } from './useStore';
 import { useFindEventsByOwnerQuery } from '../services/event.service';
 import { useGetOwnerQuery } from '../services/owner.service';
+import { useFindHousingQuery } from '../services/housing.service';
 
 export function useOwner() {
-  const dispatch = useAppDispatch();
   const { ownerId } = useParams<{ ownerId: string }>();
-
-  const { data: events } = useFindEventsByOwnerQuery(ownerId);
 
   const { data: owner } = useGetOwnerQuery(ownerId);
 
-  useEffect(() => {
-    dispatch(getOwnerHousing(ownerId));
-  }, [ownerId, dispatch]);
+  const { data: events } = useFindEventsByOwnerQuery(ownerId);
 
-  const { housingList } = useAppSelector((state) => state.owner);
+  const { data: paginatedHousing } = useFindHousingQuery({
+    filters: { ownerIds: [ownerId] },
+  });
 
   return {
     events,
-    housingList,
+    paginatedHousing,
     owner,
   };
 }

@@ -18,6 +18,7 @@ const Tab: React.FC<TabProps> = (props) => {
   return (
     <DSFRTab
       {...props}
+      label={props.label}
       index={props.index as number}
       activeTab={props.activeTab as number}
     />

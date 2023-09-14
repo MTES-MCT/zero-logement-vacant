@@ -4,8 +4,8 @@ import React, {
   useImperativeHandle,
   useState,
 } from 'react';
-import { Alert, Col, Row, Select, Text } from '@dataesr/react-dsfr';
-import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
+import { Alert, Col, Icon, Row, Select, Text } from '@dataesr/react-dsfr';
+import { Housing, HousingUpdate } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
@@ -21,43 +21,27 @@ import AppTextInput from '../AppTextInput/AppTextInput';
 import _ from 'lodash';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
+import { pluralize } from '../../utils/stringUtils';
 
 interface Props {
-  current: Pick<
-    Partial<Housing>,
-    | 'occupancy'
-    | 'occupancyIntended'
-    | 'status'
-    | 'subStatus'
-    | 'precisions'
-    | 'vacancyReasons'
-  >;
+  housing?: Housing;
   fromDefaultCampaign?: boolean;
   housingCount?: number;
-  withOccupancy?: boolean;
   onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
 const HousingEditionForm = (
-  {
-    current,
-    fromDefaultCampaign,
-    withOccupancy,
-    housingCount,
-    onSubmit,
-  }: Props,
+  { housing, fromDefaultCampaign, housingCount, onSubmit }: Props,
   ref: any
 ) => {
-  const [occupancy, setOccupancy] = useState<OccupancyKind | undefined>(
-    current.occupancy
-  );
+  const [occupancy, setOccupancy] = useState(housing?.occupancy);
   const [occupancyIntended, setOccupancyIntended] = useState(
-    current.occupancyIntended
+    housing?.occupancyIntended
   );
   const [status, setStatus] = useState<HousingStatus>();
-  const [subStatus, setSubStatus] = useState(current.subStatus);
-  const [precisions, setPrecisions] = useState(current.precisions);
-  const [vacancyReasons, setVacancyReasons] = useState(current.vacancyReasons);
+  const [subStatus, setSubStatus] = useState(housing?.subStatus);
+  const [precisions, setPrecisions] = useState(housing?.precisions);
+  const [vacancyReasons, setVacancyReasons] = useState(housing?.vacancyReasons);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
@@ -65,8 +49,10 @@ const HousingEditionForm = (
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   useEffect(() => {
-    selectStatus(current.status ?? HousingStatus.Waiting);
-  }, [current.status]); //eslint-disable-line react-hooks/exhaustive-deps
+    if (housing) {
+      selectStatus(housing.status ?? HousingStatus.Waiting);
+    }
+  }, [housing?.status]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const selectStatus = (newStatus: HousingStatus) => {
     setStatus(+newStatus);
@@ -79,53 +65,66 @@ const HousingEditionForm = (
   };
 
   const shape = {
-    ...(withOccupancy
-      ? {
-          occupancy: yup
-            .string()
-            .required("Veuillez sélectionner un statut d'occupation."),
-          occupancyIntended: yup.string().nullable(),
-        }
-      : {}),
-    status: yup.string().required('Veuillez sélectionner un statut.'),
+    occupancy: yup
+      .string()
+      .nullable()
+      .when('hasCurrent', {
+        is: true,
+        then: yup
+          .string()
+          .required("Veuillez sélectionner un statut d'occupation."),
+      }),
+    occupancyIntended: yup.string().nullable(),
+    status: yup
+      .string()
+      .nullable()
+      .when('hasCurrent', {
+        is: true,
+        then: yup.string().required('Veuillez sélectionner un statut.'),
+      }),
     subStatus: yup
       .string()
       .nullable()
       .when('hasSubStatus', {
         is: true,
-        then: yup.string().required('Veuillez sélectionner un sous statut.'),
+        then: yup
+          .string()
+          .required('Veuillez sélectionner un sous-statut de suivi.'),
       }),
     comment: yup.string().nullable(),
     noteKind: yup.string().nullable(),
+    hasChange: yup.boolean().oneOf([true], 'Veuillez remplir un des champs'),
   };
   type FormShape = typeof shape;
 
+  const isStatusUpdate =
+    housing?.status !== status ||
+    housing?.subStatus !== subStatus ||
+    !_.isEqual(housing?.precisions, precisions) ||
+    !_.isEqual(housing?.vacancyReasons, vacancyReasons);
+
+  const isOccupancyUpdate =
+    housing?.occupancy !== occupancy ||
+    housing?.occupancyIntended !== occupancyIntended;
+
+  const hasNote = comment !== undefined && comment.length > 0;
+
   const form = useForm(yup.object().shape(shape), {
-    ...(withOccupancy
-      ? {
-          occupancy,
-          occupancyIntended,
-        }
-      : {}),
+    occupancy,
+    occupancyIntended,
     hasSubStatus: subStatusOptions !== undefined,
+    hasCurrent: housing !== undefined,
     status,
     subStatus,
     comment,
     noteKind,
+    hasChange:
+      housing !== undefined ||
+      status !== undefined ||
+      occupancy !== undefined ||
+      occupancyIntended !== undefined ||
+      hasNote,
   });
-
-  const isStatusUpdate =
-    current.status !== status ||
-    current.subStatus !== subStatus ||
-    !_.isEqual(current.precisions, precisions) ||
-    !_.isEqual(current.vacancyReasons, vacancyReasons);
-
-  const isOccupancyUpdate =
-    withOccupancy &&
-    (current.occupancy !== occupancy ||
-      current.occupancyIntended !== occupancyIntended);
-
-  const hasNote = comment && comment?.length > 0;
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
@@ -158,6 +157,7 @@ const HousingEditionForm = (
           }
         : undefined,
     });
+    setIsConfirmationModalOpen(false);
   };
 
   const notesOptions: SelectOption[] = [
@@ -173,52 +173,26 @@ const HousingEditionForm = (
 
   return (
     <>
-      {withOccupancy && (
-        <div className="bg-white fr-m-2w fr-p-2w">
-          <Text size="lg" bold spacing="mb-2w">
-            Occupation du logement
-          </Text>
-          <Row gutters>
-            <Col n="6">
-              <Select
-                label="Occupation actuelle"
-                options={allOccupancyOptions}
-                selected={occupancy}
-                messageType={form.messageType('occupancy') as 'valid' | 'error'}
-                message={form.message('occupancy')}
-                onChange={(e: any) => setOccupancy(e.target.value)}
-                required
-              />
-            </Col>
-            <Col n="6">
-              <Select
-                label="Occupation prévisionnelle"
-                options={[
-                  { label: "Pas d'informations", value: '' },
-                  ...allOccupancyOptions,
-                ]}
-                selected={occupancyIntended}
-                messageType={
-                  form.messageType('occupancyIntended') as 'valid' | 'error'
-                }
-                message={form.message('occupancyIntended')}
-                onChange={(e: any) => setOccupancyIntended(e.target.value)}
-              />
-            </Col>
-          </Row>
-        </div>
-      )}
-      <div className="bg-white fr-m-2w fr-p-2w">
+      <div className="bg-975 fr-py-2w fr-px-3w">
         <Text size="lg" bold spacing="mb-2w">
-          Mobilisation du logement
+          <Icon
+            name="ri-information-fill"
+            size="lg"
+            verticalAlign="middle"
+            className="color-bf113"
+          />
+          Mobilisation 
+          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
+            'du logement'
+          )}
         </Text>
         <div className="fr-select-group">
           <HousingStatusSelect
             selected={status}
             options={statusOptions(
               fromDefaultCampaign ||
-                !current.status ||
-                +current.status === HousingStatus.NeverContacted
+                !housing?.status ||
+                +housing.status === HousingStatus.NeverContacted
                 ? []
                 : [HousingStatus.NeverContacted]
             )}
@@ -229,7 +203,7 @@ const HousingEditionForm = (
         </div>
         {subStatusOptions && (
           <Select
-            label="Sous-statut"
+            label="Sous-statut de suivi"
             options={subStatusOptions}
             selected={subStatus}
             messageType={form.messageType('subStatus') as 'valid' | 'error'}
@@ -238,29 +212,81 @@ const HousingEditionForm = (
             required
           />
         )}
-        <Text className="fr-mb-0">
-          <b>Précisions</b>
-          <br />
-          Dispositifs ({(precisions ?? []).length}) / Points de blocage (
-          {(vacancyReasons ?? []).length})
-        </Text>
-        <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>
-          Ajouter / Modifier
-        </ButtonLink>
-        {isPrecisionsModalOpen && (
-          <PrecisionsModal
-            currentPrecisions={precisions ?? []}
-            currentVacancyReasons={vacancyReasons ?? []}
-            onClose={() => setIsPrecisionsModalOpen(false)}
-            onSubmit={(precisions, vacancyReasons) => {
-              setVacancyReasons(vacancyReasons);
-              setPrecisions(precisions);
-              setIsPrecisionsModalOpen(false);
-            }}
-          />
+        {housing && (
+          <>
+            <Text className="fr-mb-0">
+              <b>Précisions</b>
+              <br />
+              Dispositifs ({(precisions ?? []).length}) / Points de blocage (
+              {(vacancyReasons ?? []).length})
+            </Text>
+            <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>
+              Ajouter / Modifier
+            </ButtonLink>
+            {isPrecisionsModalOpen && (
+              <PrecisionsModal
+                currentPrecisions={precisions ?? []}
+                currentVacancyReasons={vacancyReasons ?? []}
+                onClose={() => setIsPrecisionsModalOpen(false)}
+                onSubmit={(precisions, vacancyReasons) => {
+                  setVacancyReasons(vacancyReasons);
+                  setPrecisions(precisions);
+                  setIsPrecisionsModalOpen(false);
+                }}
+              />
+            )}
+          </>
         )}
       </div>
-      <div className="bg-white fr-m-2w fr-p-2w">
+      <div className="bg-white fr-py-2w fr-px-3w fr-my-1w">
+        <Text size="lg" bold spacing="mb-2w">
+          <Icon
+            name="ri-home-gear-fill"
+            size="lg"
+            verticalAlign="middle"
+            className="color-bf113"
+          />
+          Occupation 
+          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
+            'du logement'
+          )}
+        </Text>
+        <Row gutters>
+          <Col>
+            <Select
+              label="Occupation actuelle"
+              options={[
+                { value: '', label: 'Sélectionnez une occupation actuelle' },
+                ...allOccupancyOptions,
+              ]}
+              selected={occupancy}
+              messageType={form.messageType('occupancy') as 'valid' | 'error'}
+              message={form.message('occupancy')}
+              onChange={(e: any) => setOccupancy(e.target.value)}
+              required={housing !== undefined}
+            />
+            <Select
+              label="Occupation prévisionnelle"
+              options={[
+                {
+                  label: housing
+                    ? "Pas d'informations"
+                    : 'Sélectionnez une occupation prévisionnelle',
+                  value: '',
+                },
+                ...allOccupancyOptions,
+              ]}
+              selected={occupancyIntended}
+              messageType={
+                form.messageType('occupancyIntended') as 'valid' | 'error'
+              }
+              message={form.message('occupancyIntended')}
+              onChange={(e: any) => setOccupancyIntended(e.target.value)}
+            />
+          </Col>
+        </Row>
+      </div>
+      <div className="bg-white fr-py-2w fr-px-3w">
         <Text size="lg" bold spacing="mb-2w">
           Note
         </Text>
@@ -283,18 +309,31 @@ const HousingEditionForm = (
           }
         />
       </div>
-      {isConfirmationModalOpen && (
+      {form.messageType('hasChange') === 'error' && (
+        <Alert type="error" description={form.message('hasChange')} />
+      )}
+      {isConfirmationModalOpen && housingCount && (
         <ConfirmationModal
           onSubmit={submitForm}
           onClose={() => setIsConfirmationModalOpen(false)}
           title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
+          icon=""
         >
-          <Alert
-            type="warning"
-            description="Cette action écrasera les anciennes données."
-          ></Alert>
+          En confirmant, vous écraserez et remplacerez les données actuelles sur
+          les champs suivants :
           <ul className="fr-mt-2w">
-            {isStatusUpdate && <li>Mise à jour de la mobilisation</li>}
+            {status !== undefined && (
+              <li>Mobilisation du logement - Statut de suivi</li>
+            )}
+            {subStatus !== undefined && (
+              <li>Mobilisation du logement - Sous-statut de suivi</li>
+            )}
+            {occupancy !== undefined && (
+              <li>Occupation du logement - Occupation actuelle</li>
+            )}
+            {occupancyIntended !== undefined && (
+              <li>Occupation du logement - Occupation prévisionnelle</li>
+            )}
             {hasNote && <li>Ajout d’une note</li>}
           </ul>
         </ConfirmationModal>

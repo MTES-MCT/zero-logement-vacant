@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Button,
   ButtonGroup,
   Col,
@@ -12,11 +11,6 @@ import {
 import HousingList, {
   HousingDisplayKey,
 } from '../../components/HousingList/HousingList';
-import {
-  changeHousingFiltering,
-  changeHousingPagination,
-  changeHousingSort,
-} from '../../store/actions/housingAction';
 import { createCampaign } from '../../store/actions/campaignAction';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 
@@ -25,8 +19,8 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import { CampaignKinds } from '../../models/Campaign';
 import {
   HousingSort,
+  HousingUpdate,
   SelectedHousing,
-  selectedHousingCount,
 } from '../../models/Housing';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
@@ -58,8 +52,11 @@ import {
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import Label from '../../components/Label/Label';
-
-type ViewMode = 'list' | 'map';
+import { useSelection } from '../../hooks/useSelection';
+import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
+import { useHousingList } from '../../hooks/useHousingList';
+import housingSlice, { ViewMode } from '../../store/reducers/housingReducer';
+import { useUpdateHousingListMutation } from '../../services/housing.service';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -68,14 +65,7 @@ const HousingListView = () => {
   const { onResetFilters, setExpand, filters } = useFilters();
   const { data: perimeters } = useListGeoPerimetersQuery();
 
-  const [view, setView] = useState<ViewMode>('list');
-  const [viewLoaded, setViewLoaded] = useState<ViewMode>('list');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [noHousingAlert, setNoHousingAlert] = useState(false);
-  const [selectedHousing, setSelectedHousing] = useState<SelectedHousing>({
-    all: false,
-    ids: [],
-  });
 
   const [mapViewState, setMapViewState] = useState<MapProps['viewState']>();
 
@@ -83,9 +73,25 @@ const HousingListView = () => {
     setMapViewState(viewState);
   }
 
-  const { totalCount, paginatedHousing } = useAppSelector(
-    (state) => state.housing
+  const { pagination, sort, view } = useAppSelector((state) => state.housing);
+
+  const { totalCount, paginatedHousing } = useHousingList({
+    filters,
+    pagination,
+    sort,
+  });
+
+  const { selectedCount, selected, setSelected } = useSelection(
+    paginatedHousing?.filteredCount
   );
+
+  const [updateHousingList] = useUpdateHousingListMutation();
+  const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
+    SelectedHousing | undefined
+  >();
+
+  const { changeFilters, changePagination, changeSort, changeView } =
+    housingSlice.actions;
 
   const perimetersIncluded = filters.geoPerimetersIncluded?.length
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
@@ -107,32 +113,13 @@ const HousingListView = () => {
     (perimeter) => perimeter.kind
   )(perimeters ?? []);
 
-  useEffect(() => {
-    const p: Pagination = view === 'map' ? { paginate: false } : {};
-    dispatch(changeHousingPagination(p));
-  }, [dispatch, view]);
-
-  useEffect(() => {
-    if (!paginatedHousing.loading) {
-      setViewLoaded(view);
-    }
-  }, [paginatedHousing.loading]); //eslint-disable-line react-hooks/exhaustive-deps
-
   const create = () => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.CreateCampaign,
-      value: selectedHousingCount(
-        selectedHousing,
-        paginatedHousing.filteredCount
-      ),
+      value: selectedCount,
     });
-    if (!selectedHousing.all && selectedHousing?.ids.length === 0) {
-      setNoHousingAlert(true);
-    } else {
-      setNoHousingAlert(false);
-      setIsCreateModalOpen(true);
-    }
+    setIsCreateModalOpen(true);
   };
 
   const onSubmitCampaignCreation = (campaignTitle?: string) => {
@@ -140,10 +127,7 @@ const HousingListView = () => {
       trackEvent({
         category: TrackEventCategories.HousingList,
         action: TrackEventActions.HousingList.SaveCampaign,
-        value: selectedHousingCount(
-          selectedHousing,
-          paginatedHousing.filteredCount
-        ),
+        value: selectedCount,
       });
       dispatch(
         createCampaign(
@@ -152,27 +136,35 @@ const HousingListView = () => {
             filters,
             title: campaignTitle,
           },
-          selectedHousing.all,
-          selectedHousing.ids
+          selected.all,
+          selected.ids
         )
       );
     }
   };
 
-  const onSelectHousing = (selectedHousing: SelectedHousing) => {
-    if (selectedHousing.all || selectedHousing?.ids.length !== 0) {
-      setNoHousingAlert(false);
-    }
-    setSelectedHousing(selectedHousing);
+  const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
+    trackEvent({
+      category: TrackEventCategories.HousingList,
+      action: TrackEventActions.HousingList.UpdateHousing,
+      value: selectedCount,
+    });
+    await updateHousingList({
+      housingUpdate,
+      allHousing: selected.all,
+      housingIds: selected.ids,
+      filters,
+    });
+    setUpdatingSelectedHousing(undefined);
   };
 
   const onSort = (sort: HousingSort) => {
-    dispatch(changeHousingSort(sort));
+    dispatch(changeSort(sort));
   };
 
   const removeFilter = (removedFilter: any) => {
     dispatch(
-      changeHousingFiltering({
+      changeFilters({
         ...filters,
         ...removedFilter,
       })
@@ -185,7 +177,7 @@ const HousingListView = () => {
       action: TrackEventActions.HousingList.Search,
     });
     dispatch(
-      changeHousingFiltering({
+      changeFilters({
         ...filters,
         query,
       })
@@ -195,10 +187,9 @@ const HousingListView = () => {
   function housingCount({
     filteredCount,
     filteredOwnerCount,
-    totalCount,
   }: Pick<
     HousingPaginatedResult,
-    'filteredCount' | 'filteredOwnerCount' | 'totalCount'
+    'filteredCount' | 'filteredOwnerCount'
   >): string {
     const items = displayCount(
       totalCount,
@@ -230,17 +221,6 @@ const HousingListView = () => {
       <Container as="section" spacing="py-4w mb-4w">
         {paginatedHousing && (
           <>
-            {noHousingAlert && (
-              <Alert
-                title=""
-                description="Vous devez sélectionner au moins un logement."
-                className="fr-my-3w"
-                type="error"
-                data-testid="no-housing-alert"
-                closable
-              />
-            )}
-
             <Row>
               <Col n="6">
                 <div className="d-flex">
@@ -272,7 +252,7 @@ const HousingListView = () => {
                         category: TrackEventCategories.HousingList,
                         action: TrackEventActions.HousingList.ListView,
                       });
-                      setView('list');
+                      dispatch(changeView('list'));
                     }}
                     className={classNames('fr-mr-0', 'color-black-50', {
                       'bg-950': view !== 'list',
@@ -288,7 +268,7 @@ const HousingListView = () => {
                         category: TrackEventCategories.HousingList,
                         action: TrackEventActions.HousingList.MapView,
                       });
-                      setView('map');
+                      dispatch(changeView('map'));
                     }}
                     className={classNames('fr-ml-0', 'color-black-50', {
                       'bg-950': view !== 'map',
@@ -310,7 +290,6 @@ const HousingListView = () => {
               {housingCount({
                 filteredCount: paginatedHousing.filteredCount,
                 filteredOwnerCount: paginatedHousing.filteredOwnerCount,
-                totalCount,
               })}
               {view === 'map' && (
                 <div className="d-inline-block fr-ml-2w">
@@ -319,83 +298,92 @@ const HousingListView = () => {
               )}
             </Text>
 
-            {view === viewLoaded && (
+            {view === 'map' ? (
               <>
-                {view === 'map' ? (
-                  <>
-                    <Label spacing="mb-1w">
-                      Les nombres affichés dans les cercles correspondent aux
-                      nombres d'immeubles.
-                    </Label>
-                    <Map
-                      housingList={paginatedHousing.entities}
-                      hasPerimetersFilter={hasPerimetersFilter(filters)}
-                      perimeters={remainingPerimeters}
-                      perimetersIncluded={perimetersIncluded}
-                      perimetersExcluded={perimetersExcluded}
-                      onMove={onMove}
-                      viewState={mapViewState}
-                    />
-                  </>
-                ) : (
-                  paginatedHousing.filteredCount > 0 && (
-                    <HousingList
-                      paginatedHousing={paginatedHousing}
-                      onChangePagination={(page, perPage) =>
-                        dispatch(changeHousingPagination({ page, perPage }))
-                      }
-                      filters={filters}
-                      displayKind={HousingDisplayKey.Housing}
-                      onSelectHousing={onSelectHousing}
-                      onSort={onSort}
-                    >
-                      <SelectableListHeader
-                        entity="logement"
-                        default={
-                          <Help className="fr-mb-2w fr-py-2w">
-                            <b>Sélectionnez</b> les logements que vous souhaitez
-                            cibler, puis cliquez sur <b>Créer la campagne</b>.
-                          </Help>
-                        }
-                      >
-                        <SelectableListHeaderActions>
-                          {paginatedHousing.filteredCount > 0 && (
-                            <Row justifyContent="right">
-                              <Button
-                                title="Créer la campagne"
-                                onClick={() => create()}
-                                data-testid="create-campaign-button"
-                              >
-                                Créer la campagne
-                              </Button>
-                              {isCreateModalOpen && (
-                                <CampaignCreationModal
-                                  housingCount={selectedHousingCount(
-                                    selectedHousing,
-                                    paginatedHousing.filteredCount
-                                  )}
-                                  filters={filters}
-                                  housingExcudedCount={
-                                    paginatedHousing.filteredCount -
-                                    selectedHousingCount(
-                                      selectedHousing,
-                                      paginatedHousing.filteredCount
-                                    )
-                                  }
-                                  onSubmit={(campaignTitle?: string) =>
-                                    onSubmitCampaignCreation(campaignTitle)
-                                  }
-                                  onClose={() => setIsCreateModalOpen(false)}
-                                />
-                              )}
-                            </Row>
-                          )}
-                        </SelectableListHeaderActions>
-                      </SelectableListHeader>
-                    </HousingList>
-                  )
-                )}
+                <Label spacing="mb-1w">
+                  Les nombres affichés dans les cercles correspondent aux
+                  nombres d'immeubles.
+                </Label>
+                <Map
+                  housingList={paginatedHousing.entities}
+                  hasPerimetersFilter={hasPerimetersFilter(filters)}
+                  perimeters={remainingPerimeters}
+                  perimetersIncluded={perimetersIncluded}
+                  perimetersExcluded={perimetersExcluded}
+                  onMove={onMove}
+                  viewState={mapViewState}
+                />
               </>
+            ) : (
+              paginatedHousing.filteredCount > 0 && (
+                <HousingList
+                  paginatedHousing={paginatedHousing}
+                  onChangePagination={(page, perPage) =>
+                    dispatch(changePagination({ page, perPage }))
+                  }
+                  filters={filters}
+                  displayKind={HousingDisplayKey.Housing}
+                  onSelectHousing={setSelected}
+                  onSort={onSort}
+                >
+                  <SelectableListHeader
+                    entity="logement"
+                    default={
+                      <Help className="fr-mb-2w fr-py-2w">
+                        <b>Sélectionnez</b> les logements que vous souhaitez
+                        cibler, puis cliquez sur <b>Créer une campagne</b>.
+                      </Help>
+                    }
+                  >
+                    <SelectableListHeaderActions>
+                      {paginatedHousing.filteredCount > 0 && (
+                        <Row justifyContent="right">
+                          {selectedCount > 1 && (
+                            <Button
+                              title="Mise à jour groupée  "
+                              onClick={() =>
+                                setUpdatingSelectedHousing(selected)
+                              }
+                              secondary
+                              className="fr-mr-1w"
+                            >
+                              Mise à jour groupée
+                            </Button>
+                          )}
+                          <Button
+                            title="Créer une campagne"
+                            onClick={() => create()}
+                            data-testid="create-campaign-button"
+                          >
+                            Créer une campagne
+                          </Button>
+                          {isCreateModalOpen && (
+                            <CampaignCreationModal
+                              housingCount={selectedCount}
+                              filters={filters}
+                              housingExcudedCount={
+                                paginatedHousing.filteredCount - selectedCount
+                              }
+                              onSubmit={(campaignTitle?: string) =>
+                                onSubmitCampaignCreation(campaignTitle)
+                              }
+                              onClose={() => setIsCreateModalOpen(false)}
+                            />
+                          )}
+                          <HousingListEditionSideMenu
+                            housingCount={selectedCount}
+                            open={!!updatingSelectedHousing}
+                            onSubmit={submitSelectedHousingUpdate}
+                            onClose={() =>
+                              setUpdatingSelectedHousing(undefined)
+                            }
+                          />
+                        </Row>
+                      )}
+                    </SelectableListHeaderActions>
+                  </SelectableListHeader>
+                </HousingList>
+              )
             )}
           </>
         )}

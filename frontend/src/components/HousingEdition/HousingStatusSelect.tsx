@@ -31,6 +31,8 @@ const HousingStatusSelect = ({
     setShowOptions(false);
   };
 
+  console.log('selected', selected);
+
   return (
     <div className="select-single-input" ref={wrapperRef}>
       <div
@@ -44,7 +46,11 @@ const HousingStatusSelect = ({
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}
           onClick={() => setShowOptions(!showOptions)}
         >
-          <HousingStatusBadge status={selected} />
+          {selected !== undefined ? (
+            <HousingStatusBadge status={selected} />
+          ) : (
+            <div>Sélectionnez un statut de suivi</div>
+          )}
         </button>
         {message && messageType && (
           <p className={`fr-${messageType}-text`}>{message}</p>

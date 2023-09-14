@@ -33,17 +33,15 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
 
   const buttonClasses = classNames('fr-link fr-link--md', styles.unselect);
 
-  const count = hasSelected() ? (
+  const selectedCount = hasSelected() && (
     <>
       <span className={styles.selection}>
         {selected} {pluralizeMany(props.entity)} {pluralizeMany('sélectionné')}
       </span>
       <button className={buttonClasses} onClick={props.onUnselectAll}>
-        Annuler la sélection
+        Décocher la sélection
       </button>
     </>
-  ) : (
-    displayCount(total, props.entity, true, props.count)
   );
 
   const classes = classNames(styles.selectableListHeader, {
@@ -56,7 +54,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
         props.default
       ) : (
         <Row alignItems="middle" className={classes}>
-          <Col>{count}</Col>
+          <Col>{selectedCount}</Col>
           <Col n={hasSelected() ? '6' : '8'}>
             <SelectableListHeaderActions {...actions?.props} />
           </Col>

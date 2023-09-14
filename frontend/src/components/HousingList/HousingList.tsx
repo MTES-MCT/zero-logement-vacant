@@ -16,7 +16,7 @@ import {
 import { capitalize } from '../../utils/stringUtils';
 
 import { useLocation } from 'react-router-dom';
-import { PaginatedResult } from '../../models/PaginatedResult';
+import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -44,7 +44,7 @@ export enum HousingDisplayKey {
 interface Props {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
   children?: ReactElement | ReactElement[];
-  paginatedHousing: PaginatedResult<Housing>;
+  paginatedHousing?: HousingPaginatedResult;
   displayKind: HousingDisplayKey;
   filters?: HousingFilters;
   onChangePagination: (page: number, perPage: number) => void;
@@ -104,15 +104,20 @@ const HousingList = ({
     onSelectHousing?.({ all: false, ids: [] });
   };
 
+  const { pageCount, rowNumber, hasPagination } =
+    usePagination(paginatedHousing);
+
   useEffect(() => {
-    if (filters) {
-      setAllChecked(false);
-      setCheckedIds([]);
-      if (onSelectHousing) {
-        onSelectHousing({ all: false, ids: [] });
-      }
+    setAllChecked(false);
+    setCheckedIds([]);
+    if (onSelectHousing) {
+      onSelectHousing({ all: false, ids: [] });
     }
-  }, [filters]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, paginatedHousing?.entities]); //eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!paginatedHousing) {
+    return <></>;
+  }
 
   const changePerPage = (perPage: number) => {
     onChangePagination(1, perPage);
@@ -121,9 +126,6 @@ const HousingList = ({
   const changePage = (page: number) => {
     onChangePagination(page, paginatedHousing.perPage);
   };
-
-  const { pageCount, rowNumber, hasPagination } =
-    usePagination(paginatedHousing);
 
   const selectColumn = {
     name: 'select',

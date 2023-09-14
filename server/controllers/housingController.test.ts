@@ -144,8 +144,10 @@ describe('Housing controller', () => {
 
   describe('updateHousingList', () => {
     const validBody = {
-      currentStatus: HousingStatusApi.Waiting,
-      campaignIds: [Campaign1.id],
+      filters: {
+        status: [HousingStatusApi.Waiting],
+        campaignIds: [Campaign1.id],
+      },
       housingIds: [Housing1.id],
       allHousing: false,
       housingUpdate: {
@@ -187,15 +189,12 @@ describe('Housing controller', () => {
         ...validBody,
         housingIds: [randomstring.generate()],
       });
-      await badRequestTest({ ...validBody, campaignIds: undefined });
       await badRequestTest({
         ...validBody,
-        campaignIds: [randomstring.generate()],
-      });
-      await badRequestTest({ ...validBody, currentStatus: undefined });
-      await badRequestTest({
-        ...validBody,
-        currentStatus: randomstring.generate(),
+        filters: {
+          ...validBody.filters,
+          campaignIds: [randomstring.generate()],
+        },
       });
       await badRequestTest({ ...validBody, housingUpdate: undefined });
       await badRequestTest({

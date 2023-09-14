@@ -14,16 +14,24 @@ interface Props {
   title?: string | ReactElement;
   onSubmit: (param?: any) => void;
   onClose: () => void;
+  size?: 'sm' | 'md' | 'lg';
+  icon?: string;
 }
 
-const ConfirmationModal = ({ children, title, onSubmit, onClose }: Props) => {
+const ConfirmationModal = ({
+  children,
+  title,
+  onSubmit,
+  onClose,
+  size,
+  icon,
+}: Props) => {
   return (
-    <Modal isOpen={true} hide={() => onClose()}>
+    <Modal isOpen={true} hide={() => onClose()} size={size}>
       <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
         Fermer
       </ModalClose>
-      <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
+      <ModalTitle icon={icon ?? 'ri-1x ri-arrow-right-line'}>
         {title ?? 'Confirmation'}
       </ModalTitle>
       <ModalContent>

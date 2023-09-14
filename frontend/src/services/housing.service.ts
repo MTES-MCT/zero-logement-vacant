@@ -13,7 +13,7 @@ import { initialHousingFilters } from '../store/reducers/housingReducer';
 import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions, createHttpService } from '../utils/fetchUtils';
+import { AbortOptions } from '../utils/fetchUtils';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { parseOwner } from './owner.service';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';

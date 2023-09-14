@@ -4,7 +4,6 @@ import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
-import authService from '../../services/auth.service';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
   genAuthUser,

@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react';
 import { Col, Row } from '@dataesr/react-dsfr';
-import { displayCount, pluralize } from '../../utils/stringUtils';
+import { pluralize } from '../../utils/stringUtils';
 import SelectableListHeaderActions from './SelectableListHeaderActions';
 import { findChild } from '../../utils/elementUtils';
 import classNames from 'classnames';

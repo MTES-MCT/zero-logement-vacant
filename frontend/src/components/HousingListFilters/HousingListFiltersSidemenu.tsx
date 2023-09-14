@@ -83,7 +83,7 @@ function HousingListFiltersSidemenu() {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
-  const { pagination, sort, view } = useAppSelector((state) => state.housing);
+  const { pagination, sort } = useAppSelector((state) => state.housing);
 
   const { paginatedHousing } = useHousingList({
     filters,

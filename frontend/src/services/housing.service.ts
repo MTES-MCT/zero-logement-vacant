@@ -5,11 +5,7 @@ import {
   HousingFiltersForTotalCount,
 } from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
-import {
-  HousingPaginatedResult,
-  PaginatedResult,
-} from '../models/PaginatedResult';
-import { initialHousingFilters } from '../store/reducers/housingReducer';
+import { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
@@ -153,40 +149,3 @@ export const {
   useUpdateHousingMutation,
   useUpdateHousingListMutation,
 } = housingApi;
-
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<PaginatedResult<Housing>>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
-
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(`${config.apiEndpoint}/api/housing`, {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: { ...initialHousingFilters, query },
-          page: 1,
-          perPage: 20,
-        }),
-        signal,
-      })
-        .then((_) => _.json())
-        .then((result) => ({
-          ...result,
-          entities: result.entities.map(parseHousing),
-        })),
-  };
-};
-
-const housingService = {
-  quickSearchService,
-};
-
-export default housingService;

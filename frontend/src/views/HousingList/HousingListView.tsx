@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   ButtonGroup,
@@ -37,7 +37,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import { Pagination } from '../../../../shared/models/Pagination';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import classNames from 'classnames';
 import { displayCount } from '../../utils/stringUtils';
@@ -55,7 +54,7 @@ import Label from '../../components/Label/Label';
 import { useSelection } from '../../hooks/useSelection';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import { useHousingList } from '../../hooks/useHousingList';
-import housingSlice, { ViewMode } from '../../store/reducers/housingReducer';
+import housingSlice from '../../store/reducers/housingReducer';
 import { useUpdateHousingListMutation } from '../../services/housing.service';
 
 const HousingListView = () => {

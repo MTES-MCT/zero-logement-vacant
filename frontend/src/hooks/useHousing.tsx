@@ -11,8 +11,7 @@ import { useGetHousingQuery } from '../services/housing.service';
 export function useHousing() {
   const { housingId } = useParams<{ housingId: string }>();
 
-  const { data: housing, refetch: refetchHousing } =
-    useGetHousingQuery(housingId);
+  const { data: housing } = useGetHousingQuery(housingId);
 
   const { data: events, refetch: refetchHousingEvents } =
     useFindEventsByHousingQuery(housingId);

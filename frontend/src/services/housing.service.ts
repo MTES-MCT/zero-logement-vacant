@@ -154,8 +154,6 @@ export const {
   useUpdateHousingListMutation,
 } = housingApi;
 
-const http = createHttpService('housing');
-
 const quickSearchService = (): {
   abort: () => void;
   fetch: (query: string) => Promise<PaginatedResult<Housing>>;

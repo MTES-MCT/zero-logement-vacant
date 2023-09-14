@@ -22,5 +22,6 @@ exports.seed = async function (knex: Knex) {
           `${localitiesTable}.geo_code = ANY(${establishmentsTable}.localities_geo_code)`
         )
       )
+      .orderBy(`${establishmentsTable}.id`, `${localitiesTable}.geo_code`)
   );
 };

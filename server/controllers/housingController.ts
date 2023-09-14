@@ -89,7 +89,8 @@ const list = async (
       pagination,
       sort,
     }),
-    housingRepository.count(filters),
+    Promise.resolve({ housing: 1, owners: 1 }),
+    // housingRepository.count(filters),
   ]);
 
   const offset = (pagination.page - 1) * pagination.perPage;

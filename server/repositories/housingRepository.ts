@@ -267,6 +267,15 @@ type HousingFilters = Pick<
   | 'beneficiaryCounts'
   | 'dataYearsIncluded'
   | 'dataYearsExcluded'
+  | 'housingKinds'
+  | 'housingAreas'
+  | 'roomsCounts'
+  | 'cadastralClassifications'
+  | 'buildingPeriods'
+  | 'vacancyDurations'
+  | 'isTaxedValues'
+  | 'ownershipKinds'
+  | 'housingCounts'
   | 'status'
   | 'subStatus'
 >;
@@ -287,8 +296,26 @@ export const filterHousing = (filters: HousingFilters) => {
       query.whereIn('occupancy', filters.occupancies);
     }
 
-    if (filters.beneficiaryCounts) {
-      // TODO
+    if (filters.beneficiaryCounts?.length) {
+      query.where((subQuery) => {
+        subQuery.whereIn(
+          // @ts-ignore
+          `${housingTable}.beneficiary_count`,
+          filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
+        );
+
+        if (filters.beneficiaryCounts?.includes('0')) {
+          subQuery.orWhereNull(`${housingTable}.beneficiary_count`);
+        }
+
+        if (filters.beneficiaryCounts?.includes('gt5')) {
+          subQuery.orWhereRaw(`${housingTable}.beneficiary_count >= 5`);
+        }
+      });
+    }
+
+    if (filters.housingKinds?.length) {
+      query.whereIn('housing_kind', filters.housingKinds);
     }
 
     if (filters.status?.length) {
@@ -635,7 +662,7 @@ interface ListQueryOptions extends PaginationOptions {
 const withEstablishmentsHousing = (establishments: string[]) => {
   return (query: Knex.QueryBuilder) => {
     query
-      .select(`${housingTable}.*`)
+      .select(`fast_housing.*`)
       .from(establishmentsLocalitiesTable)
       .join(localitiesTable, (join) => {
         join
@@ -649,8 +676,8 @@ const withEstablishmentsHousing = (establishments: string[]) => {
           );
       })
       .join(
-        housingTable,
-        `${housingTable}.geo_code`,
+        'fast_housing',
+        `fast_housing.geo_code`,
         `${localitiesTable}.geo_code`
       );
   };
@@ -668,7 +695,6 @@ const listQueryTest = (opts: ListQueryOptions) => {
     : db.select('h.*').from({ h: 'housing' });
 
   return query
-    .modify(filterHousing(opts.filters))
     .select(
       'o.id as owner_id',
       'o.raw_address as owner_raw_address',
@@ -680,7 +706,8 @@ const listQueryTest = (opts: ListQueryOptions) => {
     .join(ownersHousingTable, (join) => {
       join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
     })
-    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`);
+    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .modify(filterHousing(opts.filters));
 };
 
 const listQuery = (establishmentIds?: string[]) =>
@@ -738,7 +765,9 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
   const housingList: HousingDBO[] = await listQueryTest({
     filters: opts.filters,
     pagination: opts.pagination,
-  }).modify(paginationQuery(opts.pagination as PaginationApi));
+  })
+    .orderBy('geo_code')
+    .modify(paginationQuery(opts.pagination as PaginationApi));
   // .modify(filteredQuery(opts.filters))
   // .modify(
   //   sortQuery(opts.sort, {
@@ -837,6 +866,15 @@ function whereVacant(year: number = ReferenceDataYear) {
 
 const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
   logger.debug('Count housing', filters);
+
+  const query = db
+    .with('list', listQueryTest({ filters }))
+    .countDistinct('id as housing')
+    .countDistinct('owner_id as owners')
+    .from('list')
+    .first()
+    .toQuery();
+  console.log(query);
 
   const result = await db
     .with('list', listQueryTest({ filters }))

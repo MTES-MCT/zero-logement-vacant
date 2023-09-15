@@ -299,6 +299,7 @@ export const filterHousing = (filters: HousingFilters) => {
     if (filters.beneficiaryCounts?.length) {
       query.where((subQuery) => {
         subQuery.whereIn(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           `${housingTable}.beneficiary_count`,
           filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
@@ -662,39 +663,25 @@ interface ListQueryOptions extends PaginationOptions {
 const withEstablishmentsHousing = (establishments: string[]) => {
   return (query: Knex.QueryBuilder) => {
     query
-      .select(`fast_housing.*`)
-      .from(establishmentsLocalitiesTable)
-      .join(localitiesTable, (join) => {
-        join
-          .onIn(
-            `${establishmentsLocalitiesTable}.establishment_id`,
-            establishments
-          )
-          .on(
-            `${localitiesTable}.id`,
-            `${establishmentsLocalitiesTable}.locality_id`
-          );
-      })
-      .join(
-        'fast_housing',
-        `fast_housing.geo_code`,
-        `${localitiesTable}.geo_code`
-      );
+      .select('h.*')
+      .from({ h: 'fast_housing' })
+      .whereIn('geo_code', (subQuery) => {
+        subQuery
+          .select(db.raw('unnest(localities_geo_code)'))
+          .from(establishmentsTable)
+          .whereIn('id', establishments);
+      });
   };
 };
 
 const listQueryTest = (opts: ListQueryOptions) => {
-  const query = opts.filters.establishmentIds?.length
-    ? db
-        .with(
-          'establishments_housing',
-          withEstablishmentsHousing(opts.filters.establishmentIds)
-        )
-        .select('h.*')
-        .from({ h: 'establishments_housing' })
-    : db.select('h.*').from({ h: 'housing' });
-
-  return query
+  return db
+    .with(
+      'fast_housing',
+      withEstablishmentsHousing(opts.filters.establishmentIds ?? [])
+    )
+    .select('h.*')
+    .from({ h: 'fast_housing' })
     .select(
       'o.id as owner_id',
       'o.raw_address as owner_raw_address',
@@ -754,20 +741,40 @@ interface FindOptions extends PaginationOptions {
 const find = async (opts: FindOptions): Promise<HousingApi[]> => {
   logger.debug('housingRepository.find', opts);
 
-  const query = listQueryTest({
-    filters: opts.filters,
-    pagination: opts.pagination,
-  })
-    .modify(paginationQuery(opts.pagination as PaginationApi))
-    .toQuery();
-  logger.debug('Query', query);
+  const geoCodes = await db(establishmentsTable)
+    .select(db.raw('unnest(localities_geo_code) AS geo_code'))
+    .whereIn('id', opts.filters.establishmentIds ?? []);
 
-  const housingList: HousingDBO[] = await listQueryTest({
-    filters: opts.filters,
-    pagination: opts.pagination,
-  })
-    .orderBy('geo_code')
+  const query = db
+    .select('h.*')
+    .from({ h: 'fast_housing' })
+    .whereIn(
+      'h.geo_code',
+      geoCodes.map((_) => _.geo_code)
+    )
+    .select(
+      'o.id as owner_id',
+      'o.raw_address as owner_raw_address',
+      'o.full_name',
+      'o.administrator',
+      'o.email',
+      'o.phone'
+    )
+    .join(ownersHousingTable, (join) => {
+      join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
+    })
+    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .modify(filterHousing(opts.filters))
     .modify(paginationQuery(opts.pagination as PaginationApi));
+
+  logger.error(query.toQuery());
+
+  const housingList: HousingDBO[] = await query;
+
+  // const housingList: HousingDBO[] = await listQueryTest({
+  //   filters: opts.filters,
+  //   pagination: opts.pagination,
+  // }).modify(paginationQuery(opts.pagination as PaginationApi));
   // .modify(filteredQuery(opts.filters))
   // .modify(
   //   sortQuery(opts.sort, {
@@ -866,15 +873,6 @@ function whereVacant(year: number = ReferenceDataYear) {
 
 const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
   logger.debug('Count housing', filters);
-
-  const query = db
-    .with('list', listQueryTest({ filters }))
-    .countDistinct('id as housing')
-    .countDistinct('owner_id as owners')
-    .from('list')
-    .first()
-    .toQuery();
-  console.log(query);
 
   const result = await db
     .with('list', listQueryTest({ filters }))

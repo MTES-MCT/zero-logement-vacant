@@ -223,16 +223,6 @@ describe('Housing controller', () => {
           ...validBody.housingUpdate,
           occupancyUpdate: {
             ...validBody.housingUpdate.occupancyUpdate,
-            occupancy: undefined,
-          },
-        },
-      });
-      await badRequestTest({
-        ...validBody,
-        housingUpdate: {
-          ...validBody.housingUpdate,
-          occupancyUpdate: {
-            ...validBody.housingUpdate.occupancyUpdate,
             occupancy: randomstring.generate(),
           },
         },

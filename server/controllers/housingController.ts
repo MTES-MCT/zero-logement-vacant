@@ -125,28 +125,6 @@ const count = async (request: Request, response: Response): Promise<void> => {
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
-const listByOwner = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const ownerId = request.params.ownerId;
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
-
-  console.log('List housing by owner', ownerId);
-
-  return Promise.all([
-    housingRepository.listWithFilters({
-      establishmentIds: [establishmentId],
-      ownerIds: [ownerId],
-    }),
-    housingRepository.count({ ownerIds: [ownerId] }),
-  ]).then(([list, totalCount]) =>
-    response
-      .status(constants.HTTP_STATUS_OK)
-      .json({ entities: list, totalCount })
-  );
-};
-
 export interface HousingUpdateBody {
   statusUpdate?: Pick<
     HousingApi,
@@ -392,7 +370,6 @@ const housingController = {
   listValidators,
   list,
   count,
-  listByOwner,
   updateValidators,
   update,
   updateListValidators,

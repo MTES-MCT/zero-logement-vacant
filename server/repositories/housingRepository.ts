@@ -657,31 +657,15 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
 };
 
 interface ListQueryOptions extends PaginationOptions {
-  filters: HousingFiltersApi;
+  filters: Omit<HousingFiltersApi, 'establishmentIds'>;
+  geoCodes: string[];
 }
-
-const withEstablishmentsHousing = (establishments: string[]) => {
-  return (query: Knex.QueryBuilder) => {
-    query
-      .select('h.*')
-      .from({ h: 'fast_housing' })
-      .whereIn('geo_code', (subQuery) => {
-        subQuery
-          .select(db.raw('unnest(localities_geo_code)'))
-          .from(establishmentsTable)
-          .whereIn('id', establishments);
-      });
-  };
-};
 
 const listQueryTest = (opts: ListQueryOptions) => {
   return db
-    .with(
-      'fast_housing',
-      withEstablishmentsHousing(opts.filters.establishmentIds ?? [])
-    )
     .select('h.*')
     .from({ h: 'fast_housing' })
+    .whereIn('h.geo_code', opts.geoCodes)
     .select(
       'o.id as owner_id',
       'o.raw_address as owner_raw_address',
@@ -743,15 +727,14 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
 
   const geoCodes = await db(establishmentsTable)
     .select(db.raw('unnest(localities_geo_code) AS geo_code'))
-    .whereIn('id', opts.filters.establishmentIds ?? []);
+    .whereIn('id', opts.filters.establishmentIds ?? [])
+    .then((geoCodes) => geoCodes.map((_) => _.geo_code));
 
   const query = db
     .select('h.*')
     .from({ h: 'fast_housing' })
-    .whereIn(
-      'h.geo_code',
-      geoCodes.map((_) => _.geo_code)
-    )
+    .whereIn('h.geo_code', geoCodes)
+    .orderBy('h.geo_code')
     .select(
       'o.id as owner_id',
       'o.raw_address as owner_raw_address',
@@ -767,7 +750,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
     .modify(filterHousing(opts.filters))
     .modify(paginationQuery(opts.pagination as PaginationApi));
 
-  logger.error(query.toQuery());
+  console.log('Find', query.toQuery());
 
   const housingList: HousingDBO[] = await query;
 
@@ -874,8 +857,23 @@ function whereVacant(year: number = ReferenceDataYear) {
 const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
   logger.debug('Count housing', filters);
 
+  const geoCodes = await db(establishmentsTable)
+    .select(db.raw('unnest(localities_geo_code) AS geo_code'))
+    .whereIn('id', filters.establishmentIds ?? [])
+    .then((geoCodes) => geoCodes.map((_) => _.geo_code));
+
+  console.log(
+    db
+      .with('list', listQueryTest({ filters, geoCodes }))
+      .countDistinct('id as housing')
+      .countDistinct('owner_id as owners')
+      .from('list')
+      .first()
+      .toQuery()
+  );
+
   const result = await db
-    .with('list', listQueryTest({ filters }))
+    .with('list', listQueryTest({ filters, geoCodes }))
     .countDistinct('id as housing')
     .countDistinct('owner_id as owners')
     .from('list')

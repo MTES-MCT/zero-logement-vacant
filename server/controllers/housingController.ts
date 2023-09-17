@@ -60,10 +60,7 @@ const list = async (
 ) => {
   const { auth, body, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const pagination: Required<Pagination> = fp.pick(
-    ['paginate', 'perPage', 'page'],
-    body
-  );
+  const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
 
   const role = user.role;
   const sort = SortApi.parse<HousingSortableApi>(
@@ -90,7 +87,6 @@ const list = async (
       sort,
     }),
     Promise.resolve({ housing: 1, owners: 1 }),
-    // housingRepository.count(filters),
   ]);
 
   const offset = (pagination.page - 1) * pagination.perPage;
@@ -111,7 +107,7 @@ const list = async (
 };
 
 const count = async (request: Request, response: Response): Promise<void> => {
-  console.log('Count housing');
+  logger.trace('Count housing');
 
   const { establishmentId, role } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};

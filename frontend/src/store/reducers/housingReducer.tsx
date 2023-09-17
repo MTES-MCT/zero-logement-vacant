@@ -7,9 +7,10 @@ import { Pagination } from '../../../../shared/models/Pagination';
 export type ViewMode = 'list' | 'map';
 export interface HousingState {
   filteredCount: number;
+  filteredOwnerCount: number;
   totalCount: number;
   totalOwnerCount: number;
-  pagination?: Pagination;
+  pagination: Pagination;
   sort?: HousingSort;
   filters: HousingFilters;
   filtersExpanded: boolean;
@@ -28,11 +29,13 @@ export const initialHousingFilters = {
 
 const initialState: HousingState = {
   filteredCount: 0,
+  filteredOwnerCount: 0,
   totalCount: 0,
   totalOwnerCount: 0,
   pagination: {
     page: 1,
     perPage: config.perPageDefault,
+    paginate: true
   },
   filters: initialHousingFilters,
   filtersExpanded: false,

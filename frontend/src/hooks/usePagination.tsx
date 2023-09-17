@@ -1,26 +1,18 @@
-import { useMemo } from 'react';
-import {
-  initialPaginatedResult,
-  PaginatedResult,
-} from '../models/PaginatedResult';
+import { Pagination } from '../../../shared/models/Pagination';
 
-export function usePagination<T>(
-  paginatedResult: PaginatedResult<T> = initialPaginatedResult()
-) {
-  const pageCount = useMemo<number>(
-    () => Math.ceil(paginatedResult.filteredCount / paginatedResult.perPage),
-    [paginatedResult.filteredCount, paginatedResult.perPage]
-  );
+interface PaginationOptions extends Partial<Pagination> {
+  count: number;
+}
 
-  const rowNumber = useMemo<(index: number) => number>(
-    () => (index: number) =>
-      (paginatedResult.page - 1) * paginatedResult.perPage + index + 1,
-    [paginatedResult.page, paginatedResult.perPage]
-  );
+export function usePagination(opts: PaginationOptions) {
+  const { count } = opts;
+  const page = opts.page ?? 1;
+  const perPage = opts.perPage ?? 50;
+  const pageCount = Math.ceil(count / perPage);
 
-  const hasPagination = useMemo<boolean>(() => {
-    return paginatedResult.filteredCount > paginatedResult.perPage;
-  }, [paginatedResult.filteredCount, paginatedResult.perPage]);
+  const rowNumber = (index: number) => (page - 1) * perPage + index + 1;
+
+  const hasPagination = count > perPage;
 
   return {
     pageCount,

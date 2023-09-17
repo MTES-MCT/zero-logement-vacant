@@ -85,7 +85,7 @@ function HousingListFiltersSidemenu() {
 
   const { pagination, sort } = useAppSelector((state) => state.housing);
 
-  const { paginatedHousing } = useHousingList({
+  const { filteredCount, paginatedHousing } = useHousingList({
     filters,
     pagination,
     sort,
@@ -552,7 +552,7 @@ function HousingListFiltersSidemenu() {
             {paginatedHousing && (
               <Col className="align-right">
                 <Text as="span" className="color-grey-625">
-                  <b>{paginatedHousing.filteredCount}</b> résultats
+                  <b>{filteredCount}</b> résultats
                 </Text>
               </Col>
             )}

@@ -213,7 +213,14 @@ const TabContent = ({ status, query }: TabContentProps) => {
         />
       )}
       <HousingList
-        paginatedHousing={paginatedHousing}
+        filteredCount={paginatedHousing.filteredCount}
+        totalCount={paginatedHousing.totalCount}
+        pagination={{
+          page: paginatedHousing.page,
+          perPage: paginatedHousing.perPage,
+          paginate: true,
+        }}
+        housingList={paginatedHousing.entities}
         onChangePagination={(page, perPage) =>
           dispatch(changePagination({ status, pagination: { page, perPage } }))
         }

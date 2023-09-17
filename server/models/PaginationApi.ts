@@ -39,7 +39,7 @@ export const queryValidators: ValidationChain[] = [
  * Validate input before using this function!
  * @param query
  */
-export function createPagination(query: Required<Pagination>): PaginationApi {
+export function createPagination(query: Pagination): PaginationApi {
   return query.paginate
     ? {
         paginate: true,

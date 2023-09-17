@@ -725,6 +725,8 @@ interface FindOptions extends PaginationOptions {
 const find = async (opts: FindOptions): Promise<HousingApi[]> => {
   logger.debug('housingRepository.find', opts);
 
+  // Retrieve geo codes as literals to help the query planner,
+  // otherwise it would go throughout a lot of irrelevant partitions
   const geoCodes = await db(establishmentsTable)
     .select(db.raw('unnest(localities_geo_code) AS geo_code'))
     .whereIn('id', opts.filters.establishmentIds ?? [])
@@ -734,7 +736,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
     .select('h.*')
     .from({ h: 'fast_housing' })
     .whereIn('h.geo_code', geoCodes)
-    .orderBy('h.geo_code')
+    .orderBy(['geo_code', 'id'])
     .select(
       'o.id as owner_id',
       'o.raw_address as owner_raw_address',
@@ -749,8 +751,6 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
     .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
     .modify(filterHousing(opts.filters))
     .modify(paginationQuery(opts.pagination as PaginationApi));
-
-  console.log('Find', query.toQuery());
 
   const housingList: HousingDBO[] = await query;
 
@@ -861,16 +861,6 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
     .select(db.raw('unnest(localities_geo_code) AS geo_code'))
     .whereIn('id', filters.establishmentIds ?? [])
     .then((geoCodes) => geoCodes.map((_) => _.geo_code));
-
-  console.log(
-    db
-      .with('list', listQueryTest({ filters, geoCodes }))
-      .countDistinct('id as housing')
-      .countDistinct('owner_id as owners')
-      .from('list')
-      .first()
-      .toQuery()
-  );
 
   const result = await db
     .with('list', listQueryTest({ filters, geoCodes }))

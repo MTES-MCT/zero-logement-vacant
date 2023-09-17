@@ -186,7 +186,14 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                     dispatch(changePagination({ page, perPage }))
                   }
                   onSelectHousing={setSelected}
-                  paginatedHousing={paginatedHousing}
+                  pagination={{
+                    page: paginatedHousing.page,
+                    perPage: paginatedHousing.perPage,
+                    paginate: true,
+                  }}
+                  filteredCount={paginatedHousing.filteredCount}
+                  totalCount={paginatedHousing.totalCount}
+                  housingList={paginatedHousing.entities}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>

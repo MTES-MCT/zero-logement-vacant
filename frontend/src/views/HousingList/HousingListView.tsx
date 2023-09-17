@@ -49,7 +49,6 @@ import {
   includeWith,
 } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import Label from '../../components/Label/Label';
 import { useSelection } from '../../hooks/useSelection';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
@@ -75,14 +74,14 @@ const HousingListView = () => {
 
   const { pagination, sort, view } = useAppSelector((state) => state.housing);
 
-  const { totalCount, paginatedHousing } = useHousingList({
+  const { filteredCount, filteredOwnerCount, totalCount, totalOwnerCount, paginatedHousing } = useHousingList({
     filters,
     pagination,
     sort,
   });
 
   const { selectedCount, selected, setSelected } = useSelection(
-    paginatedHousing?.filteredCount
+    filteredCount
   );
 
   const [
@@ -187,13 +186,7 @@ const HousingListView = () => {
     );
   };
 
-  function housingCount({
-    filteredCount,
-    filteredOwnerCount,
-  }: Pick<
-    HousingPaginatedResult,
-    'filteredCount' | 'filteredOwnerCount'
-  >): string {
+  function housingCount(): string {
     const items = displayCount(
       totalCount,
       'logement',
@@ -300,10 +293,7 @@ const HousingListView = () => {
             )}
 
             <Text spacing="mb-2w">
-              {housingCount({
-                filteredCount: paginatedHousing.filteredCount,
-                filteredOwnerCount: paginatedHousing.filteredOwnerCount,
-              })}
+              {housingCount()}
               {view === 'map' && (
                 <div className="d-inline-block fr-ml-2w">
                   <GeoPerimetersModalLink />
@@ -328,9 +318,12 @@ const HousingListView = () => {
                 />
               </>
             ) : (
-              paginatedHousing.filteredCount > 0 && (
+              paginatedHousing.entities.length > 0 && (
                 <HousingList
-                  paginatedHousing={paginatedHousing}
+                  filteredCount={filteredCount}
+                  totalCount={totalCount}
+                  paginatedHousing={paginatedHousing.entities}
+                  pagination={pagination}
                   onChangePagination={(page, perPage) =>
                     dispatch(changePagination({ page, perPage }))
                   }
@@ -349,7 +342,7 @@ const HousingListView = () => {
                     }
                   >
                     <SelectableListHeaderActions>
-                      {paginatedHousing.filteredCount > 0 && (
+                      {filteredCount > 0 && (
                         <Row justifyContent="right">
                           {selectedCount > 1 && (
                             <Button
@@ -375,7 +368,7 @@ const HousingListView = () => {
                               housingCount={selectedCount}
                               filters={filters}
                               housingExcudedCount={
-                                paginatedHousing.filteredCount - selectedCount
+                                filteredCount - selectedCount
                               }
                               onSubmit={(campaignTitle?: string) =>
                                 onSubmitCampaignCreation(campaignTitle)

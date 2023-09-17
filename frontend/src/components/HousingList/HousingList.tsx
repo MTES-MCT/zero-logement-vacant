@@ -6,7 +6,11 @@ import React, {
   useState,
 } from 'react';
 
-import { Button, Pagination, Table } from '@dataesr/react-dsfr';
+import {
+  Button,
+  Pagination as PaginationElement,
+  Table,
+} from '@dataesr/react-dsfr';
 import {
   Housing,
   HousingSort,
@@ -16,7 +20,6 @@ import {
 import { capitalize } from '../../utils/stringUtils';
 
 import { useLocation } from 'react-router-dom';
-import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -35,6 +38,7 @@ import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
 import InternalLink from '../InternalLink/InternalLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import { Pagination } from '../../../../shared/models/Pagination';
 
 export enum HousingDisplayKey {
   Housing,
@@ -44,7 +48,10 @@ export enum HousingDisplayKey {
 interface Props {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
   children?: ReactElement | ReactElement[];
-  paginatedHousing?: HousingPaginatedResult;
+  filteredCount: number;
+  totalCount: number;
+  pagination: Pagination;
+  housingList: Housing[];
   displayKind: HousingDisplayKey;
   filters?: HousingFilters;
   onChangePagination: (page: number, perPage: number) => void;
@@ -57,7 +64,10 @@ interface Props {
 const HousingList = ({
   actions,
   children,
-  paginatedHousing,
+  filteredCount,
+  totalCount,
+  pagination,
+  housingList,
   onChangePagination,
   onSort,
   filters,
@@ -104,8 +114,10 @@ const HousingList = ({
     onSelectHousing?.({ all: false, ids: [] });
   };
 
-  const { pageCount, rowNumber, hasPagination } =
-    usePagination(paginatedHousing);
+  const { pageCount, rowNumber, hasPagination } = usePagination({
+    ...pagination,
+    count: filteredCount,
+  });
 
   useEffect(() => {
     setAllChecked(false);
@@ -124,7 +136,7 @@ const HousingList = ({
   };
 
   const changePage = (page: number) => {
-    onChangePagination(page, paginatedHousing.perPage);
+    onChangePagination(page, pagination.perPage);
   };
 
   const selectColumn = {
@@ -134,7 +146,7 @@ const HousingList = ({
         onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
         checked={
           (allChecked && checkedIds.length === 0) ||
-          (!allChecked && checkedIds.length === paginatedHousing.filteredCount)
+          (!allChecked && checkedIds.length === filteredCount)
         }
         className={checkedIds.length !== 0 ? 'indeterminate' : ''}
         label=""
@@ -299,24 +311,22 @@ const HousingList = ({
       <header>
         <SelectableListHeader
           selected={
-            allChecked
-              ? paginatedHousing.filteredCount - checkedIds.length
-              : checkedIds.length
+            allChecked ? filteredCount - checkedIds.length : checkedIds.length
           }
-          count={paginatedHousing.filteredCount}
-          total={paginatedHousing.totalCount}
+          count={filteredCount}
+          total={totalCount}
           onUnselectAll={unselectAll}
           entity="logement"
           {...header?.props}
         />
       </header>
-      {paginatedHousing.entities?.length > 0 && (
+      {housingList?.length > 0 && (
         <>
           <Table
             caption="Logements"
             captionPosition="none"
             rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
-            data={paginatedHousing.entities.map((_, index) => ({
+            data={housingList.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),
             }))}
@@ -333,9 +343,9 @@ const HousingList = ({
           {hasPagination && (
             <>
               <div className="fr-react-table--pagination-center nav">
-                <Pagination
+                <PaginationElement
                   onClick={changePage}
-                  currentPage={paginatedHousing.page}
+                  currentPage={pagination.page}
                   pageCount={pageCount}
                 />
               </div>
@@ -343,7 +353,7 @@ const HousingList = ({
                 <Button
                   onClick={() => changePerPage(50)}
                   secondary
-                  disabled={paginatedHousing.perPage === 50}
+                  disabled={pagination.perPage === 50}
                   title="Afficher 50 résultats par page"
                 >
                   50 résultats par page
@@ -352,7 +362,7 @@ const HousingList = ({
                   onClick={() => changePerPage(200)}
                   className="fr-mx-3w"
                   secondary
-                  disabled={paginatedHousing.perPage === 200}
+                  disabled={pagination.perPage === 200}
                   title="Afficher 200 résultats par page"
                 >
                   200 résultats par page
@@ -360,7 +370,7 @@ const HousingList = ({
                 <Button
                   onClick={() => changePerPage(500)}
                   secondary
-                  disabled={paginatedHousing.perPage === 500}
+                  disabled={pagination.perPage === 500}
                   title="Afficher 500 résultats par page"
                 >
                   500 résultats par page

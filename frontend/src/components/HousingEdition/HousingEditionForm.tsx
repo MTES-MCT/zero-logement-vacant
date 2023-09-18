@@ -93,7 +93,9 @@ const HousingEditionForm = (
       }),
     comment: yup.string().nullable(),
     noteKind: yup.string().nullable(),
-    hasChange: yup.boolean().oneOf([true], 'Veuillez remplir un des champs'),
+    hasChange: yup
+      .boolean()
+      .oneOf([true], 'Veuillez saisir au moins une donnée pour enregistrer.'),
   };
   type FormShape = typeof shape;
 

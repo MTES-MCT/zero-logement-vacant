@@ -1,5 +1,5 @@
 export interface Pagination {
-  paginate: boolean;
+  paginate?: boolean;
   page: number;
   perPage: number;
 }

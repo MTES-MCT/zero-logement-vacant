@@ -79,7 +79,7 @@ const TabContent = ({ status, query }: TabContentProps) => {
   );
 
   const { hasSelected, selectedCount, selected, setSelected } = useSelection(
-    paginatedHousing?.filteredCount
+    campaignBundle?.housingCount
   );
 
   const { changePagination, changeSort } = campaignSlice.actions;
@@ -213,14 +213,14 @@ const TabContent = ({ status, query }: TabContentProps) => {
         />
       )}
       <HousingList
-        filteredCount={paginatedHousing.filteredCount}
-        totalCount={paginatedHousing.totalCount}
+        filteredCount={1}
+        totalCount={1}
         pagination={{
-          page: paginatedHousing.page,
-          perPage: paginatedHousing.perPage,
+          page: pagination?.page ?? 1,
+          perPage: pagination?.perPage ?? 50,
           paginate: true,
         }}
-        housingList={paginatedHousing.entities}
+        housingList={paginatedHousing?.entities}
         onChangePagination={(page, perPage) =>
           dispatch(changePagination({ status, pagination: { page, perPage } }))
         }

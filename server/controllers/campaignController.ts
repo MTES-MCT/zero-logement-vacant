@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
 import async from 'async';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import { logger } from '../utils/logger';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -36,12 +37,11 @@ const getCampaignBundle = async (
     .establishmentId;
   const query = <string>request.query.q;
 
-  console.log(
-    'Get campaign bundle',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.debug('Get campaign bundle', {
+    establishment: establishmentId,
+    campaign: campaignNumber,
+    reminder: reminderNumber,
+  });
 
   return campaignRepository
     .getCampaignBundle(establishmentId, campaignNumber, reminderNumber, query)
@@ -52,32 +52,24 @@ const getCampaignBundle = async (
     );
 };
 
-const listCampaigns = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('List campaigns');
+const listCampaigns = async (request: Request, response: Response) => {
+  logger.trace('List campaigns');
 
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  return campaignRepository
-    .listCampaigns(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const campaigns = await campaignRepository.listCampaigns(establishmentId);
+  response.status(constants.HTTP_STATUS_OK).json(campaigns);
 };
 
-const listCampaignBundles = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const listCampaignBundles = async (request: Request, response: Response) => {
   console.log('List campaign bundles');
 
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  return campaignRepository
-    .listCampaignBundles(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const bundles = await campaignRepository.listCampaignBundles(establishmentId);
+  response.status(constants.HTTP_STATUS_OK).json(bundles);
 };
 
 const createCampaign = async (

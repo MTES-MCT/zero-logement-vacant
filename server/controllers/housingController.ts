@@ -86,6 +86,8 @@ const list = async (
       pagination,
       sort,
     }),
+    // Kept for backward-compatibility
+    // TODO: remove this
     Promise.resolve({ housing: 1, owners: 1 }),
   ]);
 

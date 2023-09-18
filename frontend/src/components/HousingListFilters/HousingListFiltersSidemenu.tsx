@@ -55,6 +55,7 @@ import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useHousingList } from '../../hooks/useHousingList';
+import { useCountHousingQuery } from '../../services/housing.service';
 
 interface TitleWithIconProps {
   icon: string;
@@ -85,7 +86,9 @@ function HousingListFiltersSidemenu() {
 
   const { pagination, sort } = useAppSelector((state) => state.housing);
 
-  const { filteredCount, paginatedHousing } = useHousingList({
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredCount = count?.housing;
+  const { paginatedHousing } = useHousingList({
     filters,
     pagination,
     sort,

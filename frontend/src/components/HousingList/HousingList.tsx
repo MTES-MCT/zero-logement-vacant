@@ -51,7 +51,7 @@ interface Props {
   filteredCount: number;
   totalCount: number;
   pagination: Pagination;
-  housingList: Housing[];
+  housingList?: Housing[];
   displayKind: HousingDisplayKey;
   filters?: HousingFilters;
   onChangePagination: (page: number, perPage: number) => void;
@@ -125,9 +125,9 @@ const HousingList = ({
     if (onSelectHousing) {
       onSelectHousing({ all: false, ids: [] });
     }
-  }, [filters, paginatedHousing?.entities]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, housingList]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!paginatedHousing) {
+  if (!housingList) {
     return <></>;
   }
 
@@ -146,7 +146,9 @@ const HousingList = ({
         onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
         checked={
           (allChecked && checkedIds.length === 0) ||
-          (!allChecked && checkedIds.length === filteredCount)
+          (!allChecked &&
+            filteredCount > 0 &&
+            checkedIds.length === filteredCount)
         }
         className={checkedIds.length !== 0 ? 'indeterminate' : ''}
         label=""

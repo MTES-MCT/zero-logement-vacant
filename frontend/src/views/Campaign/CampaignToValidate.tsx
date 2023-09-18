@@ -49,13 +49,14 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     (_) => _.id === campaignBundle?.campaignIds[0]
   );
 
-  const { totalCount, paginatedHousing, refetchPaginatedHousing } =
-    useHousingList(
-      {
-        filters: { campaignIds: campaignBundle?.campaignIds, query },
-      },
-      { skip: !campaignBundle }
-    );
+  const { pagination } = useAppSelector((state) => state.housing);
+  const { paginatedHousing, refetchPaginatedHousing } = useHousingList(
+    {
+      pagination,
+      filters: { campaignIds: campaignBundle?.campaignIds, query },
+    },
+    { skip: !campaignBundle }
+  );
 
   const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
@@ -84,12 +85,13 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     sendingDate,
   });
 
-  const { hasSelected, setSelected, selected, selectedCount } =
-    useSelection(totalCount);
+  const { hasSelected, setSelected, selected, selectedCount } = useSelection(
+    campaignBundle?.housingCount
+  );
 
   useEffect(() => {
     refetchPaginatedHousing();
-  }, [campaignBundle]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [campaignBundle, pagination]); //eslint-disable-line react-hooks/exhaustive-deps
 
   if (!campaignBundle) {
     return <></>;
@@ -183,17 +185,19 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   )}
                   displayKind={HousingDisplayKey.Housing}
                   onChangePagination={(page, perPage) =>
-                    dispatch(changePagination({ page, perPage }))
+                    dispatch(
+                      changePagination({ page, perPage, paginate: true })
+                    )
                   }
                   onSelectHousing={setSelected}
                   pagination={{
-                    page: paginatedHousing.page,
-                    perPage: paginatedHousing.perPage,
+                    page: pagination.page,
+                    perPage: pagination.perPage,
                     paginate: true,
                   }}
-                  filteredCount={paginatedHousing.filteredCount}
-                  totalCount={paginatedHousing.totalCount}
-                  housingList={paginatedHousing.entities}
+                  housingList={paginatedHousing?.entities ?? []}
+                  filteredCount={Number(campaignBundle.housingCount)}
+                  totalCount={Number(campaignBundle.housingCount)}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>

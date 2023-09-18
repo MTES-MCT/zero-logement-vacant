@@ -12,10 +12,6 @@ const defaultConfig: KnexConfig = {
   pool: {
     min: 0,
     max: 10,
-    createTimeoutMillis: 5_000,
-    acquireTimeoutMillis: 5_000,
-    destroyTimeoutMillis: 5_000,
-    idleTimeoutMillis: 600_000,
   },
   migrations: {
     tableName: 'knex_migrations',

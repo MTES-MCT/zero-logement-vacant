@@ -32,6 +32,7 @@ import { PaginationOptions } from '../../shared/models/Pagination';
 import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
+import { sortQuery } from '../models/SortApi';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'housing';
@@ -258,74 +259,6 @@ const get = async (
     .first();
 
   return housing ? parseHousingApi(housing) : null;
-};
-
-type HousingFilters = Pick<
-  HousingFiltersApi,
-  | 'establishmentIds'
-  | 'occupancies'
-  | 'beneficiaryCounts'
-  | 'dataYearsIncluded'
-  | 'dataYearsExcluded'
-  | 'housingKinds'
-  | 'housingAreas'
-  | 'roomsCounts'
-  | 'cadastralClassifications'
-  | 'buildingPeriods'
-  | 'vacancyDurations'
-  | 'isTaxedValues'
-  | 'ownershipKinds'
-  | 'housingCounts'
-  | 'status'
-  | 'subStatus'
->;
-
-export const filterHousing = (filters: HousingFilters) => {
-  // TOOD: query: Knex.QueryBuilder<HousingDBO>
-  return (query: Knex.QueryBuilder) => {
-    if (filters.dataYearsIncluded?.length) {
-      query.whereRaw('data_years && ?::integer[]', [filters.dataYearsIncluded]);
-    }
-    if (filters.dataYearsExcluded?.length) {
-      query.whereRaw('not(data_years && ?::integer[])', [
-        filters.dataYearsExcluded,
-      ]);
-    }
-
-    if (filters.occupancies?.length) {
-      query.whereIn('occupancy', filters.occupancies);
-    }
-
-    if (filters.beneficiaryCounts?.length) {
-      query.where((subQuery) => {
-        subQuery.whereIn(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          `${housingTable}.beneficiary_count`,
-          filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
-        );
-
-        if (filters.beneficiaryCounts?.includes('0')) {
-          subQuery.orWhereNull(`${housingTable}.beneficiary_count`);
-        }
-
-        if (filters.beneficiaryCounts?.includes('gt5')) {
-          subQuery.orWhereRaw(`${housingTable}.beneficiary_count >= 5`);
-        }
-      });
-    }
-
-    if (filters.housingKinds?.length) {
-      query.whereIn('housing_kind', filters.housingKinds);
-    }
-
-    if (filters.status?.length) {
-      query.whereIn(`${housingTable}.status`, filters.status);
-    }
-    if (filters.subStatus?.length) {
-      query.whereIn(`${housingTable}.sub_status`, filters.subStatus);
-    }
-  };
 };
 
 export const filteredQuery = (filters: HousingFiltersApi) => {
@@ -657,28 +590,59 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
 };
 
 interface ListQueryOptions extends PaginationOptions {
-  filters: Omit<HousingFiltersApi, 'establishmentIds'>;
+  filters: HousingFiltersApi;
   geoCodes: string[];
 }
 
-const listQueryTest = (opts: ListQueryOptions) => {
-  return db
-    .select('h.*')
-    .from({ h: 'fast_housing' })
-    .whereIn('h.geo_code', opts.geoCodes)
-    .select(
-      'o.id as owner_id',
-      'o.raw_address as owner_raw_address',
-      'o.full_name',
-      'o.administrator',
-      'o.email',
-      'o.phone'
-    )
-    .join(ownersHousingTable, (join) => {
-      join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
-    })
-    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-    .modify(filterHousing(opts.filters));
+const fastListQuery = (opts: ListQueryOptions) => {
+  return (
+    db
+      .select('h.*')
+      .from({ h: 'fast_housing' })
+      .whereIn('h.geo_code', opts.geoCodes)
+      // Owners
+      .select(
+        'o.id as owner_id',
+        'o.raw_address as owner_raw_address',
+        'o.full_name',
+        'o.administrator',
+        'o.email',
+        'o.phone'
+      )
+      .join(ownersHousingTable, (join) => {
+        join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
+      })
+      .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+      // Campaigns
+      .select('campaigns.campaign_id')
+      .joinRaw(
+        `LEFT JOIN LATERAL (
+           SELECT json_agg(distinct(campaign_id)) AS campaign_id, COUNT(*) OVER() as campaign_count 
+           FROM campaigns_housing ch, campaigns c 
+           WHERE h.id = ch.housing_id 
+           AND c.id = ch.campaign_id
+           ${
+             opts.filters.campaignIds?.length
+               ? ` AND c.id IN (:campaignIds)`
+               : ''
+           }
+           ${
+             opts.filters.establishmentIds?.length
+               ? ` AND c.establishment_id IN (:establishmentIds)`
+               : ''
+           }
+         ) campaigns ON true`,
+        {
+          campaignIds: (opts.filters.campaignIds ?? []).join(','),
+          establishmentIds: (opts.filters.establishmentIds ?? []).join(','),
+        }
+      )
+      .modify(
+        filteredQuery(
+          fp.omit(['establishmentIds', 'campaignIds'], opts.filters)
+        )
+      )
+  );
 };
 
 const listQuery = (establishmentIds?: string[]) =>
@@ -732,53 +696,29 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
     .whereIn('id', opts.filters.establishmentIds ?? [])
     .then((geoCodes) => geoCodes.map((_) => _.geo_code));
 
-  const query = db
-    .select('h.*')
-    .from({ h: 'fast_housing' })
-    .whereIn('h.geo_code', geoCodes)
-    .orderBy(['geo_code', 'id'])
-    .select(
-      'o.id as owner_id',
-      'o.raw_address as owner_raw_address',
-      'o.full_name',
-      'o.administrator',
-      'o.email',
-      'o.phone'
+  const housingList: HousingDBO[] = await fastListQuery({
+    filters: opts.filters,
+    geoCodes,
+  })
+    .modify(
+      sortQuery(opts.sort, {
+        keys: {
+          owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
+          rawAddress: (query) => {
+            query
+              .orderBy('h.raw_address[2]', opts.sort?.rawAddress)
+              .orderByRaw(
+                `array_to_string(((string_to_array(h."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
+              )
+              .orderByRaw(
+                `(string_to_array(h."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
+              );
+          },
+        },
+        default: (query) => query.orderBy(['geo_code', 'id']),
+      })
     )
-    .join(ownersHousingTable, (join) => {
-      join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
-    })
-    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-    .modify(filterHousing(opts.filters))
     .modify(paginationQuery(opts.pagination as PaginationApi));
-
-  const housingList: HousingDBO[] = await query;
-
-  // const housingList: HousingDBO[] = await listQueryTest({
-  //   filters: opts.filters,
-  //   pagination: opts.pagination,
-  // }).modify(paginationQuery(opts.pagination as PaginationApi));
-  // .modify(filteredQuery(opts.filters))
-  // .modify(
-  //   sortQuery(opts.sort, {
-  //     keys: {
-  //       owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
-  //       rawAddress: (query) => {
-  //         query
-  //           .orderBy(`${housingTable}.raw_address[2]`, opts.sort?.rawAddress)
-  //           .orderByRaw(
-  //             `array_to_string(((string_to_array("${housingTable}"."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
-  //           )
-  //           .orderByRaw(
-  //             `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
-  //           );
-  //       },
-  //     },
-  //     default: (query) => query.orderBy('id'),
-  //   })
-  // )
-  // TODO: avoid cast
-  // .modify(paginationQuery(opts.pagination as PaginationApi));
 
   logger.trace('housingRepository.find', { housing: housingList.length });
   return housingList.map(parseHousingApi);
@@ -863,7 +803,7 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
     .then((geoCodes) => geoCodes.map((_) => _.geo_code));
 
   const result = await db
-    .with('list', listQueryTest({ filters, geoCodes }))
+    .with('list', fastListQuery({ filters, geoCodes }))
     .countDistinct('id as housing')
     .countDistinct('owner_id as owners')
     .from('list')

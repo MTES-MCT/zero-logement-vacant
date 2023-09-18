@@ -54,8 +54,12 @@ import { useSelection } from '../../hooks/useSelection';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import { useHousingList } from '../../hooks/useHousingList';
 import housingSlice from '../../store/reducers/housingReducer';
-import { useUpdateHousingListMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation,
+} from '../../services/housing.service';
 import Alert from '../../components/Alert/Alert';
+import fp from 'lodash/fp';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -74,15 +78,29 @@ const HousingListView = () => {
 
   const { pagination, sort, view } = useAppSelector((state) => state.housing);
 
-  const { filteredCount, filteredOwnerCount, totalCount, totalOwnerCount, paginatedHousing } = useHousingList({
+  const { data } = useCountHousingQuery(
+    fp.pick([
+      'establishmentIds',
+      'dataYearsIncluded',
+      'dataYearsExcluded',
+      'status',
+      'campaignIds',
+      'occupancies',
+    ])(filters)
+  );
+  const totalCount = data?.housing ?? 1;
+
+  const { data: count, isLoading: isCounting } = useCountHousingQuery(filters);
+  const filteredCount = count?.housing ?? 0;
+  const filteredOwnerCount = count?.owners ?? 0;
+
+  const { paginatedHousing } = useHousingList({
     filters,
     pagination,
     sort,
   });
 
-  const { selectedCount, selected, setSelected } = useSelection(
-    filteredCount
-  );
+  const { selectedCount, selected, setSelected } = useSelection(filteredCount);
 
   const [
     updateHousingList,
@@ -187,6 +205,9 @@ const HousingListView = () => {
   };
 
   function housingCount(): string {
+    if (isCounting) {
+      return 'Comptage des logements...';
+    }
     const items = displayCount(
       totalCount,
       'logement',
@@ -322,7 +343,7 @@ const HousingListView = () => {
                 <HousingList
                   filteredCount={filteredCount}
                   totalCount={totalCount}
-                  paginatedHousing={paginatedHousing.entities}
+                  housingList={paginatedHousing.entities}
                   pagination={pagination}
                   onChangePagination={(page, perPage) =>
                     dispatch(changePagination({ page, perPage }))

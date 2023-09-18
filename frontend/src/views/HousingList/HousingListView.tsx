@@ -56,6 +56,7 @@ import HousingListEditionSideMenu from '../../components/HousingEdition/HousingL
 import { useHousingList } from '../../hooks/useHousingList';
 import housingSlice from '../../store/reducers/housingReducer';
 import { useUpdateHousingListMutation } from '../../services/housing.service';
+import Alert from '../../components/Alert/Alert';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -84,7 +85,8 @@ const HousingListView = () => {
     paginatedHousing?.filteredCount
   );
 
-  const [updateHousingList] = useUpdateHousingListMutation();
+  const [updateHousingList, { isSuccess: isUpdateSuccess }] =
+    useUpdateHousingListMutation();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
     SelectedHousing | undefined
   >();
@@ -284,6 +286,16 @@ const HousingListView = () => {
               onChange={(values) => removeFilter(values)}
               onReset={onResetFilters}
             />
+
+            {isUpdateSuccess && (
+              <Alert
+                type="success"
+                title="La mise à jour groupée de 3 logements a bien été enregistrée"
+                description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
+                closable
+                className="fr-mb-2w"
+              />
+            )}
 
             <Text spacing="mb-2w">
               {housingCount({

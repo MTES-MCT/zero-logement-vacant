@@ -15,7 +15,7 @@ convict.addFormat({
   coerce: (val: string): boolean => val === 'true',
 });
 
-const MAIL_PROVIDERS = ['sendinblue', 'nodemailer'];
+const MAIL_PROVIDERS = ['brevo', 'nodemailer'];
 
 convict.addFormat({
   name: 'comma-separated string',
@@ -77,7 +77,7 @@ interface Config {
     level: LogLevel;
   };
   mailer: {
-    provider: 'sendinblue' | 'nodemailer';
+    provider: 'brevo' | 'nodemailer';
     host: string | null;
     port: number | null;
     user: string | null;

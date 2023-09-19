@@ -107,7 +107,7 @@ export const housingApi = createApi({
       ],
     }),
     updateHousingList: builder.mutation<
-      void,
+      number,
       {
         housingUpdate: HousingUpdate;
         allHousing: boolean;
@@ -125,6 +125,9 @@ export const housingApi = createApi({
           filters,
         },
       }),
+      transformResponse: (response: any) => {
+        return response.length;
+      },
       invalidatesTags: (
         result,
         error,

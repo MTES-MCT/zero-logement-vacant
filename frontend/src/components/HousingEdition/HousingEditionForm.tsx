@@ -121,11 +121,9 @@ const HousingEditionForm = (
     comment,
     noteKind,
     hasChange:
-      housing !== undefined ||
-      status !== undefined ||
-      occupancy !== undefined ||
-      occupancyIntended !== undefined ||
-      hasNote,
+      [housing, status, occupancy, occupancyIntended].some(
+        (prop) => prop !== undefined
+      ) || hasNote,
   });
 
   useImperativeHandle(ref, () => ({

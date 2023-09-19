@@ -31,8 +31,6 @@ const HousingStatusSelect = ({
     setShowOptions(false);
   };
 
-  console.log('selected', selected);
-
   return (
     <div className="select-single-input" ref={wrapperRef}>
       <div

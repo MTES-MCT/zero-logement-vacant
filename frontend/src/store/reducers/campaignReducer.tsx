@@ -133,6 +133,10 @@ const campaignSlice = createSlice({
       const { status, sort } = action.payload;
       state.housingByStatus[status] = {
         ...state.housingByStatus[status],
+        pagination: {
+          ...state.housingByStatus[status].pagination,
+          page: 1,
+        },
         sort,
       };
     },

@@ -44,7 +44,7 @@ const HousingListTabs = ({ filters }: Props) => {
       {statusList.map((status, index) => (
         <HousingListTab
           index={index}
-          key={`status_tab_${index}`}
+          key={`status_tab_${status}`}
           label={getTabLabel(status)}
           status={status}
           filters={{

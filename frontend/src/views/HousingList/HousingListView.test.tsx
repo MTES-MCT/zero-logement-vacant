@@ -114,6 +114,7 @@ describe('housing view', () => {
           ...initialHousingFilters,
           ownerKinds: [ownerKindOptions[0].value],
         },
+        paginate: true,
         page: 1,
         perPage: config.perPageDefault,
       },
@@ -177,6 +178,7 @@ describe('housing view', () => {
       method: 'POST',
       body: {
         filters: { ...initialHousingFilters, query: 'my search' },
+        paginate: true,
         page: 1,
         perPage: config.perPageDefault,
       },

@@ -101,7 +101,7 @@ export const queryOwnerHousingWhereClause = (
           query?.split(' ').reverse().join(' ')
         );
         whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+          `replace(upper(unaccent(array_to_string(h.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
           query
         );
         whereBuilder.orWhereRaw(
@@ -353,10 +353,10 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
           filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
         );
         if (filters.beneficiaryCounts?.indexOf('0') !== -1) {
-          whereBuilder.orWhereNull(`${housingTable}.beneficiary_count`);
+          whereBuilder.orWhereNull('beneficiary_count');
         }
         if (filters.beneficiaryCounts?.indexOf('gt5') !== -1) {
-          whereBuilder.orWhereRaw(`${housingTable}.beneficiary_count >= 5`);
+          whereBuilder.orWhereRaw('beneficiary_count >= 5');
         }
       });
     }
@@ -491,20 +491,24 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       });
     }
     if (filters.housingCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.housingCounts?.indexOf('lt5') !== -1) {
-          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
-        }
-        if (filters.housingCounts?.indexOf('5to20') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [5, 20]);
-        }
-        if (filters.housingCounts?.indexOf('20to50') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [20, 50]);
-        }
-        if (filters.housingCounts?.indexOf('gt50') !== -1) {
-          whereBuilder.orWhereRaw('housing_count > 50');
-        }
-      });
+      queryBuilder
+        .leftJoin(buildingTable, `building_id`, `${buildingTable}.id`)
+        .where(function (whereBuilder: any) {
+          if (filters.housingCounts?.indexOf('lt5') !== -1) {
+            whereBuilder.orWhereRaw(
+              'coalesce(housing_count, 0) between 0 and 4'
+            );
+          }
+          if (filters.housingCounts?.indexOf('5to20') !== -1) {
+            whereBuilder.orWhereBetween('housing_count', [5, 20]);
+          }
+          if (filters.housingCounts?.indexOf('20to50') !== -1) {
+            whereBuilder.orWhereBetween('housing_count', [20, 50]);
+          }
+          if (filters.housingCounts?.indexOf('gt50') !== -1) {
+            whereBuilder.orWhereRaw('housing_count > 50');
+          }
+        });
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where(function (whereBuilder: any) {
@@ -536,15 +540,11 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       });
     }
     if (filters.localities?.length) {
-      queryBuilder.whereIn('geo_code', filters.localities);
+      queryBuilder.whereIn('h.geo_code', filters.localities);
     }
     if (filters.localityKinds?.length) {
       queryBuilder
-        .join(
-          localitiesTable,
-          `${housingTable}.geo_code`,
-          `${localitiesTable}.geo_code`
-        )
+        .join(localitiesTable, 'h.geo_code', `${localitiesTable}.geo_code`)
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
@@ -553,7 +553,7 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(longitude, latitude), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersIncluded)
       );
@@ -564,7 +564,7 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(longitude, latitude), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
@@ -580,10 +580,10 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       ]);
     }
     if (filters.status?.length) {
-      queryBuilder.whereIn(`${housingTable}.status`, filters.status);
+      queryBuilder.whereIn('status', filters.status);
     }
     if (filters.subStatus?.length) {
-      queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus);
+      queryBuilder.whereIn('sub_status', filters.subStatus);
     }
     queryOwnerHousingWhereClause(queryBuilder, filters.query);
   };

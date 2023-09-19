@@ -34,6 +34,7 @@ import { useSelection } from '../../hooks/useSelection';
 import { useHousingList } from '../../hooks/useHousingList';
 import campaignSlice from '../../store/reducers/campaignReducer';
 import {
+  useCountHousingQuery,
   useUpdateHousingListMutation,
   useUpdateHousingMutation,
 } from '../../services/housing.service';
@@ -64,7 +65,11 @@ const TabContent = ({ status, query }: TabContentProps) => {
   const { pagination, sort } = useAppSelector(
     (state) => state.campaign.housingByStatus[status]
   );
-
+  const { data: count } = useCountHousingQuery({
+    campaignIds: campaignBundle?.campaignIds,
+    status: [status],
+    query,
+  });
   const { paginatedHousing } = useHousingList(
     {
       filters: {
@@ -213,8 +218,8 @@ const TabContent = ({ status, query }: TabContentProps) => {
         />
       )}
       <HousingList
-        filteredCount={1}
-        totalCount={1}
+        filteredCount={count?.housing ?? 1}
+        totalCount={campaignBundle.housingCount}
         pagination={{
           page: pagination?.page ?? 1,
           perPage: pagination?.perPage ?? 50,
@@ -292,60 +297,30 @@ const CampaignInProgress = () => {
   };
 
   const housingCountByStatus = [
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.NeverContacted],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.Waiting],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.FirstContact],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.InProgress],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.Completed],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
-    useHousingList(
-      {
-        filters: {
-          ...filters,
-          status: [HousingStatus.Blocked],
-        },
-      },
-      { skip: !campaignBundle }
-    ).paginatedHousing?.filteredCount,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.NeverContacted],
+    }).data?.housing,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.Waiting],
+    }).data?.housing,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.FirstContact],
+    }).data?.housing,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.InProgress],
+    }).data?.housing,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.Completed],
+    }).data?.housing,
+    useCountHousingQuery({
+      ...filters,
+      status: [HousingStatus.Blocked],
+    }).data?.housing,
   ];
 
   const getTabLabel = (status: HousingStatus) => {

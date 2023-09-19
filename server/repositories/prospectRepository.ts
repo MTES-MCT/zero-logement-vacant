@@ -1,6 +1,7 @@
 import db from './db';
 import { ProspectApi } from '../models/ProspectApi';
 import { establishmentsTable } from './establishmentRepository';
+import { logger } from '../utils/logger';
 
 export const prospectsTable = 'prospects';
 
@@ -28,7 +29,7 @@ const get = async (email: string): Promise<ProspectApi | null> => {
 };
 
 const exists = async (email: string): Promise<boolean> => {
-  console.log(`Does prospect ${email} exist`);
+  logger.debug(`Does prospect ${email} exist`);
 
   const prospect = await db(prospectsTable)
     .select('email')

@@ -35,7 +35,8 @@ export interface HousingFilters {
   geoPerimetersExcluded?: string[];
   dataYearsIncluded?: number[];
   dataYearsExcluded?: number[];
-  status?: number[];
+  status?: HousingStatus;
+  statusList?: HousingStatus[];
   subStatus?: string[];
   query?: string;
   energyConsumption?: string[];
@@ -47,7 +48,7 @@ export type HousingFiltersForTotalCount = Pick<
   | 'establishmentIds'
   | 'dataYearsIncluded'
   | 'dataYearsExcluded'
-  | 'status'
+  | 'statusList'
   | 'campaignIds'
   | 'occupancies'
 >;

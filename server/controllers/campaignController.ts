@@ -224,7 +224,7 @@ const createReminderCampaign = async (
         .listWithFilters({
           establishmentIds: [establishmentId],
           campaignIds: campaignBundle.campaignIds,
-          status: [HousingStatusApi.Waiting],
+          statusList: [HousingStatusApi.Waiting],
         })
         .then((_) =>
           _.map((_) => _.id).filter(
@@ -471,7 +471,7 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
     .listWithFilters({
       establishmentIds: [establishmentId],
       campaignsCounts: ['0'],
-      status: [
+      statusList: [
         HousingStatusApi.Waiting,
         HousingStatusApi.FirstContact,
         HousingStatusApi.InProgress,

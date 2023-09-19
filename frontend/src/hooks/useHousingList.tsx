@@ -6,10 +6,10 @@ import {
 
 export const useHousingList = (
   findOptions: FindOptions,
-  useOptions: { skip: boolean } = { skip: false }
+  useOptions: { skipListing: boolean } = { skipListing: false }
 ) => {
   const { data: paginatedHousing, refetch: refetchPaginatedHousing } =
-    useFindHousingQuery(findOptions, useOptions);
+    useFindHousingQuery(findOptions, { skip: useOptions.skipListing });
 
   const { data: total } = useCountHousingQuery({
     dataYearsExcluded: findOptions.filters.dataYearsExcluded,

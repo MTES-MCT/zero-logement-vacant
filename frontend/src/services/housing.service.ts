@@ -64,7 +64,7 @@ export const housingApi = createApi({
         },
       }),
       providesTags: (result, errors, args) => [
-        ...(args.filters.status?.map((status) => ({
+        ...(args.filters.statusList?.map((status) => ({
           type: 'HousingByStatus' as const,
           id: status,
         })) ?? []),

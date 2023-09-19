@@ -12,26 +12,12 @@ import {
   FetchCampaignBundleAction,
 } from '../actions/campaignAction';
 import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
-import { HousingStatus } from '../../models/HousingState';
-import { Pagination } from '../../../../shared/models/Pagination';
-import { HousingSort } from '../../models/Housing';
-import config from '../../utils/config';
-
-const DefaultPagination: Pagination = {
-  paginate: true,
-  page: 1,
-  perPage: config.perPageDefault,
-};
 
 export interface CampaignState {
   campaignList?: Campaign[];
   campaignBundleList?: CampaignBundle[];
   campaignBundle?: CampaignBundle;
   campaignBundleFetchingId?: CampaignBundleId;
-  housingByStatus: {
-    pagination?: Pagination;
-    sort?: HousingSort;
-  }[];
   campaignIds?: string[];
   loading: boolean;
   campaignCreated: boolean;
@@ -39,14 +25,6 @@ export interface CampaignState {
 }
 
 const initialState: CampaignState = {
-  housingByStatus: [
-    { pagination: DefaultPagination },
-    { pagination: DefaultPagination },
-    { pagination: DefaultPagination },
-    { pagination: DefaultPagination },
-    { pagination: DefaultPagination },
-    { pagination: DefaultPagination },
-  ],
   loading: false,
   campaignCreated: false,
 };
@@ -115,30 +93,6 @@ const campaignSlice = createSlice({
       action: PayloadAction<CampaignUpdatedAction>
     ) => {
       state.campaignBundleFetchingId = action.payload.campaignBundleFetchingId;
-    },
-    changePagination: (
-      state: CampaignState,
-      action: PayloadAction<{ status: HousingStatus; pagination: Pagination }>
-    ) => {
-      const { status, pagination } = action.payload;
-      state.housingByStatus[status] = {
-        ...state.housingByStatus[status],
-        pagination,
-      };
-    },
-    changeSort: (
-      state: CampaignState,
-      action: PayloadAction<{ status: HousingStatus; sort: HousingSort }>
-    ) => {
-      const { status, sort } = action.payload;
-      state.housingByStatus[status] = {
-        ...state.housingByStatus[status],
-        pagination: {
-          ...state.housingByStatus[status].pagination,
-          page: 1,
-        },
-        sort,
-      };
     },
   },
 });

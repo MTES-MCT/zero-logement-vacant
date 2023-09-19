@@ -30,8 +30,9 @@ import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
 import { useHousingList } from '../../hooks/useHousingList';
-import housingSlice from '../../store/reducers/housingReducer';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { HousingFilters } from '../../models/HousingFilters';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -49,13 +50,18 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     (_) => _.id === campaignBundle?.campaignIds[0]
   );
 
-  const { totalCount, paginatedHousing, refetchPaginatedHousing } =
-    useHousingList(
-      {
-        filters: { campaignIds: campaignBundle?.campaignIds, query },
-      },
-      { skip: !campaignBundle }
-    );
+  const filters: HousingFilters = {
+    campaignIds: campaignBundle?.campaignIds,
+    query,
+  };
+
+  const { totalCount, refetchPaginatedHousing } = useHousingList(
+    {
+      filters,
+      pagination: DefaultPagination,
+    },
+    { skipListing: !campaignBundle }
+  );
 
   const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
@@ -136,8 +142,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     setIsRemovingModalOpen(false);
   };
 
-  const { changePagination } = housingSlice.actions;
-
   async function downloadCSV(downloadOnly = false): Promise<void> {
     window.open(campaignBundle?.exportURL, '_self');
     if (!downloadOnly) {
@@ -176,17 +180,14 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   Supprimer des logements de votre campagne.
                 </Text>
                 <HousingList
+                  filters={filters}
                   actions={(housing) => (
                     <ButtonLink isSimple onClick={() => remove(housing.id)}>
                       Supprimer
                     </ButtonLink>
                   )}
                   displayKind={HousingDisplayKey.Housing}
-                  onChangePagination={(page, perPage) =>
-                    dispatch(changePagination({ page, perPage }))
-                  }
                   onSelectHousing={setSelected}
-                  paginatedHousing={paginatedHousing}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>

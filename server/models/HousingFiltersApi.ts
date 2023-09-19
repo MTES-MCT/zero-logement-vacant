@@ -31,7 +31,8 @@ export interface HousingFiltersApi {
   geoPerimetersExcluded?: string[];
   dataYearsIncluded?: number[];
   dataYearsExcluded?: number[];
-  status?: number[];
+  status?: number;
+  statusList?: number[];
   subStatus?: string[];
   query?: string;
   energyConsumption?: EnergyConsumptionGradesApi[];
@@ -43,7 +44,7 @@ export type HousingFiltersForTotalCountApi = Pick<
   | 'establishmentIds'
   | 'dataYearsIncluded'
   | 'dataYearsExcluded'
-  | 'status'
+  | 'statusList'
   | 'campaignIds'
 >;
 
@@ -78,7 +79,8 @@ const validators: ValidationChain[] = [
   body('filters.geoPerimetersExcluded').default([]).custom(isArrayOf(isString)),
   body('filters.dataYearsIncluded').default([]).custom(isArrayOf(isInteger)),
   body('filters.dataYearsExcluded').default([]).custom(isArrayOf(isInteger)),
-  body('filters.status').default([]).custom(isArrayOf(isInteger)),
+  body('filters.statusList').default([]).custom(isArrayOf(isInteger)),
+  body('filters.status').optional().isInt(),
   body('filters.subStatus').default([]).custom(isArrayOf(isString)),
   body('filters.query').default('').isString(),
   body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),

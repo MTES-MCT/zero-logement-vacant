@@ -578,8 +578,11 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
         filters.dataYearsExcluded,
       ]);
     }
-    if (filters.status?.length) {
-      queryBuilder.whereIn(`${housingTable}.status`, filters.status);
+    if (filters.statusList?.length) {
+      queryBuilder.whereIn(`${housingTable}.status`, filters.statusList);
+    }
+    if (filters.status !== undefined) {
+      queryBuilder.where(`${housingTable}.status`, filters.status);
     }
     if (filters.subStatus?.length) {
       queryBuilder.whereIn(`${housingTable}.sub_status`, filters.subStatus);

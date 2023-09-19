@@ -19,6 +19,7 @@ import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../AppTextInput/AppTextInput';
 
 interface Props {
+  open: boolean;
   housingCount: number;
   housingExcudedCount?: number;
   filters: HousingFilters;
@@ -28,6 +29,7 @@ interface Props {
 }
 
 const CampaignCreationModal = ({
+  open,
   housingCount,
   housingExcudedCount,
   filters,
@@ -53,7 +55,7 @@ const CampaignCreationModal = ({
 
   return (
     <Modal
-      isOpen={true}
+      isOpen={open}
       hide={() => onClose()}
       size="lg"
       data-testid="campaign-creation-modal"

@@ -55,6 +55,7 @@ import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useHousingList } from '../../hooks/useHousingList';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
 
 interface TitleWithIconProps {
   icon: string;
@@ -83,12 +84,9 @@ function HousingListFiltersSidemenu() {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
-  const { pagination, sort } = useAppSelector((state) => state.housing);
-
   const { paginatedHousing } = useHousingList({
     filters,
-    pagination,
-    sort,
+    pagination: DefaultPagination,
   });
 
   function close(): void {
@@ -114,11 +112,11 @@ function HousingListFiltersSidemenu() {
                   <AppMultiSelect
                     label="Statut"
                     options={statusOptions()}
-                    initialValues={filters.status?.map((_) => _.toString())}
+                    initialValues={filters.statusList?.map((_) => _.toString())}
                     onChange={(values) =>
                       onChangeFilters(
                         {
-                          status: values.map(Number),
+                          statusList: values.map(Number),
                           subStatus: filters.subStatus?.filter(
                             (_) => getSubStatusList(values).indexOf(_) !== -1
                           ),
@@ -131,7 +129,7 @@ function HousingListFiltersSidemenu() {
                 <Col n="6">
                   <AppMultiSelect
                     label="Sous-statut"
-                    options={getSubStatusListOptions(filters.status)}
+                    options={getSubStatusListOptions(filters.statusList)}
                     initialValues={filters.subStatus}
                     onChange={(values) =>
                       onChangeFilters({ subStatus: values }, 'Sous-statut')

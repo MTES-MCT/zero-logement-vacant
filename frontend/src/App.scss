@@ -297,6 +297,11 @@ button.fr-select {
 }
 
 .statusTabs {
+
+  .fr-tabs__tab {
+    font-size: .875rem!important;
+  }
+
   li:last-child {
     .fr-tabs__tab:not([aria-selected='true']) {
       background-color: var(--grey-925);

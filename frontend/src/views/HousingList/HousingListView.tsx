@@ -85,8 +85,10 @@ const HousingListView = () => {
     paginatedHousing?.filteredCount
   );
 
-  const [updateHousingList, { isSuccess: isUpdateSuccess }] =
-    useUpdateHousingListMutation();
+  const [
+    updateHousingList,
+    { isSuccess: isUpdateSuccess, data: updatedCount },
+  ] = useUpdateHousingListMutation();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] = useState<
     SelectedHousing | undefined
   >();
@@ -290,7 +292,7 @@ const HousingListView = () => {
             {isUpdateSuccess && (
               <Alert
                 type="success"
-                title="La mise à jour groupée de 3 logements a bien été enregistrée"
+                title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
                 description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
                 closable
                 className="fr-mb-2w"

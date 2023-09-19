@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Col, Row, Tabs } from '@dataesr/react-dsfr';
-import { getHousingState, HousingStatus } from '../../models/HousingState';
+import { HousingStatus } from '../../models/HousingState';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import CampaignInProgressTab from './CampaignInProgressTab';
+import { useStatusTabs } from '../../hooks/useStatusTabs';
 
 const CampaignInProgress = () => {
   const statusList = [
@@ -15,25 +16,8 @@ const CampaignInProgress = () => {
   ];
 
   const [query, setQuery] = useState<string>();
-  const [statusCounts, setStatusCounts] = useState<(number | undefined)[]>(
-    statusList.map((_) => undefined)
-  );
 
-  const setStatusCount = (status?: HousingStatus) => (count?: number) => {
-    //Use of prevState is required to prevent concurrency issues
-    setStatusCounts((prevState) => {
-      const tmp = [...prevState];
-      if (count !== undefined) {
-        tmp.splice((status ?? -1) + 1, 1, count);
-      }
-      return tmp;
-    });
-  };
-
-  const getTabLabel = (status?: HousingStatus) =>
-    `${status !== undefined ? getHousingState(status).title : 'Tous'} (${
-      statusCounts[(status ?? -1) + 1] ?? '...'
-    })`;
+  const { getTabLabel, setStatusCount } = useStatusTabs(statusList);
 
   return (
     <>

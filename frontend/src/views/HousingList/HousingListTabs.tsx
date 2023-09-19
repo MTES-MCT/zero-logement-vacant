@@ -1,8 +1,9 @@
-import { getHousingState, HousingStatus } from '../../models/HousingState';
+import { HousingStatus } from '../../models/HousingState';
 import { Tabs } from '@dataesr/react-dsfr';
-import React, { useState } from 'react';
+import React from 'react';
 import HousingListTab from './HousingListTab';
 import { HousingFilters } from '../../models/HousingFilters';
+import { useStatusTabs } from '../../hooks/useStatusTabs';
 
 interface Props {
   filters: HousingFilters;
@@ -19,25 +20,7 @@ const HousingListTabs = ({ filters }: Props) => {
     HousingStatus.Blocked,
   ];
 
-  const [statusCounts, setStatusCounts] = useState<(number | undefined)[]>(
-    statusList.map((_) => undefined)
-  );
-
-  const setStatusCount = (status?: HousingStatus) => (count?: number) => {
-    //Use of prevState is required to prevent concurrency issues
-    setStatusCounts((prevState) => {
-      const tmp = [...prevState];
-      if (count !== undefined) {
-        tmp.splice((status ?? -1) + 1, 1, count);
-      }
-      return tmp;
-    });
-  };
-
-  const getTabLabel = (status?: HousingStatus) =>
-    `${status !== undefined ? getHousingState(status).title : 'Tous'} (${
-      statusCounts[(status ?? -1) + 1] ?? '...'
-    })`;
+  const { getTabLabel, setStatusCount } = useStatusTabs(statusList);
 
   return (
     <Tabs className="tabs-no-border statusTabs fr-mt-2w">

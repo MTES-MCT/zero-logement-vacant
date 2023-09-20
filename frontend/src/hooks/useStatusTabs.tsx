@@ -13,7 +13,6 @@ export function useStatusTabs(statusList: (HousingStatus | undefined)[]) {
       if (count !== undefined) {
         tmp.splice((status ?? -1) + 1, 1, count);
       }
-      console.log('tmp', status, count, tmp);
       return tmp;
     });
   };

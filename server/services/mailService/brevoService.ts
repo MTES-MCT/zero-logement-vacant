@@ -1,37 +1,32 @@
-import {
-  ContactsApi,
-  ContactsApiApiKeys,
-  TransactionalEmailsApi,
-  TransactionalEmailsApiApiKeys,
-} from '@sendinblue/client';
+import { ContactsApi, TransactionalEmailsApi } from '@sendinblue/client';
 import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
+// TODO: remove custom types when it will be officially supported.
+// See https://github.com/getbrevo/brevo-node/issues/1
+import Brevo from '@getbrevo/brevo';
 
 import { MailEvent, MailService, SendOptions } from './mailService';
 import config from '../../utils/config';
 import { getAccountActivationLink } from '../../models/SignupLinkApi';
 import { getPasswordResetLink } from '../../models/ResetLinkApi';
 import { UserApi } from '../../models/UserApi';
+import { logger } from '../../utils/logger';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
 const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 
-class SendinblueService implements MailService {
+class BrevoService implements MailService {
   private emails: TransactionalEmailsApi;
   private contacts: ContactsApi;
   private events: EventsApi;
 
   constructor() {
-    this.emails = new TransactionalEmailsApi();
-    this.emails.setApiKey(
-      TransactionalEmailsApiApiKeys.apiKey,
-      config.mailer.apiKey as string
-    );
-    this.contacts = new ContactsApi();
-    this.contacts.setApiKey(
-      ContactsApiApiKeys.apiKey,
-      config.mailer.apiKey as string
-    );
+    const client = Brevo.ApiClient.instance;
+    client.authentications['api-key'].apiKey = config.mailer.apiKey;
+
+    this.emails = new Brevo.TransactionalEmailsApi();
+    this.contacts = new Brevo.ContactsApi();
+    // FIXME
     this.events = new EventsApi(config.mailer.eventApiKey as string);
   }
 
@@ -114,8 +109,11 @@ class SendinblueService implements MailService {
   ) {
     this.contacts
       .getContactInfo(email)
+      .then(() => {
+        logger.info('Contact exists. Skipping...', { email });
+      })
       .catch((error) => {
-        console.error(error);
+        logger.error(error);
         return this.contacts.createContact({
           email,
           attributes: {
@@ -124,7 +122,7 @@ class SendinblueService implements MailService {
           },
         });
       })
-      .catch(console.error);
+      .catch(logger.error.bind(logger));
   }
 
   private prospectActivated(email: string, data: MailEvent['user:created']) {
@@ -144,5 +142,5 @@ export default function createSendinblueService(): MailService {
   if (!config.mailer.apiKey) {
     throw new Error('Provide an API key for Sendinblue');
   }
-  return new SendinblueService();
+  return new BrevoService();
 }

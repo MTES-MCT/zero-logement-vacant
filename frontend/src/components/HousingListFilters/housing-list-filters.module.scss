@@ -3,7 +3,6 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  color: var(--grey-625);
   border-radius: 50%;
   padding: 0.5rem;
   margin-right: 0.5rem;
@@ -26,4 +25,13 @@
   }
 
 
+}
+.checkboxLabel {
+  label {
+    font-weight: bold;
+
+    span{
+      font-weight: normal;
+    }
+  }
 }

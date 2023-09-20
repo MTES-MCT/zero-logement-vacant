@@ -1,10 +1,10 @@
 import config from '../../utils/config';
-import createSendinblueService from './sendinblueService';
+import createSendinblueService from './brevoService';
 import { MailService } from './mailService';
 import createNodemailerService from './nodemailerService';
 
 const mailService: MailService =
-  config.mailer.provider === 'sendinblue'
+  config.mailer.provider === 'brevo'
     ? createSendinblueService()
     : createNodemailerService();
 

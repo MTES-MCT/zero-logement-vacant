@@ -3,7 +3,7 @@ import { getHousingState, HousingStatus } from '../models/HousingState';
 
 export function useStatusTabs(statusList: (HousingStatus | undefined)[]) {
   const [statusCounts, setStatusCounts] = useState<(number | undefined)[]>(
-    statusList.map((_) => undefined)
+    new Array(7)
   );
 
   const setStatusCount = (status?: HousingStatus) => (count?: number) => {
@@ -13,6 +13,7 @@ export function useStatusTabs(statusList: (HousingStatus | undefined)[]) {
       if (count !== undefined) {
         tmp.splice((status ?? -1) + 1, 1, count);
       }
+      console.log('tmp', status, count, tmp);
       return tmp;
     });
   };

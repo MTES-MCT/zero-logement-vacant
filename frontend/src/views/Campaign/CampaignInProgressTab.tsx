@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Row } from '@dataesr/react-dsfr';
-import { Housing, HousingUpdate, SelectedHousing } from '../../models/Housing';
+import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import {
   TrackEventActions,
@@ -10,16 +10,10 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import { useAppDispatch } from '../../hooks/useStore';
-import HousingEditionSideMenu from '../../components/HousingEdition/HousingEditionSideMenu';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
-import HousingStatusBadge from '../../components/HousingStatusBadge/HousingStatusBadge';
-import HousingSubStatusBadge from '../../components/HousingStatusBadge/HousingSubStatusBadge';
 import { createCampaignBundleReminder } from '../../store/actions/campaignAction';
 import { useSelection } from '../../hooks/useSelection';
-import {
-  useUpdateHousingListMutation,
-  useUpdateHousingMutation,
-} from '../../services/housing.service';
+import { useUpdateHousingListMutation } from '../../services/housing.service';
 import Tab, { TabProps } from '../../components/Tab/Tab';
 import HousingList, {
   HousingDisplayKey,
@@ -48,11 +42,9 @@ const CampaignInProgressTab = ({
   const { trackEvent } = useMatomo();
   const { isCampaign, bundle: campaignBundle } = useCampaignBundle();
 
-  const [updateHousing] = useUpdateHousingMutation();
   const [updateHousingList] = useUpdateHousingListMutation();
 
   const [filteredHousingCount, setFilteredHousingCount] = useState<number>();
-  const [updatingHousing, setUpdatingHousing] = useState<Housing>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
   const [reminderModalSelectedHousing, setReminderModalSelectedHousing] =
@@ -73,21 +65,6 @@ const CampaignInProgressTab = ({
         selected.ids
       )
     );
-  };
-  const submitHousingUpdate = async (
-    housing: Housing,
-    housingUpdate: HousingUpdate
-  ) => {
-    trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.Campaigns.UpdateHousing,
-      value: 1,
-    });
-    await updateHousing({
-      housingId: housing.id,
-      housingUpdate,
-    });
-    setUpdatingHousing(undefined);
   };
 
   const submitSelectedHousingUpdate =
@@ -116,35 +93,6 @@ const CampaignInProgressTab = ({
     query,
   };
 
-  const modifyColumn = {
-    name: 'modify',
-    headerRender: () => '',
-    render: (housing: Housing) => (
-      <>
-        <Button
-          title="Mettre à jour"
-          size="sm"
-          secondary
-          onClick={() => setUpdatingHousing(housing)}
-        >
-          Mettre à jour &nbsp;
-          <span className="ri-edit-fill" aria-hidden="true" />
-        </Button>
-      </>
-    ),
-  };
-
-  const statusColumn = {
-    name: 'status',
-    label: 'Statut',
-    render: ({ status, subStatus }: Housing) => (
-      <>
-        <HousingStatusBadge status={status} />
-        <HousingSubStatusBadge status={status} subStatus={subStatus} />
-      </>
-    ),
-  };
-
   return (
     <Tab label={label} index={index} activeTab={activeTab} className="fr-px-0">
       <>
@@ -161,7 +109,6 @@ const CampaignInProgressTab = ({
           filters={{ ...filters, status }}
           displayKind={HousingDisplayKey.Owner}
           tableClassName="campaign"
-          additionalColumns={[statusColumn, modifyColumn]}
           onCountFilteredHousing={(count) => {
             setFilteredHousingCount(count);
             onCountFilteredHousing?.(count);
@@ -195,12 +142,6 @@ const CampaignInProgressTab = ({
             </SelectableListHeaderActions>
           </SelectableListHeader>
         </HousingList>
-        <HousingEditionSideMenu
-          housing={updatingHousing}
-          expand={!!updatingHousing}
-          onSubmit={submitHousingUpdate}
-          onClose={() => setUpdatingHousing(undefined)}
-        />
         <HousingListEditionSideMenu
           housingCount={selectedCount}
           open={!!updatingSelectedHousing}

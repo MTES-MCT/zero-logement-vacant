@@ -653,6 +653,10 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
                 `(string_to_array("${housingTable}"."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
               );
           },
+          occupancy: (query) =>
+            query.orderBy(`${housingTable}.occupancy`, opts.sort?.occupancy),
+          status: (query) =>
+            query.orderBy(`${housingTable}.status`, opts.sort?.status),
         },
         default: (query) => query.orderBy('id'),
       })

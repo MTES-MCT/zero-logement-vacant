@@ -112,16 +112,17 @@ const HousingListTab = ({
           className="fr-mb-2w"
         />
       )}
-      {filteredHousingCount && filteredOwnerCount && (
-        <Text spacing="mb-2w">
-          {displayHousingCount({
-            filteredCount: filteredHousingCount,
-            filteredOwnerCount,
-            totalCount,
-            status,
-          })}
-        </Text>
-      )}
+      {filteredHousingCount !== undefined &&
+        filteredOwnerCount !== undefined && (
+          <Text spacing="mb-2w">
+            {displayHousingCount({
+              filteredCount: filteredHousingCount,
+              filteredOwnerCount,
+              totalCount,
+              status,
+            })}
+          </Text>
+        )}
       <HousingList
         filters={filters}
         displayKind={HousingDisplayKey.Housing}

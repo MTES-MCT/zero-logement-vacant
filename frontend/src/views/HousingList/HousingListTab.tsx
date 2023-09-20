@@ -3,7 +3,6 @@ import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import Tab, { TabProps } from '../../components/Tab/Tab';
 import HousingList, {
-  HousingDisplayKey,
   HousingListProps,
 } from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
@@ -125,7 +124,6 @@ const HousingListTab = ({
         )}
       <HousingList
         filters={filters}
-        displayKind={HousingDisplayKey.Housing}
         onCountFilteredHousing={(count) => {
           setFilteredHousingCount(count);
           onCountFilteredHousing?.(count);

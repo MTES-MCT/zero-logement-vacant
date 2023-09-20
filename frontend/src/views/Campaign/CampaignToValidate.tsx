@@ -17,9 +17,7 @@ import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';
 import VerticalStep from '../../components/VerticalStepper/VerticalStep';
 import { useStepper } from '../../hooks/useStepper';
 import { dateValidator, useForm } from '../../hooks/useForm';
-import HousingList, {
-  HousingDisplayKey,
-} from '../../components/HousingList/HousingList';
+import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import { useSelection } from '../../hooks/useSelection';
@@ -186,7 +184,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                       Supprimer
                     </ButtonLink>
                   )}
-                  displayKind={HousingDisplayKey.Housing}
                   onSelectHousing={setSelected}
                 >
                   <SelectableListHeader entity="logement">

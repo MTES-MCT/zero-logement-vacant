@@ -16,7 +16,6 @@ import { useSelection } from '../../hooks/useSelection';
 import { useUpdateHousingListMutation } from '../../services/housing.service';
 import Tab, { TabProps } from '../../components/Tab/Tab';
 import HousingList, {
-  HousingDisplayKey,
   HousingListProps,
 } from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
@@ -107,8 +106,6 @@ const CampaignInProgressTab = ({
         )}
         <HousingList
           filters={{ ...filters, status }}
-          displayKind={HousingDisplayKey.Owner}
-          tableClassName="campaign"
           onCountFilteredHousing={(count) => {
             setFilteredHousingCount(count);
             onCountFilteredHousing?.(count);

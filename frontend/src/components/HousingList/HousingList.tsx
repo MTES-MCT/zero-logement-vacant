@@ -52,30 +52,21 @@ import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import { useUpdateHousingMutation } from '../../services/housing.service';
 
-export enum HousingDisplayKey {
-  Housing,
-  Owner,
-}
-
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
   children?: ReactElement | ReactElement[];
   filters: HousingFilters;
-  displayKind: HousingDisplayKey;
   onCountFilteredHousing?: (count: number) => void;
   onCountFilteredOwner?: (count: number) => void;
-  onSelectHousing?: (selectedHousing: SelectedHousing) => void;
-  tableClassName?: string;
+  onSelectHousing: (selectedHousing: SelectedHousing) => void;
 }
 
 const HousingList = ({
   children,
   filters,
-  displayKind,
   onSelectHousing,
   onCountFilteredHousing,
   onCountFilteredOwner,
-  tableClassName,
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
@@ -261,7 +252,7 @@ const HousingList = ({
 
   const campaignColumn = {
     name: 'campaign',
-    label: 'Campagne en cours',
+    label: 'Campagnes en cours',
     render: ({ campaignIds, id }: Housing) => (
       <>
         {campaignIds?.length > 0 &&
@@ -325,31 +316,16 @@ const HousingList = ({
     ),
   };
 
-  const columns = () => {
-    switch (displayKind) {
-      case HousingDisplayKey.Housing:
-        return [
-          ...(onSelectHousing ? [selectColumn] : []),
-          rowNumberColumn,
-          addressColumn,
-          ownerColumn,
-          occupancyColumn,
-          campaignColumn,
-          statusColumn,
-          modifyColumn,
-        ];
-      case HousingDisplayKey.Owner:
-        return [
-          ...(onSelectHousing ? [selectColumn] : []),
-          rowNumberColumn,
-          ownerColumn,
-          { ...addressColumn, label: 'Logement' },
-          campaignColumn,
-          statusColumn,
-          modifyColumn,
-        ];
-    }
-  };
+  const columns = [
+    selectColumn,
+    rowNumberColumn,
+    addressColumn,
+    ownerColumn,
+    occupancyColumn,
+    campaignColumn,
+    statusColumn,
+    modifyColumn,
+  ];
   const submitHousingUpdate = async (
     housing: Housing,
     housingUpdate: HousingUpdate
@@ -392,14 +368,13 @@ const HousingList = ({
               ..._,
               rowNumber: rowNumber(index),
             }))}
-            columns={columns()}
+            columns={columns}
             fixedLayout={true}
             className={classNames(
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              { 'with-select': onSelectHousing },
-              tableClassName
+              { 'with-select': onSelectHousing }
             )}
             data-testid="housing-table"
           />

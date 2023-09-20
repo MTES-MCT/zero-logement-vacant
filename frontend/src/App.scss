@@ -68,30 +68,6 @@
   table:before {
     display: none !important;
   }
-
-  &.campaign {
-    th:nth-child(3) {
-      width: 20%;
-    }
-
-    th:nth-child(4) {
-      width: 20%;
-    }
-
-    th:nth-child(5) {
-      width: 30%;
-    }
-
-    th:nth-child(6) {
-      width: 30%;
-    }
-
-    th:nth-child(7),
-    tr > td:nth-child(7) {
-      width: 150px;
-      padding: 0;
-    }
-  }
 }
 
 .zlv-fixed-table {

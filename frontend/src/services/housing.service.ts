@@ -64,10 +64,10 @@ export const housingApi = createApi({
         },
       }),
       providesTags: (result, errors, args) => [
-        ...(args.filters.statusList?.map((status) => ({
+        {
           type: 'HousingByStatus' as const,
-          id: status,
-        })) ?? []),
+          id: args.filters.status,
+        },
         ...(result?.entities.map(({ id }) => ({
           type: 'Housing' as const,
           id,

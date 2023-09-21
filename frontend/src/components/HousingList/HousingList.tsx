@@ -62,6 +62,7 @@ export interface HousingListProps {
 }
 
 const HousingList = ({
+  actions,
   children,
   filters,
   onSelectHousing,
@@ -299,11 +300,13 @@ const HousingList = ({
     ),
   };
 
-  const modifyColumn = {
-    name: 'modify',
+  const actionColumn = {
+    name: 'action',
     headerRender: () => '',
-    render: (housing: Housing) => (
-      <>
+    render: (housing: Housing) =>
+      actions ? (
+        <>{actions(housing)}</>
+      ) : (
         <Button
           title="Mettre à jour"
           size="sm"
@@ -312,8 +315,7 @@ const HousingList = ({
         >
           Mettre à jour
         </Button>
-      </>
-    ),
+      ),
   };
 
   const columns = [
@@ -324,7 +326,7 @@ const HousingList = ({
     occupancyColumn,
     campaignColumn,
     statusColumn,
-    modifyColumn,
+    actionColumn,
   ];
   const submitHousingUpdate = async (
     housing: Housing,

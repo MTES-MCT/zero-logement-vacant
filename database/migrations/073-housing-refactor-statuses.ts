@@ -5,6 +5,7 @@ import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
 import { isNotNull } from '../../shared/utils/compare';
+import { logger } from '../../server/utils/logger';
 
 const BATCH_SIZE = 100_000;
 
@@ -25,7 +26,7 @@ exports.up = async function (knex: Knex) {
   const result = await knex('housing').count().first();
   const total = Number(result?.count);
 
-  console.log(`${total} housing found.`);
+  logger.info(`${total} housing found.`);
 
   await async.doUntil(
     async () => {
@@ -102,13 +103,13 @@ exports.up = async function (knex: Knex) {
 
       length = housingList.length;
       count += length;
-      console.log(`${count} / ${total} housing`);
+      logger.info(`${count} / ${total} housing`);
     },
     async () => length < BATCH_SIZE
   );
 
   const end = new Date();
-  console.log(`Done in ${formatDuration(intervalToDuration({ start, end }))}`);
+  logger.info(`Done in ${formatDuration(intervalToDuration({ start, end }))}`);
 };
 
 exports.down = async function (knex: Knex) {
@@ -154,9 +155,9 @@ exports.down = async function (knex: Knex) {
         .map(normalizeStatus);
 
       await async.forEach(fp.chunk(1000, housingList), async (_) => {
-        console.log('Saving housing list...');
+        logger.debug('Saving housing list...');
         await saveHousingList(knex)(_);
-        console.log('Save housing list');
+        logger.debug('Save housing list');
       });
 
       length = events.length;

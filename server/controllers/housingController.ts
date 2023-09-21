@@ -226,7 +226,12 @@ const updateHousing = async (
 
   await createHousingUpdateEvents(housing, housingUpdate, user.id);
 
-  await createHousingUpdateNote(housing.id, housingUpdate, user.id);
+  await createHousingUpdateNote(
+    housing.id,
+    housingUpdate,
+    user.id,
+    housing.geoCode
+  );
 
   return updatedHousing;
 };
@@ -243,7 +248,7 @@ const addHousingInDefaultCampaign = async (
   );
   if (defaultCampaign) {
     await campaignHousingRepository.insertHousingList(defaultCampaign.id, [
-      housingApi.id,
+      housingApi,
     ]);
   }
 };
@@ -322,6 +327,7 @@ const createHousingUpdateEvents = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
+      housingGeoCode: housingApi.geoCode,
     });
   }
 
@@ -345,13 +351,15 @@ const createHousingUpdateEvents = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
+      housingGeoCode: housingApi.geoCode,
     });
   }
 };
 const createHousingUpdateNote = async (
   housingId: string,
   housingUpdate: HousingUpdateBody,
-  userId: string
+  userId: string,
+  geoCode: string
 ) => {
   if (housingUpdate.note) {
     await noteRepository.insertHousingNote({
@@ -360,6 +368,7 @@ const createHousingUpdateNote = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId,
+      housingGeoCode: geoCode,
     });
   }
 };

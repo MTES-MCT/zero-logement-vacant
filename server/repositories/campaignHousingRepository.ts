@@ -1,26 +1,23 @@
 import db from './db';
+import { HousingApi } from '../models/HousingApi';
 
 export const campaignsHousingTable = 'campaigns_housing';
 
 const insertHousingList = async (
   campaignId: string,
-  housingIds: string[]
-): Promise<string[]> => {
-  try {
-    return db(campaignsHousingTable)
-      .insert(
-        housingIds.map((housingId) => ({
-          campaign_id: campaignId,
-          housing_id: housingId,
-        }))
-      )
-      .onConflict(['campaign_id', 'housing_id'])
-      .ignore()
-      .returning('housing_id');
-  } catch (err) {
-    console.error('Inserting housing list failed', err, campaignId);
-    throw new Error('Inserting housing list failed');
-  }
+  housingList: HousingApi[]
+): Promise<void> => {
+  await db(campaignsHousingTable)
+    .insert(
+      housingList.map((housing) => ({
+        campaign_id: campaignId,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+      }))
+    )
+    .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
+    .ignore()
+    .returning('housing_id');
 };
 
 const deleteHousingFromCampaigns = async (

@@ -203,6 +203,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
       birthDate,
       rawAddress,
       housingId,
+      housingGeoCode: housing.geo_code,
       origin: 'Lovac',
       rank: i,
     };

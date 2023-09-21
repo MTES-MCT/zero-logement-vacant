@@ -169,9 +169,13 @@ export const genOwnerApi = (): OwnerApi => {
   };
 };
 
-export const genHousingOwnerApi = (housingId: string): HousingOwnerApi => ({
+export const genHousingOwnerApi = (
+  housingId: string,
+  housingGeoCode: string
+): HousingOwnerApi => ({
   ...genOwnerApi(),
   housingId,
+  housingGeoCode,
   rank: 2,
 });
 
@@ -185,7 +189,7 @@ export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
     geoCode,
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
-    coowners: [genHousingOwnerApi(id)],
+    coowners: [genHousingOwnerApi(id, geoCode)],
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
@@ -202,6 +206,7 @@ export const genHousingApi = (geoCode: string = genGeoCode()): HousingApi => {
     status: HousingStatusApi.NeverContacted,
     energyConsumption: EnergyConsumptionGradesApi.A,
     occupancy: OccupancyKindApi.Vacant,
+    occupancyRegistered: OccupancyKindApi.Vacant,
     buildingVacancyRate: genNumber(2),
     campaignIds: [],
     contactCount: genNumber(1),
@@ -325,10 +330,12 @@ export const genHousingEventApi = (
   housingId: string,
   createdBy: string
 ): HousingEventApi => {
+  const geoCode = genGeoCode();
   return {
     ...genEventApi<HousingApi>(createdBy),
-    old: { ...genHousingApi(genGeoCode()), id: housingId },
-    new: { ...genHousingApi(genGeoCode()), id: housingId },
+    old: { ...genHousingApi(geoCode), id: housingId },
+    new: { ...genHousingApi(geoCode), id: housingId },
     housingId,
+    housingGeoCode: geoCode,
   };
 };

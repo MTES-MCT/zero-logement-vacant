@@ -48,6 +48,7 @@ class HousingPostgresRepository implements HousingStreamRepository {
               const [owner, ...coowners] = owners.map((owner, i) => ({
                 ...owner,
                 housingId: housingApi.id,
+                housingGeoCode: housingApi.geoCode,
                 rank: i + 1,
                 origin: 'Datafoncier',
               }));

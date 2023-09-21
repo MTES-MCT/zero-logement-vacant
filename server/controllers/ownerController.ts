@@ -238,6 +238,7 @@ const updateHousingOwners = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId,
+      housingGeoCode: newHousingOwnersApi[0].housingGeoCode,
     });
 
     return response.sendStatus(constants.HTTP_STATUS_OK);

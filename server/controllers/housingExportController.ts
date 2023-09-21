@@ -18,9 +18,9 @@ import highland from 'highland';
 import { CampaignApi } from '../models/CampaignApi';
 import { logger } from '../utils/logger';
 import excelUtils from '../utils/excelUtils';
+import exceljs from 'exceljs';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
-import exceljs from 'exceljs';
 
 const exportHousingByCampaignBundle = async (
   request: Request,

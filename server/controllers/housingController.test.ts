@@ -85,7 +85,12 @@ describe('Housing controller', () => {
         );
 
         await ownerRepository.insertHousingOwners([
-          { ...Owner1, housingId: queriedHousing.id, rank: 1 },
+          {
+            ...Owner1,
+            housingId: queriedHousing.id,
+            housingGeoCode: queriedHousing.geoCode,
+            rank: 1,
+          },
         ]);
 
         const res = await withAccessToken(request(app).post(testRoute)).send({

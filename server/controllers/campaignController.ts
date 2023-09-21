@@ -118,8 +118,6 @@ const createCampaign = async (
           },
           pagination: { paginate: false },
         })
-        // TODO: optimize this with a `.whereIn('id', [...])`
-
         .then((housingList) =>
           housingList.filter(
             (housing) => !request.body.housingIds.includes(housing.id)
@@ -131,7 +129,7 @@ const createCampaign = async (
 
   await campaignHousingRepository.insertHousingList(
     newCampaignApi.id,
-    housingIds
+    housingList
   );
 
   await removeHousingFromDefaultCampaign(housingIds, establishmentId);
@@ -139,19 +137,20 @@ const createCampaign = async (
   const newHousingList = await housingRepository.listByIds(housingIds);
 
   await eventRepository.insertManyHousingEvents(
-    housingIds.map((housingId) => ({
+    housingList.map((housing) => ({
       id: uuidv4(),
       name: 'Ajout dans une campagne',
       kind: 'Create',
       category: 'Campaign',
       section: 'Suivi de campagne',
-      old: housingList.find((_) => _.id === housingId),
+      old: housingList.find((_) => _.id === housing.id),
       new: newHousingList
         .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
-        .find((_) => _.id === housingId),
+        .find((_) => _.id === housing.id),
       createdBy: userId,
       createdAt: new Date(),
-      housingId: housingId,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
     }))
   );
 
@@ -339,6 +338,7 @@ const validateStep = async (
           createdBy: userId,
           createdAt: new Date(),
           housingId: updatedHousing.id,
+          housingGeoCode: updatedHousing.geoCode,
         }))
       );
     }
@@ -488,9 +488,7 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
         ),
         resetNotWaitingHousingWithoutCampaigns(
           establishmentId,
-          results
-            .filter((_) => _.status !== HousingStatusApi.Waiting)
-            .map((_) => _.id)
+          results.filter((_) => _.status !== HousingStatusApi.Waiting)
         ),
       ])
     );
@@ -510,16 +508,16 @@ const resetWaitingHousingWithoutCampaigns = async (
 
 const resetNotWaitingHousingWithoutCampaigns = async (
   establishmentId: string,
-  housingIds: string[]
+  housingList: HousingApi[]
 ) => {
-  return housingIds.length
+  return housingList.length
     ? campaignRepository
         .getCampaignBundle(establishmentId, String(0))
         .then((campaignBundle) => {
           if (campaignBundle?.campaignIds[0]) {
             return campaignHousingRepository.insertHousingList(
               campaignBundle?.campaignIds[0],
-              housingIds
+              housingList
             );
           }
         })

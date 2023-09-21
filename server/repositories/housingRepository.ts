@@ -21,7 +21,9 @@ import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
-import { establishmentsTable } from './establishmentRepository';
+import establishmentRepository, {
+  establishmentsTable,
+} from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/OwnerApi';
@@ -169,11 +171,13 @@ const saveMany = async (
       ...housing.owner,
       rank: 1,
       housingId: housing.id,
+      housingGeoCode: housing.geoCode,
     }));
-    const coowners = newHousingList.flatMap((housing) =>
+    const coowners: HousingOwnerApi[] = newHousingList.flatMap((housing) =>
       housing.coowners.map((coowner) => ({
         ...coowner,
         housingId: housing.id,
+        housingGeoCode: housing.geoCode,
       }))
     );
     const owners: HousingOwnerApi[] = fp.pipe(
@@ -192,15 +196,13 @@ const get = async (
   housingId: string,
   establishmentId: string
 ): Promise<HousingApi | null> => {
-  const establishment = auth.getStore()?.establishment;
-  const geoCodes = establishment?.geoCodes;
-
-  if (!geoCodes) {
+  const establishment = await establishmentRepository.get(establishmentId);
+  if (!establishment) {
     return null;
   }
 
   const housing = await fastListQuery({
-    geoCodes,
+    geoCodes: establishment.geoCodes,
     filters: {
       establishmentIds: [establishmentId],
     },
@@ -262,7 +264,7 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       );
     }
     if (filters.campaignIds?.length) {
-      queryBuilder.whereRaw('campaigns.campaign_id && ?', [
+      queryBuilder.whereRaw('campaigns.campaign_ids && ?', [
         filters.campaignIds,
       ]);
     }
@@ -604,27 +606,27 @@ const fastListQuery = (opts: ListQueryOptions) => {
       })
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
       // Campaigns
-      .select('campaigns.campaign_id')
+      .select('campaigns.*')
       .joinRaw(
         `LEFT JOIN LATERAL (
-           SELECT array_agg(distinct(campaign_id)) AS campaign_id, COUNT(*) OVER() as campaign_count 
+           SELECT array_agg(distinct(campaign_id)) AS campaign_ids, ARRAY_LENGTH(array_agg(distinct(campaign_id)), 1) AS campaign_count
            FROM campaigns_housing ch, campaigns c 
            WHERE ${housingTable}.id = ch.housing_id 
            AND c.id = ch.campaign_id
            ${
              opts.filters.campaignIds?.length
-               ? ` AND campaign_id IN (:campaignIds)`
+               ? ` AND campaign_id = ANY(:campaignIds)`
                : ''
            }
            ${
              opts.filters.establishmentIds?.length
-               ? ` AND c.establishment_id IN (:establishmentIds)`
+               ? ` AND c.establishment_id = ANY(:establishmentIds)`
                : ''
            }
          ) campaigns ON true`,
         {
-          campaignIds: (opts.filters.campaignIds ?? []).join(','),
-          establishmentIds: (opts.filters.establishmentIds ?? []).join(','),
+          campaignIds: opts.filters.campaignIds ?? [],
+          establishmentIds: opts.filters.establishmentIds ?? [],
         }
       )
       .modify(filteredQuery(fp.omit(['establishmentIds'], opts.filters)))
@@ -677,16 +679,17 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
 const listWithFilters = async (
   filters: HousingFiltersApi
 ): Promise<HousingApi[]> => {
-  const establishment = auth.getStore()?.establishment;
-  if (!establishment) {
-    throw new EstablishmentMissingError('');
-  }
+  const establishments = await establishmentRepository.find({
+    ids: filters.establishmentIds,
+  });
+  const geoCodes = establishments.flatMap(
+    (establishment) => establishment?.geoCodes
+  );
 
   return fastListQuery({
     filters,
-    geoCodes: establishment.geoCodes,
+    geoCodes,
   })
-    .modify(filteredQuery(filters))
     .modify(queryHousingEventsJoinClause)
     .then((_) => _.map((result: any) => parseHousingApi(result)));
 };

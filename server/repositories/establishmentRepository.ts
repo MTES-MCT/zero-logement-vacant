@@ -32,6 +32,9 @@ const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
 
 function filter(filters?: EstablishmentFilterApi) {
   return (builder: Knex.QueryBuilder<EstablishmentDbo>) => {
+    if (filters?.ids) {
+      builder.whereIn('id', filters.ids);
+    }
     if (filters?.available) {
       builder.where('available', true);
     }

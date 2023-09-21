@@ -2,7 +2,11 @@ import db from './db';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
-import { ownersHousingTable, ReferenceDataYear } from './housingRepository';
+import {
+  housingTable,
+  ownersHousingTable,
+  ReferenceDataYear,
+} from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
 
@@ -98,7 +102,7 @@ const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
         '*',
         db.raw(
           '(select count(*)\n' +
-            '        from owners_housing oh2, housing h\n' +
+            `        from owners_housing oh2, ${housingTable} h` +
             '        where oh1.owner_id = oh2.owner_id\n' +
             '          and oh2.housing_id = h.id\n' +
             '          and ((h.occupancy = ? and h.vacancy_start_year <= ?) or h.occupancy = ?)\n' +
@@ -320,6 +324,7 @@ export interface OwnerDBO {
 export interface HousingOwnerDBO {
   owner_id: string;
   housing_id: string;
+  housing_geo_code: string;
   rank: number;
   start_date?: Date;
   end_date?: Date;
@@ -339,6 +344,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
 export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
   ...parseOwnerApi(result),
   housingId: result.housing_id,
+  housingGeoCode: result.housing_geo_code,
   rank: result.rank,
   startDate: result.start_date,
   endDate: result.end_date,
@@ -361,6 +367,7 @@ export const formatHousingOwnerApi = (
 ): HousingOwnerDBO => ({
   owner_id: housingOwnerApi.id,
   housing_id: housingOwnerApi.housingId,
+  housing_geo_code: housingOwnerApi.housingGeoCode,
   rank: housingOwnerApi.rank,
   start_date: housingOwnerApi.startDate,
   end_date: housingOwnerApi.endDate,

@@ -12,8 +12,6 @@ import {
   HousingStatusApi,
   InProgressWithSupportSubStatus,
 } from '../models/HousingStatusApi';
-import EstablishmentMissingError from '../errors/establishmentMissingError';
-import { auth } from '../utils/auth';
 
 export const campaignsTable = 'campaigns';
 
@@ -71,13 +69,6 @@ const getCampaignBundle = async (
   reminderNumber?: string,
   query?: string
 ): Promise<CampaignBundleApi | null> => {
-  const establishment = auth.getStore()?.establishment;
-  const geoCodes = establishment?.geoCodes;
-
-  if (!geoCodes) {
-    throw new EstablishmentMissingError(establishmentId);
-  }
-
   const bundle = await db(campaignsTable)
     .select(
       db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
@@ -112,12 +103,14 @@ const getCampaignBundle = async (
       'id',
       `${campaignsHousingTable}.campaign_id`
     )
-    .leftJoin(
-      housingTable,
-      `${housingTable}.id`,
-      `${campaignsHousingTable}.housing_id`
-    )
-    .whereIn('geo_code', geoCodes)
+    .leftJoin(housingTable, (join) => {
+      join
+        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+        .andOn(
+          `${housingTable}.geo_code`,
+          `${campaignsHousingTable}.housing_geo_code`
+        );
+    })
     .leftJoin(ownersHousingTable, ownersHousingJoinClause)
     .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
     .modify((queryBuilder: any) => {

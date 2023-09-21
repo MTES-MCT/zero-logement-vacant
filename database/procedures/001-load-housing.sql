@@ -6,6 +6,7 @@ CREATE OR REPLACE PROCEDURE load_owner (
     _owner_kind text,
     _owner_kind_detail text,
     _housing_id uuid,
+    _housing_geo_code text,
     _rank integer
 )
 LANGUAGE plpgsql
@@ -38,7 +39,7 @@ AS $$
             --------------------------------
             -- OWNER HOUSING
             --------------------------------
-            INSERT INTO owners_housing(housing_id, owner_id, rank, origin) VALUES (_housing_id, owner_var_ids[1], _rank, 'Lovac')
+            INSERT INTO owners_housing(housing_id, housing_geo_code, owner_id, rank, origin) VALUES (_housing_id, _housing_geo_code, owner_var_ids[1], _rank, 'Lovac')
             ON CONFLICT DO NOTHING;
 
         END IF;
@@ -156,16 +157,16 @@ AS $$
                 -- CASE NEW HOUSING
                 IF housing_var_id IS NULL THEN
 
-                    insert into housing (invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification,
+                    insert into fast_housing (id, invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification,
                         uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
-                        building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind)
-                    values (housing_var.invariant, housing_var.local_id, housing_var.building_id, housing_var.raw_address,
+                        building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind, occupancy, occupancy_registered, status)
+                    values (gen_random_uuid(), housing_var.invariant, housing_var.local_id, housing_var.building_id, housing_var.raw_address,
                             housing_var.geo_code, housing_var.latitude, housing_var.longitude, housing_var.cadastral_classification,
                             housing_var.uncomfortable, housing_var.vacancy_start_year::INTEGER, housing_var.housing_kind, housing_var.rooms_count,
                             housing_var.living_area, housing_var.cadastral_reference, housing_var.building_year, housing_var.mutation_date,
                             housing_var.taxed, ARRAY[housing_var.data_year], housing_var.beneficiary_count, housing_var.building_location,
-                            housing_var.rental_value::INTEGER, housing_var.ownership_kind)
-                    returning housing.id INTO housing_var_id;
+                            housing_var.rental_value::INTEGER, housing_var.ownership_kind, 'V', 'V', 0)
+                    returning fast_housing.id INTO housing_var_id;
 
 
                 -- CASE EXISTING HOUSING
@@ -181,12 +182,12 @@ AS $$
                 --------------------------------
                 -- OWNERS
                 --------------------------------
-                call load_owner(housing_var.full_name, housing_var.administrator, housing_var.birth_date, housing_var.owner_raw_address, housing_var.owner_kind, housing_var.owner_kind_detail, housing_var_id, 1);
-                call load_owner(housing_var.full_name2, null, housing_var.birth_date2, housing_var.owner_raw_address2, null, null, housing_var_id, 2);
-                call load_owner(housing_var.full_name3, null, housing_var.birth_date3, housing_var.owner_raw_address3, null, null, housing_var_id, 3);
-                call load_owner(housing_var.full_name4, null, housing_var.birth_date4, housing_var.owner_raw_address4, null, null, housing_var_id, 4);
-                call load_owner(housing_var.full_name5, null, housing_var.birth_date5, housing_var.owner_raw_address5, null, null, housing_var_id, 5);
-                call load_owner(housing_var.full_name6, null, housing_var.birth_date6, housing_var.owner_raw_address6, null, null, housing_var_id, 6);
+                call load_owner(housing_var.full_name, housing_var.administrator, housing_var.birth_date, housing_var.owner_raw_address, housing_var.owner_kind, housing_var.owner_kind_detail, housing_var_id, housing_var.geo_code, 1);
+                call load_owner(housing_var.full_name2, null, housing_var.birth_date2, housing_var.owner_raw_address2, null, null, housing_var_id, housing_var.geo_code, 2);
+                call load_owner(housing_var.full_name3, null, housing_var.birth_date3, housing_var.owner_raw_address3, null, null, housing_var_id, housing_var.geo_code, 3);
+                call load_owner(housing_var.full_name4, null, housing_var.birth_date4, housing_var.owner_raw_address4, null, null, housing_var_id, housing_var.geo_code, 4);
+                call load_owner(housing_var.full_name5, null, housing_var.birth_date5, housing_var.owner_raw_address5, null, null, housing_var_id, housing_var.geo_code, 5);
+                call load_owner(housing_var.full_name6, null, housing_var.birth_date6, housing_var.owner_raw_address6, null, null, housing_var_id, housing_var.geo_code, 6);
 
             END IF;
 

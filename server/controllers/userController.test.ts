@@ -203,6 +203,7 @@ describe('User controller', () => {
         housing.map((_) => ({
           owner_id: Owner1.id,
           housing_id: _.id,
+          housing_geo_code: _.geoCode,
           rank: 1,
         }))
       );

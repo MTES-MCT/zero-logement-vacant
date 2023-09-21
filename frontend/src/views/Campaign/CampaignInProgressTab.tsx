@@ -128,10 +128,10 @@ const CampaignInProgressTab = ({
                   )}
                   {selectedCount > 1 && (
                     <Button
-                      title="Mettre à jour"
+                      title="Mise à jour groupée"
                       onClick={() => setUpdatingSelectedHousing(selected)}
                     >
-                      Mettre à jour
+                      Mise à jour groupée
                     </Button>
                   )}
                 </Row>

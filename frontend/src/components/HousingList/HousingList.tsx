@@ -225,7 +225,6 @@ const HousingList = ({
       <>
         <InternalLink
           isSimple
-          target="_blank"
           title={owner.fullName}
           to={`${location.pathname}/proprietaires/${owner.id}`}
         >

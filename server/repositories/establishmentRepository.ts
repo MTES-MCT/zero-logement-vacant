@@ -56,16 +56,14 @@ function filter(filters?: EstablishmentFilterApi) {
   };
 }
 
-const get = async (
-  establishmentId: string
-): Promise<EstablishmentApi | null> => {
-  logger.debug('Get establishments by id', establishmentId);
+const get = async (id: string): Promise<EstablishmentApi | null> => {
+  logger.debug('Get establishment by id', id);
 
-  const result = await db(establishmentsTable)
-    .where(`${establishmentsTable}.id`, establishmentId)
+  const establishment = await db(establishmentsTable)
+    .where(`${establishmentsTable}.id`, id)
     .first();
 
-  return result ? parseEstablishmentApi(result) : null;
+  return establishment ? parseEstablishmentApi(establishment) : null;
 };
 
 interface FindOneOptions {

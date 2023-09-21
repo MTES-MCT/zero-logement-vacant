@@ -14,6 +14,7 @@ import { HousingApi } from '../models/HousingApi';
 import async from 'async';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { logger } from '../utils/logger';
+import CampaignBundleMissingError from '../errors/campaignBundleMissingError';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -109,14 +110,19 @@ const createCampaign = async (
 
   const housingList = allHousing
     ? await housingRepository
-        .listWithFilters({
-          ...filters,
-          establishmentIds: [establishmentId],
-          localities: filterLocalities,
+        .find({
+          filters: {
+            ...filters,
+            establishmentIds: [establishmentId],
+            localities: filterLocalities,
+          },
+          pagination: { paginate: false },
         })
-        .then((_) =>
-          _.filter(
-            (housing) => request.body.housingIds.indexOf(housing.id) === -1
+        // TODO: optimize this with a `.whereIn('id', [...])`
+
+        .then((housingList) =>
+          housingList.filter(
+            (housing) => !request.body.housingIds.includes(housing.id)
           )
         )
     : await housingRepository.listByIds(request.body.housingIds);
@@ -166,20 +172,16 @@ const removeHousingFromDefaultCampaign = (
     );
 };
 
-const createReminderCampaign = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const createReminderCampaign = async (request: Request, response: Response) => {
   const campaignNumber = request.params.campaignNumber;
   const reminderNumber = request.params.reminderNumber;
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
 
-  console.log(
-    'Create a reminder campaign for',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.info('Create reminder campaign', {
+    establishment: establishmentId,
+    campaign: campaignNumber,
+    reminder: reminderNumber,
+  });
 
   const kind = request.body.kind;
   const allHousing = request.body.allHousing;
@@ -189,9 +191,12 @@ const createReminderCampaign = async (
     campaignNumber,
     reminderNumber
   );
-
   if (!campaignBundle) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+    throw new CampaignBundleMissingError({
+      establishmentId,
+      campaignNumber,
+      reminderNumber,
+    });
   }
 
   const lastReminderNumber = await campaignRepository.lastReminderNumber(
@@ -213,15 +218,18 @@ const createReminderCampaign = async (
 
   const housingIds = allHousing
     ? await housingRepository
-        .listWithFilters({
-          establishmentIds: [establishmentId],
-          campaignIds: campaignBundle.campaignIds,
-          status: [HousingStatusApi.Waiting],
+        .find({
+          filters: {
+            establishmentIds: [establishmentId],
+            campaignIds: campaignBundle.campaignIds,
+            status: [HousingStatusApi.Waiting],
+          },
+          pagination: { paginate: false },
         })
-        .then((_) =>
-          _.map((_) => _.id).filter(
-            (id) => request.body.housingIds.indexOf(id) === -1
-          )
+        .then((housingList) =>
+          housingList
+            .map((housing) => housing.id)
+            .filter((id) => !request.body.housingIds.includes(id))
         )
     : request.body.housingIds;
 
@@ -230,7 +238,7 @@ const createReminderCampaign = async (
     housingIds
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
+  response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 };
 
 const validateStepValidators = [
@@ -271,7 +279,7 @@ const validateStep = async (
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const skipConfirmation: boolean = request.body.skipConfirmation;
 
-  console.log('Validate campaign step', campaignId, step);
+  logger.info('Validate campaign step', { campaignId, step });
 
   const campaignApi = await campaignRepository.getCampaign(campaignId);
 
@@ -301,9 +309,11 @@ const validateStep = async (
     };
 
     if (step === CampaignSteps.Sending) {
-      const housingList = await housingRepository.listWithFilters({
-        establishmentIds: [establishmentId],
-        campaignIds: [campaignId],
+      const housingList = await housingRepository.find({
+        filters: {
+          establishmentIds: [establishmentId],
+          campaignIds: [campaignId],
+        },
       });
 
       const updatedHousingList = housingList

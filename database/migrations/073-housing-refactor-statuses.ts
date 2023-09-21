@@ -4,19 +4,13 @@ import { Knex } from 'knex';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  eventsTable,
-  housingEventsTable,
-} from '../../server/repositories/eventRepository';
-import { housingTable } from '../../server/repositories/housingRepository';
-import { usersTable } from '../../server/repositories/userRepository';
 import { isNotNull } from '../../shared/utils/compare';
 
 const BATCH_SIZE = 100_000;
 
 exports.up = async function (knex: Knex) {
   const email = 'admin@zerologementvacant.beta.gouv.fr';
-  const admin = await knex(usersTable).where({ email }).first();
+  const admin = await knex('users').where({ email }).first();
 
   if (!admin) {
     throw new Error(`${email} not found`);
@@ -28,14 +22,14 @@ exports.up = async function (knex: Knex) {
   let count = 0;
   let currentId: string | undefined;
 
-  const result = await knex(housingTable).count().first();
+  const result = await knex('housing').count().first();
   const total = Number(result?.count);
 
   console.log(`${total} housing found.`);
 
   await async.doUntil(
     async () => {
-      const housingList: Housing[] = await knex(housingTable)
+      const housingList: Housing[] = await knex('housing')
         .modify((builder) => {
           if (currentId) {
             builder.where('id', '>', currentId);
@@ -119,7 +113,7 @@ exports.up = async function (knex: Knex) {
 
 exports.down = async function (knex: Knex) {
   const email = 'admin@zerologementvacant.beta.gouv.fr';
-  const admin = await knex(usersTable).where({ email }).first();
+  const admin = await knex('users').where({ email }).first();
 
   if (!admin) {
     throw new Error(`${email} not found`);
@@ -131,7 +125,7 @@ exports.down = async function (knex: Knex) {
   // knex stream does not work in a migration...
   await async.doUntil(
     async () => {
-      const events: HousingEvent[] = await knex(eventsTable)
+      const events: HousingEvent[] = await knex('events')
         .where({
           name: 'Modification arborescence de suivi',
         })
@@ -170,7 +164,7 @@ exports.down = async function (knex: Knex) {
     async () => length < BATCH_SIZE
   );
 
-  await knex(eventsTable).where({ created_by: admin.id }).delete();
+  await knex('events').where({ created_by: admin.id }).delete();
 
   function normalizeStatus(housing: HousingSerialized): Housing {
     const statuses = [
@@ -646,8 +640,8 @@ function saveEvents(knex: Knex) {
     const eventsWithoutHousingId = events.map(fp.omit(['housing_id']));
 
     if (eventsWithoutHousingId.length && housingEvents.length) {
-      await knex(eventsTable).insert(eventsWithoutHousingId);
-      await knex(housingEventsTable).insert(housingEvents);
+      await knex('events').insert(eventsWithoutHousingId);
+      await knex('housing_events').insert(housingEvents);
     }
   };
 }
@@ -655,7 +649,7 @@ function saveEvents(knex: Knex) {
 function saveHousingList(knex: Knex) {
   return async (housingList: Housing[]): Promise<void> => {
     if (housingList.length) {
-      await knex(housingTable)
+      await knex('housing')
         .insert(housingList)
         .onConflict('id')
         .merge([

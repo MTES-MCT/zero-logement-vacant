@@ -6,17 +6,9 @@ import config from '../utils/config';
 import userRepository from '../repositories/userRepository';
 import UserMissingError from '../errors/userMissingError';
 import AuthenticationMissingError from '../errors/authenticationMissingError';
-import establishmentRepository from '../repositories/establishmentRepository';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
-
-const getUser = memoize(userRepository.get, {
-  promise: true,
-  primitive: true,
-});
-const getEstablishment = memoize(establishmentRepository.get, {
-  promise: true,
-  primitive: true,
-});
+import establishmentRepository from '../repositories/establishmentRepository';
+import { auth } from '../utils/auth';
 
 export const jwtCheck = (credentialsRequired: boolean) =>
   expressjwt({
@@ -28,8 +20,21 @@ export const jwtCheck = (credentialsRequired: boolean) =>
         request.query['x-access-token']) as string,
   });
 
-export const userCheck = () =>
-  async function (request: Request, response: Response, next: NextFunction) {
+export const userCheck = () => {
+  const getUser = memoize(userRepository.get, {
+    promise: true,
+    primitive: true,
+  });
+  const getEstablishment = memoize(establishmentRepository.get, {
+    promise: true,
+    primitive: true,
+  });
+
+  return async function (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) {
     if (!request.auth || !request.auth.userId) {
       throw new AuthenticationMissingError();
     }
@@ -49,5 +54,9 @@ export const userCheck = () =>
 
     request.user = user;
     request.establishment = establishment;
-    next();
+    const store = { establishment };
+    auth.run(store, () => {
+      next();
+    });
   };
+};

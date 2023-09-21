@@ -33,9 +33,11 @@ import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { sortQuery } from '../models/SortApi';
+import EstablishmentMissingError from '../errors/establishmentMissingError';
+import { auth } from '../utils/auth';
 import isNumeric = validator.isNumeric;
 
-export const housingTable = 'housing';
+export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 export const establishmentsLocalitiesTable = 'establishments_localities';
@@ -58,22 +60,22 @@ export const ownersHousingJoinClause = (query: any) => {
     .on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`)
     .andOnVal('rank', 1);
 };
+
 export const queryHousingEventsJoinClause = (queryBuilder: any) => {
   queryBuilder
-    .select(
-      db.raw(`count(${eventsTable}) as contact_count`),
-      db.raw(`max(${eventsTable}.created_at) as last_contact`)
+    .joinRaw(
+      `
+    LEFT JOIN LATERAL (
+      SELECT
+        COUNT(${eventsTable}) AS contact_count,
+        MAX(${eventsTable}.created_at) AS last_contact
+      FROM ${housingEventsTable}
+      JOIN ${eventsTable} ON ${eventsTable}.id = ${housingEventsTable}.event_id
+      WHERE ${housingTable}.id = ${housingEventsTable}.housing_id
+    ) events ON true
+  `
     )
-    .leftJoin(
-      housingEventsTable,
-      `${housingEventsTable}.housing_id`,
-      `${housingTable}.id`
-    )
-    .leftJoin(
-      eventsTable,
-      `${eventsTable}.id`,
-      `${housingEventsTable}.event_id`
-    );
+    .select('events.contact_count', 'events.last_contact');
 };
 
 export const queryOwnerHousingWhereClause = (
@@ -101,7 +103,7 @@ export const queryOwnerHousingWhereClause = (
           query?.split(' ').reverse().join(' ')
         );
         whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(h.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+          `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
           query
         );
         whereBuilder.orWhereRaw(
@@ -190,15 +192,21 @@ const get = async (
   housingId: string,
   establishmentId: string
 ): Promise<HousingApi | null> => {
-  const housing = await db
+  const establishment = auth.getStore()?.establishment;
+  const geoCodes = establishment?.geoCodes;
+
+  if (!geoCodes) {
+    return null;
+  }
+
+  const housing = await fastListQuery({
+    geoCodes,
+    filters: {
+      establishmentIds: [establishmentId],
+    },
+  })
     .select(
-      `${housingTable}.*`,
-      'o.id as owner_id',
-      'o.raw_address as owner_raw_address',
-      'o.full_name',
-      'o.administrator',
-      db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids'),
-      db.raw('json_agg(distinct(perimeters.perimeter_kind)) as geo_perimeters'),
+      'perimeters.perimeter_kind as geo_perimeters',
       `${buildingTable}.housing_count`,
       `${buildingTable}.vacant_housing_count`,
       `${localitiesTable}.locality_kind`,
@@ -209,17 +217,11 @@ const get = async (
         `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
       )
     )
-    .from(housingTable)
     .join(
       localitiesTable,
       `${housingTable}.geo_code`,
       `${localitiesTable}.geo_code`
     )
-    .joinRaw(
-      `join ${establishmentsTable} on ${housingTable}.geo_code = any(localities_geo_code)`
-    )
-    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
     .leftJoin(
       buildingTable,
       `${housingTable}.building_id`,
@@ -230,32 +232,13 @@ const get = async (
     )
     .joinRaw(
       `left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count 
-                    from campaigns_housing ch, campaigns c 
-                    where housing.id = ch.housing_id 
-                    and c.id = ch.campaign_id
-                    and c.establishment_id = (?)
-                ) campaigns on true`,
-      establishmentId
-    )
-    .joinRaw(
-      `left join lateral (
-                     select kind as perimeter_kind 
-                     from ${geoPerimetersTable} perimeter
-                     where st_contains(perimeter.geom, ST_SetSRID( ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
-                     ) perimeters on true`
+         select json_agg(distinct(kind)) as perimeter_kind 
+         from ${geoPerimetersTable} perimeter
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+       ) perimeters on true`
     )
     .modify(queryHousingEventsJoinClause)
-    .groupBy(
-      `${housingTable}.id`,
-      'o.id',
-      `${buildingTable}.id`,
-      `${localitiesTable}.id`,
-      'ban.ref_id',
-      'ban.address_kind'
-    )
-    .where(`${establishmentsTable}.id`, establishmentId)
-    .andWhere(`${housingTable}.id`, housingId)
+    .where(`${housingTable}.id`, housingId)
     .first();
 
   return housing ? parseHousingApi(housing) : null;
@@ -263,6 +246,9 @@ const get = async (
 
 export const filteredQuery = (filters: HousingFiltersApi) => {
   return (queryBuilder: Knex.QueryBuilder) => {
+    if (filters.housingIds?.length) {
+      queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
+    }
     if (filters.occupancies?.length) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
@@ -276,7 +262,9 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       );
     }
     if (filters.campaignIds?.length) {
-      queryBuilder.whereIn('campaigns.campaign_id', filters.campaignIds);
+      queryBuilder.whereRaw('campaigns.campaign_id && ?', [
+        filters.campaignIds,
+      ]);
     }
     if (filters.campaignsCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
@@ -589,7 +577,7 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
   };
 };
 
-interface ListQueryOptions extends PaginationOptions {
+interface ListQueryOptions {
   filters: HousingFiltersApi;
   geoCodes: string[];
 }
@@ -597,9 +585,9 @@ interface ListQueryOptions extends PaginationOptions {
 const fastListQuery = (opts: ListQueryOptions) => {
   return (
     db
-      .select('h.*')
-      .from({ h: 'fast_housing' })
-      .whereIn('h.geo_code', opts.geoCodes)
+      .select(`${housingTable}.*`)
+      .from(housingTable)
+      .whereIn(`${housingTable}.geo_code`, opts.geoCodes)
       // Owners
       .select(
         'o.id as owner_id',
@@ -610,20 +598,22 @@ const fastListQuery = (opts: ListQueryOptions) => {
         'o.phone'
       )
       .join(ownersHousingTable, (join) => {
-        join.on(`h.id`, `${ownersHousingTable}.housing_id`).onVal('rank', 1);
+        join
+          .on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+          .onVal('rank', 1);
       })
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
       // Campaigns
       .select('campaigns.campaign_id')
       .joinRaw(
         `LEFT JOIN LATERAL (
-           SELECT json_agg(distinct(campaign_id)) AS campaign_id, COUNT(*) OVER() as campaign_count 
+           SELECT array_agg(distinct(campaign_id)) AS campaign_id, COUNT(*) OVER() as campaign_count 
            FROM campaigns_housing ch, campaigns c 
-           WHERE h.id = ch.housing_id 
+           WHERE ${housingTable}.id = ch.housing_id 
            AND c.id = ch.campaign_id
            ${
              opts.filters.campaignIds?.length
-               ? ` AND c.id IN (:campaignIds)`
+               ? ` AND campaign_id IN (:campaignIds)`
                : ''
            }
            ${
@@ -637,49 +627,9 @@ const fastListQuery = (opts: ListQueryOptions) => {
           establishmentIds: (opts.filters.establishmentIds ?? []).join(','),
         }
       )
-      .modify(
-        filteredQuery(
-          fp.omit(['establishmentIds', 'campaignIds'], opts.filters)
-        )
-      )
+      .modify(filteredQuery(fp.omit(['establishmentIds'], opts.filters)))
   );
 };
-
-const listQuery = (establishmentIds?: string[]) =>
-  db
-    .select(
-      `${housingTable}.*`,
-      'o.id as owner_id',
-      'o.raw_address as owner_raw_address',
-      'o.full_name',
-      'o.administrator',
-      'o.email',
-      'o.phone',
-      db.raw('json_agg(distinct(campaigns.campaign_id)) as campaign_ids')
-    )
-    .from(housingTable)
-    .join(ownersHousingTable, ownersHousingJoinClause)
-    .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-    .leftJoin(
-      buildingTable,
-      `${housingTable}.building_id`,
-      `${buildingTable}.id`
-    )
-    .joinRaw(
-      `left join lateral (
-                    select campaign_id as campaign_id, count(*) over() as campaign_count 
-                    from campaigns_housing ch, campaigns c 
-                    where housing.id = ch.housing_id 
-                    and c.id = ch.campaign_id
-                    ${
-                      establishmentIds?.length
-                        ? ` and c.establishment_id in (?)`
-                        : ''
-                    }
-                ) campaigns on true`,
-      establishmentIds ?? []
-    )
-    .groupBy(`${housingTable}.id`, 'o.id');
 
 interface FindOptions extends PaginationOptions {
   filters: HousingFiltersApi;
@@ -706,12 +656,12 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
           owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
           rawAddress: (query) => {
             query
-              .orderBy('h.raw_address[2]', opts.sort?.rawAddress)
+              .orderBy('${housingTable}.raw_address[2]', opts.sort?.rawAddress)
               .orderByRaw(
-                `array_to_string(((string_to_array(h."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
+                `array_to_string(((string_to_array(${housingTable}."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
               )
               .orderByRaw(
-                `(string_to_array(h."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
+                `(string_to_array(${housingTable}."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
               );
           },
         },
@@ -727,15 +677,29 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
 const listWithFilters = async (
   filters: HousingFiltersApi
 ): Promise<HousingApi[]> => {
-  return listQuery(filters.establishmentIds)
+  const establishment = auth.getStore()?.establishment;
+  if (!establishment) {
+    throw new EstablishmentMissingError('');
+  }
+
+  return fastListQuery({
+    filters,
+    geoCodes: establishment.geoCodes,
+  })
     .modify(filteredQuery(filters))
     .modify(queryHousingEventsJoinClause)
     .then((_) => _.map((result: any) => parseHousingApi(result)));
 };
+
 const streamWithFilters = (
   filters: HousingFiltersApi
 ): Highland.Stream<HousingApi> => {
-  const stream = listQuery(filters.establishmentIds)
+  const establishment = auth.getStore()?.establishment;
+  if (!establishment) {
+    throw new EstablishmentMissingError('');
+  }
+
+  const stream = fastListQuery({ filters, geoCodes: establishment?.geoCodes })
     .modify(filteredQuery(filters))
     .modify(queryHousingEventsJoinClause)
     .stream();
@@ -816,15 +780,31 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
 };
 
 const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
-  const housingList = await listQuery().whereIn(`${housingTable}.id`, ids);
-  return housingList.map(parseHousingApi);
+  const establishment = auth.getStore()?.establishment;
+  if (!establishment) {
+    throw new EstablishmentMissingError('');
+  }
+
+  return find({
+    filters: {
+      establishmentIds: [establishment.id],
+      housingIds: ids,
+    },
+    pagination: {
+      paginate: false,
+    },
+  });
 };
 
 const update = async (housingApi: HousingApi): Promise<void> => {
   console.log('Update housingApi', housingApi.id);
 
   return db(housingTable)
-    .where('id', housingApi.id)
+    .where({
+      // Use the index on the partitioned table
+      geo_code: housingApi.geoCode,
+      id: housingApi.id,
+    })
     .update({
       occupancy: housingApi.occupancy,
       occupancy_intended: housingApi.occupancyIntended ?? null,
@@ -923,7 +903,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
       )
     : undefined,
   campaignIds: (result.campaign_ids ?? []).filter((_: any) => _),
-  contactCount: result.contact_count,
+  contactCount: Number(result.contact_count),
   lastContact: result.last_contact,
 });
 

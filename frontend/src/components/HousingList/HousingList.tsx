@@ -265,7 +265,7 @@ const HousingList = ({
           )
             .filter((campaign) => campaign !== undefined)
             .map((campaign, campaignIdx) => (
-              <div key={id + '-campaign-' + campaignIdx} className="ellipsis">
+              <div key={id + '-campaign-' + campaignIdx}>
                 <InternalLink
                   isSimple
                   to={
@@ -276,7 +276,8 @@ const HousingList = ({
                     })
                   }
                 >
-                  {campaignFullName(campaign!)}
+                  {campaignFullName(campaign!).substring(0, 17) +
+                    (campaignFullName(campaign!).length > 17 ? '...' : '')}
                 </InternalLink>
               </div>
             ))}

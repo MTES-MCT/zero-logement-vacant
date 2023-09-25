@@ -24,7 +24,6 @@ import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
-import ButtonLink from '../ButtonLink/ButtonLink';
 import Help from '../Help/Help';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
@@ -36,9 +35,10 @@ type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 interface Props {
   campaignBundle: CampaignBundle;
   as?: TitleAs;
+  look?: TitleAs;
 }
 
-const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
+const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle(campaignBundle);
@@ -75,24 +75,27 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
 
   return (
     <>
-      <Title as={as ?? 'h1'} className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
+      <Title
+        as={as ?? 'h1'}
+        look={look ?? as ?? 'h1'}
+        className="fr-mb-2w ds-fr--inline-block fr-mr-2w"
+      >
         {campaignFullName(campaignBundle)}
       </Title>
       {isCampaign && (
-        <ButtonLink
-          display="flex"
-          icon="ri-edit-2-fill"
-          iconPosition="left"
-          iconSize="1x"
-          isSimple
+        <Button
+          icon="ri-edit-2-line"
+          iconPosition="right"
+          tertiary
+          className="no-border"
           onClick={() => setIsModalOpen(true)}
         >
           Renommer
-        </ButtonLink>
+        </Button>
       )}
       {isCampaign && campaignBundle.createdAt && (
-        <Text className="subtitle" spacing="mb-2w">
-          échantillon créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
+        <Text className="subtitle" spacing="mb-1w" size="sm">
+          Campagne créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
         </Text>
       )}
       {campaignBundle.campaignNumber === 0 && (

@@ -124,7 +124,7 @@ function HousingDetailsCard({
           housing={housing}
           campaigns={housingCampaigns}
         />
-        <Tabs className="tabs-no-border fr-pt-3w">
+        <Tabs className="no-border fr-pt-3w">
           <Tab label="Caractéristiques" className="fr-px-0">
             <Row gutters>
               <Col>

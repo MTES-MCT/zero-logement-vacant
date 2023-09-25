@@ -474,7 +474,7 @@ li.error {
   }
 }
 
-.tabs-no-border {
+.no-border {
   box-shadow: none !important;
   &:before{
     box-shadow: inset 0 1px 0 0 var(--border-default-grey) !important;

@@ -86,7 +86,7 @@ const HousingEditionSideMenu = ({
         className="fr-p-0"
         content={
           <Container as="section" spacing="p-0">
-            <Tabs className="tabs-no-border first-tab-grey">
+            <Tabs className="no-border first-tab-grey">
               <Tab
                 label="+ Nouvelle mise à jour / note"
                 className="fr-p-0 bg-975"

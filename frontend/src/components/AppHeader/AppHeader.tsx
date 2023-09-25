@@ -28,14 +28,14 @@ import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/Esta
 import VerticalLink from '../VerticalLink/VerticalLink';
 import Collapse from '../Collapse/Collapse';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
+import classNames from 'classnames';
 
 interface AppNavItemProps {
   userNavItem: UserNavItem;
   isCurrent?: () => boolean;
-  count?: number;
 }
 
-function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
+function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
   const location = useLocation();
   const [path, setPath] = useState(() => location.pathname || '');
 
@@ -50,14 +50,10 @@ function AppNavItem({ userNavItem, isCurrent, count }: AppNavItemProps) {
       current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
       title={userNavItem.label}
       asLink={
-        count ? (
-          <Link to={userNavItem.url} className="d-md-none">
-            {userNavItem.label}
-            <span className={styles.count}>{count}</span>
-          </Link>
-        ) : (
-          <Link to={userNavItem.url} className="d-md-none" />
-        )
+        <Link
+          to={userNavItem.url}
+          className={classNames('d-md-none', styles.navItemLink)}
+        />
       }
     />
   );

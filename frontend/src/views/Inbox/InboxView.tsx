@@ -1,9 +1,8 @@
-import { Container } from '@dataesr/react-dsfr';
-import PageIntro from '../../components/PageIntro/PageIntro';
+import { Container, Text } from '@dataesr/react-dsfr';
 import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   findOwnerProspects,
   updateOwnerProspect,
@@ -14,6 +13,7 @@ import InternalLink from '../../components/InternalLink/InternalLink';
 import { getEstablishmentUrl } from '../../models/Establishment';
 import styles from './inbox-view.module.scss';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import MainContainer from '../../components/MainContainer/MainContainer';
 
 function InboxView() {
   useDocumentTitle('Messagerie');
@@ -63,31 +63,26 @@ function InboxView() {
   }, [dispatch]);
 
   return (
-    <Container as="main" fluid>
-      <PageIntro
-        description={
-          <>
-            Dans cet onglet, vous pourrez consulter les messages des
-            propriétaires qui souhaitent vous faire part de leur situation. Ces
-            messages proviennent du formulaire de contact présent sur la 
-            {link ? (
-              <InternalLink
-                className={styles.link}
-                display="flex"
-                isSimple
-                to={link}
-              >
-                page publique d’information sur la vacance
-              </InternalLink>
-            ) : (
-              'page publique d’information sur la vacance'
-            )}
-            .
-          </>
-        }
-        title="Messagerie"
-      />
-      <Container as="article" spacing="py-4w">
+    <MainContainer title="Messagerie">
+      <Text size="lg">
+        Dans cette page, vous pourrez consulter les messages des propriétaires
+        qui souhaitent vous faire part de leur situation. Ces messages
+        proviennent du formulaire de contact présent sur la 
+        {link ? (
+          <InternalLink
+            className={styles.link}
+            display="flex"
+            isSimple
+            to={link}
+          >
+            page publique d’information sur la vacance
+          </InternalLink>
+        ) : (
+          'page publique d’information sur la vacance'
+        )}
+        .
+      </Text>
+      <Container as="article" spacing="py-4w px-0">
         <InboxMessageList
           messages={messages}
           onChange={onChange}
@@ -102,7 +97,7 @@ function InboxView() {
           ownerProspect={selectedOwnerProspect}
         />
       </Container>
-    </Container>
+    </MainContainer>
   );
 }
 

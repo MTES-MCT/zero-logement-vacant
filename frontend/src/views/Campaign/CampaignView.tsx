@@ -25,6 +25,7 @@ import { hasFilters } from '../../models/HousingFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch } from '../../hooks/useStore';
 import { numberOption } from '../../utils/numberUtils';
+import MainContainer from '../../components/MainContainer/MainContainer';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
@@ -64,7 +65,7 @@ const CampaignView = () => {
   return bundle &&
     bundle.campaignNumber === numberOption(campaignNumber) &&
     bundle.reminderNumber === numberOption(reminderNumber) ? (
-    <>
+    <MainContainer>
       {campaignRemovalModalOpen && (
         <ConfirmationModal
           onSubmit={removeCampaign}
@@ -87,63 +88,57 @@ const CampaignView = () => {
           />
         </ConfirmationModal>
       )}
-      <div className="bg-100">
-        <Container spacing="py-4w" as="section">
-          <Row>
-            {isDeletable && (
-              <Col className="align-right">
-                <ButtonLink
-                  className="fr-pt-3w"
-                  display="flex"
-                  icon="ri-delete-bin-line"
-                  iconPosition="left"
-                  iconSize="1x"
-                  onClick={() => setCampaignRemovalModalOpen(true)}
-                >
-                  Supprimer la campagne
-                </ButtonLink>
-              </Col>
+      <Row>
+        <Col>
+          <CampaignBundleTitle campaignBundle={bundle} look="h3" />
+        </Col>
+        {isDeletable && (
+          <Col className="align-right">
+            <ButtonLink
+              className="fr-pt-3w"
+              display="flex"
+              icon="ri-delete-bin-line"
+              iconPosition="left"
+              iconSize="1x"
+              onClick={() => setCampaignRemovalModalOpen(true)}
+            >
+              Supprimer la campagne
+            </ButtonLink>
+          </Col>
+        )}
+      </Row>
+      <Row spacing="my-1w">
+        <Col>
+          <div>
+            <CampaignBundleInfos campaignBundle={bundle} />
+            {step && step >= CampaignSteps.InProgress && (
+              <CampaignBundleStats campaignBundle={bundle} />
             )}
-          </Row>
-          <Row>
-            <Col>
-              <CampaignBundleTitle campaignBundle={bundle} />
-            </Col>
-          </Row>
-          <Row spacing="my-2w">
-            <Col>
-              <div>
-                <CampaignBundleInfos campaignBundle={bundle} />
-                {step && step >= CampaignSteps.InProgress && (
-                  <CampaignBundleStats campaignBundle={bundle} />
-                )}
-              </div>
-            </Col>
-          </Row>
-          {bundle.filters && hasFilters(bundle.filters) && (
-            <Row>
-              <Col>
-                <Text size="sm" className="fr-mb-1w">
-                  Filtres utilisés pour la création de l'échantillon :
-                </Text>
-                <HousingFiltersBadges filters={bundle.filters} />
-              </Col>
-            </Row>
-          )}
-          {(bundle.campaignNumber ?? 0) > 0 &&
-            step &&
-            step >= CampaignSteps.InProgress && (
-              <Alert
-                title="Bienvenue dans l’espace suivi de votre campagne."
-                description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
-                className="fr-my-3w"
-                closable
-              />
-            )}
-        </Container>
-      </div>
+          </div>
+        </Col>
+      </Row>
+      {bundle.filters && hasFilters(bundle.filters) && (
+        <Row>
+          <Col>
+            <Text size="sm" className="fr-mb-1w">
+              Filtres utilisés pour la création de l'échantillon :
+            </Text>
+            <HousingFiltersBadges filters={bundle.filters} />
+          </Col>
+        </Row>
+      )}
+      {(bundle.campaignNumber ?? 0) > 0 &&
+        step &&
+        step >= CampaignSteps.InProgress && (
+          <Alert
+            title="Bienvenue dans l’espace suivi de votre campagne."
+            description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
+            className="fr-my-3w"
+            closable
+          />
+        )}
       {step !== null && (
-        <Container spacing="py-4w" as="section">
+        <Container spacing="pb-4w px-0" as="article">
           {(bundle.campaignNumber ?? 0) > 0 &&
           step < CampaignSteps.InProgress ? (
             <CampaignToValidate campaignStep={step} />
@@ -152,7 +147,7 @@ const CampaignView = () => {
           )}
         </Container>
       )}
-    </>
+    </MainContainer>
   ) : (
     <></>
   );

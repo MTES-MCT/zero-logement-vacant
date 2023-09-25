@@ -13,6 +13,7 @@ import {
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './resources.module.scss';
+import MainContainer from '../../components/MainContainer/MainContainer';
 
 interface Props {
   title: string;
@@ -54,23 +55,14 @@ const ResourcesView = () => {
   useDocumentTitle('Ressources');
 
   return (
-    <>
-      <div className="bg-100">
-        <Container as="section" spacing="py-4w">
-          <Row>
-            <Col n="8">
-              <Title as="h1">Ressources</Title>
-              <Text size="lead" className="subtitle">
-                Parcourez les différentes rubriques pour trouver les
-                informations et documents utiles dans votre stratégie de lutte
-                contre la vacance. Retrouvez également en bas de cette page les
-                trois étapes clés pour prendre en main ZLV !
-              </Text>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-      <Container as="section" spacing="py-4w">
+    <MainContainer title="Ressources">
+      <Container as="article" spacing="pb-4w px-0">
+        <Text size="lg">
+          Parcourez les différentes rubriques pour trouver les informations et
+          documents utiles dans votre stratégie de lutte contre la vacance.
+          Retrouvez également en bas de cette page les trois étapes clés pour
+          prendre en main ZLV !
+        </Text>
         <Row gutters>
           <Col n="6">
             <ResourceTile
@@ -126,7 +118,7 @@ const ResourcesView = () => {
           </Col>
         </Row>
       </Container>
-      <Container as="section" spacing="py-4w">
+      <Container as="article" spacing="py-4w px-0">
         <Title as="h2" look="h5">
           Trois étapes clés pour prendre en main ZLV
         </Title>
@@ -171,7 +163,7 @@ const ResourcesView = () => {
           </Col>
         </Row>
       </Container>
-    </>
+    </MainContainer>
   );
 };
 

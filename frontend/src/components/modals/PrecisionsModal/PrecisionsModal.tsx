@@ -47,7 +47,7 @@ const PrecisionsModal = ({
         </ModalClose>
         <ModalContent>
           <Container as="section" fluid>
-            <Tabs className="tabs-no-border">
+            <Tabs className="no-border">
               <Tab label={`Dispositifs (${precisions.length})`}>
                 <OptionsTreeCheckboxes
                   options={SupportOptions}

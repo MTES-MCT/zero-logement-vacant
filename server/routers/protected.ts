@@ -28,7 +28,6 @@ router.post('/housing', housingController.listValidators, validator.validate, ho
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
-router.get('/housing/owner/:ownerId', housingController.listByOwner);
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);

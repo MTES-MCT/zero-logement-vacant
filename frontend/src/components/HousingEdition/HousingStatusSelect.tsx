@@ -44,7 +44,11 @@ const HousingStatusSelect = ({
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}
           onClick={() => setShowOptions(!showOptions)}
         >
-          <HousingStatusBadge status={selected} />
+          {selected !== undefined ? (
+            <HousingStatusBadge status={selected} />
+          ) : (
+            <div>Sélectionnez un statut de suivi</div>
+          )}
         </button>
         {message && messageType && (
           <p className={`fr-${messageType}-text`}>{message}</p>

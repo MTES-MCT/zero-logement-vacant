@@ -54,6 +54,7 @@ import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import { useHousingList } from '../../hooks/useHousingList';
 
 interface TitleWithIconProps {
   icon: string;
@@ -80,8 +81,15 @@ function HousingListFiltersSidemenu() {
     useFilters();
   const campaignList = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
-  const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList(establishment?.id);
+
+  const { pagination, sort } = useAppSelector((state) => state.housing);
+
+  const { paginatedHousing } = useHousingList({
+    filters,
+    pagination,
+    sort,
+  });
 
   function close(): void {
     setExpand(false);
@@ -541,11 +549,13 @@ function HousingListFiltersSidemenu() {
                 Réinitialiser les filtres
               </ButtonLink>
             </Col>
-            <Col className="align-right">
-              <Text as="span" className="color-grey-625">
-                <b>{paginatedHousing.filteredCount}</b> résultats
-              </Text>
-            </Col>
+            {paginatedHousing && (
+              <Col className="align-right">
+                <Text as="span" className="color-grey-625">
+                  <b>{paginatedHousing.filteredCount}</b> résultats
+                </Text>
+              </Col>
+            )}
           </Row>
         </>
       }

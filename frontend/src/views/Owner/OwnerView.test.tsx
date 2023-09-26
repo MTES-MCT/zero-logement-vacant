@@ -39,10 +39,7 @@ describe('Owner view', () => {
               }),
               init: { status: 200 },
             };
-          } else if (
-            request.url ===
-            `${config.apiEndpoint}/api/housing/owner/${owner.id}`
-          ) {
+          } else if (request.url === `${config.apiEndpoint}/api/housing`) {
             return {
               body: JSON.stringify(genPaginatedResult([housing1, housing2])),
               init: { status: 200 },

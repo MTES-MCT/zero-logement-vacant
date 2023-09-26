@@ -10,8 +10,8 @@ import {
   CampaignSteps,
   DraftCampaign,
 } from '../models/Campaign';
-import { HousingStatus } from '../models/HousingState';
 import { Housing } from '../models/Housing';
+import { HousingFilters } from '../models/HousingFilters';
 
 const listCampaigns = async (): Promise<Campaign[]> => {
   return await fetch(`${config.apiEndpoint}/api/campaigns`, {
@@ -160,7 +160,7 @@ const removeHousingList = async (
   campaignId: string,
   allHousing: boolean,
   housingIds: string[],
-  status?: HousingStatus
+  filters: HousingFilters
 ): Promise<Housing> => {
   return await fetch(
     `${config.apiEndpoint}/api/campaigns/${campaignId}/housing`,
@@ -170,7 +170,7 @@ const removeHousingList = async (
         ...authService.authHeader(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ allHousing, housingIds, status }),
+      body: JSON.stringify({ allHousing, housingIds, filters }),
     }
   ).then((_) => _.json());
 };

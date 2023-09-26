@@ -1,8 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Button, Col, Link, Row, Text } from '@dataesr/react-dsfr';
 import {
-  changeCampaignHousingPagination,
-  listCampaignBundleHousing,
   removeCampaignHousingList,
   validCampaignStep,
 } from '../../store/actions/campaignAction';
@@ -24,15 +22,16 @@ import HousingList, {
 } from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { useSelection } from '../../hooks/useSelection';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import Help from '../../components/Help/Help';
-import { useCampaignHousingSearch } from '../../hooks/useCampaignHousingSearch';
 import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import { useHousingList } from '../../hooks/useHousingList';
+import housingSlice from '../../store/reducers/housingReducer';
+import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -42,11 +41,21 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
-  const { campaignBundle, campaignBundleHousing, campaignList } =
-    useAppSelector((state) => state.campaign);
+  const [query, setQuery] = useState<string>();
+  const { campaignBundle, campaignList } = useAppSelector(
+    (state) => state.campaign
+  );
   const campaign = campaignList?.find(
     (_) => _.id === campaignBundle?.campaignIds[0]
   );
+
+  const { totalCount, paginatedHousing, refetchPaginatedHousing } =
+    useHousingList(
+      {
+        filters: { campaignIds: campaignBundle?.campaignIds, query },
+      },
+      { skip: !campaignBundle }
+    );
 
   const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
@@ -75,17 +84,12 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     sendingDate,
   });
 
-  const { hasSelected, setSelected, selected, selectedCount } = useSelection(
-    campaignBundleHousing.totalCount
-  );
-
-  const { search } = useCampaignHousingSearch();
+  const { hasSelected, setSelected, selected, selectedCount } =
+    useSelection(totalCount);
 
   useEffect(() => {
-    if (campaignBundle) {
-      dispatch(listCampaignBundleHousing(campaignBundle));
-    }
-  }, [dispatch, campaignBundle]);
+    refetchPaginatedHousing();
+  }, [campaignBundle]); //eslint-disable-line react-hooks/exhaustive-deps
 
   if (!campaignBundle) {
     return <></>;
@@ -125,11 +129,14 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
       removeCampaignHousingList(
         campaignBundle.campaignIds[0],
         removingId ? false : selected.all,
-        removingId ? [removingId] : selected.ids
+        removingId ? [removingId] : selected.ids,
+        { query }
       )
     );
     setIsRemovingModalOpen(false);
   };
+
+  const { changePagination } = housingSlice.actions;
 
   async function downloadCSV(downloadOnly = false): Promise<void> {
     window.open(campaignBundle?.exportURL, '_self');
@@ -176,19 +183,17 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   )}
                   displayKind={HousingDisplayKey.Housing}
                   onChangePagination={(page, perPage) =>
-                    dispatch(changeCampaignHousingPagination(page, perPage))
+                    dispatch(changePagination({ page, perPage }))
                   }
                   onSelectHousing={setSelected}
-                  paginatedHousing={campaignBundleHousing}
+                  paginatedHousing={paginatedHousing}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>
                       <Row justifyContent="right">
                         {!hasSelected ? (
                           <Col n="6">
-                            <AppSearchBar
-                              onSearch={(q) => search(campaignBundle)(q)}
-                            />
+                            <AppSearchBar onSearch={(q) => setQuery(q)} />
                           </Col>
                         ) : (
                           <Button

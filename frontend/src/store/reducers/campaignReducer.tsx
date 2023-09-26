@@ -134,6 +134,7 @@ const campaignSlice = createSlice({
       state.housingByStatus[status] = {
         ...state.housingByStatus[status],
         pagination: {
+          perPage: 50,
           ...state.housingByStatus[status].pagination,
           page: 1,
         },

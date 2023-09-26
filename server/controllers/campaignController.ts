@@ -123,7 +123,15 @@ const createCampaign = async (
             (housing) => !request.body.housingIds.includes(housing.id)
           )
         )
-    : await housingRepository.listByIds(request.body.housingIds);
+    : await housingRepository.find({
+        filters: {
+          establishmentIds: [establishmentId],
+          housingIds: request.body.housingIds,
+        },
+        pagination: {
+          paginate: false,
+        },
+      });
 
   const housingIds = housingList.map((_) => _.id);
 
@@ -134,7 +142,15 @@ const createCampaign = async (
 
   await removeHousingFromDefaultCampaign(housingIds, establishmentId);
 
-  const newHousingList = await housingRepository.listByIds(housingIds);
+  const newHousingList = await housingRepository.find({
+    filters: {
+      establishmentIds: [establishmentId],
+      housingIds,
+    },
+    pagination: {
+      paginate: false,
+    },
+  });
 
   await eventRepository.insertManyHousingEvents(
     housingList.map((housing) => ({

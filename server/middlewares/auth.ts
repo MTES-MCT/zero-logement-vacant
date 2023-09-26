@@ -8,7 +8,6 @@ import UserMissingError from '../errors/userMissingError';
 import AuthenticationMissingError from '../errors/authenticationMissingError';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import establishmentRepository from '../repositories/establishmentRepository';
-import { auth } from '../utils/auth';
 
 export const jwtCheck = (credentialsRequired: boolean) =>
   expressjwt({
@@ -54,9 +53,6 @@ export const userCheck = () => {
 
     request.user = user;
     request.establishment = establishment;
-    const store = { establishment };
-    auth.run(store, () => {
-      next();
-    });
+    next();
   };
 };

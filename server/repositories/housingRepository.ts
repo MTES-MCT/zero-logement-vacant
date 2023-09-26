@@ -35,8 +35,6 @@ import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { sortQuery } from '../models/SortApi';
-import EstablishmentMissingError from '../errors/establishmentMissingError';
-import { auth } from '../utils/auth';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
@@ -697,17 +695,23 @@ const listWithFilters = async (
 const streamWithFilters = (
   filters: HousingFiltersApi
 ): Highland.Stream<HousingApi> => {
-  const establishment = auth.getStore()?.establishment;
-  if (!establishment) {
-    throw new EstablishmentMissingError('');
-  }
+  const fetchGeoCodes = async (): Promise<string[]> =>
+    db(establishmentsTable)
+      .select(db.raw('unnest(localities_geo_code) AS geo_code'))
+      .whereIn('id', filters.establishmentIds ?? [])
+      .then((geoCodes) => geoCodes.map((_) => _.geo_code));
 
-  const stream = fastListQuery({ filters, geoCodes: establishment?.geoCodes })
-    .modify(filteredQuery(filters))
-    .modify(queryHousingEventsJoinClause)
-    .stream();
-
-  return highland<HousingDBO>(stream).map(parseHousingApi);
+  return highland(fetchGeoCodes())
+    .flatten()
+    .collect()
+    .flatMap((geoCodes) => {
+      return highland<HousingDBO>(
+        fastListQuery({ filters, geoCodes })
+          .modify(queryHousingEventsJoinClause)
+          .stream()
+      );
+    })
+    .map(parseHousingApi);
 };
 
 const stream = (): Highland.Stream<HousingApi> => {
@@ -780,23 +784,6 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
     housing: Number(result?.housing),
     owners: Number(result?.owners),
   };
-};
-
-const listByIds = async (ids: string[]): Promise<HousingApi[]> => {
-  const establishment = auth.getStore()?.establishment;
-  if (!establishment) {
-    throw new EstablishmentMissingError('');
-  }
-
-  return find({
-    filters: {
-      establishmentIds: [establishment.id],
-      housingIds: ids,
-    },
-    pagination: {
-      paginate: false,
-    },
-  });
 };
 
 const update = async (housingApi: HousingApi): Promise<void> => {
@@ -950,7 +937,6 @@ export default {
   stream,
   count,
   countVacant,
-  listByIds,
   update,
   formatHousingRecordApi,
   saveMany,

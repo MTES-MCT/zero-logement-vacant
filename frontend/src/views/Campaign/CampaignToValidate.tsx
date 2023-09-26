@@ -197,7 +197,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   }}
                   housingList={paginatedHousing?.entities ?? []}
                   filteredCount={Number(campaignBundle.housingCount)}
-                  totalCount={Number(campaignBundle.housingCount)}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>

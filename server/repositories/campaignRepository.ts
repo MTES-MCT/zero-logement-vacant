@@ -50,11 +50,14 @@ const getCampaign = async (campaignId: string): Promise<CampaignApi | null> => {
       'id',
       `${campaignsHousingTable}.campaign_id`
     )
-    .leftJoin(
-      housingTable,
-      `${housingTable}.id`,
-      `${campaignsHousingTable}.housing_id`
-    )
+    .leftJoin(housingTable, (join) => {
+      join
+        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+        .on(
+          `${housingTable}.geo_code`,
+          `${campaignsHousingTable}.housing_geo_code`
+        );
+    })
     .leftJoin(ownersHousingTable, ownersHousingJoinClause)
     .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
     .groupBy(`${campaignsTable}.id`)

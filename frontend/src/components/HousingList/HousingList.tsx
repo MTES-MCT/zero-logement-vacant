@@ -49,7 +49,6 @@ interface Props {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
   children?: ReactElement | ReactElement[];
   filteredCount: number;
-  totalCount: number;
   pagination: Pagination;
   housingList?: Housing[];
   displayKind: HousingDisplayKey;
@@ -65,7 +64,6 @@ const HousingList = ({
   actions,
   children,
   filteredCount,
-  totalCount,
   pagination,
   housingList,
   onChangePagination,
@@ -316,7 +314,6 @@ const HousingList = ({
             allChecked ? filteredCount - checkedIds.length : checkedIds.length
           }
           count={filteredCount}
-          total={totalCount}
           onUnselectAll={unselectAll}
           entity="logement"
           {...header?.props}

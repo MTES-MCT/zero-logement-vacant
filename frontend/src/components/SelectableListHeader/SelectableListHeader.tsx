@@ -12,7 +12,6 @@ interface SelectableListHeaderProps {
   children?: ReactElement | ReactElement[];
   selected?: number;
   count?: number;
-  total?: number;
   onUnselectAll?: () => void;
   entity: SelectableEntity;
   default?: ReactElement;

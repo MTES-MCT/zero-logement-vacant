@@ -244,6 +244,7 @@ const insertHousingOwners = async (
         housingOwners.map((ho) => ({
           owner_id: ho.id,
           housing_id: ho.housingId,
+          housing_geo_code: ho.housingGeoCode,
           rank: ho.rank,
           start_date: ho.startDate,
           end_date: ho.endDate,

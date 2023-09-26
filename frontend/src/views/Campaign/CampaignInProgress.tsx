@@ -219,7 +219,6 @@ const TabContent = ({ status, query }: TabContentProps) => {
       )}
       <HousingList
         filteredCount={count?.housing ?? 1}
-        totalCount={campaignBundle.housingCount}
         pagination={{
           page: pagination?.page ?? 1,
           perPage: pagination?.perPage ?? 50,

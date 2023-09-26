@@ -65,31 +65,45 @@ exports.up = async (knex: Knex) => {
   }
 
   await knex.schema.alterTable('owners_housing', (table) => {
+    table.dropPrimary();
     table.dropForeign('housing_id');
+    table.dropForeign('owner_id');
+    table.dropIndex(
+      ['housing_id', 'rank', 'owner_id'],
+      'owners_housing_housing_id_rank_owner_id_idx'
+    );
+    table.dropIndex(['housing_id', 'rank'], 'owners_housing_housing_rank_idx');
   });
   await addForeignKey('owners_housing');
   await knex.schema.alterTable('owners_housing', (table) => {
-    table.dropPrimary();
     table.primary(['owner_id', 'housing_id', 'housing_geo_code']);
+    table.foreign('owner_id').references('id').inTable('owners');
+    table.index(['housing_id', 'rank', 'owner_id']);
   });
+  await knex.schema.raw(`
+    CREATE UNIQUE INDEX owners_housing_housing_rank_owner_idx ON owners_housing (housing_id, rank)
+    WHERE (rank = 1);
+  `);
+  await knex.schema.raw(`
+    CREATE UNIQUE INDEX owners_housing_housing_rank_coowners_idx ON owners_housing (housing_id, rank)
+    WHERE (rank > 1);
+  `);
 
   await knex.schema.alterTable('campaigns_housing', (table) => {
-    table.dropForeign('housing_id');
+    table.dropPrimary();
+    table.dropForeign('housing_id', 'campaigns_housing_housing_id_foreign');
   });
   await addForeignKey('campaigns_housing');
   await knex.schema.alterTable('campaigns_housing', (table) => {
-    table.dropPrimary();
     table.primary(['campaign_id', 'housing_id', 'housing_geo_code']);
   });
 
-  await addForeignKey('old_events');
-
   await knex.schema.alterTable('housing_events', (table) => {
+    table.dropPrimary();
     table.dropForeign('housing_id');
   });
   await addForeignKey('housing_events');
   await knex.schema.alterTable('housing_events', (table) => {
-    table.dropPrimary();
     table.primary(['event_id', 'housing_id', 'housing_geo_code']);
   });
 
@@ -120,19 +134,31 @@ exports.down = async (knex: Knex) => {
 
   await knex.schema.alterTable('owners_housing', (table) => {
     table.dropPrimary();
+    table.dropIndex(
+      ['housing_id, rank'],
+      'owners_housing_housing_rank_owner_idx'
+    );
+    table.dropIndex(
+      ['housing_id, rank'],
+      'owners_housing_housing_rank_coowners_idx'
+    );
     table.dropColumn('housing_geo_code');
     addForeignKey(table);
     table.primary(['owner_id', 'housing_id']);
+    table.index(
+      ['housing_id', 'rank', 'owner_id'],
+      'owners_housing_housing_id_rank_owner_id_idx'
+    );
   });
+  await knex.schema.raw(`
+    CREATE UNIQUE INDEX owners_housing_housing_rank_idx ON owners_housing (housing_id, rank)
+    WHERE (rank > 0);
+  `);
   await knex.schema.alterTable('campaigns_housing', (table) => {
     table.dropPrimary();
     table.dropColumn('housing_geo_code');
     addForeignKey(table);
     table.primary(['campaign_id', 'housing_id']);
-  });
-  await knex.schema.alterTable('old_events', (table) => {
-    table.dropColumn('housing_geo_code');
-    // There was no foreign key before the migration
   });
   await knex.schema.alterTable('housing_events', (table) => {
     table.dropPrimary();

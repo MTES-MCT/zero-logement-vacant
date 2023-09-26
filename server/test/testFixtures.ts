@@ -56,11 +56,13 @@ export const genEmail = () => {
   );
 };
 
-export const genGeoCode = () => {
-  return randomstring.generate({
+export const genGeoCode = (): string => {
+  const geoCode: string = randomstring.generate({
     length: 5,
     charset: 'numeric',
   });
+  const needsReroll = geoCode.startsWith('99') || geoCode.endsWith('999');
+  return needsReroll ? genGeoCode() : geoCode;
 };
 
 export const genNumber = (length = 10) => {

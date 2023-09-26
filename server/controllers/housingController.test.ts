@@ -72,47 +72,44 @@ describe('Housing controller', () => {
       expect(allowedHousing).toBe(true);
     });
 
-    it.failing(
-      'should return the housing list for a query filter',
-      async () => {
-        const queriedHousing = {
-          ...genHousingApi(Locality1.geoCode),
-          rawAddress: ['line1 with   many      spaces', 'line2'],
-        };
+    it('should return the housing list for a query filter', async () => {
+      const queriedHousing = {
+        ...genHousingApi(Locality1.geoCode),
+        rawAddress: ['line1 with   many      spaces', 'line2'],
+      };
 
-        await db(housingTable).insert(
-          housingRepository.formatHousingRecordApi(queriedHousing)
-        );
+      await db(housingTable).insert(
+        housingRepository.formatHousingRecordApi(queriedHousing)
+      );
 
-        await ownerRepository.insertHousingOwners([
-          {
-            ...Owner1,
-            housingId: queriedHousing.id,
-            housingGeoCode: queriedHousing.geoCode,
-            rank: 1,
-          },
-        ]);
+      await ownerRepository.insertHousingOwners([
+        {
+          ...Owner1,
+          housingId: queriedHousing.id,
+          housingGeoCode: queriedHousing.geoCode,
+          rank: 1,
+        },
+      ]);
 
-        const res = await withAccessToken(request(app).post(testRoute)).send({
-          page: 1,
-          perPage: 10,
-          filters: { query: 'line1   with many spaces' },
-        });
+      const res = await withAccessToken(request(app).post(testRoute)).send({
+        page: 1,
+        perPage: 10,
+        filters: { query: 'line1   with many spaces' },
+      });
 
-        expect(res.status).toBe(constants.HTTP_STATUS_OK);
-        expect(res.body).toMatchObject({
-          entities: expect.arrayContaining([
-            expect.objectContaining({
-              id: queriedHousing.id,
-            }),
-          ]),
-          page: 1,
-          perPage: 10,
-          filteredCount: 1,
-          totalCount: 0,
-        });
-      }
-    );
+      expect(res.status).toBe(constants.HTTP_STATUS_OK);
+      expect(res.body).toMatchObject({
+        entities: expect.arrayContaining([
+          expect.objectContaining({
+            id: queriedHousing.id,
+          }),
+        ]),
+        page: 1,
+        perPage: 10,
+        filteredCount: 1,
+        totalCount: 0,
+      });
+    });
   });
 
   describe('updateHousing', () => {

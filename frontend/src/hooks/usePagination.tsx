@@ -1,4 +1,5 @@
 import { Pagination } from '../../../shared/models/Pagination';
+import config from '../utils/config';
 
 interface PaginationOptions extends Partial<Pagination> {
   count: number;
@@ -7,7 +8,7 @@ interface PaginationOptions extends Partial<Pagination> {
 export function usePagination(opts: PaginationOptions) {
   const { count } = opts;
   const page = opts.page ?? 1;
-  const perPage = opts.perPage ?? 50;
+  const perPage = opts.perPage ?? config.perPageDefault;
   const pageCount = Math.ceil(count / perPage);
 
   const rowNumber = (index: number) => (page - 1) * perPage + index + 1;

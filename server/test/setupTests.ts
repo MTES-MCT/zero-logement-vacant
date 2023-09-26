@@ -12,20 +12,6 @@ jest.useFakeTimers({
   legacyFakeTimers: true,
 });
 
-const ROLLBACK_ALL = true;
-
-global.beforeAll(async () => {
-  const db = knex(knexConfig);
-  try {
-    await db.migrate.rollback(undefined, ROLLBACK_ALL);
-  } catch (error) {
-    logger.error(error);
-    process.exit(1);
-  } finally {
-    await db.destroy();
-  }
-});
-
 global.beforeEach(async () => {
   const db = knex(knexConfig);
   try {

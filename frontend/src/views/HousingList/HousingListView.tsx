@@ -88,7 +88,7 @@ const HousingListView = () => {
       'occupancies',
     ])(filters)
   );
-  const totalCount = data?.housing ?? 1;
+  const totalCount = data?.housing ?? 0;
 
   const { data: count, isLoading: isCounting } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
@@ -342,7 +342,6 @@ const HousingListView = () => {
               paginatedHousing.entities.length > 0 && (
                 <HousingList
                   filteredCount={filteredCount}
-                  totalCount={totalCount}
                   housingList={paginatedHousing.entities}
                   pagination={pagination}
                   onChangePagination={(page, perPage) =>

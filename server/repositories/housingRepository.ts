@@ -58,6 +58,7 @@ export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
 export const ownersHousingJoinClause = (query: any) => {
   query
     .on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+    .andOn(`${housingTable}.geo_code`, `${ownersHousingTable}.housing_geo_code`)
     .andOnVal('rank', 1);
 };
 
@@ -600,6 +601,10 @@ const fastListQuery = (opts: ListQueryOptions) => {
       .join(ownersHousingTable, (join) => {
         join
           .on(`${housingTable}.id`, `${ownersHousingTable}.housing_id`)
+          .on(
+            `${housingTable}.geo_code`,
+            `${ownersHousingTable}.housing_geo_code`
+          )
           .onVal('rank', 1);
       })
       .join({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
@@ -610,6 +615,7 @@ const fastListQuery = (opts: ListQueryOptions) => {
            SELECT array_agg(distinct(campaign_id)) AS campaign_ids, ARRAY_LENGTH(array_agg(distinct(campaign_id)), 1) AS campaign_count
            FROM campaigns_housing ch, campaigns c 
            WHERE ${housingTable}.id = ch.housing_id 
+           AND ${housingTable}.geo_code = ch.housing_geo_code
            AND c.id = ch.campaign_id
            ${
              opts.filters.campaignIds?.length
@@ -656,7 +662,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
           owner: (query) => query.orderBy('o.full_name', opts.sort?.owner),
           rawAddress: (query) => {
             query
-              .orderBy('${housingTable}.raw_address[2]', opts.sort?.rawAddress)
+              .orderBy(`${housingTable}.raw_address[2]`, opts.sort?.rawAddress)
               .orderByRaw(
                 `array_to_string(((string_to_array(${housingTable}."raw_address"[1], ' '))[2:]), '') ${opts.sort?.rawAddress}`
               )

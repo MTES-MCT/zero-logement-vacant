@@ -14,3 +14,5 @@ export function not<A>(f: Predicate<A>): Predicate<A> {
 }
 
 export const isNotNull = <A>(a: A | null): a is A => not(isNull)(a);
+
+export const isDefined = <A>(a: A | undefined): a is A => a !== undefined;

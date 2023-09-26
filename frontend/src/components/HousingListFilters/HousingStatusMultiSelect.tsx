@@ -9,7 +9,7 @@ import styles from './housing-list-filters.module.scss';
 import Checkbox from '../Checkbox/Checkbox';
 
 interface Props {
-  selectedStatus: HousingStatus[];
+  selectedStatus?: HousingStatus[];
   options: SelectOption[];
   onChange: (value: HousingStatus, checked: boolean) => void;
   messageType?: string;
@@ -45,7 +45,7 @@ const HousingStatusMultiSelect = ({
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}
           onClick={() => setShowOptions(!showOptions)}
         >
-          {selectedStatus.length > 0 ? (
+          {selectedStatus !== undefined && selectedStatus.length > 0 ? (
             selectedStatus.map((status) => (
               <HousingStatusBadge status={status} />
             ))

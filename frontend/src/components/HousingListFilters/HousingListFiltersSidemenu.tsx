@@ -133,7 +133,7 @@ function HousingListFiltersSidemenu() {
               <Row gutters>
                 <Col n="12">
                   <HousingStatusMultiSelect
-                    selectedStatus={filters.statusList ?? []}
+                    selectedStatus={filters.statusList}
                     options={statusOptions()}
                     onChange={onChangeStatusFilter}
                   />

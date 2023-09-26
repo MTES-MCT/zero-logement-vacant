@@ -51,6 +51,7 @@ import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import { useUpdateHousingMutation } from '../../services/housing.service';
+import { isDefined } from '../../utils/compareUtils';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -263,7 +264,7 @@ const HousingList = ({
               )
               .sort(CampaignNumberSort)
           )
-            .filter((campaign) => campaign !== undefined)
+            .filter(isDefined)
             .map((campaign, campaignIdx) => (
               <div key={id + '-campaign-' + campaignIdx}>
                 <InternalLink
@@ -271,13 +272,13 @@ const HousingList = ({
                   to={
                     '/campagnes/' +
                     campaignBundleIdUrlFragment({
-                      campaignNumber: campaign!.campaignNumber,
-                      reminderNumber: campaign!.reminderNumber,
+                      campaignNumber: campaign.campaignNumber,
+                      reminderNumber: campaign.reminderNumber,
                     })
                   }
                 >
-                  {campaignFullName(campaign!).substring(0, 17) +
-                    (campaignFullName(campaign!).length > 17 ? '...' : '')}
+                  {campaignFullName(campaign).substring(0, 17) +
+                    (campaignFullName(campaign).length > 17 ? '...' : '')}
                 </InternalLink>
               </div>
             ))}

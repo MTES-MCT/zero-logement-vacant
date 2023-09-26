@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
+import { logger } from '../../server/utils/logger';
 
 exports.up = async (knex: Knex) => {
   async function createPartitions(from: number, to: number): Promise<void> {
@@ -32,8 +33,10 @@ exports.up = async (knex: Knex) => {
     FOR VALUES FROM ('2B000') TO ('2B999')
   `);
   await createPartitions(21, 99);
+  logger.info('Housing partitions created.');
 
   await knex.insert(knex.select().from('housing')).into('fast_housing');
+  logger.info('Housing copied to the fast_housing partitions.');
   await knex.schema.alterTable('fast_housing', (table) => {
     table.primary(['geo_code', 'id']);
   });
@@ -42,12 +45,6 @@ exports.up = async (knex: Knex) => {
   async function addForeignKey(tableName: string): Promise<void> {
     await knex.schema.alterTable(tableName, (table) => {
       table.string('housing_geo_code');
-      table
-        .foreign(['housing_geo_code', 'housing_id'])
-        .references(['geo_code', 'id'])
-        .inTable('fast_housing')
-        .onUpdate('CASCADE')
-        .onDelete('CASCADE');
     });
     await knex(tableName).update({
       housing_geo_code: knex
@@ -57,11 +54,18 @@ exports.up = async (knex: Knex) => {
     });
     await knex.schema.alterTable(tableName, (table) => {
       table.string('housing_geo_code').notNullable().alter();
+      table
+        .foreign(['housing_geo_code', 'housing_id'])
+        .references(['geo_code', 'id'])
+        .inTable('fast_housing')
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE');
     });
+    logger.info(`Added constraints to ${tableName}.`);
   }
 
   await knex.schema.alterTable('owners_housing', (table) => {
-    table.dropForeign('housing_id', 'owners_housing_housing_id_foreign');
+    table.dropForeign('housing_id');
   });
   await addForeignKey('owners_housing');
   await knex.schema.alterTable('owners_housing', (table) => {

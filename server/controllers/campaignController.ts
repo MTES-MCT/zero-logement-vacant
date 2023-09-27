@@ -237,7 +237,7 @@ const createReminderCampaign = async (request: Request, response: Response) => {
           filters: {
             establishmentIds: [establishmentId],
             campaignIds: campaignBundle.campaignIds,
-            status: [HousingStatusApi.Waiting],
+            status: HousingStatusApi.Waiting,
           },
           pagination: { paginate: false },
         })
@@ -486,16 +486,19 @@ const deleteCampaignBundle = async (
 
 const resetHousingWithoutCampaigns = async (establishmentId: string) => {
   return housingRepository
-    .listWithFilters({
-      establishmentIds: [establishmentId],
-      campaignsCounts: ['0'],
-      status: [
-        HousingStatusApi.Waiting,
-        HousingStatusApi.FirstContact,
-        HousingStatusApi.InProgress,
-        HousingStatusApi.Completed,
-        HousingStatusApi.Blocked,
-      ],
+    .find({
+      filters: {
+        establishmentIds: [establishmentId],
+        campaignsCounts: ['0'],
+        statusList: [
+          HousingStatusApi.Waiting,
+          HousingStatusApi.FirstContact,
+          HousingStatusApi.InProgress,
+          HousingStatusApi.Completed,
+          HousingStatusApi.Blocked,
+        ],
+      },
+      pagination: { paginate: false },
     })
     .then((results) =>
       Promise.all([
@@ -552,10 +555,13 @@ const removeHousingList = async (
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   const housingIds = await housingRepository
-    .listWithFilters({
-      ...filters,
-      establishmentIds: [establishmentId],
-      campaignIds: [campaignId],
+    .find({
+      filters: {
+        ...filters,
+        establishmentIds: [establishmentId],
+        campaignIds: [campaignId],
+      },
+      pagination: { paginate: false },
     })
     .then((_) =>
       _.map((_) => _.id).filter((id) =>

@@ -4,11 +4,11 @@ export const useHousingList = (
   findOptions: FindOptions,
   useOptions: { skip: boolean } = { skip: false }
 ) => {
-  const { data: paginatedHousing, refetch: refetchPaginatedHousing } =
+  const { data: paginatedHousing, refetch: refetchHousingList } =
     useFindHousingQuery(findOptions, useOptions);
 
   return {
-    paginatedHousing,
-    refetchPaginatedHousing,
+    housingList: paginatedHousing?.entities,
+    refetchHousingList,
   };
 };

@@ -150,7 +150,7 @@ describe('Housing controller', () => {
   describe('updateHousingList', () => {
     const validBody = {
       filters: {
-        status: [HousingStatusApi.Waiting],
+        status: HousingStatusApi.Waiting,
         campaignIds: [Campaign1.id],
       },
       housingIds: [Housing1.id],

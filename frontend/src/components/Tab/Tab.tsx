@@ -1,7 +1,7 @@
 import { Tab as DSFRTab } from '@dataesr/react-dsfr';
 import React, { ComponentPropsWithoutRef } from 'react';
 
-interface TabProps
+export interface TabProps
   extends Omit<
     ComponentPropsWithoutRef<typeof DSFRTab>,
     'activeTab' | 'index'

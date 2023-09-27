@@ -136,7 +136,10 @@ export const OwnershipKindLabels = {
   [OwnershipKinds.Other]: 'Autre',
 };
 
-export type HousingSortable = Pick<Housing, 'rawAddress' | 'owner'>;
+export type HousingSortable = Pick<
+  Housing,
+  'rawAddress' | 'owner' | 'occupancy' | 'status'
+>;
 export type HousingSort = Sort<HousingSortable>;
 
 export function toLink(housing: Housing): string {

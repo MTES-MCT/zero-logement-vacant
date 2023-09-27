@@ -1,9 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import {
-  HousingFilters,
-  HousingFiltersForTotalCount,
-} from '../models/HousingFilters';
+import { HousingFilters } from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
@@ -38,7 +35,7 @@ export const housingApi = createApi({
     baseUrl: `${config.apiEndpoint}/api/housing`,
     prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
   }),
-  tagTypes: ['Housing', 'HousingByStatus'],
+  tagTypes: ['Housing', 'HousingByStatus', 'HousingCountByStatus'],
   endpoints: (builder) => ({
     getHousing: builder.query<Housing, string>({
       query: (housingId) => housingId,
@@ -64,10 +61,10 @@ export const housingApi = createApi({
         },
       }),
       providesTags: (result, errors, args) => [
-        ...(args.filters.status?.map((status) => ({
+        {
           type: 'HousingByStatus' as const,
-          id: status,
-        })) ?? []),
+          id: args.filters.status,
+        },
         ...(result?.entities.map(({ id }) => ({
           type: 'Housing' as const,
           id,
@@ -80,30 +77,46 @@ export const housingApi = createApi({
         };
       },
     }),
-    countHousing: builder.query<
-      HousingCount,
-      HousingFilters | HousingFiltersForTotalCount
-    >({
+    countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
         url: 'count',
         method: 'POST',
         body: { filters },
       }),
+      providesTags: (result, errors, args) => [
+        {
+          type: 'HousingCountByStatus' as const,
+          id: args.status,
+        },
+      ],
     }),
     updateHousing: builder.mutation<
       void,
-      { housingId: string; housingUpdate: HousingUpdate }
+      {
+        housing: Housing;
+        housingUpdate: HousingUpdate;
+      }
     >({
-      query: ({ housingId, housingUpdate }) => ({
-        url: housingId,
+      query: ({ housing, housingUpdate }) => ({
+        url: housing.id,
         method: 'POST',
         body: {
+          housingId: housing.id,
           housingUpdate,
         },
       }),
-      invalidatesTags: (result, error, { housingId, housingUpdate }) => [
-        { type: 'Housing', id: housingId },
+      invalidatesTags: (result, error, { housing, housingUpdate }) => [
+        { type: 'Housing', id: housing.id },
         { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
+        { type: 'HousingByStatus', id: housing.status },
+        {
+          type: 'HousingCountByStatus',
+          id: housingUpdate.statusUpdate?.status,
+        },
+        {
+          type: 'HousingCountByStatus',
+          id: housing.status,
+        },
       ],
     }),
     updateHousingList: builder.mutation<
@@ -131,7 +144,7 @@ export const housingApi = createApi({
       invalidatesTags: (
         result,
         error,
-        { allHousing, housingIds, housingUpdate }
+        { allHousing, housingIds, housingUpdate, filters }
       ) => [
         ...(allHousing
           ? ['Housing' as const]
@@ -140,6 +153,15 @@ export const housingApi = createApi({
               id: housingId,
             }))),
         { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
+        { type: 'HousingByStatus', id: filters.status },
+        {
+          type: 'HousingCountByStatus',
+          id: housingUpdate.statusUpdate?.status,
+        },
+        {
+          type: 'HousingCountByStatus',
+          id: filters.status,
+        },
       ],
     }),
   }),

@@ -58,7 +58,10 @@ function HousingDetailsCard({
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    await updateHousing({ housingId: housing.id, housingUpdate });
+    await updateHousing({
+      housing,
+      housingUpdate,
+    });
     await refetchHousingEvents();
     await refetchHousingNotes();
 

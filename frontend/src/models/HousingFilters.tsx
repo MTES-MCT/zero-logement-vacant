@@ -35,22 +35,13 @@ export interface HousingFilters {
   geoPerimetersExcluded?: string[];
   dataYearsIncluded?: number[];
   dataYearsExcluded?: number[];
-  status?: number[];
+  status?: HousingStatus;
+  statusList?: HousingStatus[];
   subStatus?: string[];
   query?: string;
   energyConsumption?: string[];
   occupancies?: string[];
 }
-
-export type HousingFiltersForTotalCount = Pick<
-  HousingFilters,
-  | 'establishmentIds'
-  | 'dataYearsIncluded'
-  | 'dataYearsExcluded'
-  | 'status'
-  | 'campaignIds'
-  | 'occupancies'
->;
 
 export const allOccupancyOptions: SelectOption[] = Object.values(OccupancyKind)
   .filter((_) => !(parseInt(_) >= 0))

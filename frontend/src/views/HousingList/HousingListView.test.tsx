@@ -22,6 +22,7 @@ import {
   store as appStore,
 } from '../../store/store';
 import { getRequestCalls } from '../../utils/test/requestUtils';
+import { HousingStatus } from '../../models/HousingState';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -106,19 +107,30 @@ describe('housing view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    expect(requests).toContainEqual({
-      url: `${config.apiEndpoint}/api/housing`,
-      method: 'POST',
-      body: {
-        filters: {
-          ...initialHousingFilters,
-          ownerKinds: [ownerKindOptions[0].value],
+    [
+      undefined,
+      HousingStatus.NeverContacted,
+      HousingStatus.Waiting,
+      HousingStatus.FirstContact,
+      HousingStatus.InProgress,
+      HousingStatus.Completed,
+      HousingStatus.Blocked,
+    ].forEach((status) =>
+      expect(requests).toContainEqual({
+        url: `${config.apiEndpoint}/api/housing`,
+        method: 'POST',
+        body: {
+          filters: {
+            ...initialHousingFilters,
+            status,
+            ownerKinds: [ownerKindOptions[0].value],
+          },
+          page: 1,
+          perPage: config.perPageDefault,
+          paginate: true,
         },
-        paginate: true,
-        page: 1,
-        perPage: config.perPageDefault,
-      },
-    });
+      })
+    );
 
     expect(requests).toContainEqual({
       url: `${config.apiEndpoint}/api/housing/count`,
@@ -173,16 +185,26 @@ describe('housing view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    expect(requests).toContainEqual({
-      url: `${config.apiEndpoint}/api/housing`,
-      method: 'POST',
-      body: {
-        filters: { ...initialHousingFilters, query: 'my search' },
-        paginate: true,
-        page: 1,
-        perPage: config.perPageDefault,
-      },
-    });
+    [
+      undefined,
+      HousingStatus.NeverContacted,
+      HousingStatus.Waiting,
+      HousingStatus.FirstContact,
+      HousingStatus.InProgress,
+      HousingStatus.Completed,
+      HousingStatus.Blocked,
+    ].forEach((status) =>
+      expect(requests).toContainEqual({
+        url: `${config.apiEndpoint}/api/housing`,
+        method: 'POST',
+        body: {
+          filters: { ...initialHousingFilters, query: 'my search', status },
+          page: 1,
+          perPage: config.perPageDefault,
+          paginate: true,
+        },
+      })
+    );
   });
 
   test('should not display the button to create campaign if no housing are selected', async () => {
@@ -253,7 +275,10 @@ describe('housing view', () => {
         </Router>
       </Provider>
     );
-    const housing1Element = await screen.findByTestId(
+
+    const tabPanels = await screen.findAllByRole('tabpanel');
+
+    const housing1Element = await within(tabPanels[0]).findByTestId(
       'housing-check-' + housing.id
     );
     // eslint-disable-next-line testing-library/no-node-access

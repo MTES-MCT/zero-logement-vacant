@@ -568,8 +568,11 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
         filters.dataYearsExcluded,
       ]);
     }
-    if (filters.status?.length) {
-      queryBuilder.whereIn('status', filters.status);
+    if (filters.statusList?.length) {
+      queryBuilder.whereIn('status', filters.statusList);
+    }
+    if (filters.status !== undefined) {
+      queryBuilder.where('status', filters.status);
     }
     if (filters.subStatus?.length) {
       queryBuilder.whereIn('sub_status', filters.subStatus);
@@ -670,6 +673,10 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
                 `(string_to_array(${housingTable}."raw_address"[1], ' '))[1] ${opts.sort?.rawAddress}`
               );
           },
+          occupancy: (query) =>
+            query.orderBy(`${housingTable}.occupancy`, opts.sort?.occupancy),
+          status: (query) =>
+            query.orderBy(`${housingTable}.status`, opts.sort?.status),
         },
         default: (query) => query.orderBy(['geo_code', 'id']),
       })
@@ -678,24 +685,6 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
 
   logger.trace('housingRepository.find', { housing: housingList.length });
   return housingList.map(parseHousingApi);
-};
-
-const listWithFilters = async (
-  filters: HousingFiltersApi
-): Promise<HousingApi[]> => {
-  const establishments = await establishmentRepository.find({
-    ids: filters.establishmentIds,
-  });
-  const geoCodes = establishments.flatMap(
-    (establishment) => establishment?.geoCodes
-  );
-
-  return fastListQuery({
-    filters,
-    geoCodes,
-  })
-    .modify(queryHousingEventsJoinClause)
-    .then((_) => _.map((result: any) => parseHousingApi(result)));
 };
 
 const streamWithFilters = (
@@ -938,7 +927,6 @@ export const formatHousingRecordApi = (
 export default {
   get,
   find,
-  listWithFilters,
   streamWithFilters,
   stream,
   count,

@@ -275,7 +275,10 @@ describe('housing view', () => {
         </Router>
       </Provider>
     );
-    const housing1Element = await screen.findByTestId(
+
+    const tabPanels = await screen.findAllByRole('tabpanel');
+
+    const housing1Element = await within(tabPanels[0]).findByTestId(
       'housing-check-' + housing.id
     );
     // eslint-disable-next-line testing-library/no-node-access

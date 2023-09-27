@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import {
-  getHousingState,
-  HousingStates,
-  HousingStatus,
-} from '../models/HousingState';
+import { getHousingState, HousingStatus } from '../models/HousingState';
 
 export function useStatusTabs(statusList: (HousingStatus | undefined)[]) {
   const [statusCounts, setStatusCounts] = useState<(number | undefined)[]>(
-    new Array(HousingStates.length + 1)
+    new Array(statusList.length)
   );
 
   const setStatusCount = (status?: HousingStatus) => (count?: number) => {

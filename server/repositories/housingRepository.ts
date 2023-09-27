@@ -529,11 +529,11 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
       });
     }
     if (filters.localities?.length) {
-      queryBuilder.whereIn('h.geo_code', filters.localities);
+      queryBuilder.whereIn('geo_code', filters.localities);
     }
     if (filters.localityKinds?.length) {
       queryBuilder
-        .join(localitiesTable, 'h.geo_code', `${localitiesTable}.geo_code`)
+        .join(localitiesTable, 'geo_code', `${localitiesTable}.geo_code`)
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {

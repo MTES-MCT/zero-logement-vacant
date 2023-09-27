@@ -18,7 +18,6 @@ describe('AppHeader', () => {
       page: 1,
       perPage: 25,
       loading: false,
-      totalCount: 0,
       filteredCount: 0,
     };
     jest.spyOn(ownerProspectService, 'find').mockResolvedValue(response);

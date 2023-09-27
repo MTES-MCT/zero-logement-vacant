@@ -55,7 +55,6 @@ import {
   useUpdateHousingMutation,
 } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
-import fp from 'lodash/fp';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -87,11 +86,6 @@ const HousingList = ({
     pagination,
     sort,
   });
-
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
-  );
-  const totalCount = housingCount?.housing ?? 0;
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
@@ -357,7 +351,6 @@ const HousingList = ({
             allChecked ? filteredCount - checkedIds.length : checkedIds.length
           }
           count={filteredCount}
-          total={totalCount}
           onUnselectAll={unselectAll}
           entity="logement"
           {...header?.props}

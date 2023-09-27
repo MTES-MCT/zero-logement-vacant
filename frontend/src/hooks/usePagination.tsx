@@ -2,11 +2,11 @@ import { Pagination } from '../../../shared/models/Pagination';
 import config from '../utils/config';
 
 interface PaginationOptions extends Partial<Pagination> {
-  count: number;
+  count?: number;
 }
 
 export function usePagination(opts: PaginationOptions) {
-  const { count } = opts;
+  const count = opts.count ?? 0;
   const page = opts.page ?? 1;
   const perPage = opts.perPage ?? config.perPageDefault;
   const pageCount = Math.ceil(count / perPage);

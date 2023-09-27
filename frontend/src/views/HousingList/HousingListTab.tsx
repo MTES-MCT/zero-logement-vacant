@@ -56,11 +56,11 @@ const HousingListTab = ({
   const { data: housingCount } = useCountHousingQuery(
     fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
   );
-  const totalCount = housingCount?.housing ?? 0;
+  const totalCount = housingCount?.housing;
 
   const { data: count } = useCountHousingQuery(filters);
-  const filteredHousingCount = count?.housing ?? 0;
-  const filteredOwnerCount = count?.owners ?? 0;
+  const filteredHousingCount = count?.housing;
+  const filteredOwnerCount = count?.owners;
 
   const { selectedCount, selected, setSelected } =
     useSelection(filteredHousingCount);

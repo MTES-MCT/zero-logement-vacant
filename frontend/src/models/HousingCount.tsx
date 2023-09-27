@@ -14,9 +14,12 @@ export const displayHousingCount = ({
 }: {
   filteredHousingCount: number;
   filteredOwnerCount: number;
-  totalCount: number;
+  totalCount?: number;
   status?: HousingStatus;
 }): string => {
+  if (!totalCount) {
+    return 'Comptage des logements...';
+  }
   const items = displayCount(
     status === undefined ? totalCount : filteredHousingCount,
     'logement',

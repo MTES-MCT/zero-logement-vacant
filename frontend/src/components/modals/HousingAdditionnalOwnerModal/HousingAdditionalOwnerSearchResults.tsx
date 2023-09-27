@@ -22,7 +22,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
   );
 
   const { pageCount, rowNumber, hasPagination } = usePagination({
-    count: additionalOwners?.filteredCount ?? 0,
+    count: additionalOwners?.filteredCount,
     perPage: additionalOwners?.perPage,
     page: additionalOwners?.page,
     paginate: true,

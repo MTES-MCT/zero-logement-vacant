@@ -14,6 +14,11 @@
 }
 
 .fr-table {
+
+  th {
+    white-space: nowrap;
+  }
+
   &.with-select {
     th:first-child {
       width: 48px;
@@ -48,50 +53,20 @@
       width: 100px;
       padding: 0;
     }
+  }
 
-    &.with-actions {
-      th:nth-last-child(2),
-      tr > td:nth-last-child(2) {
-        width: 100px;
-        padding: 0;
-      }
+  &.with-modify-last {
+    th:last-child,
+    tr > td:last-child {
+      width: 130px;
+      padding: 0;
     }
   }
 }
 
-.zlv-table-with-view {
+.zlv-table {
   table:before {
     display: none !important;
-  }
-
-  th:last-child,
-  tr > td:last-child {
-    width: 100px;
-    padding: 0;
-  }
-
-  &.campaign {
-    th:nth-child(3) {
-      width: 20%;
-    }
-
-    th:nth-child(4) {
-      width: 20%;
-    }
-
-    th:nth-child(5) {
-      width: 30%;
-    }
-
-    th:nth-child(6) {
-      width: 30%;
-    }
-
-    th:nth-child(7),
-    tr > td:nth-child(7) {
-      width: 150px;
-      padding: 0;
-    }
   }
 }
 
@@ -190,7 +165,7 @@
 }
 
 .bg-bf950 {
-  background-color: var(--blue-france-950);
+  background-color: var(--blue-france-950) !important;
 }
 
 .bg-bf975 {
@@ -218,7 +193,7 @@
 }
 
 .color-bf113 {
-  color: var(--blue-france-113);
+  color: var(--blue-france-113) !important;
 }
 
 .color-grey-850 {

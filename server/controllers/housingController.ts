@@ -18,7 +18,6 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
-import SortApi from '../models/SortApi';
 import sortApi from '../models/SortApi';
 import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '../utils/validators';
@@ -66,7 +65,7 @@ const list = async (
   );
 
   const role = user.role;
-  const sort = SortApi.parse<HousingSortableApi>(
+  const sort = sortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
   const filters: HousingFiltersApi = {

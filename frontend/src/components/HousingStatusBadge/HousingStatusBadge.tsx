@@ -11,10 +11,6 @@ interface Props {
 const HousingStatusBadge = ({ status, inline }: Props) => {
   return status !== undefined ? (
     <div
-      style={{
-        backgroundColor: `var(${getHousingState(status)?.bgcolor})`,
-        color: `var(${getHousingState(status)?.color})`,
-      }}
       className={
         inline ? styles.statusBadgeContainerInline : styles.statusBadgeContainer
       }
@@ -22,6 +18,7 @@ const HousingStatusBadge = ({ status, inline }: Props) => {
       <Badge
         text={getHousingState(status).title}
         className={styles.statusBadgeLabel}
+        colorFamily={getHousingState(status)?.colorFamily}
       ></Badge>
     </div>
   ) : (

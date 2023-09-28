@@ -13,7 +13,13 @@ function InternalLink(props: InternalLinkProps) {
   return (
     <Link
       {...props}
-      as={<RouterLink to={props.to} replace={props.replace} />}
+      as={
+        <RouterLink
+          to={props.to}
+          replace={props.replace}
+          target={props.target}
+        />
+      }
     />
   );
 }

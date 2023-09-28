@@ -18,7 +18,6 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
 import { body, ValidationChain } from 'express-validator';
 import validator from 'validator';
-import SortApi from '../models/SortApi';
 import sortApi from '../models/SortApi';
 import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '../utils/validators';
@@ -60,13 +59,10 @@ const list = async (
 ) => {
   const { auth, body, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
-  const pagination: Required<Pagination> = fp.pick(
-    ['paginate', 'perPage', 'page'],
-    body
-  );
+  const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
 
   const role = user.role;
-  const sort = SortApi.parse<HousingSortableApi>(
+  const sort = sortApi.parse<HousingSortableApi>(
     request.query.sort as string | undefined
   );
   const filters: HousingFiltersApi = {
@@ -89,7 +85,9 @@ const list = async (
       pagination,
       sort,
     }),
-    housingRepository.count(filters),
+    // Kept for backward-compatibility
+    // TODO: remove this
+    Promise.resolve({ housing: 1, owners: 1 }),
   ]);
 
   const offset = (pagination.page - 1) * pagination.perPage;
@@ -110,7 +108,7 @@ const list = async (
 };
 
 const count = async (request: Request, response: Response): Promise<void> => {
-  console.log('Count housing');
+  logger.trace('Count housing');
 
   const { establishmentId, role } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
@@ -227,7 +225,12 @@ const updateHousing = async (
 
   await createHousingUpdateEvents(housing, housingUpdate, user.id);
 
-  await createHousingUpdateNote(housing.id, housingUpdate, user.id);
+  await createHousingUpdateNote(
+    housing.id,
+    housingUpdate,
+    user.id,
+    housing.geoCode
+  );
 
   return updatedHousing;
 };
@@ -244,7 +247,7 @@ const addHousingInDefaultCampaign = async (
   );
   if (defaultCampaign) {
     await campaignHousingRepository.insertHousingList(defaultCampaign.id, [
-      housingApi.id,
+      housingApi,
     ]);
   }
 };
@@ -274,7 +277,7 @@ const updateList = async (request: Request, response: Response) => {
   };
 
   const housingList = await housingRepository
-    .listWithFilters(filters)
+    .find({ filters, pagination: { paginate: false } })
     .then((_) =>
       _.filter((housing) =>
         allHousing
@@ -323,6 +326,7 @@ const createHousingUpdateEvents = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
+      housingGeoCode: housingApi.geoCode,
     });
   }
 
@@ -346,13 +350,15 @@ const createHousingUpdateEvents = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
+      housingGeoCode: housingApi.geoCode,
     });
   }
 };
 const createHousingUpdateNote = async (
   housingId: string,
   housingUpdate: HousingUpdateBody,
-  userId: string
+  userId: string,
+  geoCode: string
 ) => {
   if (housingUpdate.note) {
     await noteRepository.insertHousingNote({
@@ -361,6 +367,7 @@ const createHousingUpdateNote = async (
       createdBy: userId,
       createdAt: new Date(),
       housingId,
+      housingGeoCode: geoCode,
     });
   }
 };

@@ -6,21 +6,31 @@ import React, {
   useState,
 } from 'react';
 
-import { Button, Pagination, Table } from '@dataesr/react-dsfr';
+import {
+  Badge,
+  Button,
+  Pagination as DSFRPagination,
+  Table,
+} from '@dataesr/react-dsfr';
 import {
   Housing,
   HousingSort,
   HousingSortable,
+  HousingUpdate,
+  OccupancyKindLabels,
   SelectedHousing,
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 
 import { useLocation } from 'react-router-dom';
-import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { campaignFullName, CampaignNumberSort } from '../../models/Campaign';
+import {
+  campaignBundleIdUrlFragment,
+  campaignFullName,
+  CampaignNumberSort,
+} from '../../models/Campaign';
 import _ from 'lodash';
 import {
   TrackEventActions,
@@ -35,42 +45,78 @@ import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
 import InternalLink from '../InternalLink/InternalLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import { useHousingList } from '../../hooks/useHousingList';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
+import { Pagination } from '../../../../shared/models/Pagination';
+import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
+import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import {
+  useCountHousingQuery,
+  useUpdateHousingMutation,
+} from '../../services/housing.service';
+import { isDefined } from '../../utils/compareUtils';
 
-export enum HousingDisplayKey {
-  Housing,
-  Owner,
-}
-
-interface Props {
+export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
   children?: ReactElement | ReactElement[];
-  paginatedHousing?: HousingPaginatedResult;
-  displayKind: HousingDisplayKey;
-  filters?: HousingFilters;
-  onChangePagination: (page: number, perPage: number) => void;
-  onSelectHousing?: (selectedHousing: SelectedHousing) => void;
-  onSort?: (sort: HousingSort) => void | Promise<void>;
-  additionalColumns?: any[];
-  tableClassName?: string;
+  filters: HousingFilters;
+  onSelectHousing: (selectedHousing: SelectedHousing) => void;
 }
 
 const HousingList = ({
   actions,
   children,
-  paginatedHousing,
-  onChangePagination,
-  onSort,
   filters,
-  displayKind,
   onSelectHousing,
-  additionalColumns,
-  tableClassName,
-}: Props) => {
+}: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
   const location = useLocation();
   const campaignList = useCampaignList();
   const { trackEvent } = useMatomo();
+
+  const [updateHousing] = useUpdateHousingMutation();
+
+  const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
+  const [sort, setSort] = useState<HousingSort>();
+  const [updatingHousing, setUpdatingHousing] = useState<Housing>();
+
+  const { housingList } = useHousingList({
+    filters,
+    pagination,
+    sort,
+  });
+
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredCount = count?.housing ?? 0;
+
+  const { pageCount, rowNumber, hasPagination } = usePagination({
+    ...pagination,
+    count: filteredCount,
+  });
+
+  const changePerPage = (perPage: number) => {
+    setPagination({
+      ...pagination,
+      page: 1,
+      perPage,
+    });
+  };
+
+  const changePage = (page: number) => {
+    setPagination({
+      ...pagination,
+      page,
+    });
+  };
+
+  const onSort = (sort: HousingSort) => {
+    setSort(sort);
+    setPagination({
+      ...pagination,
+      page: 1,
+    });
+  };
 
   const { cycleSort, getIcon } = useSort<HousingSortable>({ onSort });
 
@@ -104,28 +150,15 @@ const HousingList = ({
     onSelectHousing?.({ all: false, ids: [] });
   };
 
-  const { pageCount, rowNumber, hasPagination } =
-    usePagination(paginatedHousing);
-
   useEffect(() => {
     setAllChecked(false);
     setCheckedIds([]);
-    if (onSelectHousing) {
-      onSelectHousing({ all: false, ids: [] });
-    }
-  }, [filters, paginatedHousing?.entities]); //eslint-disable-line react-hooks/exhaustive-deps
+    onSelectHousing?.({ all: false, ids: [] });
+  }, [housingList]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!paginatedHousing) {
+  if (!housingList) {
     return <></>;
   }
-
-  const changePerPage = (perPage: number) => {
-    onChangePagination(1, perPage);
-  };
-
-  const changePage = (page: number) => {
-    onChangePagination(page, paginatedHousing.perPage);
-  };
 
   const selectColumn = {
     name: 'select',
@@ -134,7 +167,7 @@ const HousingList = ({
         onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
         checked={
           (allChecked && checkedIds.length === 0) ||
-          (!allChecked && checkedIds.length === paginatedHousing.filteredCount)
+          (!allChecked && checkedIds.length === filteredCount)
         }
         className={checkedIds.length !== 0 ? 'indeterminate' : ''}
         label=""
@@ -166,17 +199,17 @@ const HousingList = ({
         style={{ cursor: 'pointer' }}
         onClick={() => cycleSort('rawAddress')}
       >
-        Adresse {getIcon('rawAddress')}
+        Adresse du logement {getIcon('rawAddress')}
       </div>
     ),
     render: ({ id, rawAddress }: Housing) => (
-      <>
-        {rawAddress.map((line, lineIdx) => (
-          <div key={id + '-rawAddress-' + lineIdx} className="capitalize">
-            {capitalize(line)}
-          </div>
-        ))}
-      </>
+      <InternalLink
+        className="capitalize"
+        isSimple
+        to={`${location.pathname}/logements/${id}`}
+      >
+        {rawAddress.map((line) => capitalize(line)).join('\n')}
+      </InternalLink>
     ),
   };
 
@@ -184,7 +217,7 @@ const HousingList = ({
     name: 'owner',
     headerRender: () => (
       <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('owner')}>
-        Propriétaire {getIcon('owner')}
+        Propriétaire principal {getIcon('owner')}
       </div>
     ),
     render: ({ owner }: Housing) => (
@@ -201,23 +234,24 @@ const HousingList = ({
     ),
   };
 
-  const ownerAddressColumn = {
-    name: 'ownerAddress',
-    label: 'Adresse du propriétaire',
-    render: ({ owner }: Housing) => (
-      <>
-        {owner.rawAddress.map((line, lineIdx) => (
-          <div key={owner.id + '-rawAddress-' + lineIdx} className="capitalize">
-            {capitalize(line)}
-          </div>
-        ))}
-      </>
+  const occupancyColumn = {
+    name: 'occupancy',
+    headerRender: () => (
+      <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('occupancy')}>
+        Occupation {getIcon('occupancy')}
+      </div>
+    ),
+    render: ({ occupancy }: Housing) => (
+      <Badge
+        text={OccupancyKindLabels[occupancy]}
+        className="bg-bf950 color-bf113"
+      ></Badge>
     ),
   };
 
   const campaignColumn = {
     name: 'campaign',
-    label: 'Campagne',
+    label: 'Campagnes en cours',
     render: ({ campaignIds, id }: Housing) => (
       <>
         {campaignIds?.length > 0 &&
@@ -227,18 +261,42 @@ const HousingList = ({
                 campaignList?.find((c) => c.id === campaignId)
               )
               .sort(CampaignNumberSort)
-              .map((campaign) => (campaign ? campaignFullName(campaign) : ''))
-          ).map((campaignName, campaignIdx) => (
-            <div key={id + '-campaign-' + campaignIdx}>{campaignName}</div>
-          ))}
+          )
+            .filter(isDefined)
+            .map((campaign, campaignIdx) => (
+              <div key={id + '-campaign-' + campaignIdx}>
+                <InternalLink
+                  isSimple
+                  to={
+                    '/campagnes/' +
+                    campaignBundleIdUrlFragment({
+                      campaignNumber: campaign.campaignNumber,
+                      reminderNumber: campaign.reminderNumber,
+                    })
+                  }
+                >
+                  {campaignFullName(campaign).substring(0, 17) +
+                    (campaignFullName(campaign).length > 17 ? '...' : '')}
+                </InternalLink>
+              </div>
+            ))}
       </>
     ),
   };
 
   const statusColumn = {
     name: 'status',
-    label: 'Statut',
-    render: ({ status }: Housing) => <HousingStatusBadge status={status} />,
+    headerRender: () => (
+      <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('status')}>
+        Statut de suivi {getIcon('status')}
+      </div>
+    ),
+    render: ({ status, subStatus }: Housing) => (
+      <div style={{ textAlign: 'center' }}>
+        <HousingStatusBadge status={status} />
+        <HousingSubStatusBadge status={status} subStatus={subStatus} />
+      </div>
+    ),
   };
 
   const actionColumn = {
@@ -248,50 +306,41 @@ const HousingList = ({
       actions ? (
         <>{actions(housing)}</>
       ) : (
-        <InternalLink
-          display="flex"
-          icon="ri-arrow-right-line"
-          iconSize="1x"
-          iconPosition="right"
-          isSimple
-          onClick={() =>
-            trackEvent({
-              category: TrackEventCategories.HousingList,
-              action: TrackEventActions.HousingList.DisplayHousing,
-            })
-          }
-          to={`${location.pathname}/logements/${housing.id}`}
+        <Button
+          title="Mettre à jour"
+          size="sm"
+          secondary
+          onClick={() => setUpdatingHousing(housing)}
         >
-          Afficher
-        </InternalLink>
+          Mettre à jour
+        </Button>
       ),
   };
 
-  const columns = () => {
-    switch (displayKind) {
-      case HousingDisplayKey.Housing:
-        return [
-          ...(onSelectHousing ? [selectColumn] : []),
-          rowNumberColumn,
-          addressColumn,
-          ownerColumn,
-          ownerAddressColumn,
-          campaignColumn,
-          statusColumn,
-          ...(additionalColumns ?? []),
-          actionColumn,
-        ];
-      case HousingDisplayKey.Owner:
-        return [
-          ...(onSelectHousing ? [selectColumn] : []),
-          rowNumberColumn,
-          ownerColumn,
-          { ...addressColumn, label: 'Logement' },
-          campaignColumn,
-          ...(additionalColumns ?? []),
-          actionColumn,
-        ];
-    }
+  const columns = [
+    selectColumn,
+    rowNumberColumn,
+    addressColumn,
+    ownerColumn,
+    occupancyColumn,
+    campaignColumn,
+    statusColumn,
+    actionColumn,
+  ];
+  const submitHousingUpdate = async (
+    housing: Housing,
+    housingUpdate: HousingUpdate
+  ) => {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.Campaigns.UpdateHousing,
+      value: 1,
+    });
+    await updateHousing({
+      housing,
+      housingUpdate,
+    });
+    setUpdatingHousing(undefined);
   };
 
   return (
@@ -299,43 +348,40 @@ const HousingList = ({
       <header>
         <SelectableListHeader
           selected={
-            allChecked
-              ? paginatedHousing.filteredCount - checkedIds.length
-              : checkedIds.length
+            allChecked ? filteredCount - checkedIds.length : checkedIds.length
           }
-          count={paginatedHousing.filteredCount}
-          total={paginatedHousing.totalCount}
+          count={filteredCount}
           onUnselectAll={unselectAll}
           entity="logement"
           {...header?.props}
         />
       </header>
-      {paginatedHousing.entities?.length > 0 && (
+      {housingList.length > 0 && (
         <>
           <Table
             caption="Logements"
             captionPosition="none"
             rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
-            data={paginatedHousing.entities.map((_, index) => ({
+            data={housingList.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),
             }))}
-            columns={columns()}
+            columns={columns}
             fixedLayout={true}
             className={classNames(
-              'zlv-table-with-view',
+              'zlv-table',
+              'with-modify-last',
               'with-row-number',
-              { 'with-select': onSelectHousing },
-              tableClassName
+              { 'with-select': onSelectHousing }
             )}
             data-testid="housing-table"
           />
           {hasPagination && (
             <>
               <div className="fr-react-table--pagination-center nav">
-                <Pagination
+                <DSFRPagination
                   onClick={changePage}
-                  currentPage={paginatedHousing.page}
+                  currentPage={pagination.page}
                   pageCount={pageCount}
                 />
               </div>
@@ -343,7 +389,7 @@ const HousingList = ({
                 <Button
                   onClick={() => changePerPage(50)}
                   secondary
-                  disabled={paginatedHousing.perPage === 50}
+                  disabled={pagination.perPage === 50}
                   title="Afficher 50 résultats par page"
                 >
                   50 résultats par page
@@ -352,7 +398,7 @@ const HousingList = ({
                   onClick={() => changePerPage(200)}
                   className="fr-mx-3w"
                   secondary
-                  disabled={paginatedHousing.perPage === 200}
+                  disabled={pagination.perPage === 200}
                   title="Afficher 200 résultats par page"
                 >
                   200 résultats par page
@@ -360,7 +406,7 @@ const HousingList = ({
                 <Button
                   onClick={() => changePerPage(500)}
                   secondary
-                  disabled={paginatedHousing.perPage === 500}
+                  disabled={pagination.perPage === 500}
                   title="Afficher 500 résultats par page"
                 >
                   500 résultats par page
@@ -370,6 +416,12 @@ const HousingList = ({
           )}
         </>
       )}
+      <HousingEditionSideMenu
+        housing={updatingHousing}
+        expand={!!updatingHousing}
+        onSubmit={submitHousingUpdate}
+        onClose={() => setUpdatingHousing(undefined)}
+      />
     </div>
   );
 };

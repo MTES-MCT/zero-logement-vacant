@@ -15,58 +15,55 @@ import {
 
 export const campaignsTable = 'campaigns';
 
-const getCampaign = async (
-  campaignId: string
-): Promise<CampaignApi | undefined> => {
-  try {
-    return db(campaignsTable)
-      .select(
-        `${campaignsTable}.*`,
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
-        ),
-        db.raw(
-          `count(*) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-        )
+const getCampaign = async (campaignId: string): Promise<CampaignApi | null> => {
+  const campaign = await db(campaignsTable)
+    .select(
+      `${campaignsTable}.*`,
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
+      ),
+      db.raw(
+        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
       )
-      .count(`${campaignsHousingTable}.housing_id`, { as: 'housingCount' })
-      .countDistinct('o.id', { as: 'ownerCount' })
-      .from(campaignsTable)
-      .where(`${campaignsTable}.id`, campaignId)
-      .leftJoin(
-        campaignsHousingTable,
-        'id',
-        `${campaignsHousingTable}.campaign_id`
-      )
-      .leftJoin(
-        housingTable,
-        `${housingTable}.id`,
-        `${campaignsHousingTable}.housing_id`
-      )
-      .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-      .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .groupBy(`${campaignsTable}.id`)
-      .first()
-      .then((result: any) => (result ? parseCampaignApi(result) : result));
-  } catch (err) {
-    console.error('Getting campaign failed', err, campaignId);
-    throw new Error('Getting campaigns failed');
-  }
+    )
+    .count(`${campaignsHousingTable}.housing_id`, { as: 'housingCount' })
+    .countDistinct('o.id', { as: 'ownerCount' })
+    .from(campaignsTable)
+    .where(`${campaignsTable}.id`, campaignId)
+    .leftJoin(
+      campaignsHousingTable,
+      'id',
+      `${campaignsHousingTable}.campaign_id`
+    )
+    .leftJoin(housingTable, (join) => {
+      join
+        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+        .on(
+          `${housingTable}.geo_code`,
+          `${campaignsHousingTable}.housing_geo_code`
+        );
+    })
+    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .groupBy(`${campaignsTable}.id`)
+    .first();
+
+  return campaign ? parseCampaignApi(campaign) : null;
 };
 
 const getCampaignBundle = async (
@@ -74,178 +71,161 @@ const getCampaignBundle = async (
   campaignNumber?: string,
   reminderNumber?: string,
   query?: string
-): Promise<CampaignBundleApi | undefined> => {
-  try {
-    return db(campaignsTable)
-      .select(
-        db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-        )
+): Promise<CampaignBundleApi | null> => {
+  const bundle = await db(campaignsTable)
+    .select(
+      db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
       )
-      .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
-      .countDistinct('o.id', { as: 'ownerCount' })
-      .from(campaignsTable)
-      .where(`${campaignsTable}.establishment_id`, establishmentId)
-      .leftJoin(
-        campaignsHousingTable,
-        'id',
-        `${campaignsHousingTable}.campaign_id`
-      )
-      .leftJoin(
-        housingTable,
-        `${housingTable}.id`,
-        `${campaignsHousingTable}.housing_id`
-      )
-      .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-      .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .modify((queryBuilder: any) => {
-        if (campaignNumber) {
-          queryBuilder
-            .select(
-              `${campaignsTable}.campaign_number`,
-              db.raw(
-                `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
-              ),
-              db.raw(
-                `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
-              ),
-              db.raw(
-                `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
-              ),
-              db.raw(
-                `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
-              )
+    )
+    .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
+    .countDistinct('o.id', { as: 'ownerCount' })
+    .from(campaignsTable)
+    .where(`${campaignsTable}.establishment_id`, establishmentId)
+    .leftJoin(
+      campaignsHousingTable,
+      'id',
+      `${campaignsHousingTable}.campaign_id`
+    )
+    .leftJoin(housingTable, (join) => {
+      join
+        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+        .andOn(
+          `${housingTable}.geo_code`,
+          `${campaignsHousingTable}.housing_geo_code`
+        );
+    })
+    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .modify((queryBuilder: any) => {
+      if (campaignNumber) {
+        queryBuilder
+          .select(
+            `${campaignsTable}.campaign_number`,
+            db.raw(
+              `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
+            ),
+            db.raw(
+              `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
+            ),
+            db.raw(
+              `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
+            ),
+            db.raw(
+              `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
             )
-            .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
-            .groupBy(`${campaignsTable}.campaign_number`);
-        } else {
-          queryBuilder
-            .andWhereRaw(`${campaignsTable}.sending_date is not null`)
-            .andWhereRaw(`${campaignsTable}.archived_at is null`);
-        }
-        if (reminderNumber) {
-          queryBuilder
-            .select(`${campaignsTable}.reminder_number`)
-            .andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
-            .groupBy(`${campaignsTable}.reminder_number`);
-        }
-        queryOwnerHousingWhereClause(queryBuilder, query);
-      })
-      .first()
-      .then((result: any) =>
-        result ? parseCampaignBundleApi(result) : result
-      );
-  } catch (err) {
-    console.error(
-      'Getting campaign bundle failed',
-      err,
-      establishmentId,
-      campaignNumber,
-      reminderNumber
-    );
-    throw new Error('Getting campaign bundle failed');
-  }
+          )
+          .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
+          .groupBy(`${campaignsTable}.campaign_number`);
+      } else {
+        queryBuilder
+          .andWhereRaw(`${campaignsTable}.sending_date is not null`)
+          .andWhereRaw(`${campaignsTable}.archived_at is null`);
+      }
+      if (reminderNumber) {
+        queryBuilder
+          .select(`${campaignsTable}.reminder_number`)
+          .andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
+          .groupBy(`${campaignsTable}.reminder_number`);
+      }
+      queryOwnerHousingWhereClause(queryBuilder, query);
+    })
+    .first();
+
+  return bundle ? parseCampaignBundleApi(bundle) : null;
 };
 
 const listCampaigns = async (
   establishmentId: string
 ): Promise<CampaignApi[]> => {
-  try {
-    return db(campaignsTable)
-      .where('establishment_id', establishmentId)
-      .orderBy('campaign_number')
-      .orderBy('reminder_number')
-      .then((_) => _.map((result: any) => parseCampaignApi(result)));
-  } catch (err) {
-    console.error('Listing campaigns failed', err);
-    throw new Error('Listing campaigns failed');
-  }
+  const campaigns = await db(campaignsTable)
+    .where('establishment_id', establishmentId)
+    .orderBy('campaign_number')
+    .orderBy('reminder_number');
+
+  return campaigns.map(parseCampaignApi);
 };
 
 const listCampaignBundles = async (
   establishmentId: string
 ): Promise<CampaignBundleApi[]> => {
-  try {
-    return db
-      .select(
-        db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
-        `${campaignsTable}.campaign_number`,
-        db.raw(
-          `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
-        ),
-        db.raw(
-          `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
-        ),
-        db.raw(
-          `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
-        ),
-        db.raw(
-          `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.sub_status = 'NPAI') as "npaiCount"`
-        ),
-        db.raw(
-          `count(distinct ${housingTable}.id) filter (where housing.status = '${HousingStatusApi.InProgress}' and housing.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-        )
+  const bundles = await db
+    .select(
+      db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
+      `${campaignsTable}.campaign_number`,
+      db.raw(
+        `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
+      ),
+      db.raw(
+        `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
+      ),
+      db.raw(
+        `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
+      ),
+      db.raw(
+        `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
+      ),
+      db.raw(
+        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
       )
-      .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
-      .countDistinct('o.id', { as: 'ownerCount' })
-      .from(campaignsTable)
-      .leftJoin(
-        campaignsHousingTable,
-        'id',
-        `${campaignsHousingTable}.campaign_id`
-      )
-      .leftJoin(
-        housingTable,
-        `${housingTable}.id`,
-        `${campaignsHousingTable}.housing_id`
-      )
-      .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-      .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
-      .where(`${campaignsTable}.establishment_id`, establishmentId)
-      .orderBy('campaign_number')
-      .groupBy(`${campaignsTable}.campaign_number`)
-      .then((_) => _.map((result: any) => parseCampaignBundleApi(result)));
-  } catch (err) {
-    console.error('Listing campaigns failed', err);
-    throw new Error('Listing campaigns failed');
-  }
+    )
+    .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
+    .countDistinct('o.id', { as: 'ownerCount' })
+    .from(campaignsTable)
+    .leftJoin(
+      campaignsHousingTable,
+      'id',
+      `${campaignsHousingTable}.campaign_id`
+    )
+    .leftJoin(
+      housingTable,
+      `${housingTable}.id`,
+      `${campaignsHousingTable}.housing_id`
+    )
+    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .where(`${campaignsTable}.establishment_id`, establishmentId)
+    .orderBy('campaign_number')
+    .groupBy(`${campaignsTable}.campaign_number`);
+
+  return bundles.map((result: any) => parseCampaignBundleApi(result));
 };
 
 const lastCampaignNumber = async (establishmentId: string): Promise<any> => {

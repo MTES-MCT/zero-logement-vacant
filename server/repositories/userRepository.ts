@@ -5,13 +5,14 @@ import { UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { Knex } from 'knex';
+import { logger } from '../utils/logger';
 
 export const usersTable = 'users';
 
 const Users = () => db<UserDBO>(usersTable);
 
 const get = async (id: string): Promise<UserApi | null> => {
-  console.log('Get user by id', id);
+  logger.debug('Get user by id', id);
 
   const result = await Users()
     .where(`${usersTable}.id`, id)
@@ -22,7 +23,7 @@ const get = async (id: string): Promise<UserApi | null> => {
 };
 
 const getByEmail = async (email: string): Promise<UserApi | null> => {
-  console.log('Get user by email', email);
+  logger.debug('Get user by email', email);
 
   const result = await Users()
     .whereRaw('upper(email) = upper(?)', email)

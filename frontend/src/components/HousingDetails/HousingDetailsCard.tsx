@@ -58,7 +58,10 @@ function HousingDetailsCard({
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    await updateHousing({ housingId: housing.id, housingUpdate });
+    await updateHousing({
+      housing,
+      housingUpdate,
+    });
     await refetchHousingEvents();
     await refetchHousingNotes();
 
@@ -88,6 +91,7 @@ function HousingDetailsCard({
         <Title as="h1" look="h4" spacing="mb-1w">
           {housing.rawAddress.join(' - ')}
           <Link
+            display="flex"
             title="Voir sur la carte - nouvelle fenêtre"
             href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
             target="_blank"

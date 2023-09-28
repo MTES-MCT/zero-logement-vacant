@@ -1,7 +1,10 @@
 import { useParams } from 'react-router-dom';
 import { useFindEventsByOwnerQuery } from '../services/event.service';
 import { useGetOwnerQuery } from '../services/owner.service';
-import { useFindHousingQuery } from '../services/housing.service';
+import {
+  useCountHousingQuery,
+  useFindHousingQuery,
+} from '../services/housing.service';
 
 export function useOwner() {
   const { ownerId } = useParams<{ ownerId: string }>();
@@ -14,9 +17,14 @@ export function useOwner() {
     filters: { ownerIds: [ownerId] },
   });
 
+  const { data: count } = useCountHousingQuery({
+    ownerIds: [ownerId],
+  });
+
   return {
     events,
     paginatedHousing,
     owner,
+    count,
   };
 }

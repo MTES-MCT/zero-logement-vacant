@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
 import async from 'async';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import { logger } from '../utils/logger';
+import CampaignBundleMissingError from '../errors/campaignBundleMissingError';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -36,12 +38,11 @@ const getCampaignBundle = async (
     .establishmentId;
   const query = <string>request.query.q;
 
-  console.log(
-    'Get campaign bundle',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.debug('Get campaign bundle', {
+    establishment: establishmentId,
+    campaign: campaignNumber,
+    reminder: reminderNumber,
+  });
 
   return campaignRepository
     .getCampaignBundle(establishmentId, campaignNumber, reminderNumber, query)
@@ -52,32 +53,24 @@ const getCampaignBundle = async (
     );
 };
 
-const listCampaigns = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  console.log('List campaigns');
+const listCampaigns = async (request: Request, response: Response) => {
+  logger.trace('List campaigns');
 
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  return campaignRepository
-    .listCampaigns(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const campaigns = await campaignRepository.listCampaigns(establishmentId);
+  response.status(constants.HTTP_STATUS_OK).json(campaigns);
 };
 
-const listCampaignBundles = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const listCampaignBundles = async (request: Request, response: Response) => {
   console.log('List campaign bundles');
 
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  return campaignRepository
-    .listCampaignBundles(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const bundles = await campaignRepository.listCampaignBundles(establishmentId);
+  response.status(constants.HTTP_STATUS_OK).json(bundles);
 };
 
 const createCampaign = async (
@@ -117,43 +110,63 @@ const createCampaign = async (
 
   const housingList = allHousing
     ? await housingRepository
-        .listWithFilters({
-          ...filters,
-          establishmentIds: [establishmentId],
-          localities: filterLocalities,
+        .find({
+          filters: {
+            ...filters,
+            establishmentIds: [establishmentId],
+            localities: filterLocalities,
+          },
+          pagination: { paginate: false },
         })
-        .then((_) =>
-          _.filter(
-            (housing) => request.body.housingIds.indexOf(housing.id) === -1
+        .then((housingList) =>
+          housingList.filter(
+            (housing) => !request.body.housingIds.includes(housing.id)
           )
         )
-    : await housingRepository.listByIds(request.body.housingIds);
+    : await housingRepository.find({
+        filters: {
+          establishmentIds: [establishmentId],
+          housingIds: request.body.housingIds,
+        },
+        pagination: {
+          paginate: false,
+        },
+      });
 
   const housingIds = housingList.map((_) => _.id);
 
   await campaignHousingRepository.insertHousingList(
     newCampaignApi.id,
-    housingIds
+    housingList
   );
 
   await removeHousingFromDefaultCampaign(housingIds, establishmentId);
 
-  const newHousingList = await housingRepository.listByIds(housingIds);
+  const newHousingList = await housingRepository.find({
+    filters: {
+      establishmentIds: [establishmentId],
+      housingIds,
+    },
+    pagination: {
+      paginate: false,
+    },
+  });
 
   await eventRepository.insertManyHousingEvents(
-    housingIds.map((housingId) => ({
+    housingList.map((housing) => ({
       id: uuidv4(),
       name: 'Ajout dans une campagne',
       kind: 'Create',
       category: 'Campaign',
       section: 'Suivi de campagne',
-      old: housingList.find((_) => _.id === housingId),
+      old: housingList.find((_) => _.id === housing.id),
       new: newHousingList
         .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
-        .find((_) => _.id === housingId),
+        .find((_) => _.id === housing.id),
       createdBy: userId,
       createdAt: new Date(),
-      housingId: housingId,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
     }))
   );
 
@@ -174,20 +187,16 @@ const removeHousingFromDefaultCampaign = (
     );
 };
 
-const createReminderCampaign = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const createReminderCampaign = async (request: Request, response: Response) => {
   const campaignNumber = request.params.campaignNumber;
   const reminderNumber = request.params.reminderNumber;
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
 
-  console.log(
-    'Create a reminder campaign for',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.info('Create reminder campaign', {
+    establishment: establishmentId,
+    campaign: campaignNumber,
+    reminder: reminderNumber,
+  });
 
   const kind = request.body.kind;
   const allHousing = request.body.allHousing;
@@ -197,9 +206,12 @@ const createReminderCampaign = async (
     campaignNumber,
     reminderNumber
   );
-
   if (!campaignBundle) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+    throw new CampaignBundleMissingError({
+      establishmentId,
+      campaignNumber,
+      reminderNumber,
+    });
   }
 
   const lastReminderNumber = await campaignRepository.lastReminderNumber(
@@ -221,15 +233,18 @@ const createReminderCampaign = async (
 
   const housingIds = allHousing
     ? await housingRepository
-        .listWithFilters({
-          establishmentIds: [establishmentId],
-          campaignIds: campaignBundle.campaignIds,
-          status: [HousingStatusApi.Waiting],
+        .find({
+          filters: {
+            establishmentIds: [establishmentId],
+            campaignIds: campaignBundle.campaignIds,
+            status: HousingStatusApi.Waiting,
+          },
+          pagination: { paginate: false },
         })
-        .then((_) =>
-          _.map((_) => _.id).filter(
-            (id) => request.body.housingIds.indexOf(id) === -1
-          )
+        .then((housingList) =>
+          housingList
+            .map((housing) => housing.id)
+            .filter((id) => !request.body.housingIds.includes(id))
         )
     : request.body.housingIds;
 
@@ -238,7 +253,7 @@ const createReminderCampaign = async (
     housingIds
   );
 
-  return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
+  response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 };
 
 const validateStepValidators = [
@@ -279,7 +294,7 @@ const validateStep = async (
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const skipConfirmation: boolean = request.body.skipConfirmation;
 
-  console.log('Validate campaign step', campaignId, step);
+  logger.info('Validate campaign step', { campaignId, step });
 
   const campaignApi = await campaignRepository.getCampaign(campaignId);
 
@@ -309,9 +324,11 @@ const validateStep = async (
     };
 
     if (step === CampaignSteps.Sending) {
-      const housingList = await housingRepository.listWithFilters({
-        establishmentIds: [establishmentId],
-        campaignIds: [campaignId],
+      const housingList = await housingRepository.find({
+        filters: {
+          establishmentIds: [establishmentId],
+          campaignIds: [campaignId],
+        },
       });
 
       const updatedHousingList = housingList
@@ -337,6 +354,7 @@ const validateStep = async (
           createdBy: userId,
           createdAt: new Date(),
           housingId: updatedHousing.id,
+          housingGeoCode: updatedHousing.geoCode,
         }))
       );
     }
@@ -468,16 +486,19 @@ const deleteCampaignBundle = async (
 
 const resetHousingWithoutCampaigns = async (establishmentId: string) => {
   return housingRepository
-    .listWithFilters({
-      establishmentIds: [establishmentId],
-      campaignsCounts: ['0'],
-      status: [
-        HousingStatusApi.Waiting,
-        HousingStatusApi.FirstContact,
-        HousingStatusApi.InProgress,
-        HousingStatusApi.Completed,
-        HousingStatusApi.Blocked,
-      ],
+    .find({
+      filters: {
+        establishmentIds: [establishmentId],
+        campaignsCounts: ['0'],
+        statusList: [
+          HousingStatusApi.Waiting,
+          HousingStatusApi.FirstContact,
+          HousingStatusApi.InProgress,
+          HousingStatusApi.Completed,
+          HousingStatusApi.Blocked,
+        ],
+      },
+      pagination: { paginate: false },
     })
     .then((results) =>
       Promise.all([
@@ -486,9 +507,7 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
         ),
         resetNotWaitingHousingWithoutCampaigns(
           establishmentId,
-          results
-            .filter((_) => _.status !== HousingStatusApi.Waiting)
-            .map((_) => _.id)
+          results.filter((_) => _.status !== HousingStatusApi.Waiting)
         ),
       ])
     );
@@ -508,16 +527,16 @@ const resetWaitingHousingWithoutCampaigns = async (
 
 const resetNotWaitingHousingWithoutCampaigns = async (
   establishmentId: string,
-  housingIds: string[]
+  housingList: HousingApi[]
 ) => {
-  return housingIds.length
+  return housingList.length
     ? campaignRepository
         .getCampaignBundle(establishmentId, String(0))
         .then((campaignBundle) => {
           if (campaignBundle?.campaignIds[0]) {
             return campaignHousingRepository.insertHousingList(
               campaignBundle?.campaignIds[0],
-              housingIds
+              housingList
             );
           }
         })
@@ -536,10 +555,13 @@ const removeHousingList = async (
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   const housingIds = await housingRepository
-    .listWithFilters({
-      ...filters,
-      establishmentIds: [establishmentId],
-      campaignIds: [campaignId],
+    .find({
+      filters: {
+        ...filters,
+        establishmentIds: [establishmentId],
+        campaignIds: [campaignId],
+      },
+      pagination: { paginate: false },
     })
     .then((_) =>
       _.map((_) => _.id).filter((id) =>

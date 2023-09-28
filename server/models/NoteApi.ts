@@ -12,4 +12,5 @@ export interface OwnerNoteApi extends NoteApi {
 
 export interface HousingNoteApi extends NoteApi {
   housingId: string;
+  housingGeoCode: string;
 }

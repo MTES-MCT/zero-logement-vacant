@@ -98,7 +98,7 @@ const find = async (request: Request, response: Response) => {
 
   const ownerProspects = await ownerProspectRepository.find({
     establishmentId: auth.establishmentId,
-    pagination: createPagination(query as unknown as Required<Pagination>),
+    pagination: createPagination(query as unknown as Pagination),
     sort,
   });
 

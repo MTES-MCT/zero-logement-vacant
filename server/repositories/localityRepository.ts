@@ -1,6 +1,6 @@
 import db from './db';
-import { establishmentsTable } from './establishmentRepository';
-import { LocalityApi } from '../models/LocalityApi';
+import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
+import { establishmentsLocalitiesTable } from './housingRepository';
 
 export const localitiesTable = 'localities';
 
@@ -15,16 +15,23 @@ const listByEstablishmentId = async (
 ): Promise<LocalityApi[]> => {
   return db(localitiesTable)
     .select(`${localitiesTable}.*`)
-    .joinRaw(
-      `join ${establishmentsTable} as e on (${localitiesTable}.geo_code = any(e.localities_geo_code))`
-    )
-    .where('e.id', establishmentId)
+    .join(establishmentsLocalitiesTable, (join) => {
+      join
+        .onVal(
+          `${establishmentsLocalitiesTable}.establishment_id`,
+          establishmentId
+        )
+        .andOn(
+          `${establishmentsLocalitiesTable}.locality_id`,
+          `${localitiesTable}.id`
+        );
+    })
     .orderBy(`${localitiesTable}.name`)
     .then((_) => _.map((_: LocalityDbo) => parseLocalityApi(_)));
 };
 
 export interface LocalityDbo {
-  id?: string;
+  id: string;
   geo_code: string;
   name: string;
   tax_kind?: string;
@@ -43,19 +50,20 @@ const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
 };
 
 const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
+  id: localityApi.id,
   geo_code: localityApi.geoCode,
   name: localityApi.name,
   tax_kind: localityApi.taxKind,
   tax_rate: localityApi.taxRate,
 });
 
-const parseLocalityApi = (localityDbo: LocalityDbo) =>
-  <LocalityApi>{
-    geoCode: localityDbo.geo_code,
-    name: localityDbo.name,
-    taxKind: localityDbo.tax_kind,
-    taxRate: localityDbo.tax_rate,
-  };
+const parseLocalityApi = (localityDbo: LocalityDbo): LocalityApi => ({
+  id: localityDbo.id,
+  geoCode: localityDbo.geo_code,
+  name: localityDbo.name,
+  taxKind: localityDbo.tax_kind as TaxKindsApi,
+  taxRate: localityDbo.tax_rate,
+});
 
 export default {
   get,

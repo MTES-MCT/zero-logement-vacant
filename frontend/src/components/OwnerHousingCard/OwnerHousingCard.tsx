@@ -11,7 +11,7 @@ import React from 'react';
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './owner-housing-card.module.scss';
-import { getHousingState } from '../../models/HousingState';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 interface OwnerHousingCardProps {
   housing: Housing;
@@ -39,20 +39,8 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
         <Title as="h4" look="h6" spacing="mb-0">
           {capitalize(housing.rawAddress[0])}
         </Title>
-        {housing.status && (
-          <div
-            style={{
-              color: `var(${getHousingState(housing.status).color})`,
-              backgroundColor: `var(${
-                getHousingState(housing.status).bgcolor
-              })`,
-            }}
-            className="fr-badge fr-badge--no-icon"
-          >
-            <Text size="sm" className="fr-mb-0">
-              {getHousingState(housing.status).title}
-            </Text>
-          </div>
+        {housing.status !== undefined && (
+          <HousingStatusBadge status={housing.status} />
         )}
       </CardTitle>
       <CardDescription className={styles.content}>

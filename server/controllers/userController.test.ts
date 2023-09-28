@@ -186,10 +186,9 @@ describe('User controller', () => {
     it('should activate user establishment if needed', async () => {
       const Locality = genLocalityApi();
       const establishment = genEstablishmentApi(Locality.geoCode);
-      await db(localitiesTable).insert({
-        id: uuidv4(),
-        ...localityRepository.formatLocalityApi(Locality),
-      });
+      await db(localitiesTable).insert(
+        localityRepository.formatLocalityApi(Locality)
+      );
       await db(establishmentsTable).insert({
         ...establishmentRepository.formatEstablishmentApi(establishment),
         available: false,
@@ -204,6 +203,7 @@ describe('User controller', () => {
         housing.map((_) => ({
           owner_id: Owner1.id,
           housing_id: _.id,
+          housing_geo_code: _.geoCode,
           rank: 1,
         }))
       );

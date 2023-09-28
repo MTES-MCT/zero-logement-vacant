@@ -21,6 +21,7 @@ export interface EventApi<T> {
 export interface HousingEventApi
   extends EventApi<HousingApi | HousingOwnerApi[]> {
   housingId: string;
+  housingGeoCode: string;
 }
 export interface OwnerEventApi extends EventApi<OwnerApi> {
   ownerId: string;

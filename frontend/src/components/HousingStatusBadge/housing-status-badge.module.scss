@@ -1,12 +1,9 @@
 .statusBadgeLabel {
-  text-transform: uppercase;
-  line-height: 1.5rem !important;
-  width: fit-content;
-  font-weight: 700;
-  text-wrap: none;
   vertical-align: middle;
-  background-color: inherit !important;
-  color: inherit !important;
+}
+
+.subStatusBadgeLabel {
+  vertical-align: middle;
 }
 
 
@@ -16,17 +13,15 @@
     margin-top: 0.5rem;
   }
 
-  width: fit-content
 }
 
 
 .statusBadgeContainerInline {
 
   display: inline-block;
+  vertical-align: middle;
 
   & + .statusBadgeContainerInline {
     margin-left: 0.5rem;
   }
-
-  width: fit-content
 }

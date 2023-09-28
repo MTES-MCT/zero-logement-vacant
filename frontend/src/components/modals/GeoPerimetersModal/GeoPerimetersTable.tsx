@@ -124,7 +124,6 @@ const GeoPerimetersTable = ({
           entity="périmètre"
           selected={selection.selectedCount}
           count={geoPerimeters.length}
-          total={geoPerimeters.length}
           onUnselectAll={() => selection.toggleSelectAll(false)}
         >
           <SelectableListHeaderActions>

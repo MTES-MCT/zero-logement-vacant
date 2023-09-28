@@ -7,21 +7,12 @@ export interface HousingState {
   status: HousingStatus;
   title: string;
   subStatusList?: HousingSubStatus[];
-  color?: string;
-  bgcolor?: string;
+  colorFamily: string;
   hint?: ReactElement;
 }
 
 export interface HousingSubStatus {
   title: string;
-  color: string;
-  bgcolor: string;
-}
-
-export interface HousingStatusPrecision {
-  title: string;
-  color: string;
-  bgcolor: string;
 }
 
 export enum HousingStatus {
@@ -56,8 +47,7 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.NeverContacted,
     title: 'Non suivi',
-    color: '--beige-gris-galet-sun-407',
-    bgcolor: '--beige-gris-galet-moon-821-hover',
+    colorFamily: 'beige-gris-galet',
   },
   {
     status: HousingStatus.Waiting,
@@ -67,8 +57,7 @@ export const HousingStates: HousingState[] = [
         Le propriétaire<b> n'a pas répondu au courrier.</b>
       </Text>
     ),
-    color: '--blue-ecume-sun-247',
-    bgcolor: '--blue-ecume-950',
+    colorFamily: 'yellow-tournesol',
   },
   {
     status: HousingStatus.FirstContact,
@@ -79,23 +68,16 @@ export const HousingStates: HousingState[] = [
         pour l'évolution de sa situation.
       </Text>
     ),
-    color: '--yellow-tournesol-850-active',
-    bgcolor: '--yellow-tournesol-975',
+    colorFamily: 'blue-cumulus',
     subStatusList: [
       {
         title: FirstContactToContactedSubStatus,
-        color: '--grey-main-525',
-        bgcolor: '--yellow-tournesol-975',
       },
       {
         title: FirstContactWithPreSupportSubStatus,
-        color: '--grey-main-525',
-        bgcolor: '--yellow-tournesol-975',
       },
       {
         title: FirstContactNpai,
-        color: '--grey-main-525',
-        bgcolor: '--yellow-tournesol-975',
       },
     ],
   },
@@ -108,23 +90,16 @@ export const HousingStates: HousingState[] = [
         vacance ou de passoire thermique).
       </Text>
     ),
-    color: '--pink-tuile-850-active',
-    bgcolor: '--pink-tuile-975',
+    colorFamily: 'orange-terre-battue',
     subStatusList: [
       {
         title: InProgressWithSupportSubStatus,
-        color: '--grey-main-525',
-        bgcolor: '--pink-tuile-975',
       },
       {
         title: InProgressWithPublicSupportSubStatus,
-        color: '--grey-main-525',
-        bgcolor: '--pink-tuile-975',
       },
       {
         title: InProgressWithoutSupportSubStatus,
-        color: '--grey-main-525',
-        bgcolor: '--pink-tuile-975',
       },
     ],
   },
@@ -137,33 +112,22 @@ export const HousingStates: HousingState[] = [
         évolué ou la base de données d'origine comportait une erreur.
       </Text>
     ),
-    color: '--green-bourgeon-sun-425',
-    bgcolor: '--green-bourgeon-975',
+    colorFamily: 'green-bourgeon',
     subStatusList: [
       {
         title: CompletedWithVacancyExit,
-        color: '--grey-main-525',
-        bgcolor: '--green-bourgeon-975',
       },
       {
         title: CompletedNotVacant,
-        color: '--grey-main-525',
-        bgcolor: '--green-bourgeon-975',
       },
       {
         title: CompletedWithPoorlyInsulatedExit,
-        color: '--grey-main-525',
-        bgcolor: '--green-bourgeon-975',
       },
       {
         title: CompletedNotPoorlyInsulated,
-        color: '--grey-main-525',
-        bgcolor: '--green-bourgeon-975',
       },
       {
         title: OtherObjectiveAchieved,
-        color: '--grey-main-525',
-        bgcolor: '--green-bourgeon-975',
       },
     ],
   },
@@ -175,28 +139,19 @@ export const HousingStates: HousingState[] = [
         La situation ne peut pas évoluer à court ou moyen terme.
       </Text>
     ),
-    color: '--purple-glycine-main-494',
-    bgcolor: '--purple-glycine-975',
+    colorFamily: 'purple-glycine-sun',
     subStatusList: [
       {
         title: BlockedByOwnerInvoluntary,
-        color: '--grey-main-525',
-        bgcolor: '--purple-glycine-975',
       },
       {
         title: BlockedByOwnerVoluntary,
-        color: '--grey-main-525',
-        bgcolor: '--purple-glycine-975',
       },
       {
         title: BuildingEnvironment,
-        color: '--grey-main-525',
-        bgcolor: '--purple-glycine-975',
       },
       {
         title: ThirdPartiesInvolved,
-        color: '--grey-main-525',
-        bgcolor: '--purple-glycine-975',
       },
     ],
   },

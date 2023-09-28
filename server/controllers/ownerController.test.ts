@@ -32,7 +32,6 @@ describe('Owner controller', () => {
         expect.arrayContaining([
           expect.objectContaining({
             housingId: Housing1.id,
-            housingCount: 3,
           }),
         ])
       );

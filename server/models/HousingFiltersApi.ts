@@ -7,6 +7,7 @@ import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 
 export interface HousingFiltersApi {
+  housingIds?: string[];
   establishmentIds?: string[];
   ownerKinds?: string[];
   ownerAges?: string[];
@@ -31,21 +32,13 @@ export interface HousingFiltersApi {
   geoPerimetersExcluded?: string[];
   dataYearsIncluded?: number[];
   dataYearsExcluded?: number[];
-  status?: number[];
+  status?: number;
+  statusList?: number[];
   subStatus?: string[];
   query?: string;
   energyConsumption?: EnergyConsumptionGradesApi[];
   occupancies?: OccupancyKindApi[];
 }
-
-export type HousingFiltersForTotalCountApi = Pick<
-  HousingFiltersApi,
-  | 'establishmentIds'
-  | 'dataYearsIncluded'
-  | 'dataYearsExcluded'
-  | 'status'
-  | 'campaignIds'
->;
 
 const validators: ValidationChain[] = [
   body('filters').isObject({ strict: true }),
@@ -78,7 +71,8 @@ const validators: ValidationChain[] = [
   body('filters.geoPerimetersExcluded').default([]).custom(isArrayOf(isString)),
   body('filters.dataYearsIncluded').default([]).custom(isArrayOf(isInteger)),
   body('filters.dataYearsExcluded').default([]).custom(isArrayOf(isInteger)),
-  body('filters.status').default([]).custom(isArrayOf(isInteger)),
+  body('filters.statusList').default([]).custom(isArrayOf(isInteger)),
+  body('filters.status').optional().isInt(),
   body('filters.subStatus').default([]).custom(isArrayOf(isString)),
   body('filters.query').default('').isString(),
   body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),

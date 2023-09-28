@@ -1,5 +1,5 @@
 import { Owner } from '../src/models/Owner';
-import { Housing, OwnershipKinds } from '../src/models/Housing';
+import { Housing, OccupancyKind, OwnershipKinds } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
@@ -8,6 +8,7 @@ import { SignupLink } from '../src/models/SignupLink';
 import { addHours } from 'date-fns';
 import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
+import { HousingStatus } from '../src/models/HousingState';
 
 const randomstring = require('randomstring');
 
@@ -72,7 +73,7 @@ export function genOwner() {
   } as Owner;
 }
 
-export function genHousing() {
+export function genHousing(): Housing {
   return {
     id: randomstring.generate(),
     invariant: randomstring.generate(),
@@ -93,7 +94,9 @@ export function genHousing() {
     taxed: false,
     ownershipKind: OwnershipKinds.Single,
     buildingVacancyRate: genNumber(2),
-  } as Housing;
+    status: HousingStatus.NeverContacted,
+    occupancy: OccupancyKind.Vacant,
+  };
 }
 
 export function genCampaign() {

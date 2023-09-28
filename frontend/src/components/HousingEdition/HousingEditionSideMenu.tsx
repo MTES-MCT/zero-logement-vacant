@@ -92,7 +92,7 @@ const HousingEditionSideMenu = ({
                 className="fr-p-0 bg-975"
               >
                 <HousingEditionForm
-                  housing={{ ...housing }}
+                  housing={housing}
                   fromDefaultCampaign={hasOnlyDefaultCampaign}
                   onSubmit={submit}
                   ref={statusFormRef}

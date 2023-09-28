@@ -10,14 +10,11 @@ import localityController from '../controllers/localityController';
 import ownerProspectController from '../controllers/ownerProspectController';
 import rateLimit from 'express-rate-limit';
 import contactPointController from '../controllers/contactPointController';
-import { jwtCheck, userCheck } from '../middlewares/auth';
 import config from "../utils/config";
 import { noop } from "../middlewares/noop";
 import settingsController from "../controllers/settingsController";
 
 const router = express.Router();
-router.use(jwtCheck(false))
-router.use(userCheck(false));
 
 // Allow 10 requests by IP over 1 minute
 function rateLimiter() {

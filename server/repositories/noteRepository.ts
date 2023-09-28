@@ -8,8 +8,7 @@ export const housingNotesTable = 'housing_notes';
 const Notes = () => db<NoteDBO>(notesTable);
 const OwnerNotes = () =>
   db<{ note_id: string; owner_id: string }>(ownerNotesTable);
-const HousingNotes = () =>
-  db<{ note_id: string; housing_id: string }>(housingNotesTable);
+const HousingNotes = () => db<HousingNoteDBO>(housingNotesTable);
 
 const insertOwnerNote = async (ownerNoteApi: OwnerNoteApi): Promise<void> => {
   console.log('Insert OwnerNoteApi');
@@ -35,9 +34,10 @@ const insertManyHousingNotes = async (
       housingNotes.map((housingNote) => formatNoteApi(housingNote))
     );
     await HousingNotes().insert(
-      housingNotes.map((housingNote) => ({
+      housingNotes.map<HousingNoteDBO>((housingNote) => ({
         note_id: housingNote.id,
         housing_id: housingNote.housingId,
+        housing_geo_code: housingNote.housingGeoCode,
       }))
     );
   }
@@ -72,6 +72,12 @@ interface NoteDBO {
   note_kind: string;
   created_by: string;
   created_at: Date;
+}
+
+interface HousingNoteDBO {
+  note_id: string;
+  housing_id: string;
+  housing_geo_code: string;
 }
 
 const formatNoteApi = (noteApi: NoteApi): NoteDBO => ({

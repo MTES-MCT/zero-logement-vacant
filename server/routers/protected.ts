@@ -21,7 +21,7 @@ import { param } from 'express-validator';
 const router = express.Router();
 
 router.use(jwtCheck(true))
-router.use(userCheck(true));
+router.use(userCheck());
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);

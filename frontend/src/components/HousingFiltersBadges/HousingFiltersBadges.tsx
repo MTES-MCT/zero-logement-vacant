@@ -222,13 +222,13 @@ const HousingFiltersBadges = ({
       />
       <FilterBadges
         options={statusOptions()}
-        filters={filters.status?.map((_) => _.toString())}
+        filters={filters.statusList?.map((_) => _.toString())}
         small={small}
         onChange={
           onChange &&
           ((values) =>
             onChange({
-              status: values.map(Number),
+              statusList: values.map(Number),
               subStatus: filters.subStatus?.filter(
                 (_) => getSubStatusList(values).indexOf(_) !== -1
               ),
@@ -236,7 +236,7 @@ const HousingFiltersBadges = ({
         }
       />
       <FilterBadges
-        options={getSubStatusListOptions(filters.status)}
+        options={getSubStatusListOptions(filters.statusList)}
         filters={filters.subStatus}
         small={small}
         onChange={onChange && ((values) => onChange({ subStatus: values }))}

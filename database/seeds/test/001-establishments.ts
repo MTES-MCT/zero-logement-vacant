@@ -9,8 +9,8 @@ import localityRepository, {
   localitiesTable,
 } from '../../../server/repositories/localityRepository';
 import { Knex } from 'knex';
-import { v4 as uuidv4 } from 'uuid';
 import { LocalityApi, TaxKindsApi } from '../../../server/models/LocalityApi';
+import { establishmentsLocalitiesTable } from '../../../server/repositories/housingRepository';
 
 export const Locality1: LocalityApi = genLocalityApi();
 export const Locality2: LocalityApi = {
@@ -21,16 +21,14 @@ export const Locality2: LocalityApi = {
 export const Establishment1 = genEstablishmentApi(Locality1.geoCode);
 export const Establishment2 = genEstablishmentApi(Locality2.geoCode);
 
-exports.seed = function (knex: Knex) {
-  return Promise.all([
-    knex.table(localitiesTable).insert({
-      id: uuidv4(),
-      ...localityRepository.formatLocalityApi(Locality1),
-    }),
-    knex.table(localitiesTable).insert({
-      id: uuidv4(),
-      ...localityRepository.formatLocalityApi(Locality2),
-    }),
+exports.seed = async function (knex: Knex) {
+  await Promise.all([
+    knex
+      .table(localitiesTable)
+      .insert(localityRepository.formatLocalityApi(Locality1)),
+    knex
+      .table(localitiesTable)
+      .insert(localityRepository.formatLocalityApi(Locality2)),
     knex.table(establishmentsTable).insert({
       ...establishmentRepository.formatEstablishmentApi(Establishment1),
       available: true,
@@ -40,4 +38,17 @@ exports.seed = function (knex: Knex) {
       available: true,
     }),
   ]);
+  const establishmentLocalities = [
+    {
+      establishment_id: Establishment1.id,
+      locality_id: Locality1.id,
+    },
+    {
+      establishment_id: Establishment2.id,
+      locality_id: Locality2.id,
+    },
+  ];
+  await knex
+    .table(establishmentsLocalitiesTable)
+    .insert(establishmentLocalities);
 };

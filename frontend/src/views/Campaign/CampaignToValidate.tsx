@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { Button, Col, Link, Row, Text } from '@dataesr/react-dsfr';
 import {
   removeCampaignHousingList,
@@ -17,9 +17,7 @@ import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';
 import VerticalStep from '../../components/VerticalStepper/VerticalStep';
 import { useStepper } from '../../hooks/useStepper';
 import { dateValidator, useForm } from '../../hooks/useForm';
-import HousingList, {
-  HousingDisplayKey,
-} from '../../components/HousingList/HousingList';
+import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import { useSelection } from '../../hooks/useSelection';
@@ -29,9 +27,9 @@ import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
-import { useHousingList } from '../../hooks/useHousingList';
-import housingSlice from '../../store/reducers/housingReducer';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { HousingFilters } from '../../models/HousingFilters';
+import { useCountHousingQuery } from '../../services/housing.service';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -49,13 +47,10 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     (_) => _.id === campaignBundle?.campaignIds[0]
   );
 
-  const { totalCount, paginatedHousing, refetchPaginatedHousing } =
-    useHousingList(
-      {
-        filters: { campaignIds: campaignBundle?.campaignIds, query },
-      },
-      { skip: !campaignBundle }
-    );
+  const filters: HousingFilters = {
+    campaignIds: campaignBundle?.campaignIds,
+    query,
+  };
 
   const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
@@ -84,12 +79,11 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     sendingDate,
   });
 
-  const { hasSelected, setSelected, selected, selectedCount } =
-    useSelection(totalCount);
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredHousingCount = count?.housing ?? 0;
 
-  useEffect(() => {
-    refetchPaginatedHousing();
-  }, [campaignBundle]); //eslint-disable-line react-hooks/exhaustive-deps
+  const { hasSelected, setSelected, selected, selectedCount } =
+    useSelection(filteredHousingCount);
 
   if (!campaignBundle) {
     return <></>;
@@ -136,8 +130,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     setIsRemovingModalOpen(false);
   };
 
-  const { changePagination } = housingSlice.actions;
-
   async function downloadCSV(downloadOnly = false): Promise<void> {
     window.open(campaignBundle?.exportURL, '_self');
     if (!downloadOnly) {
@@ -176,17 +168,13 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                   Supprimer des logements de votre campagne.
                 </Text>
                 <HousingList
+                  filters={filters}
                   actions={(housing) => (
                     <ButtonLink isSimple onClick={() => remove(housing.id)}>
                       Supprimer
                     </ButtonLink>
                   )}
-                  displayKind={HousingDisplayKey.Housing}
-                  onChangePagination={(page, perPage) =>
-                    dispatch(changePagination({ page, perPage }))
-                  }
                   onSelectHousing={setSelected}
-                  paginatedHousing={paginatedHousing}
                 >
                   <SelectableListHeader entity="logement">
                     <SelectableListHeaderActions>
@@ -223,7 +211,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                     }}
                   >
                     Êtes-vous sûr de vouloir supprimer 
-                    {pluralize(removingId ? 1 : selectedCount)('ce logement')}
+                    {pluralize(removingId ? 1 : selectedCount)('ce logement')} 
                     de la campagne ?
                   </ConfirmationModal>
                 )}

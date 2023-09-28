@@ -13,6 +13,8 @@ import fileUpload from 'express-fileupload';
 import errorHandler from './middlewares/error-handler';
 import RouteNotFoundError from './errors/routeNotFoundError';
 import protectedRouter from './routers/protected';
+import { logger } from './utils/logger';
+import gracefulShutdown from './utils/graceful-shutdown';
 
 const PORT = config.serverPort;
 
@@ -112,10 +114,12 @@ export function createServer(): Server {
   sentry.errorHandler(app);
   app.use(errorHandler());
 
+  gracefulShutdown(app);
+
   function start(): Promise<void> {
     return new Promise((resolve) => {
       app.listen(PORT, () => {
-        console.log(`Server listening on ${PORT}`);
+        logger.info(`Server listening on ${PORT}`);
         resolve();
       });
     });

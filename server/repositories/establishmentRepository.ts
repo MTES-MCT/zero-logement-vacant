@@ -14,6 +14,7 @@ import { campaignsTable } from './campaignRepository';
 import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
+import { logger } from '../utils/logger';
 
 export const establishmentsTable = 'establishments';
 
@@ -31,6 +32,9 @@ const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
 
 function filter(filters?: EstablishmentFilterApi) {
   return (builder: Knex.QueryBuilder<EstablishmentDbo>) => {
+    if (filters?.ids) {
+      builder.whereIn('id', filters.ids);
+    }
     if (filters?.available) {
       builder.where('available', true);
     }
@@ -55,16 +59,14 @@ function filter(filters?: EstablishmentFilterApi) {
   };
 }
 
-const get = async (
-  establishmentId: string
-): Promise<EstablishmentApi | null> => {
-  console.log('Get establishments by id', establishmentId);
+const get = async (id: string): Promise<EstablishmentApi | null> => {
+  logger.debug('Get establishment by id', id);
 
-  const result = await db(establishmentsTable)
-    .where(`${establishmentsTable}.id`, establishmentId)
+  const establishment = await db(establishmentsTable)
+    .where(`${establishmentsTable}.id`, id)
     .first();
 
-  return result ? parseEstablishmentApi(result) : null;
+  return establishment ? parseEstablishmentApi(establishment) : null;
 };
 
 interface FindOneOptions {

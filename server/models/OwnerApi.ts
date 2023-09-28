@@ -20,6 +20,7 @@ export interface OwnerApi {
 
 export interface HousingOwnerApi extends OwnerApi {
   housingId: string;
+  housingGeoCode: string;
   rank: number;
   startDate?: Date;
   endDate?: Date;

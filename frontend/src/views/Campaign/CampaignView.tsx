@@ -142,15 +142,16 @@ const CampaignView = () => {
             )}
         </Container>
       </div>
-      <Container spacing="py-4w" as="section">
-        {(bundle.campaignNumber ?? 0) > 0 &&
-        step &&
-        step < CampaignSteps.InProgress ? (
-          <CampaignToValidate campaignStep={step} />
-        ) : (
-          <CampaignInProgress />
-        )}
-      </Container>
+      {step !== null && (
+        <Container spacing="py-4w" as="section">
+          {(bundle.campaignNumber ?? 0) > 0 &&
+          step < CampaignSteps.InProgress ? (
+            <CampaignToValidate campaignStep={step} />
+          ) : (
+            <CampaignInProgress />
+          )}
+        </Container>
+      )}
     </>
   ) : (
     <></>

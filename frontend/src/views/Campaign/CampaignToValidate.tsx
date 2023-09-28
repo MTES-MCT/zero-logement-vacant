@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { Button, Col, Link, Row, Text } from '@dataesr/react-dsfr';
 import {
   removeCampaignHousingList,
@@ -27,8 +27,6 @@ import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
-import { useHousingList } from '../../hooks/useHousingList';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
@@ -53,14 +51,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     campaignIds: campaignBundle?.campaignIds,
     query,
   };
-
-  const { refetchHousingList } = useHousingList(
-    {
-      filters,
-      pagination: DefaultPagination,
-    },
-    { skip: !campaignBundle }
-  );
 
   const [removingId, setRemovingId] = useState<string>();
   const [isRemovingModalOpen, setIsRemovingModalOpen] =
@@ -94,10 +84,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
 
   const { hasSelected, setSelected, selected, selectedCount } =
     useSelection(filteredHousingCount);
-
-  useEffect(() => {
-    refetchHousingList();
-  }, [campaignBundle]); //eslint-disable-line react-hooks/exhaustive-deps
 
   if (!campaignBundle) {
     return <></>;

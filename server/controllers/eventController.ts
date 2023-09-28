@@ -23,10 +23,7 @@ const listByOwnerId = async (
   return response.status(constants.HTTP_STATUS_OK).json(events);
 };
 
-const listByHousingId = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const listByHousingId = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -39,7 +36,7 @@ const listByHousingId = async (
 
   const [housingEvents, owners] = await Promise.all([
     eventRepository.findHousingEvents(housing.id),
-    ownerRepository.listByHousing(housing.id),
+    ownerRepository.listByHousing(housing),
   ]);
 
   const ownerEvents: EventApi<OwnerApi>[] = await async.concat(
@@ -47,7 +44,7 @@ const listByHousingId = async (
     async (ownerId: string) => eventRepository.findOwnerEvents(ownerId)
   );
 
-  return response
+  response
     .status(constants.HTTP_STATUS_OK)
     .json([...ownerEvents, ...housingEvents]);
 };

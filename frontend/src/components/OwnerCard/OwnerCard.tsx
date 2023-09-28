@@ -25,10 +25,16 @@ import styles from './owner-card.module.scss';
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
   coOwners?: HousingOwner[];
+  housingCount: number;
   onModify: () => any;
 }
 
-function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
+function OwnerCard({
+  owner,
+  coOwners,
+  housingCount,
+  onModify,
+}: OwnerCardProps) {
   return (
     <Card hasArrow={false} hasBorder={false} size="sm">
       <CardTitle>
@@ -75,7 +81,7 @@ function OwnerCard({ owner, coOwners, onModify }: OwnerCardProps) {
               'fr-btn--secondary'
             )}
           >
-            Voir tous ses logements ({owner.housingCount})
+            Voir tous ses logements ({housingCount})
           </InternalLink>
         )}
 

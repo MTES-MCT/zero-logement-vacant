@@ -6,7 +6,10 @@ import { useFindOwnersByHousingQuery } from '../services/owner.service';
 import _ from 'lodash';
 import { CampaignNumberSort } from '../models/Campaign';
 import { useCampaignList } from './useCampaignList';
-import { useGetHousingQuery } from '../services/housing.service';
+import {
+  useCountHousingQuery,
+  useGetHousingQuery,
+} from '../services/housing.service';
 
 export function useHousing() {
   const { housingId } = useParams<{ housingId: string }>();
@@ -25,6 +28,13 @@ export function useHousing() {
 
   const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
   const coOwners = housingOwners?.filter((_) => _.rank !== 1);
+
+  const { data: count } = useCountHousingQuery(
+    {
+      ownerIds: [mainHousingOwner?.id ?? ''],
+    },
+    { skip: !mainHousingOwner }
+  );
 
   const campaigns = useMemo(
     () =>
@@ -46,6 +56,7 @@ export function useHousing() {
     coOwners,
     housingOwners,
     housing,
+    count,
     campaigns,
   };
 }

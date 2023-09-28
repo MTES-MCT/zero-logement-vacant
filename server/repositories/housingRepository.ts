@@ -731,7 +731,7 @@ const stream = (): Highland.Stream<HousingApi> => {
     .map(parseHousingApi)
     .flatMap((housing) => {
       return highland<HousingApi>(
-        ownerRepository.listByHousing(housing.id).then(
+        ownerRepository.listByHousing(housing).then(
           (owners: HousingOwnerApi[]): HousingApi => ({
             ...housing,
             coowners: owners.filter((owner) => owner.rank > 1),

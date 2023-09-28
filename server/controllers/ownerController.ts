@@ -12,6 +12,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { isArrayOf, isString } from '../utils/validators';
 import { parse } from 'date-fns';
 import { compare } from '../utils/compareUtils';
+import { logger } from '../utils/logger';
+import housingRepository from '../repositories/housingRepository';
+import HousingMissingError from '../errors/housingMissingError';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -39,17 +42,20 @@ const search = async (
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 };
 
-const listByHousing = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const listByHousing = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
+  const establishmentId = (request as AuthenticatedRequest).auth
+    .establishmentId;
 
-  console.log('List owner for housing', housingId);
+  logger.info('List owner for housing', housingId);
 
-  return ownerRepository
-    .listByHousing(housingId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const housing = await housingRepository.get(housingId, establishmentId);
+  if (!housing) {
+    throw new HousingMissingError(housingId);
+  }
+
+  const owners = await ownerRepository.listByHousing(housing);
+  response.status(constants.HTTP_STATUS_OK).json(owners);
 };
 
 type DraftOwnerBody = DraftOwnerApi & { birthDate: string };
@@ -193,8 +199,14 @@ const updateHousingOwners = async (
   response: Response
 ): Promise<Response> => {
   const housingId = request.params.housingId;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
 
   console.log('Update housing owners', housingId);
+
+  const housing = await housingRepository.get(housingId, establishmentId);
+  if (!housing) {
+    throw new HousingMissingError(housingId);
+  }
 
   const userId = (request as AuthenticatedRequest).auth.userId;
   const housingOwnersApi = (<HousingOwnerBody[]>request.body)
@@ -207,7 +219,7 @@ const updateHousingOwners = async (
     )
   );
 
-  const prevHousingOwnersApi = await ownerRepository.listByHousing(housingId);
+  const prevHousingOwnersApi = await ownerRepository.listByHousing(housing);
 
   if (
     prevHousingOwnersApi.length !== housingOwnersApi.length ||
@@ -225,7 +237,7 @@ const updateHousingOwners = async (
 
     await ownerRepository.insertHousingOwners(housingOwnersApi);
 
-    const newHousingOwnersApi = await ownerRepository.listByHousing(housingId);
+    const newHousingOwnersApi = await ownerRepository.listByHousing(housing);
 
     await eventRepository.insertHousingEvent({
       id: uuidv4(),

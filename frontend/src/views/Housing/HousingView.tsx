@@ -14,6 +14,7 @@ const HousingView = () => {
   useDocumentTitle('Fiche logement');
   const {
     housing,
+    count,
     coOwners,
     mainHousingOwner,
     housingOwners,
@@ -21,6 +22,8 @@ const HousingView = () => {
     notes,
     campaigns,
   } = useHousing();
+  const housingCount = count?.housing ?? 0;
+
   const [isModalHousingOwnersOpen, setIsModalHousingOwnersOpen] =
     useState(false);
 
@@ -56,6 +59,7 @@ const HousingView = () => {
                   <OwnerCard
                     owner={mainHousingOwner}
                     coOwners={coOwners}
+                    housingCount={housingCount}
                     onModify={() => setIsModalHousingOwnersOpen(true)}
                   ></OwnerCard>
                   {isModalHousingOwnersOpen && (

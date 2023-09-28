@@ -1,12 +1,8 @@
 import db from './db';
 import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
-import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
-import {
-  housingTable,
-  ownersHousingTable,
-  ReferenceDataYear,
-} from './housingRepository';
+import { HousingApi } from '../models/HousingApi';
+import { ownersHousingTable } from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
 
@@ -95,34 +91,22 @@ const searchOwners = async (
   }
 };
 
-const listByHousing = async (housingId: string): Promise<HousingOwnerApi[]> => {
-  try {
-    return db(ownerTable)
-      .select(
-        '*',
-        db.raw(
-          '(select count(*)\n' +
-            `        from owners_housing oh2, ${housingTable} h` +
-            '        where oh1.owner_id = oh2.owner_id\n' +
-            '          and oh2.housing_id = h.id\n' +
-            '          and ((h.occupancy = ? and h.vacancy_start_year <= ?) or h.occupancy = ?)\n' +
-            '          and current_date between coalesce(oh2.start_date, current_date) and coalesce(oh2.end_date, current_date)) as housing_count',
-          [
-            OccupancyKindApi.Vacant,
-            ReferenceDataYear - 2,
-            OccupancyKindApi.Rent,
-          ]
-        )
-      )
-      .join({ oh1: ownersHousingTable }, `${ownerTable}.id`, 'oh1.owner_id')
-      .where('oh1.housing_id', housingId)
-      .orderBy('end_date', 'desc')
-      .orderBy('rank')
-      .then((_) => _.map((result: any) => parseHousingOwnerApi(result)));
-  } catch (err) {
-    console.error('Listing owners by housing failed', err, housingId);
-    throw new Error('Listing owners by housing failed');
-  }
+const listByHousing = async (
+  housing: HousingApi
+): Promise<HousingOwnerApi[]> => {
+  const owners: HousingOwnerDBO[] = await db(ownerTable)
+    .join(
+      ownersHousingTable,
+      `${ownerTable}.id`,
+      `${ownersHousingTable}.owner_id`
+    )
+    .whereRaw(`${ownersHousingTable}.rank >= 1`)
+    .where(`${ownersHousingTable}.housing_id`, housing.id)
+    .where(`${ownersHousingTable}.housing_geo_code`, housing.geoCode)
+    .orderBy('end_date', 'desc')
+    .orderBy('rank');
+
+  return owners.map(parseHousingOwnerApi);
 };
 
 const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
@@ -350,7 +334,6 @@ export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
   startDate: result.start_date,
   endDate: result.end_date,
   origin: result.origin,
-  housingCount: Number(result.housing_count),
 });
 
 export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({

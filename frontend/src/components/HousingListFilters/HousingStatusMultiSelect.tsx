@@ -39,7 +39,7 @@ const HousingStatusMultiSelect = ({
           [`fr-select-group--${messageType}`]: messageType,
         })}
       >
-        <label className="fr-label">Statuts de suivi</label>
+        <label className="fr-label">Statut de suivi</label>
         <button
           className="fr-select"
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}

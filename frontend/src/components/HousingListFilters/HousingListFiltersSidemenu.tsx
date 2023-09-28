@@ -137,7 +137,7 @@ function HousingListFiltersSidemenu() {
                 </Col>
                 <Col n="12">
                   <AppMultiSelect
-                    label="Sous-statuts de suivi"
+                    label="Sous-statut de suivi"
                     options={getSubStatusListOptions(filters.statusList)}
                     initialValues={filters.subStatus}
                     onChange={(values) =>
@@ -148,7 +148,7 @@ function HousingListFiltersSidemenu() {
                 {campaignList && (
                   <Col n="6">
                     <AppMultiSelect
-                      label="Campagnes"
+                      label="Campagne"
                       options={campaignList.map((c) => ({
                         value: c.id,
                         label: campaignFullName(c),

@@ -61,7 +61,10 @@ export const genGeoCode = (): string => {
     length: 5,
     charset: 'numeric',
   });
-  const needsReroll = geoCode.startsWith('99') || geoCode.endsWith('999');
+  const needsReroll =
+    geoCode.startsWith('20') ||
+    geoCode.startsWith('99') ||
+    geoCode.endsWith('999');
   return needsReroll ? genGeoCode() : geoCode;
 };
 

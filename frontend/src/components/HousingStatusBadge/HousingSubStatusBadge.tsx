@@ -2,6 +2,7 @@ import React from 'react';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import { Badge } from '@dataesr/react-dsfr';
 import styles from './housing-status-badge.module.scss';
+import classNames from 'classnames';
 
 interface Props {
   status?: HousingStatus;
@@ -18,7 +19,7 @@ const HousingSubStatusBadge = ({ status, subStatus, inline }: Props) => {
     >
       <Badge
         text={subStatus}
-        className={styles.subStatusBadgeLabel}
+        className={classNames(styles.subStatusBadgeLabel, 'fr-text--xs')}
         isSmall={true}
         colorFamily={getHousingState(status)?.colorFamily}
       ></Badge>

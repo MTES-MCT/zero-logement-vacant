@@ -10,9 +10,7 @@ export function useStatusTabs(statusList: (HousingStatus | undefined)[]) {
     //Use of prevState is required to prevent concurrency issues
     setStatusCounts((prevState) => {
       const tmp = [...prevState];
-      if (count !== undefined) {
-        tmp.splice((status ?? -1) + 1, 1, count);
-      }
+      tmp.splice((status ?? -1) + 1, 1, count);
       return tmp;
     });
   };

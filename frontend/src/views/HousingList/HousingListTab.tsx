@@ -58,9 +58,9 @@ const HousingListTab = ({
   );
   const totalCount = housingCount?.housing;
 
-  const { data: count } = useCountHousingQuery(filters);
-  const filteredHousingCount = count?.housing;
-  const filteredOwnerCount = count?.owners;
+  const { data: count, isFetching: isCounting } = useCountHousingQuery(filters);
+  const filteredHousingCount = isCounting ? undefined : count?.housing;
+  const filteredOwnerCount = isCounting ? undefined : count?.owners;
 
   const { selectedCount, selected, setSelected } =
     useSelection(filteredHousingCount);

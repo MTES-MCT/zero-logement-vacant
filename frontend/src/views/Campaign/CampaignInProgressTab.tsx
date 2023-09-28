@@ -55,8 +55,8 @@ const CampaignInProgressTab = ({
     query,
   };
 
-  const { data: count } = useCountHousingQuery(filters);
-  const filteredHousingCount = count?.housing ?? 0;
+  const { data: count, isFetching: isCounting } = useCountHousingQuery(filters);
+  const filteredHousingCount = isCounting ? undefined : count?.housing;
 
   const { hasSelected, selectedCount, selected, setSelected } =
     useSelection(filteredHousingCount);

@@ -37,22 +37,26 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
         </Text>
         <Text spacing="mb-1w">{housing.buildingVacancyRate}%</Text>
       </div>
-      {features.isEnabled('occupancy') ? (
-        <>
-          <div className="fr-mb-1w">
-            <Text size="sm" className="zlv-label">
-              Étiquette DPE représentatif (CSTB)
-            </Text>
-            {housing.energyConsumption ? (
-              <DPE value={housing.energyConsumption} />
-            ) : (
-              <Text spacing="mb-1w">Non renseigné</Text>
-            )}
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
+      {/*{features.isEnabled('occupancy') ? (*/}
+      <>
+        <div className="fr-mb-1w">
+          <Text size="sm" className="zlv-label">
+            Étiquette DPE représentatif (CSTB)
+          </Text>
+          {housing.energyConsumption ? (
+            <DPE
+              value={housing.energyConsumption}
+              madeAt={housing.energyConsumptionAt}
+              bnbId={housing.buildingGroupId}
+            />
+          ) : (
+            <Text spacing="mb-1w">Non renseigné</Text>
+          )}
+        </div>
+      </>
+      {/*) : (*/}
+      {/*  <></>*/}
+      {/*)}*/}
     </HousingDetailsSubCard>
   );
 }

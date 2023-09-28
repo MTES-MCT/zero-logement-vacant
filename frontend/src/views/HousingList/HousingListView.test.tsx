@@ -4,7 +4,6 @@ import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
-import authService from '../../services/auth.service';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
   genAuthUser,
@@ -22,6 +21,8 @@ import {
   applicationReducer,
   store as appStore,
 } from '../../store/store';
+import { getRequestCalls } from '../../utils/test/requestUtils';
+import { HousingStatus } from '../../models/HousingState';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -104,43 +105,44 @@ describe('housing view', () => {
     );
     await user.click(ownerKindCheckboxes[0]);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing`,
-      {
+    const requests = await getRequestCalls(fetchMock);
+
+    [
+      undefined,
+      HousingStatus.NeverContacted,
+      HousingStatus.Waiting,
+      HousingStatus.FirstContact,
+      HousingStatus.InProgress,
+      HousingStatus.Completed,
+      HousingStatus.Blocked,
+    ].forEach((status) =>
+      expect(requests).toContainEqual({
+        url: `${config.apiEndpoint}/api/housing`,
         method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
           filters: {
             ...initialHousingFilters,
+            status,
             ownerKinds: [ownerKindOptions[0].value],
           },
           page: 1,
-        }),
-        abortId: 'list-housing',
-        signal: expect.anything(),
-      }
+          perPage: config.perPageDefault,
+          paginate: true,
+        },
+      })
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing/count`,
-      {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing/count`,
+      method: 'POST',
+      body: {
+        filters: {
+          dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
+          dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
+          occupancies: initialHousingFilters.occupancies,
         },
-        body: JSON.stringify({
-          filters: {
-            dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
-            dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
-            occupancies: initialHousingFilters.occupancies,
-          },
-        }),
-      }
-    );
+      },
+    });
   });
 
   test('should search', async () => {
@@ -181,21 +183,27 @@ describe('housing view', () => {
     await user.type(searchInputElement, 'my search');
     await user.click(searchButtonElement);
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${config.apiEndpoint}/api/housing`,
-      {
+    const requests = await getRequestCalls(fetchMock);
+
+    [
+      undefined,
+      HousingStatus.NeverContacted,
+      HousingStatus.Waiting,
+      HousingStatus.FirstContact,
+      HousingStatus.InProgress,
+      HousingStatus.Completed,
+      HousingStatus.Blocked,
+    ].forEach((status) =>
+      expect(requests).toContainEqual({
+        url: `${config.apiEndpoint}/api/housing`,
         method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: { ...initialHousingFilters, query: 'my search' },
+        body: {
+          filters: { ...initialHousingFilters, query: 'my search', status },
           page: 1,
-        }),
-        abortId: 'list-housing',
-        signal: expect.anything(),
-      }
+          perPage: config.perPageDefault,
+          paginate: true,
+        },
+      })
     );
   });
 
@@ -267,7 +275,10 @@ describe('housing view', () => {
         </Router>
       </Provider>
     );
-    const housing1Element = await screen.findByTestId(
+
+    const tabPanels = await screen.findAllByRole('tabpanel');
+
+    const housing1Element = await within(tabPanels[0]).findByTestId(
       'housing-check-' + housing.id
     );
     // eslint-disable-next-line testing-library/no-node-access

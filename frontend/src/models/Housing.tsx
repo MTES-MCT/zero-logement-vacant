@@ -93,15 +93,6 @@ export const getBuildingLocation = (housing: Housing) => {
   }
 };
 
-export const selectedHousingCount = (
-  selectedHousing: SelectedHousing,
-  filteredCount: number
-) => {
-  return selectedHousing.all
-    ? filteredCount - selectedHousing.ids.length
-    : selectedHousing.ids.length;
-};
-
 export const housingSort = (h1: Housing, h2: Housing) =>
   Math.max(...h1.dataYears) === Math.max(...h2.dataYears)
     ? h1.invariant.localeCompare(h2.invariant)
@@ -145,7 +136,10 @@ export const OwnershipKindLabels = {
   [OwnershipKinds.Other]: 'Autre',
 };
 
-export type HousingSortable = Pick<Housing, 'rawAddress' | 'owner'>;
+export type HousingSortable = Pick<
+  Housing,
+  'rawAddress' | 'owner' | 'occupancy' | 'status'
+>;
 export type HousingSort = Sort<HousingSortable>;
 
 export function toLink(housing: Housing): string {

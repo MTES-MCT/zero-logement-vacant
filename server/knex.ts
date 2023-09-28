@@ -8,7 +8,11 @@ type KnexConfig = Exclude<Parameters<typeof knex>[0], string>;
 const defaultConfig: KnexConfig = {
   client: 'pg',
   connection: config.databaseUrl,
-  acquireConnectionTimeout: 10000,
+  acquireConnectionTimeout: 10_000,
+  pool: {
+    min: 0,
+    max: 10,
+  },
   migrations: {
     tableName: 'knex_migrations',
     directory: path.join(__dirname, '..', 'database', 'migrations'),

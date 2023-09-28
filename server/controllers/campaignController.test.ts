@@ -314,15 +314,25 @@ describe('Campaign controller', () => {
 
     it('should update the campaign when validating step Sending and update housing status if needed', async () => {
       await db(campaignsHousingTable).insert([
-        { campaign_id: Campaign1.id, housing_id: Housing0.id },
-        { campaign_id: Campaign1.id, housing_id: Housing2.id },
+        {
+          campaign_id: Campaign1.id,
+          housing_id: Housing0.id,
+          housing_geo_code: Housing0.geoCode,
+        },
+        {
+          campaign_id: Campaign1.id,
+          housing_id: Housing2.id,
+          housing_geo_code: Housing2.geoCode,
+        },
       ]);
       await db(housingTable)
         .update({ status: HousingStatusApi.NeverContacted })
-        .where('id', Housing1.id);
+        .where('id', Housing1.id)
+        .where('geo_code', Housing1.geoCode);
       await db(housingTable)
         .update({ status: HousingStatusApi.InProgress })
-        .where('id', Housing2.id);
+        .where('id', Housing2.id)
+        .where('geo_code', Housing2.geoCode);
 
       console.log('format ISO', formatISO(new Date()));
 

@@ -22,7 +22,9 @@ export const Events = () => db<EventDBO<any>>(eventsTable);
 export const OwnerEvents = () =>
   db<{ event_id: string; owner_id: string }>(ownerEventsTable);
 export const HousingEvents = () =>
-  db<{ event_id: string; housing_id: string }>(housingEventsTable);
+  db<{ event_id: string; housing_id: string; housing_geo_code: string }>(
+    housingEventsTable
+  );
 export const CampaignEvents = () =>
   db<{ event_id: string; campaign_id: string }>(campaignEventsTable);
 
@@ -51,6 +53,7 @@ const insertManyHousingEvents = async (
       housingEvents.map((housingEvent) => ({
         event_id: housingEvent.id,
         housing_id: housingEvent.housingId,
+        housing_geo_code: housingEvent.housingGeoCode,
       }))
     );
   }

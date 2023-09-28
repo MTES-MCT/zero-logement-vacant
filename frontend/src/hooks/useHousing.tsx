@@ -1,17 +1,20 @@
 import { useParams } from 'react-router-dom';
-import { useEffect, useMemo } from 'react';
-import { getHousing } from '../store/actions/housingAction';
-import { useAppDispatch, useAppSelector } from './useStore';
+import { useMemo } from 'react';
 import { useFindEventsByHousingQuery } from '../services/event.service';
 import { useFindNotesByHousingQuery } from '../services/note.service';
 import { useFindOwnersByHousingQuery } from '../services/owner.service';
 import _ from 'lodash';
 import { CampaignNumberSort } from '../models/Campaign';
 import { useCampaignList } from './useCampaignList';
+import {
+  useCountHousingQuery,
+  useGetHousingQuery,
+} from '../services/housing.service';
 
 export function useHousing() {
-  const dispatch = useAppDispatch();
   const { housingId } = useParams<{ housingId: string }>();
+
+  const { data: housing } = useGetHousingQuery(housingId);
 
   const { data: events, refetch: refetchHousingEvents } =
     useFindEventsByHousingQuery(housingId);
@@ -23,14 +26,15 @@ export function useHousing() {
 
   const campaignList = useCampaignList();
 
-  useEffect(() => {
-    dispatch(getHousing(housingId));
-  }, [housingId, dispatch]);
-
-  const { housing } = useAppSelector((state) => state.housing);
-
   const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
   const coOwners = housingOwners?.filter((_) => _.rank !== 1);
+
+  const { data: count } = useCountHousingQuery(
+    {
+      ownerIds: [mainHousingOwner?.id ?? ''],
+    },
+    { skip: !mainHousingOwner }
+  );
 
   const campaigns = useMemo(
     () =>
@@ -52,6 +56,7 @@ export function useHousing() {
     coOwners,
     housingOwners,
     housing,
+    count,
     campaigns,
   };
 }

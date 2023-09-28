@@ -1,92 +1,68 @@
-import housingRepository, {
-  filteredQuery,
-  housingTable,
-} from '../housingRepository';
-import db from '../db';
+import housingRepository from '../housingRepository';
 import {
-  EnergyConsumptionGradesApi,
-  OccupancyKindApi,
-} from '../../models/HousingApi';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
-import { Campaign1 } from '../../../database/seeds/test/006-campaigns';
+  Establishment1,
+  Establishment2,
+} from '../../../database/seeds/test/001-establishments';
+import { Housing1 } from '../../../database/seeds/test/005-housing';
 
 describe('Housing repository', () => {
   describe('find', () => {
-    it('should sort by id by default', async () => {
+    it('should sort by geo code and id by default', async () => {
       const actual = await housingRepository.find({
         filters: {},
       });
 
+      expect(actual).toBeSortedBy('geoCode');
       expect(actual).toBeSortedBy('id');
     });
-  });
 
-  describe('filteredQuery', () => {
-    it('should keep only long-term vacant housing by default', async () => {
-      const actual = await db(housingTable).modify(filteredQuery({}));
+    it('should filter by housing ids', async () => {
+      const actual = await housingRepository.find({
+        filters: {
+          establishmentIds: [Establishment1.id],
+          housingIds: [Housing1.id],
+        },
+      });
 
-      expect(actual).toSatisfyAll(
-        (housing) => housing.occupancy === OccupancyKindApi.Vacant
-      );
-      expect(actual).toSatisfyAll(
-        (housing) => housing.vacancy_start_year <= 2022
-      );
-    });
-
-    it('should filter by occupancy otherwise', async () => {
-      const occupancies = [OccupancyKindApi.Rent, OccupancyKindApi.Dependency];
-
-      const actual = await db(housingTable).modify(
-        filteredQuery({
-          occupancies,
-        })
-      );
-
-      expect(actual).toSatisfyAll((housing) =>
-        occupancies.includes(housing.occupancy)
-      );
-    });
-
-    it('should filter by energy consumption', async () => {
-      const consumptions = [EnergyConsumptionGradesApi.A];
-
-      const actual = await db(housingTable).modify(
-        filteredQuery({
-          energyConsumption: consumptions,
-        })
-      );
-
-      expect(actual).toSatisfyAll((housing) =>
-        consumptions.includes(housing.energy_consumption)
-      );
+      expect(actual).toBeArrayOfSize(1);
+      expect(actual[0]).toMatchObject({
+        id: Housing1.id,
+        geoCode: Housing1.geoCode,
+      });
     });
 
     it('should filter by establishment', async () => {
-      const establishments = [Establishment1.id];
+      const establishment = Establishment2;
 
-      const actual = await db(housingTable)
-        .select('e.id as establishment_id')
-        .modify(
-          filteredQuery({
-            establishmentIds: establishments,
-          })
-        );
+      const actual = await housingRepository.find({
+        filters: {
+          establishmentIds: [establishment.id],
+        },
+      });
 
-      expect(actual).toSatisfyAll((housing) =>
-        establishments.includes(housing.establishment_id)
+      expect(actual).toSatisfyAll(
+        (housing) => housing.establishmentId === establishment.id
       );
     });
+  });
 
-    it.skip('should filter by campaign', async () => {
-      const campaigns = [Campaign1.id];
-
-      const actual = await db(housingTable).modify(
-        filteredQuery({
-          campaignIds: campaigns,
-        })
+  describe('get', () => {
+    it('should return the housing if it exists', async () => {
+      const actual = await housingRepository.get(
+        Housing1.id,
+        Establishment1.id
       );
 
-      expect(actual).toSatisfyAll((housing) => campaigns.includes(housing));
+      expect(actual).toBeDefined();
+    });
+
+    it('should return null otherwise', async () => {
+      const actual = await housingRepository.get(
+        Housing1.id,
+        Establishment2.id
+      );
+
+      expect(actual).toBeNull();
     });
   });
 });

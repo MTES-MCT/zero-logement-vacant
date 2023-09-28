@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import createMigrator from '../../utils';
 import db from '../../../server/repositories/db';
-import { housingTable } from '../../../server/repositories/housingRepository';
 import {
   Housing,
   HousingEvent,
@@ -37,7 +36,7 @@ describe('073 Housing refactor statuses', () => {
     await migrator.migrateUntil('073-housing-refactor-statuses.ts');
 
     // Create some housing
-    await db(housingTable).insert(housingList);
+    await db('housing').insert(housingList);
 
     // Migrate the actual file
     await migrator.up();
@@ -63,7 +62,7 @@ describe('073 Housing refactor statuses', () => {
 
       const actualList = await Promise.all(
         housingList.map((housing) =>
-          db(housingTable).where('id', housing.id).first()
+          db('housing').where('id', housing.id).first()
         )
       );
 
@@ -163,7 +162,7 @@ describe('073 Housing refactor statuses', () => {
     it('should rollback the old housing', async () => {
       const actualList = await Promise.all(
         housingList.map((housing) =>
-          db(housingTable).where('id', housing.id).first()
+          db('housing').where('id', housing.id).first()
         )
       );
 

@@ -1,34 +1,28 @@
-import { Housing, HousingSort, OccupancyKind } from '../../models/Housing';
-import {
-  ExpandFiltersAction,
-  FetchingAdditionalOwnersAction,
-  FetchingHousingListAction,
-  HousingFetchedAction,
-  HousingListFetchedAction,
-} from '../actions/housingAction';
+import { OccupancyKind } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
-import { HousingPaginatedResult } from '../../models/PaginatedResult';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Pagination } from '../../../../shared/models/Pagination';
 
+export type ViewMode = 'list' | 'map';
+
+export const DefaultPagination: Pagination = {
+  paginate: true,
+  page: 1,
+  perPage: config.perPageDefault,
+};
+
 export interface HousingState {
-  filteredCount: number;
   totalCount: number;
   totalOwnerCount: number;
-  pagination?: Pagination;
-  sort?: HousingSort;
-  paginate?: boolean;
-  paginatedHousing: HousingPaginatedResult;
   filters: HousingFilters;
   filtersExpanded: boolean;
-  housing?: Housing;
-  checkedHousingIds?: string[];
   additionalOwnersQuery?: {
     page: number;
     perPage: number;
     q: string;
   };
+  view: ViewMode;
 }
 
 export const initialHousingFilters = {
@@ -37,90 +31,42 @@ export const initialHousingFilters = {
 } as HousingFilters;
 
 const initialState: HousingState = {
-  filteredCount: 0,
   totalCount: 0,
   totalOwnerCount: 0,
-  pagination: {
-    perPage: config.perPageDefault,
-  },
-  paginatedHousing: {
-    entities: [],
-    page: 1,
-    perPage: config.perPageDefault,
-    totalCount: 0,
-    filteredCount: 0,
-    filteredOwnerCount: 0,
-    loading: true,
-  },
   filters: initialHousingFilters,
   filtersExpanded: false,
+  view: 'list',
 };
 
 const housingSlice = createSlice({
   name: 'housing',
   initialState,
   reducers: {
-    expandingFilters: (
-      state: HousingState,
-      action: PayloadAction<ExpandFiltersAction>
-    ) => {
-      state.filtersExpanded = action.payload.value;
+    expandFilters: (state: HousingState, action: PayloadAction<boolean>) => {
+      state.filtersExpanded = action.payload;
     },
-    fetchingHousing: (state: HousingState) => {
-      state.housing = undefined;
-    },
-    housingFetched: (
+    changeFilters: (
       state: HousingState,
-      action: PayloadAction<HousingFetchedAction>
+      action: PayloadAction<HousingFilters>
     ) => {
-      state.housing = action.payload.housing;
+      state.filters = action.payload;
+    },
+    changeView: (state: HousingState, action: PayloadAction<ViewMode>) => {
+      state.view = action.payload;
     },
     fetchingAdditionalOwners: (
       state: HousingState,
-      action: PayloadAction<FetchingAdditionalOwnersAction>
+      action: PayloadAction<{
+        q: string;
+        page: number;
+        perPage: number;
+      }>
     ) => {
       state.additionalOwnersQuery = {
         page: action.payload.page,
         perPage: action.payload.perPage,
         q: action.payload.q,
       };
-    },
-    fetchingHousingList: (
-      state: HousingState,
-      action: PayloadAction<FetchingHousingListAction>
-    ) => {
-      state.pagination = action.payload.pagination;
-      state.sort = action.payload.sort;
-      state.paginate = action.payload.pagination.paginate ?? state.paginate;
-      state.paginatedHousing = {
-        ...state.paginatedHousing,
-        loading: true,
-      };
-      state.filters = action.payload.filters;
-    },
-    housingListFetched: (
-      state: HousingState,
-      action: PayloadAction<HousingListFetchedAction>
-    ) => {
-      const paginate = action.payload.paginate ?? state.paginate;
-      state.totalCount = action.payload.totalCount;
-      state.totalOwnerCount = action.payload.totalOwnerCount;
-      state.paginate = paginate;
-      state.paginatedHousing = {
-        page: paginate
-          ? action.payload.paginatedHousing.page
-          : state.paginatedHousing.page,
-        perPage: paginate
-          ? action.payload.paginatedHousing.perPage
-          : state.paginatedHousing.perPage,
-        entities: action.payload.paginatedHousing.entities,
-        filteredCount: action.payload.paginatedHousing.filteredCount,
-        filteredOwnerCount: action.payload.paginatedHousing.filteredOwnerCount,
-        // @deprecated
-        totalCount: action.payload.totalCount,
-        loading: false,
-      };
-      state.filters = action.payload.filters;
     },
   },
 });

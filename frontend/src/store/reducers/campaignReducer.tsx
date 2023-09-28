@@ -5,19 +5,12 @@ import {
 } from '../../models/Campaign';
 import {
   CampaignBundleFetchedAction,
-  CampaignBundleHousingListFetchedAction,
   CampaignBundleListFetchedAction,
   CampaignCreatedAction,
   CampaignListFetchedAction,
   CampaignUpdatedAction,
   FetchCampaignBundleAction,
-  FetchCampaignBundleHousingListAction,
 } from '../actions/campaignAction';
-import {
-  initialPaginatedResult,
-  PaginatedResult,
-} from '../../models/PaginatedResult';
-import { Housing } from '../../models/Housing';
 import { createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 
 export interface CampaignState {
@@ -25,8 +18,6 @@ export interface CampaignState {
   campaignBundleList?: CampaignBundle[];
   campaignBundle?: CampaignBundle;
   campaignBundleFetchingId?: CampaignBundleId;
-  campaignBundleHousingByStatus: PaginatedResult<Housing>[];
-  campaignBundleHousing: PaginatedResult<Housing>;
   campaignIds?: string[];
   loading: boolean;
   campaignCreated: boolean;
@@ -34,16 +25,6 @@ export interface CampaignState {
 }
 
 const initialState: CampaignState = {
-  campaignBundleHousingByStatus: [
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-    initialPaginatedResult(),
-  ],
-  campaignBundleHousing: initialPaginatedResult(),
   loading: false,
   campaignCreated: false,
 };
@@ -97,94 +78,6 @@ const campaignSlice = createSlice({
       if (isCurrentFetching) {
         state.campaignBundle = action.payload.campaignBundle;
         state.loading = false;
-      }
-    },
-    fetchCampaignBundleHousingList: (
-      state: CampaignState,
-      action: PayloadAction<FetchCampaignBundleHousingListAction>
-    ) => {
-      state.campaignIds = action.payload.campaignIds;
-      state.campaignBundleHousingByStatus = action.payload.status
-        ? [
-            ...state.campaignBundleHousingByStatus.filter(
-              (_, index) => index < action.payload.status!
-            ),
-            {
-              entities: [],
-              totalCount: 0,
-              filteredCount: 0,
-              page: action.payload.page,
-              perPage: action.payload.perPage,
-              loading: true,
-            },
-            ...state.campaignBundleHousingByStatus.filter(
-              (_, index) => index > action.payload.status!
-            ),
-          ]
-        : state.campaignBundleHousingByStatus;
-      state.campaignBundleHousing = action.payload.status
-        ? state.campaignBundleHousing
-        : {
-            entities: [],
-            totalCount: 0,
-            filteredCount: 0,
-            page: action.payload.page,
-            perPage: action.payload.perPage,
-            loading: true,
-          };
-      state.searchQuery = action.payload.searchQuery;
-    },
-    campaignBundleHousingListFetched: (
-      state: CampaignState,
-      action: PayloadAction<CampaignBundleHousingListFetchedAction>
-    ) => {
-      const isCurrentFetching =
-        action.payload.campaignIds === current(state).campaignIds &&
-        action.payload.searchQuery === current(state).searchQuery &&
-        action.payload.paginatedHousing.page ===
-          (action.payload.status
-            ? current(state).campaignBundleHousingByStatus[
-                action.payload.status
-              ]
-            : current(state).campaignBundleHousing
-          ).page &&
-        action.payload.paginatedHousing.perPage ===
-          (action.payload.status
-            ? current(state).campaignBundleHousingByStatus[
-                action.payload.status
-              ]
-            : current(state).campaignBundleHousing
-          ).perPage;
-      if (isCurrentFetching) {
-        state.campaignBundleHousingByStatus = action.payload.status
-          ? [
-              ...current(state).campaignBundleHousingByStatus.filter(
-                (_, index) => index < action.payload.status!
-              ),
-              {
-                ...current(state).campaignBundleHousingByStatus[
-                  action.payload.status
-                ],
-                entities: action.payload.paginatedHousing.entities,
-                filteredCount: action.payload.paginatedHousing.filteredCount,
-                totalCount: action.payload.paginatedHousing.totalCount,
-                loading: false,
-              },
-              ...current(state).campaignBundleHousingByStatus.filter(
-                (_, index) => index > action.payload.status!
-              ),
-            ]
-          : current(state).campaignBundleHousingByStatus;
-        state.campaignBundleHousing = action.payload.status
-          ? current(state).campaignBundleHousing
-          : {
-              ...current(state).campaignBundleHousing,
-              entities: action.payload.paginatedHousing.entities,
-              filteredCount: action.payload.paginatedHousing.filteredCount,
-              totalCount: action.payload.paginatedHousing.filteredCount,
-              loading: false,
-            };
-        state.searchQuery = action.payload.searchQuery;
       }
     },
     campaignCreated: (

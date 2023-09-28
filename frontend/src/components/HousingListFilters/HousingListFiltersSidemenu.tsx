@@ -42,6 +42,7 @@ import { OwnershipKinds } from '../../models/Housing';
 import {
   getSubStatusList,
   getSubStatusListOptions,
+  HousingStatus,
 } from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -54,6 +55,8 @@ import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
 import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import { useCountHousingQuery } from '../../services/housing.service';
+import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 
 interface TitleWithIconProps {
   icon: string;
@@ -63,7 +66,7 @@ interface TitleWithIconProps {
 function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
-      <Icon name={props.icon} className={styles.icon} />
+      <Icon name={props.icon} className={styles.icon} verticalAlign="middle" />
       <Text as="span">{props.title}</Text>
     </>
   );
@@ -80,12 +83,30 @@ function HousingListFiltersSidemenu() {
     useFilters();
   const campaignList = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
-  const { paginatedHousing } = useAppSelector((state) => state.housing);
   const { localitiesOptions } = useLocalityList(establishment?.id);
+
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredCount = count?.housing;
 
   function close(): void {
     setExpand(false);
   }
+
+  const onChangeStatusFilter = (status: HousingStatus, isChecked: boolean) => {
+    const statusList = [
+      ...(filters.statusList ?? []).filter((_) => _ !== status),
+      ...(isChecked ? [status] : []),
+    ];
+    onChangeFilters(
+      {
+        statusList,
+        subStatus: filters.subStatus?.filter((_) =>
+          getSubStatusList(statusList).includes(_)
+        ),
+      },
+      'Statut'
+    );
+  };
 
   return (
     <Aside
@@ -95,42 +116,36 @@ function HousingListFiltersSidemenu() {
       content={
         <Accordion>
           <AccordionItem
-            title={<TitleWithIcon icon="ri-hand-coin-fill" title="Suivi" />}
+            title={
+              <TitleWithIcon
+                icon="ri-filter-fill"
+                title="Filtres liés au suivi de la mobilisation"
+              />
+            }
             initExpand={true}
             onClick={(e) => e.preventDefault()}
             className={classNames('bg-975', 'fr-mb-2w', styles.locked)}
           >
             <Container as="section" fluid>
               <Row gutters>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Statut"
+                <Col n="12">
+                  <HousingStatusMultiSelect
+                    selectedStatus={filters.statusList}
                     options={statusOptions()}
-                    initialValues={filters.status?.map((_) => _.toString())}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        {
-                          status: values.map(Number),
-                          subStatus: filters.subStatus?.filter(
-                            (_) => getSubStatusList(values).indexOf(_) !== -1
-                          ),
-                        },
-                        'Statut'
-                      )
-                    }
+                    onChange={onChangeStatusFilter}
                   />
                 </Col>
-                <Col n="6">
+                <Col n="12">
                   <AppMultiSelect
-                    label="Sous-statut"
-                    options={getSubStatusListOptions(filters.status)}
+                    label="Sous-statut de suivi"
+                    options={getSubStatusListOptions(filters.statusList)}
                     initialValues={filters.subStatus}
                     onChange={(values) =>
                       onChangeFilters({ subStatus: values }, 'Sous-statut')
                     }
                   />
                 </Col>
-                {campaignList && filters.campaignIds && (
+                {campaignList && (
                   <Col n="6">
                     <AppMultiSelect
                       label="Campagne"
@@ -541,11 +556,13 @@ function HousingListFiltersSidemenu() {
                 Réinitialiser les filtres
               </ButtonLink>
             </Col>
-            <Col className="align-right">
-              <Text as="span" className="color-grey-625">
-                <b>{paginatedHousing.filteredCount}</b> résultats
-              </Text>
-            </Col>
+            {filteredCount !== undefined && (
+              <Col className="align-right">
+                <Text as="span" className="color-grey-625">
+                  <b>{filteredCount}</b> résultats
+                </Text>
+              </Col>
+            )}
           </Row>
         </>
       }

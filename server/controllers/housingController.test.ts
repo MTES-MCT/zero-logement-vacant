@@ -83,7 +83,12 @@ describe('Housing controller', () => {
       );
 
       await ownerRepository.insertHousingOwners([
-        { ...Owner1, housingId: queriedHousing.id, rank: 1 },
+        {
+          ...Owner1,
+          housingId: queriedHousing.id,
+          housingGeoCode: queriedHousing.geoCode,
+          rank: 1,
+        },
       ]);
 
       const res = await withAccessToken(request(app).post(testRoute)).send({
@@ -144,8 +149,10 @@ describe('Housing controller', () => {
 
   describe('updateHousingList', () => {
     const validBody = {
-      currentStatus: HousingStatusApi.Waiting,
-      campaignIds: [Campaign1.id],
+      filters: {
+        status: HousingStatusApi.Waiting,
+        campaignIds: [Campaign1.id],
+      },
       housingIds: [Housing1.id],
       allHousing: false,
       housingUpdate: {
@@ -187,15 +194,12 @@ describe('Housing controller', () => {
         ...validBody,
         housingIds: [randomstring.generate()],
       });
-      await badRequestTest({ ...validBody, campaignIds: undefined });
       await badRequestTest({
         ...validBody,
-        campaignIds: [randomstring.generate()],
-      });
-      await badRequestTest({ ...validBody, currentStatus: undefined });
-      await badRequestTest({
-        ...validBody,
-        currentStatus: randomstring.generate(),
+        filters: {
+          ...validBody.filters,
+          campaignIds: [randomstring.generate()],
+        },
       });
       await badRequestTest({ ...validBody, housingUpdate: undefined });
       await badRequestTest({
@@ -215,16 +219,6 @@ describe('Housing controller', () => {
           statusUpdate: {
             ...validBody.housingUpdate.statusUpdate,
             status: randomstring.generate(),
-          },
-        },
-      });
-      await badRequestTest({
-        ...validBody,
-        housingUpdate: {
-          ...validBody.housingUpdate,
-          occupancyUpdate: {
-            ...validBody.housingUpdate.occupancyUpdate,
-            occupancy: undefined,
           },
         },
       });

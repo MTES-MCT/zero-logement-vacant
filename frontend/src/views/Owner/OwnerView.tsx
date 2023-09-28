@@ -12,9 +12,10 @@ const OwnerView = () => {
 
   const [isModalOwnerEditionOpen, setIsModalOwnerEditionOpen] = useState(false);
 
-  const { owner, housingList } = useOwner();
+  const { count, owner, paginatedHousing } = useOwner();
+  const housingCount = count?.housing ?? 0;
 
-  if (!owner || !housingList) {
+  if (!owner || !paginatedHousing) {
     return <></>;
   }
 
@@ -25,6 +26,7 @@ const OwnerView = () => {
           <Col n="4">
             <OwnerCard
               owner={owner}
+              housingCount={housingCount}
               onModify={() => setIsModalOwnerEditionOpen(true)}
             />
             {isModalOwnerEditionOpen && (
@@ -39,12 +41,12 @@ const OwnerView = () => {
               <Title as="h3" look="h6" spacing="mb-0">
                 <span className="fr-mr-1w">Tous les logements</span>
                 <Tag as="span" className={styles.tag}>
-                  {housingList.length}
+                  {housingCount}
                 </Tag>
               </Title>
             </header>
             <Row gutters>
-              {housingList.map((housing) => (
+              {paginatedHousing.entities.map((housing) => (
                 <Col n="6" key={`col-${housing.id}`}>
                   <OwnerHousingCard housing={housing} />
                 </Col>

@@ -1,7 +1,7 @@
 import { Tab as DSFRTab } from '@dataesr/react-dsfr';
 import React, { ComponentPropsWithoutRef } from 'react';
 
-interface TabProps
+export interface TabProps
   extends Omit<
     ComponentPropsWithoutRef<typeof DSFRTab>,
     'activeTab' | 'index'
@@ -18,6 +18,7 @@ const Tab: React.FC<TabProps> = (props) => {
   return (
     <DSFRTab
       {...props}
+      label={props.label}
       index={props.index as number}
       activeTab={props.activeTab as number}
     />

@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import {
-  changeHousingFiltering,
-  expandFilters,
-} from '../store/actions/housingAction';
-import { initialHousingFilters } from '../store/reducers/housingReducer';
+import housingSlice, {
+  initialHousingFilters,
+} from '../store/reducers/housingReducer';
 import { HousingFilters } from '../models/HousingFilters';
 import { TrackEventActions, TrackEventCategories } from '../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -19,6 +17,8 @@ export function useFilters() {
     (state) => state.authentication.authUser?.establishment
   );
 
+  const { expandFilters, changeFilters } = housingSlice.actions;
+
   function setExpand(value: boolean): void {
     dispatch(expandFilters(value));
   }
@@ -27,7 +27,7 @@ export function useFilters() {
 
   function onChange(changed: HousingFilters, filterLabel?: string): void {
     dispatch(
-      changeHousingFiltering({
+      changeFilters({
         ...filters,
         ...changed,
       })
@@ -60,7 +60,7 @@ export function useFilters() {
   }
 
   function onReset(): void {
-    dispatch(changeHousingFiltering(initialHousingFilters));
+    dispatch(changeFilters(initialHousingFilters));
   }
 
   return {

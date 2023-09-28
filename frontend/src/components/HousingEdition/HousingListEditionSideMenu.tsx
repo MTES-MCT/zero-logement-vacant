@@ -1,17 +1,14 @@
 import React, { useRef } from 'react';
-import { Alert, Button, Container, Tabs, Title } from '@dataesr/react-dsfr';
+import { Alert, Button, Container, Title } from '@dataesr/react-dsfr';
 import { HousingUpdate } from '../../models/Housing';
-import { HousingStatus } from '../../models/HousingState';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
-import Tab from '../Tab/Tab';
 
 interface Props {
   housingCount: number;
   open: boolean;
-  initialStatus: HousingStatus;
-  fromDefaultCampaign: boolean;
+  fromDefaultCampaign?: boolean;
   onSubmit: (housingUpdate: HousingUpdate) => void;
   onClose: () => void;
 }
@@ -19,7 +16,6 @@ interface Props {
 const HousingListEditionSideMenu = ({
   housingCount,
   open,
-  initialStatus,
   fromDefaultCampaign,
   onSubmit,
   onClose,
@@ -43,7 +39,7 @@ const HousingListEditionSideMenu = ({
             onClick={onClose}
           />
           <Alert
-            description="Mise à jour multiple"
+            description="Mise à jour groupée"
             small
             type="warning"
             className="float-right"
@@ -54,21 +50,15 @@ const HousingListEditionSideMenu = ({
         </>
       }
       content={
-        <Container as="section" spacing="p-0">
-          <Tabs className="tabs-no-border first-tab-grey">
-            <Tab
-              label="+ Nouvelle mise à jour / note"
-              className="fr-p-0 bg-975"
-            >
-              <HousingEditionForm
-                current={{ status: initialStatus }}
-                fromDefaultCampaign={fromDefaultCampaign}
-                housingCount={housingCount}
-                onSubmit={onSubmit}
-                ref={statusFormRef}
-              />
-            </Tab>
-          </Tabs>
+        <Container as="section">
+          {open && (
+            <HousingEditionForm
+              fromDefaultCampaign={fromDefaultCampaign}
+              housingCount={housingCount}
+              onSubmit={onSubmit}
+              ref={statusFormRef}
+            />
+          )}
         </Container>
       }
       className="fr-p-0"

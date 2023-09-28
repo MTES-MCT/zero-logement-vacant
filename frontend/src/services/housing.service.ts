@@ -1,176 +1,23 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import {
-  HousingFilters,
-  HousingFiltersForTotalCount,
-} from '../models/HousingFilters';
+import { HousingFilters } from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
-import {
-  HousingPaginatedResult,
-  PaginatedResult,
-} from '../models/PaginatedResult';
-import { initialHousingFilters } from '../store/reducers/housingReducer';
+import { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
-import { HousingStatus } from '../models/HousingState';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions, createHttpService, toJSON } from '../utils/fetchUtils';
+import { AbortOptions } from '../utils/fetchUtils';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { parseOwner } from './owner.service';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { HousingCount } from '../models/HousingCount';
 
-const http = createHttpService('housing');
-
-const getHousing = async (id: string): Promise<Housing> => {
-  return await fetch(`${config.apiEndpoint}/api/housing/${id}`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((response) => response.json())
-    .then((_) => parseHousing(_));
-};
-
-interface FindOptions
+export interface FindOptions
   extends PaginationOptions,
     SortOptions<HousingSort>,
     AbortOptions {
   filters: HousingFilters;
 }
-
-const find = async (opts?: FindOptions): Promise<HousingPaginatedResult> => {
-  const query =
-    toQuery(opts?.sort).length > 0 ? `?sort=${toQuery(opts?.sort)}` : '';
-
-  return http
-    .fetch(`${config.apiEndpoint}/api/housing${query}`, {
-      method: 'POST',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filters: opts?.filters,
-        ...opts?.pagination,
-      }),
-      abortId: opts?.abortable ? 'list-housing' : undefined,
-    })
-    .then(toJSON)
-    .then((result) => ({
-      ...result,
-      entities: result.entities.map((e: any) => parseHousing(e)),
-    }));
-};
-
-const quickSearchService = (): {
-  abort: () => void;
-  fetch: (query: string) => Promise<PaginatedResult<Housing>>;
-} => {
-  const controller = new AbortController();
-  const signal = controller.signal;
-
-  return {
-    abort: () => controller.abort(),
-    fetch: (query: string) =>
-      fetch(`${config.apiEndpoint}/api/housing`, {
-        method: 'POST',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: { ...initialHousingFilters, query },
-          page: 1,
-          perPage: 20,
-        }),
-        signal,
-      })
-        .then((_) => _.json())
-        .then((result) => ({
-          ...result,
-          entities: result.entities.map((e: any) => parseHousing(e)),
-        })),
-  };
-};
-
-const listByOwner = async (
-  ownerId: string
-): Promise<{ entities: Housing[]; totalCount: number }> => {
-  return await fetch(`${config.apiEndpoint}/api/housing/owner/${ownerId}`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((_) => _.json())
-    .then((result) => ({
-      ...result,
-      entities: result.entities.map((e: any) => parseHousing(e)),
-    }));
-};
-
-const count = async (
-  filters: HousingFilters | HousingFiltersForTotalCount
-): Promise<HousingCount> => {
-  const response = await http.post(`${config.apiEndpoint}/api/housing/count`, {
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      filters,
-    }),
-  });
-  if (!response.ok) {
-    console.log(response);
-    throw new Error('Bad response');
-  }
-
-  const count = await response.json();
-  return count;
-};
-
-const updateHousing = async (
-  housingId: string,
-  housingUpdate: HousingUpdate
-): Promise<any> => {
-  return await fetch(`${config.apiEndpoint}/api/housing/${housingId}`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ housingUpdate }),
-  });
-};
-
-const updateHousingList = async (
-  housingUpdate: HousingUpdate,
-  campaignIds: string[],
-  allHousing: boolean,
-  housingIds: string[],
-  currentStatus?: HousingStatus,
-  query?: string
-): Promise<any> => {
-  return await fetch(`${config.apiEndpoint}/api/housing/list`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      housingUpdate,
-      campaignIds,
-      allHousing,
-      housingIds,
-      currentStatus,
-      query,
-    }),
-  });
-};
 
 export const parseHousing = (h: any): Housing =>
   ({
@@ -182,14 +29,148 @@ export const parseHousing = (h: any): Housing =>
     lastContact: h.lastContact ? parseISO(h.lastContact) : undefined,
   } as Housing);
 
-const housingService = {
-  getHousing,
-  find,
-  listByOwner,
-  count,
-  updateHousing,
-  updateHousingList,
-  quickSearchService,
-};
+export const housingApi = createApi({
+  reducerPath: 'housingApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/housing`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['Housing', 'HousingByStatus', 'HousingCountByStatus'],
+  endpoints: (builder) => ({
+    getHousing: builder.query<Housing, string>({
+      query: (housingId) => housingId,
+      transformResponse: parseHousing,
+      providesTags: (result) =>
+        result
+          ? [
+              {
+                type: 'Housing' as const,
+                id: result.id,
+              },
+            ]
+          : [],
+    }),
+    findHousing: builder.query<HousingPaginatedResult, FindOptions>({
+      query: (opts) => ({
+        url:
+          toQuery(opts?.sort).length > 0 ? `?sort=${toQuery(opts?.sort)}` : '',
+        method: 'POST',
+        body: {
+          filters: opts?.filters,
+          ...opts?.pagination,
+        },
+      }),
+      providesTags: (result, errors, args) => [
+        {
+          type: 'HousingByStatus' as const,
+          id: args.filters.status,
+        },
+        ...(result?.entities.map(({ id }) => ({
+          type: 'Housing' as const,
+          id,
+        })) ?? []),
+      ],
+      transformResponse: (response: any) => {
+        return {
+          ...response,
+          entities: response.entities.map(parseHousing),
+        };
+      },
+    }),
+    countHousing: builder.query<HousingCount, HousingFilters>({
+      query: (filters) => ({
+        url: 'count',
+        method: 'POST',
+        body: { filters },
+      }),
+      providesTags: (result, errors, args) => [
+        {
+          type: 'HousingCountByStatus' as const,
+          id: args.status,
+        },
+      ],
+    }),
+    updateHousing: builder.mutation<
+      void,
+      {
+        housing: Housing;
+        housingUpdate: HousingUpdate;
+      }
+    >({
+      query: ({ housing, housingUpdate }) => ({
+        url: housing.id,
+        method: 'POST',
+        body: {
+          housingId: housing.id,
+          housingUpdate,
+        },
+      }),
+      invalidatesTags: (result, error, { housing, housingUpdate }) => [
+        { type: 'Housing', id: housing.id },
+        { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
+        { type: 'HousingByStatus', id: housing.status },
+        {
+          type: 'HousingCountByStatus',
+          id: housingUpdate.statusUpdate?.status,
+        },
+        {
+          type: 'HousingCountByStatus',
+          id: housing.status,
+        },
+      ],
+    }),
+    updateHousingList: builder.mutation<
+      number,
+      {
+        housingUpdate: HousingUpdate;
+        allHousing: boolean;
+        housingIds: string[];
+        filters: HousingFilters;
+      }
+    >({
+      query: ({ housingUpdate, allHousing, housingIds, filters }) => ({
+        url: 'list',
+        method: 'POST',
+        body: {
+          housingUpdate,
+          allHousing,
+          housingIds,
+          filters,
+        },
+      }),
+      transformResponse: (response: any) => {
+        return response.length;
+      },
+      invalidatesTags: (
+        result,
+        error,
+        { allHousing, housingIds, housingUpdate, filters }
+      ) => [
+        ...(allHousing
+          ? ['Housing' as const]
+          : housingIds.map((housingId) => ({
+              type: 'Housing' as const,
+              id: housingId,
+            }))),
+        { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
+        { type: 'HousingByStatus', id: filters.status },
+        {
+          type: 'HousingCountByStatus',
+          id: housingUpdate.statusUpdate?.status,
+        },
+        {
+          type: 'HousingCountByStatus',
+          id: filters.status,
+        },
+      ],
+    }),
+  }),
+});
 
-export default housingService;
+export const {
+  useGetHousingQuery,
+  useFindHousingQuery,
+  useCountHousingQuery,
+  useUpdateHousingMutation,
+  useUpdateHousingListMutation,
+} = housingApi;

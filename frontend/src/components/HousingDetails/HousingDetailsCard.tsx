@@ -15,13 +15,11 @@ import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import { updateHousing } from '../../store/actions/housingAction';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
-import { useAppDispatch } from '../../hooks/useStore';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import { useFindNotesByHousingQuery } from '../../services/note.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
@@ -29,6 +27,7 @@ import { Note } from '../../models/Note';
 import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
+import { useUpdateHousingMutation } from '../../services/housing.service';
 
 interface Props {
   housing: Housing;
@@ -43,7 +42,7 @@ function HousingDetailsCard({
   housingNotes,
   housingCampaigns,
 }: Props) {
-  const dispatch = useAppDispatch();
+  const [updateHousing] = useUpdateHousingMutation();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
     useState(false);
@@ -55,16 +54,17 @@ function HousingDetailsCard({
     housing.id
   );
 
-  const submitHousingUpdate = (
+  const submitHousingUpdate = async (
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    dispatch(
-      updateHousing(housing, housingUpdate, () => {
-        refetchHousingEvents();
-        refetchHousingNotes();
-      })
-    );
+    await updateHousing({
+      housing,
+      housingUpdate,
+    });
+    await refetchHousingEvents();
+    await refetchHousingNotes();
+
     setIsHousingListEditionExpand(false);
   };
 
@@ -91,6 +91,7 @@ function HousingDetailsCard({
         <Title as="h1" look="h4" spacing="mb-1w">
           {housing.rawAddress.join(' - ')}
           <Link
+            display="flex"
             title="Voir sur la carte - nouvelle fenêtre"
             href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
             target="_blank"

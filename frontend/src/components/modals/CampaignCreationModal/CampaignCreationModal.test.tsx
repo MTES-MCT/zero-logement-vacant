@@ -38,6 +38,7 @@ describe('Campagne creation modal', () => {
     render(
       <Provider store={store}>
         <CampaignCreationModal
+          open={true}
           housingCount={2}
           filters={{}}
           onSubmit={() => {}}
@@ -65,6 +66,7 @@ describe('Campagne creation modal', () => {
     render(
       <Provider store={store}>
         <CampaignCreationModal
+          open={true}
           housingCount={2}
           filters={{}}
           onSubmit={() => {}}

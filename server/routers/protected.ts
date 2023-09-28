@@ -21,14 +21,13 @@ import { param } from 'express-validator';
 const router = express.Router();
 
 router.use(jwtCheck(true))
-router.use(userCheck(true));
+router.use(userCheck());
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
-router.get('/housing/owner/:ownerId', housingController.listByOwner);
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);

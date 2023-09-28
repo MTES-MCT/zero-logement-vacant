@@ -32,26 +32,31 @@ exports.seed = function (knex: Knex) {
           {
             owner_id: Owner1.id,
             housing_id: Housing0.id,
+            housing_geo_code: Housing0.geoCode,
             rank: 1,
           },
           {
             owner_id: Owner2.id,
             housing_id: Housing0.id,
+            housing_geo_code: Housing0.geoCode,
             rank: 2,
           },
           {
             owner_id: Owner1.id,
             housing_id: Housing1.id,
+            housing_geo_code: Housing1.geoCode,
             rank: 1,
           },
           {
             owner_id: Owner1.id,
             housing_id: Housing2.id,
+            housing_geo_code: Housing2.geoCode,
             rank: 1,
           },
           {
             owner_id: Owner1.id,
             housing_id: HousingShortVacancy.id,
+            housing_geo_code: HousingShortVacancy.geoCode,
             rank: 1,
           },
         ])

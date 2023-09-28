@@ -5,7 +5,7 @@ export interface Selection {
   ids: string[];
 }
 
-export function useSelection(itemCount: number) {
+export function useSelection(itemCount: number = 0) {
   const [selected, setSelected] = useState<Selection>({
     all: false,
     ids: [],

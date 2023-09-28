@@ -6,18 +6,14 @@ import { body, param } from 'express-validator';
 import { constants } from 'http2';
 import { isArrayOf, isUUID } from '../utils/validators';
 
-const listGeoPerimeters = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const listGeoPerimeters = async (request: Request, response: Response) => {
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
   console.log('List geo perimeters', establishmentId);
 
-  return geoRepository
-    .find(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  const geoPerimeters = await geoRepository.find(establishmentId);
+  response.status(constants.HTTP_STATUS_OK).json(geoPerimeters);
 };
 
 const createGeoPerimeter = async (

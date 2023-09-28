@@ -48,7 +48,10 @@ export interface HousingApi extends HousingRecordApi {
   lastContact?: Date;
 }
 
-export type HousingSortableApi = Pick<HousingApi, 'owner' | 'rawAddress'>;
+export type HousingSortableApi = Pick<
+  HousingApi,
+  'owner' | 'rawAddress' | 'occupancy' | 'status'
+>;
 export type HousingSortApi = Sort<HousingSortableApi>;
 
 export enum OwnershipKindsApi {

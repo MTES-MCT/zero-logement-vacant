@@ -49,15 +49,18 @@ const dropSchema = async (department: string): Promise<void> => {
 const updateHousingEnergyConsumption = async (department: string) => {
   await db.raw(`
     UPDATE ${housingTable}
-    SET energy_consumption = ${batEnergyTable(department)}.classe_bilan_dpe
+    SET energy_consumption = ${batEnergyTable(department)}.classe_bilan_dpe,
+        energy_consumption_at = ${batEnergyTable(
+          department
+        )}.date_etablissement_dpe,
+        building_group_id = ${batEnergyTable(department)}.batiment_groupe_id
     FROM ${batPlotTable(department)}, ${batEnergyTable(department)}
     WHERE ${housingTable}.plot_id = ${batPlotTable(department)}.parcelle_id
     AND ${batPlotTable(department)}.batiment_groupe_id 
         = ${batEnergyTable(department)}.batiment_groupe_id
-    AND occupancy_registered = 'L'
     AND plot_id is not null
     AND geo_code like '${department}%'
-    AND ${batEnergyTable(department)}.classe_bilan_dpe is not null
+--     AND ${batEnergyTable(department)}.classe_bilan_dpe is not null
     AND ${batEnergyTable(department)}.arrete_2021`);
 };
 

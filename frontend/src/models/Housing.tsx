@@ -12,6 +12,7 @@ export interface Housing {
   invariant: string;
   cadastralReference: string;
   buildingLocation?: string;
+  buildingGroupId?: string;
   rawAddress: string[];
   latitude?: number;
   longitude?: number;
@@ -37,6 +38,7 @@ export interface Housing {
   precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
+  energyConsumptionAt?: Date;
   occupancy: OccupancyKind;
   occupancyIntended?: OccupancyKind;
 }

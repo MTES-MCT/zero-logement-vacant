@@ -804,6 +804,7 @@ interface HousingRecordDBO {
   id: string;
   invariant: string;
   local_id: string;
+  building_group_id?: string;
   raw_address: string[];
   geo_code: string;
   longitude?: number;
@@ -825,6 +826,7 @@ interface HousingRecordDBO {
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;
+  energy_consumption_at?: Date;
   occupancy: OccupancyKindApi;
   occupancy_registered?: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
@@ -844,6 +846,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   id: result.id,
   invariant: result.invariant,
   localId: result.local_id,
+  buildingGroupId: result.building_group_id,
   rawAddress: result.raw_address,
   geoCode: result.geo_code,
   longitude: result.longitude_ban ?? result.longitude,
@@ -865,6 +868,7 @@ export const parseHousingApi = (result: HousingDBO): HousingApi => ({
   subStatus: result.sub_status ?? undefined,
   precisions: result.precisions ?? undefined,
   energyConsumption: result.energy_consumption,
+  energyConsumptionAt: result.energy_consumption_at,
   occupancy: result.occupancy,
   occupancyRegistered: result.occupancy_registered,
   occupancyIntended: result.occupancy_intended,
@@ -898,6 +902,7 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  building_group_id: housingRecordApi.buildingGroupId,
   raw_address: housingRecordApi.rawAddress,
   geo_code: housingRecordApi.geoCode,
   longitude: housingRecordApi.longitude,
@@ -919,6 +924,7 @@ export const formatHousingRecordApi = (
   sub_status: housingRecordApi.subStatus,
   precisions: housingRecordApi.precisions,
   energy_consumption: housingRecordApi.energyConsumption,
+  energy_consumption_at: housingRecordApi.energyConsumptionAt,
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,

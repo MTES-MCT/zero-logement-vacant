@@ -7,6 +7,7 @@ export interface HousingRecordApi {
   invariant: string;
   localId: string;
   buildingId?: string;
+  buildingGroupId?: string;
   rawAddress: string[];
   geoCode: string;
   longitude?: number;
@@ -28,6 +29,7 @@ export interface HousingRecordApi {
   subStatus?: string;
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;
+  energyConsumptionAt?: Date;
   occupancy: OccupancyKindApi;
   occupancyRegistered?: OccupancyKindApi;
   occupancyIntended?: OccupancyKindApi;

@@ -7,6 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
 
 export const ownerTable = 'owners';
+export const Owners = () => db<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();

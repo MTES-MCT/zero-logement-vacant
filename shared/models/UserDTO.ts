@@ -5,7 +5,7 @@ export interface UserDTO {
   lastName?: string;
   establishmentId?: string;
   role: number;
-  activatedAt?: Date;
+  activatedAt?: string;
 }
 
 export interface UserAccountDTO {

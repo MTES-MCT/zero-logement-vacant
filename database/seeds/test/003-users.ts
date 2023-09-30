@@ -5,7 +5,6 @@ import userRepository, {
 import { Establishment1, Establishment2 } from './001-establishments';
 import { Knex } from 'knex';
 import { UserApi, UserRoles } from '../../../server/models/UserApi';
-import bcrypt from 'bcryptjs';
 import config from '../../../server/utils/config';
 
 export const User1 = genUserApi(Establishment1.id);
@@ -24,11 +23,8 @@ export const Lovac: UserApi = {
 
 // @ts-ignore
 exports.seed = function (knex: Knex) {
-  const users = [User1, User2, AdminUser1, Lovac]
-    .map((user) => ({
-      ...user,
-      password: bcrypt.hashSync(user.password),
-    }))
-    .map(userRepository.formatUserApi);
+  const users = [User1, User2, AdminUser1, Lovac].map(
+    userRepository.formatUserApi
+  );
   return knex.table(usersTable).insert(users);
 };

@@ -17,6 +17,7 @@ import ownerProspectController from "../controllers/ownerProspectController";
 import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
 import { param } from 'express-validator';
+import groupController from "../controllers/groupController";
 
 const router = express.Router();
 
@@ -28,6 +29,12 @@ router.post('/housing', housingController.listValidators, validator.validate, ho
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
+
+router.get('/groups', groupController.list)
+router.post('/groups', groupController.createValidators, validator.validate, groupController.create)
+router.get('/groups/:id', groupController.showValidators, validator.validate, groupController.show)
+router.put('/groups/:id', groupController.updateValidators, validator.validate, groupController.update)
+router.delete('/groups/:id', groupController.removeValidators, validator.validate, groupController.remove)
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);

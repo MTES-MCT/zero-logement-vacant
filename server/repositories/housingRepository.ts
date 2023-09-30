@@ -42,6 +42,9 @@ export const buildingTable = 'buildings';
 export const ownersHousingTable = 'owners_housing';
 export const establishmentsLocalitiesTable = 'establishments_localities';
 
+export const Housing = () => db<HousingDBO>(housingTable);
+export const OwnersHousing = () => db<HousingOwnerDBO>(ownersHousingTable);
+
 export const ReferenceDataYear = 2022;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {

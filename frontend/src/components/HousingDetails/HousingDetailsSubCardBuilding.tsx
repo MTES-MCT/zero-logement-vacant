@@ -3,18 +3,20 @@ import React from 'react';
 import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';
+import { useAppSelector } from '../../hooks/useStore';
+import { useFeature } from '../../hooks/useFeature';
 
 interface Props {
   housing: Housing;
 }
 
 function HousingDetailsSubCardBuilding({ housing }: Props) {
-  // const establishment = useAppSelector(
-  //   (state) => state.authentication.authUser?.establishment
-  // );
-  // const features = useFeature({
-  //   establishmentId: establishment?.id,
-  // });
+  const establishment = useAppSelector(
+    (state) => state.authentication.authUser?.establishment
+  );
+  const features = useFeature({
+    establishmentId: establishment?.id,
+  });
   return (
     <HousingDetailsSubCard title="Immeuble" isGrey>
       <div>
@@ -35,26 +37,26 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
         </Text>
         <Text spacing="mb-1w">{housing.buildingVacancyRate}%</Text>
       </div>
-      {/*{features.isEnabled('occupancy') ? (*/}
-      <>
-        <div className="fr-mb-1w">
-          <Text size="sm" className="zlv-label">
-            Étiquette DPE représentatif (CSTB)
-          </Text>
-          {housing.energyConsumption ? (
-            <DPE
-              value={housing.energyConsumption}
-              madeAt={housing.energyConsumptionAt}
-              bnbId={housing.buildingGroupId}
-            />
-          ) : (
-            <Text spacing="mb-1w">Non renseigné</Text>
-          )}
-        </div>
-      </>
-      {/*) : (*/}
-      {/*  <></>*/}
-      {/*)}*/}
+      {features.isEnabled('occupancy') ? (
+        <>
+          <div className="fr-mb-1w">
+            <Text size="sm" className="zlv-label">
+              Étiquette DPE représentatif (CSTB)
+            </Text>
+            {housing.energyConsumption ? (
+              <DPE
+                value={housing.energyConsumption}
+                madeAt={housing.energyConsumptionAt}
+                bnbId={housing.buildingGroupId}
+              />
+            ) : (
+              <Text spacing="mb-1w">Non renseigné</Text>
+            )}
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
     </HousingDetailsSubCard>
   );
 }

@@ -1,9 +1,21 @@
-import housingRepository from '../housingRepository';
+import housingRepository, {
+  formatHousingRecordApi,
+  Housing,
+} from '../housingRepository';
 import {
   Establishment1,
   Establishment2,
 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
+import { genGroupApi, genHousingApi, oneOf } from '../../test/testFixtures';
+import { User1 } from '../../../database/seeds/test/003-users';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+} from '../groupRepository';
+import fp from 'lodash/fp';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -43,6 +55,28 @@ describe('Housing repository', () => {
       expect(actual).toSatisfyAll(
         (housing) => housing.establishmentId === establishment.id
       );
+    });
+
+    it('should filter by group', async () => {
+      const group = genGroupApi(User1, Establishment1);
+      const housingList = [
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+      ];
+      await Housing().insert(housingList.map(formatHousingRecordApi));
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+
+      const actual = await housingRepository.find({
+        filters: {
+          groupIds: [group.id],
+        },
+      });
+
+      expect(actual).toBeArrayOfSize(3);
+      const ids = housingList.map(fp.pick(['id']));
+      expect(actual).toIncludeAllPartialMembers(ids);
     });
   });
 

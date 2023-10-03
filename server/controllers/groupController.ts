@@ -26,7 +26,7 @@ const list = async (request: Request, response: Response): Promise<void> => {
       establishmentId,
     },
   });
-  response.status(constants.HTTP_STATUS_OK).json(groups);
+  response.status(constants.HTTP_STATUS_OK).json(groups.map(toGroupDTO));
 };
 
 const create = async (request: Request, response: Response): Promise<void> => {
@@ -74,7 +74,7 @@ const show = async (request: Request, response: Response): Promise<void> => {
     throw new GroupMissingError(params.id);
   }
 
-  response.status(constants.HTTP_STATUS_OK).json(group);
+  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(group));
 };
 const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 

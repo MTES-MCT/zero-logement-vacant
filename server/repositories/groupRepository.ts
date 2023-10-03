@@ -69,6 +69,7 @@ const listQuery = (query: Knex.QueryBuilder): void => {
         JOIN ${ownersHousingTable}
           ON ${ownersHousingTable}.housing_geo_code = ${housingTable}.geo_code
           AND ${ownersHousingTable}.housing_id = ${housingTable}.id
+          AND ${ownersHousingTable}.rank = 1
         WHERE ${groupsTable}.id = ${groupsHousingTable}.group_id        
       ) counts ON true
     `

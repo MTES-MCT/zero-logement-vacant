@@ -35,6 +35,7 @@ import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { sortQuery } from '../models/SortApi';
+import { groupsHousingTable } from './groupRepository';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
@@ -264,6 +265,17 @@ export const filteredQuery = (filters: HousingFiltersApi) => {
         `join ${establishmentsTable} e on geo_code = any(e.localities_geo_code) and e.id in (?)`,
         filters.establishmentIds
       );
+    }
+    if (filters.groupIds?.length) {
+      queryBuilder.join(groupsHousingTable, (join) => {
+        join
+          .on(
+            `${groupsHousingTable}.housing_geo_code`,
+            `${housingTable}.geo_code`
+          )
+          .andOn(`${groupsHousingTable}.housing_id`, `${housingTable}.id`)
+          .andOnIn(`${groupsHousingTable}.group_id`, filters.groupIds ?? []);
+      });
     }
     if (filters.campaignIds?.length) {
       queryBuilder.whereRaw('campaigns.campaign_ids && ?', [

@@ -12,5 +12,24 @@ describe('GroupCard', () => {
     expect(title).toBeVisible();
   });
 
-  it.todo('should show the number of housing');
+  it('should show the number of housing', () => {
+    render(<GroupCard group={group} />);
+
+    const housingCount = screen.queryByText(group.housingCount);
+    expect(housingCount).toBeVisible();
+  });
+
+  it('should show the number of owners', () => {
+    render(<GroupCard group={group} />);
+
+    const ownerCount = screen.queryByText(group.ownerCount);
+    expect(ownerCount).toBeVisible();
+  });
+
+  it('should have a link that redirects to the group view', () => {
+    render(<GroupCard group={group} />);
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href');
+  });
 });

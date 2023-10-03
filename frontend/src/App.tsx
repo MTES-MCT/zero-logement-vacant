@@ -4,7 +4,13 @@ import './App.scss';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Link, Redirect, Route, Switch } from 'react-router-dom';
+import {
+  BrowserRouter,
+ Link, Redirect,
+  Route,
+  RouteProps,
+  Switch
+} from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
@@ -34,6 +40,7 @@ import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
+import GroupView from "./views/Group/GroupView";
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 
 declare module "@codegouvfr/react-dsfr/spa" {
@@ -94,16 +101,17 @@ function App() {
         }
 
         <Switch>
-          <Route exact path="/stats" component={StatsView}/>
-          <Route exact path="/accessibilite" component={AccessibilityView}/>
+          <Route path="/stats" component={StatsView}/>
+          <Route path="/accessibilite" component={AccessibilityView}/>
           <Route path="/mentions-legales" component={LegalNoticesView}/>,
-          <Route exact path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
-          <Route exact path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
-          <Route exact path="/collectivites" component={EstablishmentHomeView}/>,
+          <Route path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
+          <Route path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
+          <Route path="/collectivites" component={EstablishmentHomeView}/>,
           <Route exact path="/proprietaires" component={OwnerGenericHomeView}/>,
           {isAuthenticated ? [
             ...([
               {path:"/parc-de-logements", component:HousingListView},
+              {path:"/groupes/:id",component: GroupView},
               {path:"/campagnes", component:CampaignsListView},
               {path:"/campagnes/C:campaignNumber?", component:CampaignView},
               {path:"/campagnes/C:campaignNumber/R:reminderNumber?", component:CampaignView},
@@ -115,20 +123,20 @@ function App() {
               {path:"/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId", component:HousingView},
               {path:"/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
               {path:"/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
-              {path:"*/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
-              {path:"*/proprietaires/:ownerId", component:OwnerView},
-              {path:"*/proprietaires/:ownerId/logements/:housingId", component:HousingView},
-              {path:"*/logements/:housingId", component:HousingView},
+              {path:"/proprietaires/:ownerId/logements/:housingId", component:HousingView},
+              {path:"/proprietaires/:ownerId", component:OwnerView},
+              {path:"/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
+              {path:"/logements/:housingId", component:HousingView},
               {path:"/messagerie", component:InboxView},
               {path:"*/informations-publiques", component:EstablishmentView},
-              {path:"/ressources", component:ResourcesView},
               {path:"/ressources/statuts", component:StatusView},
+              {path:"/ressources", component:ResourcesView},
               {path:"/compte", component:AccountView},
               {path:"/compte/mot-de-passe", component:AccountPasswordView},
-            ].map(route => <Route exact path={route.path} component={route.component} key={`route_${route.path}`} /> )),
-            <Route path="/*" key="route_default">
-              <Redirect to="/parc-de-logements"/>
-            </Route>
+            ].map((route: RouteProps) => <Route path={route.path} exact={route.exact ?? false} component={route.component} key={`route_${route.path}`} /> )),
+              <Route path="/*" key="route_default">
+                <Redirect to="/parc-de-logements"/>
+              </Route>
           ] : [
             ...([
               {path:"/inscription*", component:AccountCreationView},

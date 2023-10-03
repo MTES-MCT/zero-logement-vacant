@@ -22,7 +22,7 @@ function GroupHeader() {
 
   return (
     <>
-      <Container as="header" className="d-flex" fluid spacing="mb-2w">
+      <Container as="article" className="d-flex" fluid spacing="mb-2w">
         <Title as="h6" className="d-inline-block" spacing="mb-0 mr-2w">
           Vos groupes de logements
         </Title>

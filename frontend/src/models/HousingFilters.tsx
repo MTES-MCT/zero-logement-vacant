@@ -12,6 +12,7 @@ import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyCon
 
 export interface HousingFilters {
   establishmentIds?: string[];
+  groupIds?: string[];
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];

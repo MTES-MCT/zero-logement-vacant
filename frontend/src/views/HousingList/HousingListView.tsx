@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Col, Row } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -27,20 +27,15 @@ const HousingListView = () => {
   useDocumentTitle('Parc de logements');
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { onResetFilters, setExpand, filters } = useFilters();
+  const { onResetFilters, setExpand, filters, removeFilter } = useFilters();
 
   const { view } = useAppSelector((state) => state.housing);
 
   const { changeFilters, changeView } = housingSlice.actions;
 
-  const removeFilter = (removedFilter: any) => {
-    dispatch(
-      changeFilters({
-        ...filters,
-        ...removedFilter,
-      })
-    );
-  };
+  useEffect(() => {
+    onResetFilters();
+  }, [onResetFilters]);
 
   const searchWithQuery = (query: string) => {
     trackEvent({
@@ -126,7 +121,7 @@ const HousingListView = () => {
       <Row>
         <HousingFiltersBadges
           filters={filters}
-          onChange={(values) => removeFilter(values)}
+          onChange={removeFilter}
           onReset={onResetFilters}
         />
       </Row>

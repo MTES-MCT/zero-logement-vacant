@@ -9,6 +9,7 @@ import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 export interface HousingFiltersApi {
   housingIds?: string[];
   establishmentIds?: string[];
+  groupIds?: string[];
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];

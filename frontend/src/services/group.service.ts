@@ -23,7 +23,13 @@ export const groupApi = createApi({
       providesTags: () => ['Group'],
       transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
     }),
+    getGroup: builder.query<Group, string>({
+      query: (id: string) => `/${id}`,
+      providesTags: (group) =>
+        group ? [{ type: 'Group' as const, id: group.id }] : [],
+      transformResponse: (group: GroupDTO) => fromGroupDTO(group),
+    }),
   }),
 });
 
-export const { useFindGroupsQuery } = groupApi;
+export const { useFindGroupsQuery, useGetGroupQuery } = groupApi;

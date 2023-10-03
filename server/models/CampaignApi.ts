@@ -17,6 +17,7 @@ export interface CampaignApi {
   archivedAt?: Date;
   sendingDate?: Date;
   confirmedAt?: Date;
+  groupId?: string;
 }
 
 export interface CampaignBundleApi {

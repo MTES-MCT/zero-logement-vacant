@@ -35,7 +35,6 @@ import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
 import { UserAccountDTO } from '../../shared/models/UserDTO';
 import { GroupApi } from '../models/GroupApi';
-import bcrypt from 'bcryptjs';
 
 const randomstring = require('randomstring');
 
@@ -108,7 +107,7 @@ export const genUserApi = (establishmentId: string): UserApi => {
   return {
     id: uuidv4(),
     email: genEmail(),
-    password: bcrypt.hashSync(randomstring.generate()),
+    password: randomstring.generate(),
     firstName: randomstring.generate(),
     lastName: randomstring.generate(),
     establishmentId,

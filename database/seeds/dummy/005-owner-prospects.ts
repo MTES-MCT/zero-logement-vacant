@@ -17,11 +17,7 @@ exports.seed = async function (knex: Knex) {
     genOwnerProspectApi(establishment.localities_geo_code[1]),
     genOwnerProspectApi(establishment.localities_geo_code[2]),
     genOwnerProspectApi(),
-  ];
+  ].map(ownerProspectRepository.formatOwnerProspectApi);
 
-  await Promise.all(
-    ownerProspects
-      .map(ownerProspectRepository.formatOwnerProspectApi)
-      .map((op) => knex.table(ownerProspectsTable).insert(op))
-  );
+  await knex(ownerProspectsTable).insert(ownerProspects);
 };

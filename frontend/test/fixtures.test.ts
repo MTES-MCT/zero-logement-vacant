@@ -9,6 +9,7 @@ import { addHours } from 'date-fns';
 import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
 import { HousingStatus } from '../src/models/HousingState';
+import { Group } from '../src/models/Group';
 
 const randomstring = require('randomstring');
 
@@ -144,5 +145,17 @@ export function genProspect(): Prospect {
     },
     hasAccount: genBoolean(),
     hasCommitment: genBoolean(),
+  };
+}
+
+export function genGroup(): Group {
+  return {
+    id: randomstring.generate(),
+    title: randomstring.generate(),
+    description: randomstring.generate(),
+    housingCount: genNumber(2),
+    ownerCount: genNumber(2),
+    createdAt: new Date(),
+    createdBy: genUser(),
   };
 }

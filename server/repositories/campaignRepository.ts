@@ -333,6 +333,7 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     ? new Date(campaignApi.sendingDate)
     : undefined,
   confirmed_at: campaignApi.confirmedAt,
+  group_id: campaignApi.groupId,
 });
 
 const parseCampaignBundleApi = (result: any) =>

@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { genGroupApi, genHousingApi } from '../test/testFixtures';
@@ -16,13 +17,18 @@ import groupRepository, {
 import { GroupApi } from '../models/GroupApi';
 import { HousingApi } from '../models/HousingApi';
 import { formatHousingRecordApi, Housing } from './housingRepository';
+import { SALT_LENGTH } from '../models/UserApi';
 
 describe('Group repository', () => {
   describe('find', () => {
+    const users = [User1, User2].map((user) => ({
+      ...user,
+      password: bcrypt.hashSync(user.password, SALT_LENGTH),
+    }));
     const groups: GroupApi[] = [
-      genGroupApi(User1, Establishment1),
-      genGroupApi(User1, Establishment1),
-      genGroupApi(User2, Establishment2),
+      genGroupApi(users[0], Establishment1),
+      genGroupApi(users[0], Establishment1),
+      genGroupApi(users[1], Establishment2),
     ];
 
     beforeEach(async () => {
@@ -48,7 +54,7 @@ describe('Group repository', () => {
         },
       });
 
-      expect(actual).toIncludeSameMembers(filteredGroups);
+      expect(actual).toIncludeAllPartialMembers(filteredGroups);
     });
   });
 

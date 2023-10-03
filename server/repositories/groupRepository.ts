@@ -5,6 +5,7 @@ import { parseUserApi, UserDBO, usersTable } from './userRepository';
 import { Knex } from 'knex';
 import UserMissingError from '../errors/userMissingError';
 import { logger } from '../utils/logger';
+import { housingTable, ownersHousingTable } from './housingRepository';
 
 export const groupsTable = 'groups';
 export const groupsHousingTable = 'groups_housing';
@@ -54,7 +55,25 @@ const listQuery = (query: Knex.QueryBuilder): void => {
   query
     .select(`${groupsTable}.*`)
     .join<UserDBO>(usersTable, `${usersTable}.id`, `${groupsTable}.user_id`)
-    .select(db.raw(`to_json(${usersTable}.*) AS user`));
+    .select(db.raw(`to_json(${usersTable}.*) AS user`))
+    .joinRaw(
+      `
+      LEFT JOIN LATERAL (
+        SELECT
+          COUNT(DISTINCT ${housingTable}.id) AS housing_count,
+          COUNT(DISTINCT ${ownersHousingTable}.owner_id) AS owner_count
+        FROM ${groupsHousingTable}
+        JOIN ${housingTable}
+          ON ${housingTable}.geo_code = ${groupsHousingTable}.housing_geo_code
+          AND ${housingTable}.id = ${groupsHousingTable}.housing_id
+        JOIN ${ownersHousingTable}
+          ON ${ownersHousingTable}.housing_geo_code = ${housingTable}.geo_code
+          AND ${ownersHousingTable}.housing_id = ${housingTable}.id
+        WHERE ${groupsTable}.id = ${groupsHousingTable}.group_id        
+      ) counts ON true
+    `
+    )
+    .select(`counts.*`);
 };
 
 interface FilterOptions {
@@ -82,7 +101,7 @@ const save = async (
     await Groups(transaction)
       .insert(formatGroupApi(group))
       .onConflict(['id'])
-      .merge(['title', 'description', 'housing_count', 'owner_count']);
+      .merge(['title', 'description']);
 
     await GroupsHousing(transaction).where({ group_id: group.id }).delete();
     await GroupsHousing(transaction).insert(
@@ -102,20 +121,23 @@ export interface GroupDBO {
   id: string;
   title: string;
   description: string;
-  housing_count: number;
-  owner_count: number;
+  housing_count: string;
+  owner_count: string;
   created_at: Date;
   user_id: string;
   user?: UserDBO;
   establishment_id: string;
 }
 
-export const formatGroupApi = (group: GroupApi): GroupDBO => ({
+export type GroupCreationDBO = Omit<
+  GroupDBO,
+  'housing_count' | 'owner_count' | 'user'
+>;
+
+export const formatGroupApi = (group: GroupApi): GroupCreationDBO => ({
   id: group.id,
   title: group.title,
   description: group.description,
-  housing_count: group.housingCount,
-  owner_count: group.ownerCount,
   created_at: group.createdAt,
   user_id: group.userId,
   establishment_id: group.establishmentId,
@@ -130,8 +152,8 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     id: group.id,
     title: group.title,
     description: group.description,
-    housingCount: group.housing_count,
-    ownerCount: group.owner_count,
+    housingCount: Number(group.housing_count),
+    ownerCount: Number(group.owner_count),
     createdAt: new Date(group.created_at),
     userId: group.user_id,
     createdBy: parseUserApi(group.user),

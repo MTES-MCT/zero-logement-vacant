@@ -5,8 +5,6 @@ exports.up = async (knex: Knex) => {
     table.uuid('id').primary();
     table.string('title').notNullable();
     table.text('description').notNullable();
-    table.integer('housing_count').notNullable();
-    table.integer('owner_count').notNullable();
     table.timestamp('created_at').notNullable();
     table
       .uuid('user_id')

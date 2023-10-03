@@ -21,6 +21,7 @@ import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import GroupHeader from '../../components/GroupHeader/GroupHeader';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -57,7 +58,10 @@ const HousingListView = () => {
   return (
     <MainContainer title="Votre parc de logements">
       <HousingListFiltersSidemenu />
-      <Row>
+      <Row spacing="mb-5w">
+        <GroupHeader />
+      </Row>
+      <Row spacing="mb-1w">
         <Col n="6">
           <div className="d-flex">
             <AppSearchBar
@@ -67,8 +71,8 @@ const HousingListView = () => {
             />
             <Button
               title="Filtrer"
-              iconId="fr-icon-filter-fill"
-              priority="secondary"
+              icon="ri-filter-fill"
+              secondary
               className="fr-ml-1w"
               onClick={() => setExpand(true)}
               data-testid="filter-button"
@@ -119,11 +123,13 @@ const HousingListView = () => {
         </Col>
       </Row>
 
-      <HousingFiltersBadges
-        filters={filters}
-        onChange={(values) => removeFilter(values)}
-        onReset={onResetFilters}
-      />
+      <Row>
+        <HousingFiltersBadges
+          filters={filters}
+          onChange={(values) => removeFilter(values)}
+          onReset={onResetFilters}
+        />
+      </Row>
 
       {view === 'map' ? (
         <HousingListMap filters={filters} />

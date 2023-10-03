@@ -16,6 +16,7 @@ import { eventApi } from '../services/event.service';
 import { userAccountApi } from '../services/user-account.service';
 import { ownerApi } from '../services/owner.service';
 import { housingApi } from '../services/housing.service';
+import { groupApi } from '../services/group.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -35,6 +36,7 @@ export const applicationReducer = {
   [userAccountApi.reducerPath]: userAccountApi.reducer,
   [ownerApi.reducerPath]: ownerApi.reducer,
   [housingApi.reducerPath]: housingApi.reducer,
+  [groupApi.reducerPath]: groupApi.reducer,
 };
 
 export const applicationMiddlewares = [
@@ -48,6 +50,7 @@ export const applicationMiddlewares = [
   userAccountApi.middleware,
   ownerApi.middleware,
   housingApi.middleware,
+  groupApi.middleware,
 ];
 
 export const store = configureStore({

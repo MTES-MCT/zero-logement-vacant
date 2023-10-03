@@ -123,7 +123,7 @@ function HousingPopup(props: HousingPopupProps) {
                 }
                 content={
                   housing.owner.email || housing.owner.phone ? (
-                    <Container fluid spacing="px-2w pt-1w pb-2w">
+                    <Container as="section" fluid spacing="px-2w pt-1w pb-2w">
                       <Row>
                         <Col n="6">
                           <Text className="zlv-label weight-400" size="sm">

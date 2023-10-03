@@ -1,6 +1,9 @@
 import { Button, ButtonGroup, Col, Container, Row } from '@dataesr/react-dsfr';
-import { useParams } from 'react-router-dom';
-import { useGetGroupQuery } from '../../services/group.service';
+import { useHistory, useParams } from 'react-router-dom';
+import {
+  useGetGroupQuery,
+  useRemoveGroupMutation,
+} from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { filterCount } from '../../models/HousingFilters';
@@ -44,6 +47,15 @@ function GroupView() {
     );
   }, [changeFilters, dispatch, id]);
 
+  const [removeGroup, { isSuccess: isGroupRemoved }] = useRemoveGroupMutation();
+
+  const router = useHistory();
+  useEffect(() => {
+    if (isGroupRemoved) {
+      router.push('/parc-de-logements');
+    }
+  }, [isGroupRemoved, router]);
+
   if (!group || isLoadingGroup) {
     return <></>;
   }
@@ -51,7 +63,7 @@ function GroupView() {
   return (
     <Container as="section" spacing="py-4w mb-4w">
       <Row spacing="mb-5w">
-        <Group group={group} />
+        <Group group={group} onRemove={removeGroup} />
       </Row>
       <Row spacing="mb-1w">
         <HousingListFiltersSidemenu />

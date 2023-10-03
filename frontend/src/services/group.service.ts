@@ -20,16 +20,27 @@ export const groupApi = createApi({
   endpoints: (builder) => ({
     findGroups: builder.query<Group[], FindOptions | void>({
       query: () => '',
-      providesTags: () => ['Group'],
+      providesTags: (groups) =>
+        groups
+          ? groups.map((group) => ({ type: 'Group' as const, id: group.id }))
+          : ['Group'],
       transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `/${id}`,
       providesTags: (group) =>
-        group ? [{ type: 'Group' as const, id: group.id }] : [],
+        group ? [{ type: 'Group' as const, id: group.id }] : ['Group'],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
+    }),
+    removeGroup: builder.mutation<void, Group>({
+      query: (group) => ({
+        url: `/${group.id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Group'],
     }),
   }),
 });
 
-export const { useFindGroupsQuery, useGetGroupQuery } = groupApi;
+export const { useFindGroupsQuery, useGetGroupQuery, useRemoveGroupMutation } =
+  groupApi;

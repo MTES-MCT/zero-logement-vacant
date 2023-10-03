@@ -12,6 +12,8 @@ import {
 import styles from './group.module.scss';
 import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import { useState } from 'react';
 
 interface GroupProps {
   group: GroupModel;
@@ -23,6 +25,13 @@ interface GroupProps {
 function Group(props: GroupProps) {
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
+
+  const [confirmGroupRemoval, setConfirmGroupRemoval] = useState(false);
+
+  function removeGroup(): void {
+    props.onRemove?.(props.group);
+    setConfirmGroupRemoval(false);
+  }
 
   return (
     <Container as="article" fluid>
@@ -92,13 +101,23 @@ function Group(props: GroupProps) {
               className={styles.action}
               tertiary
               icon="ri-delete-bin-line"
-              onClick={props.onRemove}
+              onClick={() => setConfirmGroupRemoval(true)}
             >
               Supprimer le groupe
             </Button>
           </Container>
         </Col>
       </Row>
+
+      {confirmGroupRemoval && (
+        <ConfirmationModal
+          onSubmit={removeGroup}
+          onClose={() => setConfirmGroupRemoval(false)}
+          title="Suppression du groupe"
+        >
+          <Text>Êtes-vous sûr de vouloir supprimer ce groupe ?</Text>
+        </ConfirmationModal>
+      )}
     </Container>
   );
 }

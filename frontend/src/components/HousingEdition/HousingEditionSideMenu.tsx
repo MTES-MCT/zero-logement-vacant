@@ -10,7 +10,6 @@ import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
 import styles from './housing-edition.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Link } from 'react-router-dom';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLink from '../AppLink/AppLink';
 

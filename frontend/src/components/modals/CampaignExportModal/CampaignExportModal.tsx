@@ -19,10 +19,9 @@ const modal = createModal({
 
 interface Props {
   campaignBundle: CampaignBundle;
-  onClose: () => void;
 }
 
-const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
+const CampaignExportModal = ({ campaignBundle }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 

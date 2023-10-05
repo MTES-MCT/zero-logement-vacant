@@ -1,11 +1,6 @@
-import React, {
-  ChangeEvent,
-  useEffect,
-  useImperativeHandle,
-  useState,
-} from 'react';
-import { Alert, Col, Icon, Row, Select, Text } from '@dataesr/react-dsfr';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
+import { Col, Container, Icon, Row, Text } from '../../components/dsfr/index';
+import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
@@ -19,9 +14,16 @@ import ButtonLink from '../ButtonLink/ButtonLink';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../AppTextInput/AppTextInput';
 import _ from 'lodash';
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
 import { pluralize } from '../../utils/stringUtils';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import AppSelect from '../AppSelect/AppSelect';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+
+const modal = createModal({
+  id: `housing-edition-modal`,
+  isOpenedByDefault: false,
+});
 
 interface Props {
   housing?: Housing;
@@ -46,7 +48,6 @@ const HousingEditionForm = (
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
   const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] = useState(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   useEffect(() => {
     if (housing) {
@@ -128,9 +129,7 @@ const HousingEditionForm = (
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
-      await form.validate(() =>
-        housingCount ? setIsConfirmationModalOpen(true) : submitForm()
-      );
+      await form.validate(() => (housingCount ? modal.open() : submitForm()));
     },
   }));
 
@@ -157,7 +156,7 @@ const HousingEditionForm = (
           }
         : undefined,
     });
-    setIsConfirmationModalOpen(false);
+    modal.close();
   };
 
   const notesOptions: SelectOption[] = [
@@ -176,7 +175,7 @@ const HousingEditionForm = (
       <div className="bg-975 fr-py-2w fr-px-3w">
         <Text size="lg" bold spacing="mb-2w">
           <Icon
-            name="ri-information-fill"
+            name="fr-icon-information-fill"
             size="lg"
             verticalAlign="middle"
             className="color-bf113"
@@ -202,14 +201,14 @@ const HousingEditionForm = (
           />
         </div>
         {subStatusOptions && (
-          <Select
-            label="Sous-statut de suivi"
-            options={subStatusOptions}
-            selected={subStatus}
-            messageType={form.messageType('subStatus') as 'valid' | 'error'}
-            message={form.message('subStatus')}
-            onChange={(e: any) => setSubStatus(e.target.value)}
+          <AppSelect<FormShape>
+            onChange={(e) => setSubStatus(e.target.value)}
+            value={subStatus}
             required
+            label="Sous-statut de suivi"
+            inputForm={form}
+            inputKey="subStatus"
+            options={subStatusOptions}
           />
         )}
         {housing && (
@@ -227,7 +226,6 @@ const HousingEditionForm = (
               <PrecisionsModal
                 currentPrecisions={precisions ?? []}
                 currentVacancyReasons={vacancyReasons ?? []}
-                onClose={() => setIsPrecisionsModalOpen(false)}
                 onSubmit={(precisions, vacancyReasons) => {
                   setVacancyReasons(vacancyReasons);
                   setPrecisions(precisions);
@@ -241,7 +239,7 @@ const HousingEditionForm = (
       <div className="bg-white fr-py-2w fr-px-3w fr-my-1w">
         <Text size="lg" bold spacing="mb-2w">
           <Icon
-            name="ri-home-gear-fill"
+            name="fr-icon-home-4-fill"
             size="lg"
             verticalAlign="middle"
             className="color-bf113"
@@ -253,20 +251,26 @@ const HousingEditionForm = (
         </Text>
         <Row gutters>
           <Col>
-            <Select
+            <AppSelect<FormShape>
+              onChange={(e) => setOccupancy(e.target.value as OccupancyKind)}
+              value={occupancy}
+              required={housing !== undefined}
               label="Occupation actuelle"
+              inputForm={form}
+              inputKey="occupancy"
               options={[
                 { value: '', label: 'Sélectionnez une occupation actuelle' },
                 ...allOccupancyOptions,
               ]}
-              selected={occupancy}
-              messageType={form.messageType('occupancy') as 'valid' | 'error'}
-              message={form.message('occupancy')}
-              onChange={(e: any) => setOccupancy(e.target.value)}
-              required={housing !== undefined}
             />
-            <Select
+            <AppSelect<FormShape>
+              onChange={(e) =>
+                setOccupancyIntended(e.target.value as OccupancyKind)
+              }
+              value={occupancyIntended}
               label="Occupation prévisionnelle"
+              inputForm={form}
+              inputKey="occupancyIntended"
               options={[
                 {
                   label: housing
@@ -276,12 +280,6 @@ const HousingEditionForm = (
                 },
                 ...allOccupancyOptions,
               ]}
-              selected={occupancyIntended}
-              messageType={
-                form.messageType('occupancyIntended') as 'valid' | 'error'
-              }
-              message={form.message('occupancyIntended')}
-              onChange={(e: any) => setOccupancyIntended(e.target.value)}
             />
           </Col>
         </Row>
@@ -291,34 +289,46 @@ const HousingEditionForm = (
           Note
         </Text>
         <AppTextInput<FormShape>
-          textarea
+          textArea
           rows={3}
           onChange={(e) => setComment(e.target.value)}
           inputForm={form}
           inputKey="comment"
           placeholder="Tapez votre note ici..."
         />
-        <Select
+        <AppSelect<FormShape>
+          onChange={(e) => setNoteKind(e.target.value)}
+          value={noteKind}
           label="Type de note"
+          inputForm={form}
+          inputKey="noteKind"
           options={notesOptions}
-          selected={noteKind}
-          messageType={form.messageType('noteKind') as 'valid' | 'error'}
-          message={form.message('noteKind')}
-          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-            setNoteKind(e.target.value)
-          }
         />
       </div>
       {form.messageType('hasChange') === 'error' && (
-        <Alert type="error" description={form.message('hasChange')} />
+        <Alert
+          severity="error"
+          small
+          description={form.message('hasChange')!}
+        />
       )}
-      {isConfirmationModalOpen && housingCount && (
-        <ConfirmationModal
-          onSubmit={submitForm}
-          onClose={() => setIsConfirmationModalOpen(false)}
-          title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
-          icon=""
-        >
+      <modal.Component
+        title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Confirmer',
+            onClick: submitForm,
+            doClosesModal: false,
+          },
+        ]}
+        style={{ textAlign: 'initial' }}
+      >
+        <Container as="section" fluid>
           En confirmant, vous écraserez et remplacerez les données actuelles sur
           les champs suivants :
           <ul className="fr-mt-2w">
@@ -336,8 +346,8 @@ const HousingEditionForm = (
             )}
             {hasNote && <li>Ajout d’une note</li>}
           </ul>
-        </ConfirmationModal>
-      )}
+        </Container>
+      </modal.Component>
     </>
   );
 };

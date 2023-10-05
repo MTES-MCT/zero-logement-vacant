@@ -1,11 +1,13 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Col, Container, Row, Text } from '@dataesr/react-dsfr';
+import React, { useEffect, useState } from 'react';
+import { Col, Container, Row, Text } from '../../../components/dsfr/index';
 import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../AppTextInput/AppTextInput';
 import { useCreateOwnerMutation } from '../../../services/owner.service';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   onAdd: (owner: Owner) => void;
@@ -63,9 +65,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
       </Text>
       <AppTextInput<FormShape>
         value={fullName}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setFullName(e.target.value)
-        }
+        onChange={(e) => setFullName(e.target.value)}
         label="Identité (nom, prénom) (obligatoire)"
         inputForm={form}
         inputKey="fullName"
@@ -76,9 +76,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
           <AppTextInput<FormShape>
             value={birthDate}
             type="date"
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setBirthDate(e.target.value)
-            }
+            onChange={(e) => setBirthDate(e.target.value)}
             label="Date de naissance"
             inputForm={form}
             inputKey="birthDate"
@@ -86,7 +84,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
         </Col>
       </Row>
       <AppTextInput<FormShape>
-        textarea
+        textArea
         value={rawAddress?.join('\n')}
         onChange={(e) => setRawAddress(e.target.value.split('\n'))}
         label="Adresse postale"
@@ -119,25 +117,19 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
       {isCreateError && (
         <Row spacing="pt-3w">
           <Alert
-            type="error"
+            severity="error"
             description="Une erreur s'est produite, veuillez réessayer."
             closable
+            small
             className="fr-mb-2w"
           />
         </Row>
       )}
       <Row spacing="pt-3w">
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onCancel()}
-        >
+        <Button priority="secondary" className="fr-mr-2w" onClick={onCancel}>
           Annuler
         </Button>
-        <Button title="Enregistrer" onClick={submit}>
-          Enregistrer
-        </Button>
+        <Button onClick={submit}>Enregistrer</Button>
       </Row>
     </Container>
   );

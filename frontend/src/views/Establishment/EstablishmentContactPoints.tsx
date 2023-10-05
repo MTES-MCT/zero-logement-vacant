@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Col, Row, Title } from '../../components/_dsfr/index';
-import { ContactPoint, DraftContactPoint } from '../../../../shared/models/ContactPoint';
+import { Col, Row, Title } from '../../components/_dsfr';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../shared/models/ContactPoint';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import Help from '../../components/Help/Help';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
@@ -15,7 +21,7 @@ import {
   useUpdateContactPointMutation,
 } from '../../services/contact-point.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import { Toggle } from '../../components/_dsfr';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 
 interface Props {
   establishmentId: string;
@@ -99,7 +105,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
             Vos guichets contacts ({contactPoints?.length})
           </Title>
           {settings && (
-            <Toggle
+            <ToggleSwitch
               checked={settings.contactPoints?.public}
               label="Publication des informations"
               onChange={togglePublishContactPoints}

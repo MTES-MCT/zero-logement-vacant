@@ -1,4 +1,3 @@
-export * from './Toggle';
 export * from './Select';
 export * from './Stepper';
 export * from './Table';

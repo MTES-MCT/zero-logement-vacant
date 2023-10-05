@@ -3,7 +3,7 @@ import ExtendedToggle from './ExtendedToggle';
 
 describe('ExtendedToggle', () => {
   it('should hide label', () => {
-    render(<ExtendedToggle label="Label" vertical />);
+    render(<ExtendedToggle label="Label" vertical inputTitle="" />);
 
     const hint = screen.queryByDisplayValue('Activé');
     expect(hint).toBeNull();

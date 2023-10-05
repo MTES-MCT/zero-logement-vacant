@@ -100,7 +100,7 @@ function InboxMessageList(props: Props) {
           checked={owner.callBack}
           className="fr-mt-0"
           label="À recontacter"
-          icon="fr-icon-phone-fill"
+          iconId="fr-icon-phone-fill"
           onChange={(checked) =>
             props.onChange?.({ ...owner, callBack: checked })
           }

@@ -123,7 +123,7 @@ function InboxSidemenu(props: Props) {
           {props.ownerProspect && (
             <ExtendedToggle
               checked={props.ownerProspect.callBack}
-              icon="fr-icon-phone-fill"
+              iconId="fr-icon-phone-fill"
               label="À recontacter"
               onChange={onChange}
               toggleColor="#4a9df7"

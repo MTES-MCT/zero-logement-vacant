@@ -1,8 +1,7 @@
 import { Container } from '../_dsfr/index';
 import React from 'react';
-
-import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 import styles from './map-controls.module.scss';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 
 interface Props {
   perimeters: boolean;
@@ -12,7 +11,7 @@ interface Props {
 function MapControls(props: Props) {
   return (
     <Container as="section" className={styles.controls} fluid>
-      <ExtendedToggle
+      <ToggleSwitch
         checked={props.perimeters}
         label="Afficher vos périmètres déposés"
         onChange={props.onPerimetersChange}

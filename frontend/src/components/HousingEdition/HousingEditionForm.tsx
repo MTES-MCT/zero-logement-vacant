@@ -46,7 +46,6 @@ const HousingEditionForm = (
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
-  const [isPrecisionsModalOpen, setIsPrecisionsModalOpen] = useState(false);
 
   useEffect(() => {
     if (housing) {
@@ -224,7 +223,6 @@ const HousingEditionForm = (
               onSubmit={(precisions, vacancyReasons) => {
                 setVacancyReasons(vacancyReasons);
                 setPrecisions(precisions);
-                setIsPrecisionsModalOpen(false);
               }}
             />
           </>

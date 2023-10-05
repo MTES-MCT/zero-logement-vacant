@@ -27,6 +27,9 @@ export const parseHousing = (h: any): Housing =>
       .map((_: string) => toTitleCase(_)),
     owner: h.owner?.id ? parseOwner(h.owner) : undefined,
     lastContact: h.lastContact ? parseISO(h.lastContact) : undefined,
+    energyConsumptionAt: h.energyConsumptionAt
+      ? parseISO(h.energyConsumptionAt)
+      : undefined,
   } as Housing);
 
 export const housingApi = createApi({

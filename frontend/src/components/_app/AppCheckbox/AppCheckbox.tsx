@@ -14,6 +14,7 @@ const AppCheckbox: React.FC<CheckboxProps> = ({
   onChange,
   value,
   label,
+  hintText,
   ...props
 }: CheckboxProps) => {
   return (
@@ -27,6 +28,7 @@ const AppCheckbox: React.FC<CheckboxProps> = ({
             checked,
             value,
           },
+          hintText,
         },
       ]}
     />

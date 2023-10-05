@@ -57,28 +57,31 @@ const HousingStatusMultiSelect = ({
         )}
       </div>
       <div
-        className={classNames('select-single-options', {
+        className={classNames('select-single-options', 'fr-pt-1w', {
           'select-single-options__visible': showOptions,
         })}
       >
-        <div>
-          {options.map((option) => (
-            <AppCheckbox
-              label={option.label.toUpperCase()}
-              value={option.value}
-              className={classNames(
-                styles.checkboxLabel,
-                'bordered-b',
-                'fr-p-1w'
-              )}
-              hintText={option.hint}
-              key={option.label}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                handleStatusChange(Number(option.value), e.target.checked)
-              }
-            />
-          ))}
-        </div>
+        {options.map((option) => (
+          <AppCheckbox
+            label={
+              <div style={{ marginTop: '-2px' }}>
+                <HousingStatusBadge status={Number(option.value)} />
+              </div>
+            }
+            value={option.value}
+            className={classNames(
+              styles.checkboxLabel,
+              'bordered-b',
+              'fr-mx-0',
+              'fr-pb-1w'
+            )}
+            hintText={option.hint}
+            key={option.label}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              handleStatusChange(Number(option.value), e.target.checked)
+            }
+          />
+        ))}
       </div>
     </div>
   );

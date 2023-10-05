@@ -44,7 +44,7 @@ declare module "@codegouvfr/react-dsfr/spa" {
 
 function AppWrapper() {
 
-  startReactDsfr({ defaultColorScheme: "system", Link });
+  startReactDsfr({ defaultColorScheme: "light", Link });
 
   const AppMapProvider = () =>
     <MapProvider>

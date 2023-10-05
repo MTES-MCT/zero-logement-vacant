@@ -1,7 +1,10 @@
 import { Link, LinkProps } from 'react-router-dom';
 import React from 'react';
 import classNames from 'classnames';
-import { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
+import {
+  FrIconClassName,
+  RiIconClassName,
+} from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 export type AppLinkProps = LinkProps & {
   isSimple?: boolean;
@@ -19,8 +22,6 @@ function AppLink({
   to,
   ...linkProps
 }: AppLinkProps) {
-  console.log('to', to, typeof to === 'string' && to.startsWith('http'));
-
   return (
     <Link
       {...linkProps}

@@ -9,6 +9,7 @@ import { OptionTreeElement } from '../../../models/SelectOption';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
 
 const modal = createModal({
   id: 'precisions-modal',
@@ -32,50 +33,54 @@ const PrecisionsModal = ({
   );
 
   return (
-    <modal.Component
-      size="large"
-      buttons={[
-        {
-          children: 'Annuler',
-          priority: 'secondary',
-          className: 'fr-mr-2w',
-        },
-        {
-          children: 'Enregistrer',
-          onClick: () => onSubmit(precisions, vacancyReasons),
-          doClosesModal: false,
-        },
-      ]}
-      title=""
-    >
-      <Container as="section" fluid>
-        <Tabs
-          className="no-border"
-          tabs={[
-            {
-              label: `Dispositifs (${precisions.length})`,
-              content: (
-                <OptionsTreeCheckboxes
-                  options={SupportOptions}
-                  values={precisions}
-                  onChange={setPrecisions}
-                />
-              ),
-            },
-            {
-              label: `Points de blocage (${vacancyReasons.length})`,
-              content: (
-                <OptionsTreeCheckboxes
-                  options={BlockingPointOptions}
-                  values={vacancyReasons}
-                  onChange={setVacancyReasons}
-                />
-              ),
-            },
-          ]}
-        />
-      </Container>
-    </modal.Component>
+    <>
+      <AppLinkAsButton isSimple onClick={modal.open}>
+        Ajouter / Modifier
+      </AppLinkAsButton>
+      <modal.Component
+        size="large"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: () => onSubmit(precisions, vacancyReasons),
+          },
+        ]}
+        title=""
+      >
+        <Container as="section" fluid>
+          <Tabs
+            className="no-border"
+            tabs={[
+              {
+                label: `Dispositifs (${precisions.length})`,
+                content: (
+                  <OptionsTreeCheckboxes
+                    options={SupportOptions}
+                    values={precisions}
+                    onChange={setPrecisions}
+                  />
+                ),
+              },
+              {
+                label: `Points de blocage (${vacancyReasons.length})`,
+                content: (
+                  <OptionsTreeCheckboxes
+                    options={BlockingPointOptions}
+                    values={vacancyReasons}
+                    onChange={setVacancyReasons}
+                  />
+                ),
+              },
+            ]}
+          />
+        </Container>
+      </modal.Component>
+    </>
   );
 };
 

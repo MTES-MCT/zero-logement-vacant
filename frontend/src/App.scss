@@ -488,10 +488,6 @@ li.error {
       background-color: var(--grey-975) !important;
     }
   }
-
-  div.fr-tabs__panel:first-of-type {
-    z-index: 10;
-  }
 }
 
 
@@ -509,5 +505,22 @@ li.error {
       width: 450px;
     }
 
+  }
+}
+
+.radio-button-list {
+
+  .fr-radio-group {
+    max-width: 100%
+  }
+
+  .fr-radio-group::after{
+    content: '';
+    position: absolute;
+    background-color: var(--grey-925);
+    bottom: 0;
+    left: -13px;
+    right: -4px;
+    height: 1px;
   }
 }

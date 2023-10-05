@@ -5,9 +5,11 @@ import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
+import {
+  allOccupancyOptions,
+  statusOptions,
+} from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
-import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import _ from 'lodash';
@@ -216,23 +218,15 @@ const HousingEditionForm = (
               Dispositifs ({(precisions ?? []).length}) / Points de blocage (
               {(vacancyReasons ?? []).length})
             </Text>
-            <AppLinkAsButton
-              isSimple
-              onClick={() => setIsPrecisionsModalOpen(true)}
-            >
-              Ajouter / Modifier
-            </AppLinkAsButton>
-            {isPrecisionsModalOpen && (
-              <PrecisionsModal
-                currentPrecisions={precisions ?? []}
-                currentVacancyReasons={vacancyReasons ?? []}
-                onSubmit={(precisions, vacancyReasons) => {
-                  setVacancyReasons(vacancyReasons);
-                  setPrecisions(precisions);
-                  setIsPrecisionsModalOpen(false);
-                }}
-              />
-            )}
+            <PrecisionsModal
+              currentPrecisions={precisions ?? []}
+              currentVacancyReasons={vacancyReasons ?? []}
+              onSubmit={(precisions, vacancyReasons) => {
+                setVacancyReasons(vacancyReasons);
+                setPrecisions(precisions);
+                setIsPrecisionsModalOpen(false);
+              }}
+            />
           </>
         )}
       </div>

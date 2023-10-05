@@ -7,7 +7,8 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Callout, CalloutText, CalloutTitle } from '../../components/_dsfr';
+import CallOut from '@codegouvfr/react-dsfr/CallOut';
+import { Text } from '../../components/_dsfr';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
@@ -50,41 +51,40 @@ const CampaignsListView = () => {
 
       <Row spacing="py-5w">
         <Col>
-          <Callout hasInfoIcon={false} className="fr-mr-4w">
-            <CalloutTitle as="h3">
-              Vous souhaitez créer une nouvelle campagne ?
-            </CalloutTitle>
-            <CalloutText as="p">
-              Vous pouvez également en créer une nouvelle directement dans une
-              campagne existante (pour une relance par exemple)
-            </CalloutText>
-            <Button
-              linkProps={{ to: '/parc-de-logements' }}
-              priority="secondary"
-            >
-              Créer votre nouvelle campagne
-            </Button>
-          </Callout>
+          <CallOut
+            title={
+              <Text size="lg">
+                Vous souhaitez créer une nouvelle campagne ?
+              </Text>
+            }
+            className="fr-mr-4w"
+            children="Vous pouvez également en créer une nouvelle directement dans une
+                campagne existante (pour une relance par exemple)"
+            buttonProps={{
+              priority: 'secondary',
+              linkProps: { to: '/parc-de-logements' },
+              children: 'Créer votre nouvelle campagne',
+            }}
+          />
         </Col>
         <Col>
-          <Callout hasInfoIcon={false} className="fr-ml-4w">
-            <CalloutTitle as="h3">
-              Vous souhaitez concevoir des courriers plus percutants ?
-            </CalloutTitle>
-            <CalloutText as="p">
-              Accédez à nos modèles de courriers et ceux envoyés par les autres
-              collectivités
-            </CalloutText>
-            <Button
-              linkProps={{
+          <CallOut
+            title={
+              <Text size="lg">
+                Vous souhaitez concevoir des courriers plus percutants ?
+              </Text>
+            }
+            className="fr-mr-4w"
+            children="Accédez à nos modèles de courriers et ceux envoyés par les autres collectivités"
+            buttonProps={{
+              priority: 'secondary',
+              linkProps: {
                 to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
                 target: '_blank',
-              }}
-              priority="secondary"
-            >
-              Voir la bibliothèque des courriers
-            </Button>
-          </Callout>
+              },
+              children: 'Voir la bibliothèque des courriers',
+            }}
+          />
         </Col>
       </Row>
     </MainContainer>

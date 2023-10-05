@@ -1,7 +1,8 @@
-import { Card, CardDescription, CardTitle, Title } from '@dataesr/react-dsfr';
+import { Title } from '../../components/dsfr/index';
 import React, { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
+import Card from '@codegouvfr/react-dsfr/Card';
 
 interface Props {
   title: string | ReactElement;
@@ -13,30 +14,30 @@ interface Props {
 function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
   return (
     <Card
-      hasArrow={false}
-      hasBorder={!!hasBorder}
-      size="sm"
+      border={!!hasBorder}
+      size="small"
       className={classNames(styles.subCard, 'app-card-xs', {
         'bg-975': isGrey,
       })}
-    >
-      <CardTitle>
-        {typeof title === 'string' ? (
-          <Title
-            as="h2"
-            look="h6"
-            spacing="mb-1w"
-            className={classNames(styles.title, styles.titleInline)}
-          >
-            {title}
-          </Title>
-        ) : (
-          title
-        )}
-        <hr className="fr-py-1w" />
-      </CardTitle>
-      <CardDescription className={styles.content}>{children}</CardDescription>
-    </Card>
+      title={
+        <>
+          {typeof title === 'string' ? (
+            <Title
+              as="h2"
+              look="h6"
+              spacing="mb-1w"
+              className={classNames(styles.title, styles.titleInline)}
+            >
+              {title}
+            </Title>
+          ) : (
+            title
+          )}
+          <hr className="fr-py-1w" />
+        </>
+      }
+      desc={<div className={styles.content}>{children}</div>}
+    ></Card>
   );
 }
 

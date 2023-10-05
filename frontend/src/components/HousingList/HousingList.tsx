@@ -6,12 +6,7 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  Badge,
-  Button,
-  Pagination as DSFRPagination,
-  Table,
-} from '@dataesr/react-dsfr';
+import { Pagination as DSFRPagination } from '../../components/dsfr';
 import {
   Housing,
   HousingSort,
@@ -40,10 +35,9 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
-import Checkbox from '../Checkbox/Checkbox';
 import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import { useHousingList } from '../../hooks/useHousingList';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
@@ -55,6 +49,10 @@ import {
   useUpdateHousingMutation,
 } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import Button from '@codegouvfr/react-dsfr/Button';
+import AppCheckbox from '../AppCheckbox/AppCheckbox';
+import { Table } from '../dsfr';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -163,18 +161,18 @@ const HousingList = ({
   const selectColumn = {
     name: 'select',
     headerRender: () => (
-      <Checkbox
+      <AppCheckbox
         onChange={(e: ChangeEvent<any>) => checkAll(e.target.checked)}
         checked={
           (allChecked && checkedIds.length === 0) ||
           (!allChecked && checkedIds.length === filteredCount)
         }
         className={checkedIds.length !== 0 ? 'indeterminate' : ''}
-        label=""
-      ></Checkbox>
+        options={[]}
+      ></AppCheckbox>
     ),
     render: ({ id }: Housing) => (
-      <Checkbox
+      <AppCheckbox
         value={id}
         onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
         checked={
@@ -182,8 +180,8 @@ const HousingList = ({
           (!allChecked && checkedIds.includes(id))
         }
         data-testid={'housing-check-' + id}
-        label=""
-      ></Checkbox>
+        options={[]}
+      ></AppCheckbox>
     ),
   };
 
@@ -203,13 +201,13 @@ const HousingList = ({
       </div>
     ),
     render: ({ id, rawAddress }: Housing) => (
-      <InternalLink
+      <AppLink
         className="capitalize"
         isSimple
         to={`${location.pathname}/logements/${id}`}
       >
         {rawAddress.map((line) => capitalize(line)).join('\n')}
-      </InternalLink>
+      </AppLink>
     ),
   };
 
@@ -222,13 +220,13 @@ const HousingList = ({
     ),
     render: ({ owner }: Housing) => (
       <>
-        <InternalLink
+        <AppLink
           isSimple
           title={owner.fullName}
           to={`${location.pathname}/proprietaires/${owner.id}`}
         >
           {owner.fullName}
-        </InternalLink>
+        </AppLink>
         {owner.administrator && <div>({owner.administrator})</div>}
       </>
     ),
@@ -242,10 +240,9 @@ const HousingList = ({
       </div>
     ),
     render: ({ occupancy }: Housing) => (
-      <Badge
-        text={OccupancyKindLabels[occupancy]}
-        className="bg-bf950 color-bf113"
-      ></Badge>
+      <Badge className="bg-bf950 color-bf113">
+        {OccupancyKindLabels[occupancy]}
+      </Badge>
     ),
   };
 
@@ -265,7 +262,7 @@ const HousingList = ({
             .filter(isDefined)
             .map((campaign, campaignIdx) => (
               <div key={id + '-campaign-' + campaignIdx}>
-                <InternalLink
+                <AppLink
                   isSimple
                   to={
                     '/campagnes/' +
@@ -277,7 +274,7 @@ const HousingList = ({
                 >
                   {campaignFullName(campaign).substring(0, 17) +
                     (campaignFullName(campaign).length > 17 ? '...' : '')}
-                </InternalLink>
+                </AppLink>
               </div>
             ))}
       </>
@@ -308,8 +305,8 @@ const HousingList = ({
       ) : (
         <Button
           title="Mettre à jour"
-          size="sm"
-          secondary
+          size="small"
+          priority="secondary"
           onClick={() => setUpdatingHousing(housing)}
         >
           Mettre à jour
@@ -388,7 +385,7 @@ const HousingList = ({
               <div style={{ textAlign: 'center' }}>
                 <Button
                   onClick={() => changePerPage(50)}
-                  secondary
+                  priority="secondary"
                   disabled={pagination.perPage === 50}
                   title="Afficher 50 résultats par page"
                 >
@@ -397,7 +394,7 @@ const HousingList = ({
                 <Button
                   onClick={() => changePerPage(200)}
                   className="fr-mx-3w"
-                  secondary
+                  priority="secondary"
                   disabled={pagination.perPage === 200}
                   title="Afficher 200 résultats par page"
                 >
@@ -405,7 +402,7 @@ const HousingList = ({
                 </Button>
                 <Button
                   onClick={() => changePerPage(500)}
-                  secondary
+                  priority="secondary"
                   disabled={pagination.perPage === 500}
                   title="Afficher 500 résultats par page"
                 >

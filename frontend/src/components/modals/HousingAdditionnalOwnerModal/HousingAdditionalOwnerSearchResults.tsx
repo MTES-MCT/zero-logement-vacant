@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Pagination, Row, Table } from '@dataesr/react-dsfr';
+import { Col, Row } from '../../../components/dsfr/index';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
@@ -7,6 +7,7 @@ import { usePagination } from '../../../hooks/usePagination';
 import { useFindOwnersQuery } from '../../../services/owner.service';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
+import { Pagination, Table } from '../../dsfr';
 
 interface Props {
   onSelect: (owner: Owner) => void;

@@ -1,8 +1,8 @@
 import React from 'react';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
-import { Badge } from '@dataesr/react-dsfr';
 import styles from './housing-status-badge.module.scss';
 import classNames from 'classnames';
+import AppBadge from '../AppBadge/AppBadge';
 
 interface Props {
   status?: HousingStatus;
@@ -17,12 +17,13 @@ const HousingSubStatusBadge = ({ status, subStatus, inline }: Props) => {
         inline ? styles.statusBadgeContainerInline : styles.statusBadgeContainer
       }
     >
-      <Badge
-        text={subStatus}
+      <AppBadge
         className={classNames(styles.subStatusBadgeLabel, 'fr-text--xs')}
-        isSmall={true}
+        small
         colorFamily={getHousingState(status)?.colorFamily}
-      ></Badge>
+      >
+        {subStatus}
+      </AppBadge>
     </div>
   ) : (
     <></>

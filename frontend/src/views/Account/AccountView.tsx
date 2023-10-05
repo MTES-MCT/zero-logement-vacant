@@ -1,19 +1,11 @@
-import {
-  Card,
-  CardDescription,
-  CardTitle,
-  Col,
-  Container,
-  Row,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
 import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import { useGetUserAccountQuery } from '../../services/user-account.service';
 import AccountSideMenu from './AccountSideMenu';
 import AccountForm from './AccountForm';
+import Card from '@codegouvfr/react-dsfr/Card';
 
 const AccountView = () => {
   useDocumentTitle('Votre profil');
@@ -35,25 +27,25 @@ const AccountView = () => {
           </Col>
           <Col n="8">
             <Card
-              hasArrow={false}
-              hasBorder={false}
-              size="sm"
+              border={false}
+              size="small"
               className="fr-px-3w fr-py-2w"
-            >
-              <CardTitle>
+              title={
                 <Title as="h1" look="h4" spacing="mb-0">
                   Gérer votre profil
                 </Title>
-              </CardTitle>
-              <CardDescription>
-                <Text as="p" size="lg" className="subtitle">
-                  Renseignez vos informations afin de permettre aux autres
-                  utilisateurs de votre territoire de vous identifier ou de vous
-                  contacter.
-                </Text>
-                <AccountForm user={user} userAccount={userAccount} />
-              </CardDescription>
-            </Card>
+              }
+              desc={
+                <div>
+                  <Text as="p" size="lg" className="subtitle">
+                    Renseignez vos informations afin de permettre aux autres
+                    utilisateurs de votre territoire de vous identifier ou de
+                    vous contacter.
+                  </Text>
+                  <AccountForm user={user} userAccount={userAccount} />
+                </div>
+              }
+            ></Card>
           </Col>
         </Row>
       </Container>

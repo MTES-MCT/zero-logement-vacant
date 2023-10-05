@@ -1,4 +1,4 @@
-import { Checkbox, Col, Row, Table, Text } from '@dataesr/react-dsfr';
+import { Col, Row, Text } from '../../components/dsfr/index';
 import classNames from 'classnames';
 import { Selection, useSelection } from '../../hooks/useSelection';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
@@ -9,6 +9,8 @@ import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { pluralize } from '../../utils/stringUtils';
+import AppCheckbox from '../AppCheckbox/AppCheckbox';
+import { Table } from '../dsfr';
 
 interface Props {
   messages: OwnerProspect[];
@@ -38,7 +40,7 @@ function InboxMessageList(props: Props) {
     {
       name: 'select',
       headerRender: () => (
-        <Checkbox
+        <AppCheckbox
           checked={selection.hasSelected}
           className={selection.selected.ids.length > 0 ? 'indeterminate' : ''}
           label=""
@@ -46,7 +48,7 @@ function InboxMessageList(props: Props) {
         />
       ),
       render: ({ id }: { id: string }) => (
-        <Checkbox
+        <AppCheckbox
           checked={selection.isSelected(id)}
           label=""
           onChange={() => selection.toggleSelect(id)}
@@ -98,7 +100,7 @@ function InboxMessageList(props: Props) {
           checked={owner.callBack}
           className="fr-mt-0"
           label="À recontacter"
-          icon="ri-phone-fill"
+          icon="fr-icon-phone-fill"
           onChange={(checked) =>
             props.onChange?.({ ...owner, callBack: checked })
           }
@@ -132,9 +134,7 @@ function InboxMessageList(props: Props) {
       headerRender: () => '',
       render: (owner: OwnerProspect) => (
         <ButtonLink
-          display="flex"
-          icon="ri-arrow-right-line"
-          iconSize="1x"
+          iconId="fr-icon-arrow-right-line"
           iconPosition="right"
           isSimple
           onClick={() => props.onDisplay?.({ ...owner, read: true })}

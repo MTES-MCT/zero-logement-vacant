@@ -1,19 +1,18 @@
 import React from 'react';
 
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import styles from './resources.module.scss';
+import MainContainer from '../../components/MainContainer/MainContainer';
+import Tile from '@codegouvfr/react-dsfr/Tile';
+import classNames from 'classnames';
 import {
   Col,
   Container,
   Icon,
   Row,
   Text,
-  Tile,
-  TileBody,
   Title,
-} from '@dataesr/react-dsfr';
-import classNames from 'classnames';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import styles from './resources.module.scss';
-import MainContainer from '../../components/MainContainer/MainContainer';
+} from '../../components/dsfr/index';
 
 interface Props {
   title: string;
@@ -33,21 +32,24 @@ const ResourceTile = ({
   iconStyle,
 }: Props) => {
   return (
-    <Tile verticalMedium={true} className={styles.tile}>
-      <span
-        className={classNames(styles.tileIcon, iconStyle, 'card-title-icon')}
-      >
-        <Icon name={icon} iconPosition="center" size="xl" />
-      </span>
-      <TileBody
-        title={title}
-        linkHref={linkHref}
-        linkTarget={linkHrefTarget}
-        className={styles.tileBody}
-      >
-        {children}
-      </TileBody>
-    </Tile>
+    <Tile
+      desc={children}
+      classes={{ root: 'fr-p-0', body: styles.tileBody }}
+      title={
+        <>
+          <div>
+            <span className={classNames(iconStyle, 'card-title-icon')}>
+              <Icon name={icon} iconPosition="center" size="xl" />
+            </span>
+          </div>
+          {title}
+        </>
+      }
+      linkProps={{
+        to: linkHref,
+        target: linkHrefTarget,
+      }}
+    />
   );
 };
 
@@ -68,7 +70,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Documentation"
               linkHref="https://zlv.notion.site/Ressources-fe11627749a34b10820a6e663f607226"
-              icon="ri-folder-5-fill"
+              icon="fr-icon-folder-2-fill"
               iconStyle={styles.iconResource}
             >
               Zéro Logement Vacant vous propose une sélection de ressources pour
@@ -81,7 +83,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Communauté"
               linkHref="https://zlv.notion.site/Communaut-e2af2cd2f7124d47b0d522f93c18e48f"
-              icon="ri-group-fill"
+              icon="fr-icon-group-fill"
               iconStyle={styles.iconCommunity}
             >
               Utiliser Zéro Logement Vacant, c’est aussi faire partie d’une
@@ -94,7 +96,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Besoin d'aide ?"
               linkHref="https://zerologementvacant.crisp.help/fr/"
-              icon="ri-question-mark"
+              icon="fr-icon-question-mark"
               iconStyle={styles.iconHelp}
             >
               Vous avez une question sur la solution ZLV ou sur les données
@@ -107,7 +109,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Prendre rendez-vous"
               linkHref="https://zlv.notion.site/Prendre-rendez-vous-31933eaa1e7d4c26b1c8be6811ab9893"
-              icon="ri-calendar-fill"
+              icon="fr-icon-calendar-fill"
               iconStyle={styles.iconAgenda}
             >
               Vous souhaitez être accompagné dans la création d’une campagne ou
@@ -127,7 +129,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Ajouter un filtre géographique"
               linkHref="https://zlv.notion.site/Int-grer-un-p-rim-tre-5c7cf0d51f20448bb1316405adbb4a37"
-              icon="ri-map-fill"
+              icon="fr-icon-road-map-fill"
             >
               Vous souhaitez cibler les logements sur un périmètre en
               particulier, comme un dispositif opérationnel ou un quartier ?
@@ -139,7 +141,7 @@ const ResourcesView = () => {
             <ResourceTile
               title="Rédiger un courrier"
               linkHref="https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5"
-              icon="ri-mail-fill"
+              icon="fr-icon-mail-fill"
             >
               Vous voulez rédiger un courrier mais ne savez pas par où commencer
               ? Vous souhaitez mobiliser les propriétaires et cherchez les
@@ -153,7 +155,7 @@ const ResourcesView = () => {
               title="Comprendre les statuts de suivi"
               linkHref="/ressources/statuts"
               linkHrefTarget="_self"
-              icon="ri-node-tree"
+              icon="fr-icon-git-merge-line"
             >
               Statut “Premier contact” ou “Suivi en cours” ? Il peut être
               compliqué de s’y retrouver dans les statuts des dossiers sur ZLV…

@@ -1,6 +1,6 @@
-import { Container, Link, Text, Title } from '@dataesr/react-dsfr';
+import { Container, Text, Title } from '../../../components/dsfr/index';
 import React from 'react';
-import InternalLink from '../../../components/InternalLink/InternalLink';
+import AppLink from '../../../components/AppLink/AppLink';
 
 function AccountAwaitingAccessView() {
   return (
@@ -21,24 +21,22 @@ function AccountAwaitingAccessView() {
         date de signature.
       </Text>
       <Container as="section" fluid spacing="mb-4w">
-        <Link
-          href="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+        <AppLink
+          to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
           isSimple
           size="sm"
         >
           Besoin d’aide pour créer votre compte ?
-        </Link>
+        </AppLink>
       </Container>
-      <InternalLink
+      <AppLink
         isSimple
-        display="flex"
         to="/"
-        icon="ri-arrow-left-line"
-        iconSize="1x"
+        iconId="fr-icon-arrow-left-line"
         iconPosition="left"
       >
         Revenir à l'écran d'accueil
-      </InternalLink>
+      </AppLink>
     </>
   );
 }

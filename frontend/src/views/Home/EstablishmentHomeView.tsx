@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
 import building from '../../assets/images/building.svg';
 import hands_mail from '../../assets/images/hands-mail.svg';
 import new_message from '../../assets/images/new_message.svg';
@@ -24,7 +24,7 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 const EstablishmentHomeView = () => {
   useDocumentTitle();
@@ -46,18 +46,21 @@ const EstablishmentHomeView = () => {
               propriétaires de logements vacants et à mieux les accompagner dans
               la remise sur le marché de leur logement.
             </Text>
-            <InternalLink
-              className="internal-link--btn"
+            <div
               onClick={() =>
                 trackEvent({
                   category: TrackEventCategories.Home,
                   action: TrackEventActions.Home.Connection,
                 })
               }
-              to="/inscription/email"
             >
-              <Button>Créer un compte</Button>
-            </InternalLink>
+              <Button
+                linkProps={{ to: '/inscription/email' }}
+                className="internal-link--btn"
+              >
+                Créer un compte
+              </Button>
+            </div>
           </Col>
           <Col className="align-right d-none d-sm-block">
             <img

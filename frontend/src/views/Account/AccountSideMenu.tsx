@@ -1,6 +1,6 @@
-import { Link, Text } from '@dataesr/react-dsfr';
+import { Text } from '../../components/dsfr/index';
 import React from 'react';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';
 import { logout } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';
@@ -21,47 +21,40 @@ const AccountSideMenu = () => {
         Votre compte
       </Text>
       <div className="fr-py-2w">
-        <InternalLink
+        <AppLink
           className={classNames('fr-ml-0', { 'weight-700': isCurrentLocation })}
-          current={isCurrentLocation}
           isSimple={isCurrentLocation}
           to="/compte"
-          display="flex"
-          icon="ri-user-fill"
+          iconId="fr-icon-user-fill"
           iconPosition="left"
-          iconSize="lg"
         >
           Gérer votre profil
-        </InternalLink>
+        </AppLink>
       </div>
       <hr className="fr-py-1w" />
       <Text className="color-grey-625" size="sm" bold spacing="mb-0">
         {establishment?.name}
       </Text>
       <div className="fr-py-2w">
-        <Link
-          href="https://consultdf.cerema.fr/consultdf/"
-          display="flex"
+        <AppLink
+          to={{ pathname: 'https://consultdf.cerema.fr/consultdf/' }}
           target="_blank"
-          icon="ri-group-fill"
+          iconId="fr-icon-group-fill"
           iconPosition="left"
-          iconSize="lg"
         >
           Gérer les utilisateurs via consultdf
-        </Link>
+        </AppLink>
       </div>
       <hr className="fr-py-1w" />
-      <Link
-        display="flex"
-        href="#"
-        icon="ri-login-box-fill"
+      <AppLink
+        to="#"
+        iconId="fr-icon-logout-box-r-fill"
         iconPosition="left"
-        iconSize="lg"
         onClick={() => dispatch(logout())}
         size="md"
       >
         Se déconnecter
-      </Link>
+      </AppLink>
     </>
   );
 };

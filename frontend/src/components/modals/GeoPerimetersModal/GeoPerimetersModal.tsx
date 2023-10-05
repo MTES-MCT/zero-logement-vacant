@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
 import {
-  Button,
-  ButtonGroup,
   Col,
   File,
   Modal,
@@ -12,17 +10,15 @@ import {
   ModalTitle,
   Row,
   Text,
-} from '@dataesr/react-dsfr';
-import { displayCount, pluralize } from '../../../utils/stringUtils';
+} from '../../../components/dsfr/index';
+import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
-import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import Alert from '../../Alert/Alert';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import Help from '../../Help/Help';
@@ -35,6 +31,9 @@ import {
 import styles from './geo-perimeters-modal.module.scss';
 import GeoPerimetersTable from './GeoPerimetersTable';
 import AppSearchBar from '../../AppSearchBar/AppSearchBar';
+import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 interface Props {
   onClose: () => void;
@@ -47,8 +46,6 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
     useState<boolean>(false);
   const [geoPerimetersToUpdate, setGeoPerimeterToUpdate] =
     useState<GeoPerimeter>();
-  const [geoPerimetersToRemove, setGeoPerimetersToRemove] =
-    useState<GeoPerimeter[]>();
   const [isCardView, setIsCardView] = useState<boolean>(false);
 
   const [
@@ -94,18 +91,12 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
     }
   };
 
-  const onSubmitRemovingGeoPerimeter = () => {
-    if (geoPerimetersToRemove) {
-      trackEvent({
-        category: TrackEventCategories.GeoPerimeters,
-        action: TrackEventActions.GeoPerimeters.Delete,
-      });
-      deleteGeoPerimeters(geoPerimetersToRemove.map((_) => _.id)).finally(
-        () => {
-          setGeoPerimetersToRemove(undefined);
-        }
-      );
-    }
+  const onSubmitRemovingGeoPerimeter = (geoPerimeters: GeoPerimeter[]) => {
+    trackEvent({
+      category: TrackEventCategories.GeoPerimeters,
+      action: TrackEventActions.GeoPerimeters.Delete,
+    });
+    deleteGeoPerimeters(geoPerimeters.map((_) => _.id));
   };
 
   const [query, setQuery] = useState<string>();
@@ -157,19 +148,6 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             onClose={() => setGeoPerimeterToUpdate(undefined)}
           />
         )}
-        {geoPerimetersToRemove !== undefined &&
-          geoPerimetersToRemove.length > 0 && (
-            <ConfirmationModal
-              onSubmit={onSubmitRemovingGeoPerimeter}
-              onClose={() => setGeoPerimetersToRemove(undefined)}
-            >
-              <Text size="md">
-                Êtes-vous sûr de vouloir supprimer{' '}
-                {pluralize(geoPerimetersToRemove.length)('ce')} 
-                {pluralize(geoPerimetersToRemove.length)('périmètre')} ?
-              </Text>
-            </ConfirmationModal>
-          )}
         <Help className={styles.help}>
           <Text>
             Pour utiliser le filtre “Périmètre” dans la base de données, vous
@@ -189,7 +167,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
               <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
               <Button
                 onClick={() => setIsUploadingModalOpen(true)}
-                secondary
+                priority="secondary"
                 className="fr-ml-2w"
               >
                 Déposer un périmètre (.zip)
@@ -197,55 +175,64 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             </div>
           </Col>
           <Col>
-            <ButtonGroup isInlineFrom="xs" size="md" align="right">
-              <Button
-                title="Vue liste"
-                icon="ri-function-fill"
-                secondary={isCardView}
-                onClick={() => setIsCardView(true)}
-              />
-              <Button
-                title="Vue bloc"
-                icon="ri-list-check"
-                secondary={!isCardView}
-                onClick={() => setIsCardView(false)}
-              />
-            </ButtonGroup>
+            <ButtonsGroup
+              alignment="right"
+              buttonsEquisized
+              inlineLayoutWhen="always"
+              buttons={[
+                {
+                  title: 'Vue liste',
+                  iconId: 'fr-icon-layout-grid-fill',
+                  priority: isCardView ? 'secondary' : 'primary',
+                  onClick: () => setIsCardView(true),
+                },
+                {
+                  title: 'Vue bloc',
+                  iconId: 'fr-icon-list-unordered',
+                  priority: isCardView ? 'primary' : 'secondary',
+                  onClick: () => setIsCardView(false),
+                },
+              ]}
+            ></ButtonsGroup>
           </Col>
         </Row>
         {isUploadSuccess && (
           <Alert
-            type="success"
+            severity="success"
             description="Le fichier à été déposé avec succès ! "
             closable
+            small
             className="fr-mb-2w"
           />
         )}
         {isUpdateSuccess && (
           <Alert
-            type="success"
+            severity="success"
             description={
               'Le périmètre / filtre ' +
               updateArgs?.name +
               ' a été modifié avec succès !'
             }
             closable
+            small
             className="fr-mb-2w"
           />
         )}
         {isDeleteSuccess && (
           <Alert
-            type="success"
+            severity="success"
             description="Le périmètre / filtre a été supprimé avec succès !"
             closable
+            small
             className="fr-mb-2w"
           />
         )}
         {(isUploadError || isUpdateError || isDeleteError) && (
           <Alert
-            type="error"
+            severity="error"
             description="Une erreur s'est produite, veuillez réessayer."
             closable
+            small
             className="fr-mb-2w"
           />
         )}
@@ -260,7 +247,8 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
                 ? "n'est pas valide"
                 : 'ne sont pas valides'
             } car le nom du filtre n'est pas renseigné`}
-            type="warning"
+            severity="warning"
+            small
             className="fr-mb-2w"
           />
         )}
@@ -274,7 +262,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
                       geoPerimeter={geoPerimeter}
                       onEdit={setGeoPerimeterToUpdate}
                       onRemove={(geoPerimeter) =>
-                        setGeoPerimetersToRemove([geoPerimeter])
+                        onSubmitRemovingGeoPerimeter([geoPerimeter])
                       }
                     />
                   </Col>
@@ -284,7 +272,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
               <GeoPerimetersTable
                 geoPerimeters={perimeters}
                 onEdit={setGeoPerimeterToUpdate}
-                onRemove={setGeoPerimetersToRemove}
+                onRemove={onSubmitRemovingGeoPerimeter}
               />
             )}
           </>

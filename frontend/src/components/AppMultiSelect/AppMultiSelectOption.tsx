@@ -1,6 +1,6 @@
 import { SelectOption } from '../../models/SelectOption';
-import { Checkbox } from '@dataesr/react-dsfr';
-import { ReactNode } from 'react';
+import { ChangeEvent, ReactNode } from 'react';
+import AppCheckbox from '../AppCheckbox/AppCheckbox';
 
 // @ts-ignore
 export interface AppMultiSelectOptionProps
@@ -8,7 +8,7 @@ export interface AppMultiSelectOptionProps
   label: ReactNode;
   checked?: boolean;
   onChangeValue?: (value: string, isChecked: boolean) => void;
-  size?: 'sm' | 'md';
+  small?: boolean;
 }
 
 function AppMultiSelectOption(props: AppMultiSelectOptionProps) {
@@ -17,13 +17,14 @@ function AppMultiSelectOption(props: AppMultiSelectOptionProps) {
   }
 
   return (
-    <Checkbox
+    <AppCheckbox
       checked={props.checked}
       disabled={props.disabled}
-      // @ts-ignore
       label={props.label}
-      onChange={(e) => props.onChangeValue?.(props.value, e.target.checked)}
-      size={props.size ?? 'sm'}
+      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+        props.onChangeValue?.(props.value, e.target.checked)
+      }
+      small={props.small}
       value={props.value}
     />
   );

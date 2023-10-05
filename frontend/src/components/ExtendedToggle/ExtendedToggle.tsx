@@ -1,4 +1,4 @@
-import { Icon, Toggle } from '@dataesr/react-dsfr';
+import { Icon, Toggle } from '../../components/dsfr/index';
 import classNames from 'classnames';
 import { ComponentPropsWithoutRef, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -43,7 +43,7 @@ function ExtendedToggle(props: Props) {
         'data-fr-unchecked-label': 'Désactivé',
       };
 
-  const icon = props.icon ?? 'ri-check-fill';
+  const icon = props.icon ?? 'fr-icon-check-fill';
 
   return (
     <div className={classes}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Row } from '@dataesr/react-dsfr';
+import { Row } from '../../components/dsfr/index';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import {
@@ -17,23 +17,20 @@ import {
   useCountHousingQuery,
   useUpdateHousingListMutation,
 } from '../../services/housing.service';
-import Tab, { TabProps } from '../../components/Tab/Tab';
 import HousingList from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
 import { Link } from 'react-router-dom';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
+import Button from '@codegouvfr/react-dsfr/Button';
 
-export type Props = TabProps & {
+export type Props = {
   status: HousingStatus;
   query?: string;
   onCountFilteredHousing?: (count?: number) => void;
 };
 
 const CampaignInProgressTab = ({
-  index,
-  activeTab,
-  label,
   status,
   query,
   onCountFilteredHousing,
@@ -45,8 +42,6 @@ const CampaignInProgressTab = ({
   const [updateHousingList] = useUpdateHousingListMutation();
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
-    useState<SelectedHousing>();
-  const [reminderModalSelectedHousing, setReminderModalSelectedHousing] =
     useState<SelectedHousing>();
 
   const filters = {
@@ -100,62 +95,55 @@ const CampaignInProgressTab = ({
     };
 
   return (
-    <Tab label={label} index={index} activeTab={activeTab} className="fr-px-0">
-      <>
-        {!hasSelected && (
-          <Help className="d-block">
-            <b>{getHousingState(status).title} : </b>
-            {getHousingState(status).hint}
-            <div className="fr-pl-3w">
-              <Link to="/ressources">En savoir plus sur les statuts</Link>
-            </div>
-          </Help>
-        )}
-        <HousingList filters={filters} onSelectHousing={setSelected}>
-          <SelectableListHeader entity="logement">
-            <SelectableListHeaderActions>
-              {hasSelected && (
-                <Row justifyContent="right">
-                  {status === HousingStatus.Waiting && isCampaign && (
-                    <Button
-                      title="Créer une campagne de relance"
-                      secondary
-                      onClick={() => setReminderModalSelectedHousing(selected)}
-                      className="fr-mx-2w"
-                    >
-                      Créer une campagne de relance
-                    </Button>
-                  )}
-                  {selectedCount > 1 && (
-                    <Button
-                      title="Mise à jour groupée"
-                      onClick={() => setUpdatingSelectedHousing(selected)}
-                    >
-                      Mise à jour groupée
-                    </Button>
-                  )}
-                </Row>
-              )}
-            </SelectableListHeaderActions>
-          </SelectableListHeader>
-        </HousingList>
-        <HousingListEditionSideMenu
-          housingCount={selectedCount}
-          open={!!updatingSelectedHousing}
-          fromDefaultCampaign={campaignBundle.campaignNumber === 0}
-          onSubmit={submitSelectedHousingUpdate(status)}
-          onClose={() => setUpdatingSelectedHousing(undefined)}
-        />
-        <CampaignCreationModal
-          housingCount={selectedCount}
-          open={!!reminderModalSelectedHousing}
-          filters={campaignBundle.filters ?? {}}
-          onSubmit={submitCampaignReminder}
-          onClose={() => setReminderModalSelectedHousing(undefined)}
-          isReminder={true}
-        />
-      </>
-    </Tab>
+    <>
+      {!hasSelected && (
+        <Help className="d-block">
+          <b>{getHousingState(status).title} : </b>
+          {getHousingState(status).hint}
+          <div className="fr-pl-3w">
+            <Link to="/ressources">En savoir plus sur les statuts</Link>
+          </div>
+        </Help>
+      )}
+      <HousingList filters={filters} onSelectHousing={setSelected}>
+        <SelectableListHeader entity="logement">
+          <SelectableListHeaderActions>
+            {hasSelected && (
+              <Row justifyContent="right">
+                {status === HousingStatus.Waiting && isCampaign && (
+                  <CampaignCreationModal
+                    housingCount={selectedCount}
+                    filters={campaignBundle.filters ?? {}}
+                    onSubmit={submitCampaignReminder}
+                    isReminder
+                    openingButtonProps={{
+                      children: 'Créer une campagne de relance',
+                      priority: 'secondary',
+                      className: 'fr-mx-2w',
+                    }}
+                  />
+                )}
+                {selectedCount > 1 && (
+                  <Button
+                    title="Mise à jour groupée"
+                    onClick={() => setUpdatingSelectedHousing(selected)}
+                  >
+                    Mise à jour groupée
+                  </Button>
+                )}
+              </Row>
+            )}
+          </SelectableListHeaderActions>
+        </SelectableListHeader>
+      </HousingList>
+      <HousingListEditionSideMenu
+        housingCount={selectedCount}
+        open={!!updatingSelectedHousing}
+        fromDefaultCampaign={campaignBundle.campaignNumber === 0}
+        onSubmit={submitSelectedHousingUpdate(status)}
+        onClose={() => setUpdatingSelectedHousing(undefined)}
+      />
+    </>
   );
 };
 

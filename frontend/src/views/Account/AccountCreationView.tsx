@@ -1,6 +1,6 @@
 import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
-import { Col, Container, Row } from '@dataesr/react-dsfr';
+import { Col, Container, Row } from '../../components/dsfr/index';
 import building from '../../assets/images/building.svg';
 import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
 import AccountEmailActivationView from './AccountCreation/AccountEmailActivationView';

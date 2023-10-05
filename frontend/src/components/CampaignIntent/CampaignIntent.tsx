@@ -1,10 +1,11 @@
-import { Radio, RadioGroup } from '@dataesr/react-dsfr';
+import { MessageType } from '../../hooks/useForm';
+import { Radio, RadioGroup } from '../dsfr';
 
 interface Props {
   defaultValue?: string;
   disabled?: boolean;
   message?: string;
-  messageType?: 'error' | 'valid' | '';
+  messageType?: MessageType;
   onChange(value: string): void;
 }
 
@@ -42,7 +43,13 @@ const CampaignIntent = (props: Props) => {
       onChange={props.onChange}
       required
       message={props.message}
-      messageType={props.messageType}
+      messageType={
+        props.messageType === 'success'
+          ? 'valid'
+          : props.messageType === 'default'
+          ? undefined
+          : props.messageType
+      }
     >
       {values.map((item, index) => {
         return (

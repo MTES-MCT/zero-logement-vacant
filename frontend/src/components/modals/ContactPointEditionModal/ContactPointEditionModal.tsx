@@ -1,18 +1,10 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useMemo, useState } from 'react';
 import {
-  Button,
-  Checkbox,
   Col,
   Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
   Row,
   SearchableSelect,
-  Tag,
-} from '@dataesr/react-dsfr';
+} from '../../../components/dsfr/index';
 
 import * as yup from 'yup';
 import {
@@ -23,20 +15,31 @@ import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';
 import AppTextInput from '../../AppTextInput/AppTextInput';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import AppCheckbox from '../../AppCheckbox/AppCheckbox';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   establishmentId: string;
   contactPoint?: ContactPoint;
-  onSubmit: (contactPoint: DraftContactPoint | ContactPoint) => void;
-  onClose: () => void;
+  onSubmit: (contactPoint: DraftContactPoint | ContactPoint) => Promise<void>;
 }
 
 const ContactPointEditionModal = ({
   establishmentId,
   contactPoint,
   onSubmit,
-  onClose,
 }: Props) => {
+  const modal = useMemo(
+    () =>
+      createModal({
+        id: `contact-point-edition-modal-${contactPoint?.id}`,
+        isOpenedByDefault: false,
+      }),
+    [contactPoint]
+  );
+
   const { localitiesOptions, localities, localitiesGeoCodes } =
     useLocalityList(establishmentId);
   const [title, setTitle] = useState(contactPoint?.title ?? '');
@@ -79,8 +82,8 @@ const ContactPointEditionModal = ({
   });
 
   const submitContactPointForm = async () => {
-    await form.validate(() =>
-      onSubmit({
+    await form.validate(async () => {
+      await onSubmit({
         ...(contactPoint?.id ? { id: contactPoint.id } : {}),
         establishmentId,
         title: title!,
@@ -90,33 +93,57 @@ const ContactPointEditionModal = ({
         email,
         phone,
         notes,
-      })
-    );
+      });
+      modal.close();
+    });
   };
 
   const isGlobal = _.isEqual(geoCodes, localitiesGeoCodes);
 
   return (
-    <Modal isOpen={true} hide={() => onClose()}>
-      <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
-      <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        {contactPoint?.id
-          ? 'Modifier le guichet contact'
-          : 'Ajouter un guichet contact'}
-      </ModalTitle>
-      <ModalContent>
+    <>
+      {contactPoint ? (
+        <Button
+          iconId="fr-icon-edit-fill"
+          onClick={modal.open}
+          title="Modifier"
+          priority="tertiary no outline"
+          className="d-inline-block"
+        />
+      ) : (
+        <Button className="float-right" onClick={modal.open}>
+          Ajouter un guichet
+        </Button>
+      )}
+      <modal.Component
+        title={
+          <>
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
+            {contactPoint?.id
+              ? 'Modifier le guichet contact'
+              : 'Ajouter un guichet contact'}
+          </>
+        }
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: submitContactPointForm,
+            doClosesModal: false,
+          },
+        ]}
+        style={{ textAlign: 'initial' }}
+      >
         <Container as="section" fluid>
           <form id="user_form">
             <Row spacing="my-2w">
               <Col>
                 <AppTextInput<FormShape>
                   value={title}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setTitle(e.target.value)
-                  }
+                  onChange={(e) => setTitle(e.target.value)}
                   inputForm={form}
                   inputKey="title"
                   label="Titre du guichet (obligatoire)"
@@ -127,11 +154,9 @@ const ContactPointEditionModal = ({
             <Row spacing="my-2w">
               <Col>
                 <AppTextInput<FormShape>
-                  textarea
+                  textArea
                   value={opening}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                    setOpening(e.target.value)
-                  }
+                  onChange={(e) => setOpening(e.target.value)}
                   inputForm={form}
                   inputKey="opening"
                   label="Horaires et jours d’ouverture"
@@ -142,11 +167,9 @@ const ContactPointEditionModal = ({
             <Row spacing="my-2w">
               <Col>
                 <AppTextInput<FormShape>
-                  textarea
+                  textArea
                   value={address}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                    setAddress(e.target.value)
-                  }
+                  onChange={(e) => setAddress(e.target.value)}
                   inputForm={form}
                   inputKey="address"
                   label="Adresse postale"
@@ -156,13 +179,13 @@ const ContactPointEditionModal = ({
             </Row>
             <Row spacing="my-2w">
               <Col>
-                <Checkbox
+                <AppCheckbox
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setGeoCodes(e.target.checked ? localitiesGeoCodes : [])
                   }
                   checked={isGlobal}
                   label="Ce guichet concerne l'ensemble des communes de votre territoire."
-                  hint="Décochez cette case si vous voulez sélectionner seulement une ou plusieurs communes"
+                  hintText="Décochez cette case si vous voulez sélectionner seulement une ou plusieurs communes"
                 />
               </Col>
             </Row>
@@ -185,7 +208,7 @@ const ContactPointEditionModal = ({
                       onClick={() =>
                         setGeoCodes(geoCodes.filter((v) => v !== geoCode))
                       }
-                      icon="ri-close-line"
+                      iconId="fr-icon-close-line"
                     >
                       {localities?.find((_) => _.geoCode === geoCode)?.name}
                     </Tag>
@@ -200,9 +223,7 @@ const ContactPointEditionModal = ({
               <Col n="6">
                 <AppTextInput<FormShape>
                   value={phone}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setPhone(e.target.value)
-                  }
+                  onChange={(e) => setPhone(e.target.value)}
                   inputForm={form}
                   inputKey="phone"
                   label="Téléphone"
@@ -214,9 +235,7 @@ const ContactPointEditionModal = ({
                 <AppTextInput<FormShape>
                   value={email}
                   type="email"
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setEmail(e.target.value)
-                  }
+                  onChange={(e) => setEmail(e.target.value)}
                   inputForm={form}
                   inputKey="email"
                   label="Adresse email"
@@ -226,11 +245,9 @@ const ContactPointEditionModal = ({
             <Row spacing="my-2w">
               <Col>
                 <AppTextInput<FormShape>
-                  textarea
+                  textArea
                   value={notes}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                    setNotes(e.target.value)
-                  }
+                  onChange={(e) => setNotes(e.target.value)}
                   label="Notes"
                   inputForm={form}
                   inputKey="notes"
@@ -240,21 +257,8 @@ const ContactPointEditionModal = ({
             </Row>
           </form>
         </Container>
-      </ModalContent>
-      <ModalFooter>
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onClose()}
-        >
-          Annuler
-        </Button>
-        <Button title="Enregistrer" onClick={() => submitContactPointForm()}>
-          Enregistrer
-        </Button>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

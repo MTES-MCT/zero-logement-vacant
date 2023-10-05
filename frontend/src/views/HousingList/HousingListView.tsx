@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonGroup, Col, Row } from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/dsfr/index';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -19,6 +19,8 @@ import housingSlice from '../../store/reducers/housingReducer';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -65,8 +67,8 @@ const HousingListView = () => {
             />
             <Button
               title="Filtrer"
-              icon="ri-filter-fill"
-              secondary
+              iconId="fr-icon-filter-fill"
+              priority="secondary"
               className="fr-ml-1w"
               onClick={() => setExpand(true)}
               data-testid="filter-button"
@@ -77,40 +79,43 @@ const HousingListView = () => {
         </Col>
 
         <Col>
-          <ButtonGroup isInlineFrom="sm" size="md" align="right">
-            <Button
-              title="Vue liste"
-              tertiary
-              onClick={() => {
-                trackEvent({
-                  category: TrackEventCategories.HousingList,
-                  action: TrackEventActions.HousingList.ListView,
-                });
-                dispatch(changeView('list'));
-              }}
-              className={classNames('fr-mr-0', 'color-black-50', {
-                'bg-950': view !== 'list',
-              })}
-            >
-              Tableau
-            </Button>
-            <Button
-              title="Vue carte"
-              tertiary
-              onClick={() => {
-                trackEvent({
-                  category: TrackEventCategories.HousingList,
-                  action: TrackEventActions.HousingList.MapView,
-                });
-                dispatch(changeView('map'));
-              }}
-              className={classNames('fr-ml-0', 'color-black-50', {
-                'bg-950': view !== 'map',
-              })}
-            >
-              Cartographie
-            </Button>
-          </ButtonGroup>
+          <ButtonsGroup
+            inlineLayoutWhen="sm and up"
+            buttonsSize="medium"
+            alignment="right"
+            buttons={[
+              {
+                children: 'Tableau',
+                title: 'Vue tableau',
+                priority: 'tertiary',
+                onClick: () => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.ListView,
+                  });
+                  dispatch(changeView('list'));
+                },
+                className: classNames('fr-mr-0', 'color-black-50', {
+                  'bg-950': view !== 'list',
+                }),
+              },
+              {
+                children: 'Cartographie',
+                title: 'Vue carte',
+                priority: 'tertiary',
+                onClick: () => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.MapView,
+                  });
+                  dispatch(changeView('map'));
+                },
+                className: classNames('fr-ml-0', 'color-black-50', {
+                  'bg-950': view !== 'map',
+                }),
+              },
+            ]}
+          />
         </Col>
       </Row>
 

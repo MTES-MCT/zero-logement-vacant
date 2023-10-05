@@ -1,4 +1,4 @@
-import { Container, Text } from '@dataesr/react-dsfr';
+import { Container, Text } from '../../components/dsfr/index';
 import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
@@ -9,7 +9,7 @@ import {
 } from '../../store/actions/ownerProspectAction';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/AppLink/AppLink';
 import { getEstablishmentUrl } from '../../models/Establishment';
 import styles from './inbox-view.module.scss';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -69,14 +69,9 @@ function InboxView() {
         qui souhaitent vous faire part de leur situation. Ces messages
         proviennent du formulaire de contact présent sur la 
         {link ? (
-          <InternalLink
-            className={styles.link}
-            display="flex"
-            isSimple
-            to={link}
-          >
+          <AppLink className={styles.link} isSimple to={link}>
             page publique d’information sur la vacance
-          </InternalLink>
+          </AppLink>
         ) : (
           'page publique d’information sur la vacance'
         )}

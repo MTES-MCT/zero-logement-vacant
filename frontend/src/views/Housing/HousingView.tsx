@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Col, Row } from '@dataesr/react-dsfr';
+import React from 'react';
+import { Col, Row } from '../../components/dsfr/index';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
@@ -25,9 +25,6 @@ const HousingView = () => {
   } = useHousing();
   const housingCount = count?.housing ?? 0;
 
-  const [isModalHousingOwnersOpen, setIsModalHousingOwnersOpen] =
-    useState(false);
-
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing?.id ?? '',
     { skip: !housing }
@@ -46,7 +43,6 @@ const HousingView = () => {
       housingOwners: housingOwnersUpdated,
     });
     await refetchHousingEvents();
-    setIsModalHousingOwnersOpen(false);
   };
 
   return (
@@ -60,16 +56,14 @@ const HousingView = () => {
                   owner={mainHousingOwner}
                   coOwners={coOwners}
                   housingCount={housingCount}
-                  onModify={() => setIsModalHousingOwnersOpen(true)}
+                  modify={
+                    <HousingOwnersModal
+                      housingId={housing.id}
+                      housingOwners={housingOwners}
+                      onSubmit={submitHousingOwnersUpdate}
+                    />
+                  }
                 ></OwnerCard>
-                {isModalHousingOwnersOpen && (
-                  <HousingOwnersModal
-                    housingId={housing.id}
-                    housingOwners={housingOwners}
-                    onSubmit={submitHousingOwnersUpdate}
-                    onClose={() => setIsModalHousingOwnersOpen(false)}
-                  />
-                )}
               </>
             )}
           </Col>

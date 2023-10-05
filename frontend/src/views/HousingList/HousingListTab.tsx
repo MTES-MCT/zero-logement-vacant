@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
-import Tab, { TabProps } from '../../components/Tab/Tab';
 import HousingList from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
-import { Button, Row, Text } from '@dataesr/react-dsfr';
+import { Row, Text } from '../../components/dsfr/index';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
@@ -23,20 +22,18 @@ import { CampaignKinds } from '../../models/Campaign';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useAppDispatch } from '../../hooks/useStore';
 import { HousingFilters } from '../../models/HousingFilters';
-import Alert from '../../components/Alert/Alert';
 import { displayHousingCount } from '../../models/HousingCount';
 import fp from 'lodash/fp';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 
-export type HousingListTabProps = TabProps & {
+export type HousingListTabProps = {
   filters: HousingFilters;
   status?: HousingStatus;
   onCountFilteredHousing?: (count?: number) => void;
 };
 
 const HousingListTab = ({
-  index,
-  activeTab,
-  label,
   filters,
   status,
   onCountFilteredHousing,
@@ -48,8 +45,6 @@ const HousingListTab = ({
     { isSuccess: isUpdateSuccess, data: updatedCount },
   ] = useUpdateHousingListMutation();
 
-  const [creatingCampaignSelectedHousing, setCreatingCampaignSelectedHousing] =
-    useState<SelectedHousing>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
 
@@ -106,10 +101,10 @@ const HousingListTab = ({
   };
 
   return (
-    <Tab label={label} index={index} activeTab={activeTab} className="fr-px-0">
+    <>
       {isUpdateSuccess && (
         <Alert
-          type="success"
+          severity="success"
           title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
           closable
@@ -142,30 +137,23 @@ const HousingListTab = ({
               <Row justifyContent="right">
                 {selectedCount > 1 && (
                   <Button
-                    title="Mise à jour groupée  "
                     onClick={() => setUpdatingSelectedHousing(selected)}
-                    secondary
+                    priority="secondary"
                     className="fr-mr-1w"
                   >
                     Mise à jour groupée
                   </Button>
                 )}
-                <Button
-                  title="Créer une campagne"
-                  onClick={() => setCreatingCampaignSelectedHousing(selected)}
-                  data-testid="create-campaign-button"
-                >
-                  Créer une campagne
-                </Button>
                 <CampaignCreationModal
-                  open={!!creatingCampaignSelectedHousing}
                   housingCount={selectedCount}
                   filters={filters}
                   housingExcudedCount={filteredHousingCount - selectedCount}
                   onSubmit={(campaignTitle?: string) =>
                     onSubmitCampaignCreation(campaignTitle)
                   }
-                  onClose={() => setCreatingCampaignSelectedHousing(undefined)}
+                  openingButtonProps={{
+                    children: 'Créer une campagne',
+                  }}
                 />
                 <HousingListEditionSideMenu
                   housingCount={selectedCount}
@@ -178,7 +166,7 @@ const HousingListTab = ({
           </SelectableListHeaderActions>
         </SelectableListHeader>
       </HousingList>
-    </Tab>
+    </>
   );
 };
 export default HousingListTab;

@@ -1,14 +1,12 @@
 import Aside from '../Aside/Aside';
 import {
-  Accordion,
-  AccordionItem,
   Col,
   Container,
   Icon,
   Row,
   SearchableSelect,
   Text,
-} from '@dataesr/react-dsfr';
+} from '../../components/dsfr/index';
 import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
 import { useFilters } from '../../hooks/useFilters';
 import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
@@ -46,17 +44,17 @@ import {
 } from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
-import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useCountHousingQuery } from '../../services/housing.service';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 
 interface TitleWithIconProps {
   icon: string;
@@ -114,17 +112,16 @@ function HousingListFiltersSidemenu() {
       onClose={close}
       title="Tous les filtres"
       content={
-        <Accordion>
-          <AccordionItem
-            title={
+        <>
+          <Accordion
+            label={
               <TitleWithIcon
-                icon="ri-filter-fill"
+                icon="fr-icon-filter-fill"
                 title="Filtres liés au suivi de la mobilisation"
               />
             }
-            initExpand={true}
-            onClick={(e) => e.preventDefault()}
-            className={classNames('bg-975', 'fr-mb-2w', styles.locked)}
+            defaultExpanded
+            className="bg-975"
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -175,10 +172,13 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={
-              <TitleWithIcon icon="ri-map-pin-user-fill" title="Occupation" />
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon
+                icon="fr-icon-map-pin-user-fill"
+                title="Occupation"
+              />
             }
           >
             <Container as="section" fluid>
@@ -198,9 +198,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-home-fill" title="Logement" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-home-4-fill" title="Logement" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -304,9 +306,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-building-4-fill" title="Immeuble" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-building-fill" title="Immeuble" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -357,9 +361,11 @@ function HousingListFiltersSidemenu() {
                 )}
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-user-fill" title="Propriétaires" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-user-fill" title="Propriétaires" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -413,9 +419,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-map-pin-fill" title="Emplacement" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-france-fill" title="Emplacement" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -501,9 +509,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-calendar-fill" title="Millésime" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-calendar-fill" title="Millésime" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -540,8 +550,8 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-        </Accordion>
+          </Accordion>
+        </>
       }
       footer={
         <>

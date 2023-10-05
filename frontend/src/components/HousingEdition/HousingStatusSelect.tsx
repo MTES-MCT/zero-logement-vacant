@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react';
 import classNames from 'classnames';
-import { Radio, RadioGroup } from '@dataesr/react-dsfr';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-edition.module.scss';
+import { Radio, RadioGroup } from '../dsfr';
 
 interface Props {
   selected?: HousingStatus;

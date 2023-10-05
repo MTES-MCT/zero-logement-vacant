@@ -1,6 +1,5 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Button,
   Col,
   Container,
   Modal,
@@ -9,12 +8,13 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
-} from '@dataesr/react-dsfr';
+} from '../../../components/dsfr/index';
 
 import * as yup from 'yup';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../AppTextInput/AppTextInput';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 const GeoPerimeterEditionModal = ({
   geoPerimeter,
@@ -59,9 +59,7 @@ const GeoPerimeterEditionModal = ({
               <Col>
                 <AppTextInput<FormShape>
                   value={name}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setName(e.target.value)
-                  }
+                  onChange={(e) => setName(e.target.value)}
                   inputForm={form}
                   inputKey="name"
                   label="Nom du périmètre (obligatoire)"
@@ -73,9 +71,7 @@ const GeoPerimeterEditionModal = ({
               <Col>
                 <AppTextInput<FormShape>
                   value={kind}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setKind(e.target.value)
-                  }
+                  onChange={(e) => setKind(e.target.value)}
                   inputForm={form}
                   inputKey="kind"
                   label="Nom du filtre (obligatoire)"
@@ -89,13 +85,13 @@ const GeoPerimeterEditionModal = ({
       <ModalFooter>
         <Button
           title="Annuler"
-          secondary
+          priority="secondary"
           className="fr-mr-2w"
-          onClick={() => onClose()}
+          onClick={onClose}
         >
           Annuler
         </Button>
-        <Button title="Enregistrer" onClick={() => submitPerimeterForm()}>
+        <Button title="Enregistrer" onClick={submitPerimeterForm}>
           Enregistrer
         </Button>
       </ModalFooter>

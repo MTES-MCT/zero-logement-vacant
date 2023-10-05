@@ -1,33 +1,34 @@
 import React from 'react';
-import { Card, CardDescription } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
+import Card from '@codegouvfr/react-dsfr/Card';
 
 interface Props {
   children: any;
   icon: string;
-  isGrey?: boolean;
+  grey?: boolean;
 }
 
-function AppCard({ children, icon, isGrey = false }: Props) {
+function AppCard({ children, icon, grey = false }: Props) {
   return (
     <Card
-      hasArrow={false}
-      hasBorder={false}
-      isGrey={isGrey}
-      className={classNames('app-card-xs', { 'bg-bf925': !isGrey })}
-    >
-      <CardDescription as="div">
-        <div
-          className={classNames(
-            icon,
-            'card-icon',
-            isGrey ? 'color-grey-850' : 'color-bf925-active'
-          )}
-          aria-hidden="true"
-        />
-        {children}
-      </CardDescription>
-    </Card>
+      title=""
+      border={false}
+      grey={grey}
+      className={classNames('app-card-xs', { 'bg-bf925': !grey })}
+      desc={
+        <>
+          <div
+            className={classNames(
+              icon,
+              'card-icon',
+              grey ? 'color-grey-850' : 'color-bf925-active'
+            )}
+            aria-hidden="true"
+          />
+          {children}
+        </>
+      }
+    ></Card>
   );
 }
 

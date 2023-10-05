@@ -7,11 +7,12 @@ import {
 } from '../../../hooks/useForm';
 import { Redirect, useHistory } from 'react-router-dom';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Button, Row, Text, Title } from '@dataesr/react-dsfr';
-import InternalLink from '../../../components/InternalLink/InternalLink';
+import { Row, Text, Title } from '../../../components/dsfr/index';
+import AppLink from '../../../components/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
 import { Prospect } from '../../../models/Prospect';
 import AppTextInput from '../../../components/AppTextInput/AppTextInput';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -54,15 +55,14 @@ function AccountPasswordCreationView() {
         </Title>
         <Text>Recommencez la procédure ou contactez le support.</Text>
         <Row>
-          <InternalLink
-            icon="ri-home-fill"
+          <AppLink
+            iconId="fr-icon-home-4-fill"
             iconPosition="left"
-            iconSize="1x"
             isSimple
             to="/"
           >
             Revenir à l’accueil
-          </InternalLink>
+          </AppLink>
         </Row>
       </>
     );
@@ -111,7 +111,7 @@ function AccountPasswordCreationView() {
           inputForm={form}
           inputKey="password"
           label="Créer votre mot de passe (obligatoire)"
-          hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
+          hintText="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
           required
         />
         {form.messageList('passwordFormat')?.map((message, i) => (
@@ -131,19 +131,15 @@ function AccountPasswordCreationView() {
           required
         />
         <Row alignItems="middle" className="justify-space-between">
-          <InternalLink
+          <AppLink
             isSimple
-            display="flex"
             to="/inscription/email"
-            icon="ri-arrow-left-line"
-            iconSize="1x"
+            iconId="fr-icon-arrow-left-line"
             iconPosition="left"
           >
             Revenir à l’étape précédente
-          </InternalLink>
-          <Button submit title="Continuer">
-            Continuer
-          </Button>
+          </AppLink>
+          <Button type="submit">Continuer</Button>
         </Row>
       </form>
     </>

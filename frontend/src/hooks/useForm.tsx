@@ -55,7 +55,7 @@ export const fileValidator = (supportedFormats: string[]) =>
       (value) => value && supportedFormats.includes(value.type)
     );
 
-type MessageType = 'error' | 'valid' | '';
+export type MessageType = 'error' | 'success' | 'default';
 
 interface Message {
   text: string;
@@ -112,7 +112,7 @@ export function useForm<
     key: K,
     whenValid?: string
   ): string | undefined {
-    return messageType(key) === 'valid' && whenValid
+    return messageType(key) === 'success' && whenValid
       ? whenValid
       : error(key)?.message;
   }
@@ -135,9 +135,9 @@ export function useForm<
       if (hasError(key)) {
         return 'error';
       }
-      return 'valid';
+      return 'success';
     }
-    return '';
+    return 'default';
   }
 
   function errorsExcept<K extends keyof U>(key: K) {

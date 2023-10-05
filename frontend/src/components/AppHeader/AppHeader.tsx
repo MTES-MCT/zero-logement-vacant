@@ -1,63 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Header,
-  HeaderBody,
-  HeaderNav,
-  Logo,
-  NavItem,
-  Service,
-  Tool,
-  ToolItem,
-  ToolItemGroup,
-} from '@dataesr/react-dsfr';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './app-header.module.scss';
-import {
-  getUserNavItem,
-  UserNavItem,
-  UserNavItems,
-} from '../../models/UserNavItem';
+import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import { Header } from '@codegouvfr/react-dsfr/Header';
 import VerticalLink from '../VerticalLink/VerticalLink';
-import Collapse from '../Collapse/Collapse';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
-import classNames from 'classnames';
-
-interface AppNavItemProps {
-  userNavItem: UserNavItem;
-  isCurrent?: () => boolean;
-}
-
-function AppNavItem({ userNavItem, isCurrent }: AppNavItemProps) {
-  const location = useLocation();
-  const [path, setPath] = useState(() => location.pathname || '');
-
-  useEffect(() => {
-    if (path !== location.pathname) {
-      setPath(location.pathname);
-    }
-  }, [path, setPath, location]);
-
-  return (
-    <NavItem
-      current={isCurrent ? isCurrent() : path.indexOf(userNavItem.url) !== -1}
-      title={userNavItem.label}
-      asLink={
-        <Link
-          to={userNavItem.url}
-          className={classNames('d-md-none', styles.navItemLink)}
-        />
-      }
-    />
-  );
-}
+import Collapse from '../Collapse/Collapse';
+import { Container } from '../dsfr/index';
 
 function AppHeader() {
   const location = useLocation();
@@ -90,148 +46,131 @@ function AppHeader() {
       : '';
   }
 
-  const withNavItems = ['/', '/collectivites', 'proprietaires'].includes(
+  const withNavItems = ['/', '/collectivites', '/proprietaires'].includes(
     location.pathname
   );
 
-  function click(event: React.MouseEvent): void {
-    const isExternalLink = (url: string): boolean =>
-      new URL(url).host !== window.location.host;
-
-    // Hack to deny dataesr/react-dsfr from using event.preventDefault
-    if (event.defaultPrevented && event.target instanceof HTMLAnchorElement) {
-      const link = event.target.href;
-
-      if (isExternalLink(link)) {
-        window.open(link, '_blank');
-      }
-    }
-  }
+  const getMainNavigationItem = (navItem: UserNavItems) => ({
+    linkProps: {
+      to: getUserNavItem(navItem).url,
+    },
+    text: getUserNavItem(navItem).label,
+    isActive: location.pathname.indexOf(getUserNavItem(navItem).url) !== -1,
+  });
 
   return (
     <>
-      <Header closeButtonLabel="Fermer" data-testid="header">
-        <HeaderBody className={styles.headerBody}>
-          <Logo splitCharacter={10}>
-            Ministère de la transition écologique et de la cohésion des
-            territoires
-          </Logo>
-          <Service
-            title="Zéro Logement Vacant"
-            className={styles.brandService}
-            description={
-              isAuthenticated ? (
-                isAdmin ? (
-                  <EstablishmentSearchableSelect
-                    initialEstablishmentOption={
-                      authUser
-                        ? {
-                            value: authUser.establishment.id,
-                            label: authUser.establishment.name,
-                          }
-                        : undefined
-                    }
-                    onChange={(id: string) => {
-                      dispatch(changeEstablishment(id));
-                    }}
-                  />
-                ) : (
-                  authUser?.establishment.name
-                )
-              ) : (
-                ''
-              )
-            }
-          />
-          {isAuthenticated ? (
-            <Tool>
-              <ToolItemGroup>
-                <ToolItem as="div" className="fr-ml-2w" onClick={click}>
-                  <Collapse
-                    icon="ri-user-fill"
-                    dropdown
-                    title={displayName()}
-                    content={
-                      <Container
-                        className="bg-white bordered"
-                        spacing="px-2w pt-1w pb-2w"
-                        fluid
-                      >
-                        <AccountSideMenu />
-                      </Container>
-                    }
-                  />
-                </ToolItem>
-                <ToolItem as="div" className="fr-ml-2w">
+      <Header
+        brandTop={
+          <>
+            Ministère de <br />
+            la transition <br />
+            écologique <br />
+            et de la cohésion <br />
+            des territoires
+          </>
+        }
+        homeLinkProps={{
+          to: '/',
+          title: 'Accueil - Zéro Logement Vacant',
+        }}
+        serviceTitle="Zéro Logement Vacant"
+        serviceTagline={
+          isAuthenticated ? (
+            isAdmin ? (
+              <EstablishmentSearchableSelect
+                initialEstablishmentOption={
+                  authUser
+                    ? {
+                        value: authUser.establishment.id,
+                        label: authUser.establishment.name,
+                      }
+                    : undefined
+                }
+                onChange={(id: string) => {
+                  dispatch(changeEstablishment(id));
+                }}
+              />
+            ) : (
+              authUser?.establishment.name
+            )
+          ) : (
+            ''
+          )
+        }
+        quickAccessItems={
+          isAuthenticated
+            ? [
+                <Collapse
+                  icon="fr-icon-user-fill"
+                  dropdown
+                  title={displayName()}
+                  content={
+                    <Container
+                      className="bg-white bordered"
+                      spacing="px-2w pt-1w pb-2w"
+                      fluid
+                    >
+                      <AccountSideMenu />
+                    </Container>
+                  }
+                />,
+                <div className="fr-ml-2w">
                   <VerticalLink
                     badge={unreadMessages?.length}
                     current={location.pathname === '/messagerie'}
-                    icon="ri-mail-fill"
+                    icon="fr-icon-mail-fill"
                     label="Messagerie"
                     to="/messagerie"
                   />
-                </ToolItem>
-                <ToolItem as="div" className="fr-ml-2w">
+                </div>,
+                <div className="fr-ml-2w">
                   <VerticalLink
                     current={location.pathname === '/ressources'}
-                    icon="ri-question-fill"
+                    icon="fr-icon-question-fill"
                     label="Ressources"
                     to="/ressources"
                   />
-                </ToolItem>
-              </ToolItemGroup>
-            </Tool>
-          ) : (
-            <Tool>
-              <ToolItemGroup>
-                <ToolItem
-                  icon="ri-user-fill"
-                  link="/connexion"
-                  className="d-none d-lg-block fr-my-0"
-                >
-                  Connexion
-                </ToolItem>
-              </ToolItemGroup>
-            </Tool>
-          )}
-        </HeaderBody>
-        {isAuthenticated ? (
-          <HeaderNav data-testid="header-nav">
-            <AppNavItem
-              userNavItem={getUserNavItem(UserNavItems.HousingList)}
-            />
-            <AppNavItem userNavItem={getUserNavItem(UserNavItems.Campaign)} />
-            <AppNavItem
-              userNavItem={getUserNavItem(UserNavItems.Establishment)}
-            />
-          </HeaderNav>
-        ) : (
-          <HeaderNav>
-            <div className="d-lg-none">
-              <AppNavItem
-                userNavItem={{
-                  url: '/connexion',
-                  label: 'Connexion',
-                }}
-              />
-            </div>
-            {withNavItems && (
-              <>
-                <AppNavItem
-                  userNavItem={getUserNavItem(UserNavItems.EstablishmentHome)}
-                  isCurrent={() =>
+                </div>,
+              ]
+            : [
+                {
+                  iconId: 'fr-icon-user-fill',
+                  linkProps: {
+                    to: '/connexion',
+                  },
+                  text: 'Connexion',
+                },
+              ]
+        }
+        navigation={
+          isAuthenticated
+            ? [
+                getMainNavigationItem(UserNavItems.HousingList),
+                getMainNavigationItem(UserNavItems.Campaign),
+                getMainNavigationItem(UserNavItems.Establishment),
+              ]
+            : withNavItems && [
+                {
+                  linkProps: {
+                    to: getUserNavItem(UserNavItems.EstablishmentHome).url,
+                  },
+                  text: getUserNavItem(UserNavItems.EstablishmentHome).label,
+                  isActive:
                     location.pathname === '/' ||
-                    location.pathname.indexOf('/collectivites') === 0
-                  }
-                />
-                <AppNavItem
-                  userNavItem={getUserNavItem(UserNavItems.OwnerHome)}
-                />
-              </>
-            )}
-          </HeaderNav>
-        )}
-      </Header>
+                    location.pathname.indexOf('/collectivites') === 0,
+                },
+                {
+                  linkProps: {
+                    to: getUserNavItem(UserNavItems.OwnerHome).url,
+                  },
+                  text: getUserNavItem(UserNavItems.OwnerHome).label,
+                  isActive: location.pathname.indexOf('/proprietaires') === 0,
+                },
+              ]
+        }
+        data-testid="header"
+      />
       <LoadingBar
         className={styles.loading}
         updateTime={10}

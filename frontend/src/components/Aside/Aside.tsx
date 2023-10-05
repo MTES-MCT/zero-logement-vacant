@@ -1,8 +1,9 @@
-import { Button, Title } from '@dataesr/react-dsfr';
+import { Title } from '../../components/dsfr/index';
 import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';
 import styles from './aside.module.scss';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 export interface AsideProps {
   title: ReactNode;
@@ -29,9 +30,8 @@ function Aside(props: AsideProps) {
               <Button
                 title="Fermer"
                 className="fr-p-0"
-                icon="fr-icon-arrow-right-s-line-double"
-                tertiary
-                hasBorder={false}
+                iconId="fr-icon-arrow-right-s-line-double"
+                priority="tertiary no outline"
                 onClick={props.onClose}
               />
               <Title as="h6">{props.title}</Title>

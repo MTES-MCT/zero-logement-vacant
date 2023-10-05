@@ -1,4 +1,7 @@
-import { Stepper as DSFRStepper, StepperProps } from '@dataesr/react-dsfr';
+import {
+  Stepper as DSFRStepper,
+  StepperProps,
+} from '../../components/dsfr/index';
 import React from 'react';
 
 const Stepper: React.FC<StepperProps> = (props) => {

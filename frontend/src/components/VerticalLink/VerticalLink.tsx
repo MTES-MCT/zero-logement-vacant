@@ -1,6 +1,6 @@
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../AppLink/AppLink';
 import styles from './vertical-link.module.scss';
-import { Icon } from '@dataesr/react-dsfr';
+import { Icon } from '../../components/dsfr/index';
 import Badge from '../Badge/Badge';
 import classNames from 'classnames';
 
@@ -18,14 +18,7 @@ function VerticalLink(props: NavLinkProps) {
   });
 
   return (
-    <InternalLink
-      className={classes}
-      current={props.current}
-      display="flex"
-      size="sm"
-      to={props.to}
-      verticalIconPosition="middle"
-    >
+    <AppLink className={classes} size="sm" to={props.to}>
       {props.badge ? (
         <Badge content={props.badge}>
           {props.icon && (
@@ -36,7 +29,7 @@ function VerticalLink(props: NavLinkProps) {
         props.icon && <Icon name={props.icon} iconPosition="center" size="2x" />
       )}
       {props.label}
-    </InternalLink>
+    </AppLink>
   );
 }
 

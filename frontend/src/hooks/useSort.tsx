@@ -1,4 +1,4 @@
-import { Icon } from '@dataesr/react-dsfr';
+import { Icon } from '../components/dsfr/index';
 import { useEffect, useState } from 'react';
 
 import { Direction, Sort } from '../models/Sort';
@@ -16,11 +16,15 @@ export function useSort<Sortable extends object>(
     const direction = sort?.[key];
     return direction ? (
       <Icon
-        name={direction === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'}
+        name={
+          direction === 'asc'
+            ? 'fr-icon-arrow-up-line'
+            : 'fr-icon-arrow-down-line'
+        }
         color="var(--text-title-grey)"
       />
     ) : (
-      <Icon name="ri-arrow-up-line" color="var(--grey-main-525)" />
+      <Icon name="fr-icon-arrow-up-line" color="var(--grey-main-525)" />
     );
   }
 

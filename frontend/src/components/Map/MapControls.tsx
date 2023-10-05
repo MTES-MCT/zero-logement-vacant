@@ -1,4 +1,4 @@
-import { Container } from '@dataesr/react-dsfr';
+import { Container } from '../../components/dsfr/index';
 import React from 'react';
 
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';

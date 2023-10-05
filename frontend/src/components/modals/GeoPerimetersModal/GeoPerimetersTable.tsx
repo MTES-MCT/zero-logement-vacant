@@ -1,11 +1,17 @@
 import React from 'react';
 
-import { Button, Checkbox, Link, Row, Table, Tag } from '@dataesr/react-dsfr';
+import { Row, Text } from '../../../components/dsfr/index';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
-import ButtonLink from '../../ButtonLink/ButtonLink';
 import { useSelection } from '../../../hooks/useSelection';
 import SelectableListHeader from '../../SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../SelectableListHeader/SelectableListHeaderActions';
+import AppCheckbox from '../../AppCheckbox/AppCheckbox';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Button from '@codegouvfr/react-dsfr/Button';
+import AppLink from '../../AppLink/AppLink';
+import { Table } from '../../dsfr';
+import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
+import { pluralize } from '../../../utils/stringUtils';
 
 interface GeoPerimetersTableProps {
   geoPerimeters: GeoPerimeter[];
@@ -23,7 +29,7 @@ const GeoPerimetersTable = ({
   const selectColumn = {
     name: 'select',
     headerRender: () => (
-      <Checkbox
+      <AppCheckbox
         checked={selection.hasSelected}
         className={
           selection.selected.ids.length > 0 &&
@@ -36,7 +42,7 @@ const GeoPerimetersTable = ({
       />
     ),
     render: ({ id }: { id: string }) => (
-      <Checkbox
+      <AppCheckbox
         checked={selection.isSelected(id)}
         label=""
         onChange={() => selection.toggleSelect(id)}
@@ -64,20 +70,26 @@ const GeoPerimetersTable = ({
     headerRender: () => '',
     render: (geoPerimeter: GeoPerimeter) => (
       <>
-        <ButtonLink
+        <Button
+          title="Modifier"
+          priority="tertiary no outline"
           onClick={() => onEdit(geoPerimeter)}
-          isSimple
-          icon="ri-edit-2-fill"
-          iconSize="lg"
-          className="d-inline-block fr-mr-1w"
+          iconId="fr-icon-edit-fill"
         />
-        <ButtonLink
-          onClick={() => onRemove([geoPerimeter])}
-          isSimple
-          icon="ri-delete-bin-5-fill"
-          iconSize="lg"
-          className="d-inline-block"
-        />
+        <ConfirmationModal
+          modalId={geoPerimeter.id}
+          onSubmit={() => onRemove([geoPerimeter])}
+          openingButtonProps={{
+            iconId: 'fr-icon-delete-bin-fill',
+            priority: 'tertiary no outline',
+            title: 'Supprimer',
+            className: 'd-inline-block',
+          }}
+        >
+          <Text size="md">
+            Êtes-vous sûr de vouloir supprimer ce périmètre ?
+          </Text>
+        </ConfirmationModal>
       </>
     ),
   };
@@ -86,20 +98,19 @@ const GeoPerimetersTable = ({
     name: 'view',
     headerRender: () => '',
     render: ({ geoJson }: GeoPerimeter) => (
-      <Link
+      <AppLink
         title="Afficher (.json)"
         target="_blank"
         isSimple
-        display="inline"
-        icon="ri-eye-fill"
+        iconId="fr-icon-eye-fill"
         iconPosition="left"
-        href={
+        to={
           'https://geojson.io/#data=data:application/json,' +
           encodeURIComponent(JSON.stringify(geoJson))
         }
       >
         Afficher (.json)
-      </Link>
+      </AppLink>
     ),
   };
 
@@ -129,12 +140,17 @@ const GeoPerimetersTable = ({
           <SelectableListHeaderActions>
             {selection.hasSelected && (
               <Row justifyContent="right">
-                <Button
-                  title="Supprimer"
-                  onClick={() => onRemove(selectedGeoPerimeters)}
+                <ConfirmationModal
+                  modalId={selectedGeoPerimeters.map((_) => _.id).join('-')}
+                  onSubmit={() => onRemove(selectedGeoPerimeters)}
+                  openingButtonProps={{ children: 'Supprimer' }}
                 >
-                  Supprimer
-                </Button>
+                  <Text size="md">
+                    Êtes-vous sûr de vouloir supprimer{' '}
+                    {pluralize(selectedGeoPerimeters.length)('ce')} 
+                    {pluralize(selectedGeoPerimeters.length)('périmètre')} ?
+                  </Text>
+                </ConfirmationModal>
               </Row>
             )}
           </SelectableListHeaderActions>

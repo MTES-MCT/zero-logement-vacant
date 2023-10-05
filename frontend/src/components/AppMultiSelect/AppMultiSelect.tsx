@@ -1,4 +1,3 @@
-import { CheckboxGroup } from '@dataesr/react-dsfr';
 import classNames from 'classnames';
 import React, { useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,7 +13,7 @@ interface AppMultiSelectProps {
   onChange: (values: string[]) => void;
   messageType?: string;
   message?: string;
-  size?: 'sm' | 'md';
+  small?: boolean;
 }
 
 const AppMultiSelect = ({
@@ -25,7 +24,7 @@ const AppMultiSelect = ({
   onChange,
   messageType,
   message,
-  size,
+  small,
 }: AppMultiSelectProps) => {
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, () => setShowOptions(false));
@@ -89,27 +88,24 @@ const AppMultiSelect = ({
               'select-multi-options__visible': showOptions,
             })}
           >
-            <CheckboxGroup
-              legend=""
-              data-testid={`${label.toLowerCase()}-checkbox-group`}
-            >
+            <div data-testid={`${label.toLowerCase()}-checkbox-group`}>
               {options.map(
                 (option, index) =>
                   option.markup?.({
                     key: key(index),
                     onChangeValue,
-                    size,
+                    small,
                   }) ?? (
                     <AppMultiSelectOption
                       {...option}
                       checked={(initialValues ?? []).includes(option.value)}
                       key={key(index)}
                       onChangeValue={onChangeValue}
-                      size={size}
+                      small={small}
                     />
                   )
               )}
-            </CheckboxGroup>
+            </div>
           </div>
         </div>
       )}

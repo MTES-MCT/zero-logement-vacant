@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Button, Checkbox, Col, Row, TextInput } from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/dsfr/index';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { OwnerProspect } from '../../models/OwnerProspect';
@@ -7,6 +7,9 @@ import { AddressSearchResult } from '../../services/address.service';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 import styles from './home.module.scss';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Input from '@codegouvfr/react-dsfr/Input';
+import AppCheckbox from '../../components/AppCheckbox/AppCheckbox';
 
 interface Props {
   addressSearchResult?: AddressSearchResult;
@@ -83,16 +86,17 @@ const OwnerProspectForm = ({
         <Col>
           {addressSearchResult && !editAddress ? (
             <>
-              <TextInput
-                value={addressSearchResult.label}
+              <Input
+                nativeInputProps={{ value: addressSearchResult.label }}
                 label="Adresse de votre logement vacant"
                 disabled
                 className={styles.editableInput}
               />
               <Button
-                icon="ri-edit-fill"
-                secondary
+                iconId="fr-icon-edit-fill"
+                priority="secondary"
                 onClick={() => setEditAddress(true)}
+                title="Modifier l'adresse"
               />
             </>
           ) : (
@@ -109,9 +113,7 @@ const OwnerProspectForm = ({
         <Col>
           <AppTextInput<FormShape>
             value={invariant}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setInvariant(e.target.value)
-            }
+            onChange={(e) => setInvariant(e.target.value)}
             inputForm={form}
             inputKey="invariant"
             label="Invariant fiscal"
@@ -123,9 +125,7 @@ const OwnerProspectForm = ({
         <Col>
           <AppTextInput<FormShape>
             value={lastName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setLastName(e.target.value)
-            }
+            onChange={(e) => setLastName(e.target.value)}
             inputForm={form}
             inputKey="lastName"
             label="Nom (obligatoire)"
@@ -135,9 +135,7 @@ const OwnerProspectForm = ({
         <Col>
           <AppTextInput<FormShape>
             value={firstName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setFirstName(e.target.value)
-            }
+            onChange={(e) => setFirstName(e.target.value)}
             inputForm={form}
             inputKey="firstName"
             label="Prénom (obligatoire)"
@@ -171,7 +169,7 @@ const OwnerProspectForm = ({
       <Row gutters>
         <Col>
           <AppTextInput<FormShape>
-            textarea
+            textArea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             inputForm={form}
@@ -183,14 +181,14 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters>
         <Col>
-          <Checkbox
+          <AppCheckbox
+            label="J’accepte les Conditions Générales d’Utilisation du service et d’être recontacté.e dans le cadre d’une mission d’intérêt général"
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               setAgreement(e.target.checked)
             }
             checked={agreement}
-            label="J’accepte les Conditions Générales d’Utilisation du service et d’être recontacté.e dans le cadre d’une mission d’intérêt général"
-            messageType={form.messageType('agreement')}
-            message={form.message('agreement')}
+            state={form.messageType('agreement')}
+            stateRelatedMessage={form.message('agreement')}
           />
         </Col>
       </Row>

@@ -1,19 +1,14 @@
 import React, { useEffect } from 'react';
-import {
-  Button,
-  Callout,
-  CalloutText,
-  CalloutTitle,
-  Col,
-  Link,
-  Row,
-} from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/dsfr/index';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Link } from 'react-router-dom';
+import { Callout, CalloutText, CalloutTitle } from '../../components/dsfr';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
@@ -31,21 +26,21 @@ const CampaignsListView = () => {
       title={
         <>
           Vos logements suivis ({inProgressCampaignBundle?.housingCount})
-          <InternalLink
+          <AppLink
             className="fr-ml-2w fr-link"
-            icon="ri-arrow-right-line"
+            iconId="fr-icon-arrow-right-line"
             iconPosition="right"
             isSimple
             to="/campagnes/C"
           >
             Voir tout
-          </InternalLink>
+          </AppLink>
           <Button
             onClick={() =>
               window.open(inProgressCampaignBundle?.exportURL, '_self')
             }
             className="float-right"
-            icon="ri-download-line"
+            iconId="fr-icon-download-line"
           >
             Exporter les données
           </Button>
@@ -64,12 +59,12 @@ const CampaignsListView = () => {
               Vous pouvez également en créer une nouvelle directement dans une
               campagne existante (pour une relance par exemple)
             </CalloutText>
-            <InternalLink
+            <AppLink
               to="/parc-de-logements"
               className="fr-btn--md fr-btn fr-btn--secondary"
             >
               Créer votre nouvelle campagne
-            </InternalLink>
+            </AppLink>
           </Callout>
         </Col>
         <Col>
@@ -83,7 +78,7 @@ const CampaignsListView = () => {
             </CalloutText>
             <Link
               title="Voir la bibliothèque des courriers"
-              href="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R"
+              to="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R"
               target="_blank"
               className="fr-btn--md fr-btn fr-btn--secondary"
             >

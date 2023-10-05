@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  Alert,
-  Col,
-  Row,
-  Tag,
-  TagGroup,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Row, Text, Title } from '../../components/dsfr/index';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -22,6 +14,8 @@ import {
 import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 import Help from '../../components/Help/Help';
 import { useUpdateLocalityTaxMutation } from '../../services/locality.service';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 
 interface Props {
   establishmentId: string;
@@ -83,7 +77,6 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
         <LocalityTaxEditionModal
           locality={localityToUpdate}
           onSubmit={onSubmitEditingLocalityTax}
-          onClose={() => setLocalityToUpdate(undefined)}
         />
       )}
       <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
@@ -94,49 +87,54 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
       </Help>
       {isUpdateSuccess && (
         <Alert
-          type="success"
+          severity="success"
           description={'La taxe de a été modifiée avec succès !'}
           closable
+          small
           className="fr-mb-2w"
         />
       )}
       {isUpdateError && (
         <Alert
-          type="error"
+          severity="error"
           description="Une erreur s'est produite, veuillez réessayer."
           closable
+          small
           className="fr-mb-2w"
         />
       )}
-      <TagGroup className="fr-py-1w">
+      <div className="fr-py-1w">
         <Tag
-          as="span"
           small
-          selected={hasTLVFilter}
-          onClick={() => setHasTLVFilter(!hasTLVFilter)}
+          pressed={hasTLVFilter}
+          nativeButtonProps={{
+            onClick: () => setHasTLVFilter(!hasTLVFilter),
+          }}
         >
           {TaxKindsLabels[TaxKinds.TLV]} (
           {filterCount((l) => l.taxKind === TaxKinds.TLV)})
         </Tag>
         <Tag
-          as="span"
           small
-          selected={hasTHLVFilter}
-          onClick={() => setHasTHLVFilter(!hasTHLVFilter)}
+          pressed={hasTHLVFilter}
+          nativeButtonProps={{
+            onClick: () => setHasTHLVFilter(!hasTHLVFilter),
+          }}
         >
           {TaxKindsLabels[TaxKinds.THLV]} (
           {filterCount((l) => l.taxKind === TaxKinds.THLV)})
         </Tag>
         <Tag
-          as="span"
           small
-          selected={hasNoTaxFilter}
-          onClick={() => setHasNoTaxFilter(!hasNoTaxFilter)}
+          pressed={hasNoTaxFilter}
+          nativeButtonProps={{
+            onClick: () => setHasNoTaxFilter(!hasNoTaxFilter),
+          }}
         >
           {TaxKindsLabels[TaxKinds.None]} (
           {filterCount((l) => l.taxKind === TaxKinds.None)})
         </Tag>
-      </TagGroup>
+      </div>
       {filteredLocalities && !filteredLocalities.length ? (
         <Text>Aucune commune</Text>
       ) : (

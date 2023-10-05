@@ -1,5 +1,5 @@
-import React, { ChangeEvent, useState } from 'react';
-import { Button, Col, Link, Row, Text } from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import { Col, Row, Text } from '../../components/dsfr/index';
 import {
   removeCampaignHousingList,
   validCampaignStep,
@@ -30,6 +30,8 @@ import AppTextInput from '../../components/AppTextInput/AppTextInput';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
+import Button from '@codegouvfr/react-dsfr/Button';
+import AppLink from '../../components/AppLink/AppLink';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -51,10 +53,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     campaignIds: campaignBundle?.campaignIds,
     query,
   };
-
-  const [removingId, setRemovingId] = useState<string>();
-  const [isRemovingModalOpen, setIsRemovingModalOpen] =
-    useState<boolean>(false);
 
   const { forceStep, index, isCompleted, next } = useStepper(
     [
@@ -113,12 +111,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
     }
   };
 
-  function remove(id: string): void {
-    setRemovingId(id);
-    setIsRemovingModalOpen(true);
-  }
-
-  const submitCampaignHousingRemove = () => {
+  const submitCampaignHousingRemove = (removingId?: string) => {
     dispatch(
       removeCampaignHousingList(
         campaignBundle.campaignIds[0],
@@ -127,7 +120,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
         { query }
       )
     );
-    setIsRemovingModalOpen(false);
   };
 
   async function downloadCSV(downloadOnly = false): Promise<void> {
@@ -159,7 +151,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
           }
           content={
             isCompleted(CampaignSteps.OwnersValidation) ? (
-              <ButtonLink display="flex" isSimple onClick={editHousings}>
+              <ButtonLink isSimple onClick={editHousings}>
                 Voir ou supprimer des logements
               </ButtonLink>
             ) : (
@@ -170,9 +162,17 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                 <HousingList
                   filters={filters}
                   actions={(housing) => (
-                    <ButtonLink isSimple onClick={() => remove(housing.id)}>
-                      Supprimer
-                    </ButtonLink>
+                    <ConfirmationModal
+                      modalId={housing.id}
+                      onSubmit={() => submitCampaignHousingRemove(housing.id)}
+                      openingButtonLinkProps={{
+                        isSimple: true,
+                        children: 'Supprimer',
+                      }}
+                    >
+                      Êtes-vous sûr de vouloir supprimer ce logement de la
+                      campagne ?
+                    </ConfirmationModal>
                   )}
                   onSelectHousing={setSelected}
                 >
@@ -184,12 +184,17 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                             <AppSearchBar onSearch={(q) => setQuery(q)} />
                           </Col>
                         ) : (
-                          <Button
-                            title="Supprimer"
-                            onClick={() => setIsRemovingModalOpen(true)}
+                          <ConfirmationModal
+                            modalId={campaignBundle.campaignIds[0]}
+                            onSubmit={submitCampaignHousingRemove}
+                            openingButtonProps={{
+                              children: 'Supprimer',
+                            }}
                           >
-                            Supprimer
-                          </Button>
+                            Êtes-vous sûr de vouloir supprimer 
+                            {pluralize(selectedCount)('ce logement')}
+                            de la campagne ?
+                          </ConfirmationModal>
                         )}
                       </Row>
                     </SelectableListHeaderActions>
@@ -202,19 +207,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                     Valider
                   </Button>
                 </Row>
-                {isRemovingModalOpen && (
-                  <ConfirmationModal
-                    onSubmit={() => submitCampaignHousingRemove()}
-                    onClose={() => {
-                      setIsRemovingModalOpen(false);
-                      setRemovingId(undefined);
-                    }}
-                  >
-                    Êtes-vous sûr de vouloir supprimer 
-                    {pluralize(removingId ? 1 : selectedCount)('ce logement')} 
-                    de la campagne ?
-                  </ConfirmationModal>
-                )}
               </>
             )
           }
@@ -235,18 +227,18 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
               Exportez la liste des logements et des coordonnées propriétaires.
               <br />
               Découvrez{' '}
-              <Link
-                href="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R"
+              <AppLink
+                to="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R"
                 isSimple
                 target="_blank"
               >
                 nos exemples de courrier postal ici.
-              </Link>
+              </AppLink>
             </Text>
           }
           actions={
             isCompleted(CampaignSteps.Export) ? (
-              <Button secondary onClick={() => downloadCSV(true)}>
+              <Button priority="secondary" onClick={() => downloadCSV(true)}>
                 Exporter à nouveau (.csv)
               </Button>
             ) : (
@@ -290,9 +282,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                 <Col n="3">
                   <AppTextInput<FormShape>
                     value={sendingDate}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setSendingDate(e.target.value)
-                    }
+                    onChange={(e) => setSendingDate(e.target.value)}
                     label="Date d'envoi"
                     inputForm={sendingForm}
                     inputKey="sendingDate"

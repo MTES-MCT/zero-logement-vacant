@@ -1,12 +1,4 @@
-import {
-  Button,
-  Col,
-  Container,
-  Icon,
-  Link,
-  Row,
-  Text,
-} from '@dataesr/react-dsfr';
+import { Col, Container, Icon, Row, Text } from '../../components/dsfr/index';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { OwnerProspect } from '../../models/OwnerProspect';
@@ -17,6 +9,8 @@ import React, { useMemo } from 'react';
 import { useClipboard } from '../../hooks/useClipboard';
 import Label from '../Label/Label';
 import { initials } from '../../utils/stringUtils';
+import Button from '@codegouvfr/react-dsfr/Button';
+import AppLink from '../AppLink/AppLink';
 
 interface Props {
   expand: boolean;
@@ -85,9 +79,13 @@ function InboxSidemenu(props: Props) {
               <div>
                 <Label>Email</Label>
                 <Text spacing="mb-1w">{props.ownerProspect?.email}</Text>
-                <Button secondary className="fr-mb-1w" onClick={copyMail}>
+                <Button
+                  priority="secondary"
+                  className="fr-mb-1w"
+                  onClick={copyMail}
+                >
                   <Icon
-                    name="ri-file-copy-line"
+                    name="fr-icon-file-copy-line"
                     iconPosition="left"
                     size="1x"
                   />
@@ -96,18 +94,17 @@ function InboxSidemenu(props: Props) {
               </div>
               <div>
                 <Label>Adresse du logement</Label>
-                <Link
+                <AppLink
                   className="ellipsis fr-mb-1w"
-                  display="flex"
-                  href={`https://www.google.com/maps/place/${props.ownerProspect?.address}`}
-                  icon="ri-map-pin-2-fill"
+                  to={`https://www.google.com/maps/place/${props.ownerProspect?.address}`}
+                  iconId="fr-icon-map-pin-2-fill"
                   iconPosition="left"
                   isSimple
                   target="_blank"
                   title="Voir sur la carte - nouvelle fenêtre"
                 >
                   {props.ownerProspect?.address}
-                </Link>
+                </AppLink>
               </div>
               <div>
                 <Label>Source du message</Label>
@@ -126,7 +123,7 @@ function InboxSidemenu(props: Props) {
           {props.ownerProspect && (
             <ExtendedToggle
               checked={props.ownerProspect.callBack}
-              icon="ri-phone-fill"
+              icon="fr-icon-phone-fill"
               label="À recontacter"
               onChange={onChange}
               toggleColor="#4a9df7"

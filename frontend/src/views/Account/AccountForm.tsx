@@ -1,14 +1,17 @@
-import { Button, Col, Row, Select, TextInput } from '@dataesr/react-dsfr';
-import React, { ChangeEvent, useState } from 'react';
+import { Col, Row } from '../../components/dsfr/index';
+import React, { useState } from 'react';
 import Help from '../../components/Help/Help';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
 import { DefaultOption, SelectOption } from '../../models/SelectOption';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/AppLink/AppLink';
 import { useUpdateUserAccountMutation } from '../../services/user-account.service';
-import Alert from '../../components/Alert/Alert';
 import { User, UserAccount } from '../../models/User';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Input from '@codegouvfr/react-dsfr/Input';
+import Button from '@codegouvfr/react-dsfr/Button';
+import AppSelect from '../../components/AppSelect/AppSelect';
 
 interface Props {
   user: User;
@@ -72,29 +75,26 @@ const AccountForm = ({ user, userAccount }: Props) => {
       <div className="fr-p-3w bg-975">
         <Row gutters>
           <Col n="6">
-            <TextInput
-              type="email"
+            <Input
+              nativeInputProps={{ type: 'email', value: user?.email }}
               disabled
-              value={user?.email}
               label="Adresse email : "
             />
           </Col>
           <Col n="6">
-            <TextInput
-              type="password"
+            <Input
+              nativeInputProps={{ type: 'password', value: '********' }}
               disabled
-              value="********"
               label="Mot de passe : "
               className="fr-mb-1w"
             />
-            <InternalLink
+            <AppLink
               to="/compte/mot-de-passe"
-              icon="ri-edit-2-fill"
+              iconId="fr-icon-edit-fill"
               iconPosition="left"
-              className="fr-link"
             >
               Modifier le mot de passe
-            </InternalLink>
+            </AppLink>
           </Col>
           <Col n="12">
             <Help>
@@ -111,9 +111,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
         <Col n="6">
           <AppTextInput<FormShape>
             value={firstName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setFirstName(e.target.value)
-            }
+            onChange={(e) => setFirstName(e.target.value)}
             label="Prénom"
             inputForm={form}
             inputKey="firstName"
@@ -122,9 +120,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
         <Col n="6">
           <AppTextInput<FormShape>
             value={lastName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setLastName(e.target.value)
-            }
+            onChange={(e) => setLastName(e.target.value)}
             label="Nom"
             inputForm={form}
             inputKey="lastName"
@@ -133,9 +129,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
         <Col n="6">
           <AppTextInput<FormShape>
             value={phone}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setPhone(e.target.value)
-            }
+            onChange={(e) => setPhone(e.target.value)}
             label="Téléphone"
             inputForm={form}
             inputKey="phone"
@@ -145,9 +139,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
         <Col n="6">
           <AppTextInput<FormShape>
             value={position}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setPosition(e.target.value)
-            }
+            onChange={(e) => setPosition(e.target.value)}
             label="Poste"
             placeholder="Ex : Chargé Habitat"
             inputForm={form}
@@ -155,37 +147,35 @@ const AccountForm = ({ user, userAccount }: Props) => {
           />
         </Col>
         <Col n="6">
-          <Select
+          <AppSelect<FormShape>
             label="Temps par semaine dédié à la vacance"
+            onChange={(e) => setTimePerWeek(e.target.value)}
+            value={timePerWeek}
+            inputForm={form}
+            inputKey="timePerWeek"
             options={timePerWeekOptions}
-            selected={timePerWeek}
-            messageType={form.messageType('timePerWeek') as 'valid' | 'error'}
-            message={form.message('timePerWeek')}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setTimePerWeek(e.target.value)
-            }
           />
         </Col>
         <Col>
           {isUpdateError && (
             <Alert
-              type="error"
+              severity="error"
               description="Une erreur s'est produite, veuillez réessayer."
               closable
+              small
               className="fr-mb-2w"
             />
           )}
           {isUpdateSuccess && (
             <Alert
-              type="success"
+              severity="success"
               description="La mise a jour de votre profil a bien été enregistrée "
               closable
+              small
               className="fr-mb-2w"
             />
           )}
-          <Button title="Enregistrer" onClick={() => submit()}>
-            Enregistrer
-          </Button>
+          <Button onClick={submit}>Enregistrer</Button>
         </Col>
       </Row>
     </form>

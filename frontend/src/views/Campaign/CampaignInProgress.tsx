@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Col, Row, Tabs } from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/dsfr/index';
 import { HousingStatus } from '../../models/HousingState';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import CampaignInProgressTab from './CampaignInProgressTab';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 const CampaignInProgress = () => {
   const statusList = [
@@ -42,18 +43,20 @@ const CampaignInProgress = () => {
         </Row>
       )}
       <Row>
-        <Tabs className="tabs-no-border statusTabs">
-          {statusList.map((status, index) => (
-            <CampaignInProgressTab
-              index={index}
-              key={`status_tab_${status}`}
-              label={getTabLabel(status)}
-              status={status}
-              query={query}
-              onCountFilteredHousing={setStatusCount(status)}
-            />
-          ))}
-        </Tabs>
+        <Tabs
+          className="tabs-no-border statusTabs"
+          tabs={statusList.map((status) => ({
+            label: getTabLabel(status),
+            content: (
+              <CampaignInProgressTab
+                key={`status_tab_${status}`}
+                status={status}
+                query={query}
+                onCountFilteredHousing={setStatusCount(status)}
+              />
+            ),
+          }))}
+        />
       </Row>
     </>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Alert, Col, Row } from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/dsfr/index';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { HousingStates } from '../../models/HousingState';
 import classNames from 'classnames';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -12,9 +13,9 @@ const StatusView = () => {
   return (
     <MainContainer title="Arborescence des statuts">
       <Alert
-        title=""
         description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts de suivi que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts correspondants."
-        type="info"
+        severity="info"
+        small
         className="fr-mb-3w"
       />
       <Row className="fr-py-1w bordered-b bg-100">

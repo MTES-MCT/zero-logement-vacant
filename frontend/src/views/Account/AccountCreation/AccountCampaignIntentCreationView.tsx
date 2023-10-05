@@ -3,15 +3,16 @@ import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Button, Row, Title } from '@dataesr/react-dsfr';
+import { Row, Title } from '../../../components/dsfr/index';
 import Help from '../../../components/Help/Help';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';
 import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
-import InternalLink from '../../../components/InternalLink/InternalLink';
+import AppLink from '../../../components/AppLink/AppLink';
 import { useAppDispatch } from '../../../hooks/useStore';
 import { useCreateUserMutation } from '../../../services/user.service';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface State {
   prospect: Prospect;
@@ -98,17 +99,15 @@ function AccountCampaignIntentCreationView() {
         />
         <Row alignItems="middle" className="justify-space-between">
           {/*@ts-ignore*/}
-          <InternalLink
+          <AppLink
             isSimple
-            display="flex"
             to={back}
-            icon="ri-arrow-left-line"
-            iconSize="1x"
+            iconId="fr-icon-arrow-left-line"
             iconPosition="left"
           >
             Revenir à l’étape précédente
-          </InternalLink>
-          <Button submit disabled={!isValid()}>
+          </AppLink>
+          <Button type="submit" disabled={!isValid()}>
             Créer votre compte
           </Button>
         </Row>

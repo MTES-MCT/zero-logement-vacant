@@ -31,7 +31,6 @@ import {
   getSubStatusList,
   getSubStatusListOptions,
 } from '../../models/HousingState';
-import { TagGroup } from '@dataesr/react-dsfr';
 import ButtonLink from '../ButtonLink/ButtonLink';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -70,7 +69,7 @@ const HousingFiltersBadges = ({
   }
 
   return (
-    <TagGroup>
+    <div className="fr-tags-group">
       <FilterBadges
         options={allOccupancyOptions}
         filters={filters.occupancies}
@@ -285,11 +284,11 @@ const HousingFiltersBadges = ({
         onChange={onChange && (() => onChange({ query: '' }))}
       />
       {canReset && (
-        <ButtonLink className={styles.reinit} onClick={reset}>
+        <ButtonLink className={styles.reinit} onClick={reset} size="sm">
           Réinitialiser les filtres
         </ButtonLink>
       )}
-    </TagGroup>
+    </div>
   );
 };
 

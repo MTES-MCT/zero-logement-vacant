@@ -1,16 +1,17 @@
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
 import building from '../../assets/images/building.svg';
-import React, { FormEvent, useState } from 'react';
+import React, { useState } from 'react';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
-import Alert from '../../components/Alert/Alert';
-import InternalLink from '../../components/InternalLink/InternalLink';
 import resetLinkService from '../../services/reset-link.service';
 import classNames from 'classnames';
 import styles from './forgotten-password-view.module.scss';
 import { useHide } from '../../hooks/useHide';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonLink from '../../components/ButtonLink/ButtonLink';
 
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
@@ -27,7 +28,7 @@ function ForgottenPasswordView() {
   });
   const { hidden, setHidden } = useHide();
 
-  async function submit(e?: FormEvent<HTMLFormElement>) {
+  async function submit(e?: any) {
     try {
       e?.preventDefault();
       await form.validate(async () => {
@@ -51,9 +52,9 @@ function ForgottenPasswordView() {
         <Text className="subtitle">
           Vous ne trouvez pas le mail ? Vérifiez qu'il ne s'est pas glissé dans
           vos spams ou 
-          <InternalLink to="#" isSimple onClick={submit}>
+          <ButtonLink isSimple onClick={submit}>
             renvoyer le mail
-          </InternalLink>
+          </ButtonLink>
           .
         </Text>
         <Text size="sm" className={confirmationClasses}>
@@ -73,7 +74,7 @@ function ForgottenPasswordView() {
               description="Impossible d'envoyer l'email."
               className="fr-my-3w"
               closable
-              type="error"
+              severity="error"
             />
           )}
           <Title as="h1" look="h4">
@@ -92,7 +93,7 @@ function ForgottenPasswordView() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  hint="Entrez l’adresse mail utilisée pour créer votre compte ZLV"
+                  hintText="Entrez l’adresse mail utilisée pour créer votre compte ZLV"
                   inputForm={form}
                   inputKey="email"
                   whenValid="Email valide."
@@ -102,7 +103,9 @@ function ForgottenPasswordView() {
                   required
                 />
                 <Row justifyContent="right">
-                  <Button submit>Envoyer un email de réinitialisation</Button>
+                  <Button type="submit">
+                    Envoyer un email de réinitialisation
+                  </Button>
                 </Row>
               </form>
             </>

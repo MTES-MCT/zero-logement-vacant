@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { Container, Tabs, Text, Title } from '@dataesr/react-dsfr';
-import Tab from '../../components/Tab/Tab';
+import { Container, Text, Title } from '../../components/dsfr/index';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
 import { useAppSelector } from '../../hooks/useStore';
 import ContactPointPublicPage from '../../components/ContactPoint/ContactPointPublicPage';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 const EstablishmentView = () => {
   useDocumentTitle('Informations publiques');
@@ -29,14 +29,26 @@ const EstablishmentView = () => {
           fournies ici seront publiées sur votre page publique, alors
           assurez-vous qu'elles soient précises et claires.
         </Text>
-        <Tabs>
-          <Tab label="Vos guichets contact" className="bg-white">
-            <EstablishmentContactPoints establishmentId={establishment.id} />
-          </Tab>
-          <Tab label="Taxes sur les logements vacants" className="bg-white">
-            <EstablishmentLocalityTaxes establishmentId={establishment.id} />
-          </Tab>
-        </Tabs>
+        <Tabs
+          tabs={[
+            {
+              label: 'Vos guichets contact',
+              content: (
+                <EstablishmentContactPoints
+                  establishmentId={establishment.id}
+                />
+              ),
+            },
+            {
+              label: 'Taxes sur les logements vacants',
+              content: (
+                <EstablishmentLocalityTaxes
+                  establishmentId={establishment.id}
+                />
+              ),
+            },
+          ]}
+        ></Tabs>
       </Container>
       <Container as="article" spacing="px-0">
         <Title as="h3">Votre page publique</Title>

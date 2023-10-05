@@ -1,15 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
-import {
-  Alert,
-  Col,
-  Container,
-  Link,
-  Row,
-  Tag,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
-import { useLocation, useParams } from 'react-router-dom';
+import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';
 import handsPoints from '../../assets/images/hands-point.svg';
@@ -33,6 +24,8 @@ import classNames from 'classnames';
 import { useFindContactPointsQuery } from '../../services/contact-point.service';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useSettings } from '../../hooks/useSettings';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
@@ -334,9 +327,9 @@ const OwnerEstablishmentHomeView = () => {
                   </Text>
                   {ownerProspect ? (
                     <Alert
-                      title=""
                       description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
-                      type="success"
+                      severity="success"
+                      small
                     />
                   ) : (
                     <OwnerProspectForm
@@ -357,7 +350,7 @@ const OwnerEstablishmentHomeView = () => {
                 pour les usagers propriétaires.
               </Text>
               <Link
-                href="https://www.impots.gouv.fr/actualite/gerer-mes-biens-immobiliers-un-nouveau-service-en-ligne-pour-les-usagers-proprietaires-1"
+                to="https://www.impots.gouv.fr/actualite/gerer-mes-biens-immobiliers-un-nouveau-service-en-ligne-pour-les-usagers-proprietaires-1"
                 target="_blank"
                 className="fr-btn"
               >

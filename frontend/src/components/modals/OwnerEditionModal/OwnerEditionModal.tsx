@@ -1,15 +1,5 @@
-import React, { ChangeEvent, useState } from 'react';
-import {
-  Alert,
-  Button,
-  Col,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-} from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import { Col, Row } from '../../../components/dsfr/index';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
@@ -18,13 +8,20 @@ import { parseDateInput } from '../../../utils/dateUtils';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button from '@codegouvfr/react-dsfr/Button';
+
+const modal = createModal({
+  id: 'owner-edition-modal',
+  isOpenedByDefault: true,
+});
 
 interface Props {
   owner: Owner;
-  onClose: () => void;
 }
 
-const OwnerEditionModal = ({ owner, onClose }: Props) => {
+const OwnerEditionModal = ({ owner }: Props) => {
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
     owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
@@ -64,25 +61,43 @@ const OwnerEditionModal = ({ owner, onClose }: Props) => {
           email,
           phone,
         });
-        onClose();
+        modal.close();
       }
     });
   };
 
   return (
-    <Modal isOpen={true} hide={() => onClose()} size="lg">
-      <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
-      <ModalTitle>Modifier la rubrique "propriétaire"</ModalTitle>
-      <ModalContent>
+    <>
+      <Button
+        className="float-right fr-pr-0"
+        iconId="fr-icon-edit-fill"
+        priority="tertiary no outline"
+        title="Modifier le propriétaire"
+        onClick={modal.open}
+      >
+        Modifier
+      </Button>
+      <modal.Component
+        size="large"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: submit,
+            doClosesModal: false,
+          },
+        ]}
+        title='Modifier la rubrique "propriétaire"'
+      >
         <Row gutters>
           <Col n="6">
             <AppTextInput<FormShape>
               value={fullName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setFullName(e.target.value)
-              }
+              onChange={(e) => setFullName(e.target.value)}
               label="Identité (nom, prénom) (obligatoire)"
               inputForm={form}
               inputKey="fullName"
@@ -93,9 +108,7 @@ const OwnerEditionModal = ({ owner, onClose }: Props) => {
             <AppTextInput<FormShape>
               value={birthDate}
               type="date"
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setBirthDate(e.target.value)
-              }
+              onChange={(e) => setBirthDate(e.target.value)}
               label="Date de naissance"
               inputForm={form}
               inputKey="birthDate"
@@ -103,7 +116,7 @@ const OwnerEditionModal = ({ owner, onClose }: Props) => {
           </Col>
           <Col n="12">
             <AppTextInput<FormShape>
-              textarea
+              textArea
               value={rawAddress.join('\n')}
               onChange={(e) => setRawAddress(e.target.value.split('\n'))}
               label="Adresse postale"
@@ -132,33 +145,17 @@ const OwnerEditionModal = ({ owner, onClose }: Props) => {
             />
           </Col>
         </Row>
-      </ModalContent>
-      <ModalFooter>
         {isUpdateError && (
           <Alert
-            type="error"
+            severity="error"
             description="Une erreur s'est produite, veuillez réessayer."
             closable
+            small
             className="fr-mb-2w"
           />
         )}
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onClose()}
-        >
-          Annuler
-        </Button>
-        <Button
-          title="Enregistrer"
-          onClick={() => submit()}
-          data-testid="create-button"
-        >
-          Enregistrer
-        </Button>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

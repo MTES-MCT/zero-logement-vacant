@@ -1,7 +1,7 @@
 import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
 import { ReactElement } from 'react';
-import { Text } from '@dataesr/react-dsfr';
+import { Text } from '../components/dsfr/index';
 
 export interface HousingState {
   status: HousingStatus;

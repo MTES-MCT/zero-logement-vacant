@@ -1,14 +1,14 @@
-import { Link } from '@dataesr/react-dsfr';
-import { ComponentPropsWithoutRef, MouseEventHandler } from 'react';
+import { MouseEventHandler } from 'react';
 
 import styles from './button-link.module.scss';
+import AppLink, { AppLinkProps } from '../AppLink/AppLink';
 
-interface LinkProps extends ComponentPropsWithoutRef<typeof Link> {
+export type ButtonLinkProps = Omit<AppLinkProps, 'to'> & {
   onClick: MouseEventHandler;
-}
+};
 
-function ButtonLink(props: LinkProps) {
-  return <Link className={styles.buttonLink} {...props} as={<button />} />;
+function ButtonLink(props: ButtonLinkProps) {
+  return <AppLink className={styles.buttonLink} {...props} to="#" />;
 }
 
 export default ButtonLink;

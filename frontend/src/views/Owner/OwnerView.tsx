@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Col, Row, Tag, Title } from '@dataesr/react-dsfr';
+import React from 'react';
+import { Col, Row, Title } from '../../components/dsfr/index';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
@@ -7,11 +7,10 @@ import OwnerHousingCard from '../../components/OwnerHousingCard/OwnerHousingCard
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
-
-  const [isModalOwnerEditionOpen, setIsModalOwnerEditionOpen] = useState(false);
 
   const { count, owner, paginatedHousing } = useOwner();
   const housingCount = count?.housing ?? 0;
@@ -27,22 +26,14 @@ const OwnerView = () => {
           <OwnerCard
             owner={owner}
             housingCount={housingCount}
-            onModify={() => setIsModalOwnerEditionOpen(true)}
+            modify={<OwnerEditionModal owner={owner} />}
           />
-          {isModalOwnerEditionOpen && (
-            <OwnerEditionModal
-              owner={owner}
-              onClose={() => setIsModalOwnerEditionOpen(false)}
-            />
-          )}
         </Col>
         <Col n="8">
           <header className={styles.header}>
             <Title as="h3" look="h6" spacing="mb-0">
               <span className="fr-mr-1w">Tous les logements</span>
-              <Tag as="span" className={styles.tag}>
-                {housingCount}
-              </Tag>
+              <Tag className={styles.tag}>{housingCount}</Tag>
             </Title>
           </header>
           <Row gutters>

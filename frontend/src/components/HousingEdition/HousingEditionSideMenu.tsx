@@ -1,22 +1,18 @@
 import React, { useRef } from 'react';
-import {
-  Button,
-  Container,
-  Link,
-  Tabs,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Container, Text, Title } from '../../components/dsfr/index';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import Aside from '../Aside/Aside';
 import { Campaign } from '../../models/Campaign';
 import HousingEditionForm from './HousingEditionForm';
-import Tab from '../Tab/Tab';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
 import styles from './housing-edition.module.scss';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Link } from 'react-router-dom';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import AppLink from '../AppLink/AppLink';
 
 interface Props {
   housing?: Housing;
@@ -60,20 +56,18 @@ const HousingEditionSideMenu = ({
             <Button
               title="Fermer"
               className="fr-p-0"
-              icon="fr-icon-arrow-right-s-line-double"
-              tertiary
-              hasBorder={false}
+              iconId="fr-icon-arrow-right-s-line-double"
+              priority="tertiary no outline"
               onClick={onClose}
             />
-            <Link
-              href={'/logements/' + housing.id}
+            <AppLink
+              to={'/logements/' + housing.id}
               isSimple
-              display="flex"
               target="_blank"
               className="float-right"
             >
               Voir la fiche logement
-            </Link>
+            </AppLink>
             <Title as="h6" className="fr-mb-0">
               {housing.rawAddress.join(' - ')}
             </Title>
@@ -86,30 +80,40 @@ const HousingEditionSideMenu = ({
         className="fr-p-0"
         content={
           <Container as="section" spacing="p-0">
-            <Tabs className="no-border first-tab-grey">
-              <Tab
-                label="+ Nouvelle mise à jour / note"
-                className="fr-p-0 bg-975"
-              >
-                <HousingEditionForm
-                  housing={housing}
-                  fromDefaultCampaign={hasOnlyDefaultCampaign}
-                  onSubmit={submit}
-                  ref={statusFormRef}
-                />
-              </Tab>
-              <Tab label="Historique de suivi">
-                <EventsHistory
-                  events={housingEvents ?? []}
-                  notes={housingNotes ?? []}
-                />
-              </Tab>
-            </Tabs>
+            <Tabs
+              className="no-border first-tab-grey"
+              tabs={[
+                {
+                  label: '+ Nouvelle mise à jour / note',
+                  content: (
+                    <HousingEditionForm
+                      housing={housing}
+                      fromDefaultCampaign={hasOnlyDefaultCampaign}
+                      onSubmit={submit}
+                      ref={statusFormRef}
+                    />
+                  ),
+                },
+                {
+                  label: 'Historique de suivi',
+                  content: (
+                    <EventsHistory
+                      events={housingEvents ?? []}
+                      notes={housingNotes ?? []}
+                    />
+                  ),
+                },
+              ]}
+            ></Tabs>
           </Container>
         }
         footer={
           <>
-            <Button secondary className="fr-mr-2w" onClick={() => onClose()}>
+            <Button
+              priority="secondary"
+              className="fr-mr-2w"
+              onClick={() => onClose()}
+            >
               Annuler
             </Button>
             {

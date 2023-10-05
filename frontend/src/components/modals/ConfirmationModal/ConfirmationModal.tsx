@@ -1,58 +1,74 @@
-import React, { ReactElement, ReactNode } from 'react';
-import {
-  Button,
-  Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-} from '@dataesr/react-dsfr';
+import React, { ReactElement, ReactNode, useMemo } from 'react';
+import { Container } from '../../../components/dsfr/index';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import ButtonLink, { ButtonLinkProps } from '../../ButtonLink/ButtonLink';
 
 interface Props {
+  modalId: string;
   children: ReactNode | ReactNode[];
   title?: string | ReactElement;
   onSubmit: (param?: any) => void;
-  onClose: () => void;
-  size?: 'sm' | 'md' | 'lg';
-  icon?: string;
+  size?: 'small' | 'medium' | 'large';
+  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonLinkProps?: Omit<ButtonLinkProps, 'onClick'>;
 }
 
 const ConfirmationModal = ({
+  modalId,
   children,
   title,
   onSubmit,
-  onClose,
   size,
-  icon,
+  openingButtonProps,
+  openingButtonLinkProps,
 }: Props) => {
+  const modal = useMemo(
+    () =>
+      createModal({
+        id: `confirmation-modal-${modalId}`,
+        isOpenedByDefault: false,
+      }),
+    [modalId]
+  );
+
   return (
-    <Modal isOpen={true} hide={() => onClose()} size={size}>
-      <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
-      <ModalTitle icon={icon ?? 'ri-1x ri-arrow-right-line'}>
-        {title ?? 'Confirmation'}
-      </ModalTitle>
-      <ModalContent>
+    <>
+      {openingButtonProps !== undefined ? (
+        // @ts-ignore
+        <Button {...openingButtonProps} onClick={modal.open}>
+          {openingButtonProps.children}
+        </Button>
+      ) : openingButtonLinkProps !== undefined ? (
+        // @ts-ignore
+        <ButtonLink {...openingButtonLinkProps} onClick={modal.open}>
+          {openingButtonLinkProps.children}
+        </ButtonLink>
+      ) : (
+        <></>
+      )}
+      <modal.Component
+        size={size}
+        title={title ?? 'Confirmation'}
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Confirmer',
+            onClick: onSubmit,
+            doClosesModal: false,
+          },
+        ]}
+        style={{ textAlign: 'initial' }}
+      >
         <Container as="section" fluid>
           {children}
         </Container>
-      </ModalContent>
-      <ModalFooter>
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onClose()}
-        >
-          Annuler
-        </Button>
-        <Button title="Confirmer" onClick={onSubmit}>
-          Confirmer
-        </Button>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

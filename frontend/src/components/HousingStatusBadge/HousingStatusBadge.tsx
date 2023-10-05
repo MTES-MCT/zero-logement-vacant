@@ -1,7 +1,7 @@
 import React from 'react';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
-import { Badge } from '@dataesr/react-dsfr';
 import styles from './housing-status-badge.module.scss';
+import AppBadge from '../AppBadge/AppBadge';
 
 interface Props {
   status?: HousingStatus;
@@ -15,11 +15,12 @@ const HousingStatusBadge = ({ status, inline }: Props) => {
         inline ? styles.statusBadgeContainerInline : styles.statusBadgeContainer
       }
     >
-      <Badge
-        text={getHousingState(status).title}
+      <AppBadge
         className={styles.statusBadgeLabel}
         colorFamily={getHousingState(status)?.colorFamily}
-      ></Badge>
+      >
+        {getHousingState(status).title}
+      </AppBadge>
     </div>
   ) : (
     <></>

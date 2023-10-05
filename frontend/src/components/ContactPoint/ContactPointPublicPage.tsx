@@ -1,19 +1,19 @@
 import {
-  Button,
   Col,
   Container,
   Icon,
-  Link,
   Row,
   Text,
   Title,
-} from '@dataesr/react-dsfr';
+} from '../../components/dsfr/index';
 
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';
 import { useClipboard } from '../../hooks/useClipboard';
 import homepage_thumbnail from '../../assets/images/homepage_thumbnail.png';
 import React from 'react';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Link } from 'react-router-dom';
 
 interface Props {
   establishment: Establishment;
@@ -50,12 +50,20 @@ function ContactPointPublicPage({ establishment }: Props) {
               <Text className={styles.disabled}>{link}</Text>
             </Col>
             <Col n="6" className="align-right">
-              <Button secondary className="fr-mr-1w" onClick={copyLink}>
-                <Icon name="ri-file-copy-line" iconPosition="left" size="1x" />
+              <Button
+                priority="secondary"
+                className="fr-mr-1w"
+                onClick={copyLink}
+              >
+                <Icon
+                  name="fr-icon-file-copy-line"
+                  iconPosition="left"
+                  size="1x"
+                />
                 {clipboard.copied ? 'Copié !' : 'Copier le lien'}
               </Button>
-              <Link href={link} className="fr-btn" target="_blank">
-                <Icon name="ri-eye-fill" iconPosition="left" size="1x" />
+              <Link to={link} className="fr-btn" target="_blank">
+                <Icon name="fr-icon-eye-fill" iconPosition="left" size="1x" />
                 S’y rendre
               </Link>
             </Col>

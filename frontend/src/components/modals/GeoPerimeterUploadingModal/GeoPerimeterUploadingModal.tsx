@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Button,
   Col,
   File,
   Modal,
@@ -9,11 +8,12 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
-} from '@dataesr/react-dsfr';
+} from '../../../components/dsfr/index';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
 import Help from '../../Help/Help';
 import styles from './geo-perimeter-uploading-modal.module.scss';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   onSubmit: (file: File) => void;
@@ -74,13 +74,13 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
       <ModalFooter>
         <Button
           title="Annuler"
-          secondary
+          priority="secondary"
           className="fr-mr-2w"
-          onClick={() => onClose()}
+          onClick={onClose}
         >
           Annuler
         </Button>
-        <Button title="Enregistrer" onClick={() => submitFile()}>
+        <Button title="Enregistrer" onClick={submitFile}>
           Enregistrer
         </Button>
       </ModalFooter>

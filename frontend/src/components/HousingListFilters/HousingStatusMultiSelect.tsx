@@ -1,12 +1,11 @@
 import React, { ChangeEvent, useRef, useState } from 'react';
 import classNames from 'classnames';
-import { CheckboxGroup } from '@dataesr/react-dsfr';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-list-filters.module.scss';
-import Checkbox from '../Checkbox/Checkbox';
+import AppCheckbox from '../AppCheckbox/AppCheckbox';
 
 interface Props {
   selectedStatus?: HousingStatus[];
@@ -62,9 +61,9 @@ const HousingStatusMultiSelect = ({
           'select-single-options__visible': showOptions,
         })}
       >
-        <CheckboxGroup>
+        <div>
           {options.map((option) => (
-            <Checkbox
+            <AppCheckbox
               label={option.label.toUpperCase()}
               value={option.value}
               className={classNames(
@@ -72,14 +71,14 @@ const HousingStatusMultiSelect = ({
                 'bordered-b',
                 'fr-p-1w'
               )}
-              hint={option.hint}
+              hintText={option.hint}
               key={option.label}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 handleStatusChange(Number(option.value), e.target.checked)
               }
             />
           ))}
-        </CheckboxGroup>
+        </div>
       </div>
     </div>
   );

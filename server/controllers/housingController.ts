@@ -48,7 +48,7 @@ const get = async (request: Request, response: Response) => {
 };
 
 const listValidators: ValidationChain[] = [
-  ...housingFiltersApi.validators,
+  ...housingFiltersApi.validators(),
   ...sortApi.queryValidators,
   ...paginationApi.validators,
 ];
@@ -255,7 +255,7 @@ const addHousingInDefaultCampaign = async (
 const updateListValidators = [
   body('allHousing').isBoolean(),
   body('housingIds').custom(isArrayOf(isUUID)),
-  ...housingFiltersApi.validators,
+  ...housingFiltersApi.validators(),
   ...updateValidators,
 ];
 

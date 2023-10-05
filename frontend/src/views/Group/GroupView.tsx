@@ -22,6 +22,11 @@ import HousingListTabs from '../HousingList/HousingListTabs';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import housingSlice from '../../store/reducers/housingReducer';
+import Alert from '../../components/Alert/Alert';
+
+interface RouterState {
+  alert?: string;
+}
 
 function GroupView() {
   const { id } = useParams<{ id: string }>();
@@ -47,14 +52,20 @@ function GroupView() {
     );
   }, [changeFilters, dispatch, id]);
 
-  const [removeGroup, { isSuccess: isGroupRemoved }] = useRemoveGroupMutation();
+  const router = useHistory<RouterState | undefined>();
+  const alert = router.location.state?.alert ?? '';
+  const [removeGroup] = useRemoveGroupMutation();
 
-  const router = useHistory();
-  useEffect(() => {
-    if (isGroupRemoved) {
-      router.push('/parc-de-logements');
+  async function doRemoveGroup(): Promise<void> {
+    if (group) {
+      try {
+        await removeGroup(group).unwrap();
+        router.push('/parc-de-logements');
+      } catch (error) {
+        console.error(error);
+      }
     }
-  }, [isGroupRemoved, router]);
+  }
 
   if (!group || isLoadingGroup) {
     return <></>;
@@ -63,8 +74,18 @@ function GroupView() {
   return (
     <Container as="section" spacing="py-4w mb-4w">
       <Row spacing="mb-5w">
-        <Group group={group} onRemove={removeGroup} />
+        <Group group={group} onRemove={doRemoveGroup} />
       </Row>
+
+      <Alert
+        type="success"
+        description={alert}
+        closable
+        small
+        show={alert.length > 0}
+        className="fr-mb-5w"
+      />
+
       <Row spacing="mb-1w">
         <HousingListFiltersSidemenu />
         <Col n="6" className="d-flex">

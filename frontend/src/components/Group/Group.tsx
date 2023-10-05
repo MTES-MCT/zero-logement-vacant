@@ -6,7 +6,6 @@ import {
   Icon,
   Row,
   Text,
-  TextInput,
   Title,
 } from '@dataesr/react-dsfr';
 import styles from './group.module.scss';
@@ -76,16 +75,18 @@ function Group(props: GroupProps) {
           <Container as="main" fluid>
             <Row>
               <Col n="12">
-                <Text spacing="mb-1w">Description</Text>
+                <Title as="h6" spacing="mb-1w">
+                  Description
+                </Title>
               </Col>
               <Col n="12">
-                <TextInput textarea defaultValue={props.group.description} />
+                <Text>{props.group.description}</Text>
               </Col>
             </Row>
           </Container>
         </Col>
         <Col n="3">
-          <Container as="aside" fluid>
+          <Container as="aside" className={styles.actions} fluid>
             <Button className={styles.action} onClick={props.onCreateCampaign}>
               Créer une campagne
             </Button>
@@ -111,9 +112,12 @@ function Group(props: GroupProps) {
 
       {confirmGroupRemoval && (
         <ConfirmationModal
+          alignFooter="right"
+          icon=""
+          size="md"
+          title="Suppression du groupe"
           onSubmit={removeGroup}
           onClose={() => setConfirmGroupRemoval(false)}
-          title="Suppression du groupe"
         >
           <Text>Êtes-vous sûr de vouloir supprimer ce groupe ?</Text>
         </ConfirmationModal>

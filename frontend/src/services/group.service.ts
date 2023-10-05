@@ -5,6 +5,9 @@ import { PaginationOptions } from '../../../shared/models/Pagination';
 import { fromGroupDTO, Group } from '../models/Group';
 import { GroupFilters } from '../models/GroupFilters';
 import { GroupDTO } from '../../../shared/models/GroupDTO';
+import fp from 'lodash/fp';
+import { GroupPayload } from '../models/GroupPayload';
+import { housingApi } from './housing.service';
 
 interface FindOptions extends PaginationOptions {
   filters: GroupFilters;
@@ -32,6 +35,44 @@ export const groupApi = createApi({
         group ? [{ type: 'Group' as const, id: group.id }] : ['Group'],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
     }),
+    createGroup: builder.mutation<Group, GroupPayload>({
+      query: (group) => ({
+        url: '',
+        method: 'POST',
+        body: group,
+      }),
+      invalidatesTags: ['Group'],
+      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+        await queryFulfilled;
+        dispatch(
+          housingApi.util.invalidateTags([
+            'Housing',
+            'HousingByStatus',
+            'HousingCountByStatus',
+          ])
+        );
+      },
+    }),
+    updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
+      query: (group) => ({
+        url: `/${group.id}`,
+        method: 'PUT',
+        body: fp.omit(['id'], group),
+      }),
+      invalidatesTags: (result, error, args) => [
+        { type: 'Group' as const, id: args.id },
+      ],
+    }),
+    addGroupHousing: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
+      query: (group) => ({
+        url: `/${group.id}/housing`,
+        method: 'POST',
+        body: fp.omit(['id'], group),
+      }),
+      invalidatesTags: (result, error, args) => [
+        { type: 'Group' as const, id: args.id },
+      ],
+    }),
     removeGroup: builder.mutation<void, Group>({
       query: (group) => ({
         url: `/${group.id}`,
@@ -42,5 +83,11 @@ export const groupApi = createApi({
   }),
 });
 
-export const { useFindGroupsQuery, useGetGroupQuery, useRemoveGroupMutation } =
-  groupApi;
+export const {
+  useFindGroupsQuery,
+  useGetGroupQuery,
+  useCreateGroupMutation,
+  useUpdateGroupMutation,
+  useAddGroupHousingMutation,
+  useRemoveGroupMutation,
+} = groupApi;

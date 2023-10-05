@@ -12,7 +12,7 @@ import {
 } from '../../database/seeds/test/001-establishments';
 import { formatGroupApi, Groups } from '../repositories/groupRepository';
 import fp from 'lodash/fp';
-import { GroupDTO, GroupPayload } from '../../shared/models/GroupDTO';
+import { GroupDTO, GroupPayloadDTO } from '../../shared/models/GroupDTO';
 import {
   formatHousingRecordApi,
   Housing,
@@ -24,6 +24,7 @@ import {
   HousingOwnerDBO,
   Owners,
 } from '../repositories/ownerRepository';
+import { HousingStatusApi } from '../models/HousingStatusApi';
 
 describe('Group controller', () => {
   const { app } = createServer();
@@ -103,10 +104,14 @@ describe('Group controller', () => {
       genHousingApi(Establishment1.geoCodes[0]),
       genHousingApi(Establishment2.geoCodes[0]),
     ];
-    const payload: GroupPayload = {
+    const payload: GroupPayloadDTO = {
       title: 'Logements prioritaires',
       description: 'Logements les plus énergivores',
-      housingIds: housingList.map((housing) => housing.id),
+      housing: {
+        all: false,
+        ids: housingList.map((housing) => housing.id),
+        filters: {},
+      },
     };
 
     beforeEach(async () => {
@@ -146,6 +151,44 @@ describe('Group controller', () => {
         createdBy: toUserDTO(User1),
       });
     });
+
+    it('should create a group with all the housing corresponding to the given criteria', async () => {
+      const { body, status } = await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            ...payload,
+            housing: {
+              all: true,
+              ids: [],
+              filters: {
+                status: HousingStatusApi.FirstContact,
+              },
+            },
+          } as GroupPayloadDTO)
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const filteredHousingList = housingList.filter(
+        (housing) => housing.status === HousingStatusApi.FirstContact
+      );
+      const filteredOwners = fp.uniqBy(
+        'id',
+        filteredHousingList.map((housing) => housing.owner)
+      );
+      expect(body).toStrictEqual<GroupDTO>({
+        id: expect.any(String),
+        title: payload.title,
+        description: payload.description,
+        housingCount: filteredHousingList.length,
+        ownerCount: filteredOwners.length,
+        createdAt: expect.toBeDateString(),
+        createdBy: toUserDTO(User1),
+      });
+    });
   });
 
   describe('update', () => {
@@ -160,10 +203,14 @@ describe('Group controller', () => {
     const group = genGroupApi(User1, Establishment1);
     const anotherGroup = genGroupApi(User2, Establishment2);
 
-    const payload: GroupPayload = {
+    const payload: GroupPayloadDTO = {
       title: 'Logement prioritaires',
       description: 'Logements les plus énergivores',
-      housingIds: housingList.map((housing) => housing.id),
+      housing: {
+        all: false,
+        ids: housingList.map((housing) => housing.id),
+        filters: {},
+      },
     };
 
     beforeEach(async () => {
@@ -222,6 +269,46 @@ describe('Group controller', () => {
         createdBy: toUserDTO(User1),
       });
     });
+
+    it('should update a group with all the housing corresponding to the given criteria', async () => {
+      const establishmentHousingList = await Housing().whereIn(
+        'geo_code',
+        Establishment1.geoCodes
+      );
+
+      const { body, status } = await withAccessToken(
+        request(app)
+          .put(testRoute(group.id))
+          .send({
+            ...payload,
+            housing: {
+              all: true,
+              ids: [],
+              filters: {
+                housingIds: [establishmentHousingList[0].id],
+              },
+            },
+          } as GroupPayloadDTO)
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual<GroupDTO>({
+        id: group.id,
+        title: payload.title,
+        description: payload.description,
+        housingCount: 1,
+        ownerCount: 1,
+        createdAt: expect.toBeDateString(),
+        createdBy: toUserDTO(User1),
+      });
+    });
+  });
+
+  describe('addHousing', () => {
+    const testRoute = (id: string) => `/api/groups/${id}/housing`;
   });
 
   describe('remove', () => {

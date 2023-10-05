@@ -24,10 +24,17 @@ import { useAppDispatch } from '../../hooks/useStore';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
 import fp from 'lodash/fp';
+import {
+  useAddGroupHousingMutation,
+  useCreateGroupMutation,
+} from '../../services/group.service';
+import { Group } from '../../models/Group';
+import { useHistory } from 'react-router-dom';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 export type HousingListTabProps = {
+  showGroups?: boolean;
   filters: HousingFilters;
   status?: HousingStatus;
   onCountFilteredHousing?: (count?: number) => void;
@@ -36,6 +43,7 @@ export type HousingListTabProps = {
 const HousingListTab = ({
   filters,
   status,
+  showGroups,
   onCountFilteredHousing,
 }: HousingListTabProps) => {
   const dispatch = useAppDispatch();
@@ -45,6 +53,8 @@ const HousingListTab = ({
     { isSuccess: isUpdateSuccess, data: updatedCount },
   ] = useUpdateHousingListMutation();
 
+  const [creatingCampaignSelectedHousing, setCreatingCampaignSelectedHousing] =
+    useState<SelectedHousing>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
 
@@ -100,6 +110,60 @@ const HousingListTab = ({
     setUpdatingSelectedHousing(undefined);
   };
 
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [addGroupHousing] = useAddGroupHousingMutation();
+  const router = useHistory();
+
+  function selectGroup(group: Group): void {
+    if (selected) {
+      addGroupHousing({
+        id: group.id,
+        title: group.title,
+        description: group.description,
+        housing: {
+          all: selected.all,
+          ids: selected.ids,
+          filters,
+        },
+      });
+      setShowGroupModal(false);
+      router.push({
+        pathname: `/groupes/${group.id}`,
+        state: {
+          alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.',
+        },
+      });
+    }
+  }
+
+  const [showGroupCreationModal, setShowGroupCreationModal] = useState(false);
+  const [createGroup] = useCreateGroupMutation();
+
+  async function doCreateGroup(
+    group: Pick<Group, 'title' | 'description'>
+  ): Promise<void> {
+    try {
+      const created = await createGroup({
+        title: group.title,
+        description: group.description,
+        housing: {
+          all: selected.all,
+          ids: selected.ids,
+          filters,
+        },
+      }).unwrap();
+      setShowGroupCreationModal(false);
+      router.push({
+        pathname: `/groupes/${created.id}`,
+        state: {
+          alert: 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <>
       {isUpdateSuccess && (
@@ -144,7 +208,41 @@ const HousingListTab = ({
                     Mise à jour groupée
                   </Button>
                 )}
+                {showGroups && (
+                  <Button
+                    onClick={() => setShowGroupModal(true)}
+                    priority="secondary"
+                    className="fr-mr-1w"
+                  >
+                    Ajouter dans un groupe
+                  </Button>
+                )}
+                <Button
+                  title="Créer une campagne"
+                  onClick={() => setCreatingCampaignSelectedHousing(selected)}
+                  data-testid="create-campaign-button"
+                >
+                  Créer une campagne
+                </Button>
+
+                <GroupCreationModal
+                  open={showGroupCreationModal}
+                  onSubmit={doCreateGroup}
+                  onClose={() => setShowGroupCreationModal(false)}
+                />
+
+                <GroupAddHousingModal
+                  open={showGroupModal}
+                  onSubmit={selectGroup}
+                  onClose={() => setShowGroupModal(false)}
+                  onGroupCreate={() => {
+                    setShowGroupModal(false);
+                    setShowGroupCreationModal(true);
+                  }}
+                />
+
                 <CampaignCreationModal
+                  open={!!creatingCampaignSelectedHousing}
                   housingCount={selectedCount}
                   filters={filters}
                   housingExcudedCount={filteredHousingCount - selectedCount}
@@ -155,6 +253,7 @@ const HousingListTab = ({
                     children: 'Créer une campagne',
                   }}
                 />
+
                 <HousingListEditionSideMenu
                   housingCount={selectedCount}
                   open={!!updatingSelectedHousing}

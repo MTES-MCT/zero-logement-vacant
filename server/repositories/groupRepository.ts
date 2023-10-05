@@ -105,9 +105,11 @@ const save = async (
       .merge(['title', 'description']);
 
     await GroupsHousing(transaction).where({ group_id: group.id }).delete();
-    await GroupsHousing(transaction).insert(
-      formatGroupHousingApi(group, housingList)
-    );
+    if (housingList.length > 0) {
+      await GroupsHousing(transaction).insert(
+        formatGroupHousingApi(group, housingList)
+      );
+    }
   });
   logger.debug('Saved group', group.id);
 };

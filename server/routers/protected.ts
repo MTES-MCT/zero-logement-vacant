@@ -35,6 +35,7 @@ router.post('/groups', groupController.createValidators, validator.validate, gro
 router.get('/groups/:id', groupController.showValidators, validator.validate, groupController.show)
 router.put('/groups/:id', groupController.updateValidators, validator.validate, groupController.update)
 router.delete('/groups/:id', groupController.removeValidators, validator.validate, groupController.remove)
+router.post('/groups/:id/housing', groupController.updateValidators, validator.validate, groupController.addHousing)
 
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);

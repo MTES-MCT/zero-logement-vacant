@@ -1,3 +1,9 @@
+.actions {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1rem;
+}
+
 .action {
   width: 100%;
   justify-content: center;

@@ -5,6 +5,9 @@ import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import AppLinkAsButton, {
   AppLinkAsButtonProps,
 } from '../../_app/AppLinkAsButton/AppLinkAsButton';
+import classNames from 'classnames';
+
+import styles from './confirmation-modal.module.scss';
 
 interface Props {
   modalId: string;
@@ -14,6 +17,7 @@ interface Props {
   size?: 'small' | 'medium' | 'large';
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
   openingAppLinkAsButtonProps?: Omit<AppLinkAsButtonProps, 'onClick'>;
+  alignFooter?: 'left' | 'center' | 'right';
 }
 
 const ConfirmationModal = ({
@@ -24,7 +28,14 @@ const ConfirmationModal = ({
   size,
   openingButtonProps,
   openingAppLinkAsButtonProps,
+  alignFooter,
 }: Props) => {
+  const footerClasses = classNames({
+    [styles.left]: alignFooter === 'left',
+    [styles.center]: alignFooter === 'center',
+    [styles.right]: alignFooter === 'right',
+  });
+
   const modal = useMemo(
     () =>
       createModal({

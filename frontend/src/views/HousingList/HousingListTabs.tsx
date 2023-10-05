@@ -7,9 +7,10 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 interface Props {
   filters: HousingFilters;
+  showGroups?: boolean;
 }
 
-const HousingListTabs = ({ filters }: Props) => {
+const HousingListTabs = ({ filters, showGroups }: Props) => {
   const statusList = [
     undefined,
     HousingStatus.NeverContacted,
@@ -31,6 +32,7 @@ const HousingListTabs = ({ filters }: Props) => {
           <HousingListTab
             key={`status_tab_${status}`}
             status={status}
+            showGroups={showGroups}
             filters={{
               ...filters,
               status,

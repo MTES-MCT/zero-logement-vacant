@@ -16,8 +16,6 @@ import {
   SelectedHousing,
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
-
-import { useLocation } from 'react-router-dom';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -68,7 +66,6 @@ const HousingList = ({
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
-  const location = useLocation();
   const campaignList = useCampaignList();
   const { trackEvent } = useMatomo();
 

@@ -7,7 +7,7 @@ import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
 import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
 import { pluralize } from '../../utils/stringUtils';
 import AppCheckbox from '../AppCheckbox/AppCheckbox';
 import { Table } from '../dsfr';
@@ -133,14 +133,14 @@ function InboxMessageList(props: Props) {
       name: 'action',
       headerRender: () => '',
       render: (owner: OwnerProspect) => (
-        <ButtonLink
+        <AppLinkAsButton
           iconId="fr-icon-arrow-right-line"
           iconPosition="right"
           isSimple
           onClick={() => props.onDisplay?.({ ...owner, read: true })}
         >
           Afficher le message
-        </ButtonLink>
+        </AppLinkAsButton>
       ),
     },
   ];

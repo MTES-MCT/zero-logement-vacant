@@ -19,11 +19,20 @@ function AppLink({
   isSimple,
   iconId,
   iconPosition,
+  to,
   ...linkProps
 }: AppLinkProps) {
+  console.log('to', to, typeof to === 'string' && to.startsWith('http'));
+
   return (
     <Link
       {...linkProps}
+      to={
+        typeof to === 'string' &&
+        (to.startsWith('http') || to.startsWith('mailto'))
+          ? { pathname: to }
+          : to
+      }
       className={classNames(
         className,
         {

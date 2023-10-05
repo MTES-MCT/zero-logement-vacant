@@ -11,7 +11,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AppTextInput from '../../components/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import ButtonLink from '../../components/ButtonLink/ButtonLink';
+import AppLinkAsButton from '../../components/AppLinkAsButton/AppLinkAsButton';
 
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
@@ -52,9 +52,9 @@ function ForgottenPasswordView() {
         <Text className="subtitle">
           Vous ne trouvez pas le mail ? Vérifiez qu'il ne s'est pas glissé dans
           vos spams ou 
-          <ButtonLink isSimple onClick={submit}>
+          <AppLinkAsButton isSimple onClick={submit}>
             renvoyer le mail
-          </ButtonLink>
+          </AppLinkAsButton>
           .
         </Text>
         <Text size="sm" className={confirmationClasses}>

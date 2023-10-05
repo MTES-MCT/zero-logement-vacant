@@ -13,6 +13,7 @@ import { capitalize, mailto } from '../../utils/stringUtils';
 import AppLink from '../AppLink/AppLink';
 import styles from './owner-card.module.scss';
 import Card from '@codegouvfr/react-dsfr/Card';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -46,24 +47,21 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             </Text>
           )}
           {isHousingOwner(owner) && (
-            <AppLink
+            <Button
               title="Voir tous ses logements"
-              to={
-                (window.location.pathname.indexOf('proprietaires') === -1
-                  ? window.location.pathname
-                  : '') +
-                '/proprietaires/' +
-                owner.id
-              }
-              className={classNames(
-                styles.housingBouton,
-                'fr-btn--md',
-                'fr-btn',
-                'fr-btn--secondary'
-              )}
+              priority="secondary"
+              linkProps={{
+                to:
+                  (window.location.pathname.indexOf('proprietaires') === -1
+                    ? window.location.pathname
+                    : '') +
+                  '/proprietaires/' +
+                  owner.id,
+              }}
+              className={styles.housingBouton}
             >
               Voir tous ses logements ({housingCount})
-            </AppLink>
+            </Button>
           )}
 
           <div className="bg-975 fr-my-3w fr-px-2w fr-py-2w">

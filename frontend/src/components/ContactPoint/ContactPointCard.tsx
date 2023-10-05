@@ -40,7 +40,7 @@ function ContactPointCard({
               <Col>
                 <span className="card-title-icon">
                   <Icon
-                    name="fr-icon-contacts-fill"
+                    name="fr-icon-question-answer-fill"
                     iconPosition="center"
                     size="1x"
                   />

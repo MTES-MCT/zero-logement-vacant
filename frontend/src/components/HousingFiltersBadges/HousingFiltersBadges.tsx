@@ -31,7 +31,7 @@ import {
   getSubStatusList,
   getSubStatusListOptions,
 } from '../../models/HousingState';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';
@@ -284,9 +284,9 @@ const HousingFiltersBadges = ({
         onChange={onChange && (() => onChange({ query: '' }))}
       />
       {canReset && (
-        <ButtonLink className={styles.reinit} onClick={reset} size="sm">
+        <AppLinkAsButton className={styles.reinit} onClick={reset} size="sm">
           Réinitialiser les filtres
-        </ButtonLink>
+        </AppLinkAsButton>
       )}
     </div>
   );

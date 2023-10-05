@@ -1,5 +1,5 @@
 import { Container, Text, Title } from '../../../components/dsfr/index';
-import ButtonLink from '../../../components/ButtonLink/ButtonLink';
+import AppLinkAsButton from '../../../components/AppLinkAsButton/AppLinkAsButton';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
@@ -47,9 +47,9 @@ function AccountAccessForbiddenView() {
         <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Dans ce cas, 
-            <ButtonLink isSimple onClick={back}>
+            <AppLinkAsButton isSimple onClick={back}>
               réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
-            </ButtonLink>
+            </AppLinkAsButton>
             . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous
             rendre sur 
             <AppLink

@@ -1,14 +1,14 @@
 import { MouseEventHandler } from 'react';
 
-import styles from './button-link.module.scss';
+import styles from './link-as-button.module.scss';
 import AppLink, { AppLinkProps } from '../AppLink/AppLink';
 
-export type ButtonLinkProps = Omit<AppLinkProps, 'to'> & {
+export type AppLinkAsButtonProps = Omit<AppLinkProps, 'to'> & {
   onClick: MouseEventHandler;
 };
 
-function ButtonLink(props: ButtonLinkProps) {
+function AppLinkAsButton(props: AppLinkAsButtonProps) {
   return <AppLink className={styles.buttonLink} {...props} to="#" />;
 }
 
-export default ButtonLink;
+export default AppLinkAsButton;

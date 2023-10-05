@@ -194,7 +194,7 @@ const OwnerProspectForm = ({
       </Row>
       <Row gutters spacing="mt-2w">
         <Col>
-          <Button title="Envoyer" onClick={() => submitForm()}>
+          <Button title="Envoyer" onClick={submitForm}>
             Envoyer
           </Button>
         </Col>

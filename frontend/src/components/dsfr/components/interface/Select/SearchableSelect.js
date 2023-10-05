@@ -12,16 +12,16 @@ import dataAttributes from '../../../utils/data-attributes';
  * @visibleName SearchableSelect
  */
 const SearchableSelect = ({
-  filter,
   id,
   messageType,
-  onBlur,
-  onChange,
-  onFocus,
-  onKeyDown,
-  onTextChange,
   options,
   selected,
+  filter,
+  onChange,
+  onTextChange,
+  onBlur,
+  onFocus,
+  onKeyDown,
   ...remainingProps
 }) => {
   const selectId = useRef(id || uuidv4());
@@ -50,7 +50,8 @@ const SearchableSelect = ({
     } else {
       setInternalLabel('');
     }
-  }, [options, selected]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
 
   useEffect(() => {
     if (selected) {
@@ -59,7 +60,8 @@ const SearchableSelect = ({
       );
       setInternalLabel(selectedOption ? selectedOption.label : '');
     }
-  }, [options, selected]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
 
   useEffect(() => {
     if (arrowSelected) {
@@ -215,42 +217,41 @@ const SearchableSelect = ({
 SearchableSelect.defaultProps = {
   className: '',
   disabled: false,
-  filter: (label, option) =>
-    option.label.toLowerCase().includes(label.toLowerCase()),
   hint: '',
   id: null,
   label: '',
   message: '',
   messageType: undefined,
   name: null,
-  onBlur: () => {},
   onChange: () => {},
+  onTextChange: () => {},
+  onBlur: () => {},
   onFocus: () => {},
   onKeyDown: () => {},
-  onTextChange: () => {},
-  required: false,
   selected: '',
+  required: false,
+  filter: (label, option) =>
+    option.label.toLowerCase().includes(label.toLowerCase()),
 };
 
 SearchableSelect.propTypes = {
   className: PropTypes.string,
   disabled: PropTypes.bool,
-  filter: PropTypes.func,
   hint: PropTypes.oneOfType([
-    PropTypes.array,
-    PropTypes.object,
     PropTypes.string,
+    PropTypes.object,
+    PropTypes.array,
   ]),
   id: PropTypes.string,
   label: PropTypes.string,
   message: PropTypes.string,
   messageType: PropTypes.oneOf(['error', 'valid']),
   name: PropTypes.string,
-  onBlur: PropTypes.func,
   onChange: PropTypes.func,
+  onTextChange: PropTypes.func,
+  onBlur: PropTypes.func,
   onFocus: PropTypes.func,
   onKeyDown: PropTypes.func,
-  onTextChange: PropTypes.func,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
@@ -259,8 +260,9 @@ SearchableSelect.propTypes = {
       hidden: PropTypes.bool,
     })
   ).isRequired,
-  required: PropTypes.bool,
   selected: PropTypes.string,
+  required: PropTypes.bool,
+  filter: PropTypes.func,
 };
 
 export default SearchableSelect;

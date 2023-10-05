@@ -44,7 +44,7 @@ import {
 } from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
@@ -562,9 +562,9 @@ function HousingListFiltersSidemenu() {
           />
           <Row gutters>
             <Col>
-              <ButtonLink onClick={onResetFilters}>
+              <AppLinkAsButton onClick={onResetFilters}>
                 Réinitialiser les filtres
-              </ButtonLink>
+              </AppLinkAsButton>
             </Col>
             {filteredCount !== undefined && (
               <Col className="align-right">

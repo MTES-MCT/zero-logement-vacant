@@ -1,6 +1,6 @@
 import { Container, Text, Title } from '../../components/dsfr/index';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import { Link } from 'react-router-dom';
+import AppLink from '../../components/AppLink/AppLink';
 
 function LegalNoticesView() {
   return (
@@ -204,7 +204,7 @@ function LegalNoticesView() {
           encore comporter des erreurs ou omissions. Si vous constatez une
           erreur ou omission parmi ces données, nous vous invitons à nous la
           signaler par courriel à l’adresse 
-          <Link to="mailto:zlv@beta.gouv.fr">zlv@beta.gouv.fr</Link>.
+          <AppLink to="mailto:zlv@beta.gouv.fr">zlv@beta.gouv.fr</AppLink>.
         </Text>
 
         <Title as="h3" spacing="mt-4w">
@@ -221,7 +221,7 @@ function LegalNoticesView() {
         <Text>
           Si vous souhaitez reproduire ou réutiliser des contenus présents sur
           ce site, veuillez nous contacter à l’adresse 
-          <Link to="mailto:zlv@beta.gouv.fr">zlv@beta.gouv.fr</Link> pour
+          <AppLink to="mailto:zlv@beta.gouv.fr">zlv@beta.gouv.fr</AppLink> pour
           connaître les conditions de réutilisation applicables.
         </Text>
         <Text>
@@ -241,24 +241,27 @@ function LegalNoticesView() {
           Le code source de l’application web et de l’interface de programmation
           applicative (API) sont libres et peuvent donc être vérifiés et
           améliorés par chacun dans les conditions précisées par la licence MIT
-          (<Link to="https://mit-license.org/">https://mit-license.org/</Link>
+          (
+          <AppLink to="https://mit-license.org/">
+            https://mit-license.org/
+          </AppLink>
           ).
         </Text>
         <Text>Ils sont disponibles sur Github à ces adresses :</Text>
         <ul>
           <li>
             interface utilisateur – UI : 
-            <Link to="https://github.com/MTES-MCT/zero-logement-vacant/tree/main/frontend">
+            <AppLink to="https://github.com/MTES-MCT/zero-logement-vacant/tree/main/frontend">
               https://github.com/MTES-MCT/zero-logement-vacant/tree/main/frontend
-            </Link>
+            </AppLink>
           </li>
         </ul>
         <ul>
           <li>
             interface de programmation applicative – API : 
-            <Link to="https://github.com/MTES-MCT/zero-logement-vacant/tree/main/server">
+            <AppLink to="https://github.com/MTES-MCT/zero-logement-vacant/tree/main/server">
               https://github.com/MTES-MCT/zero-logement-vacant/tree/main/server
-            </Link>
+            </AppLink>
           </li>
         </ul>
 
@@ -517,7 +520,7 @@ function LegalNoticesView() {
         </Text>
         <Text>
           Par mail : 
-          <Link to="mailto:zlv@betagouv.fr">zlv@beta.gouv.fr</Link>
+          <AppLink to="mailto:zlv@betagouv.fr">zlv@beta.gouv.fr</AppLink>
         </Text>
         <Text>Par voie postale :</Text>
         <Text spacing="mb-0">
@@ -569,7 +572,7 @@ function LegalNoticesView() {
           libertés, vous disposez par ailleurs de la possibilité de demander la
           suppression de vos données, que vous pouvez exercer à tout moment en
           nous contactant directement à l’adresse 
-          <Link to="mailto:zlv@betagouv.fr">zlv@beta.gouv.fr</Link>.
+          <AppLink to="mailto:zlv@betagouv.fr">zlv@beta.gouv.fr</AppLink>.
         </Text>
 
         <Title as="h3" spacing="mt-4w">

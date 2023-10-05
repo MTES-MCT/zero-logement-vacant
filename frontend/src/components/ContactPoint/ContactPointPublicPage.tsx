@@ -13,7 +13,7 @@ import { useClipboard } from '../../hooks/useClipboard';
 import homepage_thumbnail from '../../assets/images/homepage_thumbnail.png';
 import React from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Link } from 'react-router-dom';
+import AppLink from '../AppLink/AppLink';
 
 interface Props {
   establishment: Establishment;
@@ -54,18 +54,14 @@ function ContactPointPublicPage({ establishment }: Props) {
                 priority="secondary"
                 className="fr-mr-1w"
                 onClick={copyLink}
+                iconId="fr-icon-file-add-fill"
               >
-                <Icon
-                  name="fr-icon-file-copy-line"
-                  iconPosition="left"
-                  size="1x"
-                />
                 {clipboard.copied ? 'Copié !' : 'Copier le lien'}
               </Button>
-              <Link to={link} className="fr-btn" target="_blank">
+              <AppLink to={link} className="fr-btn" target="_blank">
                 <Icon name="fr-icon-eye-fill" iconPosition="left" size="1x" />
                 S’y rendre
-              </Link>
+              </AppLink>
             </Col>
           </Row>
         </Col>

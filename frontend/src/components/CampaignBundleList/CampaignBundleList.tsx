@@ -148,10 +148,7 @@ const CampaignBundleItem = ({
                   Exporter (.csv)
                 </Button>
                 {isExportModalOpen && (
-                  <CampaignExportModal
-                    campaignBundle={campaignBundle}
-                    onClose={() => setIsExportModalOpen(false)}
-                  />
+                  <CampaignExportModal campaignBundle={campaignBundle} />
                 )}
               </div>
             )}
@@ -176,7 +173,6 @@ const CampaignBundleItem = ({
                   </Col>
                   <Col className="fr-pt-4w">
                     <Button
-                      title="Confirmer la date d'envoi"
                       priority="secondary"
                       onClick={() =>
                         onSendingCampaign(campaignBundle.campaignIds[0])
@@ -235,8 +231,7 @@ const CampaignBundleItem = ({
                     </ConfirmationModal>
                   )}
                 <Button
-                  title="Accéder"
-                  priority="tertiary"
+                  priority="tertiary no outline"
                   onClick={() =>
                     history.push(
                       '/campagnes/' +
@@ -248,7 +243,7 @@ const CampaignBundleItem = ({
                   }
                   iconId="fr-icon-arrow-right-line"
                   iconPosition="right"
-                  className="fr-btn--tertiary-no-outline fix-vertical-align"
+                  className="fix-vertical-align"
                 >
                   Accéder
                 </Button>
@@ -307,7 +302,6 @@ const CampaignBundleItem = ({
             </ConfirmationModal>
           )}
           <Button
-            title="Accéder"
             onClick={() =>
               history.push('/campagnes/C' + campaignBundle.campaignNumber)
             }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import GeoPerimetersModal from './GeoPerimetersModal';
-import AppLink from '../../AppLink/AppLink';
+import AppLinkAsButton from '../../AppLinkAsButton/AppLinkAsButton';
 
 const GeoPerimetersModalLink = () => {
   const [isGeoPerimetersModalOpen, setIsGeoPerimetersModalOpen] =
@@ -8,17 +8,15 @@ const GeoPerimetersModalLink = () => {
 
   return (
     <>
-      <AppLink
-        to="#"
+      <AppLinkAsButton
         onClick={() => {
           setIsGeoPerimetersModalOpen(true);
         }}
         isSimple
         iconId="fr-icon-settings-5-fill"
-        iconPosition="left"
       >
         Gérer vos périmètres
-      </AppLink>
+      </AppLinkAsButton>
       {isGeoPerimetersModalOpen && (
         <GeoPerimetersModal
           onClose={() => setIsGeoPerimetersModalOpen(false)}

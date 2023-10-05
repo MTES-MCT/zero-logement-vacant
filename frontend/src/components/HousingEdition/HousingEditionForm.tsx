@@ -10,7 +10,7 @@ import {
   statusOptions,
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../AppTextInput/AppTextInput';
 import _ from 'lodash';
@@ -219,9 +219,12 @@ const HousingEditionForm = (
               Dispositifs ({(precisions ?? []).length}) / Points de blocage (
               {(vacancyReasons ?? []).length})
             </Text>
-            <ButtonLink isSimple onClick={() => setIsPrecisionsModalOpen(true)}>
+            <AppLinkAsButton
+              isSimple
+              onClick={() => setIsPrecisionsModalOpen(true)}
+            >
               Ajouter / Modifier
-            </ButtonLink>
+            </AppLinkAsButton>
             {isPrecisionsModalOpen && (
               <PrecisionsModal
                 currentPrecisions={precisions ?? []}

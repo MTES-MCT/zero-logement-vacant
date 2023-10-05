@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppLink from '../../components/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Link } from 'react-router-dom';
 import { Callout, CalloutText, CalloutTitle } from '../../components/dsfr';
 
 const CampaignsListView = () => {
@@ -59,12 +58,12 @@ const CampaignsListView = () => {
               Vous pouvez également en créer une nouvelle directement dans une
               campagne existante (pour une relance par exemple)
             </CalloutText>
-            <AppLink
-              to="/parc-de-logements"
-              className="fr-btn--md fr-btn fr-btn--secondary"
+            <Button
+              linkProps={{ to: '/parc-de-logements' }}
+              priority="secondary"
             >
               Créer votre nouvelle campagne
-            </AppLink>
+            </Button>
           </Callout>
         </Col>
         <Col>
@@ -76,14 +75,15 @@ const CampaignsListView = () => {
               Accédez à nos modèles de courriers et ceux envoyés par les autres
               collectivités
             </CalloutText>
-            <Link
-              title="Voir la bibliothèque des courriers"
-              to="https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R"
-              target="_blank"
-              className="fr-btn--md fr-btn fr-btn--secondary"
+            <Button
+              linkProps={{
+                to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
+                target: '_blank',
+              }}
+              priority="secondary"
             >
               Voir la bibliothèque des courriers
-            </Link>
+            </Button>
           </Callout>
         </Col>
       </Row>

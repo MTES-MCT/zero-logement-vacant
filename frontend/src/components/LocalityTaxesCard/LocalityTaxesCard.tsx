@@ -1,6 +1,6 @@
 import { Col, Icon, Row, Text, Title } from '../../components/dsfr/index';
 import React from 'react';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
@@ -31,7 +31,7 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
               </Col>
               {locality.taxKind !== TaxKinds.TLV && onEdit && (
                 <Col className="align-right">
-                  <ButtonLink
+                  <AppLinkAsButton
                     onClick={() => onEdit(locality)}
                     isSimple
                     iconId="fr-icon-edit-fill"

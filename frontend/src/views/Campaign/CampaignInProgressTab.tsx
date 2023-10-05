@@ -19,10 +19,10 @@ import {
 } from '../../services/housing.service';
 import HousingList from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
-import { Link } from 'react-router-dom';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import Button from '@codegouvfr/react-dsfr/Button';
+import AppLink from '../../components/AppLink/AppLink';
 
 export type Props = {
   status: HousingStatus;
@@ -101,7 +101,7 @@ const CampaignInProgressTab = ({
           <b>{getHousingState(status).title} : </b>
           {getHousingState(status).hint}
           <div className="fr-pl-3w">
-            <Link to="/ressources">En savoir plus sur les statuts</Link>
+            <AppLink to="/ressources">En savoir plus sur les statuts</AppLink>
           </div>
         </Help>
       )}

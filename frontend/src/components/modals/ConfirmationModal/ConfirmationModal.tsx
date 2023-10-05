@@ -2,7 +2,9 @@ import React, { ReactElement, ReactNode, useMemo } from 'react';
 import { Container } from '../../../components/dsfr/index';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import ButtonLink, { ButtonLinkProps } from '../../ButtonLink/ButtonLink';
+import AppLinkAsButton, {
+  AppLinkAsButtonProps,
+} from '../../AppLinkAsButton/AppLinkAsButton';
 
 interface Props {
   modalId: string;
@@ -11,7 +13,7 @@ interface Props {
   onSubmit: (param?: any) => void;
   size?: 'small' | 'medium' | 'large';
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
-  openingButtonLinkProps?: Omit<ButtonLinkProps, 'onClick'>;
+  openingAppLinkAsButtonProps?: Omit<AppLinkAsButtonProps, 'onClick'>;
 }
 
 const ConfirmationModal = ({
@@ -21,7 +23,7 @@ const ConfirmationModal = ({
   onSubmit,
   size,
   openingButtonProps,
-  openingButtonLinkProps,
+  openingAppLinkAsButtonProps,
 }: Props) => {
   const modal = useMemo(
     () =>
@@ -39,11 +41,11 @@ const ConfirmationModal = ({
         <Button {...openingButtonProps} onClick={modal.open}>
           {openingButtonProps.children}
         </Button>
-      ) : openingButtonLinkProps !== undefined ? (
+      ) : openingAppLinkAsButtonProps !== undefined ? (
         // @ts-ignore
-        <ButtonLink {...openingButtonLinkProps} onClick={modal.open}>
-          {openingButtonLinkProps.children}
-        </ButtonLink>
+        <AppLinkAsButton {...openingAppLinkAsButtonProps} onClick={modal.open}>
+          {openingAppLinkAsButtonProps.children}
+        </AppLinkAsButton>
       ) : (
         <></>
       )}

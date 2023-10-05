@@ -12,7 +12,7 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import ButtonLink from '../../components/ButtonLink/ButtonLink';
+import AppLinkAsButton from '../../components/AppLinkAsButton/AppLinkAsButton';
 import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';
 import VerticalStep from '../../components/VerticalStepper/VerticalStep';
 import { useStepper } from '../../hooks/useStepper';
@@ -151,9 +151,9 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
           }
           content={
             isCompleted(CampaignSteps.OwnersValidation) ? (
-              <ButtonLink isSimple onClick={editHousings}>
+              <AppLinkAsButton isSimple onClick={editHousings}>
                 Voir ou supprimer des logements
-              </ButtonLink>
+              </AppLinkAsButton>
             ) : (
               <>
                 <Text size="lg">
@@ -165,7 +165,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                     <ConfirmationModal
                       modalId={housing.id}
                       onSubmit={() => submitCampaignHousingRemove(housing.id)}
-                      openingButtonLinkProps={{
+                      openingAppLinkAsButtonProps={{
                         isSimple: true,
                         children: 'Supprimer',
                       }}

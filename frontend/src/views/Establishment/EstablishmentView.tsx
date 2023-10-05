@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Container, Text, Title } from '../../components/dsfr/index';
+import { Container, Text, Title } from '../../components/_dsfr/index';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';

@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
-import {
-  CampaignBundle,
-  CampaignBundleId,
-  campaignFullName,
-} from '../../models/Campaign';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { Col, Container, Row, Text, Title } from '../_dsfr/index';
+import { CampaignBundle, CampaignBundleId, campaignFullName } from '../../models/Campaign';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
@@ -17,7 +10,7 @@ import Help from '../Help/Help';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
-import AppTextInput from '../AppTextInput/AppTextInput';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 

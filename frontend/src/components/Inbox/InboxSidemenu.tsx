@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text } from '../../components/dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../_dsfr/index';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { OwnerProspect } from '../../models/OwnerProspect';
@@ -10,7 +10,7 @@ import { useClipboard } from '../../hooks/useClipboard';
 import Label from '../Label/Label';
 import { initials } from '../../utils/stringUtils';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   expand: boolean;

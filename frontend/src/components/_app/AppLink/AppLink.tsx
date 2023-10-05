@@ -1,10 +1,7 @@
 import { Link, LinkProps } from 'react-router-dom';
 import React from 'react';
 import classNames from 'classnames';
-import {
-  FrIconClassName,
-  RiIconClassName,
-} from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
+import { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 export type AppLinkProps = LinkProps & {
   isSimple?: boolean;

@@ -1,4 +1,4 @@
-import { Col, Icon, Row, Title } from '../../components/dsfr/index';
+import { Col, Icon, Row, Title } from '../_dsfr/index';
 import React, { useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
@@ -19,7 +19,7 @@ import { useUpdateHousingMutation } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   housing: Housing;

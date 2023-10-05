@@ -1,10 +1,4 @@
-import {
-  Col,
-  Container,
-  Row,
-  Text,
-  Title,
-} from '../../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../_dsfr/index';
 import React, { ChangeEvent, useState } from 'react';
 import {
   BlockingPointOptions,
@@ -13,7 +7,7 @@ import {
 } from '../../../models/HousingFilters';
 import { OptionTreeElement } from '../../../models/SelectOption';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import AppCheckbox from '../../AppCheckbox/AppCheckbox';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 const modal = createModal({

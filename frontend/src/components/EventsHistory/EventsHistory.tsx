@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text } from '../../components/dsfr/index';
+import { Text } from '../_dsfr/index';
 import styles from './events-history.module.scss';
 import { differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,7 +12,7 @@ import classNames from 'classnames';
 import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
 import EventPartialOwnerContent from './EventPartialOwnerContent';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 import { Campaign, campaignBundleIdUrlFragment } from '../../models/Campaign';
 
 interface Props {

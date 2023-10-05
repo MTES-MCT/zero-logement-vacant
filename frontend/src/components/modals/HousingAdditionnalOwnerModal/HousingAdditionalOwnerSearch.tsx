@@ -1,6 +1,6 @@
 import React from 'react';
 import { Owner } from '../../../models/Owner';
-import AppSearchBar from '../../AppSearchBar/AppSearchBar';
+import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';

@@ -1,20 +1,14 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Text } from '../../components/dsfr/index';
+import { Col, Container, Row, Text } from '../../components/_dsfr/index';
 import { CampaignSteps } from '../../models/Campaign';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import {
-  deleteCampaignBundle,
-  getCampaignBundle,
-} from '../../store/actions/campaignAction';
+import { deleteCampaignBundle, getCampaignBundle } from '../../store/actions/campaignAction';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';

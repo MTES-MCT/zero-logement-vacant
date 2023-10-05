@@ -1,6 +1,6 @@
-import { Text } from '../../components/dsfr/index';
+import { Text } from '../../components/_dsfr/index';
 import React from 'react';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';
 import { logout } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';

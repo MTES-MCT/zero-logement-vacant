@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Text } from '../../../components/dsfr/index';
+import { Col, Container, Row, Text } from '../../_dsfr/index';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
 
 import * as yup from 'yup';
 import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
 import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 

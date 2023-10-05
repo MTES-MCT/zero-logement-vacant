@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Col, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Row, Text, Title } from '../_dsfr/index';
 
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
@@ -14,14 +14,8 @@ import {
   CampaignSteps,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
-import {
-  deleteCampaignBundle,
-  validCampaignStep,
-} from '../../store/actions/campaignAction';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { deleteCampaignBundle, validCampaignStep } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { format } from 'date-fns';
@@ -36,7 +30,7 @@ import { dateShortFormat, parseDateInput } from '../../utils/dateUtils';
 import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
-import AppTextInput from '../AppTextInput/AppTextInput';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';

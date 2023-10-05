@@ -1,4 +1,4 @@
-import { Icon, Text, Title } from '../../components/dsfr/index';
+import { Icon, Text, Title } from '../_dsfr/index';
 import React, { ReactNode } from 'react';
 
 import {
@@ -10,7 +10,7 @@ import {
 import { age, birthdate } from '../../utils/dateUtils';
 import classNames from 'classnames';
 import { capitalize, mailto } from '../../utils/stringUtils';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Button from '@codegouvfr/react-dsfr/Button';

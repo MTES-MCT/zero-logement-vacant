@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Row, Title } from '../../components/dsfr/index';
+import { Col, Row, Title } from '../../components/_dsfr/index';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';

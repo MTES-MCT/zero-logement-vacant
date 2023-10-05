@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-import { Col, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Row, Text, Title } from '../../components/_dsfr/index';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
 
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 import Help from '../../components/Help/Help';
 import { useUpdateLocalityTaxMutation } from '../../services/locality.service';

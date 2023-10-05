@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Container, Row, Text } from '../../../components/dsfr/index';
+import { Col, Container, Row, Text } from '../../_dsfr/index';
 import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useCreateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';

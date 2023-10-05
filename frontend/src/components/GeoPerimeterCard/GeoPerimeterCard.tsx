@@ -1,9 +1,9 @@
-import { Col, Icon, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
 import React from 'react';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 

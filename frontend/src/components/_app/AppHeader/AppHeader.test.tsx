@@ -4,12 +4,12 @@ import AppHeader from './AppHeader';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { Provider } from 'react-redux';
-import { genAuthUser } from '../../../test/fixtures.test';
-import { applicationReducer, store } from '../../store/store';
+import { genAuthUser } from '../../../../test/fixtures.test';
+import { applicationReducer, store } from '../../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
-import ownerProspectService from '../../services/owner-prospect.service';
-import { PaginatedResult } from '../../models/PaginatedResult';
-import { OwnerProspect } from '../../models/OwnerProspect';
+import ownerProspectService from '../../../services/owner-prospect.service';
+import { PaginatedResult } from '../../../models/PaginatedResult';
+import { OwnerProspect } from '../../../models/OwnerProspect';
 
 describe('AppHeader', () => {
   beforeEach(() => {

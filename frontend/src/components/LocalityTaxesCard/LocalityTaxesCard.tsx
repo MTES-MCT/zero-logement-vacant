@@ -1,6 +1,6 @@
-import { Col, Icon, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
 import React from 'react';
-import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';

@@ -1,5 +1,5 @@
 import { MessageType } from '../../hooks/useForm';
-import { Radio, RadioGroup } from '../dsfr';
+import { Radio, RadioGroup } from '../_dsfr';
 
 interface Props {
   defaultValue?: string;

@@ -1,6 +1,6 @@
-import { Container, Text, Title } from '../../components/dsfr/index';
+import { Container, Text, Title } from '../../components/_dsfr/index';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 
 function LegalNoticesView() {
   return (

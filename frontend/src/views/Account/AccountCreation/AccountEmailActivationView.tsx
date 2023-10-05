@@ -1,9 +1,9 @@
-import { Text, Title } from '../../../components/dsfr/index';
+import { Text, Title } from '../../../components/_dsfr/index';
 import { Redirect, useHistory } from 'react-router-dom';
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
-import AppLinkAsButton from '../../../components/AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 
 interface State {

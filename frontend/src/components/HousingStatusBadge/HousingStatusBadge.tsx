@@ -1,7 +1,7 @@
 import React from 'react';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import styles from './housing-status-badge.module.scss';
-import AppBadge from '../AppBadge/AppBadge';
+import AppBadge from '../_app/AppBadge/AppBadge';
 
 interface Props {
   status?: HousingStatus;

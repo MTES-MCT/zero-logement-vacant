@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Container, Text, Title } from '../../components/dsfr/index';
+import { Container, Text, Title } from '../_dsfr/index';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import Aside from '../Aside/Aside';
@@ -11,7 +11,7 @@ import { Note } from '../../models/Note';
 import styles from './housing-edition.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   housing?: Housing;

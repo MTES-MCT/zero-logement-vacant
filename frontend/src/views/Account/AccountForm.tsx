@@ -1,17 +1,17 @@
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../../components/_dsfr/index';
 import React, { useState } from 'react';
 import Help from '../../components/Help/Help';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
 import { DefaultOption, SelectOption } from '../../models/SelectOption';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import { useUpdateUserAccountMutation } from '../../services/user-account.service';
 import { User, UserAccount } from '../../models/User';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppSelect from '../../components/AppSelect/AppSelect';
+import AppSelect from '../../components/_app/AppSelect/AppSelect';
 
 interface Props {
   user: User;

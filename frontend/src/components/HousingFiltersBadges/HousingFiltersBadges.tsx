@@ -1,37 +1,34 @@
 import React, { useMemo } from 'react';
 import {
-  allOccupancyOptions,
-  beneficiaryCountOptions,
-  buildingPeriodOptions,
-  cadastralClassificationOptions,
-  campaignsCountOptions,
-  dataYearsExcludedOptions,
-  dataYearsIncludedOptions,
-  energyConsumptionOptions,
-  housingAreaOptions,
-  housingCountOptions,
-  HousingFilters,
-  housingKindOptions,
-  localityKindsOptions,
-  multiOwnerOptions,
-  ownerAgeOptions,
-  ownerKindOptions,
-  ownershipKindsOptions,
-  roomsCountOptions,
-  statusOptions,
-  taxedOptions,
-  vacancyDurationOptions,
-  vacancyRateOptions,
+    allOccupancyOptions,
+    beneficiaryCountOptions,
+    buildingPeriodOptions,
+    cadastralClassificationOptions,
+    campaignsCountOptions,
+    dataYearsExcludedOptions,
+    dataYearsIncludedOptions,
+    energyConsumptionOptions,
+    housingAreaOptions,
+    housingCountOptions,
+    HousingFilters,
+    housingKindOptions,
+    localityKindsOptions,
+    multiOwnerOptions,
+    ownerAgeOptions,
+    ownerKindOptions,
+    ownershipKindsOptions,
+    roomsCountOptions,
+    statusOptions,
+    taxedOptions,
+    vacancyDurationOptions,
+    vacancyRateOptions,
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
 import { campaignFullName } from '../../models/Campaign';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import {
-  getSubStatusList,
-  getSubStatusListOptions,
-} from '../../models/HousingState';
-import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
+import { getSubStatusList, getSubStatusListOptions } from '../../models/HousingState';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import styles from './housing-filters-badges.module.scss';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';

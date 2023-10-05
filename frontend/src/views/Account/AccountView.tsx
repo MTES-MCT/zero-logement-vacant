@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';

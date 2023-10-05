@@ -1,14 +1,14 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Col, Container, Row } from '../../../components/dsfr/index';
+import { Col, Container, Row } from '../../_dsfr/index';
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import Help from '../../Help/Help';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import AppCheckbox from '../../AppCheckbox/AppCheckbox';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 
 const modal = createModal({
   id: 'locality-tax-edition-modal',

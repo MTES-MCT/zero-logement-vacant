@@ -8,7 +8,7 @@ import {
   OwnershipKinds,
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
-import EnergyConsumptionOption from '../components/AppMultiSelect/EnergyConsumptionOption';
+import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 
 export interface HousingFilters {
   establishmentIds?: string[];

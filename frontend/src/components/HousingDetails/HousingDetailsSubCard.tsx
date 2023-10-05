@@ -1,4 +1,4 @@
-import { Title } from '../../components/dsfr/index';
+import { Title } from '../_dsfr/index';
 import React, { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';

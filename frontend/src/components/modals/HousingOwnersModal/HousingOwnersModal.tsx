@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Col,
-  Container,
-  Icon,
-  Row,
-  Text,
-} from '../../../components/dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../../_dsfr/index';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
 import * as yup from 'yup';
@@ -19,8 +13,8 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { fr } from '@codegouvfr/react-dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
-import AppSelect from '../../AppSelect/AppSelect';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppSelect from '../../_app/AppSelect/AppSelect';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 
 const modal = createModal({
   id: 'housing-owners-modal',

@@ -1,15 +1,15 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../../components/_dsfr/index';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { OwnerProspect } from '../../models/OwnerProspect';
 import { AddressSearchResult } from '../../services/address.service';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 import styles from './home.module.scss';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import AppCheckbox from '../../components/AppCheckbox/AppCheckbox';
+import AppCheckbox from '../../components/_app/AppCheckbox/AppCheckbox';
 
 interface Props {
   addressSearchResult?: AddressSearchResult;

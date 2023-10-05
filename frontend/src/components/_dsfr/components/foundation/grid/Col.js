@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { getColSize, getSpace } from '../../../utils/getters';
+import {getColSize, getSpace} from '../../../utils/getters';
 
 /**
  *

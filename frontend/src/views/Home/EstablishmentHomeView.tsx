@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import building from '../../assets/images/building.svg';
 import hands_mail from '../../assets/images/hands-mail.svg';
 import new_message from '../../assets/images/new_message.svg';
@@ -19,10 +19,7 @@ import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
 import collaboration from '../../assets/images/collaboration.svg';
 import styles from './home.module.scss';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Button from '@codegouvfr/react-dsfr/Button';
 

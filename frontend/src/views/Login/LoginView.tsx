@@ -1,17 +1,18 @@
 import React, { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import { login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
-import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import EstablishmentSearchableSelect
+  from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 

@@ -1,12 +1,6 @@
-import React, {
-  ChangeEvent,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
 
-import { Pagination as DSFRPagination } from '../../components/dsfr';
+import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {
   Housing,
   HousingSort,
@@ -21,38 +15,27 @@ import { useLocation } from 'react-router-dom';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import {
-  campaignBundleIdUrlFragment,
-  campaignFullName,
-  CampaignNumberSort,
-} from '../../models/Campaign';
+import { campaignBundleIdUrlFragment, campaignFullName, CampaignNumberSort } from '../../models/Campaign';
 import _ from 'lodash';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
 import { useSort } from '../../hooks/useSort';
 import { usePagination } from '../../hooks/usePagination';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import { useHousingList } from '../../hooks/useHousingList';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import {
-  useCountHousingQuery,
-  useUpdateHousingMutation,
-} from '../../services/housing.service';
+import { useCountHousingQuery, useUpdateHousingMutation } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppCheckbox from '../AppCheckbox/AppCheckbox';
-import { Table } from '../dsfr';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];

@@ -1,10 +1,10 @@
-import { Text, Title } from '../../components/dsfr/index';
+import { Text, Title } from '../_dsfr/index';
 
 import { Owner } from '../../models/Owner';
 import styles from './owner-details-card.module.scss';
 import { capitalize, mailto } from '../../utils/stringUtils';
 import Card from '@codegouvfr/react-dsfr/Card';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface OwnerDetailsCardProps {
   owner: Owner;

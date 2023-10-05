@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text } from '../../components/dsfr/index';
+import { Text } from '../_dsfr/index';
 import { CampaignBundle, returnRate } from '../../models/Campaign';
-import AppCard from '../AppCard/AppCard';
+import AppCard from '../_app/AppCard/AppCard';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 
 interface Props {

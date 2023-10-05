@@ -1,4 +1,4 @@
-import { Icon, Text } from '../../components/dsfr/index';
+import { Icon, Text } from '../_dsfr/index';
 import classNames from 'classnames';
 import { ReactNode, useRef, useState } from 'react';
 

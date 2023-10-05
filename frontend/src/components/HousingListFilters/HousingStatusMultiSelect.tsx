@@ -5,7 +5,7 @@ import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-list-filters.module.scss';
-import AppCheckbox from '../AppCheckbox/AppCheckbox';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 
 interface Props {
   selectedStatus?: HousingStatus[];

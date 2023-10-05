@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../../components/_dsfr/index';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { Callout, CalloutText, CalloutTitle } from '../../components/dsfr';
+import { Callout, CalloutText, CalloutTitle } from '../../components/_dsfr';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');

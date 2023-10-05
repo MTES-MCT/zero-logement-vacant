@@ -1,13 +1,13 @@
-import { Container, Row, Text, Title } from '../../../components/dsfr/index';
+import { Container, Row, Text, Title } from '../../../components/_dsfr/index';
 import React, { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
 
 import { emailValidator, useForm } from '../../../hooks/useForm';
-import AppLink from '../../../components/AppLink/AppLink';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import styles from './account-email-creation-view.module.scss';
-import AppTextInput from '../../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 function AccountEmailCreationView() {

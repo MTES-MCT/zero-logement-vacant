@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Title } from '../../components/_dsfr/index';
 
 import * as yup from 'yup';
-import {
-  passwordConfirmationValidator,
-  passwordFormatValidator,
-  useForm,
-} from '../../hooks/useForm';
+import { passwordConfirmationValidator, passwordFormatValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AccountSideMenu from './AccountSideMenu';
 import { useUpdatePasswordMutation } from '../../services/user-account.service';
 import { useHistory } from 'react-router-dom';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';

@@ -12,7 +12,7 @@ import {
   Row,
   Text,
   Title,
-} from '../../components/dsfr/index';
+} from '../../components/_dsfr/index';
 
 interface Props {
   title: string;

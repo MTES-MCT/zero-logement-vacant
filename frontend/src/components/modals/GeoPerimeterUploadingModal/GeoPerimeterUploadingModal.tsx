@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Col,
-  File,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-} from '../../../components/dsfr/index';
+import { Col, File, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row } from '../../_dsfr/index';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
 import Help from '../../Help/Help';

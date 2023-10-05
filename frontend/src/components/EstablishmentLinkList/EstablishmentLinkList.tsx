@@ -1,5 +1,5 @@
 import React from 'react';
-import { Title } from '../../components/dsfr/index';
+import { Title } from '../_dsfr/index';
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';
 import { Link } from 'react-router-dom';

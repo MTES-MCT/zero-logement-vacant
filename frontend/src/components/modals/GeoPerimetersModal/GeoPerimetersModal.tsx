@@ -1,23 +1,10 @@
 import React, { useMemo, useState } from 'react';
 
-import {
-  Col,
-  File,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-  Text,
-} from '../../../components/dsfr/index';
+import { Col, File, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row, Text } from '../../_dsfr/index';
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
@@ -30,7 +17,7 @@ import {
 } from '../../../services/geo.service';
 import styles from './geo-perimeters-modal.module.scss';
 import GeoPerimetersTable from './GeoPerimetersTable';
-import AppSearchBar from '../../AppSearchBar/AppSearchBar';
+import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';

@@ -1,4 +1,4 @@
-import { SelectOption } from '../../models/SelectOption';
+import { SelectOption } from '../../../models/SelectOption';
 import { ChangeEvent, ReactNode } from 'react';
 import AppCheckbox from '../AppCheckbox/AppCheckbox';
 

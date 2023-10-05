@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
-import {
-  Col,
-  Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-} from '../../../components/dsfr/index';
+import { Col, Container, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row } from '../../_dsfr/index';
 
 import * as yup from 'yup';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useForm } from '../../../hooks/useForm';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 const GeoPerimeterEditionModal = ({

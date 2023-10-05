@@ -1,4 +1,4 @@
-import { Col, Row, Text } from '../../components/dsfr/index';
+import { Col, Row, Text } from '../_dsfr/index';
 import classNames from 'classnames';
 import { Selection, useSelection } from '../../hooks/useSelection';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
@@ -7,10 +7,10 @@ import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
 import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
-import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { pluralize } from '../../utils/stringUtils';
-import AppCheckbox from '../AppCheckbox/AppCheckbox';
-import { Table } from '../dsfr';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
+import { Table } from '../_dsfr';
 
 interface Props {
   messages: OwnerProspect[];

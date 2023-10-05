@@ -1,23 +1,15 @@
 import React, { ChangeEvent, useMemo, useState } from 'react';
-import {
-  Col,
-  Container,
-  Row,
-  SearchableSelect,
-} from '../../../components/dsfr/index';
+import { Col, Container, Row, SearchableSelect } from '../../_dsfr/index';
 
 import * as yup from 'yup';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../../shared/models/ContactPoint';
+import { ContactPoint, DraftContactPoint } from '../../../../../shared/models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import AppCheckbox from '../../AppCheckbox/AppCheckbox';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {

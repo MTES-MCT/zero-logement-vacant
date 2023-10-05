@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import handsPoints from '../../assets/images/hands-point.svg';
 import { AddressSearchResult } from '../../services/address.service';
 import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';

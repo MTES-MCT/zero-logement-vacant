@@ -1,10 +1,6 @@
-import React, {
-  ComponentPropsWithoutRef,
-  InputHTMLAttributes,
-  TextareaHTMLAttributes,
-} from 'react';
+import React, { ComponentPropsWithoutRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import { ObjectShape } from 'yup/lib/object';
-import { useForm } from '../../hooks/useForm';
+import { useForm } from '../../../hooks/useForm';
 import Input from '@codegouvfr/react-dsfr/Input';
 
 type AppTextInputProps<T extends ObjectShape> = Partial<

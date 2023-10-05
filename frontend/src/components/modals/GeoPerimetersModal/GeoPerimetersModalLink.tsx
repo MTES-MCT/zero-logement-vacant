@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import GeoPerimetersModal from './GeoPerimetersModal';
-import AppLinkAsButton from '../../AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
 
 const GeoPerimetersModalLink = () => {
   const [isGeoPerimetersModalOpen, setIsGeoPerimetersModalOpen] =

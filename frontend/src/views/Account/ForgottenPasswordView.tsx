@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import building from '../../assets/images/building.svg';
 import React, { useState } from 'react';
 import * as yup from 'yup';
@@ -8,10 +8,10 @@ import classNames from 'classnames';
 import styles from './forgotten-password-view.module.scss';
 import { useHide } from '../../hooks/useHide';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppLinkAsButton from '../../components/AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
 
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');

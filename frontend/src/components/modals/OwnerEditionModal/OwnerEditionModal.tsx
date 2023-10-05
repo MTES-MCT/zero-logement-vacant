@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Col, Row } from '../../../components/dsfr/index';
+import { Col, Row } from '../../_dsfr/index';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { format } from 'date-fns';
 import { parseDateInput } from '../../../utils/dateUtils';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';

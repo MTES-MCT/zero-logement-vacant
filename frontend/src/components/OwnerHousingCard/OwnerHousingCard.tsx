@@ -1,4 +1,4 @@
-import { Icon, Text, Title } from '../../components/dsfr/index';
+import { Icon, Text, Title } from '../_dsfr/index';
 import React from 'react';
 
 import { getBuildingLocation, Housing } from '../../models/Housing';

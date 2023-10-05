@@ -5,7 +5,7 @@ import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-edition.module.scss';
-import { Radio, RadioGroup } from '../dsfr';
+import { Radio, RadioGroup } from '../_dsfr';
 
 interface Props {
   selected?: HousingStatus;

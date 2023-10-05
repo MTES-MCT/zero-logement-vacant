@@ -1,15 +1,12 @@
-import { Container, Text } from '../../components/dsfr/index';
+import { Container, Text } from '../../components/_dsfr/index';
 import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  findOwnerProspects,
-  updateOwnerProspect,
-} from '../../store/actions/ownerProspectAction';
+import { findOwnerProspects, updateOwnerProspect } from '../../store/actions/ownerProspectAction';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import { getEstablishmentUrl } from '../../models/Establishment';
 import styles from './inbox-view.module.scss';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';

@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
 import React, { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
@@ -12,7 +12,7 @@ import authService from '../../services/auth.service';
 import { useEmailLink } from '../../hooks/useEmailLink';
 import resetLinkService from '../../services/reset-link.service';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 

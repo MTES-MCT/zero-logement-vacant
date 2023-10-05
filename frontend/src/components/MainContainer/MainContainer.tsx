@@ -1,4 +1,4 @@
-import { Container, Title } from '../../components/dsfr/index';
+import { Container, Title } from '../_dsfr/index';
 import React, { ReactNode } from 'react';
 
 export interface Props {

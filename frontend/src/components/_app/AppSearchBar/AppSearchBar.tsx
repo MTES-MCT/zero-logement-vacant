@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import styles from './app-search-bar.module.scss';
-import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { useOutsideClick } from '../../../hooks/useOutsideClick';
 
 export interface SearchResult {
   title: string;

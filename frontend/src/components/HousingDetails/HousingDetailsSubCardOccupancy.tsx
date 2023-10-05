@@ -1,10 +1,6 @@
-import { Col, Row, Text, Title } from '../../components/dsfr/index';
+import { Col, Row, Text, Title } from '../_dsfr/index';
 import React from 'react';
-import {
-  Housing,
-  OccupancyKind,
-  OccupancyKindLabels,
-} from '../../models/Housing';
+import { Housing, OccupancyKind, OccupancyKindLabels } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { pluralize } from '../../utils/stringUtils';
 import DPE from '../DPE/DPE';

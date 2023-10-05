@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../../components/_dsfr/index';
 import { HousingStatus } from '../../models/HousingState';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import CampaignInProgressTab from './CampaignInProgressTab';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';

@@ -1,23 +1,20 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Container, Icon, Row, Text } from '../../components/dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../_dsfr/index';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import {
-  allOccupancyOptions,
-  statusOptions,
-} from '../../models/HousingFilters';
+import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
-import AppLinkAsButton from '../AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useForm } from '../../hooks/useForm';
-import AppTextInput from '../AppTextInput/AppTextInput';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import _ from 'lodash';
 import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
 import { pluralize } from '../../utils/stringUtils';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import AppSelect from '../AppSelect/AppSelect';
+import AppSelect from '../_app/AppSelect/AppSelect';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 
 const modal = createModal({

@@ -1,14 +1,11 @@
 import React from 'react';
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../../components/_dsfr/index';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';

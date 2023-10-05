@@ -1,8 +1,8 @@
 import React, { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
 import { ObjectShape } from 'yup/lib/object';
-import { useForm } from '../../hooks/useForm';
+import { useForm } from '../../../hooks/useForm';
 import Select from '@codegouvfr/react-dsfr/Select';
-import { SelectOptions } from '../dsfr/components/interface/Select/Select';
+import { SelectOptions } from '../../_dsfr/components/interface/Select/Select';
 
 type AppSelectProps<T extends ObjectShape> = Partial<
   Pick<ComponentPropsWithoutRef<typeof Select>, 'label'>

@@ -1,15 +1,12 @@
-import { Col, Icon, Row, Text, Title } from '../../components/dsfr/index';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../shared/models/ContactPoint';
+import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
+import { ContactPoint, DraftContactPoint } from '../../../../shared/models/ContactPoint';
 import React from 'react';
 import { mailto, pluralize } from '../../utils/stringUtils';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import _ from 'lodash';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
-import AppLink from '../AppLink/AppLink';
+import AppLink from '../_app/AppLink/AppLink';
 import ContactPointEditionModal from '../modals/ContactPointEditionModal/ContactPointEditionModal';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 

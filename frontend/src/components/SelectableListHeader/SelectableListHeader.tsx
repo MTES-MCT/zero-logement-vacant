@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { Col, Row } from '../../components/dsfr/index';
+import { Col, Row } from '../_dsfr/index';
 import { pluralize } from '../../utils/stringUtils';
 import SelectableListHeaderActions from './SelectableListHeaderActions';
 import { findChild } from '../../utils/elementUtils';

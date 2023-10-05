@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
-import { Col, Row, Text } from '../../components/dsfr/index';
-import {
-  removeCampaignHousingList,
-  validCampaignStep,
-} from '../../store/actions/campaignAction';
+import { Col, Row, Text } from '../../components/_dsfr/index';
+import { removeCampaignHousingList, validCampaignStep } from '../../store/actions/campaignAction';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';
 import * as yup from 'yup';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import AppLinkAsButton from '../../components/AppLinkAsButton/AppLinkAsButton';
+import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';
 import VerticalStep from '../../components/VerticalStepper/VerticalStep';
 import { useStepper } from '../../hooks/useStepper';
@@ -26,12 +20,12 @@ import Help from '../../components/Help/Help';
 import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
-import AppLink from '../../components/AppLink/AppLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;

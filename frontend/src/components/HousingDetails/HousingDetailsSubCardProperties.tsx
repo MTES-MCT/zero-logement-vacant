@@ -1,4 +1,4 @@
-import { Text } from '../../components/dsfr/index';
+import { Text } from '../_dsfr/index';
 import React from 'react';
 import { Housing, OwnershipKindLabels } from '../../models/Housing';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Container, Title } from '../../components/dsfr/index';
+import { Container, Title } from '../_dsfr/index';
 import { HousingUpdate } from '../../models/Housing';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';

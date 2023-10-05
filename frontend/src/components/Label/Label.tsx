@@ -1,4 +1,4 @@
-import { Text } from '../../components/dsfr/index';
+import { Text } from '../_dsfr/index';
 import { PropsWithChildren } from 'react';
 
 import styles from './label.module.scss';

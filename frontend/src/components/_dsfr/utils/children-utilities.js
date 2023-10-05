@@ -1,5 +1,5 @@
 // Thanks to https://www.npmjs.com/package/react-children-utilities
-import { Children, cloneElement, isValidElement } from 'react';
+import {Children, cloneElement, isValidElement} from 'react';
 
 const hasChildren = (element) =>
   isValidElement(element) && Boolean(element.props.children);

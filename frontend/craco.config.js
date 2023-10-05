@@ -8,4 +8,12 @@ module.exports = {
       ignore: ['./node_modules/maplibre-gl/dist/maplibre-gl.js'],
     },
   },
+  jest: {
+    configure(config) {
+      config.transformIgnorePatterns = [
+        '/node_modules/(?!@codegouvfr)/.+\\.js$',
+      ];
+      return config;
+    },
+  },
 };

@@ -34,6 +34,7 @@ function AppFooter() {
             },
           ],
         },
+        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
         {
           categoryName: 'Informations légales',
           links: [
@@ -51,6 +52,7 @@ function AppFooter() {
             },
           ],
         },
+        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
         {
           categoryName: 'Navigation',
           links: [

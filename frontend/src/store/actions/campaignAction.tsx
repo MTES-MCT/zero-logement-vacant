@@ -15,6 +15,7 @@ import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import campaignSlice from '../reducers/campaignReducer';
 import { AppState } from '../store';
 import { HousingFilters } from '../../models/HousingFilters';
+import { Group } from '../../models/Group';
 
 export interface CampaignListFetchedAction {
   campaignList: Campaign[];
@@ -133,6 +134,29 @@ export const createCampaign = (
           })
         );
         listCampaigns()(dispatch, getState);
+      });
+  };
+};
+
+interface CampaignFromGroupPayload {
+  campaign: Pick<Campaign, 'title'>;
+  group: Group;
+}
+
+export const createCampaignFromGroup = (payload: CampaignFromGroupPayload) => {
+  return function (dispatch: Dispatch, getState: () => AppState) {
+    dispatch(showLoading());
+
+    return campaignService
+      .createCampaignFromGroup(payload)
+      .then((campaign) => {
+        campaignCreated({
+          campaignBundleFetchingId: getCampaignBundleId(campaign),
+        });
+        return campaign;
+      })
+      .finally(() => {
+        dispatch(hideLoading());
       });
   };
 };

@@ -1,13 +1,22 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignKinds,
+  CampaignSteps,
+} from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { AuthenticatedRequest } from 'express-jwt';
-import { body, param, validationResult } from 'express-validator';
+import {
+  body,
+  param,
+  ValidationChain,
+  validationResult,
+} from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
@@ -15,16 +24,15 @@ import async from 'async';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { logger } from '../utils/logger';
 import CampaignBundleMissingError from '../errors/campaignBundleMissingError';
+import groupRepository from '../repositories/groupRepository';
+import GroupMissingError from '../errors/groupMissingError';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
   param('reminderNumber').optional({ nullable: true }).isNumeric(),
 ];
 
-const getCampaignBundle = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+const getCampaignBundle = async (request: Request, response: Response) => {
   const errors = validationResult(request);
   if (!errors.isEmpty()) {
     return response
@@ -173,6 +181,82 @@ const createCampaign = async (
   return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 };
 
+const createCampaignFromGroup = async (
+  request: Request,
+  response: Response
+): Promise<void> => {
+  const { auth, body, params } = request as AuthenticatedRequest;
+  const groupId = params.id;
+  logger.info('Create campaign from group', { groupId });
+
+  const group = await groupRepository.findOne({
+    id: groupId,
+    establishmentId: auth.establishmentId,
+  });
+  if (!group) {
+    throw new GroupMissingError(groupId);
+  }
+
+  const lastNumber = await campaignRepository.lastCampaignNumber(
+    auth.establishmentId
+  );
+  const campaign: CampaignApi = {
+    id: uuidv4(),
+    groupId,
+    title: body.title,
+    campaignNumber: (lastNumber ?? 0) + 1,
+    reminderNumber: 0,
+    kind: CampaignKinds.Initial,
+    filters: {
+      groupIds: [groupId],
+    },
+    createdAt: new Date(),
+    createdBy: auth.userId,
+    establishmentId: auth.establishmentId,
+    validatedAt: new Date(),
+  };
+  await campaignRepository.insert(campaign);
+
+  const housingList = await housingRepository.find({
+    filters: {
+      establishmentIds: [auth.establishmentId],
+      groupIds: [group.id],
+    },
+    pagination: { paginate: false },
+  });
+  await campaignHousingRepository.insertHousingList(campaign.id, housingList);
+
+  await removeHousingFromDefaultCampaign(
+    housingList.map((housing) => housing.id),
+    auth.establishmentId
+  );
+
+  await eventRepository.insertManyHousingEvents(
+    housingList.map((housing) => ({
+      id: uuidv4(),
+      name: 'Ajout dans une campagne',
+      kind: 'Create',
+      category: 'Campaign',
+      section: 'Suivi de campagne',
+      old: housing,
+      new: {
+        ...housing,
+        campaignIds: [...housing.campaignIds, campaign.id],
+      },
+      createdBy: auth.userId,
+      createdAt: new Date(),
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+    }))
+  );
+
+  response.status(constants.HTTP_STATUS_CREATED).json(campaign);
+};
+const createCampaignFromGroupValidators: ValidationChain[] = [
+  param('id').isString().isUUID().notEmpty(),
+  body('title').isString().notEmpty(),
+];
+
 const removeHousingFromDefaultCampaign = (
   housingIds: string[],
   establishmentId: string
@@ -296,7 +380,7 @@ const validateStep = async (
 
   logger.info('Validate campaign step', { campaignId, step });
 
-  const campaignApi = await campaignRepository.getCampaign(campaignId);
+  const campaignApi = await campaignRepository.get(campaignId);
 
   if (!campaignApi) {
     return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
@@ -374,7 +458,7 @@ const validateStep = async (
 
     return campaignRepository
       .update(updatedCampaign)
-      .then(() => campaignRepository.getCampaign(campaignId))
+      .then(() => campaignRepository.get(campaignId))
       .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
   }
 };
@@ -582,6 +666,8 @@ const campaignController = {
   listCampaigns,
   listCampaignBundles,
   createCampaign,
+  createCampaignFromGroup,
+  createCampaignFromGroupValidators,
   createReminderCampaign,
   updateCampaignBundle,
   validateStepValidators,

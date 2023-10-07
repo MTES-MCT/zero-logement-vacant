@@ -16,6 +16,12 @@ import {
   GroupsHousing,
 } from '../groupRepository';
 import fp from 'lodash/fp';
+import {
+  formatOwnerApi,
+  formatOwnerHousingApi,
+  Owners,
+  OwnersHousing,
+} from '../ownerRepository';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -64,12 +70,16 @@ describe('Housing repository', () => {
         genHousingApi(oneOf(Establishment1.geoCodes)),
         genHousingApi(oneOf(Establishment1.geoCodes)),
       ];
+      const owners = housingList.map((housing) => housing.owner);
       await Housing().insert(housingList.map(formatHousingRecordApi));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await OwnersHousing().insert(housingList.map(formatOwnerHousingApi));
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
 
       const actual = await housingRepository.find({
         filters: {
+          establishmentIds: [Establishment1.id],
           groupIds: [group.id],
         },
       });

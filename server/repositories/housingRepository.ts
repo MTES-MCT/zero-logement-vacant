@@ -44,7 +44,6 @@ export const ownersHousingTable = 'owners_housing';
 export const establishmentsLocalitiesTable = 'establishments_localities';
 
 export const Housing = () => db<HousingDBO>(housingTable);
-export const OwnersHousing = () => db<HousingOwnerDBO>(ownersHousingTable);
 
 export const ReferenceDataYear = 2022;
 
@@ -698,7 +697,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
     )
     .modify(paginationQuery(opts.pagination as PaginationApi));
 
-  logger.trace('housingRepository.find', { housing: housingList.length });
+  logger.debug('housingRepository.find', { housing: housingList.length });
   return housingList.map(parseHousingApi);
 };
 

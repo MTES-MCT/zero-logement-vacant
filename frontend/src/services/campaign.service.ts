@@ -12,6 +12,7 @@ import {
 } from '../models/Campaign';
 import { Housing } from '../models/Housing';
 import { HousingFilters } from '../models/HousingFilters';
+import { Group } from '../models/Group';
 
 const listCampaigns = async (): Promise<Campaign[]> => {
   return await fetch(`${config.apiEndpoint}/api/campaigns`, {
@@ -72,6 +73,28 @@ const createCampaign = async (
   })
     .then((_) => _.json())
     .then((_) => parseCampaign(_));
+};
+
+const createCampaignFromGroup = async (payload: {
+  campaign: Pick<Campaign, 'title'>;
+  group: Group;
+}): Promise<Campaign> => {
+  const response = await fetch(
+    `${config.apiEndpoint}/api/groups/${payload.group.id}/campaigns`,
+    {
+      method: 'POST',
+      headers: {
+        ...authService.authHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: payload.campaign.title,
+      }),
+    }
+  );
+
+  const body = await response.json();
+  return parseCampaign(body);
 };
 
 const updateCampaignBundleTitle = async (
@@ -206,6 +229,7 @@ const campaignService = {
   listCampaignBundles,
   getCampaignBundle,
   createCampaign,
+  createCampaignFromGroup,
   createCampaignBundleReminder,
   updateCampaignBundleTitle,
   deleteCampaignBundle,

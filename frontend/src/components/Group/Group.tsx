@@ -16,7 +16,7 @@ import { useState } from 'react';
 
 interface GroupProps {
   group: GroupModel;
-  onCreateCampaign?: (group: GroupModel) => void;
+  onCampaignCreate?: (group: GroupModel) => void;
   onExport?: (group: GroupModel) => void;
   onRemove?: (group: GroupModel) => void;
 }
@@ -25,8 +25,11 @@ function Group(props: GroupProps) {
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
 
-  const [confirmGroupRemoval, setConfirmGroupRemoval] = useState(false);
+  function createCampaign(): void {
+    props.onCampaignCreate?.(props.group);
+  }
 
+  const [confirmGroupRemoval, setConfirmGroupRemoval] = useState(false);
   function removeGroup(): void {
     props.onRemove?.(props.group);
     setConfirmGroupRemoval(false);
@@ -87,7 +90,7 @@ function Group(props: GroupProps) {
         </Col>
         <Col n="3">
           <Container as="aside" className={styles.actions} fluid>
-            <Button className={styles.action} onClick={props.onCreateCampaign}>
+            <Button className={styles.action} onClick={createCampaign}>
               Créer une campagne
             </Button>
             <Button

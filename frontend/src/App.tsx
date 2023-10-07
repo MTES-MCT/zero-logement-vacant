@@ -133,7 +133,7 @@ function App() {
               {path:"/ressources", component:ResourcesView},
               {path:"/compte", component:AccountView},
               {path:"/compte/mot-de-passe", component:AccountPasswordView},
-            ].map((route: RouteProps) => <Route path={route.path} exact={route.exact ?? false} component={route.component} key={`route_${route.path}`} /> )),
+            ].map((route: RouteProps) => <Route path={route.path} exact component={route.component} key={`route_${route.path}`} /> )),
               <Route path="/*" key="route_default">
                 <Redirect to="/parc-de-logements"/>
               </Route>

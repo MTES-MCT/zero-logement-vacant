@@ -7,7 +7,7 @@ import {
 import Group from '../../components/Group/Group';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { filterCount } from '../../models/HousingFilters';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -23,6 +23,9 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import housingSlice from '../../store/reducers/housingReducer';
 import Alert from '../../components/Alert/Alert';
+import GroupCampaignCreationModal from '../../components/modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
+import { createCampaignFromGroup } from '../../store/actions/campaignAction';
+import { Campaign } from '../../models/Campaign';
 
 interface RouterState {
   alert?: string;
@@ -55,8 +58,7 @@ function GroupView() {
   const router = useHistory<RouterState | undefined>();
   const alert = router.location.state?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
-
-  async function doRemoveGroup(): Promise<void> {
+  async function onGroupRemove(): Promise<void> {
     if (group) {
       try {
         await removeGroup(group).unwrap();
@@ -67,14 +69,40 @@ function GroupView() {
     }
   }
 
+  const [showCampaignCreationModal, setShowCampaignCreationModal] =
+    useState(false);
+  async function onCampaignCreate(
+    campaign: Pick<Campaign, 'title'>
+  ): Promise<void> {
+    if (group) {
+      const created = await dispatch(
+        createCampaignFromGroup({ campaign, group })
+      );
+      router.push(`/campagnes/${created.id}`);
+      setShowCampaignCreationModal(false);
+    }
+  }
+
   if (!group || isLoadingGroup) {
     return <></>;
   }
 
   return (
     <Container as="section" spacing="py-4w mb-4w">
+      <GroupCampaignCreationModal
+        open={showCampaignCreationModal}
+        group={group}
+        housingCount={group.housingCount}
+        onSubmit={onCampaignCreate}
+        onClose={() => setShowCampaignCreationModal(false)}
+      />
+
       <Row spacing="mb-5w">
-        <Group group={group} onRemove={doRemoveGroup} />
+        <Group
+          group={group}
+          onCampaignCreate={() => setShowCampaignCreationModal(true)}
+          onRemove={onGroupRemove}
+        />
       </Row>
 
       <Alert

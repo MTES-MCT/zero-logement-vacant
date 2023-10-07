@@ -16,13 +16,13 @@ import { GroupDTO, GroupPayloadDTO } from '../../shared/models/GroupDTO';
 import {
   formatHousingRecordApi,
   Housing,
-  OwnersHousing,
 } from '../repositories/housingRepository';
 import { toUserDTO } from '../models/UserApi';
 import {
   formatOwnerApi,
   HousingOwnerDBO,
   Owners,
+  OwnersHousing,
 } from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 

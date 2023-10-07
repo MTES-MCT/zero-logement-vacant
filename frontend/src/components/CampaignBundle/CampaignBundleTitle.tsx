@@ -87,14 +87,14 @@ const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
         )}
       </Title>
       {isCampaign && campaignBundle.createdAt && (
-        <Text className="subtitle" spacing="mb-1w" size="sm">
-          Campagne créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
+        <Text className="weight-500" spacing="mb-1w" size="sm">
+          Campagne créé le {dateShortFormat(campaignBundle.createdAt)}
         </Text>
       )}
       {campaignBundle.campaignNumber === 0 && (
         <div className="fr-py-2w">
           <Help>
-            Les logements hors campagne sont les logements qui sont{' '}
+            Les logements hors campagne sont les logements qui sont 
             <b>
               en cours de suivi mais qui ne sont pas compris dans une campagne.
             </b>

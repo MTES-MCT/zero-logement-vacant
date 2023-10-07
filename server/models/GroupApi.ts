@@ -8,7 +8,7 @@ export interface GroupApi extends Omit<GroupDTO, 'createdAt' | 'createdBy'> {
   /**
    * The full user corresponding to the userId.
    */
-  createdBy: UserApi;
+  createdBy?: UserApi;
   establishmentId: string;
 }
 
@@ -19,6 +19,6 @@ export function toGroupDTO(group: GroupApi): GroupDTO {
       group
     ),
     createdAt: group.createdAt.toJSON(),
-    createdBy: toUserDTO(group.createdBy),
+    createdBy: group.createdBy ? toUserDTO(group.createdBy) : undefined,
   };
 }

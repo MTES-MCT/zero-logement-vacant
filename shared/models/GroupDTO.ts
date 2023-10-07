@@ -8,7 +8,7 @@ export interface GroupDTO {
   housingCount: number;
   ownerCount: number;
   createdAt: string;
-  createdBy: UserDTO;
+  createdBy?: UserDTO;
 }
 
 export interface GroupPayloadDTO

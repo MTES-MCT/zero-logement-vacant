@@ -3,7 +3,6 @@ import db from './db';
 import { HousingApi } from '../models/HousingApi';
 import { parseUserApi, UserDBO, usersTable } from './userRepository';
 import { Knex } from 'knex';
-import UserMissingError from '../errors/userMissingError';
 import { logger } from '../utils/logger';
 import { housingTable, ownersHousingTable } from './housingRepository';
 
@@ -147,10 +146,6 @@ export const formatGroupApi = (group: GroupApi): GroupCreationDBO => ({
 });
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {
-  if (!group.user) {
-    throw new UserMissingError(group.user_id);
-  }
-
   return {
     id: group.id,
     title: group.title,
@@ -159,7 +154,7 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     ownerCount: Number(group.owner_count),
     createdAt: new Date(group.created_at),
     userId: group.user_id,
-    createdBy: parseUserApi(group.user),
+    createdBy: group.user ? parseUserApi(group.user) : undefined,
     establishmentId: group.establishment_id,
   };
 };

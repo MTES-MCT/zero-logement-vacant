@@ -26,6 +26,7 @@ import { useAppDispatch } from '../../hooks/useStore';
 import { numberOption } from '../../utils/numberUtils';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import InternalLink from '../../components/InternalLink/InternalLink';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
@@ -109,16 +110,42 @@ const CampaignView = () => {
           </div>
         </Col>
       </Row>
-      {bundle.filters && hasFilters(bundle.filters) && (
-        <Row spacing="mb-5w">
-          <Col>
-            <Text size="sm" className="fr-mb-1w">
-              Filtres utilisés pour la création de l'échantillon :
+      {bundle.group && (
+        <Row spacing="mb-2w">
+          <Col className="d-flex">
+            <Text
+              as="span"
+              className="weight-500"
+              size="sm"
+              spacing="mb-0 mr-1w"
+            >
+              Créée à partir du groupe
             </Text>
-            <HousingFiltersBadges filters={bundle.filters} />
+            <InternalLink
+              to={`/groupes/${bundle.group.id}`}
+              display="flex"
+              icon="ri-hotel-fill"
+              iconPosition="left"
+              iconSize="1x"
+              isSimple
+            >
+              {bundle.group.title}
+            </InternalLink>
           </Col>
         </Row>
       )}
+      {bundle.filters &&
+        hasFilters(bundle.filters) &&
+        !bundle.filters.groupIds?.length && (
+          <Row spacing="mb-5w">
+            <Col>
+              <Text size="sm" className="fr-mb-1w">
+                Filtres utilisés pour la création de l'échantillon :
+              </Text>
+              <HousingFiltersBadges filters={bundle.filters} />
+            </Col>
+          </Row>
+        )}
       {(bundle.campaignNumber ?? 0) > 0 &&
         step &&
         step >= CampaignSteps.InProgress && (

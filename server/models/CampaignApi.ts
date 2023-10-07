@@ -1,5 +1,6 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
 import { formatISO } from 'date-fns';
+import { GroupApi } from './GroupApi';
 
 export interface CampaignApi {
   id: string;
@@ -37,6 +38,7 @@ export interface CampaignBundleApi {
   npaiCount: number;
   inProgressWithSupportCount: number;
   ownerCount: number;
+  group?: GroupApi;
 }
 
 export enum CampaignSteps {

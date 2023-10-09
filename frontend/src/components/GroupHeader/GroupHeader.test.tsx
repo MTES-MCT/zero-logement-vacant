@@ -6,6 +6,10 @@ import { configureStore, Store } from '@reduxjs/toolkit';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
 import { genAuthUser, genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
+import { createMemoryHistory } from 'history';
+import { Router } from 'react-router-dom';
+import { getRequestCalls } from '../../utils/test/requestUtils';
+import config from '../../utils/config';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();
@@ -39,7 +43,9 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <GroupHeader />
+        <Router history={createMemoryHistory()}>
+          <GroupHeader />
+        </Router>
       </Provider>
     );
 
@@ -58,7 +64,9 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <GroupHeader />
+        <Router history={createMemoryHistory()}>
+          <GroupHeader />
+        </Router>
       </Provider>
     );
 
@@ -77,7 +85,9 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <GroupHeader />
+        <Router history={createMemoryHistory()}>
+          <GroupHeader />
+        </Router>
       </Provider>
     );
 
@@ -88,6 +98,60 @@ describe('GroupHeader', () => {
     );
     titles.forEach((title) => {
       expect(title).toBeVisible();
+    });
+  });
+
+  it('should display a modal to create a group', async () => {
+    const router = createMemoryHistory();
+    const group = genGroup();
+    fetchMock.mockIf(
+      (request) => request.url.endsWith('/api/groups'),
+      async () => ({
+        status: 200,
+        body: JSON.stringify([]),
+      })
+    );
+    fetchMock.mockIf(
+      (request) =>
+        request.method === 'POST' && request.url.endsWith('/api/groups'),
+      async () => ({
+        status: 201,
+        body: JSON.stringify(group),
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <Router history={router}>
+          <GroupHeader />
+        </Router>
+      </Provider>
+    );
+
+    const createGroup = await screen.findByText(/Créer un nouveau groupe/);
+    await user.click(createGroup);
+    const title = await screen.findByLabelText(/^Nom du groupe/);
+    await user.type(title, 'Logements prioritaires');
+    const description = await screen.findByText('Description');
+    await user.type(description, 'Les logements prioritaires');
+    const confirm = await screen.findByText('Confirmer');
+    await user.click(confirm);
+
+    const requests = await getRequestCalls(fetchMock);
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/groups`,
+      method: 'POST',
+      body: {
+        title: 'Logements prioritaires',
+        description: 'Les logements prioritaires',
+      },
+    });
+
+    expect(router.location).toMatchObject({
+      pathname: `/groupes/${group.id}`,
+      state: {
+        alert: 'Votre nouveau groupe a bien été créé.',
+      },
     });
   });
 });

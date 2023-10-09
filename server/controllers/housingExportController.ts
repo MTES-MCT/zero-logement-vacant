@@ -19,6 +19,9 @@ import { CampaignApi } from '../models/CampaignApi';
 import { logger } from '../utils/logger';
 import excelUtils from '../utils/excelUtils';
 import exceljs from 'exceljs';
+import groupRepository from '../repositories/groupRepository';
+import GroupMissingError from '../errors/groupMissingError';
+import { param, ValidationChain } from 'express-validator';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
@@ -75,6 +78,45 @@ const exportHousingByCampaignBundle = async (
     });
   });
 };
+
+const exportGroup = async (request: Request, response: Response) => {
+  const { auth, params } = request as AuthenticatedRequest;
+
+  logger.info('Export group', {
+    id: params.id,
+  });
+
+  const [group, campaigns] = await Promise.all([
+    groupRepository.findOne({
+      id: params.id,
+      establishmentId: auth.establishmentId,
+    }),
+    campaignRepository.listCampaigns(auth.establishmentId),
+  ]);
+
+  if (!group) {
+    throw new GroupMissingError(params.id);
+  }
+
+  const stream = housingRepository.streamWithFilters({
+    groupIds: [params.id],
+    establishmentIds: [auth.establishmentId],
+  });
+  const fileName = `${group.title}.xlsx`;
+  const workbook = excelUtils.initWorkbook(fileName, response);
+  writeWorkbook(
+    stream,
+    fileName,
+    ['housing:complete'],
+    campaigns,
+    workbook
+  ).done(() => {
+    logger.info('Exported group', { group: group.id });
+  });
+};
+const exportGroupValidators: ValidationChain[] = [
+  param('id').isUUID().withMessage('Must be an UUID'),
+];
 
 const writeWorkbook = (
   stream: Stream<HousingApi>,
@@ -370,6 +412,8 @@ const reduceAddressApi = (addressApi?: AddressApi) => {
 
 const housingExportController = {
   exportHousingByCampaignBundle,
+  exportGroup,
+  exportGroupValidators,
 };
 
 export default housingExportController;

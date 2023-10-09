@@ -63,15 +63,45 @@ export const groupApi = createApi({
         { type: 'Group' as const, id: args.id },
       ],
     }),
-    addGroupHousing: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
+    addGroupHousing: builder.mutation<
+      void,
+      GroupPayload['housing'] & Pick<Group, 'id'>
+    >({
       query: (group) => ({
         url: `/${group.id}/housing`,
         method: 'POST',
         body: fp.omit(['id'], group),
       }),
-      invalidatesTags: (result, error, args) => [
-        { type: 'Group' as const, id: args.id },
-      ],
+      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+        await queryFulfilled;
+        dispatch(
+          housingApi.util.invalidateTags([
+            'Housing',
+            'HousingByStatus',
+            'HousingCountByStatus',
+          ])
+        );
+      },
+    }),
+    removeGroupHousing: builder.mutation<
+      void,
+      GroupPayload['housing'] & Pick<Group, 'id'>
+    >({
+      query: (group) => ({
+        url: `/${group.id}/housing`,
+        method: 'DELETE',
+        body: fp.omit(['id'], group),
+      }),
+      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+        await queryFulfilled;
+        dispatch(
+          housingApi.util.invalidateTags([
+            'Housing',
+            'HousingByStatus',
+            'HousingCountByStatus',
+          ])
+        );
+      },
     }),
     removeGroup: builder.mutation<void, Group>({
       query: (group) => ({
@@ -89,5 +119,6 @@ export const {
   useCreateGroupMutation,
   useUpdateGroupMutation,
   useAddGroupHousingMutation,
+  useRemoveGroupHousingMutation,
   useRemoveGroupMutation,
 } = groupApi;

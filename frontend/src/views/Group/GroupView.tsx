@@ -25,7 +25,13 @@ import housingSlice from '../../store/reducers/housingReducer';
 import Alert from '../../components/Alert/Alert';
 import GroupCampaignCreationModal from '../../components/modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
 import { createCampaignFromGroup } from '../../store/actions/campaignAction';
-import { Campaign } from '../../models/Campaign';
+import {
+  Campaign,
+  campaignBundleIdUrlFragment,
+  getCampaignBundleId,
+} from '../../models/Campaign';
+import config from '../../utils/config';
+import authService from '../../services/auth.service';
 
 interface RouterState {
   alert?: string;
@@ -75,11 +81,23 @@ function GroupView() {
     campaign: Pick<Campaign, 'title'>
   ): Promise<void> {
     if (group) {
-      const created = await dispatch(
-        createCampaignFromGroup({ campaign, group })
-      );
-      router.push(`/campagnes/${created.id}`);
-      setShowCampaignCreationModal(false);
+      try {
+        const created = await dispatch(
+          createCampaignFromGroup({ campaign, group })
+        );
+        const id = campaignBundleIdUrlFragment(getCampaignBundleId(created));
+        router.push(`/campagnes/${id}`);
+      } finally {
+        setShowCampaignCreationModal(false);
+      }
+    }
+  }
+
+  async function onGroupExport(): Promise<void> {
+    if (group) {
+      const token = authService.authHeader()?.['x-access-token'];
+      const url = `${config.apiEndpoint}/api/groups/${group.id}/export?x-access-token=${token}`;
+      window.open(url, '_self');
     }
   }
 
@@ -101,6 +119,7 @@ function GroupView() {
         <Group
           group={group}
           onCampaignCreate={() => setShowCampaignCreationModal(true)}
+          onExport={onGroupExport}
           onRemove={onGroupRemove}
         />
       </Row>
@@ -183,7 +202,7 @@ function GroupView() {
       {view === 'map' ? (
         <HousingListMap filters={filters} />
       ) : (
-        <HousingListTabs filters={filters} />
+        <HousingListTabs filters={filters} showRemoveGroupHousing />
       )}
     </Container>
   );

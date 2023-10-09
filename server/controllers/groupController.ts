@@ -10,7 +10,7 @@ import GroupMissingError from '../errors/groupMissingError';
 import { logger } from '../utils/logger';
 import { GroupApi, toGroupDTO } from '../models/GroupApi';
 import housingRepository from '../repositories/housingRepository';
-import { isArrayOf, isString } from '../utils/validators';
+import { isArrayOf, isString, isUUIDParam } from '../utils/validators';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -132,7 +132,7 @@ const update = async (request: Request, response: Response): Promise<void> => {
 };
 const updateValidators: ValidationChain[] = [
   ...createValidators,
-  param('id').isString().notEmpty(),
+  isUUIDParam('id'),
 ];
 
 const addHousing = async (
@@ -153,7 +153,7 @@ const addHousing = async (
   const [addingHousingList, existingHousingList] = await Promise.all([
     housingRepository.find({
       filters: {
-        ...body.housing.filters,
+        ...body.filters,
         establishmentIds: [auth.establishmentId],
       },
       pagination: { paginate: false },
@@ -167,12 +167,12 @@ const addHousing = async (
     }),
   ]);
 
-  const ids = new Set(body.housing.ids);
+  const ids = new Set(body.ids);
   const housingList = fp.uniqBy(
     'id',
     addingHousingList
       .filter((housing) =>
-        body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
+        body.all ? !ids.has(housing.id) : ids.has(housing.id)
       )
       .concat(existingHousingList)
   );
@@ -180,8 +180,6 @@ const addHousing = async (
 
   const updatedGroup: GroupApi = {
     ...group,
-    title: body.title,
-    description: body.description,
     housingCount: housingList.length,
     ownerCount: fp.uniqBy('id', owners).length,
   };
@@ -189,6 +187,63 @@ const addHousing = async (
 
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
+const addHousingValidators: ValidationChain[] = [
+  isUUIDParam('id'),
+  body('all').isBoolean().notEmpty(),
+  body('ids').custom(isArrayOf(isString)).notEmpty(),
+  // FIXME
+  // body('filters')
+];
+
+const removeHousing = async (request: Request, response: Response) => {
+  const { auth, body, params } = request as AuthenticatedRequest;
+
+  const group = await groupRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId,
+  });
+  if (!group) {
+    throw new GroupMissingError(params.id);
+  }
+
+  // Keep the housing list that are in the same establishment as the group
+  const [removingHousingList, existingHousingList] = await Promise.all([
+    housingRepository.find({
+      filters: {
+        ...body.filters,
+        establishmentIds: [auth.establishmentId],
+      },
+      pagination: { paginate: false },
+    }),
+    housingRepository.find({
+      filters: {
+        groupIds: [group.id],
+        establishmentIds: [auth.establishmentId],
+      },
+      pagination: { paginate: false },
+    }),
+  ]);
+
+  const ids = new Set(body.ids);
+  const housingList = fp.differenceBy(
+    'id',
+    existingHousingList,
+    removingHousingList.filter((housing) =>
+      body.all ? !ids.has(housing.id) : ids.has(housing.id)
+    )
+  );
+  const owners = housingList.map((housing) => housing.owner);
+
+  const updatedGroup: GroupApi = {
+    ...group,
+    housingCount: housingList.length,
+    ownerCount: fp.uniqBy('id', owners).length,
+  };
+  await groupRepository.save(updatedGroup, housingList);
+
+  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
+};
+const removeHousingValidators: ValidationChain[] = addHousingValidators;
 
 const remove = async (request: Request, response: Response): Promise<void> => {
   const { auth, params } = request as AuthenticatedRequest;
@@ -215,6 +270,9 @@ const groupController = {
   update,
   updateValidators,
   addHousing,
+  addHousingValidators,
+  removeHousing,
+  removeHousingValidators,
   remove,
   removeValidators,
 };

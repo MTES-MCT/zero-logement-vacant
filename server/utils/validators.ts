@@ -58,4 +58,4 @@ export const passwordCreationValidator = (
     );
 
 export const isUUIDParam = (paramField: string): ValidationChain =>
-  param(paramField).isUUID().notEmpty();
+  param(paramField).isUUID().notEmpty().withMessage('Must be a UUID');

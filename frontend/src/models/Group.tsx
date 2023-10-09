@@ -8,7 +8,7 @@ export interface Group {
   housingCount: number;
   ownerCount: number;
   createdAt: Date;
-  createdBy: User;
+  createdBy?: User;
 }
 
 export const fromGroupDTO = (group: GroupDTO): Group => ({
@@ -18,5 +18,5 @@ export const fromGroupDTO = (group: GroupDTO): Group => ({
   housingCount: group.housingCount,
   ownerCount: group.ownerCount,
   createdAt: new Date(group.createdAt),
-  createdBy: fromUserDTO(group.createdBy),
+  createdBy: group.createdBy ? fromUserDTO(group.createdBy) : undefined,
 });

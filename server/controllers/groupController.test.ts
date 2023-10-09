@@ -5,12 +5,22 @@ import { withAccessToken } from '../test/testUtils';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 
 import { GroupApi } from '../models/GroupApi';
-import { genGroupApi, genHousingApi, genOwnerApi } from '../test/testFixtures';
+import {
+  genGroupApi,
+  genHousingApi,
+  genOwnerApi,
+  oneOf,
+} from '../test/testFixtures';
 import {
   Establishment1,
   Establishment2,
 } from '../../database/seeds/test/001-establishments';
-import { formatGroupApi, Groups } from '../repositories/groupRepository';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+} from '../repositories/groupRepository';
 import fp from 'lodash/fp';
 import { GroupDTO, GroupPayloadDTO } from '../../shared/models/GroupDTO';
 import {
@@ -309,6 +319,177 @@ describe('Group controller', () => {
 
   describe('addHousing', () => {
     const testRoute = (id: string) => `/api/groups/${id}/housing`;
+    const owner = genOwnerApi();
+    const housingList = [
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment2.geoCodes[0]),
+    ];
+    const establishmentHousingList = housingList.filter((housing) =>
+      Establishment1.geoCodes.includes(housing.geoCode)
+    );
+    const group = genGroupApi(User1, Establishment1);
+
+    const payload: GroupPayloadDTO['housing'] = {
+      all: false,
+      ids: housingList.map((housing) => housing.id),
+      filters: {},
+    };
+
+    beforeEach(async () => {
+      await Owners().insert(formatOwnerApi(owner));
+      await Housing().insert(housingList.map(formatHousingRecordApi));
+      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
+        owner_id: owner.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+      }));
+      await OwnersHousing().insert(ownersHousing);
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(
+        formatGroupHousingApi(group, establishmentHousingList)
+      );
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app)
+        .post(testRoute(group.id))
+        .send(payload)
+        .set({
+          'Content-Type': 'application/json',
+        });
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it("should be hidden for a user outside of the group's establishment", async () => {
+      const { status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        }),
+        User2
+      );
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should add the housing corresponding to the given criteria to the group', async () => {
+      const housing = genHousingApi(oneOf(Establishment1.geoCodes));
+      await Housing().insert(formatHousingRecordApi(housing));
+      await OwnersHousing().insert({
+        owner_id: owner.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+      });
+
+      const { body, status } = await withAccessToken(
+        request(app)
+          .post(testRoute(group.id))
+          .send({
+            all: false,
+            ids: [housing.id],
+            filters: {},
+          } as GroupPayloadDTO['housing'])
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual<GroupDTO>({
+        id: group.id,
+        title: group.title,
+        description: group.description,
+        housingCount: establishmentHousingList.length + 1,
+        ownerCount: 1,
+        createdAt: expect.toBeDateString(),
+        createdBy: toUserDTO(User1),
+      });
+    });
+  });
+
+  describe('removeHousing', () => {
+    const testRoute = (id: string) => `/api/groups/${id}/housing`;
+    const owner = genOwnerApi();
+    const housingList = [
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment2.geoCodes[0]),
+    ];
+    const establishmentHousingList = housingList.filter((housing) =>
+      Establishment1.geoCodes.includes(housing.geoCode)
+    );
+    const group = genGroupApi(User1, Establishment1);
+
+    const payload: GroupPayloadDTO['housing'] = {
+      all: false,
+      ids: housingList.map((housing) => housing.id),
+      filters: {},
+    };
+
+    beforeEach(async () => {
+      await Owners().insert(formatOwnerApi(owner));
+      await Housing().insert(housingList.map(formatHousingRecordApi));
+      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
+        owner_id: owner.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+      }));
+      await OwnersHousing().insert(ownersHousing);
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(
+        formatGroupHousingApi(group, establishmentHousingList)
+      );
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app)
+        .delete(testRoute(group.id))
+        .send(payload)
+        .set({
+          'Content-Type': 'application/json',
+        });
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it("should be hidden for a user outside of the group's establishment", async () => {
+      const { status } = await withAccessToken(
+        request(app).delete(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        }),
+        User2
+      );
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should add the housing corresponding to the given criteria to the group', async () => {
+      const { body, status } = await withAccessToken(
+        request(app)
+          .delete(testRoute(group.id))
+          .send({
+            all: false,
+            ids: [establishmentHousingList[0].id],
+            filters: {},
+          } as GroupPayloadDTO['housing'])
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual<GroupDTO>({
+        id: group.id,
+        title: group.title,
+        description: group.description,
+        housingCount: establishmentHousingList.length - 1,
+        ownerCount: 1,
+        createdAt: expect.toBeDateString(),
+        createdBy: toUserDTO(User1),
+      });
+    });
   });
 
   describe('remove', () => {

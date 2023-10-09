@@ -39,39 +39,41 @@ function Group(props: GroupProps) {
     <Container as="article" fluid>
       <Row className="justify-space-between">
         <Col n="6" spacing="pr-2w">
-          <Container as="header" fluid spacing="mb-2w">
+          <Container as="header" fluid spacing="mb-1w">
             <Row>
-              <Title as="h2">{props.group.title}</Title>
+              <Title as="h2" spacing="mb-2w">
+                {props.group.title}
+              </Title>
             </Row>
-            <Row>
+            <Row className="weight-500">
               <Icon
                 name="ri-home-2-fill"
-                iconPosition="center"
+                iconPosition="left"
                 size="sm"
                 title="Logements"
               />
-              <Text as="span" spacing="mr-1w mb-0" size="sm">
+              <Text as="span" spacing="mr-2w mb-0" size="sm">
                 {props.group.housingCount} {housing}
               </Text>
               <Icon
                 name="ri-user-fill"
-                iconPosition="center"
+                iconPosition="left"
                 size="sm"
                 title="Propriétaires"
               />
-              <Text as="span" spacing="mr-1w mb-0" size="sm">
+              <Text as="span" spacing="mr-2w mb-0" size="sm">
                 {props.group.ownerCount} {owners}
               </Text>
               <Icon
                 name="ri-edit-box-fill"
-                iconPosition="center"
+                iconPosition="left"
                 size="sm"
                 title="Date de création"
               />
               <Text as="span" spacing="mb-0" size="sm">
                 Créé le {dateShortFormat(props.group.createdAt)} par 
-                {props.group.createdBy.firstName} 
-                {props.group.createdBy.lastName}
+                {props.group.createdBy?.firstName} 
+                {props.group.createdBy?.lastName}
               </Text>
             </Row>
           </Container>

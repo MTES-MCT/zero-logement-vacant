@@ -129,7 +129,11 @@ const HousingListView = () => {
       {view === 'map' ? (
         <HousingListMap filters={filters} />
       ) : (
-        <HousingListTabs filters={filters} showGroups />
+        <HousingListTabs
+            filters={filters}
+            showCreateCampaign
+            showCreateGroup
+          />
       )}
     </MainContainer>
   );

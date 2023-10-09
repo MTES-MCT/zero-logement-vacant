@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react';
 
 export interface Props {
   title?: ReactNode | ReactNode[];
-  isGrey?: boolean;
+  grey?: boolean;
   children: ReactNode | ReactNode[];
 }
 
@@ -13,7 +13,7 @@ function MainContainer(props: Props) {
       as="main"
       fluid
       spacing="py-4w"
-      className={props.isGrey ? 'bg-100' : ''}
+      className={props.grey ? 'bg-100' : ''}
     >
       <Container as="section">
         {props.title && (

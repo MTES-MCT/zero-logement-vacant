@@ -57,11 +57,10 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'address',
-      headerRender: () => (
-        <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('address')}>
-          Adresse du logement {getIcon('address')}
-        </div>
-      ),
+      headerRender: () =>
+        // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('address')}>
+        getIcon('address', 'Adresse du logement'),
+      // </div>
       render: (owner: OwnerProspect) => (
         <div className={classNames(styles.address, 'ellipsis')}>
           {!owner.read && <span className={styles.chip} />}
@@ -75,11 +74,10 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'contact',
-      headerRender: () => (
-        <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('email')}>
-          Contact {getIcon('email')}
-        </div>
-      ),
+      headerRender: () =>
+        // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('email')}>
+        getIcon('email', 'Contact'),
+      // </div>
       render: (owner: OwnerProspect) => (
         <>
           <Text className="ellipsis">
@@ -110,14 +108,13 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'inbox',
-      headerRender: () => (
-        <div
-          style={{ cursor: 'pointer' }}
-          onClick={() => cycleSort('createdAt')}
-        >
-          Date de réception {getIcon('createdAt')}
-        </div>
-      ),
+      headerRender: () =>
+        // <div
+        //   style={{ cursor: 'pointer' }}
+        //   onClick={() => cycleSort('createdAt')}
+        // >
+        getIcon('createdAt', 'Date de réception'),
+      // </div>
       render: (owner: OwnerProspect) => (
         <>
           {owner.createdAt && (

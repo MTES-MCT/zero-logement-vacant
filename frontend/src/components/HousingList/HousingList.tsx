@@ -1,4 +1,10 @@
-import React, { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
+import React, {
+  ChangeEvent,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {
@@ -15,9 +21,16 @@ import { useLocation } from 'react-router-dom';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { campaignBundleIdUrlFragment, campaignFullName, CampaignNumberSort } from '../../models/Campaign';
+import {
+  campaignBundleIdUrlFragment,
+  campaignFullName,
+  CampaignNumberSort,
+} from '../../models/Campaign';
 import _ from 'lodash';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -31,7 +44,10 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import { useCountHousingQuery, useUpdateHousingMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingMutation,
+} from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -175,14 +191,13 @@ const HousingList = ({
 
   const addressColumn = {
     name: 'address',
-    headerRender: () => (
-      <div
-        style={{ cursor: 'pointer' }}
-        onClick={() => cycleSort('rawAddress')}
-      >
-        Adresse du logement {getIcon('rawAddress')}
-      </div>
-    ),
+    headerRender: () =>
+      // <div
+      //   style={{ cursor: 'pointer' }}
+      //   onClick={() => cycleSort('rawAddress')}
+      // >
+      getIcon('rawAddress', 'Adresse du logement'),
+    // </div>
     render: ({ id, rawAddress }: Housing) => (
       <AppLink
         className="capitalize"
@@ -196,11 +211,10 @@ const HousingList = ({
 
   const ownerColumn = {
     name: 'owner',
-    headerRender: () => (
-      <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('owner')}>
-        Propriétaire principal {getIcon('owner')}
-      </div>
-    ),
+    headerRender: () =>
+      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('owner')}>
+      getIcon('owner', 'Propriétaire principal'),
+    // </div>
     render: ({ owner }: Housing) => (
       <>
         <AppLink
@@ -217,11 +231,10 @@ const HousingList = ({
 
   const occupancyColumn = {
     name: 'occupancy',
-    headerRender: () => (
-      <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('occupancy')}>
-        Occupation {getIcon('occupancy')}
-      </div>
-    ),
+    headerRender: () =>
+      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('occupancy')}>
+      getIcon('occupancy', 'Occupation'),
+    // </div>
     render: ({ occupancy }: Housing) => (
       <Badge className="bg-bf950 color-bf113">
         {OccupancyKindLabels[occupancy]}
@@ -266,11 +279,10 @@ const HousingList = ({
 
   const statusColumn = {
     name: 'status',
-    headerRender: () => (
-      <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('status')}>
-        Statut de suivi {getIcon('status')}
-      </div>
-    ),
+    headerRender: () =>
+      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('status')}>
+      getIcon('status', 'Statut de suivi'),
+    // </div>
     render: ({ status, subStatus }: Housing) => (
       <div style={{ textAlign: 'center' }}>
         <HousingStatusBadge status={status} />

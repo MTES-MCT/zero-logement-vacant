@@ -110,7 +110,7 @@ const CampaignView = () => {
         </Col>
       </Row>
       {bundle.filters && hasFilters(bundle.filters) && (
-        <Row>
+        <Row spacing="mb-5w">
           <Col>
             <Text size="sm" className="fr-mb-1w">
               Filtres utilisés pour la création de l'échantillon :

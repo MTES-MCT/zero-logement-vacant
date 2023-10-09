@@ -47,7 +47,7 @@ const HousingView = () => {
 
   return (
     <>
-      <MainContainer isGrey>
+      <MainContainer grey>
         <Row alignItems="top" gutters>
           <Col n="4">
             {mainHousingOwner && housingOwners && (

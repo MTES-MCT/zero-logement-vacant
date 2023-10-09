@@ -524,3 +524,7 @@ li.error {
     height: 1px;
   }
 }
+
+button.no-sort::after {
+  color: var(--grey-main-525);
+}

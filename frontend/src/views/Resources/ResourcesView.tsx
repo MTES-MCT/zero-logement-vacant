@@ -27,7 +27,7 @@ const ResourceTile = ({
   return (
     <Tile
       desc={children}
-      classes={{ root: 'fr-p-0', body: styles.tileBody }}
+      classes={{ root: 'fr-p-3w', body: styles.tileBody }}
       title={
         <>
           <div>

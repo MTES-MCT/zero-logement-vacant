@@ -12,7 +12,7 @@ export function useSort<Sortable extends object>(
 ) {
   const [sort, setSort] = useState<Sort<Sortable>>();
 
-  function getIcon(key: keyof Sortable, title: string): JSX.Element {
+  function getSortButton(key: keyof Sortable, title: string): JSX.Element {
     const direction = sort?.[key];
     return direction ? (
       <Button
@@ -80,7 +80,7 @@ export function useSort<Sortable extends object>(
 
   return {
     cycleSort,
-    getIcon,
+    getSortButton,
     sort,
     setSort,
   };

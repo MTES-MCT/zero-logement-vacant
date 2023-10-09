@@ -115,7 +115,7 @@ const HousingList = ({
     });
   };
 
-  const { cycleSort, getIcon } = useSort<HousingSortable>({ onSort });
+  const { getSortButton } = useSort<HousingSortable>({ onSort });
 
   // Contains unchecked elements if "allChecked" is true
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
@@ -191,13 +191,7 @@ const HousingList = ({
 
   const addressColumn = {
     name: 'address',
-    headerRender: () =>
-      // <div
-      //   style={{ cursor: 'pointer' }}
-      //   onClick={() => cycleSort('rawAddress')}
-      // >
-      getIcon('rawAddress', 'Adresse du logement'),
-    // </div>
+    headerRender: () => getSortButton('rawAddress', 'Adresse du logement'),
     render: ({ id, rawAddress }: Housing) => (
       <AppLink
         className="capitalize"
@@ -211,10 +205,7 @@ const HousingList = ({
 
   const ownerColumn = {
     name: 'owner',
-    headerRender: () =>
-      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('owner')}>
-      getIcon('owner', 'Propriétaire principal'),
-    // </div>
+    headerRender: () => getSortButton('owner', 'Propriétaire principal'),
     render: ({ owner }: Housing) => (
       <>
         <AppLink
@@ -231,10 +222,7 @@ const HousingList = ({
 
   const occupancyColumn = {
     name: 'occupancy',
-    headerRender: () =>
-      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('occupancy')}>
-      getIcon('occupancy', 'Occupation'),
-    // </div>
+    headerRender: () => getSortButton('occupancy', 'Occupation'),
     render: ({ occupancy }: Housing) => (
       <Badge className="bg-bf950 color-bf113">
         {OccupancyKindLabels[occupancy]}
@@ -279,10 +267,7 @@ const HousingList = ({
 
   const statusColumn = {
     name: 'status',
-    headerRender: () =>
-      // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('status')}>
-      getIcon('status', 'Statut de suivi'),
-    // </div>
+    headerRender: () => getSortButton('status', 'Statut de suivi'),
     render: ({ status, subStatus }: Housing) => (
       <div style={{ textAlign: 'center' }}>
         <HousingStatusBadge status={status} />

@@ -20,7 +20,7 @@ interface Props {
 }
 
 function InboxMessageList(props: Props) {
-  const { cycleSort, getIcon } = useSort<OwnerProspectSort>({
+  const { getSortButton } = useSort<OwnerProspectSort>({
     onSort: props.onSort,
   });
 
@@ -57,10 +57,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'address',
-      headerRender: () =>
-        // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('address')}>
-        getIcon('address', 'Adresse du logement'),
-      // </div>
+      headerRender: () => getSortButton('address', 'Adresse du logement'),
       render: (owner: OwnerProspect) => (
         <div className={classNames(styles.address, 'ellipsis')}>
           {!owner.read && <span className={styles.chip} />}
@@ -74,10 +71,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'contact',
-      headerRender: () =>
-        // <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('email')}>
-        getIcon('email', 'Contact'),
-      // </div>
+      headerRender: () => getSortButton('email', 'Contact'),
       render: (owner: OwnerProspect) => (
         <>
           <Text className="ellipsis">
@@ -108,13 +102,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'inbox',
-      headerRender: () =>
-        // <div
-        //   style={{ cursor: 'pointer' }}
-        //   onClick={() => cycleSort('createdAt')}
-        // >
-        getIcon('createdAt', 'Date de réception'),
-      // </div>
+      headerRender: () => getSortButton('createdAt', 'Date de réception'),
       render: (owner: OwnerProspect) => (
         <>
           {owner.createdAt && (

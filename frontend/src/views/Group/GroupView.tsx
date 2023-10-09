@@ -25,7 +25,10 @@ import { useMatomo } from '@datapunt/matomo-tracker-react';
 import housingSlice from '../../store/reducers/housingReducer';
 import Alert from '../../components/Alert/Alert';
 import GroupCampaignCreationModal from '../../components/modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
-import { createCampaignFromGroup } from '../../store/actions/campaignAction';
+import {
+  createCampaignFromGroup,
+  listCampaigns,
+} from '../../store/actions/campaignAction';
 import {
   Campaign,
   campaignBundleIdUrlFragment,
@@ -113,6 +116,17 @@ function GroupView() {
     }
   }
 
+  const { campaignList: campaigns } = useAppSelector((state) => state.campaign);
+  useEffect(() => {
+    dispatch(
+      listCampaigns({
+        filters: {
+          groupIds: [id],
+        },
+      })
+    );
+  }, [dispatch, id]);
+
   if (!group || isLoadingGroup) {
     return <></>;
   }
@@ -129,6 +143,7 @@ function GroupView() {
 
       <Row spacing="mb-5w">
         <Group
+          campaigns={campaigns}
           group={group}
           onCampaignCreate={() => setShowCampaignCreationModal(true)}
           onExport={onGroupExport}

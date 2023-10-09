@@ -25,6 +25,15 @@ export function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
+export function isCommaDelimitedString(value: unknown): value is string {
+  const pattern = /^[-\w]+(,[-\w]+)*$/;
+  return isString(value) && validator.matches(value, pattern);
+}
+
+export function split(separator: string) {
+  return (value: string): string[] => value.split(separator);
+}
+
 export function isInteger(value: unknown): boolean {
   return typeof value === 'number' && validator.isInt(value.toString());
 }

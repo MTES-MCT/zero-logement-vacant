@@ -9,6 +9,7 @@ import {
   getCampaignBundleId,
 } from '../../models/Campaign';
 import campaignService, {
+  ListCampaignsOptions,
   ValidateCampaignStepParams,
 } from '../../services/campaign.service';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
@@ -53,14 +54,14 @@ const {
   fetchCampaignList,
 } = campaignSlice.actions;
 
-export const listCampaigns = () => {
+export const listCampaigns = (opts?: ListCampaignsOptions) => {
   return function (dispatch: Dispatch, getState: () => AppState) {
     if (!getState().campaign.loading) {
       dispatch(showLoading());
 
       dispatch(fetchCampaignList());
 
-      campaignService.listCampaigns().then((campaignList) => {
+      campaignService.listCampaigns(opts).then((campaignList) => {
         dispatch(hideLoading());
         dispatch(
           campaignListFetched({

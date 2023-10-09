@@ -14,6 +14,8 @@ import {
 } from '../models/HousingStatusApi';
 import { GroupDBO, groupsTable, parseGroupApi } from './groupRepository';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import { Knex } from 'knex';
+import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -132,6 +134,29 @@ const getCampaignBundle = async (
     .first();
 
   return bundle ? parseCampaignBundleApi(bundle) : null;
+};
+
+interface FindOptions {
+  filters: CampaignFiltersApi;
+}
+
+const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
+  const campaigns: CampaignDBO[] = await Campaigns()
+    .where({
+      establishment_id: opts.filters.establishmentId,
+    })
+    .modify(filterQuery(opts.filters))
+    .orderBy('campaign_number');
+
+  return campaigns.map(parseCampaignApi);
+};
+
+const filterQuery = (filters: CampaignFiltersApi) => {
+  return function (query: Knex.QueryBuilder<CampaignDBO>) {
+    if (filters.groupIds?.length) {
+      query.whereIn('group_id', filters.groupIds);
+    }
+  };
 };
 
 const listCampaigns = async (
@@ -379,6 +404,7 @@ const parseCampaignBundleApi = (
 export default {
   get,
   getCampaignBundle,
+  find,
   listCampaigns,
   listCampaignBundles,
   lastCampaignNumber,

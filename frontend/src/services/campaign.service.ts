@@ -13,9 +13,20 @@ import {
 import { Housing } from '../models/Housing';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
+import { getURLSearchParams } from '../utils/fetchUtils';
+import { CampaignFilters } from '../models/CampaignFilters';
 
-const listCampaigns = async (): Promise<Campaign[]> => {
-  return await fetch(`${config.apiEndpoint}/api/campaigns`, {
+export interface ListCampaignsOptions {
+  filters?: CampaignFilters;
+}
+
+const listCampaigns = async (
+  opts?: ListCampaignsOptions
+): Promise<Campaign[]> => {
+  const query = getURLSearchParams({
+    groups: opts?.filters?.groupIds?.join(','),
+  });
+  return fetch(`${config.apiEndpoint}/api/campaigns?${query}`, {
     method: 'GET',
     headers: {
       ...authService.authHeader(),

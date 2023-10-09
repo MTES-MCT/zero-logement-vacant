@@ -26,6 +26,10 @@ import { logger } from '../utils/logger';
 import CampaignBundleMissingError from '../errors/campaignBundleMissingError';
 import groupRepository from '../repositories/groupRepository';
 import GroupMissingError from '../errors/groupMissingError';
+import {
+  campaignFiltersValidators,
+  CampaignQuery,
+} from '../models/CampaignFiltersApi';
 
 const getCampaignBundleValidators = [
   param('campaignNumber').optional({ nullable: true }).isNumeric(),
@@ -61,15 +65,34 @@ const getCampaignBundle = async (request: Request, response: Response) => {
     );
 };
 
-const listCampaigns = async (request: Request, response: Response) => {
-  logger.trace('List campaigns');
+const list = async (request: Request, response: Response) => {
+  const { auth, body } = request as AuthenticatedRequest;
 
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+  logger.info('List campaigns', body);
 
-  const campaigns = await campaignRepository.listCampaigns(establishmentId);
+  const campaigns = await campaignRepository.find({
+    filters: {
+      ...body.filters,
+      establishmentId: auth.establishmentId,
+    },
+  });
   response.status(constants.HTTP_STATUS_OK).json(campaigns);
 };
+
+const listCampaigns = async (request: Request, response: Response) => {
+  const { auth } = request as AuthenticatedRequest;
+  const query = request.query as CampaignQuery;
+  logger.info('List campaigns', query);
+
+  const campaigns = await campaignRepository.find({
+    filters: {
+      establishmentId: auth.establishmentId,
+      groupIds: query.groups,
+    },
+  });
+  response.status(constants.HTTP_STATUS_OK).json(campaigns);
+};
+const listValidators: ValidationChain[] = [...campaignFiltersValidators];
 
 const listCampaignBundles = async (request: Request, response: Response) => {
   console.log('List campaign bundles');
@@ -663,6 +686,8 @@ const removeHousingList = async (
 const campaignController = {
   getCampaignBundleValidators,
   getCampaignBundle,
+  list,
+  listValidators,
   listCampaigns,
   listCampaignBundles,
   createCampaign,

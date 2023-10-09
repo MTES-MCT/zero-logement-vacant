@@ -43,7 +43,7 @@ router.delete('/groups/:id/housing', groupController.removeHousingValidators, va
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
 router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);
 
-router.get('/campaigns', campaignController.listCampaigns);
+router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.listCampaigns);
 router.post('/campaigns/creation', campaignController.createCampaign);
 router.put('/campaigns/:campaignId', campaignController.validateStepValidators, campaignController.validateStep);
 router.delete('/campaigns/:campaignId/housing', campaignController.removeHousingList);

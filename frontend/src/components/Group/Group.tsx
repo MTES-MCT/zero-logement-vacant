@@ -15,9 +15,12 @@ import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useState } from 'react';
 import GroupUpdateModal from '../modals/GroupUpdateModal/GroupUpdateModal';
 import { GroupPayload } from '../../models/GroupPayload';
+import { Campaign } from '../../models/Campaign';
+import InternalLink from '../InternalLink/InternalLink';
 
 interface GroupProps {
   group: GroupModel;
+  campaigns?: Campaign[];
   onCampaignCreate?: () => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
@@ -96,6 +99,7 @@ function Group(props: GroupProps) {
               </Text>
             </Row>
           </Container>
+
           <Container as="main" fluid>
             <Row>
               <Col n="12">
@@ -107,11 +111,38 @@ function Group(props: GroupProps) {
                 <Text>{props.group.description}</Text>
               </Col>
             </Row>
+            {props.campaigns?.length && (
+              <Row spacing="mb-2w">
+                <Col n="12">
+                  <Text className="weight-500" spacing="mb-1w">
+                    Campagnes basées sur ce groupe :
+                  </Text>
+                </Col>
+                {props.campaigns.map((campaign) => (
+                  <Col n="12">
+                    <InternalLink
+                      display="flex"
+                      icon="ri-mail-fill"
+                      iconPosition="left"
+                      isSimple
+                      key={campaign.id}
+                      to={`/campagnes/C${campaign.campaignNumber}`}
+                    >
+                      {campaign.title}
+                    </InternalLink>
+                  </Col>
+                ))}
+              </Row>
+            )}
           </Container>
         </Col>
         <Col n="3">
           <Container as="aside" className={styles.actions} fluid>
-            <Button className={styles.action} onClick={createCampaign}>
+            <Button
+              className={styles.action}
+              disabled={props.group.housingCount === 0}
+              onClick={createCampaign}
+            >
               Créer une campagne
             </Button>
             <Button

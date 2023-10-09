@@ -66,7 +66,6 @@ const CampaignBundleItem = ({
   const [sendingDate, setSendingDate] = useState(
     format(new Date(), 'yyyy-MM-dd')
   );
-  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
   const shape = { sendingDate: dateValidator };
   type FormShape = typeof shape;

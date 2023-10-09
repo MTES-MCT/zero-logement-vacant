@@ -44,7 +44,11 @@ function HousingDetailsSubCardBuilding({ housing }: Props) {
               Étiquette DPE représentatif (CSTB)
             </Text>
             {housing.energyConsumption ? (
-              <DPE value={housing.energyConsumption} />
+              <DPE
+                value={housing.energyConsumption}
+                madeAt={housing.energyConsumptionAt}
+                bnbId={housing.buildingGroupId}
+              />
             ) : (
               <Text spacing="mb-1w">Non renseigné</Text>
             )}

@@ -3,7 +3,6 @@ import { Redirect, useHistory } from 'react-router-dom';
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
-import AppLinkAsButton from '../../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 
 interface State {
@@ -45,9 +44,16 @@ function AccountEmailActivationView() {
       </Text>
       <Text size="sm" className="subtitle">
         Vérifiez qu’il ne s’est pas glissé dans vos spams ou 
-        <AppLinkAsButton size="sm" onClick={send}>
+        <button
+          onClick={send}
+          className={classNames(
+            'fr-link',
+            styles.buttonLink,
+            styles.buttonLinkSm
+          )}
+        >
           renvoyer le mail
-        </AppLinkAsButton>
+        </button>
         .
       </Text>
       <Text size="sm" className={confirmationClasses}>

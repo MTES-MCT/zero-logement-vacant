@@ -1,4 +1,8 @@
-import React, { ComponentPropsWithoutRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import React, {
+  ComponentPropsWithoutRef,
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+} from 'react';
 import { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';
 import Input from '@codegouvfr/react-dsfr/Input';
@@ -14,10 +18,19 @@ type AppTextInputProps<T extends ObjectShape> = Partial<
     inputForm: ReturnType<typeof useForm>;
     inputKey: keyof T;
     whenValid?: string;
+    dataTestId?: string;
   };
 
 function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
-  const { textArea, inputKey, inputForm, whenValid, ...textInputProps } = props;
+  const {
+    textArea,
+    inputKey,
+    inputForm,
+    whenValid,
+    placeholder,
+    dataTestId,
+    ...textInputProps
+  } = props;
 
   return (
     <>
@@ -28,6 +41,7 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           {...textInputProps}
           nativeTextAreaProps={{
             ...textInputProps,
+            placeholder,
             onBlur: () => inputForm.validateAt(String(inputKey)),
           }}
           state={inputForm.messageType(String(inputKey))}
@@ -39,6 +53,7 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           {...textInputProps}
           nativeInputProps={{
             ...textInputProps,
+            placeholder,
             onBlur: () => inputForm.validateAt(String(inputKey)),
           }}
           state={inputForm.messageType(String(inputKey))}

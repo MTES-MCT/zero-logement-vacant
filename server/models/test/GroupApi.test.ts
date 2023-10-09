@@ -18,15 +18,17 @@ describe('GroupApi', () => {
         housingCount: group.housingCount,
         ownerCount: group.ownerCount,
         createdAt: group.createdAt.toJSON(),
-        createdBy: {
-          id: group.createdBy.id,
-          email: group.createdBy.email,
-          firstName: group.createdBy.firstName,
-          lastName: group.createdBy.lastName,
-          role: group.createdBy.role,
-          activatedAt: group.createdBy.activatedAt?.toJSON(),
-          establishmentId: group.createdBy.establishmentId,
-        },
+        createdBy: group.createdBy
+          ? {
+              id: group.createdBy.id,
+              email: group.createdBy.email,
+              firstName: group.createdBy.firstName,
+              lastName: group.createdBy.lastName,
+              role: group.createdBy.role,
+              activatedAt: group.createdBy.activatedAt?.toJSON(),
+              establishmentId: group.createdBy.establishmentId,
+            }
+          : undefined,
       });
     });
   });

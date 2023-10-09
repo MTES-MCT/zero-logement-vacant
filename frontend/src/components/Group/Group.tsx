@@ -13,12 +13,15 @@ import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useState } from 'react';
+import GroupUpdateModal from '../modals/GroupUpdateModal/GroupUpdateModal';
+import { GroupPayload } from '../../models/GroupPayload';
 
 interface GroupProps {
   group: GroupModel;
-  onCampaignCreate?: (group: GroupModel) => void;
-  onExport?: (group: GroupModel) => void;
-  onRemove?: (group: GroupModel) => void;
+  onCampaignCreate?: () => void;
+  onExport?: () => void;
+  onUpdate?: (group: GroupPayload) => void;
+  onRemove?: () => void;
 }
 
 function Group(props: GroupProps) {
@@ -26,13 +29,19 @@ function Group(props: GroupProps) {
   const owners = pluralize(props.group.ownerCount)('propriétaire');
 
   function createCampaign(): void {
-    props.onCampaignCreate?.(props.group);
+    props.onCampaignCreate?.();
   }
 
   const [confirmGroupRemoval, setConfirmGroupRemoval] = useState(false);
   function removeGroup(): void {
-    props.onRemove?.(props.group);
+    props.onRemove?.();
     setConfirmGroupRemoval(false);
+  }
+
+  const [showGroupUpdateModal, setShowGroupUpdateModal] = useState(false);
+  function updateGroup(group: GroupPayload): void {
+    props.onUpdate?.(group);
+    setShowGroupUpdateModal(false);
   }
 
   return (
@@ -40,10 +49,20 @@ function Group(props: GroupProps) {
       <Row className="justify-space-between">
         <Col n="6" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
-            <Row>
-              <Title as="h2" spacing="mb-2w">
+            <Row alignItems="top">
+              <Title as="h2" spacing="mr-1w mb-2w">
                 {props.group.title}
               </Title>
+              <Button
+                hasBorder={false}
+                icon="ri-edit-line"
+                iconPosition="right"
+                secondary
+                size="lg"
+                onClick={() => setShowGroupUpdateModal(true)}
+              >
+                Modifier
+              </Button>
             </Row>
             <Row className="weight-500">
               <Icon
@@ -114,6 +133,14 @@ function Group(props: GroupProps) {
           </Container>
         </Col>
       </Row>
+
+      <GroupUpdateModal
+        open={showGroupUpdateModal}
+        title={props.group.title}
+        description={props.group.description}
+        onSubmit={updateGroup}
+        onClose={() => setShowGroupUpdateModal(false)}
+      />
 
       {confirmGroupRemoval && (
         <ConfirmationModal

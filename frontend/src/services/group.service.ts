@@ -25,14 +25,19 @@ export const groupApi = createApi({
       query: () => '',
       providesTags: (groups) =>
         groups
-          ? groups.map((group) => ({ type: 'Group' as const, id: group.id }))
-          : ['Group'],
+          ? [
+              ...groups.map((group) => ({
+                type: 'Group' as const,
+                id: group.id,
+              })),
+              { type: 'Group', id: 'LIST' },
+            ]
+          : [{ type: 'Group', id: 'LIST' }],
       transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `/${id}`,
-      providesTags: (group) =>
-        group ? [{ type: 'Group' as const, id: group.id }] : ['Group'],
+      providesTags: (result, error, id) => [{ type: 'Group', id }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
     }),
     createGroup: builder.mutation<Group, GroupPayload>({
@@ -41,7 +46,7 @@ export const groupApi = createApi({
         method: 'POST',
         body: group,
       }),
-      invalidatesTags: ['Group'],
+      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
       onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
@@ -54,13 +59,13 @@ export const groupApi = createApi({
       },
     }),
     updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
-      query: (group) => ({
-        url: `/${group.id}`,
+      query: ({ id, ...group }) => ({
+        url: `/${id}`,
         method: 'PUT',
-        body: fp.omit(['id'], group),
+        body: group,
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group' as const, id: args.id },
+        { type: 'Group', id: args.id },
       ],
     }),
     addGroupHousing: builder.mutation<
@@ -108,7 +113,9 @@ export const groupApi = createApi({
         url: `/${group.id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Group'],
+      invalidatesTags: (result, error, group) => [
+        { type: 'Group', id: group.id },
+      ],
     }),
   }),
 });

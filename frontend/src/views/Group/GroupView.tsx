@@ -3,6 +3,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
+  useUpdateGroupMutation,
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
@@ -32,6 +33,7 @@ import {
 } from '../../models/Campaign';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
+import { GroupPayload } from '../../models/GroupPayload';
 
 interface RouterState {
   alert?: string;
@@ -101,6 +103,16 @@ function GroupView() {
     }
   }
 
+  const [updateGroup] = useUpdateGroupMutation();
+  function onGroupUpdate(payload: GroupPayload): void {
+    if (group) {
+      updateGroup({
+        ...payload,
+        id: group.id,
+      });
+    }
+  }
+
   if (!group || isLoadingGroup) {
     return <></>;
   }
@@ -120,6 +132,7 @@ function GroupView() {
           group={group}
           onCampaignCreate={() => setShowCampaignCreationModal(true)}
           onExport={onGroupExport}
+          onUpdate={onGroupUpdate}
           onRemove={onGroupRemove}
         />
       </Row>
@@ -133,7 +146,7 @@ function GroupView() {
         className="fr-mb-5w"
       />
 
-      <Row spacing="mb-1w">
+      <Row spacing="mb-1w" alignItems="top">
         <HousingListFiltersSidemenu />
         <Col n="6" className="d-flex">
           <AppSearchBar

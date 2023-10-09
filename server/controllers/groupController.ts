@@ -102,29 +102,19 @@ const update = async (request: Request, response: Response): Promise<void> => {
     throw new GroupMissingError(params.id);
   }
 
-  // Keep the housing list that are in the same establishment as the group
-  const housingList = await housingRepository
-    .find({
-      filters: {
-        ...body.housing.filters,
-        establishmentIds: [auth.establishmentId],
-      },
-      pagination: { paginate: false },
-    })
-    .then((housingList) => {
-      const ids = new Set(body.housing.ids);
-      return housingList.filter((housing) =>
-        body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
-      );
-    });
-  const owners = housingList.map((housing) => housing.owner);
-
+  const housingList = await housingRepository.find({
+    filters: {
+      establishmentIds: [auth.establishmentId],
+      groupIds: [group.id],
+    },
+    pagination: {
+      paginate: false,
+    },
+  });
   const updatedGroup: GroupApi = {
     ...group,
     title: body.title,
     description: body.description,
-    housingCount: housingList.length,
-    ownerCount: fp.uniqBy('id', owners).length,
   };
   await groupRepository.save(updatedGroup, housingList);
 

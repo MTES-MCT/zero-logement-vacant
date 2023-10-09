@@ -203,36 +203,15 @@ describe('Group controller', () => {
 
   describe('update', () => {
     const testRoute = (id: string) => `/api/groups/${id}`;
-    const owner = genOwnerApi();
-    const housingList = [
-      genHousingApi(Establishment1.geoCodes[0]),
-      genHousingApi(Establishment1.geoCodes[0]),
-      genHousingApi(Establishment1.geoCodes[0]),
-      genHousingApi(Establishment2.geoCodes[0]),
-    ];
     const group = genGroupApi(User1, Establishment1);
     const anotherGroup = genGroupApi(User2, Establishment2);
 
-    const payload: GroupPayloadDTO = {
+    const payload: Pick<GroupPayloadDTO, 'title' | 'description'> = {
       title: 'Logement prioritaires',
       description: 'Logements les plus énergivores',
-      housing: {
-        all: false,
-        ids: housingList.map((housing) => housing.id),
-        filters: {},
-      },
     };
 
     beforeEach(async () => {
-      await Owners().insert(formatOwnerApi(owner));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1,
-      }));
-      await OwnersHousing().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await Groups().insert(formatGroupApi(anotherGroup));
     });
@@ -257,11 +236,7 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should update a group with all the housing belonging to the given establishment', async () => {
-      const establishmentHousingList = housingList.filter((housing) =>
-        Establishment1.geoCodes.includes(housing.geoCode)
-      );
-
+    it('should update a group', async () => {
       const { body, status } = await withAccessToken(
         request(app).put(testRoute(group.id)).send(payload).set({
           'Content-Type': 'application/json',
@@ -273,44 +248,8 @@ describe('Group controller', () => {
         id: group.id,
         title: payload.title,
         description: payload.description,
-        housingCount: establishmentHousingList.length,
-        ownerCount: 1,
-        createdAt: expect.toBeDateString(),
-        createdBy: toUserDTO(User1),
-      });
-    });
-
-    it('should update a group with all the housing corresponding to the given criteria', async () => {
-      const establishmentHousingList = await Housing().whereIn(
-        'geo_code',
-        Establishment1.geoCodes
-      );
-
-      const { body, status } = await withAccessToken(
-        request(app)
-          .put(testRoute(group.id))
-          .send({
-            ...payload,
-            housing: {
-              all: true,
-              ids: [],
-              filters: {
-                housingIds: [establishmentHousingList[0].id],
-              },
-            },
-          } as GroupPayloadDTO)
-          .set({
-            'Content-Type': 'application/json',
-          })
-      );
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<GroupDTO>({
-        id: group.id,
-        title: payload.title,
-        description: payload.description,
-        housingCount: 1,
-        ownerCount: 1,
+        housingCount: group.housingCount,
+        ownerCount: group.ownerCount,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
       });

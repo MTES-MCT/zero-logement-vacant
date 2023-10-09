@@ -28,7 +28,6 @@ import { format } from 'date-fns';
 import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
-import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
 import CampaignBundleTitle from '../CampaignBundle/CampaignBundleTitle';
@@ -40,6 +39,7 @@ import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 interface ItemProps {
   campaignBundle: CampaignBundle;
@@ -135,30 +135,21 @@ const CampaignBundleItem = ({
             {step === CampaignSteps.Export && (
               <div className="fr-p-3w bg-bf975">
                 <Stepper
-                  steps={3}
+                  stepCount={3}
                   currentStep={1}
-                  currentTitle="Vous avez créé l'échantillon."
-                  nextStepTitle="Exporter le fichier de publipostage"
+                  title="Vous avez créé l'échantillon."
+                  nextTitle="Exporter le fichier de publipostage"
                 />
-                <Button
-                  title="Exporter"
-                  priority="secondary"
-                  onClick={() => setIsExportModalOpen(true)}
-                >
-                  Exporter (.csv)
-                </Button>
-                {isExportModalOpen && (
-                  <CampaignExportModal campaignBundle={campaignBundle} />
-                )}
+                <CampaignExportModal campaignBundle={campaignBundle} />
               </div>
             )}
             {step === CampaignSteps.Sending && (
               <div className="fr-p-3w bg-bf975">
                 <Stepper
-                  steps={3}
+                  stepCount={3}
                   currentStep={2}
-                  currentTitle="Vous avez exporté l'échantillon."
-                  nextStepTitle="Dater l'envoi de votre campagne"
+                  title="Vous avez exporté l'échantillon."
+                  nextTitle="Dater l'envoi de votre campagne"
                 />
                 <Row alignItems="top">
                   <Col className="fr-pr-1w">

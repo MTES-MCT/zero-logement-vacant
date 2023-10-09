@@ -1,5 +1,6 @@
 import { MessageType } from '../../hooks/useForm';
-import { Radio, RadioGroup } from '../_dsfr';
+import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
+import React from 'react';
 
 interface Props {
   defaultValue?: string;
@@ -10,6 +11,8 @@ interface Props {
 }
 
 const CampaignIntent = (props: Props) => {
+  console.log('message', props.message);
+
   const values = [
     { label: <strong>Dans les 2 prochains mois</strong>, value: '0-2' },
     {
@@ -37,32 +40,19 @@ const CampaignIntent = (props: Props) => {
   }
 
   return (
-    <RadioGroup
-      legend=""
+    <RadioButtons
       disabled={disabled}
-      onChange={props.onChange}
-      required
-      message={props.message}
-      messageType={
-        props.messageType === 'success'
-          ? 'valid'
-          : props.messageType === 'default'
-          ? undefined
-          : props.messageType
-      }
-    >
-      {values.map((item, index) => {
-        return (
-          <Radio
-            key={index}
-            label={item.label as unknown as string}
-            value={item.value}
-            isExtended={true}
-            defaultChecked={defaultChecked(item.value)}
-          />
-        );
-      })}
-    </RadioGroup>
+      options={values.map((item, index) => ({
+        label: item.label,
+        nativeInputProps: {
+          value: item.value,
+          defaultChecked: defaultChecked(item.value),
+          onChange: () => props.onChange(item.value),
+        },
+      }))}
+      state={props.messageType}
+      stateRelatedMessage={props.message}
+    />
   );
 };
 

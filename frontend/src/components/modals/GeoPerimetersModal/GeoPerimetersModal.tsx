@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 
 import {
   Col,
-  File,
   Modal,
   ModalClose,
   ModalContent,

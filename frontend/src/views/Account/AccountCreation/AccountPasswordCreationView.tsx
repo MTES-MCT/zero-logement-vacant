@@ -6,13 +6,13 @@ import {
   useForm,
 } from '../../../hooks/useForm';
 import { Redirect, useHistory } from 'react-router-dom';
-import Stepper from '../../../components/Stepper/Stepper';
 import { Row, Text, Title } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
 import { Prospect } from '../../../models/Prospect';
 import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -98,10 +98,10 @@ function AccountPasswordCreationView() {
   return (
     <>
       <Stepper
-        steps={3}
+        stepCount={3}
         currentStep={2}
-        currentTitle="Créer votre mot de passe"
-        nextStepTitle="Intentions opérationnelles"
+        title="Créer votre mot de passe"
+        nextTitle="Intentions opérationnelles"
       />
       <form onSubmit={next}>
         <AppTextInput<FormShape>

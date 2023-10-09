@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Col, Container, Row } from '../../_dsfr/index';
+import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';

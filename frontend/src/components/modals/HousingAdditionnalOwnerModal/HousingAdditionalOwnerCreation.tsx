@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Col, Container, Row, Text } from '../../_dsfr/index';
+import { Col, Container, Row, Text } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';

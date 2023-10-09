@@ -1,5 +1,5 @@
 import Aside from '../Aside/Aside';
-import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr/index';
+import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr';
 import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
 import { useFilters } from '../../hooks/useFilters';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
@@ -30,7 +30,11 @@ import {
 import styles from './housing-list-filters.module.scss';
 import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
-import { getSubStatusList, getSubStatusListOptions, HousingStatus } from '../../models/HousingState';
+import {
+  getSubStatusList,
+  getSubStatusListOptions,
+  HousingStatus,
+} from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';

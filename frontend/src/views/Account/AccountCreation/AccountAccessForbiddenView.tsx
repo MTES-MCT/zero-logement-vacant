@@ -1,4 +1,4 @@
-import { Container, Text, Title } from '../../../components/_dsfr/index';
+import { Container, Text, Title } from '../../../components/_dsfr';
 import AppLinkAsButton from '../../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import React from 'react';
 import { useHistory } from 'react-router-dom';

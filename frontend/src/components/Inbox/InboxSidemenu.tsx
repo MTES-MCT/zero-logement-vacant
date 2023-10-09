@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text } from '../_dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { OwnerProspect } from '../../models/OwnerProspect';

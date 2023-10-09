@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Col, Row } from '../../components/_dsfr/index';
+import { Col, Row } from '../../components/_dsfr';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { OwnerProspect } from '../../models/OwnerProspect';

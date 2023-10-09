@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Container, Text, Title } from '../_dsfr/index';
+import { Container, Text, Title } from '../_dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import Aside from '../Aside/Aside';

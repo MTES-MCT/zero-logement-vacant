@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text, Title } from '../_dsfr/index';
+import { Col, Container, Icon, Row, Text, Title } from '../_dsfr';
 
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';

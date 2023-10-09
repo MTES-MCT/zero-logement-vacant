@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Title } from '../../components/_dsfr/index';
+import { Col, Container, Row, Title } from '../../components/_dsfr';
 
 import * as yup from 'yup';
-import { passwordConfirmationValidator, passwordFormatValidator, useForm } from '../../hooks/useForm';
+import {
+  passwordConfirmationValidator,
+  passwordFormatValidator,
+  useForm,
+} from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AccountSideMenu from './AccountSideMenu';
 import { useUpdatePasswordMutation } from '../../services/user-account.service';

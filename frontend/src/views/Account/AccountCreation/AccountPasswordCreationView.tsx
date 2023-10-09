@@ -1,9 +1,13 @@
 import React, { FormEvent, useState } from 'react';
 import * as yup from 'yup';
-import { passwordConfirmationValidator, passwordFormatValidator, useForm } from '../../../hooks/useForm';
+import {
+  passwordConfirmationValidator,
+  passwordFormatValidator,
+  useForm,
+} from '../../../hooks/useForm';
 import { Redirect, useHistory } from 'react-router-dom';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Row, Text, Title } from '../../../components/_dsfr/index';
+import { Row, Text, Title } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
 import { Prospect } from '../../../models/Prospect';

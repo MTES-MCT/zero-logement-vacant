@@ -1,4 +1,4 @@
-import { Title } from '../_dsfr/index';
+import { Title } from '../_dsfr';
 import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';

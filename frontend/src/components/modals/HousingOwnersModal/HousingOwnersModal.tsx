@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Col, Container, Icon, Row, Text } from '../../_dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../../_dsfr';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
 import * as yup from 'yup';

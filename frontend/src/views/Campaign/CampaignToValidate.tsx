@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { Col, Row, Text } from '../../components/_dsfr/index';
-import { removeCampaignHousingList, validCampaignStep } from '../../store/actions/campaignAction';
+import { Col, Row, Text } from '../../components/_dsfr';
+import {
+  removeCampaignHousingList,
+  validCampaignStep,
+} from '../../store/actions/campaignAction';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';
 import * as yup from 'yup';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';

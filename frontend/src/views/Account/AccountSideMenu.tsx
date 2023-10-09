@@ -1,4 +1,4 @@
-import { Text } from '../../components/_dsfr/index';
+import { Text } from '../../components/_dsfr';
 import React from 'react';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';

@@ -1,4 +1,4 @@
-import { Container, Row, Text, Title } from '../../../components/_dsfr/index';
+import { Container, Row, Text, Title } from '../../../components/_dsfr';
 import React, { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';

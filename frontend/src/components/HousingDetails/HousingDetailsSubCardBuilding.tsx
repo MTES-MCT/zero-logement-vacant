@@ -1,4 +1,4 @@
-import { Text } from '../_dsfr/index';
+import { Text } from '../_dsfr';
 import React from 'react';
 import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';

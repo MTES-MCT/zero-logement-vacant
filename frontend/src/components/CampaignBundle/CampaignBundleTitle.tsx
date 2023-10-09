@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Text, Title } from '../_dsfr/index';
-import { CampaignBundle, CampaignBundleId, campaignFullName } from '../../models/Campaign';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { Col, Container, Row, Text, Title } from '../_dsfr';
+import {
+  CampaignBundle,
+  CampaignBundleId,
+  campaignFullName,
+} from '../../models/Campaign';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';

@@ -1,4 +1,4 @@
-import { Icon, Text, Title } from '../_dsfr/index';
+import { Icon, Text, Title } from '../_dsfr';
 import React, { ReactNode } from 'react';
 
 import {

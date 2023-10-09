@@ -4,13 +4,19 @@ import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
-import { Row, Text } from '../../components/_dsfr/index';
+import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
-import { useCountHousingQuery, useUpdateHousingListMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation,
+} from '../../services/housing.service';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { createCampaign } from '../../store/actions/campaignAction';
 import { CampaignKinds } from '../../models/Campaign';
 import { useMatomo } from '@datapunt/matomo-tracker-react';

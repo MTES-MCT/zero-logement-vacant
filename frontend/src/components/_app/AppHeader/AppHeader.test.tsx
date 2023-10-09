@@ -32,8 +32,18 @@ describe('AppHeader', () => {
       </Provider>
     );
 
-    const loginInputElement = screen.queryByTestId('header-nav');
-    expect(loginInputElement).not.toBeInTheDocument();
+    const housingNavItem = screen.queryByTestId(
+      'fr-header-nav-item-parc-de-logements'
+    );
+    const campaignNavItem = screen.queryByTestId(
+      'fr-header-nav-item-campagnes'
+    );
+    const infosNavItem = screen.queryByTestId(
+      'fr-header-nav-item-informations-publiques'
+    );
+    expect(housingNavItem).not.toBeInTheDocument();
+    expect(campaignNavItem).not.toBeInTheDocument();
+    expect(infosNavItem).not.toBeInTheDocument();
   });
 
   test('should display navbar when a user is logged', () => {
@@ -50,7 +60,17 @@ describe('AppHeader', () => {
       </Provider>
     );
 
-    const loginInputElement = screen.queryByTestId('header-nav');
-    expect(loginInputElement).toBeInTheDocument();
+    const housingNavItem = screen.queryByTestId(
+      'fr-header-nav-item-parc-de-logements'
+    );
+    const campaignNavItem = screen.queryByTestId(
+      'fr-header-nav-item-campagnes'
+    );
+    const infosNavItem = screen.queryByTestId(
+      'fr-header-nav-item-informations-publiques'
+    );
+    expect(housingNavItem).toBeInTheDocument();
+    expect(campaignNavItem).toBeInTheDocument();
+    expect(infosNavItem).toBeInTheDocument();
   });
 });

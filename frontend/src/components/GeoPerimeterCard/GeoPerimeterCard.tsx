@@ -1,4 +1,4 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
+import { Col, Icon, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Tag from '@codegouvfr/react-dsfr/Tag';

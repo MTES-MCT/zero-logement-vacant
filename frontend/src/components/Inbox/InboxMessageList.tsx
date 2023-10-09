@@ -1,4 +1,4 @@
-import { Col, Row, Text } from '../_dsfr/index';
+import { Col, Row, Table, Text } from '../_dsfr';
 import classNames from 'classnames';
 import { Selection, useSelection } from '../../hooks/useSelection';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
@@ -10,7 +10,6 @@ import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { pluralize } from '../../utils/stringUtils';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
-import { Table } from '../_dsfr';
 
 interface Props {
   messages: OwnerProspect[];

@@ -1,4 +1,4 @@
-import { Col, Icon, Row, Title } from '../_dsfr/index';
+import { Col, Icon, Row, Title } from '../_dsfr';
 import React, { useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';

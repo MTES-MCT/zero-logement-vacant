@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Row } from '../../components/_dsfr/index';
+import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';

@@ -5,14 +5,7 @@ import styles from './resources.module.scss';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Tile from '@codegouvfr/react-dsfr/Tile';
 import classNames from 'classnames';
-import {
-  Col,
-  Container,
-  Icon,
-  Row,
-  Text,
-  Title,
-} from '../../components/_dsfr/index';
+import { Col, Container, Icon, Row, Text, Title } from '../../components/_dsfr';
 
 interface Props {
   title: string;

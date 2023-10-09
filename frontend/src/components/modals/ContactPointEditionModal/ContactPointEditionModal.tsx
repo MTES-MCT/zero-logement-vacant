@@ -1,8 +1,11 @@
 import React, { ChangeEvent, useMemo, useState } from 'react';
-import { Col, Container, Row, SearchableSelect } from '../../_dsfr/index';
+import { Col, Container, Row, SearchableSelect } from '../../_dsfr';
 
 import * as yup from 'yup';
-import { ContactPoint, DraftContactPoint } from '../../../../../shared/models/ContactPoint';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../../shared/models/ContactPoint';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';

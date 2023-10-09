@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Col, Row } from '../../components/_dsfr/index';
+import { Col, Row, Text } from '../../components/_dsfr';
 import { getCampaignBundle } from '../../store/actions/campaignAction';
 import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -8,7 +8,6 @@ import AppLink from '../../components/_app/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
 import CallOut from '@codegouvfr/react-dsfr/CallOut';
-import { Text } from '../../components/_dsfr';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');

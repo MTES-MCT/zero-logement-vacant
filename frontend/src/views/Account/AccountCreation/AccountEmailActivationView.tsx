@@ -1,4 +1,4 @@
-import { Text, Title } from '../../../components/_dsfr/index';
+import { Text, Title } from '../../../components/_dsfr';
 import { Redirect, useHistory } from 'react-router-dom';
 import React, { useMemo } from 'react';
 import classNames from 'classnames';

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Col, Row, Text, Title } from '../_dsfr/index';
+import { Col, Row, Text, Title } from '../_dsfr';
 
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
@@ -14,8 +14,14 @@ import {
   CampaignSteps,
 } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
-import { deleteCampaignBundle, validCampaignStep } from '../../store/actions/campaignAction';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import {
+  deleteCampaignBundle,
+  validCampaignStep,
+} from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { format } from 'date-fns';

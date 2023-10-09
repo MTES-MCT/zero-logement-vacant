@@ -1,9 +1,12 @@
-import { Container, Text } from '../../components/_dsfr/index';
+import { Container, Text } from '../../components/_dsfr';
 import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import React, { useEffect, useMemo, useState } from 'react';
-import { findOwnerProspects, updateOwnerProspect } from '../../store/actions/ownerProspectAction';
+import {
+  findOwnerProspects,
+  updateOwnerProspect,
+} from '../../store/actions/ownerProspectAction';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
 import AppLink from '../../components/_app/AppLink/AppLink';

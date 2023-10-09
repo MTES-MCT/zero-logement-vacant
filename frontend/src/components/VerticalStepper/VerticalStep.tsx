@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode } from 'react';
 import styles from './vertical-stepper.module.scss';
 import classNames from 'classnames';
-import { Icon, Text } from '../_dsfr/index';
+import { Icon, Text } from '../_dsfr';
 
 type StepStatus = 'error' | 'valid';
 

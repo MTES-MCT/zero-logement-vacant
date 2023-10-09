@@ -1,13 +1,15 @@
 import React from 'react';
-import { Container, Text } from '../../_dsfr/index';
+import { Container, Radio, RadioGroup, Text } from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { CampaignBundle, CampaignSteps } from '../../../models/Campaign';
-import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
 import { validCampaignStep } from '../../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useAppDispatch } from '../../../hooks/useStore';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { Radio, RadioGroup } from '../../_dsfr';
 
 const modal = createModal({
   id: 'campaign-export-modal',

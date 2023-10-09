@@ -1,4 +1,4 @@
-import { Col, Row } from '../../components/_dsfr/index';
+import { Col, Row } from '../../components/_dsfr';
 import React, { useState } from 'react';
 import Help from '../../components/Help/Help';
 import * as yup from 'yup';

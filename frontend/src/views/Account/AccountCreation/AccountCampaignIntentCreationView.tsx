@@ -3,7 +3,7 @@ import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import Stepper from '../../../components/Stepper/Stepper';
-import { Row, Title } from '../../../components/_dsfr/index';
+import { Row, Title } from '../../../components/_dsfr';
 import Help from '../../../components/Help/Help';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';

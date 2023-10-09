@@ -1,11 +1,15 @@
-import { Col, Row, Text, Title } from '../_dsfr/index';
+import { Col, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import AppLink from '../_app/AppLink/AppLink';
-import { Campaign, campaignBundleIdUrlFragment, campaignFullName } from '../../models/Campaign';
+import {
+  Campaign,
+  campaignBundleIdUrlFragment,
+  campaignFullName,
+} from '../../models/Campaign';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';

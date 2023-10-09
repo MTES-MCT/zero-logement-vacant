@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Col, Row } from '../../_dsfr/index';
+import { Col, Row } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Row } from '../../components/_dsfr/index';
+import { Row } from '../../components/_dsfr';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
@@ -10,7 +13,10 @@ import { useAppDispatch } from '../../hooks/useStore';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import { createCampaignBundleReminder } from '../../store/actions/campaignAction';
 import { useSelection } from '../../hooks/useSelection';
-import { useCountHousingQuery, useUpdateHousingListMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation,
+} from '../../services/housing.service';
 import HousingList from '../../components/HousingList/HousingList';
 import Help from '../../components/Help/Help';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';

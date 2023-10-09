@@ -1,6 +1,6 @@
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './vertical-link.module.scss';
-import { Icon } from '../_dsfr/index';
+import { Icon } from '../_dsfr';
 import Badge from '../Badge/Badge';
 import classNames from 'classnames';
 

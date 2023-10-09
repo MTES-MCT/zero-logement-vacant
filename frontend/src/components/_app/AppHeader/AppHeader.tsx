@@ -53,6 +53,9 @@ function AppHeader() {
   const getMainNavigationItem = (navItem: UserNavItems) => ({
     linkProps: {
       to: getUserNavItem(navItem).url,
+      'data-TestId': `fr-header-nav-item-${getUserNavItem(
+        navItem
+      ).url.substring(1)}`,
     },
     text: getUserNavItem(navItem).label,
     isActive: location.pathname.indexOf(getUserNavItem(navItem).url) !== -1,

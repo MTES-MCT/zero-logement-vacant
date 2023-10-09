@@ -1,7 +1,7 @@
-import '../../components/_dsfr/index';
+import '../../components/_dsfr';
 import React from 'react';
 
-declare module '../../components/_dsfr/index' {
+declare module '../../components/_dsfr' {
   type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
   interface StepperProps {

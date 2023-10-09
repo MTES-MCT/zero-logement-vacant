@@ -1,4 +1,4 @@
-import { Icon } from '../components/_dsfr/index';
+import { Icon } from '../components/_dsfr';
 import { useEffect, useState } from 'react';
 
 import { Direction, Sort } from '../models/Sort';

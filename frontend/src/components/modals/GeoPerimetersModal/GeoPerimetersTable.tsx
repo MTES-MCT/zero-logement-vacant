@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Row, Text } from '../../_dsfr/index';
+import { Row, Table, Text } from '../../_dsfr';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useSelection } from '../../../hooks/useSelection';
 import SelectableListHeader from '../../SelectableListHeader/SelectableListHeader';
@@ -9,7 +9,6 @@ import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../../_app/AppLink/AppLink';
-import { Table } from '../../_dsfr';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { pluralize } from '../../../utils/stringUtils';
 

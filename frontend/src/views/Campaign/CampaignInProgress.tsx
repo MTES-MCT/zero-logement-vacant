@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Col, Row } from '../../components/_dsfr/index';
+import { Col, Row } from '../../components/_dsfr';
 import { HousingStatus } from '../../models/HousingState';
 import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';

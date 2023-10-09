@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SearchableSelect } from '../_dsfr/index';
+import { SearchableSelect } from '../_dsfr';
 import establishmentService from '../../services/establishment.service';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import _ from 'lodash';

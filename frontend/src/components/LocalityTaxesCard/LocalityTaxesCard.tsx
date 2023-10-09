@@ -1,4 +1,4 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
+import { Col, Icon, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';

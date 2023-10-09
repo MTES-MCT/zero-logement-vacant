@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text } from '../_dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import React, { useMemo, useState } from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
 
@@ -10,7 +10,10 @@ import { Building } from '../../models/Building';
 
 import styles from './housing-popup.module.scss';
 import classNames from 'classnames';
-import { getHousingState, getHousingSubStatus } from '../../models/HousingState';
+import {
+  getHousingState,
+  getHousingSubStatus,
+} from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import Button from '@codegouvfr/react-dsfr/Button';

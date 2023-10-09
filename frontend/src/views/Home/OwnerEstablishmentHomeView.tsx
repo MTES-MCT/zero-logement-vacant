@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import { useLocation, useParams } from 'react-router-dom';
 import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';

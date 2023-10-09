@@ -1,10 +1,23 @@
 import React, { useMemo, useState } from 'react';
 
-import { Col, File, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row, Text } from '../../_dsfr/index';
+import {
+  Col,
+  File,
+  Modal,
+  ModalClose,
+  ModalContent,
+  ModalFooter,
+  ModalTitle,
+  Row,
+  Text,
+} from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';

@@ -1,5 +1,5 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Container, Icon, Row, Text } from '../_dsfr/index';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';

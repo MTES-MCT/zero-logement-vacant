@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text } from '../_dsfr/index';
+import { Text } from '../_dsfr';
 import styles from './events-history.module.scss';
 import { differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';

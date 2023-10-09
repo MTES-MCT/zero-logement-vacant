@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from '../_dsfr/index';
+import { Text } from '../_dsfr';
 import { CampaignBundle, returnRate } from '../../models/Campaign';
 import AppCard from '../_app/AppCard/AppCard';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';

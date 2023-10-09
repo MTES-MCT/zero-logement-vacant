@@ -1,4 +1,4 @@
-import { Icon } from '../_dsfr/index';
+import { Icon } from '../_dsfr';
 import classNames from 'classnames';
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';

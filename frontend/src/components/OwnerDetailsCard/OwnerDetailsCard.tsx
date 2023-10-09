@@ -1,4 +1,4 @@
-import { Text, Title } from '../_dsfr/index';
+import { Text, Title } from '../_dsfr';
 
 import { Owner } from '../../models/Owner';
 import styles from './owner-details-card.module.scss';

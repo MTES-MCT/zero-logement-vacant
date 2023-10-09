@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { SearchableSelect } from '../_dsfr/index';
-import addressService, { AddressSearchResult } from '../../services/address.service';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import { SearchableSelect } from '../_dsfr';
+import addressService, {
+  AddressSearchResult,
+} from '../../services/address.service';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 interface Props {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Text } from '../../_dsfr/index';
+import { Col, Container, Row, Text } from '../../_dsfr';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
 
 import * as yup from 'yup';
@@ -53,7 +53,11 @@ const CampaignCreationModal = ({
       <>
         {
           // @ts-ignore
-          <Button {...openingButtonProps} onClick={modal.open}>
+          <Button
+            {...openingButtonProps}
+            onClick={modal.open}
+            data-testid="create-campaign-button"
+          >
             {openingButtonProps.children}
           </Button>
         }

@@ -23,8 +23,8 @@ describe('login view', () => {
         </Router>
       </Provider>
     );
-    expect(screen.getByTestId('email-input')).toBeInTheDocument();
-    expect(screen.getByTestId('password-input')).toBeInTheDocument();
+    expect(screen.getAllByTestId('email-input')[0]).toBeInTheDocument();
+    expect(screen.getAllByTestId('password-input')[0]).toBeInTheDocument();
     expect(screen.getByTestId('login-button')).toBeInTheDocument();
   });
 
@@ -40,12 +40,14 @@ describe('login view', () => {
     );
 
     const passwordInput = screen
-      .getByTestId('password-input')
+      .getAllByTestId('password-input')[0]
       .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (passwordInput) {
       await user.type(passwordInput, 'password');
     }
-    const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
+    const emailInput = screen
+      .getAllByTestId('email-input')[0]
+      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (emailInput) {
       await user.type(emailInput, 'email@test.com');
     }
@@ -96,12 +98,14 @@ describe('login view', () => {
     );
 
     const passwordInput = screen
-      .getByTestId('password-input')
+      .getAllByTestId('password-input')[0]
       .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (passwordInput) {
       await user.type(passwordInput, 'password');
     }
-    const emailInput = screen.getByTestId('email-input').querySelector('input'); //eslint-disable-line testing-library/no-node-access
+    const emailInput = screen
+      .getAllByTestId('email-input')[0]
+      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
     if (emailInput) {
       await user.type(emailInput, 'email@test.com');
     }

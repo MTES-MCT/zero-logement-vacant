@@ -1,5 +1,8 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr/index';
-import { ContactPoint, DraftContactPoint } from '../../../../shared/models/ContactPoint';
+import { Col, Icon, Row, Text, Title } from '../_dsfr';
+import {
+  ContactPoint,
+  DraftContactPoint,
+} from '../../../../shared/models/ContactPoint';
 import React from 'react';
 import { mailto, pluralize } from '../../utils/stringUtils';
 import { useLocalityList } from '../../hooks/useLocalityList';

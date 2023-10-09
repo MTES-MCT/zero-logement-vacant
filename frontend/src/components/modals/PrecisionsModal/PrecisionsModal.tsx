@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../_dsfr/index';
+import { Col, Container, Row, Text, Title } from '../../_dsfr';
 import React, { ChangeEvent, useState } from 'react';
 import {
   BlockingPointOptions,

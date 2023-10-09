@@ -1,4 +1,4 @@
-import { Container, Text, Title } from '../../components/_dsfr/index';
+import { Container, Text, Title } from '../../components/_dsfr';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import AppLink from '../../components/_app/AppLink/AppLink';
 

@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Col, Container, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row } from '../../_dsfr/index';
+import {
+  Col,
+  Container,
+  Modal,
+  ModalClose,
+  ModalContent,
+  ModalFooter,
+  ModalTitle,
+  Row,
+} from '../../_dsfr';
 
 import * as yup from 'yup';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';

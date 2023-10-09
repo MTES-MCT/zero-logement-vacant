@@ -4,7 +4,7 @@ import styles from './dpe.module.scss';
 import { format } from 'date-fns';
 import { isDefined } from '../../utils/compareUtils';
 import React, { ReactElement } from 'react';
-import { Link } from '@dataesr/react-dsfr';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   /**
@@ -21,12 +21,12 @@ function DPE(props: Props) {
   const additionalInfos: ReactElement[] = [
     props.madeAt ? <>{format(props.madeAt, 'dd/MM/yyyy')}</> : undefined,
     props.bnbId ? (
-      <Link
+      <AppLink
         target="_blank"
-        href={`https://particulier.gorenove.fr/map?bnb_id=${props.bnbId}`}
+        to={`https://particulier.gorenove.fr/map?bnb_id=${props.bnbId}`}
       >
         Voir Go Rénove
-      </Link>
+      </AppLink>
     ) : undefined,
   ].filter(isDefined);
 

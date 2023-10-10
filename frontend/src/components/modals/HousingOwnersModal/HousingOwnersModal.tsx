@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Col, Container, Icon, Row, Text } from '../../_dsfr';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
@@ -15,6 +15,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import AppSelect from '../../_app/AppSelect/AppSelect';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
 interface Props {
   housingId: string;
@@ -43,6 +44,15 @@ const HousingOwnersModal = ({
       }),
     [housingId]
   );
+
+  const isOpen = useIsModalOpen(modal);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setModalMode('list');
+      setHousingOwners(initialHousingOwners);
+    }
+  }, [isOpen]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [housingOwners, setHousingOwners] =

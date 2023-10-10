@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from '../_dsfr';
 import { CampaignBundle, returnRate } from '../../models/Campaign';
-import AppCard from '../_app/AppCard/AppCard';
+import CampaignInfoCard from './CampaignInfoCard';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 
 interface Props {
@@ -16,16 +16,16 @@ const CampaignBundleStats = ({ campaignBundle, isArchived }: Props) => {
     <>
       {bundle && (bundle.campaignNumber ?? 0) > 0 && (
         <>
-          <AppCard icon="fr-icon-feedback-fill" grey={isArchived}>
+          <CampaignInfoCard iconId="fr-icon-feedback-fill" grey={isArchived}>
             <Text as="span">
               <b>{returnRate(bundle)}%</b> de retour
             </Text>
-          </AppCard>
-          <AppCard icon="fr-icon-hand-coin-fill" grey={isArchived}>
+          </CampaignInfoCard>
+          <CampaignInfoCard iconId="fr-icon-team-fill" grey={isArchived}>
             <Text as="span">
               <b>{bundle.inProgressWithSupportCount}</b> en accompagnement
             </Text>
-          </AppCard>
+          </CampaignInfoCard>
         </>
       )}
     </>

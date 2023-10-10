@@ -1,25 +1,30 @@
 import React from 'react';
 import classNames from 'classnames';
 import Card from '@codegouvfr/react-dsfr/Card';
+import {
+  FrIconClassName,
+  RiIconClassName,
+} from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 interface Props {
   children: any;
-  icon: string;
+  iconId: FrIconClassName | RiIconClassName;
   grey?: boolean;
 }
 
-function AppCard({ children, icon, grey = false }: Props) {
+function CampaignInfoCard({ children, iconId, grey = false }: Props) {
   return (
     <Card
       title=""
       border={false}
       grey={grey}
       className={classNames('app-card-xs', { 'bg-bf925': !grey })}
+      classes={{ end: 'd-none' }}
       desc={
         <>
           <div
             className={classNames(
-              icon,
+              iconId,
               'card-icon',
               grey ? 'color-grey-850' : 'color-bf925-active'
             )}
@@ -32,4 +37,4 @@ function AppCard({ children, icon, grey = false }: Props) {
   );
 }
 
-export default AppCard;
+export default CampaignInfoCard;

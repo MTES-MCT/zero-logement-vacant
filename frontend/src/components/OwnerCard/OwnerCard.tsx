@@ -8,7 +8,6 @@ import {
   Owner,
 } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
-import classNames from 'classnames';
 import { capitalize, mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
@@ -115,15 +114,12 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <hr />
               {coOwners.map((housingOwner) => (
                 <Card
+                  enlargeLink
                   key={'owner_' + housingOwner.rank}
                   linkProps={{
                     to: '/proprietaires/' + housingOwner.id,
                   }}
-                  className={classNames(
-                    'fr-mb-1w',
-                    styles.coOwnerCard,
-                    'app-card-xs'
-                  )}
+                  className="app-card-xs"
                   title={
                     <>
                       <span className="icon-xs">
@@ -133,7 +129,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                           size="xs"
                         />
                       </span>
-                      <Text as="span">
+                      <Text as="span" className="color-black-50">
                         <b>{housingOwner.fullName}</b>
                       </Text>
                     </>
@@ -158,6 +154,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                       </Text>
                     </>
                   }
+                  classes={{ end: 'd-none' }}
                 ></Card>
               ))}
             </>

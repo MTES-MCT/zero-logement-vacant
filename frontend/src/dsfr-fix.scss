@@ -61,3 +61,7 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   min-height: initial !important;
   padding: initial !important;
 }
+
+.fr-icon-xs::before {
+  --icon-size: .75em;
+}

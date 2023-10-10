@@ -1,5 +1,6 @@
-import Group from './Group';
 import { render, screen } from '@testing-library/react';
+
+import Group from './Group';
 import { genGroup } from '../../../test/fixtures.test';
 
 describe('Group', () => {

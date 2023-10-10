@@ -113,6 +113,18 @@ const save = async (
   logger.debug('Saved group', group.id);
 };
 
+const archive = async (group: GroupApi): Promise<GroupApi> => {
+  logger.debug('Archiving group...', group);
+  const archived: GroupApi = {
+    ...group,
+    archivedAt: new Date(),
+  };
+  await Groups().where({ id: group.id }).update({
+    archived_at: archived.archivedAt,
+  });
+  return archived;
+};
+
 const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removing group...', group);
   await Groups().where({ id: group.id }).delete();
@@ -126,6 +138,7 @@ export interface GroupDBO {
   housing_count: string;
   owner_count: string;
   created_at: Date;
+  archived_at: Date | null;
   user_id: string;
   user?: UserDBO;
   establishment_id: string;
@@ -143,6 +156,7 @@ export const formatGroupApi = (group: GroupApi): GroupCreationDBO => ({
   created_at: group.createdAt,
   user_id: group.userId,
   establishment_id: group.establishmentId,
+  archived_at: null,
 });
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {
@@ -152,10 +166,11 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     description: group.description,
     housingCount: Number(group.housing_count),
     ownerCount: Number(group.owner_count),
-    createdAt: new Date(group.created_at),
+    createdAt: group.created_at,
     userId: group.user_id,
     createdBy: group.user ? parseUserApi(group.user) : undefined,
     establishmentId: group.establishment_id,
+    archivedAt: group.archived_at,
   };
 };
 
@@ -180,5 +195,6 @@ export default {
   find,
   findOne,
   save,
+  archive,
   remove,
 };

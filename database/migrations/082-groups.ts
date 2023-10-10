@@ -6,6 +6,7 @@ exports.up = async (knex: Knex) => {
     table.string('title').notNullable();
     table.text('description').notNullable();
     table.timestamp('created_at').notNullable();
+    table.timestamp('archived_at');
     table
       .uuid('user_id')
       .notNullable()

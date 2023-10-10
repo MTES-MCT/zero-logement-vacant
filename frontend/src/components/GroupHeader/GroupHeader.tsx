@@ -19,8 +19,12 @@ function GroupHeader() {
 
   const { data: groups, isLoading: isLoadingGroups } = useFindGroupsQuery();
 
-  const filteredGroups = showAll ? groups : groups?.slice(0, DISPLAY_GROUPS);
-  const more = (groups?.length ?? 0) - (filteredGroups?.length ?? 0);
+  const unarchivedGroups = groups?.filter((group) => !group.archivedAt);
+  const filteredGroups = unarchivedGroups?.slice(
+    0,
+    showAll ? unarchivedGroups.length : DISPLAY_GROUPS
+  );
+  const more = (unarchivedGroups?.length ?? 0) - (filteredGroups?.length ?? 0);
 
   function toggleShowAll(): void {
     setShowAll((prev) => !prev);

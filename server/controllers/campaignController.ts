@@ -216,7 +216,7 @@ const createCampaignFromGroup = async (
     id: groupId,
     establishmentId: auth.establishmentId,
   });
-  if (!group) {
+  if (!group || !!group.archivedAt) {
     throw new GroupMissingError(groupId);
   }
 

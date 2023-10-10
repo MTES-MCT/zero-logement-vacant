@@ -22,7 +22,6 @@ import SelectableListHeaderActions from '../../components/SelectableListHeader/S
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import { useSelection } from '../../hooks/useSelection';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import Help from '../../components/Help/Help';
 import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
@@ -32,6 +31,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../../components/_app/AppLink/AppLink';
+import Alert from '../../components/Alert/Alert';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -134,10 +134,12 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   return (
     <>
       {!isCompleted(CampaignSteps.Export) && (
-        <Help>
-          Vous avez basculé dans l’onglet <b>“Campagnes”</b>, ici vous pouvez
-          paramètrer votre campagne et y faire le suivi.
-        </Help>
+        <Alert
+          closable
+          type="info"
+          title="Bienvenue dans l’espace suivi de votre campagne !"
+          description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
+        />
       )}
       <VerticalStepper step={index}>
         <VerticalStep

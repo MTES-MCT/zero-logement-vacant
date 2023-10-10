@@ -9,6 +9,7 @@ export interface GroupDTO {
   ownerCount: number;
   createdAt: string;
   createdBy?: UserDTO;
+  archivedAt: string | null;
 }
 
 export interface GroupPayloadDTO

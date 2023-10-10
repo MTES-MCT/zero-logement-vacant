@@ -77,6 +77,9 @@ export const groupApi = createApi({
         method: 'POST',
         body: fp.omit(['id'], group),
       }),
+      invalidatesTags: (result, error, args) => [
+        { type: 'Group', id: args.id },
+      ],
       onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
@@ -97,6 +100,9 @@ export const groupApi = createApi({
         method: 'DELETE',
         body: fp.omit(['id'], group),
       }),
+      invalidatesTags: (result, error, args) => [
+        { type: 'Group', id: args.id },
+      ],
       onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(

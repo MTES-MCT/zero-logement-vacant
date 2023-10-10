@@ -159,6 +159,7 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
+        archivedAt: null,
       });
     });
 
@@ -197,6 +198,7 @@ describe('Group controller', () => {
         ownerCount: filteredOwners.length,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
+        archivedAt: null,
       });
     });
   });
@@ -236,6 +238,18 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
+    it('should be hidden if the group has been archived', async () => {
+      await Groups().where('id', group.id).update({ archived_at: new Date() });
+
+      const { status } = await withAccessToken(
+        request(app).put(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should update a group', async () => {
       const { body, status } = await withAccessToken(
         request(app).put(testRoute(group.id)).send(payload).set({
@@ -252,6 +266,7 @@ describe('Group controller', () => {
         ownerCount: group.ownerCount,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
+        archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
   });
@@ -312,6 +327,18 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
+    it('should be hidden if the group has been archived', async () => {
+      await Groups().where('id', group.id).update({ archived_at: new Date() });
+
+      const { status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should add the housing corresponding to the given criteria to the group', async () => {
       const housing = genHousingApi(oneOf(Establishment1.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
@@ -344,6 +371,7 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
+        archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
   });
@@ -404,6 +432,18 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
+    it('should be hidden if the group has been archived', async () => {
+      await Groups().where('id', group.id).update({ archived_at: new Date() });
+
+      const { status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should add the housing corresponding to the given criteria to the group', async () => {
       const { body, status } = await withAccessToken(
         request(app)
@@ -427,6 +467,7 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
+        archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
   });

@@ -1,5 +1,5 @@
 import { Store } from '@reduxjs/toolkit';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import fetchMock from 'jest-fetch-mock';
@@ -7,7 +7,7 @@ import { genCampaign, genGroup } from '../../../test/fixtures.test';
 import { Route, Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import GroupView from './GroupView';
-import configureTestStore from '../../store/store.test';
+import configureTestStore from '../../utils/test/storeUtils';
 import { mockRequests } from '../../utils/test/requestUtils';
 
 jest.mock('../../components/Aside/Aside.tsx');
@@ -21,6 +21,55 @@ describe('Group view', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
     store = configureTestStore();
+  });
+
+  it('should redirect to the housing list view if the group has been archived', async () => {
+    const router = createMemoryHistory({
+      initialEntries: [`/groupes/${group.id}`],
+    });
+    const campaign = genCampaign();
+    const campaigns = [campaign];
+    mockRequests([
+      {
+        pathname: `/api/groups/${group.id}`,
+        response: {
+          status: 200,
+          body: JSON.stringify({
+            ...group,
+            archivedAt: new Date().toJSON(),
+          }),
+        },
+      },
+      {
+        pathname: `/api/campaigns?groups=${group.id}`,
+        response: {
+          status: 200,
+          body: JSON.stringify(campaigns),
+        },
+      },
+      {
+        pathname: `/api/groups/${group.id}/campaigns`,
+        method: 'POST',
+        response: {
+          status: 201,
+          body: JSON.stringify(campaign),
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={router}>
+          <Route path="/groupes/:id" component={GroupView} />
+        </Router>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(router.location).toMatchObject({
+        pathname: '/parc-de-logements',
+      });
+    });
   });
 
   describe('Create a campaign from the group', () => {
@@ -39,7 +88,7 @@ describe('Group view', () => {
           },
         },
         {
-          pathname: `/api/campaigns`,
+          pathname: `/api/campaigns?groups=${group.id}`,
           response: {
             status: 200,
             body: JSON.stringify(campaigns),
@@ -92,7 +141,7 @@ describe('Group view', () => {
           },
         },
         {
-          pathname: '/api/campaigns',
+          pathname: `/api/campaigns?groups=${group.id}`,
           response: {
             status: 200,
             body: JSON.stringify(campaigns),

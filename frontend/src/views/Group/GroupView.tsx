@@ -1,5 +1,5 @@
 import { Button, ButtonGroup, Col, Container, Row } from '@dataesr/react-dsfr';
-import { useHistory, useParams } from 'react-router-dom';
+import { Redirect, useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
@@ -129,6 +129,10 @@ function GroupView() {
 
   if (!group || isLoadingGroup) {
     return <></>;
+  }
+
+  if (!!group.archivedAt) {
+    return <Redirect to="/parc-de-logements" push={false} />;
   }
 
   return (

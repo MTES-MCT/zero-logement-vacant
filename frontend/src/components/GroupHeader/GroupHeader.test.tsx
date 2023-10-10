@@ -2,14 +2,14 @@ import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'jest-fetch-mock';
-import { configureStore, Store } from '@reduxjs/toolkit';
-import { applicationMiddlewares, applicationReducer } from '../../store/store';
-import { genAuthUser, genGroup } from '../../../test/fixtures.test';
+import { Store } from '@reduxjs/toolkit';
+import { genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
-import { getRequestCalls } from '../../utils/test/requestUtils';
+import { getRequestCalls, mockRequests } from '../../utils/test/requestUtils';
 import config from '../../utils/config';
+import configureTestStore from '../../utils/test/storeUtils';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();
@@ -18,16 +18,7 @@ describe('GroupHeader', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    store = configureStore({
-      reducer: applicationReducer,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-          serializableCheck: false,
-        }).concat(applicationMiddlewares),
-      preloadedState: {
-        authentication: { authUser: genAuthUser() },
-      },
-    });
+    store = configureTestStore();
   });
 
   it('should render', async () => {
@@ -53,14 +44,45 @@ describe('GroupHeader', () => {
     expect(displayMore).toBeVisible();
   });
 
-  it('should hide the "Display more" button if there is no more groups', async () => {
-    fetchMock.mockIf(
-      (request) => request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 200,
-        body: JSON.stringify(new Array(DISPLAY_GROUPS).fill('0').map(genGroup)),
-      })
+  it('should hide groups that have been archived', async () => {
+    const archived = { ...genGroup(), archivedAt: new Date().toJSON() };
+    const groups = [genGroup(), genGroup(), archived];
+    mockRequests([
+      {
+        pathname: '/api/groups',
+        response: {
+          status: 200,
+          body: JSON.stringify(groups),
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <GroupHeader />
+        </Router>
+      </Provider>
     );
+
+    const cards = await screen.findAllByRole('group-card');
+    expect(cards).toBeArrayOfSize(
+      groups.filter((group) => !group.archivedAt).length
+    );
+  });
+
+  it('should hide the "Display more" button if there is no more group', async () => {
+    mockRequests([
+      {
+        pathname: '/api/groups',
+        response: {
+          status: 200,
+          body: JSON.stringify(
+            new Array(DISPLAY_GROUPS).fill('0').map(genGroup)
+          ),
+        },
+      },
+    ]);
 
     render(
       <Provider store={store}>
@@ -75,13 +97,15 @@ describe('GroupHeader', () => {
 
   it('should display all groups when the "Display more" button is clicked', async () => {
     const groups = new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup);
-    fetchMock.mockIf(
-      (request) => request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 200,
-        body: JSON.stringify(groups),
-      })
-    );
+    mockRequests([
+      {
+        pathname: '/api/groups',
+        response: {
+          status: 200,
+          body: JSON.stringify(groups),
+        },
+      },
+    ]);
 
     render(
       <Provider store={store}>
@@ -104,21 +128,24 @@ describe('GroupHeader', () => {
   it('should display a modal to create a group', async () => {
     const router = createMemoryHistory();
     const group = genGroup();
-    fetchMock.mockIf(
-      (request) => request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 200,
-        body: JSON.stringify([]),
-      })
-    );
-    fetchMock.mockIf(
-      (request) =>
-        request.method === 'POST' && request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 201,
-        body: JSON.stringify(group),
-      })
-    );
+    mockRequests([
+      {
+        pathname: '/api/groups',
+        method: 'GET',
+        response: {
+          status: 200,
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/groups',
+        method: 'POST',
+        response: {
+          status: 201,
+          body: JSON.stringify(group),
+        },
+      },
+    ]);
 
     render(
       <Provider store={store}>

@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
+import {
+
+  Col,
+  Container,
+  Icon,
+  Row,
+  Text,
+} from '../../components/_dsfr';
 import { CampaignSteps } from '../../models/Campaign';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
@@ -117,20 +124,29 @@ const CampaignView = () => {
               as="span"
               className="weight-500"
               size="sm"
-              spacing="mb-0 mr-1w"
+              spacing="mb-0 mr-2w"
             >
               Créée à partir du groupe
             </Text>
-            <InternalLink
-              to={`/groupes/${bundle.group.id}`}
-              display="flex"
-              icon="ri-hotel-fill"
-              iconPosition="left"
-              iconSize="1x"
-              isSimple
-            >
-              {bundle.group.title}
-            </InternalLink>
+            {!!bundle.group.archivedAt ? (
+                <>
+                  <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
+                  <Text as="span" spacing="mb-0">
+                    {bundle.group.title}
+                  </Text>
+                </>
+              ) : (
+                <InternalLink
+                  to={`/groupes/${bundle.group.id}`}
+                  display="flex"
+                  icon="ri-hotel-fill"
+                  iconPosition="left"
+                  iconSize="1x"
+                  isSimple
+                >
+                  {bundle.group.title}
+                </InternalLink>
+              )}
           </Col>
         </Row>
       )}

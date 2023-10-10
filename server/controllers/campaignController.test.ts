@@ -276,6 +276,23 @@ describe('Campaign controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
+    it('should throw if the group has been archived', async () => {
+      await Groups().where('id', group.id).update({ archived_at: new Date() });
+
+      const { status } = await withAccessToken(
+        request(app)
+          .post(testRoute(group.id))
+          .send({
+            title: 'Campagne prioritaire',
+          })
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should create the campaign', async () => {
       const { body, status } = await withAccessToken(
         request(app).post(testRoute(group.id)).send({
@@ -298,6 +315,7 @@ describe('Campaign controller', () => {
         campaignNumber: expect.any(Number),
         reminderNumber: 0,
         kind: CampaignKinds.Initial,
+        validatedAt: expect.toBeDateString(),
       });
     });
 

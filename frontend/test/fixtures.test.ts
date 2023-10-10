@@ -157,5 +157,6 @@ export function genGroup(): Group {
     ownerCount: genNumber(2),
     createdAt: new Date(),
     createdBy: genUser(),
+    archivedAt: null,
   };
 }

@@ -11,6 +11,7 @@ import { logger } from '../utils/logger';
 import { GroupApi, toGroupDTO } from '../models/GroupApi';
 import housingRepository from '../repositories/housingRepository';
 import { isArrayOf, isString, isUUIDParam } from '../utils/validators';
+import campaignRepository from '../repositories/campaignRepository';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -59,6 +60,7 @@ const create = async (request: Request, response: Response): Promise<void> => {
     createdBy: user,
     userId: user.id,
     establishmentId: establishment.id,
+    archivedAt: null,
   };
   await groupRepository.save(group, housingList);
 
@@ -98,7 +100,7 @@ const update = async (request: Request, response: Response): Promise<void> => {
     id: params.id,
     establishmentId: auth.establishmentId,
   });
-  if (!group) {
+  if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
   }
 
@@ -135,7 +137,7 @@ const addHousing = async (
     id: params.id,
     establishmentId: auth.establishmentId,
   });
-  if (!group) {
+  if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
   }
 
@@ -180,7 +182,7 @@ const addHousing = async (
 const addHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('all').isBoolean().notEmpty(),
-  body('ids').custom(isArrayOf(isString)).notEmpty(),
+  body('ids').custom(isArrayOf(isString)),
   // FIXME
   // body('filters')
 ];
@@ -192,7 +194,7 @@ const removeHousing = async (request: Request, response: Response) => {
     id: params.id,
     establishmentId: auth.establishmentId,
   });
-  if (!group) {
+  if (!group || !!group.archivedAt) {
     throw new GroupMissingError(params.id);
   }
 
@@ -244,6 +246,18 @@ const remove = async (request: Request, response: Response): Promise<void> => {
   });
   if (!group) {
     throw new GroupMissingError(params.id);
+  }
+
+  const campaigns = await campaignRepository.find({
+    filters: {
+      establishmentId: auth.establishmentId,
+      groupIds: [group.id],
+    },
+  });
+  if (campaigns.length > 0) {
+    const archived = await groupRepository.archive(group);
+    response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
+    return;
   }
 
   await groupRepository.remove(group);

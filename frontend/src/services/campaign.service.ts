@@ -23,10 +23,12 @@ export interface ListCampaignsOptions {
 const listCampaigns = async (
   opts?: ListCampaignsOptions
 ): Promise<Campaign[]> => {
-  const query = getURLSearchParams({
+  const params = getURLSearchParams({
     groups: opts?.filters?.groupIds?.join(','),
-  });
-  return fetch(`${config.apiEndpoint}/api/campaigns?${query}`, {
+  }).toString();
+  const query = params.length > 0 ? `?${params}` : '';
+
+  return fetch(`${config.apiEndpoint}/api/campaigns${query}`, {
     method: 'GET',
     headers: {
       ...authService.authHeader(),

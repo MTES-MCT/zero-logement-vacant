@@ -111,15 +111,15 @@ function Group(props: GroupProps) {
                 <Text>{props.group.description}</Text>
               </Col>
             </Row>
-            {props.campaigns?.length && (
+            {(props.campaigns?.length ?? 0) > 0 && (
               <Row spacing="mb-2w">
                 <Col n="12">
                   <Text className="weight-500" spacing="mb-1w">
                     Campagnes basées sur ce groupe :
                   </Text>
                 </Col>
-                {props.campaigns.map((campaign) => (
-                  <Col n="12">
+                {props.campaigns?.map((campaign) => (
+                  <Col n="12" key={campaign.id}>
                     <InternalLink
                       display="flex"
                       icon="ri-mail-fill"

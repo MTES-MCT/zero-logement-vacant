@@ -360,11 +360,12 @@ export const genGroupApi = (
     id: uuidv4(),
     title: randomstring.generate(),
     description: randomstring.generate(),
-    housingCount: genNumber(2),
-    ownerCount: genNumber(2),
+    housingCount: 0,
+    ownerCount: 0,
     createdAt: new Date(),
     userId: creator.id,
     createdBy: creator,
     establishmentId: establishment.id,
+    archivedAt: null,
   };
 };

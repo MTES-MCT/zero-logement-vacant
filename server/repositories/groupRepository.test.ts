@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { genGroupApi, genHousingApi } from '../test/testFixtures';
-import { User1, User2 } from '../../database/seeds/test/003-users';
+import { TEST_SALT, User1, User2 } from '../../database/seeds/test/003-users';
 import {
   Establishment1,
   Establishment2,
@@ -17,13 +17,12 @@ import groupRepository, {
 import { GroupApi } from '../models/GroupApi';
 import { HousingApi } from '../models/HousingApi';
 import { formatHousingRecordApi, Housing } from './housingRepository';
-import { SALT_LENGTH } from '../models/UserApi';
 
 describe('Group repository', () => {
   describe('find', () => {
     const users = [User1, User2].map((user) => ({
       ...user,
-      password: bcrypt.hashSync(user.password, SALT_LENGTH),
+      password: bcrypt.hashSync(user.password, TEST_SALT),
     }));
     const groups: GroupApi[] = [
       genGroupApi(users[0], Establishment1),
@@ -161,6 +160,22 @@ describe('Group repository', () => {
           housing_geo_code: newHousing.geoCode,
         },
       ]);
+    });
+  });
+
+  describe('archive', () => {
+    const group = genGroupApi(User1, Establishment1);
+
+    beforeEach(async () => {
+      await Groups().insert(formatGroupApi(group));
+    });
+
+    it('should archive a group', async () => {
+      const archived = await groupRepository.archive(group);
+      expect(archived).toStrictEqual({
+        ...group,
+        archivedAt: expect.any(Date),
+      });
     });
   });
 

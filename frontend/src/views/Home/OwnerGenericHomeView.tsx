@@ -1,41 +1,31 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+
 import handsPoints from '../../assets/images/hands-point.svg';
 import { AddressSearchResult } from '../../services/address.service';
 import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
-import { useEstablishments } from '../../hooks/useEstablishments';
+import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
-import {
-  getEstablishment,
-  getNearbyEstablishments,
-} from '../../store/actions/establishmentAction';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useEstablishment } from '../../hooks/useEstablishment';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useAppDispatch();
-  const { establishmentWithKinds } = useEstablishments();
+  const { availableEstablishmentWithKinds } = useAvailableEstablishments();
 
   const { addressSearchResult } = useAppSelector(
     (state) => state.ownerProspect
   );
 
-  const { establishment, nearbyEstablishments } = useAppSelector(
-    (state) => state.establishment
+  const { establishment, nearbyEstablishments } = useEstablishment(
+    addressSearchResult?.city,
+    addressSearchResult ? [addressSearchResult.geoCode] : undefined
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
     dispatch(selectAddressSearchResult(addressSearchResult));
-    dispatch(
-      getEstablishment(addressSearchResult.city, addressSearchResult.geoCode)
-    );
   };
-
-  useEffect(() => {
-    if (establishment) {
-      dispatch(getNearbyEstablishments(establishment));
-    }
-  }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -75,11 +65,11 @@ const OwnerGenericHomeView = () => {
         ) : (
           <>
             <EstablishmentLinkList
-              establishments={establishmentWithKinds(['Commune'])}
+              establishments={availableEstablishmentWithKinds(['Commune'])}
               title="Communes"
             />
             <EstablishmentLinkList
-              establishments={establishmentWithKinds(['EPCI'])}
+              establishments={availableEstablishmentWithKinds(['EPCI'])}
               title="Collectivités"
             />
           </>

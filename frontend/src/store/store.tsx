@@ -2,7 +2,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 import campaignReducer from './reducers/campaignReducer';
-import establishmentReducer from './reducers/establishmentReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import settingsReducer from './reducers/settingsReducer';
@@ -16,13 +15,13 @@ import { eventApi } from '../services/event.service';
 import { userAccountApi } from '../services/user-account.service';
 import { ownerApi } from '../services/owner.service';
 import { housingApi } from '../services/housing.service';
+import { establishmentApi } from '../services/establishment.service';
 import { groupApi } from '../services/group.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
   campaign: campaignReducer.reducer,
-  establishment: establishmentReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   settings: settingsReducer.reducer,
   loadingBar: loadingBarReducer,
@@ -37,6 +36,7 @@ export const applicationReducer = {
   [ownerApi.reducerPath]: ownerApi.reducer,
   [housingApi.reducerPath]: housingApi.reducer,
   [groupApi.reducerPath]: groupApi.reducer,
+  [establishmentApi.reducerPath]: establishmentApi.reducer,
 };
 
 export const applicationMiddlewares = [
@@ -51,6 +51,7 @@ export const applicationMiddlewares = [
   ownerApi.middleware,
   housingApi.middleware,
   groupApi.middleware,
+  establishmentApi.middleware,
 ];
 
 export const store = configureStore({

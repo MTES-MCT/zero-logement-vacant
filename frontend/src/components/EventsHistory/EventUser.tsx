@@ -1,4 +1,4 @@
-import { useEstablishments } from '../../hooks/useEstablishments';
+import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import { useGetUserQuery } from '../../services/user.service';
 import classNames from 'classnames';
 import styles from './events-history.module.scss';
@@ -9,7 +9,7 @@ interface Props {
 }
 
 const EventUser = ({ userId }: Props) => {
-  const { availableEstablishments } = useEstablishments();
+  const { availableEstablishments } = useAvailableEstablishments();
 
   const { data: user } = useGetUserQuery(userId);
 

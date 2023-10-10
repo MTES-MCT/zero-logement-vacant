@@ -8,9 +8,9 @@ import {
   useFindGroupsQuery,
 } from '../../services/group.service';
 import styles from './group-header.module.scss';
-import GroupCreationModal from '../modals/GroupCreationModal/GroupCreationModal';
 import { GroupPayload } from '../../models/GroupPayload';
 import { useHistory } from 'react-router-dom';
+import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
 
 export const DISPLAY_GROUPS = 3;
 
@@ -112,8 +112,9 @@ function GroupHeader() {
           )}
         </Row>
 
-        <GroupCreationModal
+        <GroupEditionModal
           open={showGroupCreationModal}
+          title="Création d’un nouveau groupe de logements"
           onSubmit={doCreateGroup}
           onClose={() => setShowGroupCreationModal(false)}
         />

@@ -136,7 +136,7 @@ function GroupView() {
   }
 
   return (
-    <Container as="section" spacing="py-4w mb-4w">
+    <Container as="section" spacing="py-4w">
       <GroupCampaignCreationModal
         open={showCampaignCreationModal}
         group={group}

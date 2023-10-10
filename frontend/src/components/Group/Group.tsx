@@ -13,7 +13,7 @@ import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useState } from 'react';
-import GroupUpdateModal from '../modals/GroupUpdateModal/GroupUpdateModal';
+import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
 import { GroupPayload } from '../../models/GroupPayload';
 import { Campaign } from '../../models/Campaign';
 import InternalLink from '../InternalLink/InternalLink';
@@ -50,7 +50,7 @@ function Group(props: GroupProps) {
   return (
     <Container as="article" fluid>
       <Row className="justify-space-between">
-        <Col n="6" spacing="pr-2w">
+        <Col n="9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
             <Row alignItems="top">
               <Title as="h2" spacing="mr-1w mb-2w">
@@ -165,10 +165,10 @@ function Group(props: GroupProps) {
         </Col>
       </Row>
 
-      <GroupUpdateModal
+      <GroupEditionModal
         open={showGroupUpdateModal}
-        title={props.group.title}
-        description={props.group.description}
+        title="Modifier les informations du groupe"
+        group={props.group}
         onSubmit={updateGroup}
         onClose={() => setShowGroupUpdateModal(false)}
       />

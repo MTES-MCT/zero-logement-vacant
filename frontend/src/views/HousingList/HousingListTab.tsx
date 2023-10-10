@@ -23,6 +23,7 @@ import { useAppDispatch } from '../../hooks/useStore';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
 import fp from 'lodash/fp';
+import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
 import {
   useAddGroupHousingMutation,
   useCreateGroupMutation,
@@ -33,6 +34,7 @@ import { Group } from '../../models/Group';
 import { useHistory, useParams } from 'react-router-dom';
 import { createCampaign } from '../../store/actions/campaignAction';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
+import GroupEditionModal from '../../components/modals/GroupUpdateModal/GroupEditionModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 
@@ -263,8 +265,9 @@ const HousingListTab = ({
                   </Button>
                 )}
 
-                <GroupCreationModal
+                <GroupEditionModal
                   open={showGroupCreationModal}
+                  title="Création d’un nouveau groupe de logements"
                   onSubmit={doCreateGroup}
                   onClose={() => setShowGroupCreationModal(false)}
                 />

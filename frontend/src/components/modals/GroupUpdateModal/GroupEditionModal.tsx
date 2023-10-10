@@ -8,18 +8,23 @@ import { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../AppTextInput/AppTextInput';
 import Info from '../../Info/Info';
+import HousingCount from '../../HousingCount/HousingCount';
 
 interface Props {
   open: boolean;
-  title?: string;
-  description?: string;
+  title: string;
+  group?: Partial<
+    Pick<Group, 'title' | 'description' | 'housingCount' | 'ownerCount'>
+  >;
   onSubmit: (group: Pick<Group, 'title' | 'description'>) => void;
   onClose: () => void;
 }
 
-function GroupUpdateModal(props: Props) {
-  const [title, setTitle] = useState(props.title ?? '');
-  const [description, setDescription] = useState(props.description ?? '');
+function GroupEditionModal(props: Props) {
+  const [title, setTitle] = useState(props.group?.title ?? '');
+  const [description, setDescription] = useState(
+    props.group?.description ?? ''
+  );
 
   const shape = {
     title: yup
@@ -45,6 +50,9 @@ function GroupUpdateModal(props: Props) {
     });
   }
 
+  const housingCount = props.group?.housingCount ?? 0;
+  const ownerCount = props.group?.ownerCount ?? 0;
+
   if (!props.open) {
     return <></>;
   }
@@ -54,11 +62,14 @@ function GroupUpdateModal(props: Props) {
       alignFooter="right"
       icon=""
       size="lg"
-      title="Modifier les informations du groupe"
+      title={props.title}
       onSubmit={onSubmit}
       onClose={props.onClose}
     >
-      <form id="group-update-form">
+      {housingCount > 0 && ownerCount > 0 && (
+        <HousingCount housingCount={housingCount} ownerCount={ownerCount} />
+      )}
+      <form id="group-edition-form">
         <Row gutters>
           <Col>
             <AppTextInput<FormShape>
@@ -93,4 +104,4 @@ function GroupUpdateModal(props: Props) {
   );
 }
 
-export default GroupUpdateModal;
+export default GroupEditionModal;

@@ -13,6 +13,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Button from '@codegouvfr/react-dsfr/Button';
+import classNames from 'classnames';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -119,7 +120,11 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   linkProps={{
                     to: '/proprietaires/' + housingOwner.id,
                   }}
-                  className="app-card-xs"
+                  className={classNames(
+                    'fr-mb-1w',
+                    styles.coOwnerCard,
+                    'app-card-xs'
+                  )}
                   title={
                     <>
                       <span className="icon-xs">

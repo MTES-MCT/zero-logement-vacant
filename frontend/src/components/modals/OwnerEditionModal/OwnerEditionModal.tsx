@@ -92,6 +92,7 @@ const OwnerEditionModal = ({ owner }: Props) => {
           },
         ]}
         title='Modifier la rubrique "propriétaire"'
+        style={{ textAlign: 'initial', fontWeight: 'initial' }}
       >
         <Row gutters>
           <Col n="6">

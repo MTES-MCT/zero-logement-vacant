@@ -126,10 +126,9 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
         </Row>
       )}
       <Row spacing="pt-3w">
-        <Button priority="secondary" className="fr-mr-2w" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button onClick={submit}>Enregistrer</Button>
+        <Col>
+          <Button onClick={submit}>Ajouter</Button>
+        </Col>
       </Row>
     </Container>
   );

@@ -60,7 +60,12 @@ function ExtendedToggle(props: Props) {
           className={classNames(styles.input)}
           id={id.current}
         />
-        <Icon className={styles.icon} iconPosition="center" name={icon} />
+        <Icon
+          className={styles.icon}
+          iconPosition="center"
+          name={icon}
+          size="xs"
+        />
       </div>
       <label className={styles.label} htmlFor={id.current} {...checkboxLabels}>
         {props.label}

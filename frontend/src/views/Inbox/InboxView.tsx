@@ -69,7 +69,7 @@ function InboxView() {
         qui souhaitent vous faire part de leur situation. Ces messages
         proviennent du formulaire de contact présent sur la 
         {link ? (
-          <AppLink className={styles.link} isSimple to={link}>
+          <AppLink className={styles.link} isSimple to={link} target="_blank">
             page publique d’information sur la vacance
           </AppLink>
         ) : (

@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text } from '../_dsfr';
+import { Col, Container, Row, Text } from '../_dsfr';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { OwnerProspect } from '../../models/OwnerProspect';
@@ -83,12 +83,8 @@ function InboxSidemenu(props: Props) {
                   priority="secondary"
                   className="fr-mb-1w"
                   onClick={copyMail}
+                  iconId="fr-icon-file-add-fill"
                 >
-                  <Icon
-                    name="fr-icon-file-copy-line"
-                    iconPosition="left"
-                    size="1x"
-                  />
                   {clipboard.copied ? 'Copié !' : 'Copier mail'}
                 </Button>
               </div>

@@ -235,7 +235,12 @@ const updateHousingOwners = async (
       housingOwnersApi.map((_) => _.id)
     );
 
-    await ownerRepository.insertHousingOwners(housingOwnersApi);
+    await ownerRepository.insertHousingOwners(
+      housingOwnersApi.map((housingOwnerApi) => ({
+        ...housingOwnerApi,
+        housingGeoCode: housing.geoCode,
+      }))
+    );
 
     const newHousingOwnersApi = await ownerRepository.listByHousing(housing);
 

@@ -48,6 +48,7 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
+import classNames from 'classnames';
 
 interface TitleWithIconProps {
   icon: string;
@@ -106,17 +107,14 @@ function HousingListFiltersSidemenu() {
       title="Tous les filtres"
       content={
         <>
-          <Accordion
-            label={
-              <TitleWithIcon
-                icon="fr-icon-filter-fill"
-                title="Filtres liés au suivi de la mobilisation"
-              />
-            }
-            defaultExpanded
-            className="bg-975"
-          >
-            <Container as="section" fluid>
+          <section className={classNames(styles.asAccordionExpanded, 'bg-975')}>
+            <h3>
+              <span className="fr-icon-sm icon-left ds-fr--v-middle fr-icon-filter-fill"></span>
+              <span className="fr-text--md">
+                Filtres liés au suivi de la mobilisation
+              </span>
+            </h3>
+            <Container as="section" fluid spacing="p-2w pb-3w">
               <Row gutters>
                 <Col n="12">
                   <HousingStatusMultiSelect
@@ -165,7 +163,7 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </Accordion>
+          </section>
           <Accordion
             label={
               <TitleWithIcon

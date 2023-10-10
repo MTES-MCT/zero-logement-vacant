@@ -11,7 +11,6 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import LocalityTaxEditionModal from '../../components/modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 import Help from '../../components/Help/Help';
 import { useUpdateLocalityTaxMutation } from '../../services/locality.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
@@ -53,32 +52,24 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
     [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
   );
 
-  const [localityToUpdate, setLocalityToUpdate] = useState<
-    Locality | undefined
-  >();
-
-  const onSubmitEditingLocalityTax = (taxKind: TaxKinds, taxRate?: number) => {
-    if (localityToUpdate) {
-      trackEvent({
-        category: TrackEventCategories.LocalityTaxes,
-        action: TrackEventActions.LocalityTaxes.Update,
-      });
-      updateLocalityTax({
-        geoCode: localityToUpdate.geoCode,
-        taxKind,
-        taxRate,
-      }).finally(() => setLocalityToUpdate(undefined));
-    }
+  const onSubmitEditingLocalityTax = (
+    geoCode: string,
+    taxKind: TaxKinds,
+    taxRate?: number
+  ) => {
+    trackEvent({
+      category: TrackEventCategories.LocalityTaxes,
+      action: TrackEventActions.LocalityTaxes.Update,
+    });
+    updateLocalityTax({
+      geoCode,
+      taxKind,
+      taxRate,
+    });
   };
 
   return (
     <>
-      {localityToUpdate && (
-        <LocalityTaxEditionModal
-          locality={localityToUpdate}
-          onSubmit={onSubmitEditingLocalityTax}
-        />
-      )}
       <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
         Taxes sur les logements vacants
       </Title>
@@ -143,7 +134,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
             <Col n="4" key={locality.name}>
               <LocalityTaxCard
                 locality={locality}
-                onEdit={(locality) => setLocalityToUpdate(locality)}
+                onEdit={onSubmitEditingLocalityTax}
                 isPublicDisplay={false}
               />
             </Col>

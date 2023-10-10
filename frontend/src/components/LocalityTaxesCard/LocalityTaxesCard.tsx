@@ -1,13 +1,13 @@
 import { Col, Icon, Row, Text, Title } from '../_dsfr';
 import React from 'react';
-import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
+import LocalityTaxEditionModal from '../modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
 
 interface Props {
   locality: Locality;
-  onEdit?: (locality: Locality) => void;
+  onEdit?: (geoCode: string, taxKind: TaxKinds, taxRate?: number) => void;
   isPublicDisplay: boolean;
 }
 
@@ -29,16 +29,14 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
                   />
                 </span>
               </Col>
-              {locality.taxKind !== TaxKinds.TLV && onEdit && (
-                <Col className="align-right">
-                  <AppLinkAsButton
-                    onClick={() => onEdit(locality)}
-                    isSimple
-                    iconId="fr-icon-edit-fill"
-                    className="d-inline-block fr-mr-1w"
+              <Col className="align-right">
+                {locality.taxKind !== TaxKinds.TLV && onEdit && (
+                  <LocalityTaxEditionModal
+                    locality={locality}
+                    onSubmit={onEdit}
                   />
-                </Col>
-              )}
+                )}
+              </Col>
             </Row>
           )}
           <Title as="h2" look="h6" spacing="mb-0">

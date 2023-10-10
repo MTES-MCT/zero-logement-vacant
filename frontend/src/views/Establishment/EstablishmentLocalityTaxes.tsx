@@ -103,7 +103,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           className="fr-mb-2w"
         />
       )}
-      <div className="fr-py-1w">
+      <div className="fr-tags-group fr-py-1w">
         <Tag
           small
           pressed={hasTLVFilter}

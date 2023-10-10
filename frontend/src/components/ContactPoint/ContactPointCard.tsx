@@ -32,6 +32,8 @@ function ContactPointCard({
   return (
     <Card
       className="h-fit-content"
+      classes={{ end: 'd-none' }}
+      size="small"
       titleAs="h2"
       title={
         <>

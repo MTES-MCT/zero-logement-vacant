@@ -22,7 +22,7 @@ const EstablishmentView = () => {
   return (
     <MainContainer title="Gestion des informations de votre page publique">
       <Container as="article" spacing="mb-2w px-0">
-        <Text>
+        <Text size="lg">
           Remplissez les détails de votre territoire ici pour informer le
           public. Cela aidera à diriger les propriétaires vers vos contacts
           locaux et à partager des informations sur la vacance. Les informations

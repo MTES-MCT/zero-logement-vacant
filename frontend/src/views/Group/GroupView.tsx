@@ -56,7 +56,9 @@ function GroupView() {
 
   const { changeFilters, changeView } = housingSlice.actions;
 
-  function searchWithQuery(query: string): void {}
+  function searchWithQuery(query: string): void {
+    // FIXME
+  }
 
   useEffect(() => {
     dispatch(

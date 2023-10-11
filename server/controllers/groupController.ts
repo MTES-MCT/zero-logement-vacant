@@ -12,6 +12,8 @@ import { GroupApi, toGroupDTO } from '../models/GroupApi';
 import housingRepository from '../repositories/housingRepository';
 import { isArrayOf, isString, isUUIDParam } from '../utils/validators';
 import campaignRepository from '../repositories/campaignRepository';
+import { GroupHousingEventApi } from '../models/EventApi';
+import eventRepository from '../repositories/eventRepository';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -63,6 +65,23 @@ const create = async (request: Request, response: Response): Promise<void> => {
     archivedAt: null,
   };
   await groupRepository.save(group, housingList);
+
+  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
+    id: uuidv4(),
+    name: 'Ajout dans un groupe',
+    kind: 'Create',
+    category: 'Group',
+    section: 'Ajout d’un logement dans un groupe',
+    conflict: false,
+    old: undefined,
+    new: group,
+    createdAt: new Date(),
+    createdBy: user.id,
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  }));
+  await eventRepository.insertManyGroupHousingEvents(events);
 
   response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
 };
@@ -177,6 +196,23 @@ const addHousing = async (
   };
   await groupRepository.save(updatedGroup, housingList);
 
+  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
+    id: uuidv4(),
+    name: 'Ajout dans un groupe',
+    kind: 'Create',
+    category: 'Group',
+    section: 'Ajout d’un logement dans un groupe',
+    conflict: false,
+    old: undefined,
+    new: group,
+    createdAt: new Date(),
+    createdBy: auth.userId,
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  }));
+  await eventRepository.insertManyGroupHousingEvents(events);
+
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
 const addHousingValidators: ValidationChain[] = [
@@ -233,6 +269,23 @@ const removeHousing = async (request: Request, response: Response) => {
   };
   await groupRepository.save(updatedGroup, housingList);
 
+  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
+    id: uuidv4(),
+    name: 'Retrait d’un groupe',
+    kind: 'Delete',
+    category: 'Group',
+    section: 'Retrait du logement d’un groupe',
+    conflict: false,
+    old: group,
+    new: undefined,
+    createdAt: new Date(),
+    createdBy: auth.userId,
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  }));
+  await eventRepository.insertManyGroupHousingEvents(events);
+
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
 const removeHousingValidators: ValidationChain[] = addHousingValidators;
@@ -248,19 +301,61 @@ const remove = async (request: Request, response: Response): Promise<void> => {
     throw new GroupMissingError(params.id);
   }
 
-  const campaigns = await campaignRepository.find({
-    filters: {
-      establishmentId: auth.establishmentId,
-      groupIds: [group.id],
-    },
-  });
+  const [campaigns, housingList] = await Promise.all([
+    campaignRepository.find({
+      filters: {
+        establishmentId: auth.establishmentId,
+        groupIds: [group.id],
+      },
+    }),
+    housingRepository.find({
+      filters: {
+        establishmentIds: [auth.establishmentId],
+        groupIds: [group.id],
+      },
+      pagination: { paginate: false },
+    }),
+  ]);
+
   if (campaigns.length > 0) {
     const archived = await groupRepository.archive(group);
+    const events = housingList.map<GroupHousingEventApi>((housing) => ({
+      id: uuidv4(),
+      name: 'Archivage d’un groupe',
+      kind: 'Delete',
+      category: 'Group',
+      section: 'Archivage d’un groupe',
+      conflict: false,
+      old: group,
+      new: archived,
+      createdAt: new Date(),
+      createdBy: auth.userId,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+      groupId: null,
+    }));
+    await eventRepository.insertManyGroupHousingEvents(events);
     response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
     return;
   }
 
+  const events = housingList.map<GroupHousingEventApi>((housing) => ({
+    id: uuidv4(),
+    name: 'Suppression d’un groupe',
+    kind: 'Delete',
+    category: 'Group',
+    section: 'Suppression d’un groupe',
+    conflict: false,
+    old: group,
+    new: undefined,
+    createdAt: new Date(),
+    createdBy: auth.userId,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+    groupId: null,
+  }));
   await groupRepository.remove(group);
+  await eventRepository.insertManyGroupHousingEvents(events);
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 const removeValidators: ValidationChain[] = [param('id').isString().notEmpty()];

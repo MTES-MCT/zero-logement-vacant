@@ -6,6 +6,7 @@ import { User1, User2 } from '../../database/seeds/test/003-users';
 
 import { GroupApi } from '../models/GroupApi';
 import {
+  genCampaignApi,
   genGroupApi,
   genHousingApi,
   genOwnerApi,
@@ -35,6 +36,20 @@ import {
   OwnersHousing,
 } from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
+import {
+  Events,
+  eventsTable,
+  GroupHousingEvents,
+  groupHousingEventsTable,
+  parseEventApi,
+} from '../repositories/eventRepository';
+import { EventApi } from '../models/EventApi';
+import { HousingApi } from '../models/HousingApi';
+import { Owner1 } from '../../database/seeds/test/004-owner';
+import campaignRepository, {
+  Campaigns,
+} from '../repositories/campaignRepository';
+import { CampaignApi } from '../models/CampaignApi';
 
 describe('Group controller', () => {
   const { app } = createServer();
@@ -200,6 +215,38 @@ describe('Group controller', () => {
         createdBy: toUserDTO(User1),
         archivedAt: null,
       });
+    });
+
+    it('should create events related to the group and its housing', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const establishmentHousingList = housingList.filter((housing) =>
+        Establishment1.geoCodes.includes(housing.geoCode)
+      );
+      const events = await Events()
+        .join(
+          groupHousingEventsTable,
+          `${groupHousingEventsTable}.event_id`,
+          `${eventsTable}.id`
+        )
+        .where('group_id', body.id)
+        .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
+      expect(events).toBeArrayOfSize(establishmentHousingList.length);
+      expect(events).toIncludeAllPartialMembers(
+        establishmentHousingList.map(() => ({
+          name: 'Ajout dans un groupe',
+          kind: 'Create',
+          category: 'Group',
+          section: 'Ajout d’un logement dans un groupe',
+          conflict: false,
+          createdBy: User1.id,
+        }))
+      );
     });
   });
 
@@ -374,6 +421,38 @@ describe('Group controller', () => {
         archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
+
+    it('should create events related to the group and its housing', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const establishmentHousingList = housingList.filter((housing) =>
+        Establishment1.geoCodes.includes(housing.geoCode)
+      );
+      const events = await Events()
+        .join(
+          groupHousingEventsTable,
+          `${groupHousingEventsTable}.event_id`,
+          `${eventsTable}.id`
+        )
+        .where('group_id', body.id)
+        .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
+      expect(events).toBeArrayOfSize(establishmentHousingList.length);
+      expect(events).toIncludeAllPartialMembers(
+        establishmentHousingList.map(() => ({
+          name: 'Ajout dans un groupe',
+          kind: 'Create',
+          category: 'Group',
+          section: 'Ajout d’un logement dans un groupe',
+          conflict: false,
+          createdBy: User1.id,
+        }))
+      );
+    });
   });
 
   describe('removeHousing', () => {
@@ -392,7 +471,7 @@ describe('Group controller', () => {
 
     const payload: GroupPayloadDTO['housing'] = {
       all: false,
-      ids: housingList.map((housing) => housing.id),
+      ids: housingList.slice(2, 3).map((housing) => housing.id),
       filters: {},
     };
 
@@ -444,7 +523,7 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should add the housing corresponding to the given criteria to the group', async () => {
+    it('should remove the housing corresponding to the given criteria to the group', async () => {
       const { body, status } = await withAccessToken(
         request(app)
           .delete(testRoute(group.id))
@@ -470,15 +549,59 @@ describe('Group controller', () => {
         archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
+
+    it('should create events when housing get removed', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).delete(testRoute(group.id)).send(payload).set({
+          'Content-Type': 'application/json',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const establishmentHousingList = housingList.filter((housing) =>
+        Establishment1.geoCodes.includes(housing.geoCode)
+      );
+      const events = await Events()
+        .join(
+          groupHousingEventsTable,
+          `${groupHousingEventsTable}.event_id`,
+          `${eventsTable}.id`
+        )
+        .where('group_id', body.id)
+        .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
+      expect(events).toBeArrayOfSize(establishmentHousingList.length - 1);
+      expect(events).toIncludeAllPartialMembers(
+        establishmentHousingList.map(() => ({
+          name: 'Retrait d’un groupe',
+          kind: 'Delete',
+          category: 'Group',
+          section: 'Retrait du logement d’un groupe',
+          conflict: false,
+          createdBy: User1.id,
+        }))
+      );
+    });
   });
 
   describe('remove', () => {
     const testRoute = (id: string): string => `/api/groups/${id}`;
     const group: GroupApi = genGroupApi(User1, Establishment1);
     const anotherGroup: GroupApi = genGroupApi(User2, Establishment2);
+    const housingList: HousingApi[] = new Array(3)
+      .fill('0')
+      .map(() => genHousingApi(oneOf(Establishment1.geoCodes)));
 
     beforeEach(async () => {
       await Groups().insert(formatGroupApi(group));
+      await Housing().insert(housingList.map(formatHousingRecordApi));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
+        owner_id: Owner1.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+      }));
+      await OwnersHousing().insert(ownersHousing);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -494,12 +617,62 @@ describe('Group controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it("should remove the housing group for the authenticated user's establishment", async () => {
+    describe('If a campaign was created from the group', () => {
+      const campaign: CampaignApi = {
+        ...genCampaignApi(Establishment1.id, 0, 0, User1.id),
+        groupId: group.id,
+      };
+
+      beforeEach(async () => {
+        await Campaigns().insert(
+          campaignRepository.formatCampaignApi(campaign)
+        );
+      });
+
+      it('should archive the group', async () => {
+        const { body, status } = await withAccessToken(
+          request(app).delete(testRoute(group.id))
+        );
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject({
+          archivedAt: expect.any(String),
+        });
+      });
+
+      it('should create events when the group is archived', async () => {
+        const before = await GroupHousingEvents().whereNull('group_id');
+        expect(before).toBeArrayOfSize(0);
+
+        const { status } = await withAccessToken(
+          request(app).delete(testRoute(group.id))
+        );
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const after = await GroupHousingEvents()
+          .whereNull('group_id')
+          .join(
+            eventsTable,
+            `${eventsTable}.id`,
+            `${groupHousingEventsTable}.event_id`
+          );
+        expect(after).toBeArrayOfSize(housingList.length);
+        expect(after).toSatisfyAll(
+          (event) => event.section === 'Archivage d’un groupe'
+        );
+      });
+    });
+
+    it('should remove a group', async () => {
       const { status } = await withAccessToken(
         request(app).delete(testRoute(group.id))
       );
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+    });
+
+    it('should create events when a group is removed', async () => {
+      // TODO
     });
   });
 });

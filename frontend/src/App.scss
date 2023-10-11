@@ -525,3 +525,7 @@ li.error {
 button.no-sort::after {
   color: var(--grey-main-525);
 }
+
+.disabled {
+  color: var(--text-disabled-grey);
+}

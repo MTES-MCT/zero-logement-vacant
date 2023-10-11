@@ -16,7 +16,8 @@ interface Props {
 
 function GroupAddHousingModal(props: Props) {
   const [selected, setSelected] = useState<Group['id']>();
-  const { data: groups } = useFindGroupsQuery();
+  const { data } = useFindGroupsQuery();
+  const groups = (data ?? []).filter((group) => !group.archivedAt);
 
   const options: SelectOption[] = [
     {
@@ -24,7 +25,7 @@ function GroupAddHousingModal(props: Props) {
       value: '',
       hidden: true,
     },
-    ...(groups ?? []).map((group) => ({
+    ...groups.map((group) => ({
       label: group.title,
       value: group.id,
     })),

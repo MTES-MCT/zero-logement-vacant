@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import { useLocation, useParams } from 'react-router-dom';
-import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';
 import handsPoints from '../../assets/images/hands-point.svg';
 import handsGrip from '../../assets/images/hands-grip.svg';
@@ -16,7 +15,7 @@ import EstablishmentLinkList from '../../components/EstablishmentLinkList/Establ
 import LocalityTaxesCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
 import { useFindContactPointsQuery } from '../../services/contact-point.service';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -32,15 +31,18 @@ import {
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import { useEstablishment } from '../../hooks/useEstablishment';
+import { useCreateOwnerProspectMutation } from '../../services/owner-prospect.service';
 
 const OwnerEstablishmentHomeView = () => {
-  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const { trackEvent } = useMatomo();
 
   const { establishmentRef } = useParams<{ establishmentRef: string }>();
 
-  const { ownerProspect, addressSearchResult } = useAppSelector(
+  const [createOwnerProspect, { isSuccess: isCreateSuccess }] =
+    useCreateOwnerProspectMutation();
+
+  const { addressSearchResult } = useAppSelector(
     (state) => state.ownerProspect
   );
 
@@ -88,11 +90,7 @@ const OwnerEstablishmentHomeView = () => {
       category: TrackEventCategories.OwnerProspect,
       action: TrackEventActions.OwnerProspect.SubmitContact,
     });
-    dispatch(
-      createOwnerProspect({
-        ...ownerProspect,
-      })
-    );
+    createOwnerProspect(ownerProspect);
   };
 
   return (
@@ -324,7 +322,7 @@ const OwnerEstablishmentHomeView = () => {
                     Votre collectivité peut vous aider. Laissez vos coordonnées
                     pour être recontacté par votre collectivité.
                   </Text>
-                  {ownerProspect ? (
+                  {isCreateSuccess ? (
                     <Alert
                       description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
                       severity="success"

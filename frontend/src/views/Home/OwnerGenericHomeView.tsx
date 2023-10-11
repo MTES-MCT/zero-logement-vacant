@@ -3,16 +3,18 @@ import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import handsPoints from '../../assets/images/hands-point.svg';
 import { AddressSearchResult } from '../../services/address.service';
-import { selectAddressSearchResult } from '../../store/actions/ownerProspectAction';
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
 import AddressSearchableSelect from '../../components/AddressSearchableSelect/AddressSearchableSelect';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useEstablishment } from '../../hooks/useEstablishment';
+import ownerProspectSlice from '../../store/reducers/ownerProspectReducer';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useAppDispatch();
   const { availableEstablishmentWithKinds } = useAvailableEstablishments();
+
+  const { selectAddress } = ownerProspectSlice.actions;
 
   const { addressSearchResult } = useAppSelector(
     (state) => state.ownerProspect
@@ -24,7 +26,7 @@ const OwnerGenericHomeView = () => {
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
-    dispatch(selectAddressSearchResult(addressSearchResult));
+    dispatch(selectAddress(addressSearchResult));
   };
 
   return (

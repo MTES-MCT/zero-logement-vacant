@@ -1,29 +1,41 @@
 import { Container, Text } from '../../components/_dsfr';
 import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  findOwnerProspects,
-  updateOwnerProspect,
-} from '../../store/actions/ownerProspectAction';
+
+import { useAppSelector } from '../../hooks/useStore';
+import React, { useMemo, useState } from 'react';
+
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { getEstablishmentUrl } from '../../models/Establishment';
 import styles from './inbox-view.module.scss';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+
 import MainContainer from '../../components/MainContainer/MainContainer';
+
+import {
+  useFindOwnerProspectsQuery,
+  useUpdateOwnerProspectMutation,
+} from '../../services/owner-prospect.service';
 
 function InboxView() {
   useDocumentTitle('Messagerie');
   const [selected, setSelected] = useState<string>();
-  const dispatch = useAppDispatch();
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
-  const messages = useAppSelector<OwnerProspect[]>(
-    (state) => state.ownerProspect.ownerProspects?.entities ?? []
+  const [sort, setSort] = useState<OwnerProspectSort>();
+
+  const [updateOwnerProspect] = useUpdateOwnerProspectMutation();
+
+  const { data: ownerProspects } = useFindOwnerProspectsQuery({
+    options: { sort },
+  });
+
+  const messages = useMemo(
+    () => ownerProspects?.entities ?? [],
+    [ownerProspects]
   );
 
   const expand = useMemo<boolean>(() => !!selected, [selected]);
@@ -33,34 +45,22 @@ function InboxView() {
     [messages, selected]
   );
 
-  function onChange(ownerProspect: OwnerProspect): void {
-    dispatch(updateOwnerProspect(ownerProspect));
+  async function onChange(ownerProspect: OwnerProspect): Promise<void> {
+    updateOwnerProspect(ownerProspect);
   }
 
   function onClose(): void {
     setSelected(undefined);
   }
 
-  function onDisplay(ownerProspect: OwnerProspect): void {
-    dispatch(updateOwnerProspect(ownerProspect));
+  async function onDisplay(ownerProspect: OwnerProspect): Promise<void> {
+    await updateOwnerProspect(ownerProspect);
     setSelected(ownerProspect.id);
   }
 
   function onSelect(selection: Selection): void {
     console.log(selection);
   }
-
-  function onSort(sort: OwnerProspectSort): void {
-    dispatch(
-      findOwnerProspects({
-        sort,
-      })
-    );
-  }
-
-  useEffect(() => {
-    dispatch(findOwnerProspects());
-  }, [dispatch]);
 
   return (
     <MainContainer title="Messagerie">
@@ -83,7 +83,7 @@ function InboxView() {
           onChange={onChange}
           onDisplay={onDisplay}
           onSelect={onSelect}
-          onSort={onSort}
+          onSort={setSort}
         />
         <InboxSidemenu
           expand={expand}

@@ -30,7 +30,7 @@ function InboxView() {
   const [updateOwnerProspect] = useUpdateOwnerProspectMutation();
 
   const { data: ownerProspects } = useFindOwnerProspectsQuery({
-    options: { sort },
+    sort,
   });
 
   const messages = useMemo(

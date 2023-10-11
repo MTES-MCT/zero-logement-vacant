@@ -18,11 +18,11 @@ export const ownerProspectApi = createApi({
   endpoints: (builder) => ({
     findOwnerProspects: builder.query<
       PaginatedResult<OwnerProspect>,
-      { options?: Partial<FindOptions> }
+      Partial<FindOptions>
     >({
-      query: ({ options }) => {
+      query: (options) => {
         const query = new URLSearchParams();
-        const sort = toQuery(options?.sort);
+        const sort = toQuery(options.sort);
         if (sort.length > 0) {
           query.set('sort', sort);
         }

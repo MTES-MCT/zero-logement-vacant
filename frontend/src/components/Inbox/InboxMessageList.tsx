@@ -1,4 +1,4 @@
-import { Checkbox, Col, Row, Table, Text } from '@dataesr/react-dsfr';
+import { Col, Row, Table, Text } from '../_dsfr';
 import classNames from 'classnames';
 import { Selection, useSelection } from '../../hooks/useSelection';
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
@@ -7,8 +7,9 @@ import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
 import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { pluralize } from '../../utils/stringUtils';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 
 interface Props {
   messages: OwnerProspect[];
@@ -19,7 +20,7 @@ interface Props {
 }
 
 function InboxMessageList(props: Props) {
-  const { cycleSort, getIcon } = useSort<OwnerProspectSort>({
+  const { getSortButton } = useSort<OwnerProspectSort>({
     onSort: props.onSort,
   });
 
@@ -38,7 +39,7 @@ function InboxMessageList(props: Props) {
     {
       name: 'select',
       headerRender: () => (
-        <Checkbox
+        <AppCheckbox
           checked={selection.hasSelected}
           className={selection.selected.ids.length > 0 ? 'indeterminate' : ''}
           label=""
@@ -46,7 +47,7 @@ function InboxMessageList(props: Props) {
         />
       ),
       render: ({ id }: { id: string }) => (
-        <Checkbox
+        <AppCheckbox
           checked={selection.isSelected(id)}
           label=""
           onChange={() => selection.toggleSelect(id)}
@@ -56,11 +57,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'address',
-      headerRender: () => (
-        <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('address')}>
-          Adresse du logement {getIcon('address')}
-        </div>
-      ),
+      headerRender: () => getSortButton('address', 'Adresse du logement'),
       render: (owner: OwnerProspect) => (
         <div className={classNames(styles.address, 'ellipsis')}>
           {!owner.read && <span className={styles.chip} />}
@@ -74,11 +71,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'contact',
-      headerRender: () => (
-        <div style={{ cursor: 'pointer' }} onClick={() => cycleSort('email')}>
-          Contact {getIcon('email')}
-        </div>
-      ),
+      headerRender: () => getSortButton('email', 'Contact'),
       render: (owner: OwnerProspect) => (
         <>
           <Text className="ellipsis">
@@ -98,7 +91,7 @@ function InboxMessageList(props: Props) {
           checked={owner.callBack}
           className="fr-mt-0"
           label="À recontacter"
-          icon="ri-phone-fill"
+          iconId="fr-icon-phone-fill"
           onChange={(checked) =>
             props.onChange?.({ ...owner, callBack: checked })
           }
@@ -109,14 +102,7 @@ function InboxMessageList(props: Props) {
     },
     {
       name: 'inbox',
-      headerRender: () => (
-        <div
-          style={{ cursor: 'pointer' }}
-          onClick={() => cycleSort('createdAt')}
-        >
-          Date de réception {getIcon('createdAt')}
-        </div>
-      ),
+      headerRender: () => getSortButton('createdAt', 'Date de réception'),
       render: (owner: OwnerProspect) => (
         <>
           {owner.createdAt && (
@@ -131,16 +117,14 @@ function InboxMessageList(props: Props) {
       name: 'action',
       headerRender: () => '',
       render: (owner: OwnerProspect) => (
-        <ButtonLink
-          display="flex"
-          icon="ri-arrow-right-line"
-          iconSize="1x"
+        <AppLinkAsButton
+          iconId="fr-icon-arrow-right-line"
           iconPosition="right"
           isSimple
           onClick={() => props.onDisplay?.({ ...owner, read: true })}
         >
           Afficher le message
-        </ButtonLink>
+        </AppLinkAsButton>
       ),
     },
   ];

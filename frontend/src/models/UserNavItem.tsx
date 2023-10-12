@@ -12,10 +12,7 @@ export interface UserNavItem {
   label: string;
 }
 
-export const getUserNavItem = (
-  userNavItem: UserNavItems,
-  establishmentId?: string
-): UserNavItem => {
+export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
   switch (userNavItem) {
     case UserNavItems.EstablishmentHome:
       return { url: '/collectivites', label: 'Collectivités' };

@@ -1,4 +1,4 @@
-import { Badge, Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import {
   Housing,
@@ -14,6 +14,8 @@ import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { Event } from '../../models/Event';
 import { getYear } from 'date-fns';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Badge from '@codegouvfr/react-dsfr/Badge';
 
 interface Props {
   housing: Housing;
@@ -47,21 +49,17 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             Occupation :
           </Title>
           <div className="fr-ml-1w d-inline-block">
-            <Badge
-              text={OccupancyKindLabels[housing.occupancy]}
-              className="bg-975"
-            ></Badge>
+            <Badge className="bg-975">
+              {OccupancyKindLabels[housing.occupancy]}
+            </Badge>
           </div>
           <div className="d-inline-block float-right">
             <span className="zlv-label">Occupation prévisionnelle : </span>
-            <Badge
-              text={
-                housing.occupancyIntended
-                  ? OccupancyKindLabels[housing.occupancyIntended]
-                  : "pas d'informations"
-              }
-              className="bg-975 fr-ml-1w"
-            ></Badge>
+            <Badge className="bg-975 fr-ml-1w">
+              {housing.occupancyIntended
+                ? OccupancyKindLabels[housing.occupancyIntended]
+                : "pas d'informations"}
+            </Badge>
           </div>
         </>
       }

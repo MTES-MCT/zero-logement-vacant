@@ -1,17 +1,4 @@
-import {
-  Button,
-  Checkbox,
-  Col,
-  Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  Row,
-  Tabs,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../_dsfr';
 import React, { ChangeEvent, useState } from 'react';
 import {
   BlockingPointOptions,
@@ -19,19 +6,25 @@ import {
   SupportOptions,
 } from '../../../models/HousingFilters';
 import { OptionTreeElement } from '../../../models/SelectOption';
-import Tab from '../../Tab/Tab';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
+
+const modal = createModal({
+  id: 'precisions-modal',
+  isOpenedByDefault: true,
+});
 
 interface Props {
   currentPrecisions: string[];
   currentVacancyReasons: string[];
-  onClose: () => void;
   onSubmit: (precisions: string[], vacancyReasons: string[]) => void;
 }
 
 const PrecisionsModal = ({
   currentPrecisions,
   currentVacancyReasons,
-  onClose,
   onSubmit,
 }: Props) => {
   const [precisions, setPrecisions] = useState<string[]>(currentPrecisions);
@@ -40,41 +33,54 @@ const PrecisionsModal = ({
   );
 
   return (
-    <div>
-      <Modal isOpen hide={onClose} size="lg">
-        <ModalClose hide={onClose} title="Fermer la fenêtre">
-          Fermer
-        </ModalClose>
-        <ModalContent>
-          <Container as="section" fluid>
-            <Tabs className="tabs-no-border">
-              <Tab label={`Dispositifs (${precisions.length})`}>
-                <OptionsTreeCheckboxes
-                  options={SupportOptions}
-                  values={precisions}
-                  onChange={setPrecisions}
-                />
-              </Tab>
-              <Tab label={`Points de blocage (${vacancyReasons.length})`}>
-                <OptionsTreeCheckboxes
-                  options={BlockingPointOptions}
-                  values={vacancyReasons}
-                  onChange={setVacancyReasons}
-                />
-              </Tab>
-            </Tabs>
-          </Container>
-        </ModalContent>
-        <ModalFooter>
-          <Button secondary className="fr-mr-2w" onClick={onClose}>
-            Annuler
-          </Button>
-          <Button onClick={() => onSubmit(precisions, vacancyReasons)}>
-            Enregistrer
-          </Button>
-        </ModalFooter>
-      </Modal>
-    </div>
+    <>
+      <AppLinkAsButton isSimple onClick={modal.open}>
+        Ajouter / Modifier
+      </AppLinkAsButton>
+      <modal.Component
+        size="large"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: () => onSubmit(precisions, vacancyReasons),
+          },
+        ]}
+        title=""
+      >
+        <Container as="section" fluid>
+          <Tabs
+            className="no-border"
+            tabs={[
+              {
+                label: `Dispositifs (${precisions.length})`,
+                content: (
+                  <OptionsTreeCheckboxes
+                    options={SupportOptions}
+                    values={precisions}
+                    onChange={setPrecisions}
+                  />
+                ),
+              },
+              {
+                label: `Points de blocage (${vacancyReasons.length})`,
+                content: (
+                  <OptionsTreeCheckboxes
+                    options={BlockingPointOptions}
+                    values={vacancyReasons}
+                    onChange={setVacancyReasons}
+                  />
+                ),
+              },
+            ]}
+          />
+        </Container>
+      </modal.Component>
+    </>
   );
 };
 
@@ -106,7 +112,7 @@ const OptionsTreeCheckboxes = ({
       {options.map((option, index) => (
         <div key={`option_${index}`} className="fr-pb-4w">
           <Title as="h2" look="h4">
-            <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
             {option.title}
             <span className="fr-text--md">
                (Cochez une ou plusieurs précisions)
@@ -124,7 +130,7 @@ const OptionsTreeCheckboxes = ({
                 <hr className="fr-pb-1w" />
                 {(element1 as OptionTreeElement).elements.map(
                   (element2, index2) => (
-                    <Checkbox
+                    <AppCheckbox
                       key={`option_${index}_${index1}_${index2}`}
                       label={element2 as string}
                       checked={values.includes(

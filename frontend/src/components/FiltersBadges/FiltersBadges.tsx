@@ -1,6 +1,6 @@
-import React, { ComponentPropsWithoutRef } from 'react';
+import React from 'react';
 import { SelectOption } from '../../models/SelectOption';
-import { Tag } from '@dataesr/react-dsfr';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 
 interface FilterBadgeProps {
   option: SelectOption;
@@ -8,8 +8,6 @@ interface FilterBadgeProps {
   onChange?: (value: string[]) => void;
   small?: boolean;
 }
-
-type TagIconPosition = ComponentPropsWithoutRef<typeof Tag>['iconPosition'];
 
 const FilterBadge = ({
   option,
@@ -21,15 +19,15 @@ const FilterBadge = ({
     onChange?.(filters.filter((v) => v !== option.value));
   }
 
-  const icon = onChange
-    ? {
-        icon: 'ri-close-line',
-        iconPosition: 'right' as TagIconPosition,
-      }
-    : {};
-
   return (
-    <Tag className="fr-tag--dismiss" onClick={onClose} small={small} {...icon}>
+    <Tag
+      className="fr-tag--dismiss"
+      nativeButtonProps={{
+        onClick: onClose,
+      }}
+      small={small}
+      dismissible={onChange !== undefined}
+    >
       {option.badgeLabel ?? option.label}
     </Tag>
   );

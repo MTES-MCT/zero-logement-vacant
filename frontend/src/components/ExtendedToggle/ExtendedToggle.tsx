@@ -1,16 +1,22 @@
-import { Icon, Toggle } from '@dataesr/react-dsfr';
+import { Icon } from '../_dsfr';
 import classNames from 'classnames';
-import { ComponentPropsWithoutRef, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import styles from './extended-toggle.module.scss';
+import { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
+import {
+  FrIconClassName,
+  RiIconClassName,
+} from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
-interface Props extends ComponentPropsWithoutRef<typeof Toggle> {
+type Props = ToggleSwitchProps & {
   disabled?: boolean;
-  icon?: string;
+  iconId?: FrIconClassName | RiIconClassName;
   onChange?: (checked: boolean) => void;
   vertical?: boolean;
-}
+  toggleColor?: string;
+};
 
 function ExtendedToggle(props: Props) {
   function toggleChecked() {
@@ -21,8 +27,7 @@ function ExtendedToggle(props: Props) {
   const classes = classNames(
     styles.toggle,
     {
-      'fr-toggle--border-bottom': props.hasSeparator,
-      'fr-toggle--label-left': props.hasLabelLeft,
+      'fr-toggle--label-left': props.labelPosition,
       'ds-fr-toggle': props.toggleColor && !props.disabled,
       [styles.vertical]: props.vertical,
     },
@@ -43,7 +48,7 @@ function ExtendedToggle(props: Props) {
         'data-fr-unchecked-label': 'Désactivé',
       };
 
-  const icon = props.icon ?? 'ri-check-fill';
+  const icon = props.iconId ?? 'fr-icon-check-fill';
 
   return (
     <div className={classes}>
@@ -55,12 +60,17 @@ function ExtendedToggle(props: Props) {
           className={classNames(styles.input)}
           id={id.current}
         />
-        <Icon className={styles.icon} iconPosition="center" name={icon} />
+        <Icon
+          className={styles.icon}
+          iconPosition="center"
+          name={icon}
+          size="xs"
+        />
       </div>
       <label className={styles.label} htmlFor={id.current} {...checkboxLabels}>
         {props.label}
       </label>
-      {props.description && <p className="fr-hint-text">{props.description}</p>}
+      {props.helperText && <p className="fr-hint-text">{props.helperText}</p>}
     </div>
   );
 }

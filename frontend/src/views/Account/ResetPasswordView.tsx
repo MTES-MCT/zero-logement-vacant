@@ -1,4 +1,4 @@
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import React, { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
@@ -10,10 +10,11 @@ import {
 import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
 import { useEmailLink } from '../../hooks/useEmailLink';
-import Alert from '../../components/Alert/Alert';
 import resetLinkService from '../../services/reset-link.service';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');
@@ -117,7 +118,7 @@ function ResetPasswordView() {
               description="Erreur lors de la mise à jour du mot de passe."
               className="fr-my-3w"
               closable
-              type="error"
+              severity="error"
             />
           )}
           <Title as="h1" look="h2">
@@ -127,7 +128,7 @@ function ResetPasswordView() {
             <AppTextInput<FormShape>
               value={password}
               type="password"
-              hint="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
+              hintText="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
               onChange={(e) => setPassword(e.target.value)}
               inputForm={form}
               inputKey="password"
@@ -151,7 +152,7 @@ function ResetPasswordView() {
               required
             />
             <Row justifyContent="right">
-              <Button submit>Enregistrer le nouveau mot de passe</Button>
+              <Button type="submit">Enregistrer le nouveau mot de passe</Button>
             </Row>
           </form>
         </Col>

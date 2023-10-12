@@ -1,16 +1,5 @@
-import React from 'react';
-import {
-  Button,
-  Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Radio,
-  RadioGroup,
-  Text,
-} from '@dataesr/react-dsfr';
+import React, { useMemo } from 'react';
+import { Container, Text } from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { CampaignBundle, CampaignSteps } from '../../../models/Campaign';
 import {
@@ -20,15 +9,26 @@ import {
 import { validCampaignStep } from '../../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useAppDispatch } from '../../../hooks/useStore';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button from '@codegouvfr/react-dsfr/Button';
+import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 
 interface Props {
   campaignBundle: CampaignBundle;
-  onClose: () => void;
 }
 
-const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
+const CampaignExportModal = ({ campaignBundle }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
+
+  const modal = useMemo(
+    () =>
+      createModal({
+        id: `campaign-export-modal-${campaignBundle.campaignNumber}-${campaignBundle.reminderNumber}`,
+        isOpenedByDefault: false,
+      }),
+    [campaignBundle]
+  );
 
   const onSubmit = () => {
     trackEvent({
@@ -41,19 +41,32 @@ const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
   };
 
   return (
-    <Modal
-      isOpen={true}
-      hide={() => onClose()}
-      data-testid="campaign-export-modal"
-    >
-      <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
-      <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        Exporter
-      </ModalTitle>
-      <ModalContent>
+    <>
+      <Button title="Exporter" priority="secondary" onClick={modal.open}>
+        Exporter (.csv)
+      </Button>
+      <modal.Component
+        title={
+          <>
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
+            Exporter
+          </>
+        }
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+          },
+          {
+            children: 'download',
+            linkProps: {
+              to: campaignBundle.exportURL,
+              onClick: onSubmit,
+            },
+            doClosesModal: false,
+          },
+        ]}
+      >
         <Container as="section" fluid>
           <Text size="md" className="fr-mb-0">
             <b>{displayCount(campaignBundle.housingCount, 'logement')}</b>
@@ -61,39 +74,21 @@ const CampaignExportModal = ({ campaignBundle, onClose }: Props) => {
           <Text size="md">
             <b>{displayCount(campaignBundle.ownerCount, 'propriétaire')}</b>
           </Text>
-          <RadioGroup legend="">
-            <Radio
-              label="Pour publipostage (.csv avec coordonnées postales)"
-              value="0"
-              defaultChecked
-            />
-            <Radio
-              label="Pour analyse (.csv avec toutes les données)"
-              value="1"
-              disabled
-            />
-          </RadioGroup>
+          <RadioButtons
+            options={[
+              {
+                label: 'Pour publipostage (.csv avec coordonnées postales)',
+                nativeInputProps: { value: 0, defaultChecked: true },
+              },
+              {
+                label: 'Pour analyse (.csv avec toutes les données)',
+                nativeInputProps: { value: 1, disabled: true },
+              },
+            ]}
+          />
         </Container>
-      </ModalContent>
-      <ModalFooter>
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onClose()}
-        >
-          Annuler
-        </Button>
-        <a
-          href={campaignBundle.exportURL}
-          onClick={() => onSubmit()}
-          className="fr-btn--md fr-btn"
-          download
-        >
-          Exporter
-        </a>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

@@ -1,11 +1,10 @@
 import React, { useRef, useState } from 'react';
 import classNames from 'classnames';
-import { Radio, RadioGroup } from '@dataesr/react-dsfr';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import styles from './housing-edition.module.scss';
+import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 
 interface Props {
   selected?: HousingStatus;
@@ -59,21 +58,18 @@ const HousingStatusSelect = ({
           'select-single-options__visible': showOptions,
         })}
       >
-        <RadioGroup
-          legend=""
-          onChange={handleStatusChange}
-          value={selected?.toString()}
-        >
-          {options.map((option) => (
-            <Radio
-              label={option.label.toUpperCase()}
-              value={option.value}
-              className={classNames(styles.radioLabel, 'bordered-b', 'fr-p-1w')}
-              hint={option.hint}
-              key={option.label}
-            />
-          ))}
-        </RadioGroup>
+        <RadioButtons
+          className="fr-p-2w radio-button-list"
+          options={options.map((option) => ({
+            label: <HousingStatusBadge status={Number(option.value)} />,
+            hintText: option.hint,
+            nativeInputProps: {
+              value: option.value,
+              checked: Number(option.value) === selected,
+              onChange: () => handleStatusChange(Number(option.value)),
+            },
+          }))}
+        />
       </div>
     </div>
   );

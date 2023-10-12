@@ -1,40 +1,35 @@
-import React, { ChangeEvent, useState } from 'react';
-import {
-  Button,
-  Col,
-  Container,
-  Modal,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-  Text,
-} from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import { Col, Container, Row, Text } from '../../_dsfr';
 import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadges';
 
 import * as yup from 'yup';
 import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
 import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+
+const modal = createModal({
+  id: 'campaign-creation-modal',
+  isOpenedByDefault: true,
+});
 
 interface Props {
-  open: boolean;
   housingCount: number;
   housingExcudedCount?: number;
   filters: HousingFilters;
+  openingButtonProps: Omit<ButtonProps, 'onClick'>;
   onSubmit: (campaignTitle?: string) => void;
-  onClose: () => void;
   isReminder?: boolean;
 }
 
 const CampaignCreationModal = ({
-  open,
   housingCount,
   housingExcudedCount,
   filters,
+  openingButtonProps,
   onSubmit,
-  onClose,
   isReminder,
 }: Props) => {
   const [campaignTitle, setCampaignTitle] = useState('');
@@ -54,17 +49,40 @@ const CampaignCreationModal = ({
   };
 
   return (
-    <Modal
-      isOpen={open}
-      hide={() => onClose()}
-      size="lg"
-      data-testid="campaign-creation-modal"
-    >
-      <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        {isReminder ? 'Créer la campagne de relance' : 'Créer la campagne'}
-      </ModalTitle>
-      <ModalContent>
+    <>
+      <>
+        {
+          // @ts-ignore
+          <Button
+            {...openingButtonProps}
+            onClick={modal.open}
+            data-testid="create-campaign-button"
+          >
+            {openingButtonProps.children}
+          </Button>
+        }
+      </>
+      <modal.Component
+        size="large"
+        title={
+          <>
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
+            {isReminder ? 'Créer la campagne de relance' : 'Créer la campagne'}
+          </>
+        }
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: create,
+            doClosesModal: false,
+          },
+        ]}
+      >
         <Container as="section" fluid>
           <Text size="md">
             <span data-testid="housing-infos">
@@ -77,9 +95,7 @@ const CampaignCreationModal = ({
               <Col n="6">
                 <AppTextInput<FormShape>
                   value={campaignTitle}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setCampaignTitle(e.target.value)
-                  }
+                  onChange={(e) => setCampaignTitle(e.target.value)}
                   label="Titre de la campagne"
                   placeholder="Titre de la campagne (obligatoire)"
                   inputForm={form}
@@ -90,62 +106,42 @@ const CampaignCreationModal = ({
               </Col>
             </Row>
           )}
-          <Row className="fr-mt-4w">
-            <Col>
-              {hasFilters(filters) ? (
-                <>
-                  La liste a été établie à partir des filtres suivants :
-                  <div className="fr-my-1w">
-                    <HousingFiltersBadges filters={filters} />
-                  </div>
-                </>
-              ) : (
-                <div>La liste a été établie sans filtres.</div>
-              )}
-              {housingExcudedCount !== undefined && housingExcudedCount > 0 && (
-                <>
-                  {housingExcudedCount === 1 ? (
-                    <i>
-                      Un logement a été retiré des résultats de la recherche
-                      {hasFilters(filters) && <> avec ces filtres</>}.
-                    </i>
-                  ) : (
-                    <i>
-                      {housingExcudedCount} logements ont été retirés des
-                      résultats de la recherche
-                      {hasFilters(filters) && <> avec ces filtres</>}.
-                    </i>
+          {!isReminder && (
+            <Row className="fr-mt-4w">
+              <Col>
+                {hasFilters(filters) ? (
+                  <>
+                    La liste a été établie à partir des filtres suivants :
+                    <div className="fr-my-1w">
+                      <HousingFiltersBadges filters={filters} />
+                    </div>
+                  </>
+                ) : (
+                  <div>La liste a été établie sans filtres.</div>
+                )}
+                {housingExcudedCount !== undefined &&
+                  housingExcudedCount > 0 && (
+                    <>
+                      {housingExcudedCount === 1 ? (
+                        <i>
+                          Un logement a été retiré des résultats de la recherche
+                          {hasFilters(filters) && <> avec ces filtres</>}.
+                        </i>
+                      ) : (
+                        <i>
+                          {housingExcudedCount} logements ont été retirés des
+                          résultats de la recherche
+                          {hasFilters(filters) && <> avec ces filtres</>}.
+                        </i>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </Col>
-          </Row>
+              </Col>
+            </Row>
+          )}
         </Container>
-      </ModalContent>
-      <ModalFooter>
-        <Container as="section">
-          <Row>
-            <Col className="align-right">
-              <Button
-                title="Annuler"
-                secondary
-                className="fr-mr-2w"
-                onClick={() => onClose()}
-              >
-                Annuler
-              </Button>
-              <Button
-                title="Enregistrer"
-                onClick={() => create()}
-                data-testid="create-button"
-              >
-                Enregistrer
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

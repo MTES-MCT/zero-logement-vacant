@@ -7,7 +7,10 @@
     "build": "craco build",
     "test": "craco test",
     "lint": "node_modules/.bin/eslint . --ext .ts,.tsx",
-    "eject": "craco eject"
+    "eject": "craco eject",
+    "postinstall": "copy-dsfr-to-public",
+    "predev": "only-include-used-icons",
+    "prebuild": "only-include-used-icons"
   },
   "engines": {
     "node": "^16",
@@ -26,8 +29,8 @@
     ]
   },
   "dependencies": {
+    "@codegouvfr/react-dsfr": "^0.77.1",
     "@craco/craco": "^7.1.0",
-    "@dataesr/react-dsfr": "^3.5.6",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@reduxjs/toolkit": "^1.9.5",
     "@testing-library/jest-dom": "^5.16.5",
@@ -40,6 +43,7 @@
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.5",
     "@types/react-router-dom": "^5.3.3",
+    "classnames": "^2.3.2",
     "date-fns": "^2.30.0",
     "fetch-intercept": "^2.4.0",
     "jest-fetch-mock": "^3.0.3",

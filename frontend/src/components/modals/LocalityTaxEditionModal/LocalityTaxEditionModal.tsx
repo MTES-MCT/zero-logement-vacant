@@ -1,31 +1,31 @@
-import React, { ChangeEvent, useState } from 'react';
-import {
-  Button,
-  Checkbox,
-  Col,
-  Container,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-  Tag,
-} from '@dataesr/react-dsfr';
+import React, { ChangeEvent, useMemo, useState } from 'react';
+import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import Help from '../../Help/Help';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   locality: Locality;
-  onSubmit: (xKind: TaxKinds, taxRate?: number) => void;
-  onClose: () => void;
+  onSubmit: (geoCode: string, taxKind: TaxKinds, taxRate?: number) => void;
 }
 
-const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
+const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
+  const modal = useMemo(
+    () =>
+      createModal({
+        id: `locality-tax-edition-modal-${locality?.geoCode}`,
+        isOpenedByDefault: false,
+      }),
+    [locality]
+  );
+
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
 
@@ -44,29 +44,52 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
   const submitContactPointForm = async () => {
     await form.validate(() => {
       if (hasTHLV && taxRate) {
-        onSubmit(TaxKinds.THLV, Number(taxRate));
+        onSubmit(locality.geoCode, TaxKinds.THLV, Number(taxRate));
       } else {
-        onSubmit(TaxKinds.None);
+        onSubmit(locality.geoCode, TaxKinds.None);
       }
     });
   };
 
   return (
-    <Modal isOpen={true} hide={() => onClose()}>
-      <ModalClose hide={() => onClose()} title="Fermer la fenêtre">
-        Fermer
-      </ModalClose>
-      <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-        Taxe à {locality.name}
-      </ModalTitle>
-      <ModalContent>
+    <>
+      <Button
+        iconId="fr-icon-edit-fill"
+        onClick={modal.open}
+        title="Modifier"
+        priority="tertiary no outline"
+        className="d-inline-block"
+      />
+      <modal.Component
+        title={
+          <>
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
+            Taxe à {locality.name}
+          </>
+        }
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+          },
+          {
+            children: 'Enregistrer',
+            onClick: submitContactPointForm,
+            doClosesModal: false,
+          },
+        ]}
+        style={{
+          textAlign: 'initial',
+          fontWeight: 'initial',
+          fontSize: 'initial',
+        }}
+      >
         <Container as="section" fluid>
           <Tag>{TaxKindsLabels[hasTHLV ? TaxKinds.THLV : TaxKinds.None]}</Tag>
           <form id="user_form">
-            <Row spacing="my-2w">
+            <Row spacing="mt-2w">
               <Col>
-                <Checkbox
+                <AppCheckbox
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setHasTHLV(e.target.checked)
                   }
@@ -80,9 +103,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
                 <Col>
                   <AppTextInput<FormShape>
                     value={taxRate}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setTaxRate(e.target.value)
-                    }
+                    onChange={(e) => setTaxRate(e.target.value)}
                     inputForm={form}
                     inputKey="taxRate"
                     label="Taux après 2 ans"
@@ -98,21 +119,8 @@ const LocalityTaxEditionModal = ({ locality, onSubmit, onClose }: Props) => {
             )}
           </form>
         </Container>
-      </ModalContent>
-      <ModalFooter>
-        <Button
-          title="Annuler"
-          secondary
-          className="fr-mr-2w"
-          onClick={() => onClose()}
-        >
-          Annuler
-        </Button>
-        <Button title="Enregistrer" onClick={() => submitContactPointForm()}>
-          Enregistrer
-        </Button>
-      </ModalFooter>
-    </Modal>
+      </modal.Component>
+    </>
   );
 };
 

@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  Button,
-  ButtonGroup,
-  Col,
-  Container,
-  Row,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Row } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -16,7 +8,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
@@ -26,6 +18,9 @@ import { filterCount } from '../../models/HousingFilters';
 import housingSlice from '../../store/reducers/housingReducer';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
+import MainContainer from '../../components/MainContainer/MainContainer';
+import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -60,91 +55,82 @@ const HousingListView = () => {
   };
 
   return (
-    <>
+    <MainContainer title="Votre parc de logements">
       <HousingListFiltersSidemenu />
-      <div className="bg-100">
-        <Container as="section" spacing="py-4w">
-          <Title as="h1">Parc de logements</Title>
-          <Text size="lead" className="subtitle">
-            Explorez le parc vacant de votre territoire, mettez à jour les
-            dossiers pour lesquels vous avez des informations et créez des
-            échantillons de logements à mobiliser en priorité.
-          </Text>
-        </Container>
-      </div>
-      <Container as="section" spacing="py-4w mb-4w">
-        <Row>
-          <Col n="6">
-            <div className="d-flex">
-              <AppSearchBar
-                onSearch={searchWithQuery}
-                initialQuery={filters.query}
-                placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
-              />
-              <Button
-                title="Filtrer"
-                icon="ri-filter-fill"
-                secondary
-                className="fr-ml-1w"
-                onClick={() => setExpand(true)}
-                data-testid="filter-button"
-              >
-                Filtrer ({filterCount(filters)})
-              </Button>
-            </div>
-          </Col>
+      <Row>
+        <Col n="6">
+          <div className="d-flex">
+            <AppSearchBar
+              onSearch={searchWithQuery}
+              initialQuery={filters.query}
+              placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
+            />
+            <Button
+              title="Filtrer"
+              iconId="fr-icon-filter-fill"
+              priority="secondary"
+              className="fr-ml-1w"
+              onClick={() => setExpand(true)}
+              data-testid="filter-button"
+            >
+              Filtrer ({filterCount(filters)})
+            </Button>
+          </div>
+        </Col>
 
-          <Col>
-            <ButtonGroup isInlineFrom="sm" size="md" align="right">
-              <Button
-                title="Vue liste"
-                tertiary
-                onClick={() => {
+        <Col>
+          <ButtonsGroup
+            inlineLayoutWhen="sm and up"
+            buttonsSize="medium"
+            alignment="right"
+            buttons={[
+              {
+                children: 'Tableau',
+                title: 'Vue tableau',
+                priority: 'tertiary',
+                onClick: () => {
                   trackEvent({
                     category: TrackEventCategories.HousingList,
                     action: TrackEventActions.HousingList.ListView,
                   });
                   dispatch(changeView('list'));
-                }}
-                className={classNames('fr-mr-0', 'color-black-50', {
+                },
+                className: classNames('fr-mr-0', 'color-black-50', {
                   'bg-950': view !== 'list',
-                })}
-              >
-                Tableau
-              </Button>
-              <Button
-                title="Vue carte"
-                tertiary
-                onClick={() => {
+                }),
+              },
+              {
+                children: 'Cartographie',
+                title: 'Vue carte',
+                priority: 'tertiary',
+                onClick: () => {
                   trackEvent({
                     category: TrackEventCategories.HousingList,
                     action: TrackEventActions.HousingList.MapView,
                   });
                   dispatch(changeView('map'));
-                }}
-                className={classNames('fr-ml-0', 'color-black-50', {
+                },
+                className: classNames('fr-ml-0', 'color-black-50', {
                   'bg-950': view !== 'map',
-                })}
-              >
-                Cartographie
-              </Button>
-            </ButtonGroup>
-          </Col>
-        </Row>
+                }),
+              },
+            ]}
+          />
+        </Col>
+      </Row>
 
-        <HousingFiltersBadges
-          filters={filters}
-          onChange={(values) => removeFilter(values)}
-          onReset={onResetFilters}
-        />
+      <HousingFiltersBadges
+        filters={filters}
+        onChange={(values) => removeFilter(values)}
+        onReset={onResetFilters}
+      />
 
-        {view === 'map' ? (
-          <HousingListMap filters={filters} />
-        ) : (
-          <HousingListTabs filters={filters} />
-        )}
-      </Container>
-    </>
+      {view === 'map' ? (
+        <HousingListMap filters={filters} />
+      ) : (
+        <HousingListTabs filters={filters} />
+      )}
+    </MainContainer>
   );
 };
 

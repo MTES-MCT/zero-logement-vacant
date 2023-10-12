@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import {
-  Button,
   Col,
-  File,
   Modal,
   ModalClose,
   ModalContent,
   ModalFooter,
   ModalTitle,
   Row,
-} from '@dataesr/react-dsfr';
+} from '../../_dsfr';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
 import Help from '../../Help/Help';
 import styles from './geo-perimeter-uploading-modal.module.scss';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Upload } from '@codegouvfr/react-dsfr/Upload';
 
 interface Props {
   onSubmit: (file: File) => void;
@@ -61,12 +61,12 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
         </Help>
         <Row spacing="my-2w">
           <Col n="8">
-            <File
-              onChange={(event: any) => selectFile(event)}
+            <Upload
+              nativeInputProps={{ onChange: (event: any) => selectFile(event) }}
               multiple={false}
               label="Ajouter un fichier"
               hint="*fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "
-              errorMessage={message('file')}
+              stateRelatedMessage={message('file')}
             />
           </Col>
         </Row>
@@ -74,13 +74,13 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
       <ModalFooter>
         <Button
           title="Annuler"
-          secondary
+          priority="secondary"
           className="fr-mr-2w"
-          onClick={() => onClose()}
+          onClick={onClose}
         >
           Annuler
         </Button>
-        <Button title="Enregistrer" onClick={() => submitFile()}>
+        <Button title="Enregistrer" onClick={submitFile}>
           Enregistrer
         </Button>
       </ModalFooter>

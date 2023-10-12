@@ -1,4 +1,4 @@
-import { Text } from '@dataesr/react-dsfr';
+import { Text } from '../_dsfr';
 import { PropsWithChildren } from 'react';
 
 import styles from './label.module.scss';

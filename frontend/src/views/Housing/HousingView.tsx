@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Col, Container, Row } from '@dataesr/react-dsfr';
+import React from 'react';
+import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
@@ -9,6 +9,7 @@ import HousingOwnersModal from '../../components/modals/HousingOwnersModal/Housi
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { useUpdateHousingOwnersMutation } from '../../services/owner.service';
 import { Campaign } from '../../models/Campaign';
+import MainContainer from '../../components/MainContainer/MainContainer';
 
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
@@ -23,9 +24,6 @@ const HousingView = () => {
     campaigns,
   } = useHousing();
   const housingCount = count?.housing ?? 0;
-
-  const [isModalHousingOwnersOpen, setIsModalHousingOwnersOpen] =
-    useState(false);
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing?.id ?? '',
@@ -45,49 +43,44 @@ const HousingView = () => {
       housingOwners: housingOwnersUpdated,
     });
     await refetchHousingEvents();
-    setIsModalHousingOwnersOpen(false);
   };
 
   return (
     <>
-      <Container as="main" className="bg-100" fluid>
-        <Container as="section">
-          <Row alignItems="top" gutters spacing="mt-3w mb-0">
-            <Col n="4">
-              {mainHousingOwner && housingOwners && (
-                <>
-                  <OwnerCard
-                    owner={mainHousingOwner}
-                    coOwners={coOwners}
-                    housingCount={housingCount}
-                    onModify={() => setIsModalHousingOwnersOpen(true)}
-                  ></OwnerCard>
-                  {isModalHousingOwnersOpen && (
+      <MainContainer grey>
+        <Row alignItems="top" gutters>
+          <Col n="4">
+            {mainHousingOwner && housingOwners && (
+              <>
+                <OwnerCard
+                  owner={mainHousingOwner}
+                  coOwners={coOwners}
+                  housingCount={housingCount}
+                  modify={
                     <HousingOwnersModal
                       housingId={housing.id}
                       housingOwners={housingOwners}
                       onSubmit={submitHousingOwnersUpdate}
-                      onClose={() => setIsModalHousingOwnersOpen(false)}
                     />
-                  )}
-                </>
-              )}
-            </Col>
-            <Col n="8">
-              {housing && (
-                <>
-                  <HousingDetailsCard
-                    housing={housing}
-                    housingEvents={events ?? []}
-                    housingNotes={notes ?? []}
-                    housingCampaigns={(campaigns as Campaign[]) ?? []}
-                  />
-                </>
-              )}
-            </Col>
-          </Row>
-        </Container>
-      </Container>
+                  }
+                ></OwnerCard>
+              </>
+            )}
+          </Col>
+          <Col n="8">
+            {housing && (
+              <>
+                <HousingDetailsCard
+                  housing={housing}
+                  housingEvents={events ?? []}
+                  housingNotes={notes ?? []}
+                  housingCampaigns={(campaigns as Campaign[]) ?? []}
+                />
+              </>
+            )}
+          </Col>
+        </Row>
+      </MainContainer>
     </>
   );
 };

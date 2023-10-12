@@ -1,9 +1,8 @@
-import { Text, Title } from '@dataesr/react-dsfr';
+import { Text, Title } from '../../../components/_dsfr';
 import { Redirect, useHistory } from 'react-router-dom';
 import React, { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
-import ButtonLink from '../../../components/ButtonLink/ButtonLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 
 interface State {
@@ -45,9 +44,16 @@ function AccountEmailActivationView() {
       </Text>
       <Text size="sm" className="subtitle">
         Vérifiez qu’il ne s’est pas glissé dans vos spams ou 
-        <ButtonLink size="sm" onClick={send}>
+        <button
+          onClick={send}
+          className={classNames(
+            'fr-link',
+            styles.buttonLink,
+            styles.buttonLinkSm
+          )}
+        >
           renvoyer le mail
-        </ButtonLink>
+        </button>
         .
       </Text>
       <Text size="sm" className={confirmationClasses}>

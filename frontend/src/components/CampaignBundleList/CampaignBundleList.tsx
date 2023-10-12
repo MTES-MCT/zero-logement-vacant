@@ -283,11 +283,11 @@ const CampaignBundleItem = ({
               }}
             >
               <Text size="md">
-                Êtes-vous sûr de vouloir archiver cette campagne{' '}
+                Êtes-vous sûr de vouloir archiver cette campagne 
                 {campaignBundle.campaignIds.length > 1
                   ? 'et ses relances '
-                  : ''}{' '}
-                ?
+                  : ''}
+                 ?
               </Text>
             </ConfirmationModal>
           )}

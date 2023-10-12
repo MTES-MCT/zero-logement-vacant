@@ -11,8 +11,6 @@ interface Props {
 }
 
 const CampaignIntent = (props: Props) => {
-  console.log('message', props.message);
-
   const values = [
     { label: <strong>Dans les 2 prochains mois</strong>, value: '0-2' },
     {

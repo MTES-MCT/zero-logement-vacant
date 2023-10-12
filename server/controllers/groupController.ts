@@ -162,13 +162,20 @@ const addHousing = async (
 
   // Keep the housing list that are in the same establishment as the group
   const [addingHousingList, existingHousingList] = await Promise.all([
-    housingRepository.find({
-      filters: {
-        ...body.filters,
-        establishmentIds: [auth.establishmentId],
-      },
-      pagination: { paginate: false },
-    }),
+    housingRepository
+      .find({
+        filters: {
+          ...body.filters,
+          establishmentIds: [auth.establishmentId],
+        },
+        pagination: { paginate: false },
+      })
+      .then((housingList) => {
+        const ids = new Set(body.ids);
+        return housingList.filter((housing) =>
+          body.all ? !ids.has(housing.id) : ids.has(housing.id)
+        );
+      }),
     housingRepository.find({
       filters: {
         groupIds: [group.id],
@@ -178,25 +185,20 @@ const addHousing = async (
     }),
   ]);
 
-  const ids = new Set(body.ids);
-  const housingList = fp.uniqBy(
+  const diff = fp.differenceBy('id', addingHousingList, existingHousingList);
+  const uniqueHousingList = fp.uniqBy(
     'id',
-    addingHousingList
-      .filter((housing) =>
-        body.all ? !ids.has(housing.id) : ids.has(housing.id)
-      )
-      .concat(existingHousingList)
+    addingHousingList.concat(existingHousingList)
   );
-  const owners = housingList.map((housing) => housing.owner);
+  const uniqueOwners = fp.uniqBy(
+    'id',
+    uniqueHousingList.map((housing) => housing.owner)
+  );
 
-  const updatedGroup: GroupApi = {
-    ...group,
-    housingCount: housingList.length,
-    ownerCount: fp.uniqBy('id', owners).length,
-  };
-  await groupRepository.save(updatedGroup, housingList);
+  await groupRepository.addHousing(group, diff);
+  // await groupRepository.save(group, uniqueHousingList);
 
-  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
+  const events: GroupHousingEventApi[] = diff.map((housing) => ({
     id: uuidv4(),
     name: 'Ajout dans un groupe',
     kind: 'Create',
@@ -213,6 +215,11 @@ const addHousing = async (
   }));
   await eventRepository.insertManyGroupHousingEvents(events);
 
+  const updatedGroup: GroupApi = {
+    ...group,
+    housingCount: uniqueHousingList.length,
+    ownerCount: uniqueOwners.length,
+  };
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
 const addHousingValidators: ValidationChain[] = [
@@ -236,13 +243,20 @@ const removeHousing = async (request: Request, response: Response) => {
 
   // Keep the housing list that are in the same establishment as the group
   const [removingHousingList, existingHousingList] = await Promise.all([
-    housingRepository.find({
-      filters: {
-        ...body.filters,
-        establishmentIds: [auth.establishmentId],
-      },
-      pagination: { paginate: false },
-    }),
+    housingRepository
+      .find({
+        filters: {
+          ...body.filters,
+          establishmentIds: [auth.establishmentId],
+        },
+        pagination: { paginate: false },
+      })
+      .then((housingList) => {
+        const ids = new Set(body.ids);
+        return housingList.filter((housing) =>
+          body.all ? !ids.has(housing.id) : ids.has(housing.id)
+        );
+      }),
     housingRepository.find({
       filters: {
         groupIds: [group.id],
@@ -252,13 +266,10 @@ const removeHousing = async (request: Request, response: Response) => {
     }),
   ]);
 
-  const ids = new Set(body.ids);
   const housingList = fp.differenceBy(
     'id',
     existingHousingList,
-    removingHousingList.filter((housing) =>
-      body.all ? !ids.has(housing.id) : ids.has(housing.id)
-    )
+    removingHousingList
   );
   const owners = housingList.map((housing) => housing.owner);
 
@@ -269,7 +280,7 @@ const removeHousing = async (request: Request, response: Response) => {
   };
   await groupRepository.save(updatedGroup, housingList);
 
-  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
+  const events: GroupHousingEventApi[] = removingHousingList.map((housing) => ({
     id: uuidv4(),
     name: 'Retrait d’un groupe',
     kind: 'Delete',

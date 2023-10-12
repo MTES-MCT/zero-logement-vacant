@@ -422,36 +422,48 @@ describe('Group controller', () => {
       });
     });
 
-    it('should create events related to the group and its housing', async () => {
+    it('should create events when some housing get added', async () => {
+      const housing = genHousingApi(oneOf(Establishment1.geoCodes));
+      await Housing().insert(formatHousingRecordApi(housing));
+      await OwnersHousing().insert({
+        owner_id: owner.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode,
+        rank: 1,
+      });
+
       const { body, status } = await withAccessToken(
-        request(app).post(testRoute(group.id)).send(payload).set({
-          'Content-Type': 'application/json',
-        })
+        request(app)
+          .post(testRoute(group.id))
+          .send({
+            all: false,
+            ids: [housing.id],
+            filters: {},
+          } as GroupPayloadDTO['housing'])
+          .set({
+            'Content-Type': 'application/json',
+          })
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const establishmentHousingList = housingList.filter((housing) =>
-        Establishment1.geoCodes.includes(housing.geoCode)
-      );
       const events = await Events()
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
           `${eventsTable}.id`
         )
-        .where('group_id', body.id)
-        .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
-      expect(events).toBeArrayOfSize(establishmentHousingList.length);
-      expect(events).toIncludeAllPartialMembers(
-        establishmentHousingList.map(() => ({
+        .where('group_id', body.id);
+      expect(events).toBeArrayOfSize(1);
+      expect(events).toIncludeAllPartialMembers([
+        {
           name: 'Ajout dans un groupe',
           kind: 'Create',
           category: 'Group',
           section: 'Ajout d’un logement dans un groupe',
           conflict: false,
-          createdBy: User1.id,
-        }))
-      );
+          created_by: User1.id,
+        },
+      ]);
     });
   });
 
@@ -550,7 +562,7 @@ describe('Group controller', () => {
       });
     });
 
-    it('should create events when housing get removed', async () => {
+    it('should create events when some housing get removed', async () => {
       const { body, status } = await withAccessToken(
         request(app).delete(testRoute(group.id)).send(payload).set({
           'Content-Type': 'application/json',
@@ -558,26 +570,23 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const establishmentHousingList = housingList.filter((housing) =>
-        Establishment1.geoCodes.includes(housing.geoCode)
-      );
       const events = await Events()
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
           `${eventsTable}.id`
         )
-        .where('group_id', body.id)
-        .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
-      expect(events).toBeArrayOfSize(establishmentHousingList.length - 1);
+        .where('group_id', body.id);
+      expect(events).toBeArrayOfSize(payload.ids.length);
       expect(events).toIncludeAllPartialMembers(
-        establishmentHousingList.map(() => ({
+        payload.ids.map((housingId) => ({
           name: 'Retrait d’un groupe',
           kind: 'Delete',
           category: 'Group',
           section: 'Retrait du logement d’un groupe',
           conflict: false,
-          createdBy: User1.id,
+          created_by: User1.id,
+          housing_id: housingId,
         }))
       );
     });

@@ -126,7 +126,7 @@ describe('Group view', () => {
   });
 
   describe('Remove the group', () => {
-    it('should display a modal to remove the group', async () => {
+    it('should display a modal to archive the group', async () => {
       const router = createMemoryHistory({
         initialEntries: [`/groupes/${group.id}`],
       });
@@ -163,14 +163,53 @@ describe('Group view', () => {
         </Provider>
       );
 
-      const removeGroup = await screen.findByText(/^Supprimer le groupe/);
-      await user.click(removeGroup);
+      const archiveGroup = await screen.findByText(/^Archiver le groupe/);
+      await user.click(archiveGroup);
       const confirm = await screen.findByText(/^Confirmer/);
       await user.click(confirm);
 
       expect(router.location).toMatchObject({
         pathname: '/parc-de-logements',
       });
+    });
+
+    it('should display a "Remove" button if no campaign was created from the group', async () => {
+      const router = createMemoryHistory({
+        initialEntries: [`/groupes/${group.id}`],
+      });
+      mockRequests([
+        {
+          pathname: `/api/groups/${group.id}`,
+          response: {
+            status: 200,
+            body: JSON.stringify(group),
+          },
+        },
+        {
+          pathname: `/api/campaigns?groups=${group.id}`,
+          response: {
+            status: 200,
+            body: JSON.stringify([]),
+          },
+        },
+        {
+          pathname: `/api/groups/${group.id}`,
+          response: {
+            status: 204,
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={router}>
+            <Route path="/groupes/:id" component={GroupView} />
+          </Router>
+        </Provider>
+      );
+
+      const removeGroup = await screen.findByText(/^Supprimer le groupe/);
+      expect(removeGroup).toBeVisible();
     });
   });
 });

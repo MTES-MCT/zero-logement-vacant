@@ -15,7 +15,9 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import classNames from 'classnames';
 import { filterCount } from '../../models/HousingFilters';
-import housingSlice from '../../store/reducers/housingReducer';
+import housingSlice, {
+  initialHousingFilters,
+} from '../../store/reducers/housingReducer';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
@@ -33,10 +35,6 @@ const HousingListView = () => {
 
   const { changeFilters, changeView } = housingSlice.actions;
 
-  useEffect(() => {
-    onResetFilters();
-  }, [onResetFilters]);
-
   const searchWithQuery = (query: string) => {
     trackEvent({
       category: TrackEventCategories.HousingList,
@@ -49,6 +47,10 @@ const HousingListView = () => {
       })
     );
   };
+
+  useEffect(() => {
+    dispatch(changeFilters(initialHousingFilters));
+  }, [changeFilters, dispatch]);
 
   return (
     <MainContainer title="Votre parc de logements">

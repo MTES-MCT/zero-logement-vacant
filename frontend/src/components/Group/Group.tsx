@@ -159,7 +159,7 @@ function Group(props: GroupProps) {
               icon="ri-delete-bin-line"
               onClick={() => setConfirmGroupRemoval(true)}
             >
-              Supprimer le groupe
+              {props.campaigns?.length ? 'Archiver' : 'Supprimer'} le groupe
             </Button>
           </Container>
         </Col>

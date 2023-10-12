@@ -74,13 +74,13 @@ function GroupHousingAddedEvent(props: Props) {
 }
 
 function GroupHousingRemovedEvent(props: Props) {
-  const { data: group } = useGetGroupQuery(props.event.new?.id ?? '', {
-    skip: !props.event.new?.id,
+  const { data: group } = useGetGroupQuery(props.event.old?.id ?? '', {
+    skip: !props.event.old?.id,
   });
 
   return (
     <Text size="sm" spacing="mb-0">
-      Ce logement a été retiré du groupe
+      Ce logement a été retiré du groupe 
       {group ? (
         <InternalLink
           display="flex"
@@ -93,7 +93,7 @@ function GroupHousingRemovedEvent(props: Props) {
       ) : (
         <>
           <Text as="span" className="disabled" size="sm" spacing="mb-0">
-            {props.event.new?.title}
+            {props.event.old?.title}
           </Text>
         </>
       )}

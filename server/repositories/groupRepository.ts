@@ -94,7 +94,7 @@ const save = async (
 ): Promise<void> => {
   logger.debug('Saving group...', {
     group,
-    housingList: housingList,
+    housing: housingList.length,
   });
 
   await db.transaction(async (transaction) => {
@@ -111,6 +111,40 @@ const save = async (
     }
   });
   logger.debug('Saved group', group.id);
+};
+
+const addHousing = async (
+  group: GroupApi,
+  housingList: HousingApi[]
+): Promise<void> => {
+  logger.debug('Adding housing to a group...', {
+    group,
+    housing: housingList.length,
+  });
+
+  await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+};
+
+const removeHousing = async (
+  group: GroupApi,
+  housingList: HousingApi[]
+): Promise<void> => {
+  logger.debug('Removing housing from a group...', {
+    group,
+    housing: housingList.length,
+  });
+
+  await GroupsHousing()
+    .where('group_id', group.id)
+    .whereIn(
+      'housing_id',
+      housingList.map((housing) => housing.id)
+    )
+    .whereIn(
+      'housing_geo_code',
+      housingList.map((housing) => housing.geoCode)
+    )
+    .delete();
 };
 
 const archive = async (group: GroupApi): Promise<GroupApi> => {
@@ -195,6 +229,8 @@ export default {
   find,
   findOne,
   save,
+  addHousing,
+  removeHousing,
   archive,
   remove,
 };

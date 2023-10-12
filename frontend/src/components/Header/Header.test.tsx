@@ -1,15 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import AppHeader from './AppHeader';
+import Header from './Header';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { Provider } from 'react-redux';
-import { genAuthUser } from '../../../../test/fixtures.test';
-import { applicationReducer, store } from '../../../store/store';
+import { genAuthUser } from '../../../test/fixtures.test';
+import { applicationReducer, store } from '../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
-import ownerProspectService from '../../../services/owner-prospect.service';
-import { PaginatedResult } from '../../../models/PaginatedResult';
-import { OwnerProspect } from '../../../models/OwnerProspect';
+import ownerProspectService from '../../services/owner-prospect.service';
+import { PaginatedResult } from '../../models/PaginatedResult';
+import { OwnerProspect } from '../../models/OwnerProspect';
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe('AppHeader', () => {
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
-          <AppHeader />
+          <Header />
         </Router>
       </Provider>
     );
@@ -55,7 +55,7 @@ describe('AppHeader', () => {
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
-          <AppHeader />
+          <Header />
         </Router>
       </Provider>
     );

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { MapProvider } from 'react-map-gl';
 import './App.scss';
-import AppHeader from './components/_app/AppHeader/AppHeader';
-import AppFooter from './components/_app/AppFooter/AppFooter';
+import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
 import { BrowserRouter, Link, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
@@ -85,7 +85,7 @@ function App() {
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
-        <AppHeader/>
+        <Header/>
         <ScrollToTop/>
 
         {isAuthenticated && campaignCreated && campaignBundleFetchingId &&
@@ -143,7 +143,7 @@ function App() {
             </Route>
           ]}
         </Switch>
-        <AppFooter/>
+        <Footer/>
       </BrowserRouter>
     </React.Suspense>
   );

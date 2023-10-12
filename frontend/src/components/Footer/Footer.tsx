@@ -1,7 +1,7 @@
 import React from 'react';
 import Footer from '@codegouvfr/react-dsfr/Footer';
 
-function AppFooter() {
+function Footer() {
   return (
     <Footer
       accessibility="non compliant"
@@ -99,4 +99,4 @@ function AppFooter() {
   );
 }
 
-export default AppFooter;
+export default Footer;

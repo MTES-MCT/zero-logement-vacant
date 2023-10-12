@@ -5,6 +5,7 @@ export const TrackEventCategories = {
   Home: 'Homepage',
   Dashboard: 'Accueil',
   HousingList: 'Base de données',
+  Group: 'Groupe',
   Campaigns: 'Campagnes',
   GeoPerimeters: 'Périmètres',
   ContactPoints: 'Guichet contacts',

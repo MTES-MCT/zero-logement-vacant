@@ -7,6 +7,10 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 
 interface Props {
   filters: HousingFilters;
+  /**
+   * @default true
+   */
+  showCount?: boolean;
   showCreateGroup?: boolean;
   showRemoveGroupHousing?: boolean;
   showCreateCampaign?: boolean;
@@ -14,6 +18,7 @@ interface Props {
 
 const HousingListTabs = ({
   filters,
+  showCount,
   showCreateGroup,
   showRemoveGroupHousing,
   showCreateCampaign,
@@ -39,6 +44,7 @@ const HousingListTabs = ({
           <HousingListTab
             key={`status_tab_${status}`}
             status={status}
+            showCount={showCount}
             showCreateGroup={showCreateGroup}
             showRemoveGroupHousing={showRemoveGroupHousing}
             showCreateCampaign={showCreateCampaign}

@@ -57,7 +57,16 @@ function GroupView() {
   const { changeFilters, changeView } = housingSlice.actions;
 
   function searchWithQuery(query: string): void {
-    // FIXME
+    trackEvent({
+      category: TrackEventCategories.Group,
+      action: TrackEventActions.HousingList.Search,
+    });
+    dispatch(
+      changeFilters({
+        ...filters,
+        query,
+      })
+    );
   }
 
   useEffect(() => {
@@ -236,7 +245,11 @@ function GroupView() {
       {view === 'map' ? (
         <HousingListMap filters={filters} />
       ) : (
-        <HousingListTabs filters={filters} showRemoveGroupHousing />
+        <HousingListTabs
+          filters={filters}
+          showCount={false}
+          showRemoveGroupHousing
+        />
       )}
     </Container>
   );

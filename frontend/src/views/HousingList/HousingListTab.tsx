@@ -39,6 +39,10 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 export type HousingListTabProps = {
+  /**
+   * @default true
+   */
+  showCount?: boolean;
   showCreateGroup?: boolean;
   showRemoveGroupHousing?: boolean;
   showCreateCampaign?: boolean;
@@ -50,6 +54,7 @@ export type HousingListTabProps = {
 const HousingListTab = ({
   filters,
   status,
+  showCount,
   showCreateGroup,
   showRemoveGroupHousing,
   showCreateCampaign,
@@ -202,7 +207,8 @@ const HousingListTab = ({
           className="fr-mb-2w"
         />
       )}
-      {filteredHousingCount !== undefined &&
+      {(showCount ?? true) &&
+        filteredHousingCount !== undefined &&
         filteredOwnerCount !== undefined && (
           <Text spacing="mb-2w">
             {displayHousingCount({

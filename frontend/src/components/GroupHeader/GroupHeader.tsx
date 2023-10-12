@@ -75,7 +75,7 @@ function GroupHeader() {
               type="info"
               closable
               title="Découvrez les groupes de logement"
-              description="Un groupe de logement est un ensemble de logements que vous pouvez constituer à partir de vos propres critères. Créez un groupe, ajoutes-y des logements et créez une campagne quand vous le désirez. Consultez notre documentation pour en savoir plus."
+              description="Un groupe de logement est un ensemble de logements que vous pouvez constituer à partir de vos propres critères. Créez un groupe, ajoutez-y des logements et créez une campagne quand vous le désirez. Consultez notre documentation pour en savoir plus."
             />
           ) : (
             <>

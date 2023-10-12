@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
-import { getBuildingLocation, HousingApi } from '../models/HousingApi';
+import {
+  getBuildingLocation,
+  HousingApi,
+  OccupancyKindApiLabels,
+} from '../models/HousingApi';
 import campaignRepository from '../repositories/campaignRepository';
 import {
   AddressApi,
@@ -13,7 +17,7 @@ import { constants } from 'http2';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
-import { reduceStringArray } from '../utils/stringUtils';
+import { capitalize, reduceStringArray } from '../utils/stringUtils';
 import highland from 'highland';
 import { CampaignApi } from '../models/CampaignApi';
 import { logger } from '../utils/logger';
@@ -69,7 +73,7 @@ const exportHousingByCampaignBundle = async (
   writeWorkbook(
     stream,
     fileName,
-    campaignNumber ? ['owner', 'housing:light'] : ['housing:complete'],
+    ['owner', 'housing'],
     campaignList,
     workbook
   ).done(() => {
@@ -121,15 +125,12 @@ const exportGroupValidators: ValidationChain[] = [
 const writeWorkbook = (
   stream: Stream<HousingApi>,
   fileName: string,
-  worksheets: ('owner' | 'housing:light' | 'housing:complete')[],
+  worksheets: ('owner' | 'housing')[],
   campaignList: CampaignApi[],
   workbook: WorkbookWriter
 ) => {
-  const housingLightWorksheet = worksheets.includes('housing:light')
-    ? addHousingLightWorksheet(workbook)
-    : undefined;
-  const housingCompleteWorksheet = worksheets.includes('housing:complete')
-    ? addHousingCompleteWorksheet(workbook)
+  const housingWorksheet = worksheets.includes('housing')
+    ? addHousingtWorksheet(workbook)
     : undefined;
   const ownerWorksheet = worksheets.includes('owner')
     ? addOwnerWorksheet(workbook)
@@ -157,38 +158,68 @@ const writeWorkbook = (
       )
     )
     .tap((housingWithAddresses) => {
-      if (housingLightWorksheet) {
-        housingLightWorksheet.addRow(
-          getHousingLightRow(
-            housingWithAddresses,
-            housingWithAddresses.housingAddress ?? undefined,
-            housingWithAddresses.ownerAddress ?? undefined
-          )
-        );
-      }
-      if (housingCompleteWorksheet) {
-        housingCompleteWorksheet.addRow({
-          ...getHousingLightRow(
-            housingWithAddresses,
-            housingWithAddresses.housingAddress ?? undefined,
-            housingWithAddresses.ownerAddress ?? undefined
-          ),
+      if (housingWorksheet) {
+        const housingAddress = housingWithAddresses.housingAddress ?? undefined;
+        const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
+        const rawAddress = housingWithAddresses.owner.rawAddress;
+        const building = getBuildingLocation(housingWithAddresses);
+
+        housingWorksheet.addRow({
+          invariant: housingWithAddresses.invariant,
+          cadastralReference: housingWithAddresses.cadastralReference,
+          geoCode: housingWithAddresses.geoCode,
+          housingRawAddress: reduceStringArray(housingWithAddresses.rawAddress),
+          housingAddress: reduceAddressApi(housingAddress),
+          housingAddressScore: housingAddress?.score,
           latitude: housingWithAddresses.latitude,
           longitude: housingWithAddresses.longitude,
+          buildingLocation: building
+            ? [
+                building.building,
+                building.entrance,
+                building.level,
+                building.local,
+              ].join(', ')
+            : null,
+          housingKind:
+            housingWithAddresses.housingKind === 'APPART'
+              ? 'Appartement'
+              : capitalize(housingWithAddresses.housingKind),
+          energyConsumption: housingWithAddresses.energyConsumption,
+          energyConsumptionAt: housingWithAddresses.energyConsumptionAt,
+          livingArea: housingWithAddresses.livingArea,
+          roomsCount: housingWithAddresses.roomsCount,
+          buildingYear: housingWithAddresses.buildingYear,
+          occupancy: OccupancyKindApiLabels[housingWithAddresses.occupancy],
+          vacancyStartYear: housingWithAddresses.vacancyStartYear,
+          status: getHousingStatusApiLabel(housingWithAddresses.status),
+          subStatus: housingWithAddresses.subStatus,
           vacancyReasons: reduceStringArray(
             housingWithAddresses.vacancyReasons
           ),
+          precisions: reduceStringArray(housingWithAddresses.precisions),
           campaigns: reduceStringArray(
             housingWithAddresses.campaignIds.map(
               (campaignId) =>
                 campaignList.find((c) => c.id === campaignId)?.title
             )
           ),
-          status: getHousingStatusApiLabel(housingWithAddresses.status),
-          subStatus: housingWithAddresses.subStatus,
-          precisions: reduceStringArray(housingWithAddresses.precisions),
           contactCount: housingWithAddresses.contactCount,
           lastContact: housingWithAddresses.lastContact,
+          owner: housingWithAddresses.owner.fullName,
+          ownerRawAddress: reduceStringArray(
+            housingWithAddresses.owner.rawAddress
+          ),
+          ownerRawAddress1: rawAddress[0],
+          ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
+          ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
+          ownerRawAddress4: rawAddress[rawAddress.length - 1],
+          ownerAddress: formatAddressApi(ownerAddress),
+          ownerAddressHouseNumber: ownerAddress?.houseNumber,
+          ownerAddressStreet: ownerAddress?.street,
+          ownerAddressPostalCode: ownerAddress?.postalCode,
+          ownerAddressCity: ownerAddress?.city,
+          ownerAddressScore: ownerAddress?.score,
         });
       }
       if (ownerWorksheet) {
@@ -239,8 +270,7 @@ const writeWorkbook = (
     })
     .collect()
     .tap(() => {
-      excelUtils.formatWorksheet(housingLightWorksheet);
-      excelUtils.formatWorksheet(housingCompleteWorksheet);
+      excelUtils.formatWorksheet(housingWorksheet);
       excelUtils.formatWorksheet(ownerWorksheet);
       workbook.commit();
     });
@@ -284,53 +314,39 @@ const ownerWorksheetColumns = [
 
 const addOwnerWorksheet = (workbook: WorkbookWriter) => {
   const ownerWorksheet = workbook.addWorksheet('Propriétaires');
-
   ownerWorksheet.columns = ownerWorksheetColumns;
 
   return ownerWorksheet;
 };
 
-const getHousingLightRow = (
-  housingApi: HousingApi,
-  housingAddress?: AddressApi,
-  ownerAddress?: AddressApi
-) => {
-  const rawAddress = housingApi.owner.rawAddress;
-  const building = getBuildingLocation(housingApi);
-  return {
-    invariant: housingApi.invariant,
-    cadastralReference: housingApi.cadastralReference,
-    geoCode: housingApi.geoCode,
-    owner: housingApi.owner.fullName,
-    ownerRawAddress: reduceStringArray(housingApi.owner.rawAddress),
-    ownerRawAddress1: rawAddress[0],
-    ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
-    ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
-    ownerRawAddress4: rawAddress[rawAddress.length - 1],
-    ownerAddress: formatAddressApi(ownerAddress),
-    ownerAddressHouseNumber: ownerAddress?.houseNumber,
-    ownerAddressStreet: ownerAddress?.street,
-    ownerAddressPostalCode: ownerAddress?.postalCode,
-    ownerAddressCity: ownerAddress?.city,
-    ownerAddressScore: ownerAddress?.score,
-    housingRawAddress: reduceStringArray(housingApi.rawAddress),
-    housingAddress: reduceAddressApi(housingAddress),
-    vacancyStartYear: housingApi.vacancyStartYear,
-    buildingLocation: building
-      ? [
-          building.building,
-          building.entrance,
-          building.level,
-          building.local,
-        ].join(', ')
-      : null,
-  };
-};
-
-const housingLightColumns = [
+const housingWorksheetColumns = [
   { header: 'Invariant', key: 'invariant' },
   { header: 'Référence cadastrale', key: 'cadastralReference' },
   { header: 'Code INSEE commune du logement', key: 'geoCode' },
+  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
+  { header: 'Adresse BAN du logement', key: 'housingAddress' },
+  {
+    header: 'Adresse BAN du logement - Fiabilité',
+    key: 'housingAddressScore',
+  },
+  { header: 'Latitude', key: 'latitude' },
+  { header: 'Longitude', key: 'longitude' },
+  { header: 'Emplacement', key: 'buildingLocation' },
+  { header: 'Type de logement', key: 'housingKind' },
+  { header: 'DPE représentatif', key: 'energyConsumption' },
+  { header: 'Date DPE', key: 'energyConsumptionAt' },
+  { header: 'Surface', key: 'livingArea' },
+  { header: 'Nombre de pièces', key: 'roomsCount' },
+  { header: 'Date de construction', key: 'buildingYear' },
+  { header: 'Occupation', key: 'occupancy' },
+  { header: 'Date de début de vacance', key: 'vacancyStartYear' },
+  { header: 'Statut', key: 'status' },
+  { header: 'Sous-statut', key: 'subStatus' },
+  { header: 'Point(s) de blocage', key: 'vacancyReasons' },
+  { header: 'Dispositif(s)', key: 'precisions' },
+  { header: 'Campagne(s)', key: 'campaigns' },
+  { header: "Nombre d'événements", key: 'contactCount' },
+  { header: 'Date de dernière mise à jour', key: 'lastContact' },
   { header: 'Propriétaire', key: 'owner' },
   { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
   {
@@ -364,35 +380,11 @@ const housingLightColumns = [
     header: 'Adresse BAN du propriétaire - Fiabilité',
     key: 'ownerAddressScore',
   },
-  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-  { header: 'Adresse BAN du logement', key: 'housingAddress' },
-  { header: 'Date de début de vacance', key: 'vacancyStartYear' },
-  { header: 'Emplacement du local', key: 'buildingLocation' },
 ];
 
-const addHousingLightWorksheet = (workbook: WorkbookWriter) => {
+const addHousingtWorksheet = (workbook: WorkbookWriter) => {
   const housingWorksheet = workbook.addWorksheet('Logements');
-
-  housingWorksheet.columns = housingLightColumns;
-
-  return housingWorksheet;
-};
-
-const addHousingCompleteWorksheet = (workbook: WorkbookWriter) => {
-  const housingWorksheet = workbook.addWorksheet('Logements');
-
-  housingWorksheet.columns = [
-    ...housingLightColumns,
-    { header: 'latitude', key: 'latitude' },
-    { header: 'Longitude', key: 'longitude' },
-    { header: 'Cause de la vacance', key: 'vacancyReasons' },
-    { header: 'Campagne(s)', key: 'campaigns' },
-    { header: 'Statut', key: 'status' },
-    { header: 'Sous-statut', key: 'subStatus' },
-    { header: 'Précision(s)', key: 'precisions' },
-    { header: "Nombre d'événements", key: 'contactCount' },
-    { header: 'Date de dernière mise à jour', key: 'lastContact' },
-  ];
+  housingWorksheet.columns = housingWorksheetColumns;
 
   return housingWorksheet;
 };

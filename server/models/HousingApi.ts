@@ -89,6 +89,18 @@ export enum OccupancyKindApi {
   Others = 'A',
 }
 
+export const OccupancyKindApiLabels = {
+  [OccupancyKindApi.Vacant]: 'Vacant',
+  [OccupancyKindApi.Rent]: 'En location',
+  [OccupancyKindApi.ShortRent]: 'Meublé de tourisme',
+  [OccupancyKindApi.PrimaryResidence]: 'Occupé par le propriétaire',
+  [OccupancyKindApi.SecondaryResidence]: 'Résidence secondaire non louée',
+  [OccupancyKindApi.CommercialOrOffice]: 'Local commercial ou bureau',
+  [OccupancyKindApi.Dependency]: 'Dépendance',
+  [OccupancyKindApi.DemolishedOrDivided]: 'Local démoli ou divisé',
+  [OccupancyKindApi.Others]: 'Autres',
+};
+
 export enum EnergyConsumptionGradesApi {
   A = 'A',
   B = 'B',

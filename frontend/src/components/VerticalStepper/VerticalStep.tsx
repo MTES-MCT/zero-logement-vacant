@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode } from 'react';
 import styles from './vertical-stepper.module.scss';
 import classNames from 'classnames';
-import { Icon, Text } from '@dataesr/react-dsfr';
+import { Icon, Text } from '../_dsfr';
 
 type StepStatus = 'error' | 'valid';
 
@@ -26,14 +26,18 @@ function VerticalStep(props: VerticalStepProps) {
       {props.disabled ? (
         <>
           <div className={styles.disabledOverlay} />
-          <Icon className={styles.disabledIcon} name="ri-lock-line" size="xl" />
+          <Icon
+            className={styles.disabledIcon}
+            name="fr-icon-lock-line"
+            size="xl"
+          />
         </>
       ) : null}
       <aside>
         <div className={styles.index}>
           {props.completed ? (
             <Icon
-              name="ri-check-line"
+              name="fr-icon-check-line"
               verticalAlign="middle"
               iconPosition="center"
               size="1x"

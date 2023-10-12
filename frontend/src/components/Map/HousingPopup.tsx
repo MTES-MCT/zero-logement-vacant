@@ -1,9 +1,9 @@
-import { Button, Col, Container, Icon, Row, Text } from '@dataesr/react-dsfr';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import React, { useMemo, useState } from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
 
 import { HousingWithCoordinates, toLink } from '../../models/Housing';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../_app/AppLink/AppLink';
 import { age } from '../../utils/dateUtils';
 import Collapse from '../Collapse/Collapse';
 import { Building } from '../../models/Building';
@@ -16,6 +16,7 @@ import {
 } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface HousingPopupProps {
   building: Building;
@@ -82,7 +83,7 @@ function HousingPopup(props: HousingPopupProps) {
       <article>
         <header className={styles.header}>
           <span className="card-title-icon">
-            <Icon name="ri-home-fill" iconPosition="center" size="lg" />
+            <Icon name="fr-icon-home-4-fill" iconPosition="center" size="lg" />
           </span>
           <div className="fr-px-2w">
             {address(building.rawAddress)}
@@ -112,7 +113,7 @@ function HousingPopup(props: HousingPopupProps) {
                     <Icon
                       className="color-grey-625"
                       iconPosition="left"
-                      name="ri-user-fill"
+                      name="fr-icon-user-fill"
                       size="lg"
                     />
                     <Text as="span" bold spacing="mb-0">
@@ -148,15 +149,13 @@ function HousingPopup(props: HousingPopupProps) {
             </Col>
           </Row>
           <Row justifyContent="right" spacing="mb-2w">
-            <InternalLink
-              display="flex"
+            <AppLink
               isSimple
-              icon="ri-arrow-right-line"
-              iconSize="1x"
+              iconId="fr-icon-arrow-right-line"
               to={toLink(housing)}
             >
               Afficher le logement
-            </InternalLink>
+            </AppLink>
           </Row>
         </section>
         {building.housingCount >= 2 && (
@@ -164,28 +163,16 @@ function HousingPopup(props: HousingPopupProps) {
             <Text spacing="mb-0 mr-1w">
               Logement {currentHousing + 1}/{building.housingList.length}
             </Text>
-            <Button
-              className={styles.icon}
-              colors={['white', 'transparent']}
-              hasBorder
-              secondary
-              onClick={previousHousing}
-            >
+            <Button className={styles.icon} onClick={previousHousing}>
               <Icon
-                name="ri-arrow-left-s-line"
+                name="fr-icon-arrow-left-s-line"
                 iconPosition="center"
                 size="xs"
               />
             </Button>
-            <Button
-              className={styles.icon}
-              colors={['white', 'transparent']}
-              hasBorder
-              secondary
-              onClick={nextHousing}
-            >
+            <Button className={styles.icon} onClick={nextHousing}>
               <Icon
-                name="ri-arrow-right-s-line"
+                name="fr-icon-arrow-right-s-line"
                 iconPosition="center"
                 size="xs"
               />

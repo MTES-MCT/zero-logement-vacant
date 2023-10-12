@@ -1,18 +1,19 @@
 import React, { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Button, Col, Container, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import { login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
-import Alert from '../../components/Alert/Alert';
 import building from '../../assets/images/building.svg';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import AppTextInput from '../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -70,7 +71,7 @@ const LoginView = () => {
                 title="Déconnexion"
                 description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
                 className="fr-my-3w"
-                type="warning"
+                severity="warning"
                 closable
               />
             </Col>
@@ -78,7 +79,11 @@ const LoginView = () => {
           {loginError && (
             <Col n="12">
               <div data-testid="alert-error" className="fr-my-2w">
-                <Alert title="Erreur" description={loginError} type="error" />
+                <Alert
+                  title="Erreur"
+                  description={loginError}
+                  severity="error"
+                />
               </div>
             </Col>
           )}
@@ -115,28 +120,27 @@ const LoginView = () => {
               />
             )}
             <Row spacing="mb-4w">
-              <InternalLink to="/mot-de-passe/oublie" isSimple>
+              <AppLink to="/mot-de-passe/oublie" isSimple>
                 Mot de passe perdu ?
-              </InternalLink>
+              </AppLink>
             </Row>
             <Row alignItems="middle">
               <Col n="9">
                 <Text as="span" size="lg">
                   Première visite ?{' '}
                 </Text>
-                <InternalLink
+                <AppLink
                   to="/inscription"
                   isSimple
-                  icon="ri-arrow-right-line"
+                  iconId="fr-icon-arrow-right-line"
                   iconPosition="right"
-                  iconSize="1x"
                 >
                   Créer votre compte
-                </InternalLink>
+                </AppLink>
               </Col>
               <Col>
                 <Row justifyContent="right">
-                  <Button submit data-testid="login-button">
+                  <Button type="submit" data-testid="login-button">
                     Se connecter
                   </Button>
                 </Row>

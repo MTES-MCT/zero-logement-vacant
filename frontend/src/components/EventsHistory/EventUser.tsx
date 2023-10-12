@@ -24,7 +24,7 @@ const EventUser = ({ userId }: Props) => {
   return (
     <>
       <span
-        className={classNames(styles.eventCreator, 'ri-user-fill')}
+        className={classNames(styles.eventCreator, 'fr-icon-user-fill')}
         aria-hidden="true"
       />
       <span className={styles.eventCreator}>

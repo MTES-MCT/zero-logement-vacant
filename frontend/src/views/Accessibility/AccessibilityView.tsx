@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Title } from '@dataesr/react-dsfr';
+import { Container, Title } from '../../components/_dsfr';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const AccessibilityView = () => {

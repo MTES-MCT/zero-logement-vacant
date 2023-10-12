@@ -1,10 +1,10 @@
-import { Col, Row, Tag, Text, Title } from '@dataesr/react-dsfr';
+import { Col, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../_app/AppLink/AppLink';
 import {
   Campaign,
   campaignBundleIdUrlFragment,
@@ -13,6 +13,7 @@ import {
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 
 interface Props {
   housing: Housing;
@@ -124,7 +125,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             ) : (
               campaignInProgress.map((campaign) => (
                 <div key={campaign.id}>
-                  <InternalLink
+                  <AppLink
                     title={campaign?.name}
                     key={campaign?.id}
                     isSimple
@@ -135,11 +136,11 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                         reminderNumber: campaign.reminderNumber,
                       })
                     }
-                    icon="ri-mail-fill"
+                    iconId="fr-icon-mail-fill"
                     iconPosition="left"
                   >
                     {campaignFullName(campaign)}
-                  </InternalLink>
+                  </AppLink>
                 </div>
               ))
             )}

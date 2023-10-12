@@ -1,19 +1,7 @@
-import {
-  Button,
-  Card,
-  CardDescription,
-  CardTitle,
-  Col,
-  Icon,
-  Link,
-  Row,
-  Tabs,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Icon, Row, Title } from '../_dsfr';
 import React, { useState } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
-import Tab from '../Tab/Tab';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
@@ -28,6 +16,10 @@ import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateHousingMutation } from '../../services/housing.service';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   housing: Housing;
@@ -69,79 +61,94 @@ function HousingDetailsCard({
   };
 
   return (
-    <Card hasArrow={false} hasBorder={false} size="sm">
-      <CardTitle>
-        <span className="card-title-icon">
-          <Icon name="ri-home-fill" iconPosition="center" size="1x" />
-        </span>
-        <Button
-          onClick={() => setIsHousingListEditionExpand(true)}
-          className="fr-ml-1w float-right"
-        >
-          Mettre à jour / Ajouter une note
-        </Button>
-        <HousingEditionSideMenu
-          housing={housing}
-          housingEvents={housingEvents}
-          housingNotes={housingNotes}
-          expand={isHousingListEditionExpand}
-          onSubmit={submitHousingUpdate}
-          onClose={() => setIsHousingListEditionExpand(false)}
-        />
-        <Title as="h1" look="h4" spacing="mb-1w">
-          {housing.rawAddress.join(' - ')}
-          <Link
-            display="flex"
-            title="Voir sur la carte - nouvelle fenêtre"
-            href={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
-            target="_blank"
-            icon="ri-map-pin-2-fill"
-            iconPosition="left"
-            className={classNames(
-              styles.link,
-              'fr-link',
-              'fr-ml-3w',
-              'float-right'
-            )}
+    <Card
+      border={false}
+      size="small"
+      title={
+        <>
+          <span className="card-title-icon">
+            <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
+          </span>
+          <Button
+            onClick={() => setIsHousingListEditionExpand(true)}
+            className="fr-ml-1w float-right"
           >
-            Voir sur la carte
-          </Link>
-        </Title>
-      </CardTitle>
-      <CardDescription>
-        <HousingDetailsCardOccupancy
-          housing={housing}
-          lastOccupancyEvent={housingEvents.find(
-            (event) =>
-              event.category === 'Followup' &&
-              event.kind === 'Update' &&
-              event.section === 'Situation' &&
-              event.name === "Modification du statut d'occupation" &&
-              event.old.occupancy !== event.new.occupancy
-          )}
-        />
-        <HousingDetailsCardMobilisation
-          housing={housing}
-          campaigns={housingCampaigns}
-        />
-        <Tabs className="tabs-no-border fr-pt-3w">
-          <Tab label="Caractéristiques" className="fr-px-0">
-            <Row gutters>
-              <Col>
-                <HousingDetailsSubCardProperties housing={housing} />
-                <HousingDetailsSubCardLocation housing={housing} />
-              </Col>
-              <Col>
-                <HousingDetailsSubCardBuilding housing={housing} />
-              </Col>
-            </Row>
-          </Tab>
-          <Tab label="Historique de suivi">
-            <EventsHistory events={housingEvents} notes={housingNotes} />
-          </Tab>
-        </Tabs>
-      </CardDescription>
-    </Card>
+            Mettre à jour / Ajouter une note
+          </Button>
+          <HousingEditionSideMenu
+            housing={housing}
+            housingEvents={housingEvents}
+            housingNotes={housingNotes}
+            expand={isHousingListEditionExpand}
+            onSubmit={submitHousingUpdate}
+            onClose={() => setIsHousingListEditionExpand(false)}
+          />
+          <Title as="h1" look="h4" spacing="mb-1w">
+            {housing.rawAddress.join(' - ')}
+            <AppLink
+              title="Voir sur la carte - nouvelle fenêtre"
+              to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
+              target="_blank"
+              iconPosition="left"
+              className={classNames(
+                styles.link,
+                'fr-link',
+                'fr-ml-3w',
+                'float-right'
+              )}
+            >
+              Voir sur la carte
+            </AppLink>
+          </Title>
+        </>
+      }
+      desc={
+        <>
+          <HousingDetailsCardOccupancy
+            housing={housing}
+            lastOccupancyEvent={housingEvents.find(
+              (event) =>
+                event.category === 'Followup' &&
+                event.kind === 'Update' &&
+                event.section === 'Situation' &&
+                event.name === "Modification du statut d'occupation" &&
+                event.old.occupancy !== event.new.occupancy
+            )}
+          />
+          <HousingDetailsCardMobilisation
+            housing={housing}
+            campaigns={housingCampaigns}
+          />
+          <Tabs
+            className="no-border fr-pt-3w"
+            tabs={[
+              {
+                label: 'Caractéristiques',
+                content: (
+                  <div className="fr-px-0">
+                    <Row gutters>
+                      <Col>
+                        <HousingDetailsSubCardProperties housing={housing} />
+                        <HousingDetailsSubCardLocation housing={housing} />
+                      </Col>
+                      <Col>
+                        <HousingDetailsSubCardBuilding housing={housing} />
+                      </Col>
+                    </Row>
+                  </div>
+                ),
+              },
+              {
+                label: 'Historique de suivi',
+                content: (
+                  <EventsHistory events={housingEvents} notes={housingNotes} />
+                ),
+              },
+            ]}
+          ></Tabs>
+        </>
+      }
+    ></Card>
   );
 }
 

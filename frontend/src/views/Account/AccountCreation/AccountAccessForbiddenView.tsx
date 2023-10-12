@@ -1,14 +1,11 @@
-import {
-  Accordion,
-  AccordionItem,
-  Container,
-  Link,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
-import ButtonLink from '../../../components/ButtonLink/ButtonLink';
+import { Container, Text, Title } from '../../../components/_dsfr';
+import AppLinkAsButton from '../../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import { fr } from '@codegouvfr/react-dsfr';
+import classNames from 'classnames';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAccessForbiddenView() {
   const router = useHistory();
@@ -27,15 +24,18 @@ function AccountAccessForbiddenView() {
         créer un compte Zéro Logement Vacant. Vous êtes sans doute dans l’un des
         cas suivants :
       </Text>
-      <Accordion className="fr-mb-2w" keepOpen>
-        <AccordionItem title="Votre structure n’est pas autorisée à accéder aux données LOVAC">
+      <div className={classNames(fr.cx('fr-accordions-group'), 'fr-mb-2w')}>
+        <Accordion
+          label="Votre structure n’est pas autorisée à accéder aux données LOVAC"
+          defaultExpanded
+        >
           <Text className="color-grey-50" size="sm">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
             transmettre l'acte d'engagement permettant d'accéder aux données
             LOVAC en suivant la procédure indiquée sur 
-            <Link isSimple href="https://datafoncier.cerema.fr/" size="sm">
+            <AppLink isSimple to="https://datafoncier.cerema.fr/" size="sm">
               le site du CEREMA
-            </Link>
+            </AppLink>
             .
           </Text>
           <Text className="subtitle fr-mb-0" size="sm">
@@ -43,63 +43,59 @@ function AccountAccessForbiddenView() {
             celui-ci n’est plus valable, vous devez renouveler votre demande
             d’accès aux données LOVAC.
           </Text>
-        </AccordionItem>
-        <AccordionItem title="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
+        </Accordion>
+        <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Dans ce cas, 
-            <ButtonLink isSimple display="inline" onClick={back} size="sm">
+            <AppLinkAsButton isSimple onClick={back}>
               réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
-            </ButtonLink>
+            </AppLinkAsButton>
             . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous
             rendre sur 
-            <Link
+            <AppLink
               isSimple
-              display="flex"
-              href="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
+              to="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
               size="sm"
             >
               le gestionnaire de droits d’accès du Cerema pour soumettre votre
               demande.
-            </Link>
+            </AppLink>
           </Text>
-        </AccordionItem>
-        <AccordionItem title="Une ou plusieurs personnes de votre structure ont déjà accès à la solution Zéro Logement Vacant mais vous n’avez pas été rattaché comme utilisateur">
+        </Accordion>
+        <Accordion label="Une ou plusieurs personnes de votre structure ont déjà accès à la solution Zéro Logement Vacant mais vous n’avez pas été rattaché comme utilisateur">
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Veuillez vous rendre sur le 
-            <Link
+            <AppLink
               isSimple
-              display="flex"
-              href="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
+              to="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
               size="sm"
             >
               gestionnaire de droits d'accès du Cerema
-            </Link>
+            </AppLink>
              pour soumettre votre demande d'accès aux données foncières avec
             votre mail, puis demandez à l'administrateur de votre structure
             d'accepter votre demande d'accès.
           </Text>
-        </AccordionItem>
-      </Accordion>
+        </Accordion>
+      </div>
       <Container as="section" fluid spacing="mb-4w">
-        <Link
-          href="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+        <AppLink
+          to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
           isSimple
           size="sm"
         >
           Besoin d’aide pour créer votre compte ?
-        </Link>
+        </AppLink>
       </Container>
-      <Link
+      <AppLink
         isSimple
-        display="flex"
         title="Revenir à l'écran d'accueil"
-        href="/"
-        icon="ri-arrow-left-line"
-        iconSize="1x"
+        to="/"
+        iconId="fr-icon-arrow-left-line"
         iconPosition="left"
       >
         Revenir à l'écran d'accueil
-      </Link>
+      </AppLink>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SearchableSelect } from '@dataesr/react-dsfr';
+import { SearchableSelect } from '../_dsfr';
 import establishmentService from '../../services/establishment.service';
 import { useEstablishments } from '../../hooks/useEstablishments';
 import _ from 'lodash';
@@ -55,7 +55,7 @@ const EstablishmentSearchableSelect = ({
       selected={selected}
       options={establishmentOptions}
       label="Etablissement : "
-      onChange={(value) => {
+      onChange={(value: any) => {
         setSelected(value);
         if (value.length) {
           onChange(value);

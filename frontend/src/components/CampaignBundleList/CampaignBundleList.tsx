@@ -1,15 +1,6 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import {
-  Alert,
-  Button,
-  Col,
-  Row,
-  Tag,
-  TagGroup,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Row, Text, Title } from '../_dsfr';
 
 import styles from '../../views/Campaign/campaign.module.scss';
 import { useHistory } from 'react-router-dom';
@@ -37,7 +28,6 @@ import { format } from 'date-fns';
 import CampaignExportModal from '../modals/CampaignExportModal/CampaignExportModal';
 import * as yup from 'yup';
 import { dateValidator, useForm } from '../../hooks/useForm';
-import Stepper from '../Stepper/Stepper';
 import CampaignBundleStats from '../CampaignBundle/CampaignBundleStats';
 import CampaignBundleInfos from '../CampaignBundle/CampaignBundleInfos';
 import CampaignBundleTitle from '../CampaignBundle/CampaignBundleTitle';
@@ -45,7 +35,11 @@ import { dateShortFormat, parseDateInput } from '../../utils/dateUtils';
 import { useCampaignBundleList } from '../../hooks/useCampaignBundleList';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
-import AppTextInput from '../AppTextInput/AppTextInput';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 interface ItemProps {
   campaignBundle: CampaignBundle;
@@ -72,12 +66,6 @@ const CampaignBundleItem = ({
   const [sendingDate, setSendingDate] = useState(
     format(new Date(), 'yyyy-MM-dd')
   );
-  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
-  const [deletionModalCampaignBundleId, setDeletionModalCampaignBundleId] =
-    useState<CampaignBundleId | undefined>();
-  const [archiveModalCampaignIds, setArchiveModalCampaignIds] = useState<
-    string[]
-  >([]);
 
   const shape = { sendingDate: dateValidator };
   type FormShape = typeof shape;
@@ -101,19 +89,16 @@ const CampaignBundleItem = ({
     });
   };
 
-  const onDeleteCampaign = () => {
-    if (deletionModalCampaignBundleId?.campaignNumber) {
-      trackEvent({
-        category: TrackEventCategories.Campaigns,
-        action: TrackEventActions.Campaigns.Delete,
-      });
-      dispatch(deleteCampaignBundle(deletionModalCampaignBundleId));
-    }
-    setDeletionModalCampaignBundleId(undefined);
+  const onDeleteCampaign = (campaignBundleId: CampaignBundleId) => {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.Campaigns.Delete,
+    });
+    dispatch(deleteCampaignBundle(campaignBundleId));
   };
 
-  const onArchiveCampaign = () => {
-    archiveModalCampaignIds.forEach((campaignId) => {
+  const onArchiveCampaign = (campaignIds: string[]) => {
+    campaignIds.forEach((campaignId) => {
       trackEvent({
         category: TrackEventCategories.Campaigns,
         action: TrackEventActions.Campaigns.Archive,
@@ -121,7 +106,6 @@ const CampaignBundleItem = ({
 
       dispatch(validCampaignStep(campaignId, CampaignSteps.Archived));
     });
-    setArchiveModalCampaignIds([]);
   };
 
   return (
@@ -150,42 +134,28 @@ const CampaignBundleItem = ({
             {step === CampaignSteps.Export && (
               <div className="fr-p-3w bg-bf975">
                 <Stepper
-                  steps={3}
+                  stepCount={3}
                   currentStep={1}
-                  currentTitle="Vous avez créé l'échantillon."
-                  nextStepTitle="Exporter le fichier de publipostage"
+                  title="Vous avez créé l'échantillon."
+                  nextTitle="Exporter le fichier de publipostage"
                 />
-                <Button
-                  title="Exporter"
-                  secondary
-                  onClick={() => setIsExportModalOpen(true)}
-                >
-                  Exporter (.csv)
-                </Button>
-                {isExportModalOpen && (
-                  <CampaignExportModal
-                    campaignBundle={campaignBundle}
-                    onClose={() => setIsExportModalOpen(false)}
-                  />
-                )}
+                <CampaignExportModal campaignBundle={campaignBundle} />
               </div>
             )}
             {step === CampaignSteps.Sending && (
               <div className="fr-p-3w bg-bf975">
                 <Stepper
-                  steps={3}
+                  stepCount={3}
                   currentStep={2}
-                  currentTitle="Vous avez exporté l'échantillon."
-                  nextStepTitle="Dater l'envoi de votre campagne"
+                  title="Vous avez exporté l'échantillon."
+                  nextTitle="Dater l'envoi de votre campagne"
                 />
                 <Row alignItems="top">
                   <Col className="fr-pr-1w">
                     <AppTextInput<FormShape>
                       value={sendingDate}
                       type="date"
-                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setSendingDate(e.target.value)
-                      }
+                      onChange={(e) => setSendingDate(e.target.value)}
                       label="Date d'envoi"
                       inputForm={form}
                       inputKey="sendingDate"
@@ -193,8 +163,7 @@ const CampaignBundleItem = ({
                   </Col>
                   <Col className="fr-pt-4w">
                     <Button
-                      title="Confirmer la date d'envoi"
-                      secondary
+                      priority="secondary"
                       onClick={() =>
                         onSendingCampaign(campaignBundle.campaignIds[0])
                       }
@@ -232,23 +201,27 @@ const CampaignBundleItem = ({
                 {isLastReminder(campaign.reminderNumber) &&
                   withDeletion &&
                   step !== CampaignSteps.Archived && (
-                    <Button
-                      title="Supprimer"
-                      tertiary
-                      onClick={() =>
-                        setDeletionModalCampaignBundleId(
-                          campaign as CampaignBundleId
-                        )
-                      }
-                      className="fr-btn--tertiary-no-outline"
-                      icon="ri-delete-bin-5-fill"
+                    <ConfirmationModal
+                      onSubmit={() => onDeleteCampaign(campaign)}
+                      modalId={`delete-${campaign.id}`}
+                      openingButtonProps={{
+                        children: 'Supprimer',
+                        priority: 'tertiary no outline',
+                        iconId: 'fr-icon-delete-bin-fill',
+                      }}
                     >
-                      Supprimer
-                    </Button>
+                      <Text size="md">
+                        Êtes-vous sûr de vouloir supprimer cette relance ?
+                      </Text>
+                      <Alert
+                        description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                        severity="info"
+                        small
+                      />
+                    </ConfirmationModal>
                   )}
                 <Button
-                  title="Accéder"
-                  tertiary
+                  priority="tertiary no outline"
                   onClick={() =>
                     history.push(
                       '/campagnes/' +
@@ -258,9 +231,9 @@ const CampaignBundleItem = ({
                         })
                     )
                   }
-                  icon="ri-arrow-right-line"
+                  iconId="fr-icon-arrow-right-line"
                   iconPosition="right"
-                  className="fr-btn--tertiary-no-outline fix-vertical-align"
+                  className="fix-vertical-align"
                 >
                   Accéder
                 </Button>
@@ -271,36 +244,58 @@ const CampaignBundleItem = ({
       <hr className="fr-pb-2w fr-mt-1w" />
       <Row>
         <Col className="align-right">
-          {isDeletable && (
-            <Button
-              title="Supprimer"
-              tertiary
-              onClick={() => setDeletionModalCampaignBundleId(campaignBundle)}
-              className="fr-btn--tertiary-no-outline"
-              icon="ri-delete-bin-5-fill"
+          {isDeletable && campaignBundle.campaignNumber && (
+            <ConfirmationModal
+              onSubmit={() => onDeleteCampaign(campaignBundle)}
+              modalId={`delete-${campaignBundle.campaignNumber}`}
+              openingButtonProps={{
+                children: 'Supprimer',
+                priority: 'tertiary no outline',
+                iconId: 'fr-icon-delete-bin-fill',
+              }}
             >
-              Supprimer
-            </Button>
+              <Text size="md">
+                Êtes-vous sûr de vouloir supprimer cette campagne ?
+              </Text>
+              {campaignBundle.campaignNumber < (campaignList ?? []).length && (
+                <Alert
+                  description="Les campagnes suivantes seront renumérotées."
+                  severity="info"
+                  small
+                />
+              )}
+              <Alert
+                description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                severity="info"
+                small
+              />
+            </ConfirmationModal>
           )}
           {step === CampaignSteps.InProgress && (
-            <Button
-              title="Archiver"
-              secondary
-              onClick={() =>
-                setArchiveModalCampaignIds(campaignBundle.campaignIds)
-              }
-              icon="ri-archive-fill"
-              className="fr-mr-2w"
+            <ConfirmationModal
+              onSubmit={() => onArchiveCampaign(campaignBundle.campaignIds)}
+              modalId={`delete-${campaignBundle.campaignIds.join('-')}`}
+              openingButtonProps={{
+                children: 'Archiver',
+                priority: 'secondary',
+                iconId: 'fr-icon-archive-fill',
+                className: 'fr-mr-2w',
+              }}
             >
-              Archiver
-            </Button>
+              <Text size="md">
+                Êtes-vous sûr de vouloir archiver cette campagne 
+                {campaignBundle.campaignIds.length > 1
+                  ? 'et ses relances '
+                  : ''}
+                 ?
+              </Text>
+            </ConfirmationModal>
           )}
           <Button
-            title="Accéder"
             onClick={() =>
               history.push('/campagnes/C' + campaignBundle.campaignNumber)
             }
-            icon="ri-arrow-right-line"
+            iconId="fr-icon-arrow-right-line"
             iconPosition="right"
             className="fix-vertical-align"
           >
@@ -308,44 +303,6 @@ const CampaignBundleItem = ({
           </Button>
         </Col>
       </Row>
-      {deletionModalCampaignBundleId &&
-        deletionModalCampaignBundleId.campaignNumber && (
-          <ConfirmationModal
-            onSubmit={onDeleteCampaign}
-            onClose={() => setDeletionModalCampaignBundleId(undefined)}
-          >
-            <Text size="md">
-              Êtes-vous sûr de vouloir supprimer cette{' '}
-              {deletionModalCampaignBundleId.reminderNumber
-                ? 'relance'
-                : 'campagne'}{' '}
-              ?
-            </Text>
-            {!deletionModalCampaignBundleId.reminderNumber &&
-              deletionModalCampaignBundleId.campaignNumber <
-                (campaignList ?? []).length && (
-                <Alert
-                  description="Les campagnes suivantes seront renumérotées."
-                  type="info"
-                />
-              )}
-            <Alert
-              description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
-              type="info"
-            />
-          </ConfirmationModal>
-        )}
-      {archiveModalCampaignIds.length > 0 && (
-        <ConfirmationModal
-          onSubmit={onArchiveCampaign}
-          onClose={() => setArchiveModalCampaignIds([])}
-        >
-          <Text size="md">
-            Êtes-vous sûr de vouloir archiver cette campagne{' '}
-            {archiveModalCampaignIds.length > 1 ? 'et ses relances ' : ''} ?
-          </Text>
-        </ConfirmationModal>
-      )}
     </div>
   );
 };
@@ -398,43 +355,47 @@ const CampaignBundleList = ({ withDeletion = false }: Props) => {
 
   return (
     <>
-      <TagGroup className="fr-py-2w">
+      <div className="fr-tags-group fr-py-2w">
         <Tag
-          as="span"
           small
-          selected={campaignInProgressFilter}
-          onClick={() => setCampaignInProgressFilter(!campaignInProgressFilter)}
+          pressed={campaignInProgressFilter}
+          nativeButtonProps={{
+            onClick: () =>
+              setCampaignInProgressFilter(!campaignInProgressFilter),
+          }}
         >
           Suivi en cours ({campaignBundlesCount([CampaignSteps.InProgress])})
         </Tag>
         <Tag
-          as="span"
           small
-          selected={campaignNoSentFilter}
-          onClick={() => setCampaignNotSentFilter(!campaignNoSentFilter)}
+          pressed={campaignNoSentFilter}
+          nativeButtonProps={{
+            onClick: () => setCampaignNotSentFilter(!campaignNoSentFilter),
+          }}
         >
           Campagne en attente d'envoi (
           {campaignBundlesCount(CampaignNotSentSteps)})
         </Tag>
         <Tag
-          as="span"
           small
-          selected={campaignArchivedFilter}
-          onClick={() => setCampaignArchivedFilter(!campaignArchivedFilter)}
+          pressed={campaignArchivedFilter}
+          nativeButtonProps={{
+            onClick: () => setCampaignArchivedFilter(!campaignArchivedFilter),
+          }}
         >
           Campagne archivée ({campaignBundlesCount([CampaignSteps.Archived])})
         </Tag>
         <Tag
-          as="span"
           small
-          selected={outsideCampaignFilter}
-          onClick={() =>
-            setOutsideCampaignInProgressFilter(!outsideCampaignFilter)
-          }
+          pressed={outsideCampaignFilter}
+          nativeButtonProps={{
+            onClick: () =>
+              setOutsideCampaignInProgressFilter(!outsideCampaignFilter),
+          }}
         >
           Hors campagne ({campaignBundlesCount([CampaignSteps.Outside])})
         </Tag>
-      </TagGroup>
+      </div>
       {filteredCampaignBundles && !filteredCampaignBundles.length && (
         <Text>Aucune campagne</Text>
       )}

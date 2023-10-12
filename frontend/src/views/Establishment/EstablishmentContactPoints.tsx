@@ -1,20 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Col, Row, Text, Title, Toggle } from '@dataesr/react-dsfr';
+import { Col, Row, Title } from '../../components/_dsfr';
 import {
   ContactPoint,
   DraftContactPoint,
 } from '../../../../shared/models/ContactPoint';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import Alert from '../../components/Alert/Alert';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
-import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import Help from '../../components/Help/Help';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useSettings } from '../../hooks/useSettings';
 import {
   useCreateContactPointMutation,
@@ -22,6 +20,8 @@ import {
   useRemoveContactPointMutation,
   useUpdateContactPointMutation,
 } from '../../services/contact-point.service';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 
 interface Props {
   establishmentId: string;
@@ -54,15 +54,6 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
 
   const { settings, togglePublishContactPoints } = useSettings();
 
-  const [isCreatingModalOpen, setIsCreatingModalOpen] =
-    useState<boolean>(false);
-  const [contactPointToUpdate, setContactPointToUpdate] = useState<
-    ContactPoint | undefined
-  >();
-  const [contactPointToRemove, setContactPointToRemove] = useState<
-    ContactPoint | undefined
-  >();
-
   const [query, setQuery] = useState<string>();
 
   function search(query: string): void {
@@ -81,7 +72,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     [query, contactPoints]
   );
 
-  const onSubmitEditingContactPoint = (
+  const onSubmitEditingContactPoint = async (
     contactPoint: DraftContactPoint | ContactPoint
   ) => {
     const isDraft = !('id' in contactPoint);
@@ -92,60 +83,29 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
         : TrackEventActions.ContactPoints.Update,
     });
     if (isDraft) {
-      createContactPoint(contactPoint).finally(() =>
-        setIsCreatingModalOpen(false)
-      );
+      await createContactPoint(contactPoint);
     } else {
-      updateContactPoint(contactPoint as ContactPoint).finally(() =>
-        setContactPointToUpdate(undefined)
-      );
+      await updateContactPoint(contactPoint as ContactPoint);
     }
   };
 
-  const onSubmitRemovingContactPoint = () => {
-    if (contactPointToRemove) {
-      trackEvent({
-        category: TrackEventCategories.ContactPoints,
-        action: TrackEventActions.ContactPoints.Delete,
-      });
-      deleteContactPoint(contactPointToRemove.id).finally(() =>
-        setContactPointToRemove(undefined)
-      );
-    }
+  const onSubmitRemovingContactPoint = async (contactPointId: string) => {
+    trackEvent({
+      category: TrackEventCategories.ContactPoints,
+      action: TrackEventActions.ContactPoints.Delete,
+    });
+    await deleteContactPoint(contactPointId);
   };
 
   return (
     <>
-      {isCreatingModalOpen && (
-        <ContactPointEditionModal
-          establishmentId={establishmentId}
-          onSubmit={onSubmitEditingContactPoint}
-          onClose={() => setIsCreatingModalOpen(false)}
-        />
-      )}
-      {contactPointToUpdate && (
-        <ContactPointEditionModal
-          establishmentId={establishmentId}
-          contactPoint={contactPointToUpdate}
-          onSubmit={onSubmitEditingContactPoint}
-          onClose={() => setContactPointToUpdate(undefined)}
-        />
-      )}
-      {contactPointToRemove && (
-        <ConfirmationModal
-          onSubmit={onSubmitRemovingContactPoint}
-          onClose={() => setContactPointToRemove(undefined)}
-        >
-          <Text size="md">Êtes-vous sûr de vouloir supprimer ce guichet ?</Text>
-        </ConfirmationModal>
-      )}
       <Row>
         <Col className="flex-left flex-align-center">
           <Title look="h5" as="h2" spacing="mr-2w">
             Vos guichets contacts ({contactPoints?.length})
           </Title>
           {settings && (
-            <Toggle
+            <ToggleSwitch
               checked={settings.contactPoints?.public}
               label="Publication des informations"
               onChange={togglePublishContactPoints}
@@ -155,46 +115,48 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
             <div className="fr-mx-2w">
               <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
             </div>
-            <Button
-              onClick={() => setIsCreatingModalOpen(true)}
-              className="float-right"
-            >
-              Ajouter un guichet
-            </Button>
+            <ContactPointEditionModal
+              establishmentId={establishmentId}
+              onSubmit={onSubmitEditingContactPoint}
+            />
           </div>
         </Col>
       </Row>
       {isCreateSuccess && (
         <Alert
-          type="success"
+          severity="success"
           description="Le nouveau guichet a été ajouté avec succès ! "
           closable
+          small
           className="fr-mb-2w"
         />
       )}
       {isUpdateSuccess && (
         <Alert
-          type="success"
+          severity="success"
           description={
             'Le guichet ' + updateArgs?.title + ' a été modifié avec succès !'
           }
           closable
+          small
           className="fr-mb-2w"
         />
       )}
       {isDeleteSuccess && (
         <Alert
-          type="success"
+          severity="success"
           description="Le guichet a été supprimé avec succès !"
           closable
+          small
           className="fr-mb-2w"
         />
       )}
       {(isCreateError || isUpdateError || isDeleteError) && (
         <Alert
-          type="error"
+          severity="error"
           description="Une erreur s'est produite, veuillez réessayer."
           closable
+          small
           className="fr-mb-2w"
         />
       )}
@@ -207,8 +169,8 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           <Col n="4" key={contactPoint.id}>
             <ContactPointCard
               contactPoint={contactPoint}
-              onEdit={(contactPoint) => setContactPointToUpdate(contactPoint)}
-              onRemove={(contactPoint) => setContactPointToRemove(contactPoint)}
+              onEdit={onSubmitEditingContactPoint}
+              onRemove={onSubmitRemovingContactPoint}
               isPublicDisplay={false}
             />
           </Col>

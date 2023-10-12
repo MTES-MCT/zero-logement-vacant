@@ -1,17 +1,8 @@
 import Aside from '../Aside/Aside';
-import {
-  Accordion,
-  AccordionItem,
-  Col,
-  Container,
-  Icon,
-  Row,
-  SearchableSelect,
-  Text,
-} from '@dataesr/react-dsfr';
+import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr';
 import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
 import { useFilters } from '../../hooks/useFilters';
-import AppMultiSelect from '../AppMultiSelect/AppMultiSelect';
+import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -46,17 +37,18 @@ import {
 } from '../../models/HousingState';
 import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import ButtonLink from '../ButtonLink/ButtonLink';
+import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
-import classNames from 'classnames';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useCountHousingQuery } from '../../services/housing.service';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
+import classNames from 'classnames';
 
 interface TitleWithIconProps {
   icon: string;
@@ -114,19 +106,15 @@ function HousingListFiltersSidemenu() {
       onClose={close}
       title="Tous les filtres"
       content={
-        <Accordion>
-          <AccordionItem
-            title={
-              <TitleWithIcon
-                icon="ri-filter-fill"
-                title="Filtres liés au suivi de la mobilisation"
-              />
-            }
-            initExpand={true}
-            onClick={(e) => e.preventDefault()}
-            className={classNames('bg-975', 'fr-mb-2w', styles.locked)}
-          >
-            <Container as="section" fluid>
+        <>
+          <section className={classNames(styles.asAccordionExpanded, 'bg-975')}>
+            <h3>
+              <span className="fr-icon-sm icon-left ds-fr--v-middle fr-icon-filter-fill"></span>
+              <span className="fr-text--md">
+                Filtres liés au suivi de la mobilisation
+              </span>
+            </h3>
+            <Container as="section" fluid spacing="p-2w pb-3w">
               <Row gutters>
                 <Col n="12">
                   <HousingStatusMultiSelect
@@ -175,10 +163,13 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={
-              <TitleWithIcon icon="ri-map-pin-user-fill" title="Occupation" />
+          </section>
+          <Accordion
+            label={
+              <TitleWithIcon
+                icon="fr-icon-map-pin-user-fill"
+                title="Occupation"
+              />
             }
           >
             <Container as="section" fluid>
@@ -198,9 +189,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-home-fill" title="Logement" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-home-4-fill" title="Logement" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -304,9 +297,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-building-4-fill" title="Immeuble" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-building-fill" title="Immeuble" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -357,9 +352,11 @@ function HousingListFiltersSidemenu() {
                 )}
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-user-fill" title="Propriétaires" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-user-fill" title="Propriétaires" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -413,9 +410,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-map-pin-fill" title="Emplacement" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-france-fill" title="Emplacement" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -501,9 +500,11 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-          <AccordionItem
-            title={<TitleWithIcon icon="ri-calendar-fill" title="Millésime" />}
+          </Accordion>
+          <Accordion
+            label={
+              <TitleWithIcon icon="fr-icon-calendar-fill" title="Millésime" />
+            }
           >
             <Container as="section" fluid>
               <Row gutters>
@@ -540,8 +541,8 @@ function HousingListFiltersSidemenu() {
                 </Col>
               </Row>
             </Container>
-          </AccordionItem>
-        </Accordion>
+          </Accordion>
+        </>
       }
       footer={
         <>
@@ -552,9 +553,9 @@ function HousingListFiltersSidemenu() {
           />
           <Row gutters>
             <Col>
-              <ButtonLink onClick={onResetFilters}>
+              <AppLinkAsButton onClick={onResetFilters}>
                 Réinitialiser les filtres
-              </ButtonLink>
+              </AppLinkAsButton>
             </Col>
             {filteredCount !== undefined && (
               <Col className="align-right">

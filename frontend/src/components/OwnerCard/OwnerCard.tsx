@@ -1,13 +1,5 @@
-import {
-  Card,
-  CardDescription,
-  CardTitle,
-  Icon,
-  Link,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
-import React from 'react';
+import { Icon, Text, Title } from '../_dsfr';
+import React, { ReactNode } from 'react';
 
 import {
   getHousingOwnerRankLabel,
@@ -16,167 +8,165 @@ import {
   Owner,
 } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
-import ButtonLink from '../ButtonLink/ButtonLink';
-import classNames from 'classnames';
 import { capitalize, mailto } from '../../utils/stringUtils';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Button from '@codegouvfr/react-dsfr/Button';
+import classNames from 'classnames';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
   coOwners?: HousingOwner[];
   housingCount: number;
-  onModify: () => any;
+  modify?: ReactNode;
 }
 
-function OwnerCard({
-  owner,
-  coOwners,
-  housingCount,
-  onModify,
-}: OwnerCardProps) {
+function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
   return (
-    <Card hasArrow={false} hasBorder={false} size="sm">
-      <CardTitle>
-        <span className="card-title-icon">
-          <Icon name="ri-user-fill" iconPosition="center" size="1x" />
-        </span>
-        <ButtonLink
-          className={classNames(styles.link, 'float-right')}
-          display="flex"
-          icon="ri-edit-2-fill"
-          iconPosition="left"
-          iconSize="1x"
-          isSimple
-          title="Modifier le propriétaire"
-          onClick={() => onModify()}
-        >
-          Modifier
-        </ButtonLink>
-        <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">
-          {owner.fullName}
-        </Title>
-      </CardTitle>
-      <CardDescription>
-        {owner.birthDate && (
-          <Text size="lg" className="fr-mb-0">
-            né(e) le {birthdate(owner.birthDate)}{' '}
-            <b>({age(owner.birthDate)} ans)</b>
-          </Text>
-        )}
-        {isHousingOwner(owner) && (
-          <InternalLink
-            title="Voir tous ses logements"
-            to={
-              (window.location.pathname.indexOf('proprietaires') === -1
-                ? window.location.pathname
-                : '') +
-              '/proprietaires/' +
-              owner.id
-            }
-            className={classNames(
-              styles.housingBouton,
-              'fr-btn--md',
-              'fr-btn',
-              'fr-btn--secondary'
-            )}
-          >
-            Voir tous ses logements ({housingCount})
-          </InternalLink>
-        )}
-
-        <div className="bg-975 fr-my-3w fr-px-2w fr-py-2w">
-          <Title
-            as="h2"
-            look="h6"
-            spacing="mb-1w"
-            className={styles.titleInline}
-          >
-            Coordonnées
+    <Card
+      border={false}
+      size="small"
+      title={
+        <>
+          <span className="card-title-icon">
+            <Icon name="fr-icon-user-fill" iconPosition="center" size="1x" />
+          </span>
+          {modify}
+          <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">
+            {owner.fullName}
           </Title>
-          <hr />
-          <div>
-            <Text size="sm" className="zlv-label">
-              Adresse postale
+        </>
+      }
+      desc={
+        <>
+          {owner.birthDate && (
+            <Text size="lg" className="fr-mb-0">
+              né(e) le {birthdate(owner.birthDate)}{' '}
+              <b>({age(owner.birthDate)} ans)</b>
             </Text>
-            {owner.rawAddress.map((address, i) => (
-              <Text
-                className="capitalize"
-                key={`${owner.id}_address_${i}`}
-                spacing="mb-0"
-              >
-                {capitalize(address)}
-              </Text>
-            ))}
-          </div>
-          {owner.email && (
-            <div>
-              <Text size="sm" className="zlv-label">
-                Adresse mail
-              </Text>
-              <Link className="mailto" isSimple href={mailto(owner.email)}>
-                {owner.email}
-              </Link>
-            </div>
           )}
-          {owner.phone && (
-            <div>
-              <Text size="sm" className="zlv-label">
-                Téléphone
-              </Text>
-              <Text spacing="mb-0">{owner.phone}</Text>
-            </div>
+          {isHousingOwner(owner) && (
+            <Button
+              title="Voir tous ses logements"
+              priority="secondary"
+              linkProps={{
+                to:
+                  (window.location.pathname.indexOf('proprietaires') === -1
+                    ? window.location.pathname
+                    : '') +
+                  '/proprietaires/' +
+                  owner.id,
+              }}
+              className={styles.housingBouton}
+            >
+              Voir tous ses logements ({housingCount})
+            </Button>
           )}
-        </div>
-        {coOwners && coOwners.length > 0 && (
-          <>
-            <Title as="h2" look="h6" spacing="mb-1w">
-              Autres propriétaires ({coOwners.length})
+
+          <div className="bg-975 fr-my-3w fr-px-2w fr-py-2w">
+            <Title
+              as="h2"
+              look="h6"
+              spacing="mb-1w"
+              className={styles.titleInline}
+            >
+              Coordonnées
             </Title>
             <hr />
-            {coOwners.map((housingOwner) => (
-              <Card
-                key={'owner_' + housingOwner.rank}
-                hasArrow={false}
-                href={'/proprietaires/' + housingOwner.id}
-                className={classNames(
-                  'fr-mb-1w',
-                  styles.coOwnerCard,
-                  'app-card-xs'
-                )}
-              >
-                <CardTitle>
-                  <span className="icon-xs">
-                    <Icon name="ri-user-fill" iconPosition="center" size="xs" />
-                  </span>
-                  <Text as="span">
-                    <b>{housingOwner.fullName}</b>
-                  </Text>
-                </CardTitle>
-                <CardDescription>
-                  <Text size="sm" className="zlv-label" as="span">
-                    {getHousingOwnerRankLabel(housingOwner.rank)}
-                  </Text>
-                  <Text
-                    as="span"
-                    spacing="mb-0 mr-1w"
-                    className="float-right fr-link"
-                  >
-                    Voir la fiche
-                    <Icon
-                      name="ri-arrow-right-line"
-                      size="lg"
-                      verticalAlign="middle"
-                      iconPosition="center"
-                    />
-                  </Text>
-                </CardDescription>
-              </Card>
-            ))}
-          </>
-        )}
-      </CardDescription>
-    </Card>
+            <div>
+              <Text size="sm" className="zlv-label">
+                Adresse postale
+              </Text>
+              {owner.rawAddress.map((address, i) => (
+                <Text
+                  className="capitalize"
+                  key={`${owner.id}_address_${i}`}
+                  spacing="mb-0"
+                >
+                  {capitalize(address)}
+                </Text>
+              ))}
+            </div>
+            {owner.email && (
+              <div>
+                <Text size="sm" className="zlv-label">
+                  Adresse mail
+                </Text>
+                <AppLink className="mailto" isSimple to={mailto(owner.email)}>
+                  {owner.email}
+                </AppLink>
+              </div>
+            )}
+            {owner.phone && (
+              <div>
+                <Text size="sm" className="zlv-label">
+                  Téléphone
+                </Text>
+                <Text spacing="mb-0">{owner.phone}</Text>
+              </div>
+            )}
+          </div>
+          {coOwners && coOwners.length > 0 && (
+            <>
+              <Title as="h2" look="h6" spacing="mb-1w">
+                Autres propriétaires ({coOwners.length})
+              </Title>
+              <hr />
+              {coOwners.map((housingOwner) => (
+                <Card
+                  enlargeLink
+                  key={'owner_' + housingOwner.rank}
+                  linkProps={{
+                    to: '/proprietaires/' + housingOwner.id,
+                  }}
+                  className={classNames(
+                    'fr-mb-1w',
+                    styles.coOwnerCard,
+                    'app-card-xs'
+                  )}
+                  title={
+                    <>
+                      <span className="icon-xs">
+                        <Icon
+                          name="fr-icon-user-fill"
+                          iconPosition="center"
+                          size="xs"
+                        />
+                      </span>
+                      <Text as="span" className="color-black-50">
+                        <b>{housingOwner.fullName}</b>
+                      </Text>
+                    </>
+                  }
+                  desc={
+                    <>
+                      <Text size="sm" className="zlv-label" as="span">
+                        {getHousingOwnerRankLabel(housingOwner.rank)}
+                      </Text>
+                      <Text
+                        as="span"
+                        spacing="mb-0 mr-1w"
+                        className="float-right fr-link"
+                      >
+                        Voir la fiche
+                        <Icon
+                          name="fr-icon-arrow-right-line"
+                          size="lg"
+                          verticalAlign="middle"
+                          iconPosition="center"
+                        />
+                      </Text>
+                    </>
+                  }
+                  classes={{ end: 'd-none' }}
+                ></Card>
+              ))}
+            </>
+          )}
+        </>
+      }
+    ></Card>
   );
 }
 

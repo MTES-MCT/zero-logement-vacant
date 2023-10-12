@@ -34,7 +34,7 @@ input[type='checkbox']:disabled {
   opacity: 0 !important;
 }
 
-span.ri-checkbox-circle-line.ds-fr-tag-icon {
+span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   display: none;
 }
 
@@ -48,6 +48,8 @@ span.ri-checkbox-circle-line.ds-fr-tag-icon {
 
 .indeterminate {
   input[type='checkbox'] + label:before {
+    background-size: 1rem;
+    background-position: 50%;
     background-color: var(--blue-france-113) !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M5 11h14v2H5z' fill='rgba(255,255,255,1)'/%3E%3C/svg%3E") !important;
   }
@@ -58,4 +60,8 @@ span.ri-checkbox-circle-line.ds-fr-tag-icon {
   line-height: initial !important;
   min-height: initial !important;
   padding: initial !important;
+}
+
+.fr-icon-xs::before {
+  --icon-size: .75em;
 }

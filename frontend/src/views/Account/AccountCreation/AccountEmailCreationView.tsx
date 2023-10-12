@@ -1,13 +1,14 @@
-import { Button, Container, Link, Row, Text, Title } from '@dataesr/react-dsfr';
+import { Container, Row, Text, Title } from '../../../components/_dsfr';
 import React, { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
 
 import { emailValidator, useForm } from '../../../hooks/useForm';
-import InternalLink from '../../../components/InternalLink/InternalLink';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import styles from './account-email-creation-view.module.scss';
-import AppTextInput from '../../../components/AppTextInput/AppTextInput';
+import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
@@ -41,14 +42,14 @@ function AccountEmailCreationView() {
       </Text>
       <Container as="section" fluid>
         <Row justifyContent="right">
-          <Link
+          <AppLink
             className={styles.help}
-            href="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+            to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
             isSimple
             size="sm"
           >
             Besoin d’aide pour créer votre compte ?
-          </Link>
+          </AppLink>
         </Row>
       </Container>
       <AppTextInput<FormShape>
@@ -60,21 +61,19 @@ function AccountEmailCreationView() {
         whenValid="Email valide."
         placeholder="example@gmail.com"
         label="Adresse email (obligatoire)"
-        hint="Veuillez renseigner l’adresse utilisée sur Démarches Simplifiées pour transmettre l’acte d'engagement."
+        hintText="Veuillez renseigner l’adresse utilisée sur Démarches Simplifiées pour transmettre l’acte d'engagement."
         required
       />
       <Row alignItems="middle" className="justify-space-between">
-        <InternalLink
-          display="flex"
-          icon="ri-arrow-left-line"
-          iconSize="1x"
+        <AppLink
+          iconId="fr-icon-arrow-left-line"
           iconPosition="left"
           isSimple
           to="/"
         >
           Revenir à l'écran d'accueil
-        </InternalLink>
-        <Button submit>Continuer</Button>
+        </AppLink>
+        <Button type="submit">Continuer</Button>
       </Row>
     </form>
   );

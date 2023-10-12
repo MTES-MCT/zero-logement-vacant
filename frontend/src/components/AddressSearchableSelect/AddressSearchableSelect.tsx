@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SearchableSelect } from '@dataesr/react-dsfr';
+import { SearchableSelect } from '../_dsfr';
 import addressService, {
   AddressSearchResult,
 } from '../../services/address.service';

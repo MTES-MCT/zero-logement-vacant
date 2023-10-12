@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { MapProvider } from 'react-map-gl';
 import './App.scss';
-import AppHeader from './components/AppHeader/AppHeader';
-import AppFooter from './components/AppFooter/AppFooter';
+import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Link, Redirect, Route, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
@@ -12,11 +12,7 @@ import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import {
-  createInstance,
-  MatomoProvider,
-  useMatomo
-} from '@datapunt/matomo-tracker-react';
+import { createInstance, MatomoProvider, useMatomo } from '@datapunt/matomo-tracker-react';
 import { campaignBundleIdUrlFragment } from './models/Campaign';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
@@ -29,8 +25,7 @@ import ResetPasswordView from './views/Account/ResetPasswordView';
 import EstablishmentView from './views/Establishment/EstablishmentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import OwnerEstablishmentHomeView
-  from './views/Home/OwnerEstablishmentHomeView';
+import OwnerEstablishmentHomeView from './views/Home/OwnerEstablishmentHomeView';
 import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
@@ -39,8 +34,17 @@ import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+
+declare module "@codegouvfr/react-dsfr/spa" {
+  interface RegisterLink {
+    Link: typeof Link;
+  }
+}
 
 function AppWrapper() {
+
+  startReactDsfr({ defaultColorScheme: "light", Link });
 
   const AppMapProvider = () =>
     <MapProvider>
@@ -81,7 +85,7 @@ function App() {
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
-        <AppHeader/>
+        <Header/>
         <ScrollToTop/>
 
         {isAuthenticated && campaignCreated && campaignBundleFetchingId &&
@@ -139,7 +143,7 @@ function App() {
             </Route>
           ]}
         </Switch>
-        <AppFooter/>
+        <Footer/>
       </BrowserRouter>
     </React.Suspense>
   );

@@ -1,4 +1,4 @@
-import { Text } from '@dataesr/react-dsfr';
+import { Text } from '../_dsfr';
 import React from 'react';
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';

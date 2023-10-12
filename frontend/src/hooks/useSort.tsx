@@ -1,7 +1,8 @@
-import { Icon } from '@dataesr/react-dsfr';
 import { useEffect, useState } from 'react';
 
 import { Direction, Sort } from '../models/Sort';
+import Button from '@codegouvfr/react-dsfr/Button';
+import classNames from 'classnames';
 
 interface UseSortOptions<Sortable extends object> {
   onSort?(sort: Sort<Sortable>): void | Promise<void>;
@@ -12,15 +13,23 @@ export function useSort<Sortable extends object>(
 ) {
   const [sort, setSort] = useState<Sort<Sortable>>();
 
-  function getIcon(key: keyof Sortable): JSX.Element {
+  function getSortButton(key: keyof Sortable, title: string): JSX.Element {
     const direction = sort?.[key];
-    return direction ? (
-      <Icon
-        name={direction === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'}
-        color="var(--text-title-grey)"
+    return (
+      <Button
+        iconId={
+          (direction ?? 'asc') === 'asc'
+            ? 'fr-icon-arrow-up-line'
+            : 'fr-icon-arrow-down-line'
+        }
+        iconPosition="right"
+        children={title}
+        priority="tertiary no outline"
+        size="small"
+        className={classNames('fr-pl-0', { 'no-sort': !direction })}
+        style={{ color: 'var(--text-title-grey)' }}
+        onClick={() => cycleSort(key)}
       />
-    ) : (
-      <Icon name="ri-arrow-up-line" color="var(--grey-main-525)" />
     );
   }
 
@@ -60,7 +69,7 @@ export function useSort<Sortable extends object>(
 
   return {
     cycleSort,
-    getIcon,
+    getSortButton,
     sort,
     setSort,
   };

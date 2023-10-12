@@ -1,9 +1,11 @@
 import React, { useRef } from 'react';
-import { Alert, Button, Container, Title } from '@dataesr/react-dsfr';
+import { Container, Title } from '../_dsfr';
 import { HousingUpdate } from '../../models/Housing';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   housingCount: number;
@@ -33,15 +35,14 @@ const HousingListEditionSideMenu = ({
           <Button
             title="Fermer"
             className="fr-p-0"
-            icon="fr-icon-arrow-right-s-line-double"
-            tertiary
-            hasBorder={false}
+            iconId="fr-icon-arrow-right-s-line-double"
+            priority="tertiary no outline"
             onClick={onClose}
           />
           <Alert
             description="Mise à jour groupée"
             small
-            type="warning"
+            severity="warning"
             className="float-right"
           ></Alert>
           <Title as="h6" className="fr-mb-0">
@@ -65,17 +66,13 @@ const HousingListEditionSideMenu = ({
       footer={
         <>
           <Button
-            title="Annuler"
-            secondary
+            priority="secondary"
             className="fr-mr-2w"
             onClick={() => onClose()}
           >
             Annuler
           </Button>
-          <Button
-            title="Enregistrer"
-            onClick={() => statusFormRef.current?.submit()}
-          >
+          <Button onClick={() => statusFormRef.current?.submit()}>
             Enregistrer
           </Button>
         </>

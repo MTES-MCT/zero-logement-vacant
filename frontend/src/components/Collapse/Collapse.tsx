@@ -1,4 +1,4 @@
-import { Icon, Text } from '@dataesr/react-dsfr';
+import { Icon, Text } from '../_dsfr';
 import classNames from 'classnames';
 import { ReactNode, useRef, useState } from 'react';
 

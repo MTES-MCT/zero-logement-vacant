@@ -2,9 +2,6 @@
 @use "dsfr-fix";
 @use "src/components/Map/housing-popup-overrides";
 
-@import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.min.css';
-@import '@gouvfr/dsfr/dist/utility/icons/icons-map/icons-map.min.css';
-
 :root {
   --material-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -474,7 +471,7 @@ li.error {
   }
 }
 
-.tabs-no-border {
+.no-border {
   box-shadow: none !important;
   &:before{
     box-shadow: inset 0 1px 0 0 var(--border-default-grey) !important;
@@ -488,8 +485,43 @@ li.error {
       background-color: var(--grey-975) !important;
     }
   }
+}
 
-  div.fr-tabs__panel:first-of-type {
-    z-index: 10;
+
+.fr-header__body {
+  a:before {
+    display: none !important;
   }
+
+  .fr-header__service-tagline {
+    label {
+      display: none;
+    }
+
+    input {
+      width: 450px;
+    }
+
+  }
+}
+
+.radio-button-list {
+
+  .fr-radio-group {
+    max-width: 100%
+  }
+
+  .fr-radio-group::after{
+    content: '';
+    position: absolute;
+    background-color: var(--grey-925);
+    bottom: 0;
+    left: -13px;
+    right: -4px;
+    height: 1px;
+  }
+}
+
+button.no-sort::after {
+  color: var(--grey-main-525);
 }

@@ -1,16 +1,5 @@
-import React, { ChangeEvent, useState } from 'react';
-import {
-  Button,
-  Col,
-  Container,
-  Modal,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import React, { useState } from 'react';
+import { Col, Container, Row, Text, Title } from '../_dsfr';
 import {
   CampaignBundle,
   CampaignBundleId,
@@ -24,21 +13,28 @@ import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
-import ButtonLink from '../ButtonLink/ButtonLink';
 import Help from '../Help/Help';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
-import AppTextInput from '../AppTextInput/AppTextInput';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Button from '@codegouvfr/react-dsfr/Button';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
+const modal = createModal({
+  id: 'campaign-bundle-title-modal',
+  isOpenedByDefault: false,
+});
 
 interface Props {
   campaignBundle: CampaignBundle;
   as?: TitleAs;
+  look?: TitleAs;
 }
 
-const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
+const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const { isCampaign } = useCampaignBundle(campaignBundle);
@@ -55,8 +51,6 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
     campaignTitle,
   });
 
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
   const submitTitle = async () => {
     await form.validate(() => {
       trackEvent({
@@ -69,30 +63,32 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
           campaignTitle
         )
       );
-      setIsModalOpen(false);
+      modal.close();
     });
   };
 
   return (
     <>
-      <Title as={as ?? 'h1'} className="fr-mb-1w ds-fr--inline-block fr-mr-2w">
+      <Title
+        as={as ?? 'h1'}
+        look={look ?? as ?? 'h1'}
+        className="fr-mb-2w ds-fr--inline-block fr-mr-2w"
+      >
         {campaignFullName(campaignBundle)}
+        {isCampaign && (
+          <Button
+            iconId="fr-icon-edit-line"
+            iconPosition="right"
+            priority="tertiary no outline"
+            onClick={modal.open}
+          >
+            Renommer
+          </Button>
+        )}
       </Title>
-      {isCampaign && (
-        <ButtonLink
-          display="flex"
-          icon="ri-edit-2-fill"
-          iconPosition="left"
-          iconSize="1x"
-          isSimple
-          onClick={() => setIsModalOpen(true)}
-        >
-          Renommer
-        </ButtonLink>
-      )}
       {isCampaign && campaignBundle.createdAt && (
-        <Text className="subtitle" spacing="mb-2w">
-          échantillon créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
+        <Text className="subtitle" spacing="mb-1w" size="sm">
+          Campagne créé le <b>{dateShortFormat(campaignBundle.createdAt)}</b>
         </Text>
       )}
       {campaignBundle.campaignNumber === 0 && (
@@ -105,44 +101,41 @@ const CampaignBundleTitle = ({ campaignBundle, as }: Props) => {
           </Help>
         </div>
       )}
-      <Modal isOpen={isModalOpen} hide={() => setIsModalOpen(false)}>
-        <ModalTitle>
-          <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
-          Titre de la campagne
-        </ModalTitle>
-        <ModalContent>
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="10">
-                <AppTextInput<FormShape>
-                  value={campaignTitle}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setCampaignTitle(e.target.value)
-                  }
-                  label="Titre de la campagne (obligatoire)"
-                  placeholder="Titre de la campagne"
-                  inputForm={form}
-                  inputKey="campaignTitle"
-                  required
-                />
-              </Col>
-            </Row>
-          </Container>
-        </ModalContent>
-        <ModalFooter>
-          <Button
-            title="Annuler"
-            secondary
-            className="fr-mr-2w"
-            onClick={() => setIsModalOpen(false)}
-          >
-            Annuler
-          </Button>
-          <Button title="Enregistrer" onClick={() => submitTitle()}>
-            Enregistrer
-          </Button>
-        </ModalFooter>
-      </Modal>
+      <modal.Component
+        title={
+          <>
+            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
+            Titre de la campagne
+          </>
+        }
+        buttons={[
+          {
+            children: 'Annuler',
+            className: 'fr-mr-2w',
+            priority: 'secondary',
+          },
+          {
+            onClick: () => submitTitle(),
+            children: 'Enregistrer',
+          },
+        ]}
+      >
+        <Container as="section" fluid>
+          <Row gutters>
+            <Col n="10">
+              <AppTextInput<FormShape>
+                value={campaignTitle}
+                onChange={(e) => setCampaignTitle(e.target.value)}
+                label="Titre de la campagne (obligatoire)"
+                placeholder="Titre de la campagne"
+                inputForm={form}
+                inputKey="campaignTitle"
+                required
+              />
+            </Col>
+          </Row>
+        </Container>
+      </modal.Component>
     </>
   );
 };

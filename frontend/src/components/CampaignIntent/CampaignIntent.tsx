@@ -1,10 +1,12 @@
-import { Radio, RadioGroup } from '@dataesr/react-dsfr';
+import { MessageType } from '../../hooks/useForm';
+import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
+import React from 'react';
 
 interface Props {
   defaultValue?: string;
   disabled?: boolean;
   message?: string;
-  messageType?: 'error' | 'valid' | '';
+  messageType?: MessageType;
   onChange(value: string): void;
 }
 
@@ -36,26 +38,19 @@ const CampaignIntent = (props: Props) => {
   }
 
   return (
-    <RadioGroup
-      legend=""
+    <RadioButtons
       disabled={disabled}
-      onChange={props.onChange}
-      required
-      message={props.message}
-      messageType={props.messageType}
-    >
-      {values.map((item, index) => {
-        return (
-          <Radio
-            key={index}
-            label={item.label as unknown as string}
-            value={item.value}
-            isExtended={true}
-            defaultChecked={defaultChecked(item.value)}
-          />
-        );
-      })}
-    </RadioGroup>
+      options={values.map((item, index) => ({
+        label: item.label,
+        nativeInputProps: {
+          value: item.value,
+          defaultChecked: defaultChecked(item.value),
+          onChange: () => props.onChange(item.value),
+        },
+      }))}
+      state={props.messageType}
+      stateRelatedMessage={props.message}
+    />
   );
 };
 

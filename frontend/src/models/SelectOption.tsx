@@ -14,7 +14,7 @@ export interface SelectOption {
 interface SelectOptionProps {
   key?: string;
   onChangeValue?: (value: string, isChecked: boolean) => void;
-  size?: 'sm' | 'md';
+  small?: boolean;
 }
 
 export const DefaultOption: SelectOption = {

@@ -1,0 +1,27 @@
+import * as React from 'react';
+
+export type TextAs = 'p' | 'span';
+
+export type TextSize = 'xs' | 'sm' | 'md' | 'lg' | 'lead';
+
+export type TextChildren = string | React.ReactNode;
+
+export interface TextProps {
+  /**
+   * html tag to render
+   */
+  as?: TextAs;
+  size?: TextSize;
+  spacing?: string;
+  /**
+   * If true Spectral is used instead of Marianne.
+   */
+  alt?: boolean;
+  bold?: boolean;
+  children: TextChildren;
+  className?: string;
+}
+
+declare const Text: React.FC<TextProps>;
+
+export default Text;

@@ -1,12 +1,11 @@
 import React, { ChangeEvent, useRef, useState } from 'react';
 import classNames from 'classnames';
-import { CheckboxGroup } from '@dataesr/react-dsfr';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
 import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-list-filters.module.scss';
-import Checkbox from '../Checkbox/Checkbox';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 
 interface Props {
   selectedStatus?: HousingStatus[];
@@ -58,28 +57,31 @@ const HousingStatusMultiSelect = ({
         )}
       </div>
       <div
-        className={classNames('select-single-options', {
+        className={classNames('select-single-options', 'fr-pt-1w', {
           'select-single-options__visible': showOptions,
         })}
       >
-        <CheckboxGroup>
-          {options.map((option) => (
-            <Checkbox
-              label={option.label.toUpperCase()}
-              value={option.value}
-              className={classNames(
-                styles.checkboxLabel,
-                'bordered-b',
-                'fr-p-1w'
-              )}
-              hint={option.hint}
-              key={option.label}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                handleStatusChange(Number(option.value), e.target.checked)
-              }
-            />
-          ))}
-        </CheckboxGroup>
+        {options.map((option) => (
+          <AppCheckbox
+            label={
+              <div style={{ marginTop: '-2px' }}>
+                <HousingStatusBadge status={Number(option.value)} />
+              </div>
+            }
+            value={option.value}
+            className={classNames(
+              styles.checkboxLabel,
+              'bordered-b',
+              'fr-mx-0',
+              'fr-pb-1w'
+            )}
+            hintText={option.hint}
+            key={option.label}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              handleStatusChange(Number(option.value), e.target.checked)
+            }
+          />
+        ))}
       </div>
     </div>
   );

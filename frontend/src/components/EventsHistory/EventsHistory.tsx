@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text } from '@dataesr/react-dsfr';
+import { Text } from '../_dsfr';
 import styles from './events-history.module.scss';
 import { differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,7 +12,7 @@ import classNames from 'classnames';
 import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
 import EventPartialOwnerContent from './EventPartialOwnerContent';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../_app/AppLink/AppLink';
 import { Campaign, campaignBundleIdUrlFragment } from '../../models/Campaign';
 
 interface Props {
@@ -196,7 +196,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                       >
                         Ce logement a été <b>ajouté dans une campagne</b>{' '}
                         {findNewCampaign(eventOrNote) && (
-                          <InternalLink
+                          <AppLink
                             to={
                               '/campagnes/' +
                               campaignBundleIdUrlFragment({
@@ -207,12 +207,11 @@ const EventsHistory = ({ events, notes }: Props) => {
                               })
                             }
                             isSimple
-                            icon="ri-mail-fill"
+                            iconId="fr-icon-mail-fill"
                             iconPosition="left"
-                            display="inline"
                           >
                             {findNewCampaign(eventOrNote).title}
-                          </InternalLink>
+                          </AppLink>
                         )}
                       </div>
                     )}
@@ -244,7 +243,7 @@ const EventsHistory = ({ events, notes }: Props) => {
           onClick={() => setExpandEvents(!expandEvents)}
         >
           Voir tout le suivi
-          <span className="ri-1x icon-right ri-arrow-right-line ds-fr--v-middle" />
+          <span className="fr-icon-1x icon-right fr-icon-arrow-right-line ds-fr--v-middle" />
         </button>
       )}
     </>

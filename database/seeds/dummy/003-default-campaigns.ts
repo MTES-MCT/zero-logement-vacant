@@ -20,16 +20,13 @@ exports.seed = function (knex: Knex) {
     .andWhere('available', true)
     .then((results) => {
       if (results.length) {
-        return knex
-          .table(campaignsTable)
-          .insert(
-            results.map((result) =>
-              campaignRepository.formatCampaignApi(<any>{
-                ...DefaultCampaign,
-                establishmentId: result.id,
-                groupId: null,
-              })
-            )
+        return knex.table(campaignsTable).insert(
+          results.map((result) =>
+            campaignRepository.formatCampaignApi(<any>{
+              ...DefaultCampaign,
+              establishmentId: result.id,
+              groupId: null,
+            })
           )
         );
       }

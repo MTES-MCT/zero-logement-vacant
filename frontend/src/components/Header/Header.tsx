@@ -9,7 +9,7 @@ import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
-import { Header } from '@codegouvfr/react-dsfr/Header';
+import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import VerticalLink from '../VerticalLink/VerticalLink';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import Collapse from '../Collapse/Collapse';
@@ -63,7 +63,7 @@ function Header() {
 
   return (
     <>
-      <Header
+      <DSFRHeader
         brandTop={
           <>
             Ministère de <br />

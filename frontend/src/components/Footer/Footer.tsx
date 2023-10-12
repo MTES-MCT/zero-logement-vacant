@@ -1,9 +1,9 @@
 import React from 'react';
-import Footer from '@codegouvfr/react-dsfr/Footer';
+import { Footer as DSFRFooter } from '@codegouvfr/react-dsfr/Footer';
 
 function Footer() {
   return (
-    <Footer
+    <DSFRFooter
       accessibility="non compliant"
       termsLinkProps={{
         to: '/mentions-legales',

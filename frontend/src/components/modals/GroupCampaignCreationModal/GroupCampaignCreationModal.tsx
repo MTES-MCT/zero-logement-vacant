@@ -39,6 +39,7 @@ function GroupCampaignCreationModal(props: Props) {
     <ConfirmationModal
       title="Créer la campagne à partir d’un groupe"
       modalId="group-campaign-creation-modal"
+      data-testid="group-campaign-creation-modal"
       size="large"
       openingButtonProps={{
         children: 'Créer une campagne',

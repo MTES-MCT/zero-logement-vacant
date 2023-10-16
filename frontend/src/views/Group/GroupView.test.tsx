@@ -1,5 +1,5 @@
 import { Store } from '@reduxjs/toolkit';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import fetchMock from 'jest-fetch-mock';
@@ -9,8 +9,6 @@ import { createMemoryHistory } from 'history';
 import GroupView from './GroupView';
 import configureTestStore from '../../utils/test/storeUtils';
 import { mockRequests } from '../../utils/test/requestUtils';
-
-jest.mock('../../components/Aside/Aside.tsx');
 
 describe('Group view', () => {
   const user = userEvent.setup();
@@ -114,9 +112,12 @@ describe('Group view', () => {
 
       const createCampaign = await screen.findByText(/^Créer une campagne/);
       await user.click(createCampaign);
-      const title = await screen.findByLabelText(/^Titre de la campagne/);
+      const modal = await screen.findByRole('dialog');
+      const title = await within(modal).findByLabelText(
+        /^Titre de la campagne/
+      );
       await user.type(title, 'Logements prioritaires');
-      const confirm = await screen.findByText('Confirmer');
+      const confirm = await within(modal).findByText('Confirmer');
       await user.click(confirm);
 
       expect(router.location).toMatchObject({
@@ -165,7 +166,8 @@ describe('Group view', () => {
 
       const archiveGroup = await screen.findByText(/^Archiver le groupe/);
       await user.click(archiveGroup);
-      const confirm = await screen.findByText(/^Confirmer/);
+      const modal = await screen.findByRole('dialog');
+      const confirm = await within(modal).findByText(/^Confirmer/);
       await user.click(confirm);
 
       expect(router.location).toMatchObject({

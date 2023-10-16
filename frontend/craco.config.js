@@ -10,15 +10,15 @@ module.exports = {
   },
   jest: {
     configure(config) {
-      config.preset= 'ts-jest';
-      config.testEnvironment= 'jsdom';
-      config.rootDir= '.';
-      config.setupFilesAfterEnv= ['jest-extended/all'];
+      config.rootDir = '.';
+      config.setupFilesAfterEnv = [
+        '<rootDir>/src/setupTests.ts',
+        'jest-extended/all',
+      ];
       config.transformIgnorePatterns = [
-        '/node_modules/(?!@codegouvfr)/.+\\.js$',
+        '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
       ];
       return config;
     },
   },
-
 };

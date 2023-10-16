@@ -30,7 +30,6 @@ describe('GroupHousingModal', () => {
   });
 
   const onSubmit = jest.fn();
-  const onClose = jest.fn();
   const onGroupCreate = jest.fn();
 
   it('should render', async () => {
@@ -45,9 +44,7 @@ describe('GroupHousingModal', () => {
     render(
       <Provider store={store}>
         <GroupAddHousingModal
-          open
-          onSubmit={onSubmit}
-          onClose={onClose}
+          onGroupSelect={onSubmit}
           onGroupCreate={onGroupCreate}
         />
       </Provider>

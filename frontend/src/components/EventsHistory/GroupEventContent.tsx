@@ -1,9 +1,9 @@
 import { Event } from '../../models/Event';
-import { Container, Text } from '@dataesr/react-dsfr';
-import InternalLink from '../InternalLink/InternalLink';
 import { useGetGroupQuery } from '../../services/group.service';
 import { Group } from '../../models/Group';
 import styles from './events-history.module.scss';
+import AppLink from '../_app/AppLink/AppLink';
+import { Container, Text } from '../_dsfr';
 
 interface Props {
   event: Event<Group>;
@@ -54,14 +54,9 @@ function GroupHousingAddedEvent(props: Props) {
     <Text size="sm" spacing="mb-0">
       Ce logement a été ajouté dans le groupe 
       {group ? (
-        <InternalLink
-          display="flex"
-          isSimple
-          size="sm"
-          to={`/groupes/${group.id}`}
-        >
+        <AppLink isSimple size="sm" to={`/groupes/${group.id}`}>
           {group.title}
-        </InternalLink>
+        </AppLink>
       ) : (
         <>
           <Text as="span" className="disabled" size="sm" spacing="mb-0">
@@ -82,14 +77,9 @@ function GroupHousingRemovedEvent(props: Props) {
     <Text size="sm" spacing="mb-0">
       Ce logement a été retiré du groupe 
       {group ? (
-        <InternalLink
-          display="flex"
-          isSimple
-          size="sm"
-          to={`/groupes/${group.id}`}
-        >
+        <AppLink isSimple size="sm" to={`/groupes/${group.id}`}>
           {group.title}
-        </InternalLink>
+        </AppLink>
       ) : (
         <>
           <Text as="span" className="disabled" size="sm" spacing="mb-0">

@@ -1,6 +1,6 @@
-import { Icon, Text } from '@dataesr/react-dsfr';
-
+import { Text } from '../_dsfr';
 import styles from './housing-count.module.scss';
+import { fr } from '@codegouvfr/react-dsfr';
 
 interface Props {
   housingCount: number;
@@ -10,22 +10,16 @@ interface Props {
 function HousingCount(props: Props) {
   return (
     <section className={styles.counts}>
-      <Icon
-        name="ri-home-2-fill"
-        iconPosition="center"
-        size="sm"
+      <i
+        className={fr.cx('ri-home-2-fill', 'fr-icon--sm', 'fr-mr-1v')}
         title="Logements"
-        className={styles.icon}
       />
       <Text as="span" spacing="mr-1w mb-0" size="sm">
         {props.housingCount}
       </Text>
-      <Icon
-        name="ri-user-fill"
-        iconPosition="center"
-        size="sm"
+      <i
+        className={fr.cx('ri-user-fill', 'fr-icon--sm', 'fr-mr-1v')}
         title="Propriétaires"
-        className={styles.icon}
       />
       <Text as="span" spacing="mb-0" size="sm">
         {props.ownerCount}

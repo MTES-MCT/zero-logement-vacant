@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Col, Container, Row } from '@dataesr/react-dsfr';
+import { Col, Container, Row } from '../../components/_dsfr';
 import { Redirect, useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
@@ -6,9 +6,8 @@ import {
   useUpdateGroupMutation,
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
-import AppSearchBar from '../../components/AppSearchBar/AppSearchBar';
 import { filterCount } from '../../models/HousingFilters';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -23,8 +22,6 @@ import HousingListTabs from '../HousingList/HousingListTabs';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import housingSlice from '../../store/reducers/housingReducer';
-import Alert from '../../components/Alert/Alert';
-import GroupCampaignCreationModal from '../../components/modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
 import {
   createCampaignFromGroup,
   listCampaigns,
@@ -37,6 +34,10 @@ import {
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { GroupPayload } from '../../models/GroupPayload';
+import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 interface RouterState {
   alert?: string;
@@ -91,21 +92,15 @@ function GroupView() {
     }
   }
 
-  const [showCampaignCreationModal, setShowCampaignCreationModal] =
-    useState(false);
   async function onCampaignCreate(
     campaign: Pick<Campaign, 'title'>
   ): Promise<void> {
     if (group) {
-      try {
-        const created = await dispatch(
-          createCampaignFromGroup({ campaign, group })
-        );
-        const id = campaignBundleIdUrlFragment(getCampaignBundleId(created));
-        router.push(`/campagnes/${id}`);
-      } finally {
-        setShowCampaignCreationModal(false);
-      }
+      const created = await dispatch(
+        createCampaignFromGroup({ campaign, group })
+      );
+      const id = campaignBundleIdUrlFragment(getCampaignBundleId(created));
+      router.push(`/campagnes/${id}`);
     }
   }
 
@@ -148,19 +143,11 @@ function GroupView() {
 
   return (
     <Container as="section" spacing="py-4w">
-      <GroupCampaignCreationModal
-        open={showCampaignCreationModal}
-        group={group}
-        housingCount={group.housingCount}
-        onSubmit={onCampaignCreate}
-        onClose={() => setShowCampaignCreationModal(false)}
-      />
-
       <Row spacing="mb-5w">
         <Group
           campaigns={campaigns}
           group={group}
-          onCampaignCreate={() => setShowCampaignCreationModal(true)}
+          onCampaignCreate={onCampaignCreate}
           onExport={onGroupExport}
           onUpdate={onGroupUpdate}
           onRemove={onGroupRemove}
@@ -168,11 +155,12 @@ function GroupView() {
       </Row>
 
       <Alert
-        type="success"
+        severity="success"
         description={alert}
         closable
         small
-        show={alert.length > 0}
+        isClosed={!alert.length}
+        onClose={() => {}}
         className="fr-mb-5w"
       />
 
@@ -186,8 +174,8 @@ function GroupView() {
           />
           <Button
             title="Filtrer"
-            icon="ri-filter-fill"
-            secondary
+            iconId="ri-filter-fill"
+            priority="secondary"
             className="fr-ml-1w"
             onClick={() => setExpand(true)}
             data-testid="filter-button"
@@ -197,40 +185,43 @@ function GroupView() {
         </Col>
 
         <Col>
-          <ButtonGroup isInlineFrom="sm" size="md" align="right">
-            <Button
-              title="Vue liste"
-              tertiary
-              onClick={() => {
-                trackEvent({
-                  category: TrackEventCategories.HousingList,
-                  action: TrackEventActions.HousingList.ListView,
-                });
-                dispatch(changeView('list'));
-              }}
-              className={classNames('fr-mr-0', 'color-black-50', {
-                'bg-950': view !== 'list',
-              })}
-            >
-              Tableau
-            </Button>
-            <Button
-              title="Vue carte"
-              tertiary
-              onClick={() => {
-                trackEvent({
-                  category: TrackEventCategories.HousingList,
-                  action: TrackEventActions.HousingList.MapView,
-                });
-                dispatch(changeView('map'));
-              }}
-              className={classNames('fr-ml-0', 'color-black-50', {
-                'bg-950': view !== 'map',
-              })}
-            >
-              Cartographie
-            </Button>
-          </ButtonGroup>
+          <ButtonsGroup
+            inlineLayoutWhen="sm and up"
+            buttonsSize="medium"
+            alignment="right"
+            buttons={[
+              {
+                children: 'Tableau',
+                title: 'Vue tableau',
+                priority: 'tertiary',
+                onClick: () => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.ListView,
+                  });
+                  dispatch(changeView('list'));
+                },
+                className: classNames('fr-mr-0', 'color-black-50', {
+                  'bg-950': view !== 'list',
+                }),
+              },
+              {
+                children: 'Cartographie',
+                title: 'Vue carte',
+                priority: 'tertiary',
+                onClick: () => {
+                  trackEvent({
+                    category: TrackEventCategories.HousingList,
+                    action: TrackEventActions.HousingList.MapView,
+                  });
+                  dispatch(changeView('map'));
+                },
+                className: classNames('fr-ml-0', 'color-black-50', {
+                  'bg-950': view !== 'map',
+                }),
+              },
+            ]}
+          />
         </Col>
       </Row>
 

@@ -1,7 +1,6 @@
-import { Button, Col, Container, Row, Title } from '@dataesr/react-dsfr';
+import { Col, Container, Row, Title } from '../_dsfr';
 import React, { useState } from 'react';
 
-import Alert from '../Alert/Alert';
 import GroupCard from '../GroupCard/GroupCard';
 import {
   useCreateGroupMutation,
@@ -11,6 +10,8 @@ import styles from './group-header.module.scss';
 import { GroupPayload } from '../../models/GroupPayload';
 import { useHistory } from 'react-router-dom';
 import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 export const DISPLAY_GROUPS = 3;
 
@@ -30,7 +31,6 @@ function GroupHeader() {
     setShowAll((prev) => !prev);
   }
 
-  const [showGroupCreationModal, setShowGroupCreationModal] = useState(false);
   const [createGroup] = useCreateGroupMutation();
   const router = useHistory();
 
@@ -40,7 +40,6 @@ function GroupHeader() {
         title: group.title,
         description: group.description,
       }).unwrap();
-      setShowGroupCreationModal(false);
       router.push({
         pathname: `/groupes/${created.id}`,
         state: {
@@ -58,24 +57,19 @@ function GroupHeader() {
         <Title as="h6" className="d-inline-block" spacing="mb-0 mr-2w">
           Vos groupes de logements
         </Title>
-        <Button
-          secondary
-          icon="ri-add-fill"
-          iconPosition="left"
-          size="sm"
-          onClick={() => setShowGroupCreationModal(true)}
-        >
-          Créer un nouveau groupe
-        </Button>
+        <GroupEditionModal
+          title="Création d’un nouveau groupe de logements"
+          onSubmit={doCreateGroup}
+        />
       </Container>
       <Container as="main" fluid>
         <Row alignItems="middle">
           {filteredGroups?.length === 0 ? (
             <Alert
-              type="info"
+              severity="info"
               closable
               title="Découvrez les groupes de logement"
-              description="Un groupe de logement est un ensemble de logements que vous pouvez constituer à partir de vos propres critères. Créez un groupe, ajoutez-y des logements et créez une campagne quand vous le désirez. Consultez notre documentation pour en savoir plus."
+              description="Pour étudier votre parc, vous pouvez créer des groupes de logements en fonction des critères de votre choix. Cela vous permettra notamment d'exporter la liste des logements ciblés et de préparer vos campagnes."
             />
           ) : (
             <>
@@ -89,7 +83,7 @@ function GroupHeader() {
                     ))}
                     {showAll && (
                       <Col spacing="ml-1w">
-                        <Button tertiary onClick={toggleShowAll}>
+                        <Button priority="tertiary" onClick={toggleShowAll}>
                           Afficher moins
                         </Button>
                       </Col>
@@ -101,7 +95,7 @@ function GroupHeader() {
                 <Col n="2">
                   <Row alignItems="middle">
                     <Col spacing="ml-1w">
-                      <Button tertiary onClick={toggleShowAll}>
+                      <Button priority="tertiary" onClick={toggleShowAll}>
                         <>Afficher plus ({more})</>
                       </Button>
                     </Col>
@@ -111,13 +105,6 @@ function GroupHeader() {
             </>
           )}
         </Row>
-
-        <GroupEditionModal
-          open={showGroupCreationModal}
-          title="Création d’un nouveau groupe de logements"
-          onSubmit={doCreateGroup}
-          onClose={() => setShowGroupCreationModal(false)}
-        />
       </Container>
     </Container>
   );

@@ -1,4 +1,4 @@
-import { Container, Icon, Text } from '@dataesr/react-dsfr';
+import { Container, Icon, Text } from '../_dsfr';
 import { PropsWithChildren } from 'react';
 
 import styles from './info.module.scss';

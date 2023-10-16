@@ -1,9 +1,8 @@
-import { Container, Text } from '@dataesr/react-dsfr';
-
+import { Container, Text } from '../_dsfr';
 import { Group } from '../../models/Group';
 import styles from './group-card.module.scss';
 import HousingCount from '../HousingCount/HousingCount';
-import InternalLink from '../InternalLink/InternalLink';
+import AppLink from '../_app/AppLink/AppLink';
 
 interface GroupCardProps {
   group: Group;
@@ -11,7 +10,7 @@ interface GroupCardProps {
 
 function GroupCard(props: GroupCardProps) {
   return (
-    <InternalLink to={`/groupes/${props.group.id}`}>
+    <AppLink to={`/groupes/${props.group.id}`}>
       <Container
         as="article"
         className={styles.container}
@@ -26,7 +25,7 @@ function GroupCard(props: GroupCardProps) {
           ownerCount={props.group.ownerCount}
         />
       </Container>
-    </InternalLink>
+    </AppLink>
   );
 }
 

@@ -1,27 +1,20 @@
 import { Group as GroupModel } from '../../models/Group';
-import {
-  Button,
-  Col,
-  Container,
-  Icon,
-  Row,
-  Text,
-  Title,
-} from '@dataesr/react-dsfr';
+import { Col, Container, Icon, Row, Text, Title } from '../_dsfr';
 import styles from './group.module.scss';
 import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
-import { useState } from 'react';
 import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
 import { GroupPayload } from '../../models/GroupPayload';
 import { Campaign } from '../../models/Campaign';
-import InternalLink from '../InternalLink/InternalLink';
+import GroupRemovalModal from '../modals/GroupRemovalModal/GroupRemovalModal';
+import AppLink from '../_app/AppLink/AppLink';
+import { Button } from '@codegouvfr/react-dsfr/Button';
+import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
 
 interface GroupProps {
   group: GroupModel;
   campaigns?: Campaign[];
-  onCampaignCreate?: () => void;
+  onCampaignCreate?: (campaign: Pick<Campaign, 'title'>) => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
   onRemove?: () => void;
@@ -31,20 +24,16 @@ function Group(props: GroupProps) {
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
 
-  function createCampaign(): void {
-    props.onCampaignCreate?.();
+  function createCampaign(campaign: Pick<Campaign, 'title'>): void {
+    props.onCampaignCreate?.(campaign);
   }
 
-  const [confirmGroupRemoval, setConfirmGroupRemoval] = useState(false);
   function removeGroup(): void {
     props.onRemove?.();
-    setConfirmGroupRemoval(false);
   }
 
-  const [showGroupUpdateModal, setShowGroupUpdateModal] = useState(false);
   function updateGroup(group: GroupPayload): void {
     props.onUpdate?.(group);
-    setShowGroupUpdateModal(false);
   }
 
   return (
@@ -52,20 +41,22 @@ function Group(props: GroupProps) {
       <Row className="justify-space-between">
         <Col n="9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
-            <Row alignItems="top">
-              <Title as="h2" spacing="mr-1w mb-2w">
+            <Row alignItems="bottom" spacing="mb-1w">
+              <Title as="h2" spacing="mr-1w mb-0">
                 {props.group.title}
               </Title>
-              <Button
-                hasBorder={false}
-                icon="ri-edit-line"
-                iconPosition="right"
-                secondary
-                size="lg"
-                onClick={() => setShowGroupUpdateModal(true)}
-              >
-                Modifier
-              </Button>
+              <GroupEditionModal
+                title="Modifier les informations du groupe"
+                openingButtonProps={{
+                  children: 'Modifier',
+                  priority: 'tertiary no outline',
+                  iconId: 'ri-edit-line',
+                  iconPosition: 'right',
+                  size: 'small',
+                }}
+                group={props.group}
+                onSubmit={updateGroup}
+              />
             </Row>
             <Row className="weight-500">
               <Icon
@@ -120,16 +111,15 @@ function Group(props: GroupProps) {
                 </Col>
                 {props.campaigns?.map((campaign) => (
                   <Col n="12" key={campaign.id}>
-                    <InternalLink
-                      display="flex"
-                      icon="ri-mail-fill"
+                    <AppLink
+                      iconId="ri-mail-fill"
                       iconPosition="left"
                       isSimple
                       key={campaign.id}
                       to={`/campagnes/C${campaign.campaignNumber}`}
                     >
                       {campaign.title}
-                    </InternalLink>
+                    </AppLink>
                   </Col>
                 ))}
               </Row>
@@ -138,53 +128,32 @@ function Group(props: GroupProps) {
         </Col>
         <Col n="3">
           <Container as="aside" className={styles.actions} fluid>
+            <GroupCampaignCreationModal
+              group={props.group}
+              housingCount={props.group.housingCount}
+              openingButtonProps={{
+                className: styles.action,
+              }}
+              onSubmit={createCampaign}
+            />
             <Button
               className={styles.action}
-              disabled={props.group.housingCount === 0}
-              onClick={createCampaign}
-            >
-              Créer une campagne
-            </Button>
-            <Button
-              className={styles.action}
-              secondary
-              icon="ri-upload-2-line"
+              priority="secondary"
+              iconId="ri-upload-2-line"
               onClick={props.onExport}
             >
               Exporter
             </Button>
-            <Button
-              className={styles.action}
-              tertiary
-              icon="ri-delete-bin-line"
-              onClick={() => setConfirmGroupRemoval(true)}
-            >
-              {props.campaigns?.length ? 'Archiver' : 'Supprimer'} le groupe
-            </Button>
+            <GroupRemovalModal
+              campaigns={props.campaigns}
+              openingButtonProps={{
+                className: styles.action,
+              }}
+              onSubmit={removeGroup}
+            />
           </Container>
         </Col>
       </Row>
-
-      <GroupEditionModal
-        open={showGroupUpdateModal}
-        title="Modifier les informations du groupe"
-        group={props.group}
-        onSubmit={updateGroup}
-        onClose={() => setShowGroupUpdateModal(false)}
-      />
-
-      {confirmGroupRemoval && (
-        <ConfirmationModal
-          alignFooter="right"
-          icon=""
-          size="md"
-          title="Suppression du groupe"
-          onSubmit={removeGroup}
-          onClose={() => setConfirmGroupRemoval(false)}
-        >
-          <Text>Êtes-vous sûr de vouloir supprimer ce groupe ?</Text>
-        </ConfirmationModal>
-      )}
     </Container>
   );
 }

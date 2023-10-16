@@ -1,17 +1,19 @@
-import { Button, Container, Select, Text } from '@dataesr/react-dsfr';
+import { Container, Select, Text } from '../../_dsfr';
 
 import { Group } from '../../../models/Group';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { useFindGroupsQuery } from '../../../services/group.service';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './group-add-housing-modal.module.scss';
+import GroupEditionModal from '../GroupUpdateModal/GroupEditionModal';
+import { GroupPayload } from '../../../models/GroupPayload';
 
 interface Props {
-  open: boolean;
-  onSubmit: (group: Group) => void;
-  onClose: () => void;
-  onGroupCreate: () => void;
+  className?: string;
+  housingCount?: number;
+  onGroupSelect: (group: Group) => void;
+  onGroupCreate: (payload: GroupPayload) => void;
 }
 
 function GroupAddHousingModal(props: Props) {
@@ -31,44 +33,47 @@ function GroupAddHousingModal(props: Props) {
     })),
   ];
 
-  function submit(): void {
+  function selectGroup(): void {
     const group = groups?.find((group) => group.id === selected);
     if (group) {
-      props.onSubmit?.(group);
+      props.onGroupSelect?.(group);
     }
-  }
-
-  if (!props.open) {
-    return <></>;
   }
 
   return (
     <ConfirmationModal
-      alignFooter="right"
-      icon=""
-      size="lg"
+      modalId="group-add-housing-modal"
+      size="large"
       title="Ajouter dans un groupe existant"
-      onSubmit={submit}
-      onClose={props.onClose}
+      openingButtonProps={{
+        children: 'Ajouter dans un groupe',
+        className: props.className,
+        priority: 'secondary',
+      }}
+      onSubmit={selectGroup}
     >
       <Container as="main" fluid className={styles.container}>
         <Select
           label="Ajoutez votre sélection à un groupe existant"
           options={options}
           selected={selected}
-          onChange={(e) => setSelected(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+            setSelected(e.target.value)
+          }
           required
         />
         <Text as="span" className={styles.divider}>
           ou
         </Text>
-        <Button
-          secondary
-          onClick={props.onGroupCreate}
-          className={styles.center}
-        >
-          Créer un nouveau groupe
-        </Button>
+        <GroupEditionModal
+          title="Création d’un nouveau groupe de logements"
+          modalId="group-add-housing-new-group-modal"
+          openingButtonProps={{
+            style: { alignSelf: 'center' },
+          }}
+          housingCount={props.housingCount}
+          onSubmit={props.onGroupCreate}
+        />
       </Container>
     </ConfirmationModal>
   );

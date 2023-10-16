@@ -53,13 +53,14 @@ const HousingListView = () => {
   }, [changeFilters, dispatch]);
 
   return (
-    <MainContainer title="Votre parc de logements">
+    <MainContainer>
       <HousingListFiltersSidemenu />
       <Row spacing="mb-5w">
         <GroupHeader />
       </Row>
       <Row spacing="mb-1w">
         <Col n="6">
+          <h6>Votre parc de logements</h6>
           <div className="d-flex">
             <AppSearchBar
               onSearch={searchWithQuery}
@@ -68,8 +69,8 @@ const HousingListView = () => {
             />
             <Button
               title="Filtrer"
-              icon="ri-filter-fill"
-              secondary
+              iconId="ri-filter-fill"
+              priority="secondary"
               className="fr-ml-1w"
               onClick={() => setExpand(true)}
               data-testid="filter-button"
@@ -131,11 +132,7 @@ const HousingListView = () => {
       {view === 'map' ? (
         <HousingListMap filters={filters} />
       ) : (
-        <HousingListTabs
-            filters={filters}
-            showCreateCampaign
-            showCreateGroup
-          />
+        <HousingListTabs filters={filters} showCreateCampaign showCreateGroup />
       )}
     </MainContainer>
   );

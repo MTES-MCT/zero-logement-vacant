@@ -1,26 +1,37 @@
-import React, { ChangeEvent, useState } from 'react';
-import { Col, Row } from '@dataesr/react-dsfr';
-
+import React, { useState } from 'react';
 import * as yup from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
-import AppTextInput from '../../AppTextInput/AppTextInput';
 import Info from '../../Info/Info';
 import HousingCount from '../../HousingCount/HousingCount';
+import { Col, Row } from '../../_dsfr';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { GroupPayload } from '../../../models/GroupPayload';
 
 interface Props {
-  open: boolean;
   title: string;
+  housingCount?: number;
+  modalId?: string;
+  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
   group?: Partial<
     Pick<Group, 'title' | 'description' | 'housingCount' | 'ownerCount'>
   >;
-  onSubmit: (group: Pick<Group, 'title' | 'description'>) => void;
-  onClose: () => void;
+  onSubmit: (group: GroupPayload) => void;
 }
 
 function GroupEditionModal(props: Props) {
+  const modalId = props.modalId ?? 'group-edition-modal';
+  const openingButtonProps: Omit<ButtonProps, 'onClick'> = {
+    children: 'Créer un nouveau groupe',
+    iconId: 'fr-icon-add-line',
+    iconPosition: 'left',
+    size: 'small',
+    priority: 'secondary',
+    ...props.openingButtonProps,
+  };
   const [title, setTitle] = useState(props.group?.title ?? '');
   const [description, setDescription] = useState(
     props.group?.description ?? ''
@@ -32,7 +43,7 @@ function GroupEditionModal(props: Props) {
       .required('Veuillez donner un nom au groupe pour confirmer'),
     description: yup
       .string()
-      .required('Veuillez donner une description pour confirmer'),
+      .required('Veuillez donner une description au groupe pour confirmer'),
   };
   type FormShape = typeof shape;
 
@@ -53,18 +64,13 @@ function GroupEditionModal(props: Props) {
   const housingCount = props.group?.housingCount ?? 0;
   const ownerCount = props.group?.ownerCount ?? 0;
 
-  if (!props.open) {
-    return <></>;
-  }
-
   return (
     <ConfirmationModal
-      alignFooter="right"
-      icon=""
-      size="lg"
+      modalId={modalId}
+      openingButtonProps={openingButtonProps}
+      size="large"
       title={props.title}
       onSubmit={onSubmit}
-      onClose={props.onClose}
     >
       {housingCount > 0 && ownerCount > 0 && (
         <HousingCount housingCount={housingCount} ownerCount={ownerCount} />
@@ -74,9 +80,7 @@ function GroupEditionModal(props: Props) {
           <Col>
             <AppTextInput<FormShape>
               value={title}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setTitle(e.target.value)
-              }
+              onChange={(e) => setTitle(e.target.value)}
               label="Nom du groupe"
               inputForm={form}
               inputKey="title"
@@ -84,10 +88,8 @@ function GroupEditionModal(props: Props) {
             />
             <AppTextInput<FormShape>
               value={description}
-              textarea
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                setDescription(e.target.value)
-              }
+              textArea
+              onChange={(e) => setDescription(e.target.value)}
               label="Description"
               inputForm={form}
               inputKey="description"

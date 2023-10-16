@@ -31,7 +31,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../../components/_app/AppLink/AppLink';
-import Alert from '../../components/Alert/Alert';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -136,7 +136,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
       {!isCompleted(CampaignSteps.Export) && (
         <Alert
           closable
-          type="info"
+          severity="info"
           title="Bienvenue dans l’espace suivi de votre campagne !"
           description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
         />

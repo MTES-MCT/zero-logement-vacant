@@ -1,12 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-
-  Col,
-  Container,
-  Icon,
-  Row,
-  Text,
-} from '../../components/_dsfr';
+import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
 import { CampaignSteps } from '../../models/Campaign';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
@@ -33,7 +26,7 @@ import { useAppDispatch } from '../../hooks/useStore';
 import { numberOption } from '../../utils/numberUtils';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import InternalLink from '../../components/InternalLink/InternalLink';
+import AppLink from '../../components/_app/AppLink/AppLink';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
@@ -129,24 +122,22 @@ const CampaignView = () => {
               Créée à partir du groupe
             </Text>
             {!!bundle.group.archivedAt ? (
-                <>
-                  <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
-                  <Text as="span" spacing="mb-0">
-                    {bundle.group.title}
-                  </Text>
-                </>
-              ) : (
-                <InternalLink
-                  to={`/groupes/${bundle.group.id}`}
-                  display="flex"
-                  icon="ri-hotel-fill"
-                  iconPosition="left"
-                  iconSize="1x"
-                  isSimple
-                >
+              <>
+                <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
+                <Text as="span" spacing="mb-0">
                   {bundle.group.title}
-                </InternalLink>
-              )}
+                </Text>
+              </>
+            ) : (
+              <AppLink
+                to={`/groupes/${bundle.group.id}`}
+                iconId="ri-hotel-fill"
+                iconPosition="left"
+                isSimple
+              >
+                {bundle.group.title}
+              </AppLink>
+            )}
           </Col>
         </Row>
       )}

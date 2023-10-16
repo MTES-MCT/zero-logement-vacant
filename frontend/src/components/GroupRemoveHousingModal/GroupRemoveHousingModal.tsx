@@ -1,12 +1,10 @@
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { pluralize } from '../../utils/stringUtils';
-import { Text } from '@dataesr/react-dsfr';
+import { Text } from '../_dsfr';
 
 interface Props {
-  open: boolean;
   housingCount: number;
   onSubmit: () => void;
-  onClose: () => void;
 }
 
 function GroupRemoveHousingModal(props: Props) {
@@ -14,18 +12,17 @@ function GroupRemoveHousingModal(props: Props) {
     props.housingCount
   )('logement')} de ce groupe`;
 
-  if (!props.open) {
-    return <></>;
-  }
-
   return (
     <ConfirmationModal
-      alignFooter="right"
-      icon=""
-      size="lg"
+      modalId="group-remove-housing-modal"
+      openingButtonProps={{
+        children: 'Supprimer du groupe',
+        iconId: 'ri-close-line',
+        priority: 'secondary',
+      }}
+      size="large"
       title={title}
       onSubmit={props.onSubmit}
-      onClose={props.onClose}
     >
       <Text>
         Êtes-vous sûr de vouloir supprimer ces logements de ce groupe ? Vous

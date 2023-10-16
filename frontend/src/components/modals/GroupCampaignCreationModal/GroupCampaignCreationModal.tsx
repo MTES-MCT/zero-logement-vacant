@@ -1,19 +1,20 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import * as yup from 'yup';
-import React, { ChangeEvent, useState } from 'react';
+import React, { useState } from 'react';
 import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
 import { Campaign } from '../../../models/Campaign';
 import { Group } from '../../../models/Group';
-import { Container, Text } from '@dataesr/react-dsfr';
-import Alert from '../../Alert/Alert';
-import AppTextInput from '../../AppTextInput/AppTextInput';
+import { Container, Text } from '../../_dsfr';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   group: Group;
   housingCount: number;
-  open?: boolean;
+  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
   onSubmit: (campaign: Pick<Campaign, 'title'>) => void;
-  onClose: () => void;
 }
 
 function GroupCampaignCreationModal(props: Props) {
@@ -34,22 +35,21 @@ function GroupCampaignCreationModal(props: Props) {
     );
   }
 
-  if (!props.open) {
-    return <></>;
-  }
-
   return (
     <ConfirmationModal
       title="Créer la campagne à partir d’un groupe"
-      icon=""
-      size="lg"
-      alignFooter="right"
+      modalId="group-campaign-creation-modal"
+      size="large"
+      openingButtonProps={{
+        children: 'Créer une campagne',
+        disabled: props.housingCount === 0,
+        ...props.openingButtonProps,
+      }}
       onSubmit={submit}
-      onClose={props.onClose}
     >
       <Container as="main" fluid>
         <Alert
-          type="info"
+          severity="info"
           title="Une campagne va être créée sur la base de ce groupe."
           description="Une fois la campagne créée, les nouveaux logements ajoutés ultérieurement au groupe ne seront pas pris en compte dans la campagne."
           closable
@@ -61,9 +61,7 @@ function GroupCampaignCreationModal(props: Props) {
         </Text>
         <AppTextInput<FormShape>
           value={title}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setTitle(e.target.value)
-          }
+          onChange={(e) => setTitle(e.target.value)}
           label="Titre de la campagne"
           inputForm={form}
           inputKey="title"

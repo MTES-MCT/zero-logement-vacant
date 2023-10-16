@@ -34,7 +34,6 @@ import { Group } from '../../models/Group';
 import { useHistory, useParams } from 'react-router-dom';
 import { createCampaign } from '../../store/actions/campaignAction';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
-import GroupEditionModal from '../../components/modals/GroupUpdateModal/GroupEditionModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 
@@ -67,8 +66,6 @@ const HousingListTab = ({
     { isSuccess: isUpdateSuccess, data: updatedCount },
   ] = useUpdateHousingListMutation();
 
-  const [creatingCampaignSelectedHousing, setCreatingCampaignSelectedHousing] =
-    useState<SelectedHousing>();
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
 
@@ -124,8 +121,6 @@ const HousingListTab = ({
     setUpdatingSelectedHousing(undefined);
   };
 
-  const [showGroupHousingAdditionModal, setShowGroupHousingAdditionModal] =
-    useState(false);
   const [addGroupHousing] = useAddGroupHousingMutation();
   const router = useHistory();
   function selectGroup(group: Group): void {
@@ -136,7 +131,6 @@ const HousingListTab = ({
         ids: selected.ids,
         filters,
       });
-      setShowGroupHousingAdditionModal(false);
       router.push({
         pathname: `/groupes/${group.id}`,
         state: {
@@ -146,11 +140,12 @@ const HousingListTab = ({
     }
   }
 
-  const [showGroupCreationModal, setShowGroupCreationModal] = useState(false);
   const [createGroup] = useCreateGroupMutation();
   async function doCreateGroup(
     group: Pick<Group, 'title' | 'description'>
   ): Promise<void> {
+    console.log('Created');
+    debugger;
     try {
       const created = await createGroup({
         title: group.title,
@@ -161,7 +156,6 @@ const HousingListTab = ({
           filters,
         },
       }).unwrap();
-      setShowGroupCreationModal(false);
       router.push({
         pathname: `/groupes/${created.id}`,
         state: {
@@ -174,25 +168,19 @@ const HousingListTab = ({
     }
   }
 
-  const [showGroupHousingRemovalModal, setShowGroupHousingRemovalModal] =
-    useState(false);
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {
     skip: !params?.id,
   });
   const [removeGroupHousing] = useRemoveGroupHousingMutation();
-  async function doRemoveGroupHousing() {
-    try {
-      if (group) {
-        await removeGroupHousing({
-          id: group.id,
-          all: selected.all,
-          ids: selected.ids,
-          filters: filters,
-        }).unwrap();
-      }
-    } finally {
-      setShowGroupHousingRemovalModal(false);
+  function doRemoveGroupHousing() {
+    if (group) {
+      removeGroupHousing({
+        id: group.id,
+        all: selected.all,
+        ids: selected.ids,
+        filters: filters,
+      });
     }
   }
 
@@ -242,71 +230,32 @@ const HousingListTab = ({
                   </Button>
                 )}
                 {showCreateGroup && (
-                  <Button
-                    priority="secondary"
+                  <GroupAddHousingModal
                     className="fr-mr-1w"
-                    onClick={() => setShowGroupHousingAdditionModal(true)}
-                  >
-                    Ajouter dans un groupe
-                  </Button>
+                    housingCount={selectedCount}
+                    onGroupSelect={selectGroup}
+                    onGroupCreate={doCreateGroup}
+                  />
                 )}
                 {showRemoveGroupHousing && (
-                  <Button
-                    secondary
-                    className="fr-mr-1w"
-                    icon="ri-close-line"
-                    iconPosition="left"
-                    onClick={() => setShowGroupHousingRemovalModal(true)}
-                  >
-                    Supprimer du groupe
-                  </Button>
+                  <GroupRemoveHousingModal
+                    housingCount={selectedCount}
+                    onSubmit={doRemoveGroupHousing}
+                  />
                 )}
                 {showCreateCampaign && (
-                  <Button
-                    title="Créer une campagne"
-                    onClick={() => setCreatingCampaignSelectedHousing(selected)}
-                    data-testid="create-campaign-button"
-                  >
-                    Créer une campagne
-                  </Button>
+                  <CampaignCreationModal
+                    housingCount={selectedCount}
+                    filters={filters}
+                    housingExcludedCount={filteredHousingCount - selectedCount}
+                    onSubmit={(campaignTitle?: string) =>
+                      onSubmitCampaignCreation(campaignTitle)
+                    }
+                    openingButtonProps={{
+                      children: 'Créer une campagne',
+                    }}
+                  />
                 )}
-
-                <GroupEditionModal
-                  open={showGroupCreationModal}
-                  title="Création d’un nouveau groupe de logements"
-                  onSubmit={doCreateGroup}
-                  onClose={() => setShowGroupCreationModal(false)}
-                />
-
-                <GroupAddHousingModal
-                  open={showGroupHousingAdditionModal}
-                  onSubmit={selectGroup}
-                  onClose={() => setShowGroupHousingAdditionModal(false)}
-                  onGroupCreate={() => {
-                    setShowGroupHousingAdditionModal(false);
-                    setShowGroupCreationModal(true);
-                  }}
-                />
-
-                <GroupRemoveHousingModal
-                  open={showGroupHousingRemovalModal}
-                  housingCount={selectedCount}
-                  onSubmit={doRemoveGroupHousing}
-                  onClose={() => setShowGroupHousingRemovalModal(false)}
-                />
-
-                <CampaignCreationModal
-                  open={!!creatingCampaignSelectedHousing}
-                  housingCount={selectedCount}
-                  filters={filters}
-                  housingExcudedCount={filteredHousingCount - selectedCount}
-                  onSubmit={(campaignTitle?: string) =>
-                    onSubmitCampaignCreation(campaignTitle)
-                  }
-                  openingButtonProps={{
-                    children: 'Créer une campagne',
-                  }}
-                />
 
                 <HousingListEditionSideMenu
                   housingCount={selectedCount}

@@ -29,6 +29,11 @@ import { param, ValidationChain } from 'express-validator';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
+interface HousindWithAddresses extends HousingApi {
+  housingAddress?: AddressApi;
+  ownerAddress?: AddressApi;
+}
+
 const exportHousingByCampaignBundle = async (
   request: Request,
   response: Response
@@ -150,18 +155,18 @@ const writeWorkbook = (
             housingApi.owner.id,
             AddressKinds.Owner
           ),
-        ]).then(([housingAddress, ownerAddress]) => ({
-          ...housingApi,
-          housingAddress,
-          ownerAddress,
-        }))
+        ]).then(
+          ([housingAddress, ownerAddress]): HousindWithAddresses => ({
+            ...housingApi,
+            housingAddress: housingAddress ?? undefined,
+            ownerAddress: ownerAddress ?? undefined,
+          })
+        )
       )
     )
     .tap((housingWithAddresses) => {
       if (housingWorksheet) {
         const housingAddress = housingWithAddresses.housingAddress ?? undefined;
-        const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
-        const rawAddress = housingWithAddresses.owner.rawAddress;
         const building = getBuildingLocation(housingWithAddresses);
 
         housingWorksheet.addRow({
@@ -206,40 +211,12 @@ const writeWorkbook = (
           ),
           contactCount: housingWithAddresses.contactCount,
           lastContact: housingWithAddresses.lastContact,
-          owner: housingWithAddresses.owner.fullName,
-          ownerRawAddress: reduceStringArray(
-            housingWithAddresses.owner.rawAddress
-          ),
-          ownerRawAddress1: rawAddress[0],
-          ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
-          ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
-          ownerRawAddress4: rawAddress[rawAddress.length - 1],
-          ownerAddress: formatAddressApi(ownerAddress),
-          ownerAddressHouseNumber: ownerAddress?.houseNumber,
-          ownerAddressStreet: ownerAddress?.street,
-          ownerAddressPostalCode: ownerAddress?.postalCode,
-          ownerAddressCity: ownerAddress?.city,
-          ownerAddressScore: ownerAddress?.score,
+          ...ownerRowData(housingWithAddresses),
         });
       }
       if (ownerWorksheet) {
         if (!ownersRowNumber.includes(housingWithAddresses.owner.id)) {
-          const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
-          const rawAddress = housingWithAddresses.owner.rawAddress;
-          ownerWorksheet.addRow({
-            owner: housingWithAddresses.owner.fullName,
-            ownerRawAddress: reduceStringArray(rawAddress),
-            ownerRawAddress1: rawAddress[0],
-            ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
-            ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
-            ownerRawAddress4: rawAddress[rawAddress.length - 1],
-            ownerAddress: formatAddressApi(ownerAddress),
-            ownerAddressHouseNumber: ownerAddress?.houseNumber,
-            ownerAddressStreet: ownerAddress?.street,
-            ownerAddressPostalCode: ownerAddress?.postalCode,
-            ownerAddressCity: ownerAddress?.city,
-            ownerAddressScore: ownerAddress?.score,
-          });
+          ownerWorksheet.addRow(ownerRowData(housingWithAddresses));
           ownersRowNumber.push(housingWithAddresses.owner.id);
         }
         const row = ownerWorksheet.getRow(
@@ -274,6 +251,25 @@ const writeWorkbook = (
       excelUtils.formatWorksheet(ownerWorksheet);
       workbook.commit();
     });
+};
+
+const ownerRowData = (housingWithAddresses: HousindWithAddresses) => {
+  const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
+  const rawAddress = housingWithAddresses.owner.rawAddress;
+  return {
+    owner: housingWithAddresses.owner.fullName,
+    ownerRawAddress: reduceStringArray(rawAddress),
+    ownerRawAddress1: rawAddress[0],
+    ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
+    ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
+    ownerRawAddress4: rawAddress[rawAddress.length - 1],
+    ownerAddress: formatAddressApi(ownerAddress),
+    ownerAddressHouseNumber: ownerAddress?.houseNumber,
+    ownerAddressStreet: ownerAddress?.street,
+    ownerAddressPostalCode: ownerAddress?.postalCode,
+    ownerAddressCity: ownerAddress?.city,
+    ownerAddressScore: ownerAddress?.score,
+  };
 };
 
 const ownerWorksheetColumns = [

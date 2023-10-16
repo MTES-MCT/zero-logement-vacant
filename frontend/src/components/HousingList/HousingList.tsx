@@ -302,8 +302,12 @@ const HousingList = ({
     housingUpdate: HousingUpdate
   ) => {
     trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.Campaigns.UpdateHousing,
+      category: location.pathname.includes('parc-de-logements')
+        ? TrackEventCategories.HousingList
+        : TrackEventCategories.Campaigns,
+      action: location.pathname.includes('parc-de-logements')
+        ? TrackEventActions.HousingList.Update
+        : TrackEventActions.Campaigns.Update,
       value: 1,
     });
     await updateHousing({

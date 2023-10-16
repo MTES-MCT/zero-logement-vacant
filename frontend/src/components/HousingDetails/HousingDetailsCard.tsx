@@ -20,6 +20,11 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLink from '../_app/AppLink/AppLink';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 
 interface Props {
   housing: Housing;
@@ -34,6 +39,7 @@ function HousingDetailsCard({
   housingNotes,
   housingCampaigns,
 }: Props) {
+  const { trackEvent } = useMatomo();
   const [updateHousing] = useUpdateHousingMutation();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
@@ -50,6 +56,10 @@ function HousingDetailsCard({
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
+    trackEvent({
+      category: TrackEventCategories.Housing,
+      action: TrackEventActions.Housing.Update,
+    });
     await updateHousing({
       housing,
       housingUpdate,

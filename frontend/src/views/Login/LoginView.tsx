@@ -14,11 +14,17 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
+  const { trackEvent } = useMatomo();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,15 +54,19 @@ const LoginView = () => {
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    await form.validate(() =>
+    await form.validate(() => {
+      trackEvent({
+        category: TrackEventCategories.Home,
+        action: TrackEventActions.Home.Connection,
+      });
       dispatch(
         login(
           email,
           password,
           establishmentId.length ? establishmentId : undefined
         )
-      )
-    );
+      );
+    });
   }
 
   const isAdminView = pathname === '/admin';

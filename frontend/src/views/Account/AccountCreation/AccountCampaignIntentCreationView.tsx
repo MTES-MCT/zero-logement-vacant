@@ -13,6 +13,11 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import { useCreateUserMutation } from '../../../services/user.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
 
 interface State {
   prospect: Prospect;
@@ -23,6 +28,7 @@ function AccountCampaignIntentCreationView() {
   const dispatch = useAppDispatch();
   const router = useHistory<State | undefined>();
   const { location } = router;
+  const { trackEvent } = useMatomo();
   const prospect = location.state?.prospect;
   const password = location.state?.password;
 
@@ -57,6 +63,10 @@ function AccountCampaignIntentCreationView() {
           password,
           establishmentId: prospect.establishment.id,
           campaignIntent,
+        });
+        trackEvent({
+          category: TrackEventCategories.AccountCreation,
+          action: TrackEventActions.AccountCreation.SubmitCampaignIntent,
         });
         dispatch(login(prospect.email, password, prospect.establishment.id));
       }

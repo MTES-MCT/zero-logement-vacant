@@ -343,39 +343,7 @@ const housingWorksheetColumns = [
   { header: 'Campagne(s)', key: 'campaigns' },
   { header: "Nombre d'événements", key: 'contactCount' },
   { header: 'Date de dernière mise à jour', key: 'lastContact' },
-  { header: 'Propriétaire', key: 'owner' },
-  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
-  {
-    header: 'Adresse LOVAC du propriétaire - Ligne 1',
-    key: 'ownerRawAddress1',
-  },
-  {
-    header: 'Adresse LOVAC du propriétaire - Ligne 2',
-    key: 'ownerRawAddress2',
-  },
-  {
-    header: 'Adresse LOVAC du propriétaire - Ligne 3',
-    key: 'ownerRawAddress3',
-  },
-  {
-    header: 'Adresse LOVAC du propriétaire - Ligne 4',
-    key: 'ownerRawAddress4',
-  },
-  { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
-  {
-    header: 'Adresse BAN du propriétaire - Numéro',
-    key: 'ownerAddressHouseNumber',
-  },
-  { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
-  {
-    header: 'Adresse BAN du propriétaire - Code postal',
-    key: 'ownerAddressPostalCode',
-  },
-  { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
-  {
-    header: 'Adresse BAN du propriétaire - Fiabilité',
-    key: 'ownerAddressScore',
-  },
+  ...ownerWorksheetColumns,
 ];
 
 const addHousingtWorksheet = (workbook: WorkbookWriter) => {

@@ -7,7 +7,7 @@ import {
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { filterCount } from '../../models/HousingFilters';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -15,7 +15,6 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import classNames from 'classnames';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
@@ -35,9 +34,9 @@ import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { GroupPayload } from '../../models/GroupPayload';
 import Button from '@codegouvfr/react-dsfr/Button';
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 
 interface RouterState {
   alert?: string;
@@ -51,11 +50,20 @@ function GroupView() {
 
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { onResetFilters, setExpand, filters, removeFilter } = useFilters();
+  const { setExpand, filters, removeFilter } = useFilters();
+  const { changeFilters } = housingSlice.actions;
+
+  const resetFilters = useCallback(() => {
+    dispatch(
+      changeFilters({
+        groupIds: [id],
+      })
+    );
+  }, [dispatch, changeFilters, id]);
+
+  useEffect(resetFilters, [resetFilters]);
 
   const { view } = useAppSelector((state) => state.housing);
-
-  const { changeFilters, changeView } = housingSlice.actions;
 
   function searchWithQuery(query: string): void {
     trackEvent({
@@ -69,14 +77,6 @@ function GroupView() {
       })
     );
   }
-
-  useEffect(() => {
-    dispatch(
-      changeFilters({
-        groupIds: [id],
-      })
-    );
-  }, [changeFilters, dispatch, id]);
 
   const router = useHistory<RouterState | undefined>();
   const alert = router.location.state?.alert ?? '';
@@ -185,43 +185,7 @@ function GroupView() {
         </Col>
 
         <Col>
-          <ButtonsGroup
-            inlineLayoutWhen="sm and up"
-            buttonsSize="medium"
-            alignment="right"
-            buttons={[
-              {
-                children: 'Tableau',
-                title: 'Vue tableau',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.ListView,
-                  });
-                  dispatch(changeView('list'));
-                },
-                className: classNames('fr-mr-0', 'color-black-50', {
-                  'bg-950': view !== 'list',
-                }),
-              },
-              {
-                children: 'Cartographie',
-                title: 'Vue carte',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.MapView,
-                  });
-                  dispatch(changeView('map'));
-                },
-                className: classNames('fr-ml-0', 'color-black-50', {
-                  'bg-950': view !== 'map',
-                }),
-              },
-            ]}
-          />
+          <HousingDisplaySwitch />
         </Col>
       </Row>
 
@@ -229,7 +193,7 @@ function GroupView() {
         <HousingFiltersBadges
           filters={filters}
           onChange={(values) => removeFilter(values)}
-          onReset={onResetFilters}
+          onReset={resetFilters}
         />
       </Row>
 

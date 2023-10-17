@@ -4,7 +4,7 @@ import { Col, Container, Row } from '../../_dsfr';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
-import Help from '../../Help/Help';
+import AppHelp from '../../_app/AppHelp/AppHelp';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tag from '@codegouvfr/react-dsfr/Tag';
@@ -111,11 +111,11 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
                 </Col>
               </Row>
             ) : (
-              <Help>
+              <AppHelp>
                 La taxe d’habitation sur les logements vacants (THLV) peut être
                 instaurée dans toutes les communes où la TLV n’est pas
                 appliquée.
-              </Help>
+              </AppHelp>
             )}
           </form>
         </Container>

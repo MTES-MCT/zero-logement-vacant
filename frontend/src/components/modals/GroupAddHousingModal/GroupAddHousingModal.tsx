@@ -9,7 +9,7 @@ import { GroupPayload } from '../../../models/GroupPayload';
 import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import Info from '../../Info/Info';
+import AppInfo from '../../_app/AppInfo/AppInfo';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 
@@ -172,10 +172,10 @@ function GroupAddHousingModal(props: Props) {
                       inputKey="description"
                       required
                     />
-                    <Info>
+                    <AppInfo>
                       Vous pouvez par exemple définir à quoi sert ce groupe et
                       comment vous l’avez construit
-                    </Info>
+                    </AppInfo>
                   </Col>
                 </Row>
               </form>

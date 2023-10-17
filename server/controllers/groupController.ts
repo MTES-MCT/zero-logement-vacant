@@ -14,6 +14,7 @@ import { isArrayOf, isString, isUUIDParam } from '../utils/validators';
 import campaignRepository from '../repositories/campaignRepository';
 import { GroupHousingEventApi } from '../models/EventApi';
 import eventRepository from '../repositories/eventRepository';
+import housingFiltersApi from '../models/HousingFiltersApi';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -93,8 +94,7 @@ const createValidators: ValidationChain[] = [
   body('housing.ids')
     .if(body('housing').notEmpty())
     .custom(isArrayOf(isString)),
-  // FIXME
-  // ...housingFiltersApi.validators('housing.filters'),
+  ...housingFiltersApi.validators('housing.filters'),
 ];
 
 const show = async (request: Request, response: Response): Promise<void> => {
@@ -196,7 +196,6 @@ const addHousing = async (
   );
 
   await groupRepository.addHousing(group, diff);
-  // await groupRepository.save(group, uniqueHousingList);
 
   const events: GroupHousingEventApi[] = diff.map((housing) => ({
     id: uuidv4(),
@@ -226,8 +225,7 @@ const addHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('all').isBoolean().notEmpty(),
   body('ids').custom(isArrayOf(isString)),
-  // FIXME
-  // body('filters')
+  ...housingFiltersApi.validators('filters'),
 ];
 
 const removeHousing = async (request: Request, response: Response) => {
@@ -278,7 +276,7 @@ const removeHousing = async (request: Request, response: Response) => {
     housingCount: housingList.length,
     ownerCount: fp.uniqBy('id', owners).length,
   };
-  await groupRepository.save(updatedGroup, housingList);
+  await groupRepository.removeHousing(updatedGroup, removingHousingList);
 
   const events: GroupHousingEventApi[] = removingHousingList.map((housing) => ({
     id: uuidv4(),

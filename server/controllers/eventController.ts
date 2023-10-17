@@ -9,12 +9,6 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { EventApi } from '../models/EventApi';
 import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
-import { logger } from '../utils/logger';
-
-const listByGroupId = async (request: Request, response: Response) => {
-  const { params } = request;
-  logger.info('List group events', params.id);
-};
 
 const listByOwnerId = async (
   request: Request,
@@ -57,7 +51,6 @@ const listByHousingId = async (request: Request, response: Response) => {
 };
 
 const eventController = {
-  listByGroupId,
   listByOwnerId,
   listByHousingId,
 };

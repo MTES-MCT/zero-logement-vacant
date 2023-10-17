@@ -117,6 +117,13 @@ const addHousing = async (
   group: GroupApi,
   housingList: HousingApi[]
 ): Promise<void> => {
+  if (!housingList.length) {
+    logger.debug('No housing to add. Skipping...', {
+      group,
+    });
+    return;
+  }
+
   logger.debug('Adding housing to a group...', {
     group,
     housing: housingList.length,

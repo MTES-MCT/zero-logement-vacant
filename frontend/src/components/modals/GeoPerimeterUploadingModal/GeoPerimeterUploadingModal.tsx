@@ -10,7 +10,7 @@ import {
 } from '../../_dsfr';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
-import Help from '../../Help/Help';
+import AppHelp from '../../_app/AppHelp/AppHelp';
 import styles from './geo-perimeter-uploading-modal.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
@@ -52,13 +52,13 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
         Déposer un périmètre
       </ModalTitle>
       <ModalContent>
-        <Help className={styles.help}>
+        <AppHelp className={styles.help}>
           Pour utiliser le filtre “Périmètre” dans la base de données, vous
           pouvez déposer le ou les périmètres géographiques* qui vous
           intéressent : il peut s’agir d’un périmètre correspondant à un
           dispositif de type OPAH ou ORT, mais également d’un quartier en
           particulier, selon vos besoins.
-        </Help>
+        </AppHelp>
         <Row spacing="my-2w">
           <Col n="8">
             <Upload

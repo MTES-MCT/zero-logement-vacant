@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
-import Info from '../../Info/Info';
+import AppInfo from '../../_app/AppInfo/AppInfo';
 import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
@@ -95,10 +95,10 @@ function GroupEditionModal(props: Props) {
               inputKey="description"
               required
             />
-            <Info>
+            <AppInfo>
               Vous pouvez par exemple définir à quoi sert ce groupe et comment
               vous l’avez construit
-            </Info>
+            </AppInfo>
           </Col>
         </Row>
       </form>

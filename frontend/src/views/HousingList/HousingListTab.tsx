@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
@@ -209,10 +209,10 @@ const HousingListTab = ({
         <SelectableListHeader
           entity="logement"
           default={
-            <Help className="fr-mb-2w fr-py-2w">
+            <AppHelp className="fr-mb-2w fr-py-2w">
               <b>Sélectionnez</b> les logements que vous souhaitez cibler, puis
               cliquez sur <b>Créer une campagne</b>.
-            </Help>
+            </AppHelp>
           }
         >
           <SelectableListHeaderActions>

@@ -11,7 +11,7 @@ import {
   TrackEventCategories,
 } from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useSettings } from '../../hooks/useSettings';
 import {
@@ -160,10 +160,10 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
           className="fr-mb-2w"
         />
       )}
-      <Help className="fr-mb-4w">
+      <AppHelp className="fr-mb-4w">
         Renseignez vos guichets contact ici. Ce sont les points de contact qui
         seront affichés sur votre page publique.
-      </Help>
+      </AppHelp>
       <Row gutters spacing="mb-2w">
         {points?.map((contactPoint) => (
           <Col n="4" key={contactPoint.id}>

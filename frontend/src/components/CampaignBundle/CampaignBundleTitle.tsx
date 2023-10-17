@@ -13,7 +13,7 @@ import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
-import Help from '../Help/Help';
+import AppHelp from '../_app/AppHelp/AppHelp';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import { useAppDispatch } from '../../hooks/useStore';
@@ -93,12 +93,12 @@ const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
       )}
       {campaignBundle.campaignNumber === 0 && (
         <div className="fr-py-2w">
-          <Help>
+          <AppHelp>
             Les logements hors campagne sont les logements qui sont 
             <b>
               en cours de suivi mais qui ne sont pas compris dans une campagne.
             </b>
-          </Help>
+          </AppHelp>
         </div>
       )}
       <modal.Component

@@ -13,7 +13,6 @@ import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import classNames from 'classnames';
 import { filterCount } from '../../models/HousingFilters';
 import housingSlice, {
   initialHousingFilters,
@@ -22,8 +21,8 @@ import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import GroupHeader from '../../components/GroupHeader/GroupHeader';
+import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -33,7 +32,7 @@ const HousingListView = () => {
 
   const { view } = useAppSelector((state) => state.housing);
 
-  const { changeFilters, changeView } = housingSlice.actions;
+  const { changeFilters } = housingSlice.actions;
 
   const searchWithQuery = (query: string) => {
     trackEvent({
@@ -81,43 +80,7 @@ const HousingListView = () => {
         </Col>
 
         <Col>
-          <ButtonsGroup
-            inlineLayoutWhen="sm and up"
-            buttonsSize="medium"
-            alignment="right"
-            buttons={[
-              {
-                children: 'Tableau',
-                title: 'Vue tableau',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.ListView,
-                  });
-                  dispatch(changeView('list'));
-                },
-                className: classNames('fr-mr-0', 'color-black-50', {
-                  'bg-950': view !== 'list',
-                }),
-              },
-              {
-                children: 'Cartographie',
-                title: 'Vue carte',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.MapView,
-                  });
-                  dispatch(changeView('map'));
-                },
-                className: classNames('fr-ml-0', 'color-black-50', {
-                  'bg-950': view !== 'map',
-                }),
-              },
-            ]}
-          />
+          <HousingDisplaySwitch />
         </Col>
       </Row>
 

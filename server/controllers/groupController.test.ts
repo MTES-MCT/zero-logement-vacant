@@ -254,10 +254,21 @@ describe('Group controller', () => {
     const testRoute = (id: string) => `/api/groups/${id}`;
     const group = genGroupApi(User1, Establishment1);
     const anotherGroup = genGroupApi(User2, Establishment2);
+    const housingList = [
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment1.geoCodes[0]),
+      genHousingApi(Establishment2.geoCodes[0]),
+    ];
 
-    const payload: Pick<GroupPayloadDTO, 'title' | 'description'> = {
+    const payload: GroupPayloadDTO = {
       title: 'Logement prioritaires',
       description: 'Logements les plus énergivores',
+      housing: {
+        all: false,
+        ids: housingList.map((housing) => housing.id),
+        filters: {},
+      },
     };
 
     beforeEach(async () => {

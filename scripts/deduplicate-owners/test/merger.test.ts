@@ -8,6 +8,7 @@ import {
 import db from '../../../server/repositories/db';
 import {
   formatOwnerApi,
+  HousingOwnerDBO,
   ownerTable,
 } from '../../../server/repositories/ownerRepository';
 import { User1 } from '../../../database/seeds/test/003-users';
@@ -48,10 +49,12 @@ describe('Merger', () => {
       // Attach housing to the duplicates
       await db(housingTable).insert(housingList.map(formatHousingRecordApi));
       await db(ownersHousingTable).insert(
-        housingList.map((housing, i) => {
+        housingList.map<HousingOwnerDBO>((housing, i) => {
           return {
             housing_id: housing.id,
+            housing_geo_code: housing.geoCode,
             owner_id: duplicates[i].id,
+            rank: i + 1,
           };
         })
       );

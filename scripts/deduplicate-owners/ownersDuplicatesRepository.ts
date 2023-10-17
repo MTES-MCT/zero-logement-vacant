@@ -17,7 +17,7 @@ async function save(...duplicates: OwnerDuplicate[]): Promise<void> {
 
 async function removeOrphans(): Promise<void> {
   logger.debug('Removing orphan duplicates...');
-  await db(ownerDuplicatesTable)
+  const deleted = await db(ownerDuplicatesTable)
     .whereNotExists((builder) =>
       builder
         .select('id')
@@ -25,6 +25,7 @@ async function removeOrphans(): Promise<void> {
         .where('id', db.column(`${ownerDuplicatesTable}.source_id`))
     )
     .delete();
+  logger.debug(`Removed ${deleted} orphan duplicates.`);
 }
 
 export interface OwnerDuplicateDBO extends OwnerDBO {

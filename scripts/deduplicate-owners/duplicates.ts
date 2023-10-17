@@ -10,7 +10,9 @@ import { isEqual } from 'date-fns';
 export const REVIEW_THRESHOLD = 0.7;
 export const MATCH_THRESHOLD = 0.85;
 
-export async function duplicates(owner: OwnerApi): Promise<OwnerApi[]> {
+export async function findDuplicatesByName(
+  owner: OwnerApi
+): Promise<OwnerApi[]> {
   const dups = await ownerRepository.find({
     fullName: owner.fullName,
   });

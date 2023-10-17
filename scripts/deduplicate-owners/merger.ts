@@ -3,7 +3,11 @@ import { logger } from '../../server/utils/logger';
 import { ownerNotesTable } from '../../server/repositories/noteRepository';
 import { ownerEventsTable } from '../../server/repositories/eventRepository';
 import { ownersHousingTable } from '../../server/repositories/housingRepository';
-import { ownerTable } from '../../server/repositories/ownerRepository';
+import {
+  HousingOwnerDBO,
+  OwnerDBO,
+  ownerTable,
+} from '../../server/repositories/ownerRepository';
 import db from '../../server/repositories/db';
 import { isMatch } from './duplicates';
 import fp from 'lodash/fp';
@@ -23,6 +27,29 @@ async function merge(comparison: Comparison): Promise<void> {
   const removingIds = removing.map((owner) => owner.id);
   await db
     .transaction(async (transaction) => {
+      // Handle the case when the owner appears multiple times in a housing
+      const ownersHousing = await transaction(ownersHousingTable).whereIn(
+        'owner_id',
+        [...removingIds, keeping.id]
+      );
+      const duplicates = findHousingOwnerDuplicates(ownersHousing);
+      if (duplicates.length > 0) {
+        const duplicatesRemoved = await transaction(ownersHousingTable)
+          .modify((query) => {
+            duplicates.forEach((duplicate) => {
+              query.orWhere({
+                housing_id: duplicate.housing_id,
+                housing_geo_code: duplicate.housing_geo_code,
+                owner_id: duplicate.owner_id,
+              });
+            });
+          })
+          .delete();
+        logger.debug(
+          `Removed ${duplicatesRemoved} duplicate(s) from owners_housing`
+        );
+      }
+
       await transaction(ownersHousingTable)
         .update({ owner_id: keeping.id })
         .whereIn('owner_id', removingIds);
@@ -38,7 +65,7 @@ async function merge(comparison: Comparison): Promise<void> {
       await transaction(ownerTable).whereIn('id', removingIds).delete();
 
       const owners = [keeping, ...removing];
-      const merged = fp.pickBy((value) => !fp.isNil(value), {
+      const merged: Partial<OwnerDBO> = fp.pickBy((value) => !fp.isNil(value), {
         raw_address: fp.maxBy((owner) => owner.rawAddress.length, owners)
           ?.rawAddress,
         birth_date: !keeping.birthDate
@@ -48,8 +75,9 @@ async function merge(comparison: Comparison): Promise<void> {
           ?.administrator,
         email: owners.find((owner) => !!owner.email)?.email,
         phone: owners.find((owner) => !!owner.phone)?.phone,
-        kind: owners.find((owner) => !!owner.kind)?.kind,
-        kind_detail: owners.find((owner) => !!owner.kindDetail)?.kindDetail,
+        owner_kind: owners.find((owner) => !!owner.kind)?.kind,
+        owner_kind_detail: owners.find((owner) => !!owner.kindDetail)
+          ?.kindDetail,
       });
       if (fp.size(merged) > 0) {
         logger.debug('Merge into owner', { id: keeping.id, ...merged });
@@ -59,6 +87,26 @@ async function merge(comparison: Comparison): Promise<void> {
     .catch((error) => {
       throw new ComparisonMergeError({ comparison, origin: error });
     });
+}
+
+function findHousingOwnerDuplicates(
+  housingOwners: HousingOwnerDBO[]
+): HousingOwnerDBO[] {
+  return fp.pipe(
+    fp.groupBy<HousingOwnerDBO>('housing_id'),
+    fp.pickBy((housingOwners) => housingOwners.length > 1),
+    fp.mapValues<HousingOwnerDBO[], HousingOwnerDBO[]>((housingOwners) => {
+      const min = fp.minBy('rank', housingOwners);
+      if (!min) {
+        throw new Error('There should be housing owners here');
+      }
+      return housingOwners.filter(
+        (housingOwner) => housingOwner.owner_id !== min.owner_id
+      );
+    }),
+    fp.values,
+    fp.flatten
+  )(housingOwners);
 }
 
 const merger = {

@@ -349,6 +349,8 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   birthDate: result.birth_date,
   email: result.email,
   phone: result.phone,
+  kind: result.owner_kind,
+  kindDetail: result.owner_kind_detail,
 });
 
 export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
@@ -369,6 +371,8 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
   email: ownerApi.email,
   phone: ownerApi.phone,
+  owner_kind: ownerApi.kind,
+  owner_kind_detail: ownerApi.kindDetail,
 });
 
 export const formatOwnerHousingApi = (

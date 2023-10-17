@@ -8,8 +8,8 @@ import ownerRepository from '../../server/repositories/ownerRepository';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import {
   compare,
-  duplicates,
   findBest,
+  findDuplicatesByName,
   isMatch,
   needsManualReview,
 } from './duplicates';
@@ -83,7 +83,7 @@ function run(): void {
 
 async function process(owner: OwnerApi): Promise<Comparison> {
   // Find duplicates
-  const dups = await duplicates(owner);
+  const dups = await findDuplicatesByName(owner);
 
   ownerCache.currentName(owner.fullName);
   const scores = dups

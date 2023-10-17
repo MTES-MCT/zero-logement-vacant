@@ -1,5 +1,5 @@
 import { Group as GroupModel } from '../../models/Group';
-import { Col, Container, Icon, Row, Text, Title } from '../_dsfr';
+import { Col, Container, Row, Text, Title } from '../_dsfr';
 import styles from './group.module.scss';
 import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
@@ -10,6 +10,7 @@ import GroupRemovalModal from '../modals/GroupRemovalModal/GroupRemovalModal';
 import AppLink from '../_app/AppLink/AppLink';
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
+import { fr } from '@codegouvfr/react-dsfr';
 
 interface GroupProps {
   group: GroupModel;
@@ -59,31 +60,26 @@ function Group(props: GroupProps) {
               />
             </Row>
             <Row className="weight-500">
-              <Icon
-                name="ri-home-2-fill"
-                iconPosition="left"
-                size="sm"
-                title="Logements"
-              />
               <Text as="span" spacing="mr-2w mb-0" size="sm">
+                <i
+                  className={fr.cx('ri-home-2-fill', 'fr-icon--sm', 'fr-mr-1v')}
+                />
                 {props.group.housingCount} {housing}
               </Text>
-              <Icon
-                name="ri-user-fill"
-                iconPosition="left"
-                size="sm"
-                title="Propriétaires"
-              />
               <Text as="span" spacing="mr-2w mb-0" size="sm">
+                <i
+                  className={fr.cx('ri-user-fill', 'fr-icon--sm', 'fr-mr-1v')}
+                />
                 {props.group.ownerCount} {owners}
               </Text>
-              <Icon
-                name="ri-edit-box-fill"
-                iconPosition="left"
-                size="sm"
-                title="Date de création"
-              />
               <Text as="span" spacing="mb-0" size="sm">
+                <i
+                  className={fr.cx(
+                    'ri-edit-box-fill',
+                    'fr-icon--sm',
+                    'fr-mr-1v'
+                  )}
+                />
                 Créé le {dateShortFormat(props.group.createdAt)} par 
                 {props.group.createdBy?.firstName} 
                 {props.group.createdBy?.lastName}

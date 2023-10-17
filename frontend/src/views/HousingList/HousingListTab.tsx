@@ -144,8 +144,6 @@ const HousingListTab = ({
   async function doCreateGroup(
     group: Pick<Group, 'title' | 'description'>
   ): Promise<void> {
-    console.log('Created');
-    debugger;
     try {
       const created = await createGroup({
         title: group.title,

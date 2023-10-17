@@ -101,7 +101,9 @@ const CampaignInProgressTab = ({
           <b>{getHousingState(status).title} : </b>
           {getHousingState(status).hint}
           <div className="fr-pl-3w">
-            <AppLink to="/ressources">En savoir plus sur les statuts</AppLink>
+            <AppLink to="/ressources/statuts">
+              En savoir plus sur les statuts
+            </AppLink>
           </div>
         </Help>
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Col, Row } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -11,12 +11,9 @@ import {
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import { filterCount } from '../../models/HousingFilters';
-import housingSlice, {
-  initialHousingFilters,
-} from '../../store/reducers/housingReducer';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
@@ -26,34 +23,40 @@ import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/Hous
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { onResetFilters, setExpand, filters, removeFilter } = useFilters();
+
+  const {
+    filters,
+    setFilters,
+    expand,
+    onChangeFilters,
+    onResetFilters,
+    setExpand,
+    removeFilter,
+  } = useFilters();
 
   const { view } = useAppSelector((state) => state.housing);
-
-  const { changeFilters } = housingSlice.actions;
 
   const searchWithQuery = (query: string) => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.Search,
     });
-    dispatch(
-      changeFilters({
-        ...filters,
-        query,
-      })
-    );
+    setFilters({
+      ...filters,
+      query,
+    });
   };
-
-  useEffect(() => {
-    dispatch(changeFilters(initialHousingFilters));
-  }, [changeFilters, dispatch]);
 
   return (
     <MainContainer>
-      <HousingListFiltersSidemenu />
+      <HousingListFiltersSidemenu
+        filters={filters}
+        expand={expand}
+        onChange={onChangeFilters}
+        onReset={onResetFilters}
+        onClose={() => setExpand(false)}
+      />
       <Row spacing="mb-5w">
         <GroupHeader />
       </Row>

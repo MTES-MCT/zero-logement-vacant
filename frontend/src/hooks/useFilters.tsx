@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import housingSlice, {
   initialHousingFilters,
 } from '../store/reducers/housingReducer';
@@ -7,40 +7,55 @@ import { TrackEventActions, TrackEventCategories } from '../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useAppDispatch, useAppSelector } from './useStore';
 
-export function useFilters() {
+interface FiltersOptions {
+  /**
+   * @default store
+   */
+  storage?: 'store' | 'state';
+  initialState?: HousingFilters;
+}
+
+export function useFilters(opts?: FiltersOptions) {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { filters, filtersExpanded: expand } = useAppSelector(
-    (state) => state.housing
-  );
+  const initialState = opts?.initialState ?? initialHousingFilters;
+
+  const storage = opts?.storage ?? 'store';
+  const store = useAppSelector((state) => state.housing);
+  const state = useState<HousingFilters>(initialState);
+
+  function changeFilters(filters: HousingFilters): void {
+    dispatch(housingSlice.actions.changeFilters(filters));
+  }
+
+  const [filters, setFilters] =
+    storage === 'store' ? [store.filters, changeFilters] : state;
+
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
 
-  const { expandFilters, changeFilters } = housingSlice.actions;
+  const { filtersExpanded: expand } = useAppSelector((state) => state.housing);
+  const { expandFilters } = housingSlice.actions;
 
   function setExpand(value: boolean): void {
     dispatch(expandFilters(value));
   }
 
   function removeFilter(removed: HousingFilters) {
-    dispatch(
-      changeFilters({
-        ...filters,
-        ...removed,
-      })
-    );
+    setFilters({
+      ...filters,
+      ...removed,
+    });
   }
 
   const length = useMemo<number>(() => Object.keys(filters).length, [filters]);
 
   function onChange(changed: HousingFilters, filterLabel?: string): void {
-    dispatch(
-      changeFilters({
-        ...filters,
-        ...changed,
-      })
-    );
+    setFilters({
+      ...filters,
+      ...changed,
+    });
     if (filterLabel) {
       trackNewFilter(changed, filterLabel);
     }
@@ -69,12 +84,13 @@ export function useFilters() {
   }
 
   function onReset(): void {
-    dispatch(changeFilters(initialHousingFilters));
+    setFilters(initialState);
   }
 
   return {
     expand,
     filters,
+    setFilters,
     length,
     removeFilter,
     onChangeFilters: onChange,

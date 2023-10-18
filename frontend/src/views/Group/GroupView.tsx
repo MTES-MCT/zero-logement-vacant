@@ -7,7 +7,7 @@ import {
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { filterCount } from '../../models/HousingFilters';
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -20,7 +20,6 @@ import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import housingSlice from '../../store/reducers/housingReducer';
 import {
   createCampaignFromGroup,
   listCampaigns,
@@ -50,18 +49,20 @@ function GroupView() {
 
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { setExpand, filters, removeFilter } = useFilters();
-  const { changeFilters } = housingSlice.actions;
-
-  const resetFilters = useCallback(() => {
-    dispatch(
-      changeFilters({
-        groupIds: [id],
-      })
-    );
-  }, [dispatch, changeFilters, id]);
-
-  useEffect(resetFilters, [resetFilters]);
+  const {
+    filters,
+    setFilters,
+    expand,
+    removeFilter,
+    setExpand,
+    onChangeFilters,
+    onResetFilters,
+  } = useFilters({
+    storage: 'state',
+    initialState: {
+      groupIds: [id],
+    },
+  });
 
   const { view } = useAppSelector((state) => state.housing);
 
@@ -70,12 +71,10 @@ function GroupView() {
       category: TrackEventCategories.Group,
       action: TrackEventActions.HousingList.Search,
     });
-    dispatch(
-      changeFilters({
-        ...filters,
-        query,
-      })
-    );
+    setFilters({
+      ...filters,
+      query,
+    });
   }
 
   const router = useHistory<RouterState | undefined>();
@@ -165,7 +164,13 @@ function GroupView() {
       />
 
       <Row spacing="mb-1w" alignItems="top">
-        <HousingListFiltersSidemenu />
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
+        />
         <Col n="6" className="d-flex">
           <AppSearchBar
             onSearch={searchWithQuery}
@@ -192,8 +197,8 @@ function GroupView() {
       <Row>
         <HousingFiltersBadges
           filters={filters}
-          onChange={(values) => removeFilter(values)}
-          onReset={resetFilters}
+          onChange={removeFilter}
+          onReset={onResetFilters}
         />
       </Row>
 

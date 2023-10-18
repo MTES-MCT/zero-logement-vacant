@@ -1,4 +1,4 @@
-import merger from '../merger';
+import createMerger from '../merger';
 import { Comparison } from '../comparison';
 import {
   genHousingApi,
@@ -24,6 +24,8 @@ import {
 } from '../../../server/repositories/housingRepository';
 
 describe('Merger', () => {
+  const merger = createMerger();
+
   describe('merge', () => {
     const source = genOwnerApi();
     const duplicates = [genOwnerApi(), genOwnerApi()];

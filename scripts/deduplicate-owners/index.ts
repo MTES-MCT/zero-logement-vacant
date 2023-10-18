@@ -1,6 +1,4 @@
 import highland from 'highland';
-import fs from 'node:fs';
-
 import script from 'node:process';
 
 import { logger } from '../../server/utils/logger';
@@ -19,11 +17,29 @@ import { formatDuration, intervalToDuration } from 'date-fns';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
 import ownerCache from './ownerCache';
-import merger from './merger';
+import createMerger from './merger';
 import ownersDuplicatesRepository from './ownersDuplicatesRepository';
 import { OwnerDuplicate } from './OwnerDuplicate';
 
 const recorder = createRecorder();
+const reporter = createReporter('json');
+const merger = createMerger();
+
+merger.on('owners:removed', (count) => {
+  recorder.update({
+    removed: {
+      owners: count,
+    },
+  });
+});
+
+merger.on('owners-housing:removed', (count) => {
+  recorder.update({
+    removed: {
+      ownersHousing: count,
+    },
+  });
+});
 
 function run(): void {
   const comparisons = ownerRepository
@@ -34,10 +50,10 @@ function run(): void {
   comparisons
     .fork()
     .through(recorder.record())
-    .map(createReporter('json').toString)
-    .pipe(fs.createWriteStream('report.json', 'utf8'))
+    .map(reporter.toString)
+    .pipe(script.stdout)
     .on('finish', () => {
-      logger.info('Report written to report.json');
+      logger.info('Report written.');
     });
 
   const duplicateWriter = comparisons
@@ -112,9 +128,9 @@ script.once('SIGTERM', cleanUp);
 
 function cleanUp() {
   recorder.flush();
-  const report = createReporter('json').toString(recorder.report);
-  fs.writeFileSync('report.json', report, 'utf8');
-  logger.info('Report written to report.json');
+  const report = reporter.toString(recorder.report);
+  logger.info(report);
+  logger.info('Report written.');
   script.exit();
 }
 

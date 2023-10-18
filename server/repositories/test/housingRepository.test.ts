@@ -1,9 +1,27 @@
-import housingRepository from '../housingRepository';
+import housingRepository, {
+  formatHousingRecordApi,
+  Housing,
+} from '../housingRepository';
 import {
   Establishment1,
   Establishment2,
 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
+import { genGroupApi, genHousingApi, oneOf } from '../../test/testFixtures';
+import { User1 } from '../../../database/seeds/test/003-users';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+} from '../groupRepository';
+import fp from 'lodash/fp';
+import {
+  formatOwnerApi,
+  formatOwnerHousingApi,
+  Owners,
+  OwnersHousing,
+} from '../ownerRepository';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -43,6 +61,32 @@ describe('Housing repository', () => {
       expect(actual).toSatisfyAll(
         (housing) => housing.establishmentId === establishment.id
       );
+    });
+
+    it('should filter by group', async () => {
+      const group = genGroupApi(User1, Establishment1);
+      const housingList = [
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+        genHousingApi(oneOf(Establishment1.geoCodes)),
+      ];
+      const owners = housingList.map((housing) => housing.owner);
+      await Housing().insert(housingList.map(formatHousingRecordApi));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await OwnersHousing().insert(housingList.map(formatOwnerHousingApi));
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+
+      const actual = await housingRepository.find({
+        filters: {
+          establishmentIds: [Establishment1.id],
+          groupIds: [group.id],
+        },
+      });
+
+      expect(actual).toBeArrayOfSize(3);
+      const ids = housingList.map(fp.pick(['id']));
+      expect(actual).toIncludeAllPartialMembers(ids);
     });
   });
 

@@ -16,8 +16,6 @@ import {
   SelectedHousing,
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
-
-import { useLocation } from 'react-router-dom';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -68,7 +66,6 @@ const HousingList = ({
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
-  const location = useLocation();
   const campaignList = useCampaignList();
   const { trackEvent } = useMatomo();
 
@@ -193,11 +190,7 @@ const HousingList = ({
     name: 'address',
     headerRender: () => getSortButton('rawAddress', 'Adresse du logement'),
     render: ({ id, rawAddress }: Housing) => (
-      <AppLink
-        className="capitalize"
-        isSimple
-        to={`${location.pathname}/logements/${id}`}
-      >
+      <AppLink className="capitalize" isSimple to={`/logements/${id}`}>
         {rawAddress.map((line) => capitalize(line)).join('\n')}
       </AppLink>
     ),
@@ -211,7 +204,7 @@ const HousingList = ({
         <AppLink
           isSimple
           title={owner.fullName}
-          to={`${location.pathname}/proprietaires/${owner.id}`}
+          to={`/proprietaires/${owner.id}`}
         >
           {owner.fullName}
         </AppLink>

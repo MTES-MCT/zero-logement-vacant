@@ -1,7 +1,6 @@
 import Aside from '../Aside/Aside';
 import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr';
 import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
-import { useFilters } from '../../hooks/useFilters';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import {
   allOccupancyOptions,
@@ -14,6 +13,7 @@ import {
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
+  HousingFilters,
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
@@ -64,25 +64,31 @@ function TitleWithIcon(props: TitleWithIconProps) {
   );
 }
 
-function HousingListFiltersSidemenu() {
+interface Props {
+  filters: HousingFilters;
+  expand: boolean;
+  onChange: (filters: HousingFilters, label?: string) => void;
+  onReset: () => void;
+  onClose: () => void;
+}
+
+function HousingListFiltersSidemenu(props: Props) {
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
   const feature = useFeature({
     establishmentId: establishment?.id,
   });
-  const { expand, filters, onChangeFilters, onResetFilters, setExpand } =
-    useFilters();
+  const expand = props.expand ?? true;
+  const filters = props.filters;
+  const onChangeFilters = props.onChange;
+  const onResetFilters = props.onReset;
   const campaignList = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing;
-
-  function close(): void {
-    setExpand(false);
-  }
 
   const onChangeStatusFilter = (status: HousingStatus, isChecked: boolean) => {
     const statusList = [
@@ -103,7 +109,7 @@ function HousingListFiltersSidemenu() {
   return (
     <Aside
       expand={expand}
-      onClose={close}
+      onClose={props.onClose}
       title="Tous les filtres"
       content={
         <>

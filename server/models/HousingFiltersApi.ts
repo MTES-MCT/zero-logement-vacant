@@ -9,6 +9,7 @@ import { isArrayOf, isInteger, isString, isUUID } from '../utils/validators';
 export interface HousingFiltersApi {
   housingIds?: string[];
   establishmentIds?: string[];
+  groupIds?: string[];
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
@@ -40,43 +41,51 @@ export interface HousingFiltersApi {
   occupancies?: OccupancyKindApi[];
 }
 
-const validators: ValidationChain[] = [
-  body('filters').isObject({ strict: true }),
-  body('filters.establishmentIds')
+const validators = (property = 'filters'): ValidationChain[] => [
+  body(property).isObject({ strict: true }),
+  body(`${property}.establishmentIds`)
     .default([])
     .custom(isArrayOf(isUUID))
     .withMessage('Must be an array of UUIDs'),
-  body('filters.ownerKinds').default([]).custom(isArrayOf(isString)),
-  body('filters.ownerAges').default([]).custom(isArrayOf(isString)),
-  body('filters.multiOwners').default([]).custom(isArrayOf(isString)),
-  body('filters.beneficiaryCounts').default([]).custom(isArrayOf(isString)),
-  body('filters.housingKinds').default([]).custom(isArrayOf(isString)),
-  body('filters.cadastralClassificiations')
+  body(`${property}.ownerKinds`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.ownerAges`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.multiOwners`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.beneficiaryCounts`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.housingKinds`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.cadastralClassificiations`)
     .default([])
     .custom(isArrayOf(isString)),
-  body('filters.housingAreas').default([]).custom(isArrayOf(isString)),
-  body('filters.roomsCounts').default([]).custom(isArrayOf(isString)),
-  body('filters.buildingPeriods').default([]).custom(isArrayOf(isString)),
-  body('filters.vacancyDurations').default([]).custom(isArrayOf(isString)),
-  body('filters.isTaxedValues').default([]).custom(isArrayOf(isString)),
-  body('filters.ownershipKinds').default([]).custom(isArrayOf(isString)),
-  body('filters.housingCounts').default([]).custom(isArrayOf(isString)),
-  body('filters.vacancyRates').default([]).custom(isArrayOf(isString)),
-  body('filters.campaignsCounts').default([]).custom(isArrayOf(isString)),
-  body('filters.campaignIds').default([]).custom(isArrayOf(isUUID)),
-  body('filters.ownerIds').default([]).custom(isArrayOf(isUUID)),
-  body('filters.localities').default([]).custom(isArrayOf(isString)),
-  body('filters.localityKinds').default([]).custom(isArrayOf(isString)),
-  body('filters.geoPerimetersIncluded').default([]).custom(isArrayOf(isString)),
-  body('filters.geoPerimetersExcluded').default([]).custom(isArrayOf(isString)),
-  body('filters.dataYearsIncluded').default([]).custom(isArrayOf(isInteger)),
-  body('filters.dataYearsExcluded').default([]).custom(isArrayOf(isInteger)),
-  body('filters.statusList').default([]).custom(isArrayOf(isInteger)),
-  body('filters.status').optional().isInt(),
-  body('filters.subStatus').default([]).custom(isArrayOf(isString)),
-  body('filters.query').default('').isString(),
-  body('filters.energyConsumption').default([]).custom(isArrayOf(isString)),
-  body('filters.occupancies').default([]).custom(isArrayOf(isString)),
+  body(`${property}.housingAreas`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.roomsCounts`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.buildingPeriods`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.vacancyDurations`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.isTaxedValues`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.ownershipKinds`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.housingCounts`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.vacancyRates`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.campaignsCounts`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.campaignIds`).default([]).custom(isArrayOf(isUUID)),
+  body(`${property}.ownerIds`).default([]).custom(isArrayOf(isUUID)),
+  body(`${property}.localities`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.localityKinds`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.geoPerimetersIncluded`)
+    .default([])
+    .custom(isArrayOf(isString)),
+  body(`${property}.geoPerimetersExcluded`)
+    .default([])
+    .custom(isArrayOf(isString)),
+  body(`${property}.dataYearsIncluded`)
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body(`${property}.dataYearsExcluded`)
+    .default([])
+    .custom(isArrayOf(isInteger)),
+  body(`${property}.statusList`).default([]).custom(isArrayOf(isInteger)),
+  body(`${property}.status`).optional().isInt(),
+  body(`${property}.subStatus`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.query`).default('').isString(),
+  body(`${property}.energyConsumption`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.occupancies`).default([]).custom(isArrayOf(isString)),
 ];
 
 export default {

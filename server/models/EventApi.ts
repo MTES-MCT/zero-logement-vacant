@@ -4,6 +4,7 @@ import { HousingApi } from './HousingApi';
 import { HousingOwnerApi, OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';
 import { EventSection } from '../../shared/types/EventSection';
+import { GroupApi } from './GroupApi';
 
 export interface EventApi<T> {
   id: string;
@@ -23,11 +24,19 @@ export interface HousingEventApi
   housingId: string;
   housingGeoCode: string;
 }
+
 export interface OwnerEventApi extends EventApi<OwnerApi> {
   ownerId: string;
 }
+
 export interface CampaignEventApi extends EventApi<CampaignApi> {
   campaignId: string;
+}
+
+export interface GroupHousingEventApi extends EventApi<GroupApi> {
+  housingId: string;
+  housingGeoCode: string;
+  groupId: string | null;
 }
 
 export function isHousingEvent(

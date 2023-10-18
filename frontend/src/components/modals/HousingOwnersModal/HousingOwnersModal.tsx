@@ -186,7 +186,7 @@ const HousingOwnersModal = ({
   return (
     <>
       <Button
-        className="float-right fr-pr-0"
+        className="float-right"
         iconId="fr-icon-edit-fill"
         priority="tertiary no outline"
         title="Modifier le propriétaire"

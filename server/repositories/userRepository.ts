@@ -9,7 +9,7 @@ import { logger } from '../utils/logger';
 
 export const usersTable = 'users';
 
-const Users = () => db<UserDBO>(usersTable);
+export const Users = () => db<UserDBO>(usersTable);
 
 const get = async (id: string): Promise<UserApi | null> => {
   logger.debug('Get user by id', id);
@@ -126,7 +126,7 @@ const remove = async (userId: string): Promise<void> => {
   }
 };
 
-interface UserDBO {
+export interface UserDBO {
   id: string;
   email: string;
   password: string;
@@ -134,16 +134,16 @@ interface UserDBO {
   last_name?: string;
   establishment_id?: string;
   role: number;
-  activated_at?: Date;
-  last_authenticated_at?: Date;
-  deleted_at?: Date;
-  updated_at?: Date;
+  activated_at?: Date | string;
+  last_authenticated_at?: Date | string;
+  deleted_at?: Date | string;
+  updated_at?: Date | string;
   phone?: string;
   position?: string;
   time_per_week?: string;
 }
 
-const parseUserApi = (userDBO: UserDBO): UserApi => ({
+export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   id: userDBO.id,
   email: userDBO.email,
   password: userDBO.password,
@@ -151,16 +151,20 @@ const parseUserApi = (userDBO: UserDBO): UserApi => ({
   lastName: userDBO.last_name,
   establishmentId: userDBO.establishment_id,
   role: userDBO.role,
-  activatedAt: userDBO.activated_at,
-  lastAuthenticatedAt: userDBO.last_authenticated_at,
-  deletedAt: userDBO.deleted_at,
-  updatedAt: userDBO.updated_at,
+  activatedAt: userDBO.activated_at
+    ? new Date(userDBO.activated_at)
+    : undefined,
+  lastAuthenticatedAt: userDBO.last_authenticated_at
+    ? new Date(userDBO.last_authenticated_at)
+    : undefined,
+  deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at) : undefined,
+  updatedAt: userDBO.updated_at ? new Date(userDBO.updated_at) : undefined,
   phone: userDBO.phone,
   position: userDBO.position,
   timePerWeek: userDBO.time_per_week,
 });
 
-const formatUserApi = (userApi: UserApi): UserDBO => ({
+export const formatUserApi = (userApi: UserApi): UserDBO => ({
   id: userApi.id,
   email: userApi.email,
   password: userApi.password,

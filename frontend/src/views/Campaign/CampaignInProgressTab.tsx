@@ -18,7 +18,7 @@ import {
   useUpdateHousingListMutation,
 } from '../../services/housing.service';
 import HousingList from '../../components/HousingList/HousingList';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import { useCampaignBundle } from '../../hooks/useCampaignBundle';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -97,7 +97,7 @@ const CampaignInProgressTab = ({
   return (
     <>
       {!hasSelected && (
-        <Help className="d-block">
+        <AppHelp className="d-block">
           <b>{getHousingState(status).title} : </b>
           {getHousingState(status).hint}
           <div className="fr-pl-3w">
@@ -105,7 +105,7 @@ const CampaignInProgressTab = ({
               En savoir plus sur les statuts
             </AppLink>
           </div>
-        </Help>
+        </AppHelp>
       )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
         <SelectableListHeader entity="logement">

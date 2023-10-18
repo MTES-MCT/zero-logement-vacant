@@ -215,7 +215,7 @@ const listDataWithFilters = async (
   }
 };
 
-interface EstablishmentDbo {
+export interface EstablishmentDbo {
   id: string;
   name: string;
   siren: number;
@@ -227,7 +227,7 @@ interface EstablishmentDbo {
   updated_at: Date;
 }
 
-const formatEstablishmentApi = (
+export const formatEstablishmentApi = (
   establishmentApi: EstablishmentApi
 ): EstablishmentDbo => ({
   id: establishmentApi.id,
@@ -241,7 +241,7 @@ const formatEstablishmentApi = (
   updated_at: new Date(),
 });
 
-const parseEstablishmentApi = (
+export const parseEstablishmentApi = (
   establishmentDbo: EstablishmentDbo
 ): EstablishmentApi =>
   <EstablishmentApi>{

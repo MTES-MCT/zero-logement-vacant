@@ -3,7 +3,7 @@ import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Row, Title } from '../../../components/_dsfr';
-import Help from '../../../components/Help/Help';
+import AppHelp from '../../../components/_app/AppHelp/AppHelp';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';
 import { login } from '../../../store/actions/authenticationAction';
@@ -88,10 +88,10 @@ function AccountCampaignIntentCreationView() {
         ?
       </Title>
       {disabled && (
-        <Help className="fr-mb-2w">
+        <AppHelp className="fr-mb-2w">
           Un agent de votre collectivité a déjà indiqué les intentions de
           campagne.
-        </Help>
+        </AppHelp>
       )}
       <form onSubmit={createAccount}>
         <CampaignIntent

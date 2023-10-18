@@ -14,6 +14,7 @@ import EventPartialOwnerContent from './EventPartialOwnerContent';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLink from '../_app/AppLink/AppLink';
 import { Campaign, campaignBundleIdUrlFragment } from '../../models/Campaign';
+import GroupEventContent from './GroupEventContent';
 
 interface Props {
   events: Event[];
@@ -215,6 +216,9 @@ const EventsHistory = ({ events, notes }: Props) => {
                         )}
                       </div>
                     )}
+                  {eventOrNote.category === 'Group' && (
+                    <GroupEventContent event={eventOrNote} />
+                  )}
                 </>
               ) : (
                 <>

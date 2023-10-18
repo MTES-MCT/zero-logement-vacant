@@ -21,17 +21,15 @@ exports.seed = function (knex: Knex) {
     .then((results) => {
       console.log('results', results, results.length);
       if (results.length) {
-        return knex
-          .table(campaignsTable)
-          .insert(
-            results.map((result) =>
-              campaignRepository.formatCampaignApi(<any>{
-                ...DefaultCampaign,
-                establishmentId: result.id,
-              })
-            )
+        return knex.table(campaignsTable).insert(
+          results.map((result) =>
+            campaignRepository.formatCampaignApi(<any>{
+              ...DefaultCampaign,
+              establishmentId: result.id,
+              groupId: null,
+            })
           )
-          .debug(true);
+        );
       }
     });
 };

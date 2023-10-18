@@ -7,10 +7,6 @@
   margin-top: 2.5rem;
 }
 
-a[href]:not(.fr-btn, .internal-link--btn) {
-  padding-bottom: 0.2rem;
-}
-
 a[href].ds-fr--flex,
 a[href].fr-link {
   width: fit-content;
@@ -60,6 +56,13 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   line-height: initial !important;
   min-height: initial !important;
   padding: initial !important;
+}
+
+.fr-container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+  max-width: none;
+  width: 100%;
 }
 
 .fr-icon-xs::before {

@@ -12,9 +12,23 @@ import {
 } from '../models/Campaign';
 import { Housing } from '../models/Housing';
 import { HousingFilters } from '../models/HousingFilters';
+import { Group } from '../models/Group';
+import { getURLSearchParams } from '../utils/fetchUtils';
+import { CampaignFilters } from '../models/CampaignFilters';
 
-const listCampaigns = async (): Promise<Campaign[]> => {
-  return await fetch(`${config.apiEndpoint}/api/campaigns`, {
+export interface ListCampaignsOptions {
+  filters?: CampaignFilters;
+}
+
+const listCampaigns = async (
+  opts?: ListCampaignsOptions
+): Promise<Campaign[]> => {
+  const params = getURLSearchParams({
+    groups: opts?.filters?.groupIds?.join(','),
+  }).toString();
+  const query = params.length > 0 ? `?${params}` : '';
+
+  return fetch(`${config.apiEndpoint}/api/campaigns${query}`, {
     method: 'GET',
     headers: {
       ...authService.authHeader(),
@@ -72,6 +86,28 @@ const createCampaign = async (
   })
     .then((_) => _.json())
     .then((_) => parseCampaign(_));
+};
+
+const createCampaignFromGroup = async (payload: {
+  campaign: Pick<Campaign, 'title'>;
+  group: Group;
+}): Promise<Campaign> => {
+  const response = await fetch(
+    `${config.apiEndpoint}/api/groups/${payload.group.id}/campaigns`,
+    {
+      method: 'POST',
+      headers: {
+        ...authService.authHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: payload.campaign.title,
+      }),
+    }
+  );
+
+  const body = await response.json();
+  return parseCampaign(body);
 };
 
 const updateCampaignBundleTitle = async (
@@ -206,6 +242,7 @@ const campaignService = {
   listCampaignBundles,
   getCampaignBundle,
   createCampaign,
+  createCampaignFromGroup,
   createCampaignBundleReminder,
   updateCampaignBundleTitle,
   deleteCampaignBundle,

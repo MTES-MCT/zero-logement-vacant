@@ -9,7 +9,7 @@
     "lint": "node_modules/.bin/eslint . --ext .ts,.tsx",
     "eject": "craco eject",
     "postinstall": "copy-dsfr-to-public",
-    "predev": "only-include-used-icons",
+    "prestart": "only-include-used-icons",
     "prebuild": "only-include-used-icons"
   },
   "engines": {
@@ -70,6 +70,7 @@
     "eslint": "^8.35.0",
     "eslint-plugin-react": "^7.32.2",
     "jest": "^29.3.1",
+    "jest-extended": "^4.0.2",
     "randomstring": "^1.2.1"
   }
 }

@@ -51,12 +51,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               title="Voir tous ses logements"
               priority="secondary"
               linkProps={{
-                to:
-                  (window.location.pathname.indexOf('proprietaires') === -1
-                    ? window.location.pathname
-                    : '') +
-                  '/proprietaires/' +
-                  owner.id,
+                to: `/proprietaires/${owner.id}`
               }}
               className={styles.housingBouton}
             >

@@ -1,6 +1,6 @@
 import { Col, Row } from '../../components/_dsfr';
 import React, { useState } from 'react';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import * as yup from 'yup';
 import { useForm } from '../../hooks/useForm';
 import { DefaultOption, SelectOption } from '../../models/SelectOption';
@@ -97,13 +97,13 @@ const AccountForm = ({ user, userAccount }: Props) => {
             </AppLink>
           </Col>
           <Col n="12">
-            <Help>
+            <AppHelp>
               Pour changer d'adresse mail de connexion, 
               <b>rattachez votre nouvelle adresse mail</b>  à votre structure
               via le portail Consultdf puis 
               <b>créez un nouveau compte ZLV</b>  depuis la page d'accueil avec
               votre nouvelle adresse mail
-            </Help>
+            </AppHelp>
           </Col>
         </Row>
       </div>

@@ -12,43 +12,22 @@ import {
   HousingStatusApi,
   InProgressWithSupportSubStatus,
 } from '../models/HousingStatusApi';
+import { GroupDBO, groupsTable, parseGroupApi } from './groupRepository';
+import { HousingFiltersApi } from '../models/HousingFiltersApi';
+import { Knex } from 'knex';
+import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 
 export const campaignsTable = 'campaigns';
+export const Campaigns = () => db<CampaignDBO>(campaignsTable);
 
-const getCampaign = async (campaignId: string): Promise<CampaignApi | null> => {
-  const campaign = await db(campaignsTable)
-    .select(
-      `${campaignsTable}.*`,
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
-      ),
-      db.raw(
-        `count(*) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-      )
-    )
-    .count(`${campaignsHousingTable}.housing_id`, { as: 'housingCount' })
-    .countDistinct('o.id', { as: 'ownerCount' })
-    .from(campaignsTable)
+const get = async (campaignId: string): Promise<CampaignApi | null> => {
+  const campaign: CampaignDBO | null = await Campaigns()
+    .select(`${campaignsTable}.*`)
     .where(`${campaignsTable}.id`, campaignId)
     .leftJoin(
       campaignsHousingTable,
-      'id',
-      `${campaignsHousingTable}.campaign_id`
+      `${campaignsHousingTable}.campaign_id`,
+      `${campaignsTable}.id`
     )
     .leftJoin(housingTable, (join) => {
       join
@@ -149,9 +128,35 @@ const getCampaignBundle = async (
       }
       queryOwnerHousingWhereClause(queryBuilder, query);
     })
+    .leftJoin(groupsTable, `${groupsTable}.id`, `${campaignsTable}.group_id`)
+    .select(db.raw(`to_json(${groupsTable}.*) AS group`))
+    .groupBy(`${groupsTable}.id`)
     .first();
 
   return bundle ? parseCampaignBundleApi(bundle) : null;
+};
+
+interface FindOptions {
+  filters: CampaignFiltersApi;
+}
+
+const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
+  const campaigns: CampaignDBO[] = await Campaigns()
+    .where({
+      establishment_id: opts.filters.establishmentId,
+    })
+    .modify(filterQuery(opts.filters))
+    .orderBy('campaign_number');
+
+  return campaigns.map(parseCampaignApi);
+};
+
+const filterQuery = (filters: CampaignFiltersApi) => {
+  return function (query: Knex.QueryBuilder<CampaignDBO>) {
+    if (filters.groupIds?.length) {
+      query.whereIn('group_id', filters.groupIds);
+    }
+  };
 };
 
 const listCampaigns = async (
@@ -296,24 +301,42 @@ const deleteCampaigns = async (campaignIds: string[]): Promise<number> => {
   }
 };
 
-const parseCampaignApi = (result: any) =>
-  <CampaignApi>{
-    id: result.id,
-    establishmentId: result.establishment_id,
-    campaignNumber: result.campaign_number,
-    kind: result.kind,
-    reminderNumber: result.reminder_number,
-    filters: result.filters,
-    createdBy: result.created_by,
-    createdAt: result.created_at,
-    validatedAt: result.validated_at,
-    exportedAt: result.exported_at,
-    sentAt: result.sent_at,
-    archivedAt: result.archived_at,
-    sendingDate: result.sending_date,
-    confirmedAt: result.confirmed_at,
-    title: result.title,
-  };
+export interface CampaignDBO {
+  id: string;
+  establishment_id: string;
+  campaign_number: number;
+  kind: number;
+  reminder_number: number;
+  filters: object;
+  created_by: string;
+  created_at: Date;
+  validated_at?: Date;
+  exported_at?: Date;
+  sent_at?: Date;
+  archived_at?: Date;
+  sending_date?: Date;
+  confirmed_at?: Date;
+  title?: string;
+  group_id?: string;
+}
+
+const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
+  id: result.id,
+  establishmentId: result.establishment_id,
+  campaignNumber: result.campaign_number,
+  kind: result.kind,
+  reminderNumber: result.reminder_number,
+  filters: result.filters,
+  createdBy: result.created_by,
+  createdAt: result.created_at,
+  validatedAt: result.validated_at,
+  exportedAt: result.exported_at,
+  sentAt: result.sent_at,
+  archivedAt: result.archived_at,
+  sendingDate: result.sending_date,
+  confirmedAt: result.confirmed_at,
+  title: result.title,
+});
 
 const formatCampaignApi = (campaignApi: CampaignApi) => ({
   id: campaignApi.id,
@@ -333,31 +356,55 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
     ? new Date(campaignApi.sendingDate)
     : undefined,
   confirmed_at: campaignApi.confirmedAt,
+  group_id: campaignApi.groupId,
 });
 
-const parseCampaignBundleApi = (result: any) =>
-  <CampaignBundleApi>{
-    campaignIds: result.campaignIds,
-    campaignNumber: result.campaign_number,
-    reminderNumber: result.reminder_number,
-    createdAt: result.created_at,
-    title: result.title,
-    kind: result.kind,
-    filters: result.filters,
-    housingCount: result.housingCount,
-    neverContactedCount: result.neverContactedCount,
-    waitingCount: result.waitingCount,
-    inProgressCount: result.inProgressCount,
-    notVacantCount: result.notVacantCount,
-    noActionCount: result.noActionCount,
-    npaiCount: result.npaiCount,
-    inProgressWithSupportCount: result.inProgressWithSupportCount,
-    ownerCount: result.ownerCount,
-  };
+interface CampaignBundleDBO {
+  campaignIds: string[];
+  campaign_number: number;
+  reminder_number: number;
+  kind: number;
+  neverContactedCount: string;
+  waitingCount: string;
+  inProgressCount: string;
+  notVacantCount: string;
+  noActionCount: string;
+  npaiCount: string;
+  inProgressWithSupportCount: string;
+  housingCount: string;
+  ownerCount: string;
+  created_at: Date;
+  filters: HousingFiltersApi;
+  title: string;
+  group?: GroupDBO;
+}
+
+const parseCampaignBundleApi = (
+  bundle: CampaignBundleDBO
+): CampaignBundleApi => ({
+  campaignIds: bundle.campaignIds,
+  campaignNumber: bundle.campaign_number,
+  reminderNumber: bundle.reminder_number,
+  createdAt: bundle.created_at,
+  title: bundle.title,
+  kind: bundle.kind,
+  filters: bundle.filters,
+  housingCount: Number(bundle.housingCount),
+  ownerCount: Number(bundle.ownerCount),
+  neverContactedCount: Number(bundle.neverContactedCount),
+  waitingCount: Number(bundle.waitingCount),
+  inProgressCount: Number(bundle.inProgressCount),
+  notVacantCount: Number(bundle.notVacantCount),
+  noActionCount: Number(bundle.noActionCount),
+  npaiCount: Number(bundle.npaiCount),
+  inProgressWithSupportCount: Number(bundle.inProgressWithSupportCount),
+  group: bundle.group ? parseGroupApi(bundle.group) : undefined,
+});
 
 export default {
-  getCampaign,
+  get,
   getCampaignBundle,
+  find,
   listCampaigns,
   listCampaignBundles,
   lastCampaignNumber,

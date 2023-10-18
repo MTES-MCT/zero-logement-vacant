@@ -17,7 +17,7 @@ const modal = createModal({
 
 interface Props {
   housingCount: number;
-  housingExcudedCount?: number;
+  housingExcludedCount?: number;
   filters: HousingFilters;
   openingButtonProps: Omit<ButtonProps, 'onClick'>;
   onSubmit: (campaignTitle?: string) => void;
@@ -26,7 +26,7 @@ interface Props {
 
 const CampaignCreationModal = ({
   housingCount,
-  housingExcudedCount,
+  housingExcludedCount,
   filters,
   openingButtonProps,
   onSubmit,
@@ -119,17 +119,17 @@ const CampaignCreationModal = ({
                 ) : (
                   <div>La liste a été établie sans filtres.</div>
                 )}
-                {housingExcudedCount !== undefined &&
-                  housingExcudedCount > 0 && (
+                {housingExcludedCount !== undefined &&
+                  housingExcludedCount > 0 && (
                     <>
-                      {housingExcudedCount === 1 ? (
+                      {housingExcludedCount === 1 ? (
                         <i>
                           Un logement a été retiré des résultats de la recherche
                           {hasFilters(filters) && <> avec ces filtres</>}.
                         </i>
                       ) : (
                         <i>
-                          {housingExcudedCount} logements ont été retirés des
+                          {housingExcludedCount} logements ont été retirés des
                           résultats de la recherche
                           {hasFilters(filters) && <> avec ces filtres</>}.
                         </i>

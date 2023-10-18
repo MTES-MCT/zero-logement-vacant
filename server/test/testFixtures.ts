@@ -34,6 +34,7 @@ import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
 import { UserAccountDTO } from '../../shared/models/UserDTO';
+import { GroupApi } from '../models/GroupApi';
 
 const randomstring = require('randomstring');
 
@@ -102,8 +103,8 @@ export const genEstablishmentApi = (...geoCodes: string[]) => {
   };
 };
 
-export const genUserApi = (establishmentId: string) => {
-  return <UserApi>{
+export const genUserApi = (establishmentId: string): UserApi => {
+  return {
     id: uuidv4(),
     email: genEmail(),
     password: randomstring.generate(),
@@ -112,6 +113,12 @@ export const genUserApi = (establishmentId: string) => {
     establishmentId,
     role: UserRoles.Usual,
     activatedAt: new Date(),
+    phone: randomstring.generate({ length: 10, charset: 'numeric' }),
+    position: randomstring.generate(),
+    timePerWeek: randomstring.generate(),
+    lastAuthenticatedAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: undefined,
     ...genUserAccountDTO,
   };
 };
@@ -342,5 +349,23 @@ export const genHousingEventApi = (
     new: { ...genHousingApi(geoCode), id: housingId },
     housingId,
     housingGeoCode: geoCode,
+  };
+};
+
+export const genGroupApi = (
+  creator: UserApi,
+  establishment: EstablishmentApi
+): GroupApi => {
+  return {
+    id: uuidv4(),
+    title: randomstring.generate(),
+    description: randomstring.generate(),
+    housingCount: 0,
+    ownerCount: 0,
+    createdAt: new Date(),
+    userId: creator.id,
+    createdBy: creator,
+    establishmentId: establishment.id,
+    archivedAt: null,
   };
 };

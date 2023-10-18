@@ -1,4 +1,7 @@
-import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
+import {
+  CampaignsHousing,
+  campaignsHousingTable,
+} from '../repositories/campaignHousingRepository';
 import db from '../repositories/db';
 import { campaignsTable } from '../repositories/campaignRepository';
 import request from 'supertest';
@@ -11,14 +14,39 @@ import {
   Housing2,
 } from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import { campaignEventsTable } from '../repositories/eventRepository';
-import { CampaignSteps } from '../models/CampaignApi';
+import {
+  campaignEventsTable,
+  HousingEvents,
+} from '../repositories/eventRepository';
+import {
+  CampaignApi,
+  CampaignKinds,
+  CampaignSteps,
+} from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
-import { housingTable } from '../repositories/housingRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+  housingTable,
+} from '../repositories/housingRepository';
 import randomstring from 'randomstring';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from '../server';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+} from '../repositories/groupRepository';
+import { genGroupApi, genHousingApi } from '../test/testFixtures';
+import { User1 } from '../../database/seeds/test/003-users';
+import {
+  formatOwnerApi,
+  formatOwnerHousingApi,
+  Owners,
+  OwnersHousing,
+} from '../repositories/ownerRepository';
 
 const { app } = createServer();
 
@@ -80,7 +108,7 @@ describe('Campaign controller', () => {
       expect(res.body).toMatchObject(
         expect.objectContaining({
           campaignIds: expect.arrayContaining([Campaign1.id]),
-          housingCount: '2',
+          housingCount: 2,
         })
       );
     });
@@ -210,6 +238,118 @@ describe('Campaign controller', () => {
             ])
           );
         });
+    });
+  });
+
+  describe('createCampaignFromGroup', () => {
+    const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
+
+    const geoCode = Establishment1.geoCodes[0];
+    const group = genGroupApi(User1, Establishment1);
+    const groupHousing = [
+      genHousingApi(geoCode),
+      genHousingApi(geoCode),
+      genHousingApi(geoCode),
+    ];
+    const owners = groupHousing.map((housing) => housing.owner);
+
+    beforeEach(async () => {
+      await Groups().insert(formatGroupApi(group));
+      await Housing().insert(groupHousing.map(formatHousingRecordApi));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await OwnersHousing().insert(groupHousing.map(formatOwnerHousingApi));
+      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
+    });
+
+    it('should throw if the group is missing', async () => {
+      const { status } = await withAccessToken(
+        request(app)
+          .post(testRoute(uuidv4()))
+          .send({
+            title: 'Campagne prioritaire',
+          })
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should throw if the group has been archived', async () => {
+      await Groups().where('id', group.id).update({ archived_at: new Date() });
+
+      const { status } = await withAccessToken(
+        request(app)
+          .post(testRoute(group.id))
+          .send({
+            title: 'Campagne prioritaire',
+          })
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should create the campaign', async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send({
+          title: 'Logements prioritaires',
+          groupId: group.id,
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toStrictEqual<CampaignApi>({
+        id: expect.any(String),
+        groupId: group.id,
+        title: 'Logements prioritaires',
+        establishmentId: Establishment1.id,
+        filters: {
+          groupIds: [group.id],
+        },
+        createdAt: expect.toBeDateString(),
+        createdBy: User1.id,
+        campaignNumber: expect.any(Number),
+        reminderNumber: 0,
+        kind: CampaignKinds.Initial,
+        validatedAt: expect.toBeDateString(),
+      });
+    });
+
+    it("should add the group's housing to this campaign", async () => {
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send({
+          title: 'Logements prioritaires',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const campaignHousing = await CampaignsHousing().where(
+        'campaign_id',
+        body.id
+      );
+      expect(campaignHousing).toIncludeAllPartialMembers(
+        groupHousing.map((housing) => ({ housing_id: housing.id }))
+      );
+    });
+
+    it('should create campaign events', async () => {
+      const { status } = await withAccessToken(
+        request(app).post(testRoute(group.id)).send({
+          title: 'Logements prioritaires',
+        })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const housingIds = groupHousing.map((housing) => housing.id);
+      const housingEvents = await HousingEvents().whereIn(
+        'housing_id',
+        housingIds
+      );
+      expect(housingEvents).toBeArrayOfSize(groupHousing.length);
     });
   });
 

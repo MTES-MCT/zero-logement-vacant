@@ -20,7 +20,7 @@ import {
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
-import Help from '../../Help/Help';
+import AppHelp from '../../_app/AppHelp/AppHelp';
 import {
   useDeleteGeoPerimetersMutation,
   useListGeoPerimetersQuery,
@@ -147,7 +147,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             onClose={() => setGeoPerimeterToUpdate(undefined)}
           />
         )}
-        <Help className={styles.help}>
+        <AppHelp className={styles.help}>
           <Text>
             Pour utiliser le filtre “Périmètre” dans la base de données, vous
             pouvez déposer le ou les périmètres géographiques* qui vous
@@ -159,7 +159,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             *fichier géographique (SIG) au format .zip comprenant l'ensemble des
             extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
           </Text>
-        </Help>
+        </AppHelp>
         <Row className="fr-mt-3w fr-mb-1w">
           <Col>
             <div className="flex-1 flex-right">

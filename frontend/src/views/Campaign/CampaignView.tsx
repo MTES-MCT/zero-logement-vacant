@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
+import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
 import { CampaignSteps } from '../../models/Campaign';
 import { useParams } from 'react-router-dom';
 import CampaignInProgress from './CampaignInProgress';
@@ -26,6 +26,7 @@ import { useAppDispatch } from '../../hooks/useStore';
 import { numberOption } from '../../utils/numberUtils';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import AppLink from '../../components/_app/AppLink/AppLink';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
@@ -109,16 +110,49 @@ const CampaignView = () => {
           </div>
         </Col>
       </Row>
-      {bundle.filters && hasFilters(bundle.filters) && (
-        <Row spacing="mb-5w">
-          <Col>
-            <Text size="sm" className="fr-mb-1w">
-              Filtres utilisés pour la création de l'échantillon :
+      {bundle.group && (
+        <Row spacing="mb-2w">
+          <Col className="d-flex">
+            <Text
+              as="span"
+              className="weight-500"
+              size="sm"
+              spacing="mb-0 mr-2w"
+            >
+              Créée à partir du groupe
             </Text>
-            <HousingFiltersBadges filters={bundle.filters} />
+            {!!bundle.group.archivedAt ? (
+              <>
+                <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
+                <Text as="span" spacing="mb-0">
+                  {bundle.group.title}
+                </Text>
+              </>
+            ) : (
+              <AppLink
+                to={`/groupes/${bundle.group.id}`}
+                iconId="ri-hotel-fill"
+                iconPosition="left"
+                isSimple
+              >
+                {bundle.group.title}
+              </AppLink>
+            )}
           </Col>
         </Row>
       )}
+      {bundle.filters &&
+        hasFilters(bundle.filters) &&
+        !bundle.filters.groupIds?.length && (
+          <Row spacing="mb-5w">
+            <Col>
+              <Text size="sm" className="fr-mb-1w">
+                Filtres utilisés pour la création de l'échantillon :
+              </Text>
+              <HousingFiltersBadges filters={bundle.filters} />
+            </Col>
+          </Row>
+        )}
       {(bundle.campaignNumber ?? 0) > 0 &&
         step &&
         step >= CampaignSteps.InProgress && (

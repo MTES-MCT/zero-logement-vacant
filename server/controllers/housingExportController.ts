@@ -116,7 +116,7 @@ const exportGroup = async (request: Request, response: Response) => {
   writeWorkbook(
     stream,
     fileName,
-    ['housing:complete'],
+    ['owner', 'housing'],
     campaigns,
     workbook
   ).done(() => {

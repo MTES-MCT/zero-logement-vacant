@@ -28,7 +28,7 @@ const merger = createMerger();
 merger.on('owners:removed', (count) => {
   recorder.update({
     removed: {
-      owners: count,
+      owners: recorder.report.removed.owners + count,
     },
   });
 });
@@ -36,7 +36,7 @@ merger.on('owners:removed', (count) => {
 merger.on('owners-housing:removed', (count) => {
   recorder.update({
     removed: {
-      ownersHousing: count,
+      ownersHousing: recorder.report.removed.ownersHousing + count,
     },
   });
 });

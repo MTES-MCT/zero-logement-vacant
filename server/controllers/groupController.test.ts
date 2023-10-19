@@ -178,6 +178,22 @@ describe('Group controller', () => {
       });
     });
 
+    it('should validate the request payload', async () => {
+      const { status } = await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            title: 'Logements prioritaires',
+            description: 'Logements les plus énergivores',
+          })
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+    });
+
     it('should create a group with all the housing corresponding to the given criteria', async () => {
       const { body, status } = await withAccessToken(
         request(app)

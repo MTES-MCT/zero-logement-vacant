@@ -42,7 +42,7 @@ export interface HousingFiltersApi {
 }
 
 const validators = (property = 'filters'): ValidationChain[] => [
-  body(property).isObject({ strict: true }),
+  body(property).isObject({ strict: true }).optional(),
   body(`${property}.establishmentIds`)
     .default([])
     .custom(isArrayOf(isUUID))

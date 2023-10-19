@@ -2,12 +2,14 @@ import db from './db';
 import { HousingApi } from '../models/HousingApi';
 
 export const campaignsHousingTable = 'campaigns_housing';
+export const CampaignsHousing = () =>
+  db<CampaignHousingDBO>(campaignsHousingTable);
 
 const insertHousingList = async (
   campaignId: string,
   housingList: HousingApi[]
 ): Promise<void> => {
-  await db(campaignsHousingTable)
+  await CampaignsHousing()
     .insert(
       housingList.map((housing) => ({
         campaign_id: campaignId,
@@ -43,6 +45,13 @@ const deleteHousingFromCampaigns = async (
     throw new Error('Removing housing from campaign failed');
   }
 };
+
+export interface CampaignHousingDBO {
+  campaign_id: string;
+  housing_id: string;
+  housing_geo_code: string;
+  advice?: string;
+}
 
 export default {
   insertHousingList,

@@ -3,6 +3,7 @@ export type EventCategory =
   | 'Followup'
   | 'Diagnostic'
   | 'Campaign'
+  | 'Group'
   | 'Trade';
 
 export const EventCategories: EventCategory[] = [
@@ -10,5 +11,6 @@ export const EventCategories: EventCategory[] = [
   'Followup',
   'Diagnostic',
   'Campaign',
+  'Group',
   'Trade',
 ];

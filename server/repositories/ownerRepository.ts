@@ -7,6 +7,8 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
 
 export const ownerTable = 'owners';
+export const Owners = () => db<OwnerDBO>(ownerTable);
+export const OwnersHousing = () => db<HousingOwnerDBO>(ownersHousingTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();
@@ -344,6 +346,15 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
   email: ownerApi.email,
   phone: ownerApi.phone,
+});
+
+export const formatOwnerHousingApi = (
+  housing: HousingApi
+): HousingOwnerDBO => ({
+  housing_id: housing.id,
+  housing_geo_code: housing.geoCode,
+  rank: 1,
+  owner_id: housing.owner.id,
 });
 
 export const formatHousingOwnerApi = (

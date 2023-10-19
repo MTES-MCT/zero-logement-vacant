@@ -11,7 +11,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import { useUpdateLocalityTaxMutation } from '../../services/locality.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Tag from '@codegouvfr/react-dsfr/Tag';
@@ -73,9 +73,9 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
       <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
         Taxes sur les logements vacants
       </Title>
-      <Help className="d-inline-block bg-white">
+      <AppHelp className="d-inline-block bg-white">
         Informations publiées par défaut
-      </Help>
+      </AppHelp>
       {isUpdateSuccess && (
         <Alert
           severity="success"

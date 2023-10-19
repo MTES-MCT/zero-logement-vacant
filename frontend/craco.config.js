@@ -10,8 +10,13 @@ module.exports = {
   },
   jest: {
     configure(config) {
+      config.rootDir = '.';
+      config.setupFilesAfterEnv = [
+        '<rootDir>/src/setupTests.ts',
+        'jest-extended/all',
+      ];
       config.transformIgnorePatterns = [
-        '/node_modules/(?!@codegouvfr)/.+\\.js$',
+        '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
       ];
       return config;
     },

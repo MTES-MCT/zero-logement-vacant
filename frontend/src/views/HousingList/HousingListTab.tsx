@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
-import Help from '../../components/Help/Help';
+import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
@@ -17,17 +17,34 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { createCampaign } from '../../store/actions/campaignAction';
 import { CampaignKinds } from '../../models/Campaign';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useAppDispatch } from '../../hooks/useStore';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
 import fp from 'lodash/fp';
+import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
+import {
+  useAddGroupHousingMutation,
+  useCreateGroupMutation,
+  useGetGroupQuery,
+  useRemoveGroupHousingMutation,
+} from '../../services/group.service';
+import { Group } from '../../models/Group';
+import { useHistory, useParams } from 'react-router-dom';
+import { createCampaign } from '../../store/actions/campaignAction';
+import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 export type HousingListTabProps = {
+  /**
+   * @default true
+   */
+  showCount?: boolean;
+  showCreateGroup?: boolean;
+  showRemoveGroupHousing?: boolean;
+  showCreateCampaign?: boolean;
   filters: HousingFilters;
   status?: HousingStatus;
   onCountFilteredHousing?: (count?: number) => void;
@@ -36,6 +53,10 @@ export type HousingListTabProps = {
 const HousingListTab = ({
   filters,
   status,
+  showCount,
+  showCreateGroup,
+  showRemoveGroupHousing,
+  showCreateCampaign,
   onCountFilteredHousing,
 }: HousingListTabProps) => {
   const dispatch = useAppDispatch();
@@ -100,6 +121,67 @@ const HousingListTab = ({
     setUpdatingSelectedHousing(undefined);
   };
 
+  const [addGroupHousing] = useAddGroupHousingMutation();
+  const router = useHistory();
+  function selectGroup(group: Group): void {
+    if (selected) {
+      addGroupHousing({
+        id: group.id,
+        all: selected.all,
+        ids: selected.ids,
+        filters,
+      });
+      router.push({
+        pathname: `/groupes/${group.id}`,
+        state: {
+          alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.',
+        },
+      });
+    }
+  }
+
+  const [createGroup] = useCreateGroupMutation();
+  async function doCreateGroup(
+    group: Pick<Group, 'title' | 'description'>
+  ): Promise<void> {
+    try {
+      const created = await createGroup({
+        title: group.title,
+        description: group.description,
+        housing: {
+          all: selected.all,
+          ids: selected.ids,
+          filters,
+        },
+      }).unwrap();
+      router.push({
+        pathname: `/groupes/${created.id}`,
+        state: {
+          alert:
+            'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const params = useParams<{ id?: string }>();
+  const { data: group } = useGetGroupQuery(params?.id ?? '', {
+    skip: !params?.id,
+  });
+  const [removeGroupHousing] = useRemoveGroupHousingMutation();
+  function doRemoveGroupHousing() {
+    if (group) {
+      removeGroupHousing({
+        id: group.id,
+        all: selected.all,
+        ids: selected.ids,
+        filters: filters,
+      });
+    }
+  }
+
   return (
     <>
       {isUpdateSuccess && (
@@ -111,7 +193,8 @@ const HousingListTab = ({
           className="fr-mb-2w"
         />
       )}
-      {filteredHousingCount !== undefined &&
+      {(showCount ?? true) &&
+        filteredHousingCount !== undefined &&
         filteredOwnerCount !== undefined && (
           <Text spacing="mb-2w">
             {displayHousingCount({
@@ -126,10 +209,10 @@ const HousingListTab = ({
         <SelectableListHeader
           entity="logement"
           default={
-            <Help className="fr-mb-2w fr-py-2w">
+            <AppHelp className="fr-mb-2w fr-py-2w">
               <b>Sélectionnez</b> les logements que vous souhaitez cibler, puis
               cliquez sur <b>Créer une campagne</b>.
-            </Help>
+            </AppHelp>
           }
         >
           <SelectableListHeaderActions>
@@ -144,17 +227,34 @@ const HousingListTab = ({
                     Mise à jour groupée
                   </Button>
                 )}
-                <CampaignCreationModal
-                  housingCount={selectedCount}
-                  filters={filters}
-                  housingExcudedCount={filteredHousingCount - selectedCount}
-                  onSubmit={(campaignTitle?: string) =>
-                    onSubmitCampaignCreation(campaignTitle)
-                  }
-                  openingButtonProps={{
-                    children: 'Créer une campagne',
-                  }}
-                />
+                {showCreateGroup && (
+                  <GroupAddHousingModal
+                    className="fr-mr-1w"
+                    housingCount={selectedCount}
+                    onGroupSelect={selectGroup}
+                    onGroupCreate={doCreateGroup}
+                  />
+                )}
+                {showRemoveGroupHousing && (
+                  <GroupRemoveHousingModal
+                    housingCount={selectedCount}
+                    onSubmit={doRemoveGroupHousing}
+                  />
+                )}
+                {showCreateCampaign && (
+                  <CampaignCreationModal
+                    housingCount={selectedCount}
+                    filters={filters}
+                    housingExcludedCount={filteredHousingCount - selectedCount}
+                    onSubmit={(campaignTitle?: string) =>
+                      onSubmitCampaignCreation(campaignTitle)
+                    }
+                    openingButtonProps={{
+                      children: 'Créer une campagne',
+                    }}
+                  />
+                )}
+
                 <HousingListEditionSideMenu
                   housingCount={selectedCount}
                   open={!!updatingSelectedHousing}

@@ -34,9 +34,10 @@ const listByHousingId = async (request: Request, response: Response) => {
     throw new HousingMissingError(housingId);
   }
 
-  const [housingEvents, owners] = await Promise.all([
+  const [housingEvents, owners, groupHousingEvents] = await Promise.all([
     eventRepository.findHousingEvents(housing.id),
     ownerRepository.listByHousing(housing),
+    eventRepository.findGroupHousingEvents(housing),
   ]);
 
   const ownerEvents: EventApi<OwnerApi>[] = await async.concat(
@@ -46,7 +47,7 @@ const listByHousingId = async (request: Request, response: Response) => {
 
   response
     .status(constants.HTTP_STATUS_OK)
-    .json([...ownerEvents, ...housingEvents]);
+    .json([...ownerEvents, ...housingEvents, ...groupHousingEvents]);
 };
 
 const eventController = {

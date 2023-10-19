@@ -11,54 +11,58 @@ import {
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import classNames from 'classnames';
 import { filterCount } from '../../models/HousingFilters';
-import housingSlice from '../../store/reducers/housingReducer';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import GroupHeader from '../../components/GroupHeader/GroupHeader';
+import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
-  const { onResetFilters, setExpand, filters } = useFilters();
+
+  const {
+    filters,
+    setFilters,
+    expand,
+    onChangeFilters,
+    onResetFilters,
+    setExpand,
+    removeFilter,
+  } = useFilters();
 
   const { view } = useAppSelector((state) => state.housing);
-
-  const { changeFilters, changeView } = housingSlice.actions;
-
-  const removeFilter = (removedFilter: any) => {
-    dispatch(
-      changeFilters({
-        ...filters,
-        ...removedFilter,
-      })
-    );
-  };
 
   const searchWithQuery = (query: string) => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.Search,
     });
-    dispatch(
-      changeFilters({
-        ...filters,
-        query,
-      })
-    );
+    setFilters({
+      ...filters,
+      query,
+    });
   };
 
   return (
-    <MainContainer title="Votre parc de logements">
-      <HousingListFiltersSidemenu />
-      <Row>
+    <MainContainer>
+      <HousingListFiltersSidemenu
+        filters={filters}
+        expand={expand}
+        onChange={onChangeFilters}
+        onReset={onResetFilters}
+        onClose={() => setExpand(false)}
+      />
+      <Row spacing="mb-5w">
+        <GroupHeader />
+      </Row>
+      <Row spacing="mb-1w">
         <Col n="6">
+          <h6>Votre parc de logements</h6>
           <div className="d-flex">
             <AppSearchBar
               onSearch={searchWithQuery}
@@ -67,7 +71,7 @@ const HousingListView = () => {
             />
             <Button
               title="Filtrer"
-              iconId="fr-icon-filter-fill"
+              iconId="ri-filter-fill"
               priority="secondary"
               className="fr-ml-1w"
               onClick={() => setExpand(true)}
@@ -79,56 +83,22 @@ const HousingListView = () => {
         </Col>
 
         <Col>
-          <ButtonsGroup
-            inlineLayoutWhen="sm and up"
-            buttonsSize="medium"
-            alignment="right"
-            buttons={[
-              {
-                children: 'Tableau',
-                title: 'Vue tableau',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.ListView,
-                  });
-                  dispatch(changeView('list'));
-                },
-                className: classNames('fr-mr-0', 'color-black-50', {
-                  'bg-950': view !== 'list',
-                }),
-              },
-              {
-                children: 'Cartographie',
-                title: 'Vue carte',
-                priority: 'tertiary',
-                onClick: () => {
-                  trackEvent({
-                    category: TrackEventCategories.HousingList,
-                    action: TrackEventActions.HousingList.MapView,
-                  });
-                  dispatch(changeView('map'));
-                },
-                className: classNames('fr-ml-0', 'color-black-50', {
-                  'bg-950': view !== 'map',
-                }),
-              },
-            ]}
-          />
+          <HousingDisplaySwitch />
         </Col>
       </Row>
 
-      <HousingFiltersBadges
-        filters={filters}
-        onChange={(values) => removeFilter(values)}
-        onReset={onResetFilters}
-      />
+      <Row>
+        <HousingFiltersBadges
+          filters={filters}
+          onChange={removeFilter}
+          onReset={onResetFilters}
+        />
+      </Row>
 
       {view === 'map' ? (
         <HousingListMap filters={filters} />
       ) : (
-        <HousingListTabs filters={filters} />
+        <HousingListTabs filters={filters} showCreateCampaign showCreateGroup />
       )}
     </MainContainer>
   );

@@ -52,8 +52,8 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
         props.default
       ) : (
         <Row alignItems="middle" className={classes}>
-          <Col>{selectedCount}</Col>
-          <Col n={hasSelected() ? '6' : '8'}>
+          <Col className={styles.col}>{selectedCount}</Col>
+          <Col className={styles.col}>
             <SelectableListHeaderActions {...actions?.props} />
           </Col>
         </Row>

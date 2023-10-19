@@ -2,6 +2,7 @@ import db from './db';
 import {
   CampaignEventApi,
   EventApi,
+  GroupHousingEventApi,
   HousingEventApi,
   OwnerEventApi,
 } from '../models/EventApi';
@@ -12,21 +13,34 @@ import { HousingApi } from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { EventSection } from '../../shared/types/EventSection';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
+import { GroupApi } from '../models/GroupApi';
+import { logger } from '../utils/logger';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
 export const housingEventsTable = 'housing_events';
 export const campaignEventsTable = 'campaign_events';
+export const groupHousingEventsTable = 'group_housing_events';
 
-export const Events = () => db<EventDBO<any>>(eventsTable);
-export const OwnerEvents = () =>
-  db<{ event_id: string; owner_id: string }>(ownerEventsTable);
-export const HousingEvents = () =>
-  db<{ event_id: string; housing_id: string; housing_geo_code: string }>(
-    housingEventsTable
-  );
-export const CampaignEvents = () =>
-  db<{ event_id: string; campaign_id: string }>(campaignEventsTable);
+export const Events = (transaction = db) =>
+  transaction<EventDBO<any>>(eventsTable);
+export const OwnerEvents = (transaction = db) =>
+  transaction<{ event_id: string; owner_id: string }>(ownerEventsTable);
+export const HousingEvents = (transaction = db) =>
+  transaction<{
+    event_id: string;
+    housing_id: string;
+    housing_geo_code: string;
+  }>(housingEventsTable);
+export const CampaignEvents = (transaction = db) =>
+  transaction<{ event_id: string; campaign_id: string }>(campaignEventsTable);
+export const GroupHousingEvents = (transaction = db) =>
+  transaction<{
+    event_id: string;
+    housing_id: string;
+    housing_geo_code: string;
+    group_id: string | null;
+  }>(groupHousingEventsTable);
 
 const insertHousingEvent = async (
   housingEvent: HousingEventApi
@@ -66,10 +80,12 @@ function denormalizeStatus(housing: HousingApi | undefined) {
 }
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
-  await Events().insert(formatEventApi(ownerEvent));
-  await OwnerEvents().insert({
-    event_id: ownerEvent.id,
-    owner_id: ownerEvent.ownerId,
+  await db.transaction(async (transaction) => {
+    await Events(transaction).insert(formatEventApi(ownerEvent));
+    await OwnerEvents(transaction).insert({
+      event_id: ownerEvent.id,
+      owner_id: ownerEvent.ownerId,
+    });
   });
 };
 
@@ -77,10 +93,35 @@ const insertCampaignEvent = async (
   campaignEvent: CampaignEventApi
 ): Promise<void> => {
   console.log('Insert CampaignEventApi', campaignEvent);
-  await Events().insert(formatEventApi(campaignEvent));
-  await CampaignEvents().insert({
-    event_id: campaignEvent.id,
-    campaign_id: campaignEvent.campaignId,
+  await db.transaction(async (transaction) => {
+    await Events(transaction).insert(formatEventApi(campaignEvent));
+    await CampaignEvents(transaction).insert({
+      event_id: campaignEvent.id,
+      campaign_id: campaignEvent.campaignId,
+    });
+  });
+};
+
+const insertManyGroupHousingEvents = async (
+  groupHousingEvents: GroupHousingEventApi[]
+): Promise<void> => {
+  if (!groupHousingEvents.length) {
+    return;
+  }
+
+  logger.debug('Insert many group housing events', {
+    events: groupHousingEvents.length,
+  });
+  await db.transaction(async (transaction) => {
+    await Events(transaction).insert(groupHousingEvents.map(formatEventApi));
+    await GroupHousingEvents(transaction).insert(
+      groupHousingEvents.map((event) => ({
+        event_id: event.id,
+        housing_geo_code: event.housingGeoCode,
+        housing_id: event.housingId,
+        group_id: event.groupId,
+      }))
+    );
   });
 };
 
@@ -118,6 +159,33 @@ const findCampaignEvents = async (
   return findEvents(campaignEventsTable, 'campaign_id', campaignId);
 };
 
+const findGroupHousingEvents = async (
+  housing: HousingApi,
+  group?: GroupApi
+): Promise<EventApi<GroupApi>[]> => {
+  logger.debug('Find group housing events', {
+    housing: housing.id,
+    geoCode: housing.geoCode,
+    group: group?.id,
+  });
+  const events = await Events()
+    .select(`${eventsTable}.*`)
+    .join(
+      groupHousingEventsTable,
+      `${groupHousingEventsTable}.event_id`,
+      `${eventsTable}.id`
+    )
+    .modify((query) => {
+      if (group?.id) {
+        query.where(`${groupHousingEventsTable}.group_id`, group.id);
+      }
+    })
+    .where(`${groupHousingEventsTable}.housing_id`, housing.id)
+    .where(`${groupHousingEventsTable}.housing_geo_code`, housing.geoCode)
+    .orderBy(`${eventsTable}.created_at`, 'desc');
+  return events.map(parseEventApi<GroupApi>);
+};
+
 const removeCampaignEvents = async (campaignIds: string[]): Promise<void> => {
   console.log('Delete eventApi for campaign with ids', campaignIds);
   await db(campaignEventsTable).whereIn('campaign_id', campaignIds).delete();
@@ -137,7 +205,7 @@ interface EventDBO<T> {
   created_by: string;
 }
 
-function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
+export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   return {
     id: eventApi.id,
     name: eventApi.name,
@@ -152,7 +220,7 @@ function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   };
 }
 
-function parseEventApi<T>(eventDbo: EventDBO<T>): EventApi<T> {
+export function parseEventApi<T>(eventDbo: EventDBO<T>): EventApi<T> {
   return {
     id: eventDbo.id,
     name: eventDbo.name,
@@ -172,9 +240,11 @@ export default {
   insertManyHousingEvents,
   insertOwnerEvent,
   insertCampaignEvent,
+  insertManyGroupHousingEvents,
   findOwnerEvents,
   findHousingEvents,
   findCampaignEvents,
+  findGroupHousingEvents,
   removeCampaignEvents,
   formatEventApi,
 };

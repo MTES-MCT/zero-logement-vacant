@@ -268,10 +268,11 @@ describe('Account controller', () => {
     it('should change password and use the reset link', async () => {
       const link = genResetLinkApi(User1.id);
       await db(resetLinkTable).insert(formatResetLinkApi(link));
+      const newPassword = '123QWEasd';
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd',
+        password: newPassword,
       });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -286,9 +287,12 @@ describe('Account controller', () => {
         .select()
         .where('id', link.userId)
         .first();
-      expect(await bcrypt.compare(User1.password, actualUser.password)).toBe(
-        false
+
+      const passwordsMatch = await bcrypt.compare(
+        newPassword,
+        actualUser.password
       );
+      expect(passwordsMatch).toBeTrue();
     });
   });
 });

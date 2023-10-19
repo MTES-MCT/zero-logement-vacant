@@ -68,6 +68,7 @@ const HousingStatusMultiSelect = ({
                 <HousingStatusBadge status={Number(option.value)} />
               </div>
             }
+            checked={selectedStatus?.includes(Number(option.value))}
             value={option.value}
             className={classNames(
               styles.checkboxLabel,

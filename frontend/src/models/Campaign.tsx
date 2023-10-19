@@ -1,5 +1,6 @@
 import { HousingFilters } from './HousingFilters';
 import { percent } from '../utils/numberUtils';
+import { Group } from './Group';
 
 export interface DraftCampaign {
   kind: CampaignKinds;
@@ -46,6 +47,7 @@ export interface CampaignBundle extends CampaignBundleId {
   inProgressWithSupportCount: number;
   ownerCount: number;
   exportURL: string;
+  group?: Group;
 }
 
 export enum CampaignKinds {

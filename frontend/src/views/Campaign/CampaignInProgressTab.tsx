@@ -78,7 +78,7 @@ const CampaignInProgressTab = ({
     (status: HousingStatus) => async (housingUpdate: HousingUpdate) => {
       trackEvent({
         category: TrackEventCategories.Campaigns,
-        action: TrackEventActions.Campaigns.UpdateHousing,
+        action: TrackEventActions.Campaigns.UpdateList,
         value: selectedCount,
       });
       await updateHousingList({

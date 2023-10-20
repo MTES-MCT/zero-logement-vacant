@@ -27,10 +27,16 @@ import { useSettings } from '../../hooks/useSettings';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Button from '@codegouvfr/react-dsfr/Button';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 const OwnerEstablishmentHomeView = () => {
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
+  const { trackEvent } = useMatomo();
 
   const { establishmentRef } = useParams<{ establishmentRef: string }>();
 
@@ -90,6 +96,10 @@ const OwnerEstablishmentHomeView = () => {
   }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
+    trackEvent({
+      category: TrackEventCategories.OwnerProspect,
+      action: TrackEventActions.OwnerProspect.SubmitContact,
+    });
     dispatch(
       createOwnerProspect({
         ...ownerProspect,

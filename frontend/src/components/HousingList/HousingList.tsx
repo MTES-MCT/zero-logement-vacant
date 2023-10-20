@@ -50,6 +50,7 @@ import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
+import { useLocation } from 'react-router-dom';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -66,6 +67,7 @@ const HousingList = ({
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
+  const location = useLocation();
   const campaignList = useCampaignList();
   const { trackEvent } = useMatomo();
 
@@ -302,8 +304,12 @@ const HousingList = ({
     housingUpdate: HousingUpdate
   ) => {
     trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.Campaigns.UpdateHousing,
+      category: location.pathname.includes('parc-de-logements')
+        ? TrackEventCategories.HousingList
+        : TrackEventCategories.Campaigns,
+      action: location.pathname.includes('parc-de-logements')
+        ? TrackEventActions.HousingList.Update
+        : TrackEventActions.Campaigns.Update,
       value: 1,
     });
     await updateHousing({

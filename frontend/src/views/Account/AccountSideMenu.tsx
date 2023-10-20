@@ -45,6 +45,15 @@ const AccountSideMenu = () => {
           Gérer les utilisateurs via consultdf
         </AppLink>
       </div>
+      <div className="fr-pb-2w">
+        <AppLink
+          to="/utilisateurs"
+          iconId="fr-icon-group-fill"
+          iconPosition="left"
+        >
+          Voir les utilisateurs
+        </AppLink>
+      </div>
       <hr className="fr-py-1w" />
       <AppLink
         to="#"

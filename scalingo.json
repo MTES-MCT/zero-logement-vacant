@@ -13,6 +13,9 @@
     },
     "SENTRY_ENABLED": {
       "value": "false"
+    },
+    "TZ": {
+      "value": "Etc/UTC"
     }
   },
   "scripts": {

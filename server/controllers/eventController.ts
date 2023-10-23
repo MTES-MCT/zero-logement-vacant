@@ -36,7 +36,7 @@ const listByHousingId = async (request: Request, response: Response) => {
 
   const [housingEvents, owners, groupHousingEvents] = await Promise.all([
     eventRepository.findHousingEvents(housing.id),
-    ownerRepository.listByHousing(housing),
+    ownerRepository.findByHousing(housing),
     eventRepository.findGroupHousingEvents(housing),
   ]);
 

@@ -3,9 +3,9 @@ import {
   needsManualReview,
   REVIEW_THRESHOLD,
 } from '../duplicates';
-import { genOwnerApi } from '../../../server/test/testFixtures';
-import { OwnerApi } from '../../../server/models/OwnerApi';
-import { ScoredOwner } from '../comparison';
+import { genOwnerApi } from '../../../../server/test/testFixtures';
+import { OwnerApi } from '../../../../server/models/OwnerApi';
+import { ScoredOwner } from '../../models/Comparison';
 
 describe('Duplicates', () => {
   describe('needsManualReview', () => {

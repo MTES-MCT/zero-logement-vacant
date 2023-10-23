@@ -321,7 +321,7 @@ export async function bulkSave(actions: Action[]): Promise<void> {
       createdBy: (system as UserApi).id,
     }));
 
-  await housingRepository.saveMany(housingList);
+  await housingRepository.saveManyWithOwner(housingList);
   // Depends on housing insertion
   await eventRepository.insertManyHousingEvents(events);
 }

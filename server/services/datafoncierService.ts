@@ -9,8 +9,11 @@ import { logger } from '../utils/logger';
 import { isPaginationEnabled, PaginationApi } from '../models/PaginationApi';
 import config from '../utils/config';
 import { untilEmpty } from '../utils/async';
-import { HousingDatafoncier } from '../models/HousingDatafoncier';
-import { OwnerDatafoncier, toOwnerApi } from '../models/OwnerDatafoncier';
+import { DatafoncierHousing } from '../../scripts/shared/models/DatafoncierHousing';
+import {
+  DatafoncierOwner,
+  toOwnerApi,
+} from '../../scripts/shared/models/DatafoncierOwner';
 import Stream = Highland.Stream;
 
 const API = `https://apidf-preprod.cerema.fr`;
@@ -21,7 +24,7 @@ type FindHousingListOptions = PaginationApi & {
 
 async function findHousingList(
   opts: FindHousingListOptions
-): Promise<HousingDatafoncier[]> {
+): Promise<DatafoncierHousing[]> {
   logger.debug('Finding housing list', opts);
 
   const query = createQuery({
@@ -40,7 +43,7 @@ async function findHousingList(
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  const data: ResultDTO<HousingDatafoncier> = await response.json();
+  const data: ResultDTO<DatafoncierHousing> = await response.json();
   return data.results;
 }
 
@@ -48,12 +51,12 @@ interface StreamOptions {
   geoCodes: string[];
 }
 
-function streamHousingList(opts: StreamOptions): Stream<HousingDatafoncier> {
+function streamHousingList(opts: StreamOptions): Stream<DatafoncierHousing> {
   logger.debug('Stream housing list', opts);
 
   return highland<string>(opts.geoCodes)
     .flatMap((geoCode) =>
-      highland<HousingDatafoncier[]>((push, next) => {
+      highland<DatafoncierHousing[]>((push, next) => {
         untilEmpty(
           (pagination) => findHousingList({ geoCode, ...pagination }),
           (housingList) => push(null, housingList)
@@ -94,18 +97,18 @@ async function findOwners(opts: FindOwnersOptions): Promise<OwnerApi[]> {
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  const data: ResultDTO<OwnerDatafoncier> = await response.json();
+  const data: ResultDTO<DatafoncierOwner> = await response.json();
   return data.results.map(toOwnerApi);
 }
 
-function streamOwners(opts: StreamOptions): Stream<OwnerApi> {
+function streamOwners(opts?: StreamOptions): Stream<OwnerApi> {
   logger.debug('Stream owners', {
     options: opts,
   });
 
   return highland<OwnerApi[]>((push, next) => {
     async
-      .forEachSeries(opts.geoCodes, async (geoCode) => {
+      .forEachSeries(opts?.geoCodes, async (geoCode) => {
         await untilEmpty(
           () => findOwners({ geoCode }),
           (owners) => {
@@ -131,7 +134,7 @@ function createQuery(
   )(params);
 }
 
-function filterHousing<T extends HousingDatafoncier, K extends keyof T>(
+function filterHousing<T extends DatafoncierHousing, K extends keyof T>(
   key: K
 ) {
   return (...values: T[K][]) => {

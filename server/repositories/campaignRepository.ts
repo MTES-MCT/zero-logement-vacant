@@ -3,8 +3,7 @@ import db from './db';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import {
   housingTable,
-  ownersHousingJoinClause,
-  ownersHousingTable,
+  ownerHousingJoinClause,
   queryOwnerHousingWhereClause,
 } from './housingRepository';
 import { ownerTable } from './ownerRepository';
@@ -16,6 +15,7 @@ import { GroupDBO, groupsTable, parseGroupApi } from './groupRepository';
 import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
+import { housingOwnersTable } from './housingOwnerRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -37,8 +37,8 @@ const get = async (campaignId: string): Promise<CampaignApi | null> => {
           `${campaignsHousingTable}.housing_geo_code`
         );
     })
-    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
     .groupBy(`${campaignsTable}.id`)
     .first();
 
@@ -93,8 +93,8 @@ const getCampaignBundle = async (
           `${campaignsHousingTable}.housing_geo_code`
         );
     })
-    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
     .modify((queryBuilder: any) => {
       if (campaignNumber) {
         queryBuilder
@@ -224,8 +224,8 @@ const listCampaignBundles = async (
       `${housingTable}.id`,
       `${campaignsHousingTable}.housing_id`
     )
-    .leftJoin(ownersHousingTable, ownersHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${ownersHousingTable}.owner_id`, `o.id`)
+    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
     .where(`${campaignsTable}.establishment_id`, establishmentId)
     .orderBy('campaign_number')
     .groupBy(`${campaignsTable}.campaign_number`);

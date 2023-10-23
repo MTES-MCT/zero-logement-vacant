@@ -1,5 +1,5 @@
 import createMerger from '../merger';
-import { Comparison } from '../comparison';
+import { Comparison } from '../../shared/models/Comparison';
 import {
   genHousingApi,
   genOwnerApi,

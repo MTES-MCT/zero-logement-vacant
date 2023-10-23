@@ -25,7 +25,7 @@ export const groupHousingEventsTable = 'group_housing_events';
 export const Events = (transaction = db) =>
   transaction<EventDBO<any>>(eventsTable);
 export const OwnerEvents = (transaction = db) =>
-  transaction<{ event_id: string; owner_id: string }>(ownerEventsTable);
+  transaction<OwnerEventDBO>(ownerEventsTable);
 export const HousingEvents = (transaction = db) =>
   transaction<{
     event_id: string;
@@ -191,7 +191,7 @@ const removeCampaignEvents = async (campaignIds: string[]): Promise<void> => {
   await db(campaignEventsTable).whereIn('campaign_id', campaignIds).delete();
 };
 
-interface EventDBO<T> {
+export interface EventDBO<T> {
   id: string;
   name: string;
   kind: EventKind;
@@ -203,6 +203,11 @@ interface EventDBO<T> {
   new?: T;
   created_at: Date;
   created_by: string;
+}
+
+export interface OwnerEventDBO {
+  event_id: string;
+  owner_id: string;
 }
 
 export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {

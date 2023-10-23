@@ -7,9 +7,9 @@ import {
 import { HousingApi } from '../../server/models/HousingApi';
 import db from '../../server/repositories/db';
 import {
-  HousingDatafoncier,
+  DatafoncierHousing,
   toHousingRecordApi,
-} from '../../server/models/HousingDatafoncier';
+} from '../shared/models/DatafoncierHousing';
 import { isNotNull } from '../../shared/utils/compare';
 import { datafoncierOwnersTable } from './ownerPostgresRepository';
 import {
@@ -34,7 +34,7 @@ class HousingPostgresRepository implements HousingStreamRepository {
       .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
       .stream();
 
-    return highland<HousingDatafoncier>(query)
+    return highland<DatafoncierHousing>(query)
       .flatMap((housing) =>
         highland(
           findOwners(housing.idprocpte).then(

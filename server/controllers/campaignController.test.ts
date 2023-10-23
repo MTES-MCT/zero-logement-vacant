@@ -41,12 +41,12 @@ import {
 } from '../repositories/groupRepository';
 import { genGroupApi, genHousingApi } from '../test/testFixtures';
 import { User1 } from '../../database/seeds/test/003-users';
+import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import {
-  formatOwnerApi,
   formatOwnerHousingApi,
-  Owners,
-  OwnersHousing,
-} from '../repositories/ownerRepository';
+  HousingOwners,
+} from '../repositories/housingOwnerRepository';
+import { isDefined } from '../../shared';
 
 const { app } = createServer();
 
@@ -251,13 +251,15 @@ describe('Campaign controller', () => {
       genHousingApi(geoCode),
       genHousingApi(geoCode),
     ];
-    const owners = groupHousing.map((housing) => housing.owner);
+    const owners = groupHousing
+      .map((housing) => housing.owner)
+      .filter(isDefined);
 
     beforeEach(async () => {
       await Groups().insert(formatGroupApi(group));
       await Housing().insert(groupHousing.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
-      await OwnersHousing().insert(groupHousing.map(formatOwnerHousingApi));
+      await HousingOwners().insert(groupHousing.map(formatOwnerHousingApi));
       await GroupsHousing().insert(formatGroupHousingApi(group, groupHousing));
     });
 

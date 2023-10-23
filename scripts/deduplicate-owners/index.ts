@@ -3,23 +3,18 @@ import script from 'node:process';
 
 import { logger } from '../../server/utils/logger';
 import ownerRepository from '../../server/repositories/ownerRepository';
-import { OwnerApi } from '../../server/models/OwnerApi';
 import {
-  compare,
-  findBest,
-  findDuplicatesByName,
   isMatch,
   needsManualReview,
-} from './duplicates';
-import { Comparison } from './comparison';
+} from '../shared/owner-processor/duplicates';
 import db from '../../server/repositories/db';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
-import ownerCache from './ownerCache';
 import createMerger from './merger';
 import ownersDuplicatesRepository from './ownersDuplicatesRepository';
 import { OwnerDuplicate } from './OwnerDuplicate';
+import { evaluate } from '../shared';
 
 const recorder = createRecorder();
 const reporter = createReporter('json');
@@ -45,7 +40,7 @@ function run(): void {
   const comparisons = ownerRepository
     .stream()
     .tap(logger.trace.bind(logger))
-    .flatMap((owner) => highland(process(owner)));
+    .flatMap((owner) => highland(evaluate(owner)));
 
   comparisons
     .fork()
@@ -95,32 +90,6 @@ function run(): void {
         script.exit();
       });
     });
-}
-
-async function process(owner: OwnerApi): Promise<Comparison> {
-  // Find duplicates
-  const dups = await findDuplicatesByName(owner);
-
-  ownerCache.currentName(owner.fullName);
-  const scores = dups
-    .filter((dup) => !ownerCache.has(owner.id, dup.id))
-    .map((dup) => ({
-      value: dup,
-      score: compare(owner, dup),
-    }))
-    .map((comparison) => {
-      ownerCache.add(owner.id, comparison.value.id);
-      return comparison;
-    });
-
-  const best = findBest(scores);
-  return {
-    source: owner,
-    duplicates: scores,
-    score: best?.score ?? 0,
-    // Log a conflict for human intervention
-    needsReview: best ? needsManualReview(owner, scores) : false,
-  };
 }
 
 script.once('SIGINT', cleanUp);

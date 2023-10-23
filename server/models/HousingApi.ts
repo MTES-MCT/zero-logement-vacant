@@ -1,6 +1,7 @@
-import { HousingOwnerApi, OwnerApi } from './OwnerApi';
+import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
+import { HousingOwnerApi } from './HousingOwnerApi';
 
 export interface HousingRecordApi {
   id: string;
@@ -38,7 +39,7 @@ export interface HousingRecordApi {
 export interface HousingApi extends HousingRecordApi {
   localityKind?: string;
   geoPerimeters?: string[];
-  owner: OwnerApi;
+  owner?: OwnerApi;
   /**
    * All the owners having rank >= 2
    */

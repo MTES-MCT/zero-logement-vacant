@@ -1,29 +1,32 @@
-export interface DraftOwnerApi {
-  rawAddress: string[];
-  fullName: string;
+import { OwnerDTO, OwnerPayloadDTO } from '../../shared';
+import { compare } from '../utils/compareUtils';
+import fp from 'lodash/fp';
+import { parse } from 'date-fns';
+
+export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
   birthDate?: Date;
-  email?: string;
-  phone?: string;
 }
 
-export interface OwnerApi {
-  id: string;
-  rawAddress: string[];
-  fullName: string;
-  administrator?: string;
-  birthDate?: Date;
-  email?: string;
-  phone?: string;
-  kind?: string;
-  kindDetail?: string;
+export type OwnerApi = OwnerDTO;
+
+export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
+  return {
+    ...fp.pick(['rawAddress', 'fullName', 'email', 'phone'], payload),
+    birthDate: payload.birthDate
+      ? parse(payload.birthDate, 'yyyy-MM-dd', new Date())
+      : undefined,
+  };
 }
 
-export interface HousingOwnerApi extends OwnerApi {
-  housingId: string;
-  housingGeoCode: string;
-  rank: number;
-  startDate?: Date;
-  endDate?: Date;
-  origin?: string;
-  housingCount?: number;
+export function hasIdentityChanges(prev: OwnerApi, curr: OwnerApi): boolean {
+  return (
+    Object.values(compare(prev, curr, ['fullName', 'birthDate'])).length > 0
+  );
+}
+
+export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
+  return (
+    Object.values(compare(prev, curr, ['rawAddress', 'email', 'phone']))
+      .length > 0
+  );
 }

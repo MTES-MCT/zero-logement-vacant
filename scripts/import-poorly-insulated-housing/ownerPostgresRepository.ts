@@ -3,12 +3,12 @@ import highland from 'highland';
 import { OwnerStreamRepository, StreamOptions } from './ownerStreamRepository';
 import db from '../../server/repositories/db';
 import {
-  OwnerDatafoncier,
+  DatafoncierOwner,
   ownerDatafoncierSchema,
   toOwnerApi,
-} from '../../server/models/OwnerDatafoncier';
+} from '../shared/models/DatafoncierOwner';
 import { OwnerApi } from '../../server/models/OwnerApi';
-import validator from './validator';
+import validator from '../shared/validator';
 import { Knex } from 'knex';
 
 const FIELDS = [
@@ -26,7 +26,7 @@ const FIELDS = [
 export const datafoncierOwnersTable = 'zlv_proprio_epci2';
 
 export function hasAddress() {
-  return (query: Knex.QueryBuilder<OwnerDatafoncier>) => {
+  return (query: Knex.QueryBuilder<DatafoncierOwner>) => {
     query
       .whereNotNull('dlign3')
       .orWhereNotNull('dlign4')
@@ -36,14 +36,14 @@ export function hasAddress() {
 }
 
 export function hasName() {
-  return (query: Knex.QueryBuilder<OwnerDatafoncier>) => {
+  return (query: Knex.QueryBuilder<DatafoncierOwner>) => {
     query.whereNotNull('ddenom');
   };
 }
 
 class OwnerPostgresRepository implements OwnerStreamRepository {
-  stream(opts: StreamOptions): Highland.Stream<OwnerApi> {
-    const query = db<OwnerDatafoncier>(datafoncierOwnersTable)
+  stream(opts?: StreamOptions): Highland.Stream<OwnerApi> {
+    const query = db<DatafoncierOwner>(datafoncierOwnersTable)
       .select(FIELDS)
       .where((whereBuilder) =>
         whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
@@ -53,7 +53,7 @@ class OwnerPostgresRepository implements OwnerStreamRepository {
       .modify(hasName())
       .stream();
 
-    return highland<OwnerDatafoncier>(query)
+    return highland<DatafoncierOwner>(query)
       .map(validator.validate(ownerDatafoncierSchema))
       .map(toOwnerApi);
   }

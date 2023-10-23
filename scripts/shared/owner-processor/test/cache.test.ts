@@ -1,32 +1,32 @@
-import ownerCache from '../ownerCache';
+import cache from '../cache';
 
 describe('Owner cache', () => {
   const a = 'A';
   const b = 'B';
 
   beforeEach(() => {
-    ownerCache.clear();
+    cache.clear();
   });
 
   describe('has', () => {
     it('should return true if A and B have already been compared', () => {
-      ownerCache.add(a, b);
+      cache.add(a, b);
 
-      const actual = ownerCache.has(a, b);
+      const actual = cache.has(a, b);
 
       expect(actual).toBeTrue();
     });
 
     it('should return true whatever the order', () => {
-      ownerCache.add(a, b);
+      cache.add(a, b);
 
-      const actual = ownerCache.has(b, a);
+      const actual = cache.has(b, a);
 
       expect(actual).toBeTrue();
     });
 
     it('should return false if A and B have not been compared yet', () => {
-      const actual = ownerCache.has(a, b);
+      const actual = cache.has(a, b);
 
       expect(actual).toBeFalse();
     });

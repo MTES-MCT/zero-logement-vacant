@@ -13,6 +13,8 @@ jest.useFakeTimers({
 });
 
 global.beforeEach(async () => {
+  fetchMock.resetMocks();
+
   const db = knex(knexConfig);
   try {
     await db.migrate.latest();

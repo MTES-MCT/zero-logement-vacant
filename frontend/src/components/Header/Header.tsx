@@ -7,13 +7,13 @@ import { changeEstablishment } from '../../store/actions/authenticationAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import { findOwnerProspects } from '../../store/actions/ownerProspectAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import VerticalLink from '../VerticalLink/VerticalLink';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import Collapse from '../Collapse/Collapse';
 import { Container } from '../_dsfr';
+import { useFindOwnerProspectsQuery } from '../../services/owner-prospect.service';
 
 function Header() {
   const location = useLocation();
@@ -22,13 +22,13 @@ function Header() {
   const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
-  const { ownerProspects } = useAppSelector((state) => state.ownerProspect);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(findOwnerProspects());
+  const { data: ownerProspects } = useFindOwnerProspectsQuery(
+    {},
+    {
+      skip: !isAuthenticated,
     }
-  }, [dispatch, isAuthenticated]);
+  );
 
   const unreadMessages = ownerProspects?.entities?.filter(
     (entity) => !entity.read

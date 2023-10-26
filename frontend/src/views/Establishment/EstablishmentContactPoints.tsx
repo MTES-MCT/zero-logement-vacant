@@ -52,7 +52,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     { isSuccess: isDeleteSuccess, isError: isDeleteError },
   ] = useRemoveContactPointMutation();
 
-  const { settings, togglePublishContactPoints } = useSettings();
+  const { settings, togglePublishContactPoints } = useSettings(establishmentId);
 
   const [query, setQuery] = useState<string>();
 

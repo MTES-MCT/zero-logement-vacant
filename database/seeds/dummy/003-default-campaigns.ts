@@ -19,7 +19,6 @@ exports.seed = function (knex: Knex) {
     })
     .andWhere('available', true)
     .then((results) => {
-      console.log('results', results, results.length);
       if (results.length) {
         return knex.table(campaignsTable).insert(
           results.map((result) =>

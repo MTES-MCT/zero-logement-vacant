@@ -10,7 +10,6 @@ import lovacRepository, {
   LovacOwner,
 } from './lovac-repository';
 import modificationRepository from './modification-repository';
-import { tapAsync } from '../sync-attio/stream';
 import {
   OwnerDBO,
   ownerTable,
@@ -18,6 +17,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import fp from 'lodash/fp';
 import config from '../../server/utils/config';
+import { tapAsync } from '../shared/stream';
 
 const BATCH_SIZE = config.application.batchSize;
 

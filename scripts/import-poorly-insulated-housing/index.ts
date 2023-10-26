@@ -1,7 +1,7 @@
 import highland from 'highland';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { logger } from '../../server/utils/logger';
-import { tapAsync } from '../sync-attio/stream';
+import { tapAsync } from '../shared/stream';
 import { HousingApi } from '../../server/models/HousingApi';
 import db from '../../server/repositories/db';
 import housingRepository from '../../server/repositories/housingRepository';

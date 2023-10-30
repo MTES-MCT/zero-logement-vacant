@@ -1,5 +1,7 @@
 import knex, { Knex } from 'knex';
 import knexConfig from '../knex';
+import fp from 'lodash/fp';
+import { compact } from '../utils/object';
 
 export const notDeleted: Knex.QueryCallback = (builder) =>
   builder.whereNull('deleted_at');
@@ -16,7 +18,7 @@ export async function countQuery(query: Knex.QueryInterface): Promise<number> {
   return Number(result.count);
 }
 
+export const where = <T>(props: Array<keyof T>) =>
+  fp.pipe(fp.pick(props), compact, fp.mapKeys(fp.snakeCase));
+
 export default knex(knexConfig);
-// .on( 'query', function( queryData ) {
-//     console.log( queryData );
-// });

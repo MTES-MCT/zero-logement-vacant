@@ -14,6 +14,7 @@ import {
   parseOwnerApi,
 } from '../../server/repositories/ownerRepository';
 import { OwnerApi } from '../../server/models/OwnerApi';
+import fp from 'lodash/fp';
 
 const FIELDS = [
   'idprodroit',
@@ -45,7 +46,7 @@ class DatafoncierOwnersRepository {
       )
       .join(ownerTable, `${ownerTable}.id`, `${ownerMatchTable}.owner_id`)
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
-    return owners.map(parseOwnerApi);
+    return fp.pipe(fp.uniqBy('idpersonne'), fp.map(parseOwnerApi))(owners);
   }
 
   stream(): Highland.Stream<DatafoncierOwner> {

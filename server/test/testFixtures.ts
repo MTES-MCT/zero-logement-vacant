@@ -39,6 +39,11 @@ import { DatafoncierHousing, DatafoncierOwner } from '../../scripts/shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '../repositories/ownerMatchRepository';
+import {
+  ConflictApi,
+  HousingOwnerConflictApi,
+  OwnerConflictApi,
+} from '../models/ConflictApi';
 
 const randomstring = require('randomstring');
 
@@ -189,13 +194,13 @@ export const genOwnerApi = (): OwnerApi => {
 };
 
 export const genHousingOwnerApi = (
-  housingId: string,
-  housingGeoCode: string
+  housing: HousingApi = genHousingApi(),
+  owner: OwnerApi = genOwnerApi()
 ): HousingOwnerApi => ({
-  ...genOwnerApi(),
-  housingId,
-  housingGeoCode,
-  rank: 2,
+  ...owner,
+  housingGeoCode: housing.geoCode,
+  housingId: housing.id,
+  rank: genNumber(1),
 });
 
 export const genHousingApi = (
@@ -210,7 +215,7 @@ export const genHousingApi = (
     geoCode,
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
-    coowners: [genHousingOwnerApi(id, geoCode)],
+    coowners: [],
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
@@ -482,12 +487,12 @@ export const genDatafoncierHousing = (): DatafoncierHousing => ({
   dnupro: randomstring.generate(6),
   jdatat: randomstring.generate(8),
   jdatatv: randomstring.generate(8),
-  jdatatan: genNumber(),
+  jdatatan: genNumber(2),
   dnufnl: randomstring.generate(6),
   ccoeva: randomstring.generate(1),
   ccoevatxt: randomstring.generate(72),
   dteloc: randomstring.generate(1),
-  dteloctxt: randomstring.generate(66),
+  dteloctxt: oneOf(['MAISON', 'APPARTEMENT']),
   logh: randomstring.generate(1),
   loghmais: randomstring.generate(1),
   loghappt: randomstring.generate(1),
@@ -497,12 +502,12 @@ export const genDatafoncierHousing = (): DatafoncierHousing => ({
   ccoplctxt: randomstring.generate(140),
   cconlc: randomstring.generate(2),
   cconlctxt: randomstring.generate(43),
-  dvltrt: genNumber(),
+  dvltrt: genNumber(2),
   cc48lc: randomstring.generate(2),
-  dloy48a: genNumber(),
+  dloy48a: genNumber(2),
   top48a: randomstring.generate(1),
   dnatlc: randomstring.generate(1),
-  ccthp: randomstring.generate(1),
+  ccthp: oneOf(['L', 'V']),
   proba_rprs: randomstring.generate(7),
   typeact: randomstring.generate(4),
   loghvac: randomstring.generate(1),
@@ -578,4 +583,29 @@ export const genOwnerMatch = (
 ): OwnerMatchDBO => ({
   owner_id: owner.id,
   idpersonne: datafoncierOwner.idpersonne,
+});
+
+export const genConflictApi = <T>(
+  existing: T,
+  replacement: T
+): ConflictApi<T> => ({
+  id: uuidv4(),
+  createdAt: new Date(),
+  existing,
+  replacement,
+});
+
+export const genOwnerConflictApi = (): OwnerConflictApi =>
+  genConflictApi(genOwnerApi(), genOwnerApi()) as OwnerConflictApi;
+
+export const genHousingOwnerConflictApi = (
+  existing = genHousingApi(),
+  replacement = genHousingApi()
+): HousingOwnerConflictApi => ({
+  ...genConflictApi(
+    genHousingOwnerApi(existing, existing.owner),
+    genHousingOwnerApi(replacement, replacement.owner)
+  ),
+  housingGeoCode: existing.geoCode,
+  housingId: existing.id,
 });

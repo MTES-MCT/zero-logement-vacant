@@ -89,6 +89,12 @@ describe('Housing owners importer', () => {
           formatHousingOwnersApi(housingApi, fp.shuffle(ownersApi))
         );
 
+        /**
+         * A - B
+         * B - C
+         * C - A
+         */
+
         const actual = processHousingOwners(dfHousing);
 
         await expect(actual).toReject();

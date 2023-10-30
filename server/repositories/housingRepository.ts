@@ -1,5 +1,5 @@
 import fp from 'lodash/fp';
-import db from './db';
+import db, { where } from './db';
 import {
   EnergyConsumptionGradesApi,
   getOwnershipKindFromValue,
@@ -36,7 +36,6 @@ import {
   housingOwnersTable,
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
-import { compact } from '../utils/object';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
@@ -171,11 +170,7 @@ interface FindOneOptions {
 }
 
 const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
-  const whereOptions = fp.pipe(
-    fp.pick(['id', 'invariant', 'localId']),
-    compact,
-    fp.mapKeys(fp.snakeCase)
-  );
+  const whereOptions = where<FindOneOptions>(['id', 'invariant', 'localId']);
 
   const housing = await Housing()
     .select(`${housingTable}.*`)

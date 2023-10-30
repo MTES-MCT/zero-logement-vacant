@@ -2,6 +2,8 @@ import { OwnerApi } from './OwnerApi';
 import { compare, includeSameMembers } from '../utils/compareUtils';
 import { HousingApi } from './HousingApi';
 
+export const MAX_OWNERS = 6;
+
 export interface HousingOwnerApi extends OwnerApi {
   housingId: string;
   housingGeoCode: string;
@@ -24,11 +26,15 @@ export function toHousingOwnersApi(
   }));
 }
 
+export function compareHousingOwners(
+  a: HousingOwnerApi,
+  b: HousingOwnerApi
+): Partial<HousingOwnerApi> {
+  return compare(a, b, ['id', 'housingId', 'housingGeoCode', 'rank']);
+}
+
 export function equals(a: HousingOwnerApi, b: HousingOwnerApi): boolean {
-  return (
-    Object.values(compare(a, b, ['id', 'housingId', 'housingGeoCode', 'rank']))
-      .length === 0
-  );
+  return Object.values(compareHousingOwners(a, b)).length === 0;
 }
 
 export const includeSameHousingOwners = includeSameMembers(equals);

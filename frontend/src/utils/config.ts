@@ -9,12 +9,8 @@ const config = {
   },
   metabase: {
     siteUrl: process.env.REACT_APP_METABASE_SITE_URL,
-    secretKey: process.env.REACT_APP_METABASE_SECRET_KEY,
     public: {
       statsDashboard: process.env.REACT_APP_METABASE_STATS_DASHBOARD,
-    },
-    embed: {
-      userDashboard: process.env.REACT_APP_METABASE_USER_DASHBOARD,
     },
   },
   perPageDefault: 50,

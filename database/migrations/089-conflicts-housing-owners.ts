@@ -18,7 +18,7 @@ exports.up = async (knex: Knex) => {
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
     table
-      .uuid('owner_id')
+      .uuid('existing_owner_id')
       .nullable()
       .references('id')
       .inTable('owners')
@@ -26,9 +26,13 @@ exports.up = async (knex: Knex) => {
       .onDelete('CASCADE')
       .comment('The existing owner, if any');
     table
-      .jsonb('replacement')
-      .notNullable()
-      .comment('The value with which there is a conflict');
+      .uuid('replacement_owner_id')
+      .nullable()
+      .references('id')
+      .inTable('owners')
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+      .comment('The replacement owner with which there is a conflict, if any');
   });
 };
 

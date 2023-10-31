@@ -1,5 +1,5 @@
 import createMerger from '../merger';
-import { Comparison } from '../../shared/models/Comparison';
+import { Comparison } from '../../shared';
 import {
   genHousingApi,
   genOwnerApi,
@@ -8,7 +8,6 @@ import {
 import db from '../../../server/repositories/db';
 import {
   formatOwnerApi,
-  HousingOwnerDBO,
   ownerTable,
 } from '../../../server/repositories/ownerRepository';
 import { User1 } from '../../../database/seeds/test/003-users';
@@ -20,8 +19,11 @@ import {
 import {
   formatHousingRecordApi,
   housingTable,
-  ownersHousingTable,
 } from '../../../server/repositories/housingRepository';
+import {
+  HousingOwnerDBO,
+  housingOwnersTable,
+} from '../../../server/repositories/housingOwnerRepository';
 
 describe('Merger', () => {
   const merger = createMerger();
@@ -50,7 +52,7 @@ describe('Merger', () => {
 
       // Attach housing to the duplicates
       await db(housingTable).insert(housingList.map(formatHousingRecordApi));
-      await db(ownersHousingTable).insert(
+      await db(housingOwnersTable).insert(
         housingList.map<HousingOwnerDBO>((housing, i) => {
           return {
             housing_id: housing.id,
@@ -99,7 +101,7 @@ describe('Merger', () => {
 
       await merger.merge(comparison);
 
-      const ownerHousing = await db(ownersHousingTable).whereIn(
+      const ownerHousing = await db(housingOwnersTable).whereIn(
         'housing_id',
         housingList.map((housing) => housing.id)
       );

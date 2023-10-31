@@ -160,7 +160,9 @@ async function saveOwners(lovacOwner: LovacOwner): Promise<void> {
 
 function oldHousing() {
   return housingRepository
-    .stream()
+    .stream({
+      filters: {},
+    })
     .map((housing) => ({ before: housing }))
     .through(
       appendAll({

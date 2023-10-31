@@ -1,12 +1,11 @@
-import Stream = Highland.Stream;
-import { v4 as uuidv4 } from 'uuid';
-import { HousingRecordApi } from '../../server/models/HousingApi';
-import createDatafoncierHousingRepository from './datafoncierHousingRepository';
-import { DatafoncierHousing, tapAsync, toHousingRecordApi } from '../shared';
+import { HousingApi } from '../../server/models/HousingApi';
 import housingRepository from '../../server/repositories/housingRepository';
+import { tapAsync } from '../shared';
+import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
+import createDatafoncierHousingRepository from './datafoncierHousingRepository';
+import { logger } from '../../server/utils/logger';
 import HousingMissingError from '../../server/errors/housingMissingError';
 import ownerRepository from '../../server/repositories/ownerRepository';
-import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
 import {
   equals,
   HousingOwnerApi,
@@ -14,33 +13,34 @@ import {
   toHousingOwnersApi,
 } from '../../server/models/HousingOwnerApi';
 import housingOwnerRepository from '../../server/repositories/housingOwnerRepository';
-import { logger } from '../../server/utils/logger';
 import { HousingOwnerConflictApi } from '../../server/models/ConflictApi';
-import housingOwnerConflictRepository from '../../server/repositories/conflict/housingOwnerConflictRepository';
 import fp from 'lodash/fp';
+import { v4 as uuidv4 } from 'uuid';
 import { isNotNull } from '../../shared';
+import housingOwnerConflictRepository from '../../server/repositories/conflict/housingOwnerConflictRepository';
+import Stream = Highland.Stream;
 
-const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
-
-export function housingOwnersImporter(): Stream<HousingRecordApi> {
-  return createDatafoncierHousingRepository()
-    .stream()
-    .consume(tapAsync(processHousingOwners))
-    .map(toHousingRecordApi)
+export function existingHousingOwnersImporter(): Stream<HousingApi> {
+  logger.info('Importing housing owners...');
+  return housingRepository
+    .stream({
+      filters: {},
+    })
+    .consume(tapAsync(processHousing))
     .errors((error) => {
       logger.error(error);
     });
 }
 
-export async function processHousingOwners(
-  datafoncierHousing: DatafoncierHousing
-): Promise<void> {
-  const housing = await housingRepository.findOne({
-    geoCode: datafoncierHousing.idcom,
-    localId: datafoncierHousing.idlocal,
+const datafoncierHousingRepository = createDatafoncierHousingRepository();
+const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
+
+export async function processHousing(housing: HousingApi): Promise<void> {
+  const datafoncierHousing = await datafoncierHousingRepository.findOne({
+    idlocal: housing.localId,
   });
-  if (!housing) {
-    throw new HousingMissingError();
+  if (!datafoncierHousing) {
+    throw new HousingMissingError(housing.localId);
   }
 
   const [datafoncierOwners, housingOwners] = await Promise.all([
@@ -51,8 +51,6 @@ export async function processHousingOwners(
     housing,
     datafoncierOwners
   );
-
-  // TODO: there should always be at least one datafoncier owner
 
   // This is a new housing that had no owner yet
   if (!housingOwners.length) {
@@ -80,5 +78,3 @@ export async function processHousingOwners(
     .filter(isNotNull);
   await housingOwnerConflictRepository.saveMany(conflicts);
 }
-
-export default housingOwnersImporter;

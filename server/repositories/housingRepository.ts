@@ -65,16 +65,15 @@ interface FindOptions extends PaginationOptions {
 const find = async (opts: FindOptions): Promise<HousingApi[]> => {
   logger.debug('housingRepository.find', opts);
 
-  // Retrieve geo codes as literals to help the query planner,
-  // otherwise it would go throughout a lot of irrelevant partitions
-  const geoCodes = await db(establishmentsTable)
-    .select(db.raw('unnest(localities_geo_code) AS geo_code'))
-    .whereIn('id', opts.filters.establishmentIds ?? [])
-    .then((geoCodes) => geoCodes.map((_) => _.geo_code));
+  const geoCodes = await fetchGeoCodes(opts.filters.establishmentIds ?? []);
 
   const housingList: HousingDBO[] = await fastListQuery({
-    filters: opts.filters,
-    geoCodes,
+    filters: {
+      ...opts.filters,
+      localities: opts.filters.localities?.length
+        ? opts.filters.localities
+        : geoCodes,
+    },
   })
     .modify(housingSortQuery(opts.sort))
     .modify(paginationQuery(opts.pagination as PaginationApi));
@@ -95,7 +94,14 @@ const streamWithFilters = (
     .collect()
     .flatMap((geoCodes) => {
       return highland<HousingDBO>(
-        fastListQuery({ filters, geoCodes })
+        fastListQuery({
+          filters: {
+            ...filters,
+            localities: filters.localities?.length
+              ? filters.localities
+              : geoCodes,
+          },
+        })
           .modify(queryHousingEventsJoinClause)
           .stream()
       );
@@ -110,8 +116,12 @@ const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
     .flatMap((geoCodes) => {
       return highland<HousingDBO>(
         fastListQuery({
-          geoCodes,
-          filters: opts.filters,
+          filters: {
+            ...opts.filters,
+            localities: opts.filters.localities?.length
+              ? opts.filters.localities
+              : geoCodes,
+          },
         })
           .modify(housingSortQuery(opts.sort))
           .modify(paginationQuery(opts.pagination as PaginationApi))
@@ -143,13 +153,20 @@ function whereVacant(year: number = ReferenceDataYear) {
 const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
   logger.debug('Count housing', filters);
 
-  const geoCodes = await db(establishmentsTable)
-    .select(db.raw('unnest(localities_geo_code) AS geo_code'))
-    .whereIn('id', filters.establishmentIds ?? [])
-    .then((geoCodes) => geoCodes.map((_) => _.geo_code));
+  const geoCodes = await fetchGeoCodes(filters.establishmentIds ?? []);
 
   const result = await db
-    .with('list', fastListQuery({ filters, geoCodes }))
+    .with(
+      'list',
+      fastListQuery({
+        filters: {
+          ...filters,
+          localities: filters.localities?.length
+            ? filters.localities
+            : geoCodes,
+        },
+      })
+    )
     .countDistinct('id as housing')
     .countDistinct('owner_id as owners')
     .from('list')
@@ -193,9 +210,9 @@ const get = async (
   }
 
   const housing = await fastListQuery({
-    geoCodes: establishment.geoCodes,
     filters: {
       establishmentIds: [establishmentId],
+      localities: establishment.geoCodes,
     },
   })
     .select(
@@ -342,7 +359,6 @@ const saveManyWithOwner = async (
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
-  geoCodes: string[];
 }
 
 const update = async (housing: HousingApi): Promise<void> => {
@@ -444,8 +460,6 @@ const fastListQuery = (opts: ListQueryOptions) => {
     db
       .select(`${housingTable}.*`)
       .from(housingTable)
-      .whereIn(`${housingTable}.geo_code`, opts.geoCodes)
-      // Owners
       .join(housingOwnersTable, ownerHousingJoinClause)
       .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
       .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
@@ -846,6 +860,11 @@ const housingSortQuery = (sort?: HousingSortApi) =>
     default: (query) => query.orderBy(['geo_code', 'id']),
   });
 
+/**
+ * Retrieve geo codes as literals to help the query planner,
+ * otherwise it would go throughout a lot of irrelevant partitions
+ * @param establishmentIds
+ */
 async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
   const establishments = await establishmentRepository.find({
     ids: establishmentIds,

@@ -108,7 +108,7 @@ function streamOwners(opts?: StreamOptions): Stream<OwnerApi> {
 
   return highland<OwnerApi[]>((push, next) => {
     async
-      .forEachSeries(opts?.geoCodes, async (geoCode) => {
+      .forEachSeries(opts?.geoCodes ?? [], async (geoCode) => {
         await untilEmpty(
           () => findOwners({ geoCode }),
           (owners) => {

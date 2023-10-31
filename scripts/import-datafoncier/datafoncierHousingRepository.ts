@@ -11,6 +11,19 @@ export const DatafoncierHouses = () =>
   db<DatafoncierHousing>(datafoncierHousingTable);
 
 class DatafoncierHousingRepository {
+  async findOne(
+    where: Partial<DatafoncierHousing>
+  ): Promise<DatafoncierHousing | null> {
+    const housing = await DatafoncierHouses()
+      .where(where)
+      .where({
+        ccthp: 'L',
+      })
+      .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
+      .first();
+    return housing ?? null;
+  }
+
   stream(): Stream<DatafoncierHousing> {
     logger.debug('Stream housing');
 

@@ -8,6 +8,7 @@ import ownerRepository from '../../server/repositories/ownerRepository';
 import { logger } from '../../server/utils/logger';
 
 export function ownerImporter(): Stream<OwnerApi> {
+  logger.info('Importing owners...');
   return createDatafoncierOwnersRepository()
     .stream()
     .consume(tapAsync(processOwner))

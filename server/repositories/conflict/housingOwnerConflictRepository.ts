@@ -1,9 +1,6 @@
 import { HousingOwnerConflictApi } from '../../models/ConflictApi';
 import db, { where } from '../db';
-import {
-  formatHousingOwnerApi,
-  HousingOwnerDBO,
-} from '../housingOwnerRepository';
+import { HousingOwnerDBO } from '../housingOwnerRepository';
 import {
   ConflictDBO,
   Conflicts,
@@ -42,11 +39,17 @@ const find = async (opts?: FindOptions): Promise<HousingOwnerConflictApi[]> => {
     )
     .select(`${conflictsTable}.*`)
     .leftJoin(
-      ownerTable,
-      `${ownerTable}.id`,
-      `${housingOwnersConflictsTable}.owner_id`
+      { existingOwners: ownerTable },
+      'existingOwners.id',
+      `${housingOwnersConflictsTable}.existing_owner_id`
     )
-    .select(db.raw(`to_json(${ownerTable}.*) AS existing`))
+    .select(db.raw(`to_json(existingOwners.*) AS existing`))
+    .leftJoin(
+      { replacementOwners: ownerTable },
+      'replacementOwners.id',
+      `${housingOwnersConflictsTable}.replacement_owner_id`
+    )
+    .select(db.raw(`to_json(replacementOwners.*) AS replacement`))
     .orderBy('created_at');
 
   return conflicts.map(parseHousingOwnerConflictApi);
@@ -76,8 +79,8 @@ export interface HousingOwnerConflictRecordDBO {
   conflict_id: string;
   housing_geo_code: string;
   housing_id: string;
-  owner_id: string | null;
-  replacement: HousingOwnerDBO | null;
+  existing_owner_id: string | null;
+  replacement_owner_id: string | null;
 }
 
 export interface HousingOwnerConflictDBO extends ConflictDBO {
@@ -93,10 +96,8 @@ export const formatHousingOwnerConflictApi = (
   conflict_id: conflict.id,
   housing_geo_code: conflict.housingGeoCode,
   housing_id: conflict.housingId,
-  owner_id: conflict.existing?.id ?? null,
-  replacement: conflict.replacement
-    ? formatHousingOwnerApi(conflict.replacement)
-    : null,
+  existing_owner_id: conflict.existing?.id ?? null,
+  replacement_owner_id: conflict.replacement?.id ?? null,
 });
 
 export const parseHousingOwnerConflictApi = (

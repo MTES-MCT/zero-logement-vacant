@@ -6,7 +6,7 @@ import { logger } from '../utils/logger';
 export const prospectsTable = 'prospects';
 
 const get = async (email: string): Promise<ProspectApi | null> => {
-  console.log('Get prospect by email', email);
+  logger.info('Get prospect by email', email);
 
   const prospect = await db(prospectsTable)
     .select(
@@ -40,7 +40,7 @@ const exists = async (email: string): Promise<boolean> => {
 };
 
 const upsert = async (prospectApi: ProspectApi): Promise<ProspectApi> => {
-  console.log('Upsert prospect with email', prospectApi.email);
+  logger.info('Upsert prospect with email', prospectApi.email);
 
   try {
     return db(prospectsTable)
@@ -59,7 +59,7 @@ const upsert = async (prospectApi: ProspectApi): Promise<ProspectApi> => {
 };
 
 const remove = async (email: string): Promise<void> => {
-  console.log('Remove prospect with email', email);
+  logger.info('Remove prospect with email', email);
 
   await db(prospectsTable).where('email', email).delete();
 };

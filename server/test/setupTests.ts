@@ -31,7 +31,7 @@ global.afterEach(async () => {
   const db = knex(knexConfig);
   try {
     await db.migrate.rollback();
-    console.log('Rolled back');
+    logger.info('Rolled back');
   } catch (error) {
     logger.error(error);
     process.exit(1);

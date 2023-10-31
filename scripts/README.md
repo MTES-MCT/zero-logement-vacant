@@ -12,7 +12,7 @@ checked at the start of your script.
 
 async function run() {
   if (config.application.isReviewApp) {
-    console.log('This is a review app. Skipping...')
+    logger.info('This is a review app. Skipping...')
     return
   }
   
@@ -22,6 +22,6 @@ async function run() {
 run()
   .finally(() => db.destroy())
   .then(() => {
-    console.log('DB connection destroyed.')
+    logger.info('DB connection destroyed.')
   })
 ```

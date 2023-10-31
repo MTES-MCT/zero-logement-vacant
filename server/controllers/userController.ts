@@ -21,6 +21,7 @@ import ProspectMissingError from '../errors/prospectMissingError';
 import mailService from '../services/mailService';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
 import UserMissingError from '../errors/userMissingError';
+import { logger } from '../utils/logger';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -69,7 +70,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
     body.establishmentId
   );
   if (!userEstablishment) {
-    console.log('Establishment not found for id', body.establishmentId);
+    logger.info('Establishment not found for id', body.establishmentId);
     return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
   }
 
@@ -83,7 +84,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
     establishmentId: body.establishmentId,
   };
 
-  console.log('Create user', {
+  logger.info('Create user', {
     id: userApi.id,
     email: userApi.email,
     establishmentId: userApi.establishmentId,
@@ -114,7 +115,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
 const get = async (request: Request, response: Response): Promise<Response> => {
   const userId = request.params.userId;
 
-  console.log('Get user', userId);
+  logger.info('Get user', userId);
 
   const user = await userRepository.get(userId);
 

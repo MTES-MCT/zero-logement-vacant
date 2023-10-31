@@ -476,8 +476,6 @@ describe('Campaign controller', () => {
         .where('id', Housing2.id)
         .where('geo_code', Housing2.geoCode);
 
-      console.log('format ISO', formatISO(new Date()));
-
       const res = await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))

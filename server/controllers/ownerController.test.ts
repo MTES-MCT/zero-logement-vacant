@@ -15,6 +15,7 @@ import {
   ownerEventsTable,
 } from '../repositories/eventRepository';
 import { OwnerApi } from '../models/OwnerApi';
+import { addDays } from 'date-fns';
 
 describe('Owner controller', () => {
   const { app } = createServer();
@@ -100,7 +101,9 @@ describe('Owner controller', () => {
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
-        birthDate: new Date().toISOString().substring(0, 10),
+        birthDate: addDays(original.birthDate ?? new Date(), 1)
+          .toISOString()
+          .substring(0, 10),
       };
 
       const { status } = await withAccessToken(

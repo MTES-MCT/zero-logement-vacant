@@ -92,7 +92,7 @@ const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
 const insertCampaignEvent = async (
   campaignEvent: CampaignEventApi
 ): Promise<void> => {
-  console.log('Insert CampaignEventApi', campaignEvent);
+  logger.info('Insert CampaignEventApi', campaignEvent);
   await db.transaction(async (transaction) => {
     await Events(transaction).insert(formatEventApi(campaignEvent));
     await CampaignEvents(transaction).insert({
@@ -141,21 +141,21 @@ async function findEvents<T>(
 const findOwnerEvents = async (
   ownerId: string
 ): Promise<EventApi<OwnerApi>[]> => {
-  console.log('List eventApi for owner with id', ownerId);
+  logger.info('List eventApi for owner with id', ownerId);
   return findEvents(ownerEventsTable, 'owner_id', ownerId);
 };
 
 const findHousingEvents = async (
   housingId: string
 ): Promise<EventApi<HousingApi>[]> => {
-  console.log('List eventApi for housing with id', housingId);
+  logger.info('List eventApi for housing with id', housingId);
   return findEvents(housingEventsTable, 'housing_id', housingId);
 };
 
 const findCampaignEvents = async (
   campaignId: string
 ): Promise<EventApi<CampaignApi>[]> => {
-  console.log('List eventApi for campaign with id', campaignId);
+  logger.info('List eventApi for campaign with id', campaignId);
   return findEvents(campaignEventsTable, 'campaign_id', campaignId);
 };
 
@@ -187,7 +187,7 @@ const findGroupHousingEvents = async (
 };
 
 const removeCampaignEvents = async (campaignIds: string[]): Promise<void> => {
-  console.log('Delete eventApi for campaign with ids', campaignIds);
+  logger.info('Delete eventApi for campaign with ids', campaignIds);
   await db(campaignEventsTable).whereIn('campaign_id', campaignIds).delete();
 };
 

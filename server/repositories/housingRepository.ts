@@ -787,7 +787,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
       });
     }
     if (filters.localities?.length) {
-      queryBuilder.whereIn('geo_code', filters.localities);
+      queryBuilder.whereIn(`${housingTable}.geo_code`, filters.localities);
     }
     if (filters.localityKinds?.length) {
       queryBuilder

@@ -65,55 +65,50 @@ const searchOwners = async (
   page?: number,
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
-  try {
-    const filterQuery = db(ownerTable)
-      .whereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q
-      )
-      .orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q?.split(' ').reverse().join(' ')
-      );
+  const filterQuery = db(ownerTable)
+    .whereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q
+    )
+    .orWhereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q?.split(' ').reverse().join(' ')
+    );
 
-    const filteredCount: number = await db(ownerTable)
-      .whereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q
-      )
-      .orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q?.split(' ').reverse().join(' ')
-      )
-      .count('id')
-      .first()
-      .then((_) => Number(_?.count));
+  const filteredCount: number = await db(ownerTable)
+    .whereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q
+    )
+    .orWhereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q?.split(' ').reverse().join(' ')
+    )
+    .count('id')
+    .first()
+    .then((_) => Number(_?.count));
 
-    const totalCount = await db(ownerTable)
-      .count('id')
-      .first()
-      .then((_) => Number(_?.count));
+  const totalCount = await db(ownerTable)
+    .count('id')
+    .first()
+    .then((_) => Number(_?.count));
 
-    const results = await filterQuery.modify((queryBuilder: any) => {
-      queryBuilder.orderBy('full_name');
-      if (page && perPage) {
-        queryBuilder.offset((page - 1) * perPage).limit(perPage);
-      }
-    });
+  const results = await filterQuery.modify((queryBuilder: any) => {
+    queryBuilder.orderBy('full_name');
+    if (page && perPage) {
+      queryBuilder.offset((page - 1) * perPage).limit(perPage);
+    }
+  });
 
-    console.log('filteredCount', filteredCount);
+  logger.debug('filteredCount', filteredCount);
 
-    return <PaginatedResultApi<OwnerApi>>{
-      entities: results.map((result: any) => parseOwnerApi(result)),
-      totalCount,
-      filteredCount,
-      page,
-      perPage,
-    };
-  } catch (err) {
-    console.error('Searching owners failed', err, q);
-    throw new Error('Searching owner failed');
-  }
+  return <PaginatedResultApi<OwnerApi>>{
+    entities: results.map((result: any) => parseOwnerApi(result)),
+    totalCount,
+    filteredCount,
+    page,
+    perPage,
+  };
 };
 
 const findByHousing = async (
@@ -135,22 +130,17 @@ const findByHousing = async (
 };
 
 const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
-  console.log('Insert draftOwnerApi');
-  try {
-    return db(ownerTable)
-      .insert({
-        raw_address: draftOwnerApi.rawAddress,
-        full_name: draftOwnerApi.fullName,
-        birth_date: draftOwnerApi.birthDate,
-        email: draftOwnerApi.email,
-        phone: draftOwnerApi.phone,
-      })
-      .returning('*')
-      .then((_) => parseOwnerApi(_[0]));
-  } catch (err) {
-    console.error('Inserting owner failed', err);
-    throw new Error('Inserting owner failed');
-  }
+  logger.info('Insert draftOwnerApi');
+  return db(ownerTable)
+    .insert({
+      raw_address: draftOwnerApi.rawAddress,
+      full_name: draftOwnerApi.fullName,
+      birth_date: draftOwnerApi.birthDate,
+      email: draftOwnerApi.email,
+      phone: draftOwnerApi.phone,
+    })
+    .returning('*')
+    .then((_) => parseOwnerApi(_[0]));
 };
 
 interface SaveOptions {

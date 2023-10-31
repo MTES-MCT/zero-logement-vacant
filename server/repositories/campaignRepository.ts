@@ -16,6 +16,7 @@ import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 import { housingOwnersTable } from './housingOwnerRepository';
+import { logger } from '../utils/logger';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -234,71 +235,46 @@ const listCampaignBundles = async (
 };
 
 const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
-  try {
-    return db(campaignsTable)
-      .where('establishment_id', establishmentId)
-      .max('campaign_number')
-      .first()
-      .then((_) => (_ ? _.max : 0));
-  } catch (err) {
-    console.error('Listing campaigns failed', err);
-    throw new Error('Listing campaigns failed');
-  }
+  return db(campaignsTable)
+    .where('establishment_id', establishmentId)
+    .max('campaign_number')
+    .first()
+    .then((_) => (_ ? _.max : 0));
 };
 
 const lastReminderNumber = async (
   establishmentId: string,
   campaignNumber: number
 ): Promise<any> => {
-  try {
-    return db(campaignsTable)
-      .where('establishment_id', establishmentId)
-      .andWhere('campaign_number', campaignNumber)
-      .max('reminder_number')
-      .first()
-      .then((_) => (_ ? _.max : 0));
-  } catch (err) {
-    console.error('Listing campaigns failed', err);
-    throw new Error('Listing campaigns failed');
-  }
+  return db(campaignsTable)
+    .where('establishment_id', establishmentId)
+    .andWhere('campaign_number', campaignNumber)
+    .max('reminder_number')
+    .first()
+    .then((_) => (_ ? _.max : 0));
 };
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
-  console.log(
+  logger.info(
     'Insert campaignApi for establishment',
     campaignApi.establishmentId
   );
-  try {
-    return db(campaignsTable)
-      .insert(formatCampaignApi(campaignApi))
-      .returning('*')
-      .then((_) => parseCampaignApi(_[0]));
-  } catch (err) {
-    console.error('Inserting campaign failed', err, campaignApi);
-    throw new Error('Inserting campaign failed');
-  }
+  return db(campaignsTable)
+    .insert(formatCampaignApi(campaignApi))
+    .returning('*')
+    .then((_) => parseCampaignApi(_[0]));
 };
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {
-  try {
-    return db(campaignsTable)
-      .where('id', campaignApi.id)
-      .update(formatCampaignApi(campaignApi))
-      .returning('*')
-      .then((_) => _[0]);
-  } catch (err) {
-    console.error('Updating campaign failed', err, campaignApi);
-    throw new Error('Updating campaign failed');
-  }
+  return db(campaignsTable)
+    .where('id', campaignApi.id)
+    .update(formatCampaignApi(campaignApi))
+    .returning('*')
+    .then((_) => _[0]);
 };
 
 const deleteCampaigns = async (campaignIds: string[]): Promise<number> => {
-  try {
-    return db(campaignsTable).delete().whereIn('id', campaignIds);
-  } catch (err) {
-    console.error('Deleting campaigns', err, deleteCampaigns);
-    throw new Error('Deleting campaigns failed');
-  }
+  return db(campaignsTable).delete().whereIn('id', campaignIds);
 };
 
 export interface CampaignDBO {

@@ -189,7 +189,6 @@ export const genOwnerApi = (): OwnerApi => {
     phone: randomstring.generate(),
     kind: randomstring.generate(),
     kindDetail: randomstring.generate(),
-    administrator: undefined,
   };
 };
 

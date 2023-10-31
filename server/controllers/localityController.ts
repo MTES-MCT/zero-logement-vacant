@@ -6,6 +6,7 @@ import { body, param, query } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import LocalityMissingError from '../errors/localityMissingError';
 import { TaxKindsApi } from '../models/LocalityApi';
+import { logger } from '../utils/logger';
 
 const getLocalityValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
@@ -17,7 +18,7 @@ const getLocality = async (
 ): Promise<Response> => {
   const geoCode = request.params.geoCode;
 
-  console.log('Get locality with geoCode', geoCode);
+  logger.info('Get locality with geoCode', geoCode);
 
   const locality = await localityRepository.get(geoCode);
 
@@ -36,7 +37,7 @@ const listLocalities = async (
 ): Promise<Response> => {
   const establishmentId = <string>request.query.establishmentId;
 
-  console.log('List localities', establishmentId);
+  logger.info('List localities', establishmentId);
 
   return localityRepository
     .listByEstablishmentId(establishmentId)
@@ -63,7 +64,7 @@ const updateLocalityTax = async (
   const taxRate = request.body.taxRate;
   const taxKind = request.body.taxKind;
 
-  console.log('Update locality tax', geoCode, taxRate);
+  logger.info('Update locality tax', geoCode, taxRate);
 
   const establishment = await establishmentRepository.get(establishmentId);
   const locality = await localityRepository.get(geoCode);

@@ -18,11 +18,12 @@ import { v4 as uuidv4 } from 'uuid';
 import fp from 'lodash/fp';
 import config from '../../server/utils/config';
 import { tapAsync } from '../shared/stream';
+import { logger } from '../../server/utils/logger';
 
 const BATCH_SIZE = config.application.batchSize;
 
 function run() {
-  console.log('Starting import...');
+  logger.info('Starting import...');
   const bar = new progress.SingleBar(
     {
       etaBuffer: 1000,
@@ -40,13 +41,13 @@ function run() {
   ])
     .parallel(2)
     .toArray(([count, lovac]) => {
-      console.log(`Found ${count} vacant housing in ZLV.`);
-      console.log(`Found ${lovac} new Lovac housing missing from ZLV.`);
+      logger.info(`Found ${count} vacant housing in ZLV.`);
+      logger.info(`Found ${lovac} new Lovac housing missing from ZLV.`);
 
       let imported = 0;
 
       owners(count).done(() => {
-        console.log('Importing housing...');
+        logger.info('Importing housing...');
         bar.start(count + lovac, 0);
 
         highland([oldHousing(), newHousing()])
@@ -57,7 +58,7 @@ function run() {
           .tap((actions) => {
             bar.increment(actions.length);
             imported += actions.length;
-            console.log(`${imported} / ${count + lovac} housing`);
+            logger.info(`${imported} / ${count + lovac} housing`);
           })
           .through(errorHandler())
           .done(async () => {
@@ -69,7 +70,7 @@ function run() {
 }
 
 function owners(count: number) {
-  console.log('Importing owners...');
+  logger.info('Importing owners...');
   const bar = new progress.SingleBar(
     {
       etaBuffer: 1000,
@@ -152,8 +153,8 @@ async function saveOwners(lovacOwner: LovacOwner): Promise<void> {
     );
   }
   await Promise.all(save).catch((error) => {
-    console.log(error);
-    console.log('Owners', owners);
+    logger.info(error);
+    logger.info('Owners', owners);
     throw error;
   });
 }

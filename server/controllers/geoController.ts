@@ -5,12 +5,13 @@ import geoRepository from '../repositories/geoRepository';
 import { body, param } from 'express-validator';
 import { constants } from 'http2';
 import { isArrayOf, isUUID } from '../utils/validators';
+import { logger } from '../utils/logger';
 
 const listGeoPerimeters = async (request: Request, response: Response) => {
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  console.log('List geo perimeters', establishmentId);
+  logger.info('List geo perimeters', establishmentId);
 
   const geoPerimeters = await geoRepository.find(establishmentId);
   response.status(constants.HTTP_STATUS_OK).json(geoPerimeters);
@@ -24,7 +25,7 @@ const createGeoPerimeter = async (
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
-  console.log('Create geo perimeter', establishmentId, file.name);
+  logger.info('Create geo perimeter', establishmentId, file.name);
 
   const geojson = await shpjs(file.data);
 
@@ -57,7 +58,7 @@ const deleteGeoPerimeterList = async (
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
 
-  console.log('Delete geo perimeters', geoPerimeterIds);
+  logger.info('Delete geo perimeters', geoPerimeterIds);
 
   return geoRepository
     .removeMany(geoPerimeterIds, establishmentId)
@@ -80,7 +81,7 @@ const updateGeoPerimeter = async (
   const kind = request.body.kind;
   const name = request.body.name;
 
-  console.log('Update geo perimeter', geoPerimeterId, kind, name);
+  logger.info('Update geo perimeter', geoPerimeterId, kind, name);
 
   const geoPerimeter = await geoRepository.get(geoPerimeterId);
 

@@ -7,6 +7,7 @@ import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { establishmentsTable } from './establishmentRepository';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { sortQuery } from '../models/SortApi';
+import { logger } from '../utils/logger';
 
 export const ownerProspectsTable = 'owner_prospects';
 
@@ -15,7 +16,7 @@ export const OwnerProspects = () => db<OwnerProspectDbo>(ownerProspectsTable);
 const insert = async (
   ownerProspectApi: OwnerProspectApi
 ): Promise<OwnerProspectApi> => {
-  console.log('Insert ownerProspect with email', ownerProspectApi.email);
+  logger.info('Insert ownerProspect with email', ownerProspectApi.email);
 
   return OwnerProspects()
     .insert(formatOwnerProspectApi(ownerProspectApi))

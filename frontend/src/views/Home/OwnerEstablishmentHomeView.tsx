@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+
 import { useLocation, useParams } from 'react-router-dom';
-import { createOwnerProspect } from '../../store/actions/ownerProspectAction';
 import OwnerProspectForm from './OwnerProspectForm';
 import handsPoints from '../../assets/images/hands-point.svg';
 import handsGrip from '../../assets/images/hands-grip.svg';
@@ -11,50 +11,39 @@ import { unCapitalize } from '../../utils/stringUtils';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './home.module.scss';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
-import {
-  getEstablishment,
-  getNearbyEstablishments,
-} from '../../store/actions/establishmentAction';
 import EstablishmentLinkList from '../../components/EstablishmentLinkList/EstablishmentLinkList';
 import LocalityTaxesCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { TaxKinds } from '../../models/Locality';
 import { OwnerProspect } from '../../models/OwnerProspect';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
 import { useFindContactPointsQuery } from '../../services/contact-point.service';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useSettings } from '../../hooks/useSettings';
+
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Button from '@codegouvfr/react-dsfr/Button';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+
+import { useEstablishment } from '../../hooks/useEstablishment';
+import { useCreateOwnerProspectMutation } from '../../services/owner-prospect.service';
 
 const OwnerEstablishmentHomeView = () => {
-  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
+  const { trackEvent } = useMatomo();
 
   const { establishmentRef } = useParams<{ establishmentRef: string }>();
 
-  const { ownerProspect, addressSearchResult } = useAppSelector(
+  const [createOwnerProspect, { isSuccess: isCreateSuccess }] =
+    useCreateOwnerProspectMutation();
+
+  const { addressSearchResult } = useAppSelector(
     (state) => state.ownerProspect
-  );
-
-  const { establishment, nearbyEstablishments, epciEstablishment } =
-    useAppSelector((state) => state.establishment);
-
-  const { settings } = useSettings(establishment?.id ?? epciEstablishment?.id);
-
-  const { data: contactPoints } = useFindContactPointsQuery(
-    {
-      establishmentId: (establishment?.available
-        ? establishment?.id
-        : epciEstablishment?.id)!,
-      publicOnly: true,
-    },
-    {
-      skip: !(establishment?.available
-        ? establishment?.id
-        : epciEstablishment?.id),
-    }
   );
 
   const isLocality = useMemo(
@@ -74,27 +63,34 @@ const OwnerEstablishmentHomeView = () => {
     [establishmentRef, isLocality]
   );
 
+  const { establishment, nearbyEstablishments, epciEstablishment } =
+    useEstablishment(refName, geoCode ? [geoCode] : undefined);
+
+  const { settings } = useSettings(establishment?.id ?? epciEstablishment?.id);
+
+  const { data: contactPoints } = useFindContactPointsQuery(
+    {
+      establishmentId: (establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id)!,
+      publicOnly: true,
+    },
+    {
+      skip: !(establishment?.available
+        ? establishment?.id
+        : epciEstablishment?.id),
+    }
+  );
+
   useDocumentTitle(establishment?.name);
   const { localities } = useLocalityList(establishment?.id);
 
-  useEffect(() => {
-    if (refName) {
-      dispatch(getEstablishment(refName, geoCode));
-    }
-  }, [dispatch, refName, geoCode]);
-
-  useEffect(() => {
-    if (establishment) {
-      dispatch(getNearbyEstablishments(establishment));
-    }
-  }, [establishment]); //eslint-disable-line react-hooks/exhaustive-deps
-
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
-    dispatch(
-      createOwnerProspect({
-        ...ownerProspect,
-      })
-    );
+    trackEvent({
+      category: TrackEventCategories.OwnerProspect,
+      action: TrackEventActions.OwnerProspect.SubmitContact,
+    });
+    createOwnerProspect(ownerProspect);
   };
 
   return (
@@ -326,7 +322,7 @@ const OwnerEstablishmentHomeView = () => {
                     Votre collectivité peut vous aider. Laissez vos coordonnées
                     pour être recontacté par votre collectivité.
                   </Text>
-                  {ownerProspect ? (
+                  {isCreateSuccess ? (
                     <Alert
                       description="Merci de votre prise de contact. Votre demande a été bien prise en compte et sera traitée dans les meilleurs délais par l’équipe Zéro Logement Vacant."
                       severity="success"

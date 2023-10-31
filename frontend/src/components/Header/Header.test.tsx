@@ -4,26 +4,21 @@ import Header from './Header';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { Provider } from 'react-redux';
-import { genAuthUser } from '../../../test/fixtures.test';
-import { applicationReducer, store } from '../../store/store';
+import { applicationMiddlewares, applicationReducer } from '../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
-import ownerProspectService from '../../services/owner-prospect.service';
-import { PaginatedResult } from '../../models/PaginatedResult';
-import { OwnerProspect } from '../../models/OwnerProspect';
+import { genAuthUser } from '../../../test/fixtures.test';
 
 describe('AppHeader', () => {
-  beforeEach(() => {
-    const response: PaginatedResult<OwnerProspect> = {
-      entities: [],
-      page: 1,
-      perPage: 25,
-      loading: false,
-      filteredCount: 0,
-    };
-    jest.spyOn(ownerProspectService, 'find').mockResolvedValue(response);
-  });
-
   test('should not display navbar when no user is logged', () => {
+    const store = configureStore({
+      reducer: applicationReducer,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+          serializableCheck: false,
+        }).concat(applicationMiddlewares),
+      preloadedState: { authentication: { authUser: undefined } },
+    });
+
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
@@ -49,6 +44,10 @@ describe('AppHeader', () => {
   test('should display navbar when a user is logged', () => {
     const store = configureStore({
       reducer: applicationReducer,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+          serializableCheck: false,
+        }).concat(applicationMiddlewares),
       preloadedState: { authentication: { authUser: genAuthUser() } },
     });
 

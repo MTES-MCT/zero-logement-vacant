@@ -18,6 +18,7 @@ import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
 import { param } from 'express-validator';
 import groupController from "../controllers/groupController";
+import dashboardController from "../controllers/dashboardController";
 
 const router = express.Router();
 
@@ -89,5 +90,7 @@ router.delete('/contact-points/:contactPointId', contactPointController.deleteCo
 router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValidators, validator.validate, localityController.updateLocalityTax);
 
 router.put('/establishments/:id/settings', settingsController.updateSettingsValidators, validator.validate, settingsController.updateSettings);
+
+router.get('/dashboards/:id', dashboardController.findOneValidators, validator.validate, dashboardController.findOne);
 
 export default router;

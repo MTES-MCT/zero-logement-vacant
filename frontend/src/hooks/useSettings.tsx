@@ -1,33 +1,31 @@
-import { useEffect } from 'react';
-
 import {
-  fetchSettings as doFetchSettings,
-  updateSettings,
-} from '../store/actions/settingsAction';
-import { useAppDispatch, useAppSelector } from './useStore';
+  useFindSettingsQuery,
+  useUpsertSettingsMutation,
+} from '../services/settings.service';
 
 export function useSettings(establishmentId?: string) {
-  const dispatch = useAppDispatch();
-  const { settings: state } = useAppSelector((state) => state);
+  const { data: settings } = useFindSettingsQuery(
+    { establishmentId: establishmentId! },
+    { skip: !establishmentId }
+  );
 
-  function togglePublishContactPoints() {
-    if (state.settings) {
-      dispatch(
-        updateSettings({
+  const [upsertSettings] = useUpsertSettingsMutation();
+
+  async function togglePublishContactPoints() {
+    if (settings && establishmentId) {
+      await upsertSettings({
+        establishmentId,
+        settings: {
           contactPoints: {
-            public: !state.settings.contactPoints.public,
+            public: !settings.contactPoints.public,
           },
-        })
-      );
+        },
+      });
     }
   }
 
-  useEffect(() => {
-    dispatch(doFetchSettings(establishmentId));
-  }, [dispatch, establishmentId]);
-
   return {
-    settings: state.settings,
+    settings,
     togglePublishContactPoints,
   };
 }

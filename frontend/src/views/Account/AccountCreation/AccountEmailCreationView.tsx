@@ -9,11 +9,17 @@ import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import styles from './account-email-creation-view.module.scss';
 import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
   const router = useHistory();
   const { send: sendActivationEmail } = useActivationEmail();
+  const { trackEvent } = useMatomo();
 
   const shape = { email: emailValidator };
   type FormShape = typeof shape;
@@ -23,6 +29,10 @@ function AccountEmailCreationView() {
     e.preventDefault();
     await form.validate(async () => {
       await sendActivationEmail(email);
+      trackEvent({
+        category: TrackEventCategories.AccountCreation,
+        action: TrackEventActions.AccountCreation.SendEmail,
+      });
       return router.push({
         pathname: '/inscription/activation',
         state: {

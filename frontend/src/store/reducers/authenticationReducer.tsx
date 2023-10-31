@@ -1,15 +1,10 @@
-import {
-  AvailableEstablishmentsFetchedAction,
-  LoginAction,
-} from '../actions/authenticationAction';
+import { LoginAction } from '../actions/authenticationAction';
 import { AuthUser } from '../../models/User';
-import { Establishment } from '../../models/Establishment';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
 
 export interface AuthenticationState {
-  availableEstablishments?: Establishment[];
   isLoggedOut?: boolean;
   authUser?: AuthUser;
   loginError?: string;
@@ -39,12 +34,6 @@ const authenticationSlice = createSlice({
     logoutUser: (state: AuthenticationState) => {
       state.isLoggedOut = true;
       state.authUser = undefined;
-    },
-    availableEstablishmentsFetched: (
-      state: AuthenticationState,
-      action: PayloadAction<AvailableEstablishmentsFetchedAction>
-    ) => {
-      state.availableEstablishments = action.payload.availableEstablishments;
     },
   },
 });

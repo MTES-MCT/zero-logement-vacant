@@ -39,15 +39,31 @@ if (!process.env.API_PORT) {
 }
 
 interface Config {
-  attio: {
-    enabled: boolean;
-    token: string | null;
+  application: {
+    batchSize: number;
+    host: string;
+    isReviewApp: boolean;
+    system: string;
   };
-  environment: string;
-  serverPort: number;
   auth: {
     secret: string;
     expiresIn: string;
+  };
+  ban: {
+    api: {
+      endpoint: string;
+    };
+    update: {
+      pageSize: number;
+      delay: string;
+    };
+  };
+  cerema: {
+    api: {
+      endpoint: string;
+      authToken: string;
+    };
+    enable: boolean;
   };
   databaseEnvironment: string;
   databaseUrl: string;
@@ -55,26 +71,19 @@ interface Config {
   datafoncier: {
     token: string | null;
   };
+  environment: string;
+  feature: {
+    occupancy: string[];
+  };
   features: {
     enableTestAccounts: boolean;
     dpeExperimentEstablishments: string[];
   };
-  sentry: {
-    dsn: string | null;
-    enabled: boolean;
-  };
-  maxRate: number;
-  application: {
-    batchSize: number;
-    host: string;
-    isReviewApp: boolean;
-    system: string;
-  };
-  feature: {
-    occupancy: string[];
-  };
   log: {
     level: LogLevel;
+  };
+  mail: {
+    from: string;
   };
   mailer: {
     provider: 'brevo' | 'nodemailer';
@@ -89,51 +98,40 @@ interface Config {
     eventApiKey: string | null;
     secure: boolean;
   };
-  mail: {
-    from: string;
+  maxRate: number;
+  metabase: {
+    domain: string;
+    token: string;
   };
-  cerema: {
-    api: {
-      endpoint: string;
-      authToken: string;
-    };
-    enable: boolean;
+  sentry: {
+    dsn: string | null;
+    enabled: boolean;
   };
-  ban: {
-    api: {
-      endpoint: string;
-    };
-    update: {
-      pageSize: number;
-      delay: string;
-    };
-  };
+  serverPort: number;
 }
 
 const config = convict<Config>({
-  attio: {
-    enabled: {
-      env: 'ATTIO_ENABLED',
+  application: {
+    batchSize: {
+      env: 'BATCH_SIZE',
+      format: Number,
+      default: 10,
+    },
+    host: {
+      env: 'APPLICATION_HOST',
+      format: 'url',
+      default: 'http://localhost:3000',
+    },
+    isReviewApp: {
+      env: 'IS_REVIEW_APP',
       format: 'strict-boolean',
       default: false,
     },
-    token: {
-      env: 'ATTIO_TOKEN',
+    system: {
+      env: 'SYSTEM_ACCOUNT',
       format: String,
-      sensitive: true,
-      nullable: true,
-      default: null,
+      default: 'lovac-2023@zerologementvacant.beta.gouv.fr',
     },
-  },
-  environment: {
-    env: 'NODE_ENV',
-    format: String,
-    default: 'development',
-  },
-  serverPort: {
-    env: 'API_PORT',
-    format: Number,
-    default: 3001,
   },
   auth: {
     secret: {
@@ -146,6 +144,47 @@ const config = convict<Config>({
       env: 'AUTH_EXPIRES_IN',
       format: String,
       default: '12 hours',
+    },
+  },
+  ban: {
+    api: {
+      endpoint: {
+        env: 'BAN_API_ENDPOINT',
+        format: 'url',
+        default: 'https://api-adresse.data.gouv.fr',
+      },
+    },
+    update: {
+      pageSize: {
+        env: 'BAN_UPDATE_PAGE_SIZE',
+        format: Number,
+        default: 2000,
+      },
+      delay: {
+        env: 'BAN_UPDATE_DELAY',
+        format: String,
+        default: '1 months',
+      },
+    },
+  },
+  cerema: {
+    api: {
+      endpoint: {
+        env: 'CEREMA_API_ENDPOINT',
+        format: 'url',
+        default: 'https://getdf.cerema.fr',
+      },
+      authToken: {
+        env: 'CEREMA_API_AUTH_TOKEN',
+        format: String,
+        sensitive: true,
+        default: null,
+      },
+    },
+    enable: {
+      env: 'CEREMA_ENABLE',
+      format: 'strict-boolean',
+      default: process.env.NODE_ENV === 'production',
     },
   },
   databaseEnvironment: {
@@ -172,6 +211,18 @@ const config = convict<Config>({
       sensitive: true,
     },
   },
+  environment: {
+    env: 'NODE_ENV',
+    format: String,
+    default: 'development',
+  },
+  feature: {
+    occupancy: {
+      env: 'REACT_APP_FEATURE_OCCUPANCY',
+      format: 'comma-separated string',
+      default: [],
+    },
+  },
   features: {
     enableTestAccounts: {
       env: 'ENABLE_TEST_ACCOUNTS',
@@ -184,59 +235,17 @@ const config = convict<Config>({
       default: [],
     },
   },
-  sentry: {
-    dsn: {
-      env: 'SENTRY_DSN',
-      format: String,
-      default: null,
-      nullable: true,
-    },
-    enabled: {
-      env: 'SENTRY_ENABLED',
-      format: 'strict-boolean',
-      default: process.env.NODE_ENV === 'production',
-    },
-  },
-  maxRate: {
-    env: 'MAX_RATE',
-    format: 'int',
-    default: 10000,
-  },
-  application: {
-    batchSize: {
-      env: 'BATCH_SIZE',
-      format: Number,
-      default: 10,
-    },
-    host: {
-      env: 'APPLICATION_HOST',
-      format: 'url',
-      default: 'http://localhost:3000',
-    },
-    isReviewApp: {
-      env: 'IS_REVIEW_APP',
-      format: 'strict-boolean',
-      default: false,
-    },
-    system: {
-      env: 'SYSTEM_ACCOUNT',
-      format: String,
-      default: 'lovac-2023@zerologementvacant.beta.gouv.fr',
-    },
-  },
-  feature: {
-    occupancy: {
-      env: 'REACT_APP_FEATURE_OCCUPANCY',
-      format: 'comma-separated string',
-      default: [],
-    },
-  },
   log: {
     level: {
       env: 'LOG_LEVEL',
       format: LOG_LEVELS,
       default: LogLevel.DEBUG,
     },
+  },
+  maxRate: {
+    env: 'MAX_RATE',
+    format: 'int',
+    default: 10000,
   },
   mailer: {
     provider: {
@@ -296,46 +305,37 @@ const config = convict<Config>({
       default: 'contact@zerologementvacant.beta.gouv.fr',
     },
   },
-  cerema: {
-    api: {
-      endpoint: {
-        env: 'CEREMA_API_ENDPOINT',
-        format: 'url',
-        default: 'https://getdf.cerema.fr',
-      },
-      authToken: {
-        env: 'CEREMA_API_AUTH_TOKEN',
-        format: String,
-        sensitive: true,
-        default: null,
-      },
+  metabase: {
+    domain: {
+      env: 'METABASE_DOMAIN',
+      format: 'url',
+      nullable: true,
+      default: null,
     },
-    enable: {
-      env: 'CEREMA_ENABLE',
+    token: {
+      env: 'METABASE_TOKEN',
+      format: String,
+      default: '',
+      sensitive: true,
+    },
+  },
+  sentry: {
+    dsn: {
+      env: 'SENTRY_DSN',
+      format: String,
+      default: null,
+      nullable: true,
+    },
+    enabled: {
+      env: 'SENTRY_ENABLED',
       format: 'strict-boolean',
       default: process.env.NODE_ENV === 'production',
     },
   },
-  ban: {
-    api: {
-      endpoint: {
-        env: 'BAN_API_ENDPOINT',
-        format: 'url',
-        default: 'https://api-adresse.data.gouv.fr',
-      },
-    },
-    update: {
-      pageSize: {
-        env: 'BAN_UPDATE_PAGE_SIZE',
-        format: Number,
-        default: 2000,
-      },
-      delay: {
-        env: 'BAN_UPDATE_DELAY',
-        format: String,
-        default: '1 months',
-      },
-    },
+  serverPort: {
+    env: 'API_PORT',
+    format: Number,
+    default: 3001,
   },
 })
   .validate({ allowed: 'strict' })

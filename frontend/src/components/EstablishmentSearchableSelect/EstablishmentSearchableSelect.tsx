@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { SearchableSelect } from '../_dsfr';
-import establishmentService from '../../services/establishment.service';
-import { useEstablishments } from '../../hooks/useEstablishments';
+import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import _ from 'lodash';
 import { SelectOption } from '../../models/SelectOption';
+import { establishmentService } from '../../services/establishment.service';
 
 interface Props {
   onChange(establishmentId?: string): void;
@@ -14,7 +14,7 @@ const EstablishmentSearchableSelect = ({
   onChange,
   initialEstablishmentOption,
 }: Props) => {
-  const { availableEstablishmentOptions } = useEstablishments();
+  const { availableEstablishmentOptions } = useAvailableEstablishments();
   const [establishmentOptions, setEstablishmentOptions] = useState<
     SelectOption[]
   >([]);

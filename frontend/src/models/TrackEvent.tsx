@@ -3,9 +3,11 @@ import { CampaignSteps } from './Campaign';
 export const TrackEventCategories = {
   Filter: 'Filtre',
   Home: 'Homepage',
-  Dashboard: 'Accueil',
-  HousingList: 'Base de données',
+  AccountCreation: 'Création de compte',
+  OwnerProspect: 'Propriétaire',
   Group: 'Groupe',
+  HousingList: 'Base de données',
+  Housing: 'Fiche logement',
   Campaigns: 'Campagnes',
   GeoPerimeters: 'Périmètres',
   ContactPoints: 'Guichet contacts',
@@ -16,16 +18,18 @@ export const TrackEventActions = {
   Filter: (filterLabel: string) => `Filtre par ${filterLabel}`,
   Home: {
     Connection: 'Connexion',
-    Join: 'Rejoindre la communauté',
-    Rectify: 'Rectifier la situation',
+    CreateAccount: 'Créer un compte',
     SelectAddress: "Sélection d'une adresse",
     Webinar: 'Redirection inscription webinaire',
     Newsletter: 'Redirection inscription newsletter',
   },
-  Dashboard: {
-    QuickSearch: 'Recherche rapide',
-    SelectAddress: "Sélection d'une adresse",
-    Search: 'Recherche',
+  AccountCreation: {
+    SendEmail: 'Envoi mail',
+    SubmitPassword: 'Validation du mot de passe',
+    SubmitCampaignIntent: 'Validation des intentions',
+  },
+  OwnerProspect: {
+    SubmitContact: 'Formulaire contact complété',
   },
   HousingList: {
     CreateCampaign: 'Créer la campagne',
@@ -34,7 +38,11 @@ export const TrackEventActions = {
     Search: 'Rechercher un logement',
     MapView: 'Affichage de la cartographie (via le bouton)',
     ListView: 'Affichage de la liste (via le bouton)',
-    UpdateHousing: 'Mise à jour groupée',
+    UpdateList: 'Mise à jour groupée (depuis parc de logements)',
+    Update: 'Mise à jour (depuis parc de logements)',
+  },
+  Housing: {
+    Update: 'Mise à jour (depuis fiche logement)',
   },
   Campaigns: {
     ValidStep: (step: CampaignSteps) =>
@@ -43,7 +51,8 @@ export const TrackEventActions = {
         : step === CampaignSteps.Sending
         ? 'Confirmer'
         : `Valider étape ${step}`,
-    UpdateHousing: 'Mise à jour de dossier(s)',
+    UpdateList: 'Mise à jour groupée (depuis campagne)',
+    Update: 'Mise à jour (depuis campagne)',
     DisplayHousing: 'Afficher un logement',
     Rename: 'Renommer une campagne',
     Delete: 'Supprimer une campagne',

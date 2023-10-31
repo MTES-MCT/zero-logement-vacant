@@ -4,13 +4,7 @@ import './App.scss';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
-import {
-  BrowserRouter,
- Link, Redirect,
-  Route,
-  RouteProps,
-  Switch
-} from 'react-router-dom';
+import { BrowserRouter, Link, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
 import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
@@ -40,8 +34,9 @@ import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
-import GroupView from "./views/Group/GroupView";
+import GroupView from './views/Group/GroupView';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+import UsersView from './views/Users/UsersView';
 
 declare module "@codegouvfr/react-dsfr/spa" {
   interface RegisterLink {
@@ -133,6 +128,7 @@ function App() {
               {path:"/ressources", component:ResourcesView},
               {path:"/compte", component:AccountView},
               {path:"/compte/mot-de-passe", component:AccountPasswordView},
+              {path:"/utilisateurs", component:UsersView},
             ].map((route: RouteProps) => <Route path={route.path} exact component={route.component} key={`route_${route.path}`} /> )),
               <Route path="/*" key="route_default">
                 <Redirect to="/parc-de-logements"/>

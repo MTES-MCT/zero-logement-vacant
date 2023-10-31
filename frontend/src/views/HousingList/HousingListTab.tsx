@@ -109,7 +109,7 @@ const HousingListTab = ({
   const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
     trackEvent({
       category: TrackEventCategories.HousingList,
-      action: TrackEventActions.HousingList.UpdateHousing,
+      action: TrackEventActions.HousingList.UpdateList,
       value: selectedCount,
     });
     await updateHousingList({

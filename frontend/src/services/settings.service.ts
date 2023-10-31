@@ -1,10 +1,8 @@
-import { createHttpService, toJSON } from '../utils/fetchUtils';
 import { Settings } from '../../../shared/models/Settings';
 import config from '../utils/config';
 import authService from './auth.service';
 import { DeepPartial } from 'ts-essentials';
-
-const http = createHttpService('settings');
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 
 interface FindOneOptions {
   establishmentId: string;
@@ -19,46 +17,38 @@ const DEFAULT_SETTINGS: Settings = {
   },
 };
 
-async function findOne(options: FindOneOptions): Promise<Settings> {
-  return http
-    .fetch(
-      `${config.apiEndpoint}/api/establishments/${options.establishmentId}/settings`,
-      {
-        method: 'GET',
-        headers: {
-          ...authService.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-    .then((response) => {
-      if (response.status === 404) {
-        return DEFAULT_SETTINGS;
-      }
-      return toJSON(response);
-    });
-}
-
-async function upsert(
-  establishmentId: string,
-  settings: DeepPartial<Settings>
-): Promise<void> {
-  await http.fetch(
-    `${config.apiEndpoint}/api/establishments/${establishmentId}/settings`,
-    {
-      method: 'PUT',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
+export const settingsApi = createApi({
+  reducerPath: 'settingsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/establishments`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['Settings'],
+  endpoints: (builder) => ({
+    findSettings: builder.query<Settings, FindOneOptions>({
+      query: (options) => `/${options.establishmentId}/settings`,
+      providesTags: () => ['Settings'],
+      transformErrorResponse: (response) => {
+        if (response.status === 404) {
+          return DEFAULT_SETTINGS;
+        }
       },
-      body: JSON.stringify(settings),
-    }
-  );
-}
+    }),
+    upsertSettings: builder.mutation<
+      void,
+      {
+        establishmentId: string;
+        settings: DeepPartial<Settings>;
+      }
+    >({
+      query: ({ establishmentId, settings }) => ({
+        url: `/${establishmentId}/settings`,
+        method: 'PUT',
+        body: settings,
+      }),
+      invalidatesTags: ['Settings'],
+    }),
+  }),
+});
 
-const settingsService = {
-  findOne,
-  upsert,
-};
-
-export default settingsService;
+export const { useFindSettingsQuery, useUpsertSettingsMutation } = settingsApi;

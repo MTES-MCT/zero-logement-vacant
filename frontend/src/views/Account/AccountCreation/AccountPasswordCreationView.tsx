@@ -13,6 +13,11 @@ import { Prospect } from '../../../models/Prospect';
 import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -22,6 +27,7 @@ interface RouterState {
 function AccountPasswordCreationView() {
   const router = useHistory<RouterState | undefined>();
   const { location } = router;
+  const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
     location.state?.prospect
@@ -84,6 +90,10 @@ function AccountPasswordCreationView() {
     e.preventDefault();
     await form.validate(() => {
       if (!!prospect) {
+        trackEvent({
+          category: TrackEventCategories.AccountCreation,
+          action: TrackEventActions.AccountCreation.SubmitPassword,
+        });
         router.push({
           pathname: '/inscription/campagne',
           state: {

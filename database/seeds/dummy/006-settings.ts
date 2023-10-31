@@ -9,12 +9,16 @@ exports.seed = function (knex: Knex) {
     .select('id')
     .then((results) => {
       if (results.length) {
-        return knex.table(settingsTable).insert(
-          results.map((result) => ({
-            ...genSettingsApi(result),
-            contactPoints: { public: true },
-          }))
-        );
+        return knex
+          .table(settingsTable)
+          .insert(
+            results.map((result) => ({
+              ...genSettingsApi(result),
+              contactPoints: { public: true },
+            }))
+          )
+          .onConflict()
+          .ignore();
       }
     });
 };

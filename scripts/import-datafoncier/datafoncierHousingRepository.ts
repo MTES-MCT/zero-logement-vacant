@@ -7,8 +7,8 @@ import highland from 'highland';
 
 const FIELDS = ['*'];
 export const datafoncierHousingTable = 'df_housing_nat';
-export const DatafoncierHouses = () =>
-  db<DatafoncierHousing>(datafoncierHousingTable);
+export const DatafoncierHouses = (transaction = db) =>
+  transaction<DatafoncierHousing>(datafoncierHousingTable);
 
 class DatafoncierHousingRepository {
   async findOne(

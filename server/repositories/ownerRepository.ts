@@ -10,7 +10,7 @@ import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
-export const Owners = () => db<OwnerDBO>(ownerTable);
+export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();

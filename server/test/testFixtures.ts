@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
@@ -67,10 +68,7 @@ export const genEmail = () => {
 };
 
 export const genGeoCode = (): string => {
-  const geoCode: string = randomstring.generate({
-    length: 5,
-    charset: 'numeric',
-  });
+  const geoCode = faker.location.zipCode();
   const needsReroll =
     geoCode.startsWith('20') ||
     geoCode.startsWith('99') ||
@@ -193,8 +191,8 @@ export const genOwnerApi = (): OwnerApi => {
 };
 
 export const genHousingOwnerApi = (
-  housing: HousingApi = genHousingApi(),
-  owner: OwnerApi = genOwnerApi()
+  housing: HousingApi,
+  owner: OwnerApi
 ): HousingOwnerApi => ({
   ...owner,
   housingGeoCode: housing.geoCode,
@@ -209,7 +207,7 @@ export const genHousingApi = (
   return {
     id,
     invariant: randomstring.generate(),
-    localId: randomstring.generate(),
+    localId: randomstring.generate(12),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     geoCode,
     localityKind: randomstring.generate(),
@@ -383,9 +381,11 @@ export const genGroupApi = (
   };
 };
 
-export const genDatafoncierOwner = (): DatafoncierOwner => ({
+export const genDatafoncierOwner = (
+  idprocpte = randomstring.generate(11)
+): DatafoncierOwner => ({
   idprodroit: randomstring.generate(13),
-  idprocpte: randomstring.generate(11),
+  idprocpte,
   idpersonne: randomstring.generate(8),
   idvoie: randomstring.generate(9),
   idcom: genGeoCode(),
@@ -435,7 +435,13 @@ export const genDatafoncierOwner = (): DatafoncierOwner => ({
   dqualp: randomstring.generate(3),
   dnomlp: randomstring.generate(30),
   dprnlp: randomstring.generate(15),
-  jdatnss: randomstring.generate(10),
+  jdatnss: faker.date
+    .birthdate()
+    .toISOString()
+    .substring(0, 10)
+    .split('-')
+    .reverse()
+    .join('/'),
   dldnss: randomstring.generate(58),
   dsiren: randomstring.generate(9),
   topja: randomstring.generate(1),
@@ -598,13 +604,11 @@ export const genOwnerConflictApi = (): OwnerConflictApi =>
   genConflictApi(genOwnerApi(), genOwnerApi()) as OwnerConflictApi;
 
 export const genHousingOwnerConflictApi = (
-  existing = genHousingApi(),
-  replacement = genHousingApi()
+  housing: HousingApi,
+  existing: HousingOwnerApi,
+  replacement: HousingOwnerApi
 ): HousingOwnerConflictApi => ({
-  ...genConflictApi(
-    genHousingOwnerApi(existing, existing.owner),
-    genHousingOwnerApi(replacement, replacement.owner)
-  ),
-  housingGeoCode: existing.geoCode,
-  housingId: existing.id,
+  ...genConflictApi(existing, replacement),
+  housingGeoCode: housing.geoCode,
+  housingId: housing.id,
 });

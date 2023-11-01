@@ -4,7 +4,6 @@ import { tapAsync } from '../shared';
 import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
 import createDatafoncierHousingRepository from './datafoncierHousingRepository';
 import { logger } from '../../server/utils/logger';
-import HousingMissingError from '../../server/errors/housingMissingError';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import {
   equals,
@@ -40,9 +39,13 @@ export async function processHousing(housing: HousingApi): Promise<void> {
     idlocal: housing.localId,
   });
   if (!datafoncierHousing) {
-    throw new HousingMissingError(housing.localId);
+    logger.debug(
+      `No datafoncier housing found for idlocal ${housing.localId}. Skipping...`
+    );
+    return;
   }
 
+  logger.debug(`Found datafoncier housing for idlocal ${housing.localId}`);
   const [datafoncierOwners, housingOwners] = await Promise.all([
     datafoncierOwnersRepository.findOwners(datafoncierHousing),
     ownerRepository.findByHousing(housing),
@@ -66,12 +69,15 @@ export async function processHousing(housing: HousingApi): Promise<void> {
         datafoncierHousingOwners[i - 1];
 
       if (!equals(housingOwner, datafoncierHousingOwner)) {
-        return {
+        const conflict: HousingOwnerConflictApi = {
           id: uuidv4(),
           createdAt: new Date(),
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode,
           existing: housingOwner,
           replacement: datafoncierHousingOwner,
-        } as HousingOwnerConflictApi;
+        };
+        return conflict;
       }
       return null;
     })

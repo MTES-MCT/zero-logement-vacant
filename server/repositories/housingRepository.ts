@@ -42,7 +42,8 @@ export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
 export const establishmentsLocalitiesTable = 'establishments_localities';
 
-export const Housing = () => db<HousingDBO>(housingTable);
+export const Housing = (transaction = db) =>
+  transaction<HousingDBO>(housingTable);
 
 export const ReferenceDataYear = 2022;
 
@@ -460,8 +461,12 @@ const fastListQuery = (opts: ListQueryOptions) => {
     db
       .select(`${housingTable}.*`)
       .from(housingTable)
-      .join(housingOwnersTable, ownerHousingJoinClause)
-      .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
+      .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+      .leftJoin(
+        ownerTable,
+        `${housingOwnersTable}.owner_id`,
+        `${ownerTable}.id`
+      )
       .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
       // Campaigns
       .select('campaigns.*')

@@ -1,6 +1,7 @@
 import { OwnerApi } from './OwnerApi';
 import { compare, includeSameMembers } from '../utils/compareUtils';
 import { HousingApi } from './HousingApi';
+import { isDefined, isUndefined } from '../../shared';
 
 export const MAX_OWNERS = 6;
 
@@ -23,6 +24,7 @@ export function toHousingOwnersApi(
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
     rank: i + 1,
+    startDate: new Date(),
   }));
 }
 
@@ -33,8 +35,16 @@ export function compareHousingOwners(
   return compare(a, b, ['id', 'housingId', 'housingGeoCode', 'rank']);
 }
 
-export function equals(a: HousingOwnerApi, b: HousingOwnerApi): boolean {
-  return Object.values(compareHousingOwners(a, b)).length === 0;
+export function equals(a?: HousingOwnerApi, b?: HousingOwnerApi): boolean {
+  if ([a, b].every(isUndefined)) {
+    return true;
+  }
+
+  return (
+    isDefined(a) &&
+    isDefined(b) &&
+    Object.values(compareHousingOwners(a, b)).length === 0
+  );
 }
 
 export const includeSameHousingOwners = includeSameMembers(equals);

@@ -8,6 +8,7 @@ import {
   formatConflictApi,
 } from './conflictRepository';
 import { OwnerDBO, ownerTable, parseHousingOwnerApi } from '../ownerRepository';
+import { logger } from '../../utils/logger';
 
 export const housingOwnersConflictsTable = 'conflicts_housing_owners';
 export const HousingOwnerConflicts = (transaction = db) =>
@@ -39,17 +40,17 @@ const find = async (opts?: FindOptions): Promise<HousingOwnerConflictApi[]> => {
     )
     .select(`${conflictsTable}.*`)
     .leftJoin(
-      { existingOwners: ownerTable },
-      'existingOwners.id',
+      { old: ownerTable },
+      'old.id',
       `${housingOwnersConflictsTable}.existing_owner_id`
     )
-    .select(db.raw(`to_json(existingOwners.*) AS existing`))
+    .select(db.raw(`to_json(old.*) AS existing`))
     .leftJoin(
-      { replacementOwners: ownerTable },
-      'replacementOwners.id',
+      { new: ownerTable },
+      'new.id',
       `${housingOwnersConflictsTable}.replacement_owner_id`
     )
-    .select(db.raw(`to_json(replacementOwners.*) AS replacement`))
+    .select(db.raw(`to_json(new.*) AS replacement`))
     .orderBy('created_at');
 
   return conflicts.map(parseHousingOwnerConflictApi);
@@ -67,6 +68,11 @@ const save = async (conflict: HousingOwnerConflictApi): Promise<void> => {
 const saveMany = async (
   conflicts: HousingOwnerConflictApi[]
 ): Promise<void> => {
+  if (!conflicts.length) {
+    logger.info('The conflicts array is empty. Skipping save...');
+    return;
+  }
+  logger.debug(`Wrote ${conflicts.length} conflicts`);
   await db.transaction(async (transaction) => {
     await Conflicts(transaction).insert(conflicts.map(formatConflictApi));
     await HousingOwnerConflicts(transaction).insert(

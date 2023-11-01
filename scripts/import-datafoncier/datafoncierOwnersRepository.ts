@@ -30,8 +30,8 @@ const FIELDS = [
 ];
 
 export const datafoncierOwnersTable = 'df_owners_nat';
-export const DatafoncierOwners = () =>
-  db<DatafoncierOwner>(datafoncierOwnersTable);
+export const DatafoncierOwners = (transaction = db) =>
+  transaction<DatafoncierOwner>(datafoncierOwnersTable);
 
 class DatafoncierOwnersRepository {
   async findOwners(housing: DatafoncierHousing): Promise<OwnerApi[]> {

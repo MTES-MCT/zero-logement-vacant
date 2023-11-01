@@ -25,7 +25,7 @@ describe('HousingOwnerApi', () => {
 
   describe('compareHousingOwners', () => {
     it('should return properties that differ', () => {
-      const a = genHousingOwnerApi();
+      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
       const b: HousingOwnerApi = {
         ...a,
         rank: a.rank + 1,
@@ -41,7 +41,7 @@ describe('HousingOwnerApi', () => {
 
   describe('equals', () => {
     it('should return true if all properties are equal, false otherwise', () => {
-      const a = genHousingOwnerApi();
+      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
       const b: HousingOwnerApi = {
         ...a,
         rank: a.rank + 1,
@@ -50,6 +50,15 @@ describe('HousingOwnerApi', () => {
       const actual = equals(a, b);
 
       expect(actual).toBeFalse();
+    });
+
+    it('should return true if both values are undefined', () => {
+      const a = undefined;
+      const b = undefined;
+
+      const actual = equals(a, b);
+
+      expect(actual).toBeTrue();
     });
   });
 });

@@ -8,7 +8,10 @@ import { DatafoncierHousing, toHousingRecordApi } from '../../shared';
 
 describe('Housing importer', () => {
   describe('processHousing', () => {
-    const housing = genDatafoncierHousing();
+    const housing: DatafoncierHousing = {
+      ...genDatafoncierHousing(),
+      ccthp: 'V',
+    };
 
     it('should create the housing if it does not exist', async () => {
       await processHousing(housing);

@@ -25,7 +25,8 @@ const find = async (opts?: FindOptions): Promise<GroupApi[]> => {
   logger.debug('Finding groups...', opts);
   const groups: GroupDBO[] = await Groups()
     .modify(listQuery)
-    .modify(filterQuery(opts?.filters));
+    .modify(filterQuery(opts?.filters))
+    .orderBy('created_at', 'desc');
 
   logger.debug('Found groups', groups.length);
   return groups.map(parseGroupApi);

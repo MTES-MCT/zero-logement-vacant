@@ -157,7 +157,7 @@ export function toHousingRecordApi(
     buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
     ownershipKind: housing.ctpdl as OwnershipKindsApi,
     status: HousingStatusApi.NeverContacted,
-    occupancy: OccupancyKindApi.Rent,
-    occupancyRegistered: OccupancyKindApi.Rent,
+    occupancy: housing.ccthp as OccupancyKindApi,
+    occupancyRegistered: housing.ccthp as OccupancyKindApi,
   };
 }

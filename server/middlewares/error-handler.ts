@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { isClientError, isHttpError } from '../errors/httpError';
 import { ErrorHandler, errors as compose, Next } from 'compose-middleware';
 import { constants } from 'http2';
-import { logger } from '../utils/logger';
 
 function log(
   error: Error,
@@ -11,7 +10,7 @@ function log(
   next: Next
 ): void {
   // Should later be enhanced with relevant info like Request ID, user ID, etc.
-  logger.error(error);
+  console.error(error);
   next(error);
 }
 

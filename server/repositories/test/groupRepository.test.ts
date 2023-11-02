@@ -1,22 +1,26 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
-import { genGroupApi, genHousingApi } from '../test/testFixtures';
-import { TEST_SALT, User1, User2 } from '../../database/seeds/test/003-users';
+import { genGroupApi, genHousingApi } from '../../test/testFixtures';
+import {
+  TEST_SALT,
+  User1,
+  User2,
+} from '../../../database/seeds/test/003-users';
 import {
   Establishment1,
   Establishment2,
-} from '../../database/seeds/test/001-establishments';
+} from '../../../database/seeds/test/001-establishments';
 import groupRepository, {
   formatGroupApi,
   formatGroupHousingApi,
   GroupHousingDBO,
   Groups,
   GroupsHousing,
-} from './groupRepository';
-import { GroupApi } from '../models/GroupApi';
-import { HousingApi } from '../models/HousingApi';
-import { formatHousingRecordApi, Housing } from './housingRepository';
+} from '../groupRepository';
+import { GroupApi } from '../../models/GroupApi';
+import { HousingApi } from '../../models/HousingApi';
+import { formatHousingRecordApi, Housing } from '../housingRepository';
 
 describe('Group repository', () => {
   describe('find', () => {

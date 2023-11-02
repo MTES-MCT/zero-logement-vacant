@@ -54,7 +54,9 @@ exports.seed = async function (knex: Knex) {
       });
     });
 
-    await knex(groupsTable).insert(groups);
-    await knex(groupsHousingTable).insert(groupsHousing);
+    if (groups.length && groupsHousing.length) {
+      await knex(groupsTable).insert(groups);
+      await knex(groupsHousingTable).insert(groupsHousing);
+    }
   });
 };

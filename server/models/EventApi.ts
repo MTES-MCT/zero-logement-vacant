@@ -1,10 +1,11 @@
 import { EventKind } from '../../shared/types/EventKind';
 import { EventCategory } from '../../shared/types/EventCategory';
 import { HousingApi } from './HousingApi';
-import { HousingOwnerApi, OwnerApi } from './OwnerApi';
+import { OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';
 import { EventSection } from '../../shared/types/EventSection';
 import { GroupApi } from './GroupApi';
+import { HousingOwnerApi } from './HousingOwnerApi';
 
 export interface EventApi<T> {
   id: string;

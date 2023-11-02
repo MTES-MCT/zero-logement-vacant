@@ -1,4 +1,4 @@
-import { OwnerApi } from '../../server/models/OwnerApi';
+import { OwnerApi } from '../../../server/models/OwnerApi';
 
 type OwnerId = OwnerApi['id'];
 type OwnerName = OwnerApi['fullName'];
@@ -28,11 +28,11 @@ function currentName(name: OwnerName): void {
   }
 }
 
-const ownerCache = {
+const cache = {
   has,
   add,
   clear,
   currentName,
 };
 
-export default ownerCache;
+export default cache;

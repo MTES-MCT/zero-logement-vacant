@@ -1,6 +1,9 @@
-import { HousingOwnerApi, OwnerApi } from './OwnerApi';
+import { assert, MarkRequired } from 'ts-essentials';
+
+import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
+import { HousingOwnerApi } from './HousingOwnerApi';
 
 export interface HousingRecordApi {
   id: string;
@@ -38,7 +41,7 @@ export interface HousingRecordApi {
 export interface HousingApi extends HousingRecordApi {
   localityKind?: string;
   geoPerimeters?: string[];
-  owner: OwnerApi;
+  owner?: OwnerApi;
   /**
    * All the owners having rank >= 2
    */
@@ -48,6 +51,12 @@ export interface HousingApi extends HousingRecordApi {
   campaignIds: string[];
   contactCount: number;
   lastContact?: Date;
+}
+
+export function assertOwner<T extends HousingApi>(
+  housing: T
+): asserts housing is T & MarkRequired<T, 'owner'> {
+  assert(housing.owner !== undefined, 'Housing owner is undefined');
 }
 
 export type HousingSortableApi = Pick<

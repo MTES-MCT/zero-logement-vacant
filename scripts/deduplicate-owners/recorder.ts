@@ -1,7 +1,7 @@
-import { Comparison } from './comparison';
+import { Comparison } from '../shared/models/Comparison';
 import { Report } from './report';
 import { logger } from '../../server/utils/logger';
-import { isMatch } from './duplicates';
+import { isMatch } from '../shared/owner-processor/duplicates';
 import { DeepPartial } from 'ts-essentials';
 import Stream = Highland.Stream;
 

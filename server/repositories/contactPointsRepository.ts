@@ -1,6 +1,7 @@
 import db from './db';
 import { ContactPointApi } from '../models/ContactPointApi';
 import { settingsTable } from './settingsRepository';
+import { logger } from '../utils/logger';
 
 type ContactPointsUniqueProperties = Pick<
   ContactPointApi,
@@ -12,7 +13,7 @@ export const contactPointsTable = 'contact_points';
 const ContactPoints = () => db<ContactPointDBO>(contactPointsTable);
 
 const get = async (contactPointId: string): Promise<ContactPointApi | null> => {
-  console.log('Get ContactPointApi with id', contactPointId);
+  logger.info('Get ContactPointApi with id', contactPointId);
   const contactPoint = await ContactPoints()
     .where('id', contactPointId)
     .first();
@@ -20,12 +21,12 @@ const get = async (contactPointId: string): Promise<ContactPointApi | null> => {
 };
 
 const insert = async (contactPointApi: ContactPointApi): Promise<void> => {
-  console.log('Insert ContactPointApi');
+  logger.info('Insert ContactPointApi');
   await ContactPoints().insert(formatContactPointApi(contactPointApi));
 };
 
 const update = async (contactPointApi: ContactPointApi): Promise<void> => {
-  console.log('Update contactPointApi with id', contactPointApi.id);
+  logger.info('Update contactPointApi with id', contactPointApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, establishment_id, ...updatedData } =
@@ -37,7 +38,7 @@ const find = async (
   establishmentId: string,
   publicOnly?: boolean
 ): Promise<ContactPointApi[]> => {
-  console.log(
+  logger.info(
     'List contactPointApi for establishment with id',
     establishmentId
   );
@@ -62,7 +63,7 @@ const find = async (
 const findOne = async (
   options: ContactPointsUniqueProperties
 ): Promise<ContactPointApi | null> => {
-  console.log('Find contactPointApi with options', options);
+  logger.info('Find contactPointApi with options', options);
   const contactPoint = await ContactPoints()
     .where({
       id: options.id,
@@ -74,7 +75,7 @@ const findOne = async (
 };
 
 const remove = async (id: string): Promise<void> => {
-  console.log('Delete contactPointApi with id', id);
+  logger.info('Delete contactPointApi with id', id);
   await ContactPoints().where({ id }).delete();
 };
 

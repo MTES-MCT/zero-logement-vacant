@@ -37,7 +37,7 @@ const get = async (request: Request, response: Response) => {
   const id = request.params.id;
   const establishment = (request as AuthenticatedRequest).establishment;
 
-  console.log('Get housing', id);
+  logger.info('Get housing', id);
 
   const housing = await housingRepository.get(id, establishment.id);
   if (!housing) {
@@ -260,7 +260,7 @@ const updateListValidators = [
 ];
 
 const updateList = async (request: Request, response: Response) => {
-  console.log('Update housing list');
+  logger.info('Update housing list');
 
   const { auth, body, user } = request as AuthenticatedRequest;
   const role = user.role;

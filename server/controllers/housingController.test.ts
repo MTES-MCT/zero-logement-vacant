@@ -2,7 +2,8 @@ import db from '../repositories/db';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import housingRepository, {
+import {
+  formatHousingRecordApi,
   housingTable,
 } from '../repositories/housingRepository';
 import { genHousingApi } from '../test/testFixtures';
@@ -78,9 +79,7 @@ describe('Housing controller', () => {
         rawAddress: ['line1 with   many      spaces', 'line2'],
       };
 
-      await db(housingTable).insert(
-        housingRepository.formatHousingRecordApi(queriedHousing)
-      );
+      await db(housingTable).insert(formatHousingRecordApi(queriedHousing));
 
       await ownerRepository.insertHousingOwners([
         {

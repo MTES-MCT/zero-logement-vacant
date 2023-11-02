@@ -8,12 +8,13 @@ import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { SettingsApi, toDBO } from '../models/SettingsApi';
+import { logger } from '../utils/logger';
 
 const getSettings = async (request: Request, response: Response) => {
   const { auth } = request as AuthenticatedRequest;
 
   const id = request.params.id ?? auth.establishmentId;
-  console.log('Get settings', id);
+  logger.info('Get settings', id);
 
   const settings = await settingsRepository.findOne({
     establishmentId: id,
@@ -34,7 +35,7 @@ const updateSettings = async (request: Request, response: Response) => {
   // Could be the given establishmentId param in a future with access control
   const { establishmentId } = auth;
 
-  console.log('Update settings', establishmentId);
+  logger.info('Update settings', establishmentId);
 
   const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {

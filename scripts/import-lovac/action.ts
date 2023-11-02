@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { HousingApi, OccupancyKindApi } from '../../server/models/HousingApi';
+import {
+  assertOwner,
+  HousingApi,
+  OccupancyKindApi,
+} from '../../server/models/HousingApi';
 import {
   EventApi,
   HousingEventApi,
@@ -128,6 +132,8 @@ export function compare({ before, now, modifications }: Comparison): Action {
   }
 
   if (before && now) {
+    assertOwner(before);
+    assertOwner(now);
     const dataYears = [...now.dataYears, ...before.dataYears];
 
     if (!hasAnyOwnershipModification(modifications)) {
@@ -321,7 +327,7 @@ export async function bulkSave(actions: Action[]): Promise<void> {
       createdBy: (system as UserApi).id,
     }));
 
-  await housingRepository.saveMany(housingList);
+  await housingRepository.saveManyWithOwner(housingList);
   // Depends on housing insertion
   await eventRepository.insertManyHousingEvents(events);
 }

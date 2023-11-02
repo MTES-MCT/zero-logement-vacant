@@ -7,6 +7,7 @@ import { body, param, query } from 'express-validator';
 import ContactPointMissingError from '../errors/contactPointMissingError';
 import validator from 'validator';
 import { ContactPointApi, toContactPointDTO } from '../models/ContactPointApi';
+import { logger } from '../utils/logger';
 
 const listContactPointsValidators = [
   query('establishmentId').notEmpty().isUUID(),
@@ -17,13 +18,15 @@ const listContactPoints =
   async (request: Request, response: Response): Promise<void> => {
     const establishmentId = request.query.establishmentId as string;
 
-    console.log('List contact points for establishment', establishmentId);
+    logger.info('List contact points for establishment', establishmentId);
 
-    const contactPoints = await contactPointsRepository
-      .find(establishmentId, publicOnly);
-      response
-    .status(constants.HTTP_STATUS_OK)
-    .json(contactPoints.map(toContactPointDTO));
+    const contactPoints = await contactPointsRepository.find(
+      establishmentId,
+      publicOnly
+    );
+    response
+      .status(constants.HTTP_STATUS_OK)
+      .json(contactPoints.map(toContactPointDTO));
   };
 
 interface ContactPointBody {
@@ -57,7 +60,7 @@ const createContactPoint = async (request: Request, response: Response) => {
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
-  console.log('Create contact point', establishmentId, body.title);
+  logger.info('Create contact point', establishmentId, body.title);
 
   const contactPoint: ContactPointApi = {
     ...body,
@@ -78,7 +81,7 @@ const deleteContactPoint = async (request: Request, response: Response) => {
   const id = request.params.contactPointId;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  console.log('Delete contact point', id);
+  logger.info('Delete contact point', id);
 
   const contactPoint = await contactPointsRepository.findOne({
     id,
@@ -102,7 +105,7 @@ const updateContactPoint = async (request: Request, response: Response) => {
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
-  console.log('Update contact point with id', contactPointId);
+  logger.info('Update contact point with id', contactPointId);
 
   const contactPoint = await contactPointsRepository.findOne({
     id: contactPointId,

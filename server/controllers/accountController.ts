@@ -26,6 +26,7 @@ import PasswordInvalidError from '../errors/passwordInvalidError';
 import UnprocessableEntityError from '../errors/unprocessableEntityError';
 import UserMissingError from '../errors/userMissingError';
 import { UserAccountDTO } from '../../shared/models/UserDTO';
+import { logger } from '../utils/logger';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -103,7 +104,7 @@ const changeEstablishment = async (request: Request, response: Response) => {
 const get = async (request: Request, response: Response): Promise<Response> => {
   const { userId } = (request as AuthenticatedRequest).auth;
 
-  console.log('Get account', userId);
+  logger.info('Get account', userId);
 
   const user = await userRepository.get(userId);
 
@@ -126,7 +127,7 @@ const updateAccount = async (request: Request, response: Response) => {
   const user = (request as AuthenticatedRequest).user;
   const userAccount = request.body as UserAccountDTO;
 
-  console.log('Update account for ', user.id);
+  logger.info('Update account for ', user.id);
 
   await userRepository.update({
     ...user,
@@ -141,7 +142,7 @@ const updatePassword = async (request: Request, response: Response) => {
   const currentPassword = request.body.currentPassword;
   const newPassword = request.body.newPassword;
 
-  console.log('Update password for ', user.id);
+  logger.info('Update password for ', user.id);
 
   const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
   if (!isPasswordValid) {

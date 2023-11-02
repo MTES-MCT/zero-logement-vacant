@@ -1,11 +1,11 @@
+import { isEqual } from 'date-fns';
 import fp from 'lodash/fp';
 import { jarowinkler } from 'wuzzy';
 
-import { OwnerApi } from '../../server/models/OwnerApi';
-import ownerRepository from '../../server/repositories/ownerRepository';
-import { ScoredOwner } from './comparison';
-import { isDefined, isNotNull } from '../../shared/utils/compare';
-import { isEqual } from 'date-fns';
+import { OwnerApi } from '../../../server/models/OwnerApi';
+import ownerRepository from '../../../server/repositories/ownerRepository';
+import { ScoredOwner } from '../models/Comparison';
+import { isDefined, isNotNull } from '../../../shared';
 
 export const REVIEW_THRESHOLD = 0.7;
 export const MATCH_THRESHOLD = 0.85;

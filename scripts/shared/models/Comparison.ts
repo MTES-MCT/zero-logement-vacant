@@ -1,4 +1,4 @@
-import { OwnerApi } from '../../server/models/OwnerApi';
+import { OwnerApi } from '../../../server/models/OwnerApi';
 
 export interface Comparison {
   source: OwnerApi;

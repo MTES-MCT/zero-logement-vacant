@@ -14,12 +14,12 @@ import createOwnerPostgresRepository, {
 import { OwnerApi } from '../../server/models/OwnerApi';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import {
-  OwnerDatafoncier,
+  DatafoncierOwner,
   ownerDatafoncierSchema,
   toOwnerApi,
-} from '../../server/models/OwnerDatafoncier';
+} from '../shared/models/DatafoncierOwner';
 import { appendAll } from '../../server/utils/stream';
-import validator from './validator';
+import validator from '../shared/validator';
 import fp from 'lodash/fp';
 import establishmentRepository from '../../server/repositories/establishmentRepository';
 import config from '../../server/utils/config';
@@ -155,7 +155,7 @@ async function linkOwners(): Promise<void> {
   }
 
   return new Promise((resolve, reject) => {
-    const query = db<OwnerDatafoncier>(datafoncierOwnersTable)
+    const query = db<DatafoncierOwner>(datafoncierOwnersTable)
       .select(
         'idprodroit',
         'dlign3',
@@ -171,7 +171,7 @@ async function linkOwners(): Promise<void> {
       .modify(hasName())
       .stream();
 
-    return highland<OwnerDatafoncier>(query)
+    return highland<DatafoncierOwner>(query)
       .map(validator.validate(ownerDatafoncierSchema))
       .map((owner) => ({ datafoncier: owner }))
       .through(
@@ -234,7 +234,7 @@ async function importHousing(geoCodes: string[]): Promise<void> {
 }
 
 async function saveLinks(
-  links: { datafoncier: OwnerDatafoncier; zlv: OwnerApi }[]
+  links: { datafoncier: DatafoncierOwner; zlv: OwnerApi }[]
 ): Promise<void> {
   const dbos = links.map((link) => ({
     datafoncier_id: link.datafoncier.idprodroit,
@@ -248,7 +248,9 @@ async function saveOwners(owners: OwnerApi[]): Promise<void> {
 }
 
 async function saveHousingList(housingList: HousingApi[]): Promise<void> {
-  await housingRepository.saveMany(housingList, { onConflict: 'ignore' });
+  await housingRepository.saveManyWithOwner(housingList, {
+    onConflict: 'ignore',
+  });
 }
 
 run()

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
 import {
+  assertOwner,
   getBuildingLocation,
   HousingApi,
   OccupancyKindApiLabels,
@@ -29,7 +30,7 @@ import { param, ValidationChain } from 'express-validator';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
-interface HousindWithAddresses extends HousingApi {
+interface HousingWithAddresses extends HousingApi {
   housingAddress?: AddressApi;
   ownerAddress?: AddressApi;
 }
@@ -144,8 +145,9 @@ const writeWorkbook = (
   const ownersRowNumber: string[] = [];
 
   return stream
-    .flatMap((housingApi) =>
-      highland(
+    .flatMap((housingApi) => {
+      assertOwner(housingApi);
+      return highland(
         Promise.all([
           banAddressesRepository.getByRefId(
             housingApi.id,
@@ -156,15 +158,17 @@ const writeWorkbook = (
             AddressKinds.Owner
           ),
         ]).then(
-          ([housingAddress, ownerAddress]): HousindWithAddresses => ({
+          ([housingAddress, ownerAddress]): HousingWithAddresses => ({
             ...housingApi,
             housingAddress: housingAddress ?? undefined,
             ownerAddress: ownerAddress ?? undefined,
           })
         )
-      )
-    )
+      );
+    })
     .tap((housingWithAddresses) => {
+      assertOwner(housingWithAddresses);
+
       if (housingWorksheet) {
         const housingAddress = housingWithAddresses.housingAddress ?? undefined;
         const building = getBuildingLocation(housingWithAddresses);
@@ -253,7 +257,8 @@ const writeWorkbook = (
     });
 };
 
-const ownerRowData = (housingWithAddresses: HousindWithAddresses) => {
+const ownerRowData = (housingWithAddresses: HousingWithAddresses) => {
+  assertOwner(housingWithAddresses);
   const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
   const rawAddress = housingWithAddresses.owner.rawAddress;
   return {

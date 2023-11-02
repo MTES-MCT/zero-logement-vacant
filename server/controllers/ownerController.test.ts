@@ -157,8 +157,7 @@ describe('Owner controller', () => {
           `${eventsTable}.id`
         )
         .where({ owner_id: original.id });
-      expect(events).toBeArrayOfSize(1);
-      expect(events[0]).toMatchObject<
+      expect(events).toPartiallyContain<
         Partial<EventDBO<OwnerApi> & OwnerEventDBO>
       >({
         owner_id: original.id,

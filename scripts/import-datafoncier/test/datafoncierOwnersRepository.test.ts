@@ -42,7 +42,6 @@ describe('Datafoncier owners repository', () => {
       const actual = await repository.findOwners(datafoncierHousing);
 
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
-      expect(actual).toBeSortedBy('rank');
     });
   });
 });

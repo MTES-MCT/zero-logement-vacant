@@ -1,8 +1,9 @@
+import { assert, MarkRequired } from 'ts-essentials';
+
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
 import { HousingOwnerApi } from './HousingOwnerApi';
-import { assert, MarkRequired } from 'ts-essentials';
 
 export interface HousingRecordApi {
   id: string;

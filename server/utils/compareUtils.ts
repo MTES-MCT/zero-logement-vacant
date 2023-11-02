@@ -14,6 +14,11 @@ export function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
   )(a);
 }
 
+export function includeSameMembers<T>(equals: (a: T, b: T) => boolean) {
+  return (a: T[], b: T[]): boolean =>
+    a.length === b.length && fp.xorWith(equals, a, b).length === 0;
+}
+
 function customizer(a?: any, b?: any) {
   if (typeof a === 'string' && typeof b === 'string') {
     return a.toUpperCase() === b.toUpperCase();

@@ -1,21 +1,22 @@
 import db from './db';
 import { SignupLinkApi } from '../models/SignupLinkApi';
+import { logger } from '../utils/logger';
 
 export const signupLinkTable = 'signup_links';
 
 const insert = async (link: SignupLinkApi): Promise<void> => {
-  console.log('Insert signupLinkApi');
+  logger.info('Insert signupLinkApi');
   await db(signupLinkTable).insert(formatSignupLinkApi(link));
 };
 
 const get = async (id: string): Promise<SignupLinkApi | null> => {
-  console.log('Get resetLinkApi with id', id);
+  logger.info('Get resetLinkApi with id', id);
   const link = await db(signupLinkTable).select().where('id', id).first();
   return link ? parseSignupLinkApi(link) : null;
 };
 
 const used = async (id: string): Promise<void> => {
-  console.log(`Remove used signup link ${id}`);
+  logger.info(`Remove used signup link ${id}`);
   await db(signupLinkTable).where('id', id).delete();
 };
 

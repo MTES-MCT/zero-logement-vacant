@@ -1,5 +1,6 @@
 import async from 'async';
 import { Knex } from 'knex';
+import { logger } from '../server/utils/logger';
 
 interface Migration {
   file: string;
@@ -40,7 +41,7 @@ const createMigrator = (db: Knex): Migrator => ({
     const migrations = pending.slice(0, index);
     await async.forEachSeries(migrations, async (migration) => {
       await db.migrate.up({ name: migration.file });
-      console.log(`Migrated ${migration.file}.`);
+      logger.info(`Migrated ${migration.file}.`);
     });
   },
 });

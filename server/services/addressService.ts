@@ -6,10 +6,11 @@ import ExcelJS from 'exceljs';
 import config from '../utils/config';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import db from '../repositories/db';
+import { logger } from '../utils/logger';
 
 const run = async (): Promise<void> => {
   if (config.application.isReviewApp) {
-    console.log('This is a review app. Skipping...');
+    logger.info('This is a review app. Skipping...');
     return;
   }
 

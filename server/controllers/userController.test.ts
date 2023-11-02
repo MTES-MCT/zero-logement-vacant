@@ -20,9 +20,9 @@ import { campaignsTable } from '../repositories/campaignRepository';
 import localityRepository, {
   localitiesTable,
 } from '../repositories/localityRepository';
-import housingRepository, {
+import {
+  formatHousingRecordApi,
   housingTable,
-  ownersHousingTable,
 } from '../repositories/housingRepository';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import { createServer } from '../server';
@@ -30,6 +30,8 @@ import fetchMock from 'jest-fetch-mock';
 import { CampaignIntent } from '../models/EstablishmentApi';
 import { Prospect1 } from '../../database/seeds/test/007-prospects';
 import { TEST_ACCOUNTS } from '../services/ceremaService/consultUserService';
+
+import { housingOwnersTable } from '../repositories/housingOwnerRepository';
 
 const { app } = createServer();
 
@@ -196,10 +198,8 @@ describe('User controller', () => {
       const housing = new Array(2500)
         .fill(0)
         .map(() => genHousingApi(Locality.geoCode));
-      await db(housingTable).insert(
-        housing.map((_) => housingRepository.formatHousingRecordApi(_))
-      );
-      await db(ownersHousingTable).insert(
+      await db(housingTable).insert(housing.map(formatHousingRecordApi));
+      await db(housingOwnersTable).insert(
         housing.map((_) => ({
           owner_id: Owner1.id,
           housing_id: _.id,

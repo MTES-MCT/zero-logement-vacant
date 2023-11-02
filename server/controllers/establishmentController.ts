@@ -5,6 +5,7 @@ import { query, ValidationChain } from 'express-validator';
 import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
 import validator from 'validator';
 import BadRequestError from '../errors/badRequestError';
+import { logger } from '../utils/logger';
 
 const listValidators: ValidationChain[] = [
   query('available').optional({ nullable: true }).isBoolean(),
@@ -24,7 +25,7 @@ const listValidators: ValidationChain[] = [
 ];
 
 const list = async (request: Request, response: Response) => {
-  console.log('list establishments');
+  logger.info('List establishments');
 
   const available = request.query.available
     ? Boolean(request.query.available)

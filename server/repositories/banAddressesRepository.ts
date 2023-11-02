@@ -91,7 +91,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
 };
 
 const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
-  console.log('Upsert address list', addresses.length);
+  logger.info('Upsert address list', addresses.length);
 
   const upsertedAddresses = addresses
     .filter((_) => _.refId)

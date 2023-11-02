@@ -95,7 +95,7 @@ const listCampaigns = async (request: Request, response: Response) => {
 const listValidators: ValidationChain[] = [...campaignFiltersValidators];
 
 const listCampaignBundles = async (request: Request, response: Response) => {
-  console.log('List campaign bundles');
+  logger.info('List campaign bundles');
 
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
@@ -108,7 +108,7 @@ const createCampaign = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  console.log('Create campaign');
+  logger.info('Create campaign');
 
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
 
@@ -496,7 +496,7 @@ const updateCampaignBundle = async (
     : undefined;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  console.log(
+  logger.info(
     'Update campaign bundle infos for establishment',
     establishmentId,
     campaignNumber,
@@ -654,7 +654,7 @@ const removeHousingList = async (
   request: Request,
   response: Response
 ): Promise<Response> => {
-  console.log('Remove campaign housing list');
+  logger.info('Remove campaign housing list');
 
   const campaignId = request.params.campaignId;
   const filters = <HousingFiltersApi>request.body.filters;

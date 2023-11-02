@@ -1,18 +1,20 @@
-import { Comparison } from './comparison';
+import { Comparison } from '../shared/models/Comparison';
 import { logger } from '../../server/utils/logger';
 import { ownerNotesTable } from '../../server/repositories/noteRepository';
 import { ownerEventsTable } from '../../server/repositories/eventRepository';
-import { ownersHousingTable } from '../../server/repositories/housingRepository';
 import {
-  HousingOwnerDBO,
   OwnerDBO,
   ownerTable,
 } from '../../server/repositories/ownerRepository';
 import db from '../../server/repositories/db';
-import { isMatch } from './duplicates';
+import { isMatch } from '../shared/owner-processor/duplicates';
 import fp from 'lodash/fp';
 import { ComparisonMergeError } from './comparisonMergeError';
 import { EventManager } from '../../shared/utils/event-manager';
+import {
+  HousingOwnerDBO,
+  housingOwnersTable,
+} from '../../server/repositories/housingOwnerRepository';
 
 export interface MergerEventMap {
   'owners:removed': number;
@@ -35,13 +37,13 @@ class Merger extends EventManager<MergerEventMap> {
     await db
       .transaction(async (transaction) => {
         // Handle the case when the owner appears multiple times in a housing
-        const ownersHousing = await transaction(ownersHousingTable).whereIn(
+        const ownersHousing = await transaction(housingOwnersTable).whereIn(
           'owner_id',
           [...removingIds, keeping.id]
         );
         const duplicates = findHousingOwnerDuplicates(ownersHousing);
         if (duplicates.length > 0) {
-          const duplicatesRemoved = await transaction(ownersHousingTable)
+          const duplicatesRemoved = await transaction(housingOwnersTable)
             .modify((query) => {
               duplicates.forEach((duplicate) => {
                 query.orWhere({
@@ -58,7 +60,7 @@ class Merger extends EventManager<MergerEventMap> {
           );
         }
 
-        await transaction(ownersHousingTable)
+        await transaction(housingOwnersTable)
           .update({ owner_id: keeping.id })
           .whereIn('owner_id', removingIds);
         await transaction(ownerEventsTable)

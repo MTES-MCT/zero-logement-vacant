@@ -1,4 +1,5 @@
 import highland from 'highland';
+import { logger } from '../../server/utils/logger';
 import Stream = Highland.Stream;
 
 export function tapAsync<T>(f: (data: T) => Promise<void>) {
@@ -87,7 +88,7 @@ export function counter(message: (count: number) => string) {
         count++;
       })
       .on('end', () => {
-        console.log(message(count));
+        logger.info(message(count));
       });
   };
 }

@@ -16,12 +16,14 @@ import {
   GroupsHousing,
 } from '../groupRepository';
 import fp from 'lodash/fp';
+import { formatOwnerApi, Owners } from '../ownerRepository';
 import {
-  formatOwnerApi,
+  formatHousingOwnersApi,
   formatOwnerHousingApi,
-  Owners,
-  OwnersHousing,
-} from '../ownerRepository';
+  HousingOwners,
+} from '../housingOwnerRepository';
+import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
+import { isDefined } from '../../../shared';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -51,6 +53,12 @@ describe('Housing repository', () => {
 
     it('should filter by establishment', async () => {
       const establishment = Establishment2;
+      const housing = genHousingApi(oneOf(establishment.geoCodes));
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(housing.owner));
+      await HousingOwners().insert(
+        formatHousingOwnersApi(housing, [housing.owner])
+      );
 
       const actual = await housingRepository.find({
         filters: {
@@ -58,8 +66,8 @@ describe('Housing repository', () => {
         },
       });
 
-      expect(actual).toSatisfyAll(
-        (housing) => housing.establishmentId === establishment.id
+      expect(actual).toSatisfyAll<HousingApi>((housing) =>
+        establishment.geoCodes.some((geoCode) => geoCode === housing.geoCode)
       );
     });
 
@@ -70,10 +78,12 @@ describe('Housing repository', () => {
         genHousingApi(oneOf(Establishment1.geoCodes)),
         genHousingApi(oneOf(Establishment1.geoCodes)),
       ];
-      const owners = housingList.map((housing) => housing.owner);
+      const owners = housingList
+        .map((housing) => housing.owner)
+        .filter(isDefined);
       await Housing().insert(housingList.map(formatHousingRecordApi));
       await Owners().insert(owners.map(formatOwnerApi));
-      await OwnersHousing().insert(housingList.map(formatOwnerHousingApi));
+      await HousingOwners().insert(housingList.map(formatOwnerHousingApi));
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
 
@@ -87,6 +97,22 @@ describe('Housing repository', () => {
       expect(actual).toBeArrayOfSize(3);
       const ids = housingList.map(fp.pick(['id']));
       expect(actual).toIncludeAllPartialMembers(ids);
+    });
+  });
+
+  describe('stream', () => {
+    it('should stream a list of housing', (done) => {
+      const establishment = Establishment1;
+      housingRepository
+        .stream({
+          filters: {
+            establishmentIds: [establishment.id],
+          },
+        })
+        .each((housing) => {
+          expect(establishment.geoCodes).toContain(housing.geoCode);
+        })
+        .done(done);
     });
   });
 
@@ -107,6 +133,62 @@ describe('Housing repository', () => {
       );
 
       expect(actual).toBeNull();
+    });
+  });
+
+  describe('save', () => {
+    it('should create a housing if it does not exist', async () => {
+      const housing = genHousingApi(oneOf(Establishment1.geoCodes));
+
+      await housingRepository.save(housing);
+
+      const actual = await Housing().where('id', housing.id).first();
+      expect(actual).toBeDefined();
+    });
+
+    it('should update all fields of an existing housing', async () => {
+      const original = genHousingApi(oneOf(Establishment1.geoCodes));
+      await Housing().insert(formatHousingRecordApi(original));
+      const update: HousingApi = {
+        ...original,
+        occupancy: OccupancyKindApi.Rent,
+        occupancyIntended: OccupancyKindApi.CommercialOrOffice,
+      };
+
+      await housingRepository.save(update, { onConflict: 'merge' });
+
+      const actual = await Housing().where('id', original.id).first();
+      expect(actual).toBeDefined();
+      expect(actual).toMatchObject({
+        occupancy: update.occupancy,
+        occupancy_intended: update.occupancyIntended,
+      });
+    });
+
+    it('should update specific fields of an existing housing', async () => {
+      const original: HousingApi = {
+        ...genHousingApi(oneOf(Establishment1.geoCodes)),
+        occupancy: OccupancyKindApi.Vacant,
+        occupancyIntended: OccupancyKindApi.Rent,
+      };
+      await Housing().insert(formatHousingRecordApi(original));
+      const update: HousingApi = {
+        ...original,
+        occupancy: OccupancyKindApi.Rent,
+        occupancyIntended: OccupancyKindApi.CommercialOrOffice,
+      };
+
+      await housingRepository.save(update, {
+        onConflict: 'merge',
+        merge: ['occupancy'],
+      });
+
+      const actual = await Housing().where('id', original.id).first();
+      expect(actual).toBeDefined();
+      expect(actual).toMatchObject({
+        occupancy: update.occupancy,
+        occupancy_intended: original.occupancyIntended,
+      });
     });
   });
 });

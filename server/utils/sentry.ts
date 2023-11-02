@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { Express } from 'express';
 import config from './config';
+import { logger } from './logger';
 
 const init = (app: Express): void => {
   if (config.sentry.enabled && !config.sentry.dsn) {
@@ -10,7 +11,7 @@ const init = (app: Express): void => {
   if (config.sentry.enabled && config.sentry.dsn) {
     const logLevel = ['error'];
 
-    console.log(
+    logger.info(
       `Initializing Sentry for log level "${logLevel}" and config: ${config.sentry.dsn}`
     );
 

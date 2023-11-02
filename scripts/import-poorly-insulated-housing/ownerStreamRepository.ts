@@ -7,5 +7,5 @@ export interface StreamOptions {
 }
 
 export interface OwnerStreamRepository {
-  stream(opts: StreamOptions): Stream<OwnerApi>;
+  stream(opts?: StreamOptions): Stream<OwnerApi>;
 }

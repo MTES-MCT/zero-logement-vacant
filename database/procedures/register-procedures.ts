@@ -2,13 +2,14 @@ import fs from 'fs/promises';
 
 import db from '../../server/repositories/db';
 import path from 'path';
+import { logger } from '../../server/utils/logger';
 
 async function run(): Promise<void> {
   async function load(path: string): Promise<void> {
-    console.log(`Loading procedure ${path}...`);
+    logger.info(`Loading procedure ${path}...`);
     const procedure = await fs.readFile(path, 'utf-8');
     await db.schema.raw(procedure);
-    console.log(`Procedure ${path} loaded.`);
+    logger.info(`Procedure ${path} loaded.`);
   }
 
   const files = await fs.readdir(__dirname, 'utf-8');
@@ -19,5 +20,5 @@ async function run(): Promise<void> {
 }
 
 run()
-  .catch(console.error)
+  .catch(logger.error.bind(logger))
   .finally(() => db.destroy());

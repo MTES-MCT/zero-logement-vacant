@@ -1,11 +1,12 @@
 import db from './db';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { establishmentsLocalitiesTable } from './housingRepository';
+import { logger } from '../utils/logger';
 
 export const localitiesTable = 'localities';
 
 const get = async (geoCode: string): Promise<LocalityApi | null> => {
-  console.log('Get LocalityApi with geoCode', geoCode);
+  logger.info('Get LocalityApi with geoCode', geoCode);
   const locality = await db(localitiesTable).where('geo_code', geoCode).first();
   return locality ? parseLocalityApi(locality) : null;
 };
@@ -39,7 +40,7 @@ export interface LocalityDbo {
 }
 
 const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
-  console.log('Update localityApi with geoCode', localityApi.geoCode);
+  logger.info('Update localityApi with geoCode', localityApi.geoCode);
 
   const { geo_code, tax_rate, tax_kind } = formatLocalityApi(localityApi);
   return db(localitiesTable)

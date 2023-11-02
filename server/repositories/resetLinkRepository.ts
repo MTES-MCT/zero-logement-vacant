@@ -1,21 +1,22 @@
 import db from './db';
 import { ResetLinkApi } from '../models/ResetLinkApi';
+import { logger } from '../utils/logger';
 
 export const resetLinkTable = 'reset_links';
 
 const insert = async (resetLinkApi: ResetLinkApi): Promise<void> => {
-  console.log('Insert resetLinkApi');
+  logger.info('Insert resetLinkApi');
   await db(resetLinkTable).insert(formatResetLinkApi(resetLinkApi));
 };
 
 const get = async (id: string): Promise<ResetLinkApi | null> => {
-  console.log('Get resetLinkApi with id', id);
+  logger.info('Get resetLinkApi with id', id);
   const link = await db(resetLinkTable).select().where('id', id).first();
   return link ? parseResetLinkApi(link) : null;
 };
 
 const used = async (id: string): Promise<void> => {
-  console.log(`Set resetLinkApi ${id} as used`);
+  logger.info(`Set resetLinkApi ${id} as used`);
   await db(resetLinkTable).where('id', id).update('used_at', new Date());
 };
 

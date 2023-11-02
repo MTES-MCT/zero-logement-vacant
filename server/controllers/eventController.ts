@@ -9,6 +9,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { EventApi } from '../models/EventApi';
 import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
+import { logger } from '../utils/logger';
 
 const listByOwnerId = async (
   request: Request,
@@ -16,7 +17,7 @@ const listByOwnerId = async (
 ): Promise<Response> => {
   const ownerId = request.params.ownerId;
 
-  console.log('List events for owner', ownerId);
+  logger.info('List events for owner', ownerId);
 
   const events = await eventRepository.findOwnerEvents(ownerId);
 
@@ -27,7 +28,7 @@ const listByHousingId = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  console.log('List events for housing', housingId);
+  logger.info('List events for housing', housingId);
 
   const housing = await housingRepository.get(housingId, establishmentId);
   if (!housing) {
@@ -36,7 +37,7 @@ const listByHousingId = async (request: Request, response: Response) => {
 
   const [housingEvents, owners, groupHousingEvents] = await Promise.all([
     eventRepository.findHousingEvents(housing.id),
-    ownerRepository.listByHousing(housing),
+    ownerRepository.findByHousing(housing),
     eventRepository.findGroupHousingEvents(housing),
   ]);
 

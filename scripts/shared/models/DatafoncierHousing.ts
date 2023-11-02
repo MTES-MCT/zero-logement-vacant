@@ -2,15 +2,15 @@ import {
   HousingRecordApi,
   OccupancyKindApi,
   OwnershipKindsApi,
-} from './HousingApi';
+} from '../../../server/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
-import { ReferenceDataYear } from '../repositories/housingRepository';
-import { HousingStatusApi } from './HousingStatusApi';
+import { ReferenceDataYear } from '../../../server/repositories/housingRepository';
+import { HousingStatusApi } from '../../../server/models/HousingStatusApi';
 
 /**
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/pb0010_local/last/
  */
-export interface HousingDatafoncier {
+export interface DatafoncierHousing {
   idlocal: string;
   idbat: string;
   idpar: string;
@@ -129,14 +129,13 @@ export interface HousingDatafoncier {
   vecteur: string;
   ban_id: string;
   ban_type: string;
-  ban_score: any;
+  ban_score: number;
   ban_cp: string;
   dis_ban_ff: number;
-  idpk: number;
 }
 
 export function toHousingRecordApi(
-  housing: HousingDatafoncier
+  housing: DatafoncierHousing
 ): HousingRecordApi {
   // Should be erased later in the chain
   // by the original housing id if it exists
@@ -158,7 +157,7 @@ export function toHousingRecordApi(
     buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
     ownershipKind: housing.ctpdl as OwnershipKindsApi,
     status: HousingStatusApi.NeverContacted,
-    occupancy: OccupancyKindApi.Rent,
-    occupancyRegistered: OccupancyKindApi.Rent,
+    occupancy: housing.ccthp as OccupancyKindApi,
+    occupancyRegistered: housing.ccthp as OccupancyKindApi,
   };
 }

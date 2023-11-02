@@ -13,10 +13,11 @@ import { ProspectApi } from '../models/ProspectApi';
 import ceremaService from '../services/ceremaService';
 import establishmentRepository from '../repositories/establishmentRepository';
 import { EstablishmentApi } from '../models/EstablishmentApi';
+import { logger } from '../utils/logger';
 
 async function upsert(request: Request, response: Response) {
   const id = request.params.id as string;
-  console.log('Create prospect with link', id);
+  logger.info('Create prospect with link', id);
 
   const link = await signupLinkRepository.get(id);
   if (!link) {
@@ -29,7 +30,7 @@ async function upsert(request: Request, response: Response) {
   const email = link.prospectEmail;
   const user = await userRepository.getByEmail(email);
   if (user) {
-    console.log('Prospect is already a user for email', email);
+    logger.info('Prospect is already a user for email', email);
     return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
   }
 
@@ -74,7 +75,7 @@ const createProspectValidator: ValidationChain[] = [
 
 async function show(request: Request, response: Response) {
   const email = request.params.email as string;
-  console.log('Get account', email);
+  logger.info('Get account', email);
 
   const prospect = await prospectRepository.get(email);
   if (!prospect) {

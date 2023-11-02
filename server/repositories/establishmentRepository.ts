@@ -76,7 +76,7 @@ interface FindOneOptions {
 const findOne = async (
   options: FindOneOptions
 ): Promise<EstablishmentApi | null> => {
-  console.log('Find establishment by', options);
+  logger.info('Find establishment by', options);
 
   const result = await db(establishmentsTable)
     .from(establishmentsTable)

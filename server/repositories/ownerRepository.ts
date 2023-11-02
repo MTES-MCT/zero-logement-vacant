@@ -1,16 +1,16 @@
 import db from './db';
-import { DraftOwnerApi, HousingOwnerApi, OwnerApi } from '../models/OwnerApi';
+import { OwnerApi, OwnerPayloadApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
-import { ownersHousingTable } from './housingRepository';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
+import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import highland from 'highland';
+import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
-export const Owners = () => db<OwnerDBO>(ownerTable);
-export const OwnersHousing = () => db<HousingOwnerDBO>(ownersHousingTable);
+export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();
@@ -65,92 +65,82 @@ const searchOwners = async (
   page?: number,
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
-  try {
-    const filterQuery = db(ownerTable)
-      .whereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q
-      )
-      .orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q?.split(' ').reverse().join(' ')
-      );
+  const filterQuery = db(ownerTable)
+    .whereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q
+    )
+    .orWhereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q?.split(' ').reverse().join(' ')
+    );
 
-    const filteredCount: number = await db(ownerTable)
-      .whereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q
-      )
-      .orWhereRaw(
-        `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-        q?.split(' ').reverse().join(' ')
-      )
-      .count('id')
-      .first()
-      .then((_) => Number(_?.count));
+  const filteredCount: number = await db(ownerTable)
+    .whereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q
+    )
+    .orWhereRaw(
+      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+      q?.split(' ').reverse().join(' ')
+    )
+    .count('id')
+    .first()
+    .then((_) => Number(_?.count));
 
-    const totalCount = await db(ownerTable)
-      .count('id')
-      .first()
-      .then((_) => Number(_?.count));
+  const totalCount = await db(ownerTable)
+    .count('id')
+    .first()
+    .then((_) => Number(_?.count));
 
-    const results = await filterQuery.modify((queryBuilder: any) => {
-      queryBuilder.orderBy('full_name');
-      if (page && perPage) {
-        queryBuilder.offset((page - 1) * perPage).limit(perPage);
-      }
-    });
+  const results = await filterQuery.modify((queryBuilder: any) => {
+    queryBuilder.orderBy('full_name');
+    if (page && perPage) {
+      queryBuilder.offset((page - 1) * perPage).limit(perPage);
+    }
+  });
 
-    console.log('filteredCount', filteredCount);
+  logger.debug('filteredCount', filteredCount);
 
-    return <PaginatedResultApi<OwnerApi>>{
-      entities: results.map((result: any) => parseOwnerApi(result)),
-      totalCount,
-      filteredCount,
-      page,
-      perPage,
-    };
-  } catch (err) {
-    console.error('Searching owners failed', err, q);
-    throw new Error('Searching owner failed');
-  }
+  return <PaginatedResultApi<OwnerApi>>{
+    entities: results.map((result: any) => parseOwnerApi(result)),
+    totalCount,
+    filteredCount,
+    page,
+    perPage,
+  };
 };
 
-const listByHousing = async (
+const findByHousing = async (
   housing: HousingApi
 ): Promise<HousingOwnerApi[]> => {
-  const owners: HousingOwnerDBO[] = await db(ownerTable)
+  const owners: Array<OwnerDBO & HousingOwnerDBO> = await db(ownerTable)
     .join(
-      ownersHousingTable,
+      housingOwnersTable,
       `${ownerTable}.id`,
-      `${ownersHousingTable}.owner_id`
+      `${housingOwnersTable}.owner_id`
     )
-    .whereRaw(`${ownersHousingTable}.rank >= 1`)
-    .where(`${ownersHousingTable}.housing_id`, housing.id)
-    .where(`${ownersHousingTable}.housing_geo_code`, housing.geoCode)
+    .whereRaw(`${housingOwnersTable}.rank >= 1`)
+    .where(`${housingOwnersTable}.housing_id`, housing.id)
+    .where(`${housingOwnersTable}.housing_geo_code`, housing.geoCode)
     .orderBy('end_date', 'desc')
     .orderBy('rank');
 
   return owners.map(parseHousingOwnerApi);
 };
 
-const insert = async (draftOwnerApi: DraftOwnerApi): Promise<OwnerApi> => {
-  console.log('Insert draftOwnerApi');
-  try {
-    return db(ownerTable)
-      .insert({
-        raw_address: draftOwnerApi.rawAddress,
-        full_name: draftOwnerApi.fullName,
-        birth_date: draftOwnerApi.birthDate,
-        email: draftOwnerApi.email,
-        phone: draftOwnerApi.phone,
-      })
-      .returning('*')
-      .then((_) => parseOwnerApi(_[0]));
-  } catch (err) {
-    console.error('Inserting owner failed', err);
-    throw new Error('Inserting owner failed');
-  }
+const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
+  logger.info('Insert draftOwnerApi');
+  return db(ownerTable)
+    .insert({
+      raw_address: draftOwnerApi.rawAddress,
+      full_name: draftOwnerApi.fullName,
+      birth_date: draftOwnerApi.birthDate,
+      email: draftOwnerApi.email,
+      phone: draftOwnerApi.phone,
+    })
+    .returning('*')
+    .then((_) => parseOwnerApi(_[0]));
 };
 
 interface SaveOptions {
@@ -248,7 +238,7 @@ const insertHousingOwners = async (
   housingOwners: HousingOwnerApi[]
 ): Promise<number> => {
   try {
-    return db(ownersHousingTable)
+    return db(housingOwnersTable)
       .insert(
         housingOwners.map((ho) => ({
           owner_id: ho.id,
@@ -273,7 +263,7 @@ const deleteHousingOwners = async (
   ownerIds: string[]
 ): Promise<number> => {
   try {
-    return db(ownersHousingTable)
+    return db(housingOwnersTable)
       .delete()
       .whereIn('owner_id', ownerIds)
       .andWhere('housing_id', housingId);
@@ -331,16 +321,6 @@ export interface OwnerDBO {
   phone?: string;
 }
 
-export interface HousingOwnerDBO {
-  owner_id: string;
-  housing_id: string;
-  housing_geo_code: string;
-  rank: number;
-  start_date?: Date;
-  end_date?: Date;
-  origin?: string;
-}
-
 export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   id: result.id,
   rawAddress: result.raw_address.filter((_: string) => _ && _.length),
@@ -353,14 +333,16 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   kindDetail: result.owner_kind_detail,
 });
 
-export const parseHousingOwnerApi = (result: any): HousingOwnerApi => ({
-  ...parseOwnerApi(result),
-  housingId: result.housing_id,
-  housingGeoCode: result.housing_geo_code,
-  rank: result.rank,
-  startDate: result.start_date,
-  endDate: result.end_date,
-  origin: result.origin,
+export const parseHousingOwnerApi = (
+  housingOwner: OwnerDBO & HousingOwnerDBO
+): HousingOwnerApi => ({
+  ...parseOwnerApi(housingOwner),
+  housingId: housingOwner.housing_id,
+  housingGeoCode: housingOwner.housing_geo_code,
+  rank: housingOwner.rank,
+  startDate: housingOwner.start_date,
+  endDate: housingOwner.end_date,
+  origin: housingOwner.origin,
 });
 
 export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
@@ -368,32 +350,11 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
   full_name: ownerApi.fullName,
   administrator: ownerApi.administrator,
-  birth_date: ownerApi.birthDate ? new Date(ownerApi.birthDate) : undefined,
+  birth_date: ownerApi.birthDate,
   email: ownerApi.email,
   phone: ownerApi.phone,
   owner_kind: ownerApi.kind,
   owner_kind_detail: ownerApi.kindDetail,
-});
-
-export const formatOwnerHousingApi = (
-  housing: HousingApi
-): HousingOwnerDBO => ({
-  housing_id: housing.id,
-  housing_geo_code: housing.geoCode,
-  rank: 1,
-  owner_id: housing.owner.id,
-});
-
-export const formatHousingOwnerApi = (
-  housingOwnerApi: HousingOwnerApi
-): HousingOwnerDBO => ({
-  owner_id: housingOwnerApi.id,
-  housing_id: housingOwnerApi.housingId,
-  housing_geo_code: housingOwnerApi.housingGeoCode,
-  rank: housingOwnerApi.rank,
-  start_date: housingOwnerApi.startDate,
-  end_date: housingOwnerApi.endDate,
-  origin: housingOwnerApi.origin,
 });
 
 export default {
@@ -402,7 +363,7 @@ export default {
   get,
   findOne,
   searchOwners,
-  listByHousing,
+  findByHousing,
   insert,
   save,
   saveMany,
@@ -410,5 +371,4 @@ export default {
   updateAddressList,
   deleteHousingOwners,
   insertHousingOwners,
-  formatOwnerApi,
 };

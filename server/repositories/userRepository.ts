@@ -34,7 +34,7 @@ const getByEmail = async (email: string): Promise<UserApi | null> => {
 };
 
 const update = async (userApi: UserApi): Promise<void> => {
-  console.log('Update userApi with id', userApi.id);
+  logger.info('Update userApi with id', userApi.id);
   await Users()
     .update(formatUserApi(userApi))
     .where('id', userApi.id)
@@ -42,16 +42,11 @@ const update = async (userApi: UserApi): Promise<void> => {
 };
 
 const insert = async (userApi: UserApi): Promise<UserApi> => {
-  console.log('Insert user with email', userApi.email);
-  try {
-    return db(usersTable)
-      .insert(formatUserApi(userApi))
-      .returning('*')
-      .then((_) => parseUserApi(_[0]));
-  } catch (err) {
-    console.error('Inserting user failed', err, userApi);
-    throw new Error('Inserting user failed');
-  }
+  logger.info('Insert user with email', userApi.email);
+  return db(usersTable)
+    .insert(formatUserApi(userApi))
+    .returning('*')
+    .then((_) => parseUserApi(_[0]));
 };
 
 interface StreamOptions {
@@ -117,13 +112,8 @@ const count = async (opts?: CountOptions): Promise<number> => {
 };
 
 const remove = async (userId: string): Promise<void> => {
-  console.log('Remove user', userId);
-  try {
-    await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
-  } catch (err) {
-    console.error('Removing user failed', err, userId);
-    throw new Error('Removing user failed');
-  }
+  logger.info('Remove user', userId);
+  await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
 };
 
 export interface UserDBO {

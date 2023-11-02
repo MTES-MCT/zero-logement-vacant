@@ -1,14 +1,14 @@
-import { isValid, parse } from 'date-fns';
+import { isValid } from 'date-fns';
 import joi from 'joi';
 import { v4 as uuidv4 } from 'uuid';
 
-import { OwnerApi } from './OwnerApi';
-import { isNotNull } from '../../shared/utils/compare';
+import { OwnerApi } from '../../../server/models/OwnerApi';
+import { isNotNull } from '../../../shared/utils/compare';
 
 /**
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/proprietaire_droit/last/
  */
-export interface OwnerDatafoncier {
+export interface DatafoncierOwner {
   idprodroit: string;
   idprocpte: string;
   idpersonne: string;
@@ -71,9 +71,10 @@ export interface OwnerDatafoncier {
   catpro2txt: string;
   catpro3: string;
   catpro3txt: string;
+  idpk: number;
 }
 
-export function toOwnerApi(owner: OwnerDatafoncier): OwnerApi {
+export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   const kinds: Record<string, string> = {
     'PERSONNE PHYSIQUE': 'Particulier',
     'INVESTISSEUR PROFESSIONNEL': 'Investisseur',
@@ -81,7 +82,7 @@ export function toOwnerApi(owner: OwnerDatafoncier): OwnerApi {
   };
 
   const birthdate = owner.jdatnss
-    ? parse(owner.jdatnss, 'dd/MM/yyyy', new Date())
+    ? new Date(owner.jdatnss.split('/').reverse().join('-'))
     : undefined;
 
   return {
@@ -102,8 +103,9 @@ export function toOwnerApi(owner: OwnerDatafoncier): OwnerApi {
 const addressSchema = joi.string().uppercase().trim().allow(null);
 
 export const ownerDatafoncierSchema = joi
-  .object<OwnerDatafoncier>({
+  .object<DatafoncierOwner>({
     idprodroit: joi.string().length(13),
+    idpersonne: joi.string(),
     dlign3: addressSchema,
     dlign4: addressSchema,
     dlign5: addressSchema,

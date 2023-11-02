@@ -29,12 +29,7 @@ import {
   Housing,
 } from '../repositories/housingRepository';
 import { toUserDTO } from '../models/UserApi';
-import {
-  formatOwnerApi,
-  HousingOwnerDBO,
-  Owners,
-  OwnersHousing,
-} from '../repositories/ownerRepository';
+import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import {
   Events,
@@ -50,6 +45,10 @@ import campaignRepository, {
   Campaigns,
 } from '../repositories/campaignRepository';
 import { CampaignApi } from '../models/CampaignApi';
+import {
+  HousingOwnerDBO,
+  HousingOwners,
+} from '../repositories/housingOwnerRepository';
 
 describe('Group controller', () => {
   const { app } = createServer();
@@ -148,7 +147,7 @@ describe('Group controller', () => {
         housing_geo_code: housing.geoCode,
         rank: 1,
       }));
-      await OwnersHousing().insert(ownersHousing);
+      await HousingOwners().insert(ownersHousing);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -374,7 +373,7 @@ describe('Group controller', () => {
         housing_geo_code: housing.geoCode,
         rank: 1,
       }));
-      await OwnersHousing().insert(ownersHousing);
+      await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
         formatGroupHousingApi(group, establishmentHousingList)
@@ -416,7 +415,7 @@ describe('Group controller', () => {
     it('should add the housing corresponding to the given criteria to the group', async () => {
       const housing = genHousingApi(oneOf(Establishment1.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
-      await OwnersHousing().insert({
+      await HousingOwners().insert({
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
@@ -452,7 +451,7 @@ describe('Group controller', () => {
     it('should create events when some housing get added', async () => {
       const housing = genHousingApi(oneOf(Establishment1.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
-      await OwnersHousing().insert({
+      await HousingOwners().insert({
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
@@ -523,7 +522,7 @@ describe('Group controller', () => {
         housing_geo_code: housing.geoCode,
         rank: 1,
       }));
-      await OwnersHousing().insert(ownersHousing);
+      await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
         formatGroupHousingApi(group, establishmentHousingList)
@@ -637,7 +636,7 @@ describe('Group controller', () => {
         housing_geo_code: housing.geoCode,
         rank: 1,
       }));
-      await OwnersHousing().insert(ownersHousing);
+      await HousingOwners().insert(ownersHousing);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {

@@ -3,6 +3,7 @@ import { Knex, knex } from 'knex';
 import db from '../server/repositories/db';
 import config from '../server/utils/config';
 import path from 'path';
+import { logger } from '../server/utils/logger';
 
 const knexConfig: Knex.Config = {
   client: 'pg',
@@ -20,7 +21,7 @@ global.beforeAll(async () => {
   try {
     await db.migrate.rollback({}, true);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     process.exit(1);
   } finally {
     await db.destroy();
@@ -32,7 +33,7 @@ global.afterEach(async () => {
   try {
     await db.migrate.rollback({}, true);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     process.exit(1);
   } finally {
     await db.destroy();

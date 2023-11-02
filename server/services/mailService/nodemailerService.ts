@@ -2,6 +2,7 @@ import { MailEvent, MailService, SendOptions } from './mailService';
 import nodemailer from 'nodemailer';
 import config from '../../utils/config';
 import { UserApi } from '../../models/UserApi';
+import { logger } from '../../utils/logger';
 
 class NodemailerService implements MailService {
   private transport: nodemailer.Transporter<nodemailer.SentMessageInfo>;
@@ -23,7 +24,7 @@ class NodemailerService implements MailService {
     email: string,
     data?: Partial<MailEvent[E]>
   ) {
-    console.log('Emit mail event', {
+    logger.info('Emit mail event', {
       event,
       email,
       data,

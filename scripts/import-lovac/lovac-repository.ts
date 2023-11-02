@@ -9,10 +9,10 @@ import {
 } from '../../server/models/HousingApi';
 import db from '../../server/repositories/db';
 import { housingTable } from '../../server/repositories/housingRepository';
-import { HousingOwnerApi } from '../../server/models/OwnerApi';
 import { HousingStatusApi } from '../../server/models/HousingStatusApi';
 import { ownerTable } from '../../server/repositories/ownerRepository';
 import { Knex } from 'knex';
+import { HousingOwnerApi } from '../../server/models/HousingOwnerApi';
 
 export const lovacTable = 'lovac';
 

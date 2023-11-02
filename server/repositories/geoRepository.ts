@@ -1,13 +1,14 @@
 import db from './db';
 import { GeoJSON, Geometry } from 'geojson';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
+import { logger } from '../utils/logger';
 
 export const geoPerimetersTable = 'geo_perimeters';
 
 const GeoPerimeters = () => db<GeoPerimeterDbo>(geoPerimetersTable);
 
 const get = async (geoPerimeterId: string): Promise<GeoPerimeterApi | null> => {
-  console.log('Get GeoPerimeter with id', geoPerimeterId);
+  logger.info('Get GeoPerimeter with id', geoPerimeterId);
   const geoPerimeter = await GeoPerimeters()
     .where('id', geoPerimeterId)
     .first();
@@ -26,7 +27,7 @@ const insert = async (
       ? 'st_multi(st_concaveHull(st_geomfromgeojson(?), 0.80))'
       : 'st_multi(st_geomfromgeojson(?))';
 
-  console.log('Insert geo perimeter', establishmentId, kind, name);
+  logger.info('Insert geo perimeter', establishmentId, kind, name);
   await db(geoPerimetersTable).insert(
     db.raw(
       `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
@@ -36,7 +37,7 @@ const insert = async (
 };
 
 const update = async (geoPerimeterApi: GeoPerimeterApi): Promise<void> => {
-  console.log('Update geoPerimeterApi with id', geoPerimeterApi.id);
+  logger.info('Update geoPerimeterApi with id', geoPerimeterApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, establishment_id, geo_json, ...updatedData } =
@@ -46,7 +47,7 @@ const update = async (geoPerimeterApi: GeoPerimeterApi): Promise<void> => {
 };
 
 const find = async (establishmentId: string): Promise<GeoPerimeterApi[]> => {
-  console.log(
+  logger.info(
     'List geoPerimeterApi for establishment with id',
     establishmentId
   );
@@ -63,7 +64,7 @@ const removeMany = async (
   geoPerimeterIds: string[],
   establishmentId: string
 ): Promise<void> => {
-  console.log(
+  logger.info(
     'Remove geoPerimeters with ids %s into establishment',
     geoPerimeterIds,
     establishmentId

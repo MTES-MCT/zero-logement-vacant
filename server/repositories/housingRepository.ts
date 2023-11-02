@@ -467,6 +467,7 @@ const fastListQuery = (opts: ListQueryOptions) => {
         `${housingOwnersTable}.owner_id`,
         `${ownerTable}.id`
       )
+      .select(`${ownerTable}.id as owner_id`)
       .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
       // Campaigns
       .select('campaigns.*')

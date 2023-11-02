@@ -11,7 +11,7 @@ function log(
   next: Next
 ): void {
   // Should later be enhanced with relevant info like Request ID, user ID, etc.
-  logger.error.bind(logger, error);
+  logger.error(error);
   next(error);
 }
 

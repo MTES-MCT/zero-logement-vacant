@@ -70,6 +70,7 @@ export const genEmail = () => {
 export const genGeoCode = (): string => {
   const geoCode = faker.location.zipCode();
   const needsReroll =
+    geoCode.startsWith('00') ||
     geoCode.startsWith('20') ||
     geoCode.startsWith('99') ||
     geoCode.endsWith('999');

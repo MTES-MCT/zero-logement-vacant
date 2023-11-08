@@ -3,7 +3,7 @@ import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import { formatHousingRecordApi, housingTable } from '../repositories/housingRepository';
-import { genHousingApi } from '../test/testFixtures';
+import { genDatafoncierHousing, genHousingApi } from '../test/testFixtures';
 import { Establishment1, Locality1 } from '../../database/seeds/test/001-establishments';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
@@ -97,6 +97,32 @@ describe('Housing controller', () => {
         perPage: 10,
         filteredCount: 1,
         totalCount: 0,
+      });
+    });
+  });
+
+  describe('create', () => {
+    const testRoute = '/api/housing/creation';
+
+    it('should be forbidden a non authenticated user', async () => {
+      const { status } = await request(app).post(testRoute);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should create a housing', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const payload = {
+        localId: datafoncierHousing.idlocal,
+      };
+
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send(payload)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject({
+        localId: payload.localId,
       });
     });
   });

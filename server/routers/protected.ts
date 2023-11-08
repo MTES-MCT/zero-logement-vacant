@@ -19,6 +19,7 @@ import noteController from '../controllers/noteController';
 import { param } from 'express-validator';
 import groupController from '../controllers/groupController';
 import dashboardController from '../controllers/dashboardController';
+import datafoncierController from "../controllers/datafoncierHousingController";
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.use(userCheck());
 
 router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
+router.post('/housing/creation', housingController.createValidators, validator.validate, housingController.create);
 router.post('/housing/count', housingController.count);
 router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
@@ -86,5 +88,7 @@ router.put('/localities/:geoCode/tax', localityController.updateLocalityTaxValid
 router.put('/establishments/:id/settings', settingsController.updateSettingsValidators, validator.validate, settingsController.updateSettings);
 
 router.get('/dashboards/:id', dashboardController.findOneValidators, validator.validate, dashboardController.findOne);
+
+router.get('/datafoncier/housing/:id', datafoncierController.findOne)
 
 export default router;

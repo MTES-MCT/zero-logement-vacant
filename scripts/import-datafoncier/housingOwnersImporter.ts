@@ -2,7 +2,7 @@ import Stream = Highland.Stream;
 import { v4 as uuidv4 } from 'uuid';
 import { HousingRecordApi } from '../../server/models/HousingApi';
 import createDatafoncierHousingRepository from './datafoncierHousingRepository';
-import { DatafoncierHousing, tapAsync, toHousingRecordApi } from '../shared';
+import { tapAsync, toHousingRecordApi } from '../shared';
 import housingRepository from '../../server/repositories/housingRepository';
 import HousingMissingError from '../../server/errors/housingMissingError';
 import ownerRepository from '../../server/repositories/ownerRepository';
@@ -18,7 +18,7 @@ import { logger } from '../../server/utils/logger';
 import { HousingOwnerConflictApi } from '../../server/models/ConflictApi';
 import housingOwnerConflictRepository from '../../server/repositories/conflict/housingOwnerConflictRepository';
 import fp from 'lodash/fp';
-import { isNotNull } from '../../shared';
+import { DatafoncierHousing, isNotNull } from '../../shared';
 
 const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
 

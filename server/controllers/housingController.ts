@@ -116,6 +116,26 @@ const count = async (request: Request, response: Response): Promise<void> => {
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
+const createValidators: ValidationChain[] = [
+  // TODO
+];
+const create = async (request: Request, response: Response) => {
+  // const { body } = request as AuthenticatedRequest;
+  //
+  // const datafoncierHousing = await datafoncierHousingRepository.findOne({
+  //   localId: body.localId,
+  // });
+  // if (!datafoncierHousing) {
+  //   throw new HousingMissingError(body.localId);
+  // }
+  //
+  // const housing: HousingRecordApi = {
+  //   localId: body.localId,
+  // }
+  // await housingRepository.save(housing)
+  response.status(constants.HTTP_STATUS_NOT_IMPLEMENTED).send();
+};
+
 export interface HousingUpdateBody {
   statusUpdate?: Pick<
     HousingApi,
@@ -350,6 +370,8 @@ const housingController = {
   listValidators,
   list,
   count,
+  createValidators,
+  create,
   updateValidators,
   update,
   updateListValidators,

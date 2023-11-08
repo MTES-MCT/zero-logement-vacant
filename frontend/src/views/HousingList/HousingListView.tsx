@@ -20,6 +20,7 @@ import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
 import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -60,11 +61,12 @@ const HousingListView = () => {
       <Row spacing="mb-5w">
         <GroupHeader />
       </Row>
+      <Row spacing="mb-2w">
+        <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">Votre parc de logements</Title>
+        <HousingCreationModal />
+      </Row>
       <Row spacing="mb-1w">
         <Col n="6">
-          <Title as="h1" look="h3">
-            Votre parc de logements
-          </Title>
           <div className="d-flex">
             <AppSearchBar
               onSearch={searchWithQuery}

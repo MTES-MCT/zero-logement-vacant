@@ -25,6 +25,12 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
     }
   }
 
+  function previous(): void {
+    if (isInBounds(index - 1)) {
+      setIndex(index - 1);
+    }
+  }
+
   function next(): void {
     if (isInBounds(index + 1)) {
       setIndex(index + 1);
@@ -35,6 +41,7 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
     forceStep,
     index,
     isCompleted,
+    previous,
     next,
     step,
   };

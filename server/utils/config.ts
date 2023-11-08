@@ -74,6 +74,7 @@ interface Config {
     };
   };
   datafoncier: {
+    api: string;
     token: string | null;
   };
   environment: string;
@@ -217,6 +218,11 @@ const config = convict<Config>({
     },
   },
   datafoncier: {
+    api: {
+      env: 'DATAFONCIER_API',
+      format: String,
+      default: 'https://apidf-preprod.cerema.fr',
+    },
     token: {
       env: 'DATAFONCIER_TOKEN',
       format: String,

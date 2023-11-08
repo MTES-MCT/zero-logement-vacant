@@ -6,10 +6,7 @@ import {
 } from '../../server/repositories/housingStreamRepository';
 import { HousingApi } from '../../server/models/HousingApi';
 import db from '../../server/repositories/db';
-import {
-  DatafoncierHousing,
-  toHousingRecordApi,
-} from '../shared/models/DatafoncierHousing';
+import { toHousingRecordApi } from '../shared/models/DatafoncierHousing';
 import { isNotNull } from '../../shared/utils/compare';
 import { datafoncierOwnersTable } from './ownerPostgresRepository';
 import {
@@ -18,6 +15,7 @@ import {
 } from '../../server/repositories/ownerRepository';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import { logger } from '../../server/utils/logger';
+import { DatafoncierHousing } from '../../shared';
 
 const FIELDS = ['*'];
 export const datafoncierHousingTable = 'zlv_logt_epci';

@@ -4,7 +4,6 @@ import {
   genHousingApi,
   genOwnerApi,
 } from '../../../server/test/testFixtures';
-import { DatafoncierHousing } from '../../shared';
 import { DatafoncierOwners } from '../datafoncierOwnersRepository';
 import { DatafoncierHouses } from '../datafoncierHousingRepository';
 import {
@@ -28,6 +27,7 @@ import {
   HousingOwnerConflictRecordDBO,
   HousingOwnerConflicts,
 } from '../../../server/repositories/conflict/housingOwnerConflictRepository';
+import { DatafoncierHousing } from '../../../shared';
 
 describe('Import housing owners from existing housing', () => {
   describe('processHousing', () => {

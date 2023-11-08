@@ -34,7 +34,7 @@ import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
 import { UserAccountDTO } from '../../shared/models/UserDTO';
 import { GroupApi } from '../models/GroupApi';
-import { DatafoncierHousing, DatafoncierOwner } from '../../scripts/shared';
+import { DatafoncierOwner } from '../../scripts/shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '../repositories/ownerMatchRepository';
@@ -43,6 +43,7 @@ import {
   HousingOwnerConflictApi,
   OwnerConflictApi,
 } from '../models/ConflictApi';
+import { DatafoncierHousing } from '../../shared';
 
 const randomstring = require('randomstring');
 

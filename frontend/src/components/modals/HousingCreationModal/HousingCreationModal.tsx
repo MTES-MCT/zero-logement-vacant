@@ -15,7 +15,9 @@ import HousingResult from '../../HousingResult/HousingResult';
 import { DatafoncierHousing } from '../../../../../shared';
 import { OccupancyKind } from '../../../models/Housing';
 
-interface Props {}
+interface Props {
+  onConfirm?: () => void;
+}
 
 const modal = createModal({
   id: 'housing-creation-modal',
@@ -46,6 +48,7 @@ function HousingCreationModal(props: Props) {
   const [doCreateHousing] = useCreateHousingMutation();
   async function createHousing(): Promise<void> {
     await doCreateHousing({ localId }).unwrap();
+    props.onConfirm?.();
   }
 
   const openingButtonProps: ButtonProps = {

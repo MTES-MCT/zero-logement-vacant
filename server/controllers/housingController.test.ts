@@ -18,6 +18,7 @@ import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { HousingEvent1 } from '../../database/seeds/test/011-events';
 import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, notesTable } from '../repositories/noteRepository';
+import datafoncierHousingRepository from '../repositories/datafoncier/housingRepository';
 
 const { app } = createServer();
 
@@ -110,8 +111,37 @@ describe('Housing controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
+    it('should fail if the housing already exists', async () => {
+      const payload = {
+        localId: Housing1.id,
+      };
+
+      const { status } = await withAccessToken(
+        request(app).post(testRoute).send(payload)
+      );
+      expect(status).toBe(constants.HTTP_STATUS_CONFLICT);
+    });
+
+    it('should fail if the housing was not found in datafoncier', async () => {
+      jest
+        .spyOn(datafoncierHousingRepository, 'findOne')
+        .mockRejectedValueOnce(new Error('Not found'));
+      const payload = {
+        localId: randomstring.generate(12),
+      };
+
+      const { status } = await withAccessToken(
+        request(app).post(testRoute).send(payload)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+    });
+
     it('should create a housing', async () => {
       const datafoncierHousing = genDatafoncierHousing();
+      jest
+        .spyOn(datafoncierHousingRepository, 'findOne')
+        .mockResolvedValueOnce(datafoncierHousing);
       const payload = {
         localId: datafoncierHousing.idlocal,
       };

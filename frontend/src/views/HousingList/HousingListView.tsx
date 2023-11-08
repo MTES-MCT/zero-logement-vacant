@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -21,6 +21,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
+import { useHistory } from 'react-router-dom';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -49,6 +51,15 @@ const HousingListView = () => {
     });
   };
 
+  const router = useHistory<RouterState | undefined>();
+  function onHousingCreated(): void {
+    router.replace('/parc-de-logements', {
+      alert:
+        'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.',
+    });
+  }
+  const [alert, setAlert] = useState(router.location.state?.alert ?? '');
+
   return (
     <MainContainer>
       <HousingListFiltersSidemenu
@@ -63,8 +74,21 @@ const HousingListView = () => {
       </Row>
       <Row spacing="mb-2w">
         <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">Votre parc de logements</Title>
-        <HousingCreationModal />
+        <HousingCreationModal onConfirm={onHousingCreated} />
       </Row>
+
+      <Alert
+        severity="success"
+        description={alert}
+        closable
+        small
+        isClosed={!alert}
+        onClose={() => {
+          setAlert('');
+        }}
+        className="fr-mb-2w"
+      />
+
       <Row spacing="mb-1w">
         <Col n="6">
           <div className="d-flex">
@@ -107,5 +131,9 @@ const HousingListView = () => {
     </MainContainer>
   );
 };
+
+interface RouterState {
+  alert?: string;
+}
 
 export default HousingListView;

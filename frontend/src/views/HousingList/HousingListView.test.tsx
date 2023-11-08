@@ -7,6 +7,7 @@ import config from '../../utils/config';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
   genCampaign,
+  genDatafoncierHousing,
   genHousing,
   genPaginatedResult,
 } from '../../../test/fixtures.test';
@@ -14,17 +15,20 @@ import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
-import { store as appStore } from '../../store/store';
-import { getRequestCalls } from '../../utils/test/requestUtils';
+import {
+  getRequestCalls,
+  mockRequests,
+  RequestMatch,
+} from '../../utils/test/requestUtils';
 import { HousingStatus } from '../../models/HousingState';
 import configureTestStore from '../../utils/test/storeUtils';
-import { mockRequests, RequestMatch } from '../../../../shared/utils/request';
+import { AppStore } from '../../store/store';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
 describe('housing view', () => {
   const user = userEvent.setup();
-  let store = appStore;
+  let store: AppStore;
 
   const defaultFetchMock = (request: Request) => {
     return Promise.resolve(
@@ -81,9 +85,7 @@ describe('housing view', () => {
   ];
 
   beforeEach(() => {
-    store = configureTestStore({
-      withAuth: true,
-    });
+    store = configureTestStore();
   });
 
   test('should show filters side menu', async () => {
@@ -317,21 +319,27 @@ describe('housing view', () => {
   });
 
   test('should add a housing', async () => {
-    const housing = {
-      // TODO
-      idlocal: '12345678901234567890',
-    };
+    const router = createMemoryHistory();
+    const datafoncierHousing = genDatafoncierHousing();
+    const housing = genHousing();
     mockRequests([
       ...defaultMatches,
       {
-        pathname: `/api/datafoncier/housing/${housing.idlocal}`,
+        pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
         response: { body: JSON.stringify(housing) },
+      },
+      {
+        pathname: '/api/housing/creation',
+        response: {
+          status: 201,
+          body: JSON.stringify(housing),
+        },
       },
     ]);
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router history={router}>
           <HousingListView />
         </Router>
       </Provider>
@@ -341,12 +349,24 @@ describe('housing view', () => {
       selector: 'button',
     });
     await user.click(button);
-    const input = await screen.findByLabelText('Identifiant du logement');
-    await user.type(input, housing.idlocal);
-    await user.click(screen.getByText('Confirmer'));
-    await screen.findByText(
+    const modal = await screen.findByRole('dialog');
+    const input = await within(modal).findByLabelText(
+      'Identifiant du logement'
+    );
+    await user.type(input, datafoncierHousing.idlocal);
+    await user.click(within(modal).getByText('Confirmer'));
+    await within(modal).findByText(
       'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
     );
-    await user.click(screen.getByText('Confirmer'));
+    await user.click(within(modal).getByText('Confirmer'));
+
+    expect(modal).not.toBeVisible();
+    expect(router.location).toMatchObject({
+      pathname: '/parc-de-logements',
+      state: {
+        alert:
+          'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.',
+      },
+    });
   });
 });

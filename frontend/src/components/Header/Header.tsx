@@ -53,7 +53,7 @@ function Header() {
   const getMainNavigationItem = (navItem: UserNavItems) => ({
     linkProps: {
       to: getUserNavItem(navItem).url,
-      'data-TestId': `fr-header-nav-item-${getUserNavItem(
+      'data-testid': `fr-header-nav-item-${getUserNavItem(
         navItem
       ).url.substring(1)}`,
     },

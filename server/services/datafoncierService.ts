@@ -9,11 +9,11 @@ import { logger } from '../utils/logger';
 import { isPaginationEnabled, PaginationApi } from '../models/PaginationApi';
 import config from '../utils/config';
 import { untilEmpty } from '../utils/async';
-import { DatafoncierHousing } from '../../scripts/shared/models/DatafoncierHousing';
 import {
   DatafoncierOwner,
   toOwnerApi,
 } from '../../scripts/shared/models/DatafoncierOwner';
+import { DatafoncierHousing } from '../../shared';
 import Stream = Highland.Stream;
 
 const API = `https://apidf-preprod.cerema.fr`;

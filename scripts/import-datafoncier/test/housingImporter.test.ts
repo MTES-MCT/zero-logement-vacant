@@ -4,7 +4,8 @@ import {
   formatHousingRecordApi,
   Housing,
 } from '../../../server/repositories/housingRepository';
-import { DatafoncierHousing, toHousingRecordApi } from '../../shared';
+import { toHousingRecordApi } from '../../shared';
+import { DatafoncierHousing } from '../../../shared';
 
 describe('Housing importer', () => {
   describe('processHousing', () => {

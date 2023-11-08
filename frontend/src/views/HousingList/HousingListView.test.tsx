@@ -6,7 +6,6 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
-  genAuthUser,
   genCampaign,
   genHousing,
   genPaginatedResult,
@@ -15,14 +14,11 @@ import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
-import { configureStore } from '@reduxjs/toolkit';
-import {
-  applicationMiddlewares,
-  applicationReducer,
-  store as appStore,
-} from '../../store/store';
+import { store as appStore } from '../../store/store';
 import { getRequestCalls } from '../../utils/test/requestUtils';
 import { HousingStatus } from '../../models/HousingState';
+import configureTestStore from '../../utils/test/storeUtils';
+import { mockRequests, RequestMatch } from '../../../../shared/utils/request';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -51,16 +47,42 @@ describe('housing view', () => {
         : { body: '', init: { status: 404 } }
     );
   };
+  const defaultMatches: RequestMatch[] = [
+    {
+      pathname: '/api/housing',
+      response: {
+        body: JSON.stringify(genPaginatedResult([])),
+      },
+    },
+    {
+      pathname: '/api/campaigns',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/geo/perimeters',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/localities',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/housing/count',
+      response: {
+        body: JSON.stringify({ housing: 1, owners: 1 }),
+      },
+    },
+  ];
 
   beforeEach(() => {
-    fetchMock.resetMocks();
-    store = configureStore({
-      reducer: applicationReducer,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-          serializableCheck: false,
-        }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: genAuthUser() } },
+    store = configureTestStore({
+      withAuth: true,
     });
   });
 
@@ -292,5 +314,39 @@ describe('housing view', () => {
       'create-campaign-button'
     );
     expect(createCampaignButton).toBeInTheDocument();
+  });
+
+  test('should add a housing', async () => {
+    const housing = {
+      // TODO
+      idlocal: '12345678901234567890',
+    };
+    mockRequests([
+      ...defaultMatches,
+      {
+        pathname: `/api/datafoncier/housing/${housing.idlocal}`,
+        response: { body: JSON.stringify(housing) },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+
+    const button = screen.getByText('Ajouter un logement', {
+      selector: 'button',
+    });
+    await user.click(button);
+    const input = await screen.findByLabelText('Identifiant du logement');
+    await user.type(input, housing.idlocal);
+    await user.click(screen.getByText('Confirmer'));
+    await screen.findByText(
+      'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
+    );
+    await user.click(screen.getByText('Confirmer'));
   });
 });

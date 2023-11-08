@@ -17,17 +17,14 @@ import {
   formatHousingRecordApi,
   Housing,
 } from '../../../server/repositories/housingRepository';
-import {
-  DatafoncierHousing,
-  toHousingRecordApi,
-  toOwnerApi,
-} from '../../shared';
+import { toHousingRecordApi, toOwnerApi } from '../../shared';
 import {
   formatHousingOwnersApi,
   HousingOwners,
 } from '../../../server/repositories/housingOwnerRepository';
 import { DatafoncierOwners } from '../datafoncierOwnersRepository';
 import fp from 'lodash/fp';
+import { DatafoncierHousing } from '../../../shared';
 
 describe('Housing owners importer', () => {
   describe('processHousingOwners', () => {

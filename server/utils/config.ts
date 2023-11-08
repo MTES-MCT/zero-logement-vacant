@@ -69,6 +69,7 @@ interface Config {
   databaseUrl: string;
   databaseUrlTest: string;
   datafoncier: {
+    api: string;
     token: string | null;
   };
   environment: string;
@@ -203,6 +204,11 @@ const config = convict<Config>({
     default: null,
   },
   datafoncier: {
+    api: {
+      env: 'DATAFONCIER_API',
+      format: String,
+      default: 'https://apidf-preprod.cerema.fr',
+    },
     token: {
       env: 'DATAFONCIER_TOKEN',
       format: String,

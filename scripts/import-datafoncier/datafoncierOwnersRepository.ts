@@ -1,11 +1,6 @@
 import highland from 'highland';
 import db from '../../server/repositories/db';
-import {
-  DatafoncierHousing,
-  DatafoncierOwner,
-  ownerDatafoncierSchema,
-  validator,
-} from '../shared';
+import { DatafoncierOwner, ownerDatafoncierSchema, validator } from '../shared';
 import { Knex } from 'knex';
 import { ownerMatchTable } from '../../server/repositories/ownerMatchRepository';
 import {
@@ -15,6 +10,7 @@ import {
 } from '../../server/repositories/ownerRepository';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import fp from 'lodash/fp';
+import { DatafoncierHousing } from '../../shared';
 
 const FIELDS = [
   'idprodroit',

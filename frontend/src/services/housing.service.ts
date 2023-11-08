@@ -11,6 +11,7 @@ import { PaginationOptions } from '../../../shared/models/Pagination';
 import { parseOwner } from './owner.service';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { HousingCount } from '../models/HousingCount';
+import { HousingPayloadDTO } from '../../../shared';
 
 export interface FindOptions
   extends PaginationOptions,
@@ -93,6 +94,14 @@ export const housingApi = createApi({
         },
       ],
     }),
+    createHousing: builder.mutation<Housing, HousingPayloadDTO>({
+      query: (payload) => ({
+        url: '/creation',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: [{ type: 'Housing', id: 'LIST' }],
+    }),
     updateHousing: builder.mutation<
       void,
       {
@@ -174,6 +183,7 @@ export const {
   useGetHousingQuery,
   useFindHousingQuery,
   useCountHousingQuery,
+  useCreateHousingMutation,
   useUpdateHousingMutation,
   useUpdateHousingListMutation,
 } = housingApi;

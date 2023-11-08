@@ -19,6 +19,7 @@ import { ownerProspectApi } from '../services/owner-prospect.service';
 import { settingsApi } from '../services/settings.service';
 import { groupApi } from '../services/group.service';
 import { dashboardApi } from '../services/dashboard.service';
+import { datafoncierApi } from '../services/datafoncier.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
@@ -41,11 +42,13 @@ export const applicationReducer = {
   [userAccountApi.reducerPath]: userAccountApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [dashboardApi.reducerPath]: dashboardApi.reducer,
+  [datafoncierApi.reducerPath]: datafoncierApi.reducer,
 };
 
 export const applicationMiddlewares = [
   contactPointsApi.middleware,
   dashboardApi.middleware,
+  datafoncierApi.middleware,
   establishmentApi.middleware,
   eventApi.middleware,
   geoPerimetersApi.middleware,

@@ -61,6 +61,7 @@ export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
 interface FindOptions extends PaginationOptions {
   filters: HousingFiltersApi;
   sort?: HousingSortApi;
+  includes?: HousingInclude[];
 }
 
 const find = async (opts: FindOptions): Promise<HousingApi[]> => {
@@ -75,6 +76,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
         ? opts.filters.localities
         : geoCodes,
     },
+    includes: opts.includes,
   })
     .modify(housingSortQuery(opts.sort))
     .modify(paginationQuery(opts.pagination as PaginationApi));
@@ -102,6 +104,7 @@ const streamWithFilters = (
               ? filters.localities
               : geoCodes,
           },
+          includes: ['owner'],
         })
           .modify(queryHousingEventsJoinClause)
           .stream()
@@ -123,6 +126,7 @@ const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
               ? opts.filters.localities
               : geoCodes,
           },
+          includes: ['owner'],
         })
           .modify(housingSortQuery(opts.sort))
           .modify(paginationQuery(opts.pagination as PaginationApi))
@@ -166,6 +170,7 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
             ? filters.localities
             : geoCodes,
         },
+        includes: ['owner'],
       })
     )
     .countDistinct('id as housing')
@@ -215,6 +220,7 @@ const get = async (
       establishmentIds: [establishmentId],
       localities: establishment.geoCodes,
     },
+    includes: ['owner'],
   })
     .select(
       'perimeters.perimeter_kind as geo_perimeters',
@@ -358,8 +364,28 @@ const saveManyWithOwner = async (
   });
 };
 
+type HousingInclude = 'owner';
+
 interface ListQueryOptions {
   filters: HousingFiltersApi;
+  includes?: HousingInclude[];
+}
+
+function include(includes: HousingInclude[]) {
+  const joins: Record<HousingInclude, (query: Knex.QueryBuilder) => void> = {
+    owner: (query) =>
+      query
+        .join(housingOwnersTable, ownerHousingJoinClause)
+        .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
+        .select(`${ownerTable}.id as owner_id`)
+        .select(db.raw(`to_json(${ownerTable}.*) AS owner`)),
+  };
+
+  return (query: Knex.QueryBuilder) => {
+    includes.forEach((include) => {
+      joins[include](query);
+    });
+  };
 }
 
 const update = async (housing: HousingApi): Promise<void> => {
@@ -461,14 +487,7 @@ const fastListQuery = (opts: ListQueryOptions) => {
     db
       .select(`${housingTable}.*`)
       .from(housingTable)
-      .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-      .leftJoin(
-        ownerTable,
-        `${housingOwnersTable}.owner_id`,
-        `${ownerTable}.id`
-      )
-      .select(`${ownerTable}.id as owner_id`)
-      .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
+      .modify(include(opts.includes ?? []))
       // Campaigns
       .select('campaigns.*')
       .joinRaw(

@@ -98,6 +98,15 @@ describe('Housing repository', () => {
       const ids = housingList.map(fp.pick(['id']));
       expect(actual).toIncludeAllPartialMembers(ids);
     });
+
+    it('should include owner on demand', async () => {
+      const actual = await housingRepository.find({
+        filters: {},
+        includes: ['owner'],
+      });
+
+      expect(actual).toSatisfyAll((housing) => housing.owner !== undefined);
+    });
   });
 
   describe('stream', () => {

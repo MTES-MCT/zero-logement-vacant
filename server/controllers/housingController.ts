@@ -83,6 +83,7 @@ const list = async (
       filters,
       pagination,
       sort,
+      includes: ['owner'],
     }),
     // Kept for backward-compatibility
     // TODO: remove this

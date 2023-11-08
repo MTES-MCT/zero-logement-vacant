@@ -54,7 +54,7 @@ function ModalStepper(props: Props) {
       doClosesModal: false,
       onClick: async () => {
         await step?.props?.onConfirm?.();
-        stepper.next();
+        stepper.isOver() ? modal.close() : stepper.next();
       },
     },
   ];

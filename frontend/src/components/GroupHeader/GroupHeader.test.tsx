@@ -7,10 +7,9 @@ import { genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
-import { getRequestCalls } from '../../utils/test/requestUtils';
+import { getRequestCalls, mockRequests } from '../../utils/test/requestUtils';
 import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';
-import { mockRequests } from '../../../../shared/utils/request';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();

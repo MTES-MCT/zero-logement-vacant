@@ -3,6 +3,7 @@ import housingRepository from '../repositories/housingRepository';
 import {
   hasCampaigns,
   HousingApi,
+  HousingRecordApi,
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
@@ -30,6 +31,9 @@ import _ from 'lodash';
 import { logger } from '../utils/logger';
 import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
+import datafoncierHousingRepository from '../../server/repositories/datafoncier/housingRepository';
+import { toHousingRecordApi } from '../../scripts/shared';
+import HousingExistsError from '../errors/housingExistsError';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
@@ -125,23 +129,30 @@ const count = async (request: Request, response: Response): Promise<void> => {
 };
 
 const createValidators: ValidationChain[] = [
-  // TODO
+  body('localId').isString().isLength({ min: 12, max: 12 }),
 ];
 const create = async (request: Request, response: Response) => {
-  // const { body } = request as AuthenticatedRequest;
-  //
-  // const datafoncierHousing = await datafoncierHousingRepository.findOne({
-  //   localId: body.localId,
-  // });
-  // if (!datafoncierHousing) {
-  //   throw new HousingMissingError(body.localId);
-  // }
-  //
-  // const housing: HousingRecordApi = {
-  //   localId: body.localId,
-  // }
-  // await housingRepository.save(housing)
-  response.status(constants.HTTP_STATUS_NOT_IMPLEMENTED).send();
+  const { body } = request as AuthenticatedRequest;
+
+  const existing = await housingRepository.findOne({
+    // Extract the geo code from the localId
+    geoCode: body.localId.substring(0, 5),
+    localId: body.localId,
+  });
+  if (existing) {
+    throw new HousingExistsError(body.localId);
+  }
+
+  const datafoncierHousing = await datafoncierHousingRepository.findOne({
+    localId: body.localId,
+  });
+  if (!datafoncierHousing) {
+    throw new HousingMissingError(body.localId);
+  }
+
+  const housing: HousingRecordApi = toHousingRecordApi(datafoncierHousing);
+  await housingRepository.save(housing);
+  response.status(constants.HTTP_STATUS_CREATED).send(housing);
 };
 
 export interface HousingUpdateBody {

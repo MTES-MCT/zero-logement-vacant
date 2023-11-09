@@ -91,4 +91,33 @@ describe('Modal stepper', () => {
     const modal = await screen.findByRole('dialog');
     expect(modal).not.toBeVisible();
   });
+
+  it('should reset the stepper on open', async () => {
+    render(
+      <ModalStepper openingButtonProps={button}>
+        <ModalStep title="Title 1">
+          <p>Step 1</p>
+        </ModalStep>
+        <ModalStep title="Title 2">
+          <p>Step 2</p>
+        </ModalStep>
+      </ModalStepper>
+    );
+    const open = screen.getByText('Ouvrir');
+    await user.click(open);
+
+    const next = screen.getByText('Confirmer');
+    await user.click(next);
+
+    const content = screen.getByText('Step 2');
+    expect(content).toBeVisible();
+
+    const close = screen.getByText('Fermer');
+    await user.click(close);
+
+    await user.click(open);
+
+    const title = screen.getByText('Step 1');
+    expect(title).toBeVisible();
+  });
 });

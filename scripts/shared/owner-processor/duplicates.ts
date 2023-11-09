@@ -14,7 +14,9 @@ export async function findDuplicatesByName(
   owner: OwnerApi
 ): Promise<OwnerApi[]> {
   const dups = await ownerRepository.find({
-    fullName: owner.fullName,
+    filters: {
+      fullName: owner.fullName,
+    },
   });
 
   return dups.filter((dup) => dup.id !== owner.id);

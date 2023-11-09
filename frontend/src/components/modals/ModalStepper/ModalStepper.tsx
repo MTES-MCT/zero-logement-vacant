@@ -32,7 +32,10 @@ function ModalStepper(props: Props) {
   const stepper = useStepper(fp.range(0, steps?.length ?? 0));
   const step = steps?.[stepper.step];
 
-  const open = modal.open;
+  function open(): void {
+    stepper.forceStep(0);
+    modal.open();
+  }
 
   const buttons: ModalProps['buttons'] = [
     {
@@ -53,7 +56,7 @@ function ModalStepper(props: Props) {
       children: 'Confirmer',
       doClosesModal: false,
       onClick: async () => {
-        const next = await step?.props?.onConfirm?.();
+        const next = (await step?.props?.onConfirm?.()) ?? true;
         if (next) {
           stepper.isOver() ? modal.close() : stepper.next();
         }

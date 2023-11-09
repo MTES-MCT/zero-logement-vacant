@@ -1,4 +1,5 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { Link } from 'react-router-dom';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import fp from 'lodash/fp';
 import React, { useState } from 'react';
@@ -8,14 +9,17 @@ import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
 import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { Col, Row, Text } from '../../_dsfr';
-import { useLazyFindOneHousingQuery } from '../../../services/datafoncier.service';
 import ModalStepper from '../ModalStepper/ModalStepper';
 import ModalStep from '../ModalStepper/ModalStep';
-import { useCreateHousingMutation } from '../../../services/housing.service';
+import {
+  housingApi,
+  useCreateHousingMutation,
+} from '../../../services/housing.service';
 import HousingResult from '../../HousingResult/HousingResult';
 import { DatafoncierHousing } from '../../../../../shared';
 import { OccupancyKind } from '../../../models/Housing';
 import { unwrapError } from '../../../store/store';
+import { datafoncierApi } from '../../../services/datafoncier.service';
 
 interface Props {
   onConfirm?: () => void;
@@ -39,16 +43,39 @@ function HousingCreationModal(props: Props) {
     localId,
   });
 
-  const [doFindHousing, findHousingQuery] = useLazyFindOneHousingQuery();
-  const housing = findHousingQuery.data;
-  const findHousingError = findHousingQuery.error;
-  const address = housing ? toAddress(housing) : undefined;
+  const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
+  const { data: housing, error: getHousingError } = getHousingQuery;
+
+  const [getDatafoncierHousing, getDatafoncierHousingQuery] =
+    datafoncierApi.useLazyFindOneHousingQuery();
+  const { data: datafoncierHousing, error: getDatafoncierHousingError } =
+    getDatafoncierHousingQuery;
+  const address = datafoncierHousing
+    ? toAddress(datafoncierHousing)
+    : undefined;
   async function findHousing(): Promise<boolean> {
     try {
+      const bypassCache = true;
       await form.validate();
-      await doFindHousing(localId, true).unwrap();
+      await Promise.all([
+        getDatafoncierHousing(localId, bypassCache).unwrap(),
+        getHousing(localId, bypassCache)
+          .unwrap()
+          .then((housing) => {
+            if (housing) {
+              throw new Error('HousingExistsError');
+            }
+          })
+          .catch((err) => {
+            const error = unwrapError(err);
+            if (error?.name === 'HousingMissingError') {
+              return;
+            }
+            throw error;
+          }),
+      ]);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -59,7 +86,7 @@ function HousingCreationModal(props: Props) {
       await doCreateHousing({ localId }).unwrap();
       props.onConfirm?.();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -90,12 +117,23 @@ function HousingCreationModal(props: Props) {
           </Row>
         </form>
 
-        {unwrapError(findHousingError)?.name === 'HousingMissingError' && (
+        {unwrapError(getDatafoncierHousingError)?.name ===
+          'HousingMissingError' && (
           <Alert
             severity="error"
             className="fr-mt-2w"
             title="Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies."
             description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du local."
+            closable
+          />
+        )}
+
+        {unwrapError(getHousingError)?.name === 'HousingExistsError' && (
+          <Alert
+            severity="error"
+            className="fr-mt-2w"
+            title="Ce logement existe déjà dans votre parc."
+            description={<Link to={`/housing/${housing?.id}`}>ici</Link>}
             closable
           />
         )}
@@ -106,12 +144,12 @@ function HousingCreationModal(props: Props) {
           Voici le logement que nous avons trouvé à cette adresse/sur cette
           parcelle.
         </Text>
-        {address && housing && (
+        {address && datafoncierHousing && (
           <HousingResult
             address={address}
             display="two-lines"
-            localId={housing.idlocal}
-            occupancy={housing.ccthp as OccupancyKind}
+            localId={datafoncierHousing.idlocal}
+            occupancy={datafoncierHousing.ccthp as OccupancyKind}
           />
         )}
       </ModalStep>

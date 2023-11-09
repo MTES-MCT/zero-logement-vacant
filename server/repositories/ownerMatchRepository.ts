@@ -4,10 +4,6 @@ import { logger } from '../utils/logger';
 export const ownerMatchTable = 'owner_matches';
 export const OwnerMatches = () => db<OwnerMatchDBO>(ownerMatchTable);
 
-const find = async (): Promise<OwnerMatchDBO[]> => {
-  return [];
-};
-
 interface FindOneOptions {
   idpersonne: string;
 }
@@ -35,7 +31,6 @@ export interface OwnerMatchDBO {
 }
 
 const ownerMatchRepository = {
-  find,
   findOne,
   save,
   saveMany,

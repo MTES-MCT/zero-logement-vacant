@@ -1,19 +1,19 @@
 import fetch from 'node-fetch';
 
-import { logger } from '../../utils/logger';
-import config from '../../utils/config';
-import { DatafoncierHousing } from '../../../shared';
+import { logger } from '../utils/logger';
+import config from '../utils/config';
+import { DatafoncierHousing } from '../../shared';
 
 const API = config.datafoncier.api;
 
-export interface FindOneOptions {
+interface FindOneOptions {
   localId: string;
 }
 
 const findOne = async (
   opts: FindOneOptions
 ): Promise<DatafoncierHousing | null> => {
-  logger.debug('Find one housing', opts);
+  logger.debug('Find one datafoncier housing', opts);
 
   const response = await fetch(`${API}/ff/locaux/${opts.localId}`, {
     headers: {

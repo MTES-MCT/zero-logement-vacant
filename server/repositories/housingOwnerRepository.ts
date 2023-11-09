@@ -16,6 +16,7 @@ const saveMany = async (housingOwners: HousingOwnerApi[]): Promise<void> => {
       .insert(housingOwners.map(formatHousingOwnerApi))
       .onConflict()
       .ignore();
+    logger.info(`Saved ${housingOwners.length} housing owners.`);
   }
 };
 

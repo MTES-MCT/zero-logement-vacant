@@ -26,10 +26,10 @@ const router = express.Router();
 router.use(jwtCheck(true))
 router.use(userCheck());
 
-router.get('/housing/:id', housingController.get);
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
 router.post('/housing/creation', housingController.createValidators, validator.validate, housingController.create);
 router.post('/housing/count', housingController.count);
+router.get('/housing/:id', housingController.getValidators, validator.validate, housingController.get);
 router.post('/housing/list', housingController.updateListValidators, validator.validate, housingController.updateList);
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
 

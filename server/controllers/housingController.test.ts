@@ -6,7 +6,11 @@ import {
   formatHousingRecordApi,
   housingTable,
 } from '../repositories/housingRepository';
-import { genDatafoncierHousing, genHousingApi } from '../test/testFixtures';
+import {
+  genDatafoncierHousing,
+  genDatafoncierOwner,
+  genHousingApi,
+} from '../test/testFixtures';
 import {
   Establishment1,
   Locality1,
@@ -28,7 +32,10 @@ import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { HousingEvent1 } from '../../database/seeds/test/011-events';
 import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, notesTable } from '../repositories/noteRepository';
-import datafoncierHousingRepository from '../repositories/datafoncier/housingRepository';
+import datafoncierHousingRepository from '../repositories/datafoncierHousingApiRepository';
+import datafoncierOwnerRepository from '../repositories/datafoncierOwnerApiRepository';
+
+import { HousingOwners } from '../repositories/housingOwnerRepository';
 
 const { app } = createServer();
 
@@ -164,6 +171,33 @@ describe('Housing controller', () => {
       expect(body).toMatchObject({
         localId: payload.localId,
       });
+    });
+
+    it('should assign its owners', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      jest
+        .spyOn(datafoncierHousingRepository, 'findOne')
+        .mockResolvedValueOnce(datafoncierHousing);
+      const datafoncierOwners = new Array(6)
+        .fill(0)
+        .map(() => genDatafoncierOwner(datafoncierHousing.idprocpte));
+      jest
+        .spyOn(datafoncierOwnerRepository, 'find')
+        .mockResolvedValueOnce(datafoncierOwners);
+      const payload = {
+        localId: datafoncierHousing.idlocal,
+      };
+
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send(payload)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const actual = await HousingOwners().where({
+        housing_geo_code: body.geoCode,
+        housing_id: body.id,
+      });
+      expect(actual).toBeArrayOfSize(datafoncierOwners.length);
     });
   });
 

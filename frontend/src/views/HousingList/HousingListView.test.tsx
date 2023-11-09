@@ -330,6 +330,16 @@ describe('housing view', () => {
         response: { body: JSON.stringify(housing) },
       },
       {
+        pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+        response: {
+          status: 404,
+          body: JSON.stringify({
+            name: 'HousingMissingError',
+            message: `Housing ${datafoncierHousing.idlocal} missing`,
+          }),
+        },
+      },
+      {
         pathname: '/api/housing/creation',
         response: {
           status: 201,
@@ -375,8 +385,19 @@ describe('housing view', () => {
     const localId = randomstring.generate(12);
     mockRequests([
       ...defaultMatches,
+      // The housing is missing from datafoncier
       {
         pathname: `/api/datafoncier/housing/${localId}`,
+        response: {
+          status: 404,
+          body: JSON.stringify({
+            name: 'HousingMissingError',
+            message: `Housing ${localId} missing`,
+          }),
+        },
+      },
+      {
+        pathname: `/api/housing/${localId}`,
         response: {
           status: 404,
           body: JSON.stringify({
@@ -407,6 +428,52 @@ describe('housing view', () => {
     await user.click(within(modal).getByText('Confirmer'));
     const alert = await within(modal).findByText(
       'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
+    );
+    expect(alert).toBeVisible();
+  });
+
+  test('should fail if the housing already exists in our database', async () => {
+    const datafoncierHousing = genDatafoncierHousing();
+    const housing = genHousing();
+    mockRequests([
+      ...defaultMatches,
+      {
+        pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
+        response: {
+          status: 200,
+          body: JSON.stringify(datafoncierHousing),
+        },
+      },
+      // The housing exists in our database
+      {
+        pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+        response: {
+          status: 200,
+          body: JSON.stringify(housing),
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+
+    const button = screen.getByText('Ajouter un logement', {
+      selector: 'button',
+    });
+    await user.click(button);
+    const modal = await screen.findByRole('dialog');
+    const input = await within(modal).findByLabelText(
+      'Identifiant du logement'
+    );
+    await user.type(input, datafoncierHousing.idlocal);
+    await user.click(within(modal).getByText('Confirmer'));
+    const alert = await within(modal).findByText(
+      'Ce logement existe déjà dans votre parc.'
     );
     expect(alert).toBeVisible();
   });

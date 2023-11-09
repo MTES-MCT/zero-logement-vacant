@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 
-import housingRepository from '../repositories/datafoncier/housingRepository';
+import housingRepository from '../repositories/datafoncierHousingApiRepository';
 import HousingMissingError from '../errors/housingMissingError';
 
 const findOne = async (request: Request, response: Response) => {

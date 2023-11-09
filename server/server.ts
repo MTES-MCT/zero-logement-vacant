@@ -15,6 +15,7 @@ import RouteNotFoundError from './errors/routeNotFoundError';
 import protectedRouter from './routers/protected';
 import { logger } from './utils/logger';
 import gracefulShutdown from './utils/graceful-shutdown';
+import mockServices from './mocks';
 
 const PORT = config.serverPort;
 
@@ -85,6 +86,9 @@ export function createServer(): Server {
   if (config.environment === 'development') {
     app.use(cors({ origin: 'http://localhost:3000' }));
   }
+
+  // Mock services like Datafoncier API on specific environments
+  mockServices();
 
   app.use(fileUpload());
   app.use(express.json());

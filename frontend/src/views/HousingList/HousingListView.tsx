@@ -20,9 +20,9 @@ import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
 import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 import { useHistory } from 'react-router-dom';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');

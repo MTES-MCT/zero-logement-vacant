@@ -2,7 +2,10 @@ import { PropsWithChildren } from 'react';
 
 interface Props {
   title: string;
-  onConfirm?: () => Promise<void> | void;
+  /**
+   * Return true to go to the next step, false otherwise.
+   */
+  onConfirm?: () => Promise<boolean> | boolean;
 }
 
 function ModalStep(props: PropsWithChildren<Props>) {

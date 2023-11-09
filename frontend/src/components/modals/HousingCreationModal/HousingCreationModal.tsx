@@ -1,3 +1,4 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import fp from 'lodash/fp';
 import React, { useState } from 'react';
@@ -14,6 +15,7 @@ import { useCreateHousingMutation } from '../../../services/housing.service';
 import HousingResult from '../../HousingResult/HousingResult';
 import { DatafoncierHousing } from '../../../../../shared';
 import { OccupancyKind } from '../../../models/Housing';
+import { unwrapError } from '../../../store/store';
 
 interface Props {
   onConfirm?: () => void;
@@ -39,16 +41,27 @@ function HousingCreationModal(props: Props) {
 
   const [doFindHousing, findHousingQuery] = useLazyFindOneHousingQuery();
   const housing = findHousingQuery.data;
+  const findHousingError = findHousingQuery.error;
   const address = housing ? toAddress(housing) : undefined;
-  async function findHousing(): Promise<void> {
-    await form.validate();
-    await doFindHousing(localId, true).unwrap();
+  async function findHousing(): Promise<boolean> {
+    try {
+      await form.validate();
+      await doFindHousing(localId, true).unwrap();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   const [doCreateHousing] = useCreateHousingMutation();
-  async function createHousing(): Promise<void> {
-    await doCreateHousing({ localId }).unwrap();
-    props.onConfirm?.();
+  async function createHousing(): Promise<boolean> {
+    try {
+      await doCreateHousing({ localId }).unwrap();
+      props.onConfirm?.();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   const openingButtonProps: ButtonProps = {
@@ -61,7 +74,7 @@ function HousingCreationModal(props: Props) {
   return (
     <ModalStepper openingButtonProps={openingButtonProps} size="large">
       <ModalStep title="Ajouter un logement" onConfirm={findHousing}>
-        <p>Saisissez l'identifiant du logement (idlocal) à ajouter.</p>
+        <p>Saisissez l’identifiant du logement (idlocal) à ajouter.</p>
         <form id="housing-creation-form">
           <Row>
             <Col>
@@ -76,7 +89,18 @@ function HousingCreationModal(props: Props) {
             </Col>
           </Row>
         </form>
+
+        {unwrapError(findHousingError)?.name === 'HousingMissingError' && (
+          <Alert
+            severity="error"
+            className="fr-mt-2w"
+            title="Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies."
+            description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du local."
+            closable
+          />
+        )}
       </ModalStep>
+
       <ModalStep title="Ajouter un logement" onConfirm={createHousing}>
         <Text size="lg">
           Voici le logement que nous avons trouvé à cette adresse/sur cette

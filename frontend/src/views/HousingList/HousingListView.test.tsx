@@ -23,6 +23,7 @@ import {
 import { HousingStatus } from '../../models/HousingState';
 import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
+import * as randomstring from 'randomstring';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -368,5 +369,45 @@ describe('housing view', () => {
           'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.',
       },
     });
+  });
+
+  test('should fail if the housing was not found in datafoncier', async () => {
+    const localId = randomstring.generate(12);
+    mockRequests([
+      ...defaultMatches,
+      {
+        pathname: `/api/datafoncier/housing/${localId}`,
+        response: {
+          status: 404,
+          body: JSON.stringify({
+            name: 'HousingMissingError',
+            message: `Housing ${localId} missing`,
+          }),
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={createMemoryHistory()}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+
+    const button = screen.getByText('Ajouter un logement', {
+      selector: 'button',
+    });
+    await user.click(button);
+    const modal = await screen.findByRole('dialog');
+    const input = await within(modal).findByLabelText(
+      'Identifiant du logement'
+    );
+    await user.type(input, localId);
+    await user.click(within(modal).getByText('Confirmer'));
+    const alert = await within(modal).findByText(
+      'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
+    );
+    expect(alert).toBeVisible();
   });
 });

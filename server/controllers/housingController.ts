@@ -36,7 +36,8 @@ import ownerRepository from '../repositories/ownerRepository';
 import datafoncierOwnerApiRepository from '../repositories/datafoncierOwnerApiRepository';
 import housingOwnerRepository from '../repositories/housingOwnerRepository';
 import { toHousingOwnersApi } from '../models/HousingOwnerApi';
-import OwnerMissingError from '../errors/ownerMissingError';
+import async from 'async';
+import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
@@ -53,7 +54,6 @@ const get = async (request: Request, response: Response) => {
   const id = params.id.length !== 12 ? params.id : undefined;
   const localId = params.id.length === 12 ? params.id : undefined;
 
-  // const housing = await housingRepository.get(params.id, establishment.id);
   const housing = await housingRepository.findOne({
     geoCode: establishment.geoCodes,
     id,
@@ -173,14 +173,15 @@ const create = async (request: Request, response: Response) => {
       idprocpte: datafoncierHousing.idprocpte,
     },
   });
+  // Create the missing datafoncier owners if needed
+  await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
+    await processOwner(datafoncierOwner);
+  });
   const owners = await ownerRepository.find({
     filters: {
       idpersonne: datafoncierOwners.map((owner) => owner.idpersonne),
     },
   });
-  if (!owners.length) {
-    throw new OwnerMissingError(datafoncierHousing.idprocpte);
-  }
 
   // TODO: handle the case where datafoncier owners do not exist in our database
 

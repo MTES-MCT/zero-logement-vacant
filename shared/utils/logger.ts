@@ -9,6 +9,7 @@ interface LoggerOptions {
 interface LogFn {
   (message: string, data?: unknown): void;
   (obj: object): void;
+  (obj: unknown): void;
 }
 
 export interface Logger {
@@ -39,7 +40,7 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
 }
 
 function toPinoLogFn(log: pino.LogFn): LogFn {
-  return (messageOrData: string | object, data?: unknown) => {
+  return (messageOrData: string | object | unknown, data?: unknown) => {
     if (typeof messageOrData === 'string') {
       log(data, messageOrData);
     } else {

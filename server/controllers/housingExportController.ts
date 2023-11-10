@@ -44,12 +44,11 @@ const exportHousingByCampaignBundle = async (
   const { auth, user } = request as AuthenticatedRequest;
   const { establishmentId } = auth;
 
-  logger.info(
-    'Export housing by campaign bundle',
+  logger.info('Export housing by campaign bundle', {
     establishmentId,
     campaignNumber,
-    reminderNumber
-  );
+    reminderNumber,
+  });
 
   const [campaignApi, campaignList, establishment] = await Promise.all([
     campaignRepository.getCampaignBundle(

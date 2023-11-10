@@ -496,12 +496,11 @@ const updateCampaignBundle = async (
     : undefined;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  logger.info(
-    'Update campaign bundle infos for establishment',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.info('Update campaign bundle infos for establishment', {
+    establishment: establishmentId,
+    campaign: campaignNumber,
+    reminder: reminderNumber,
+  });
 
   const title = request.body.title;
 

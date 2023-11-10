@@ -20,8 +20,10 @@ function mock() {
           throw new Error(`Could not find a local id in ${uri}`);
         }
 
+        const geoCode = localId.substring(0, 5);
         const body: DatafoncierHousing = {
           ...genDatafoncierHousing(),
+          idcom: geoCode,
           idlocal: localId,
         };
         return [constants.HTTP_STATUS_OK, body];

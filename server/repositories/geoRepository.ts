@@ -27,7 +27,11 @@ const insert = async (
       ? 'st_multi(st_concaveHull(st_geomfromgeojson(?), 0.80))'
       : 'st_multi(st_geomfromgeojson(?))';
 
-  logger.info('Insert geo perimeter', establishmentId, kind, name);
+  logger.info('Insert geo perimeter', {
+    establishment: establishmentId,
+    kind,
+    name,
+  });
   await db(geoPerimetersTable).insert(
     db.raw(
       `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
@@ -64,11 +68,10 @@ const removeMany = async (
   geoPerimeterIds: string[],
   establishmentId: string
 ): Promise<void> => {
-  logger.info(
-    'Remove geoPerimeters with ids %s into establishment',
-    geoPerimeterIds,
-    establishmentId
-  );
+  logger.info('Remove geoPerimeters with ids %s into establishment', {
+    geoPerimeter: geoPerimeterIds,
+    establishment: establishmentId,
+  });
   await db(geoPerimetersTable)
     .whereIn('id', geoPerimeterIds)
     .andWhere('establishment_id', establishmentId)

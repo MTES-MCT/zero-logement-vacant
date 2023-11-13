@@ -186,9 +186,9 @@ const findGroupHousingEvents = async (
   return events.map(parseEventApi<GroupApi>);
 };
 
-const removeCampaignEvents = async (campaignIds: string[]): Promise<void> => {
-  logger.info('Delete eventApi for campaign with ids', campaignIds);
-  await db(campaignEventsTable).whereIn('campaign_id', campaignIds).delete();
+const removeCampaignEvents = async (campaignId: string): Promise<void> => {
+  logger.info('Delete eventApi for campaign', campaignId);
+  await db(campaignEventsTable).where('campaign_id', campaignId).delete();
 };
 
 export interface EventDBO<T> {

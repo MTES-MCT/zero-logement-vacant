@@ -19,11 +19,6 @@ import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import {
-  campaignBundleIdUrlFragment,
-  campaignFullName,
-  CampaignNumberSort,
-} from '../../models/Campaign';
 import _ from 'lodash';
 import {
   TrackEventActions,
@@ -51,6 +46,7 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 import { useLocation } from 'react-router-dom';
+import { campaignSort } from '../../models/Campaign';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -201,18 +197,19 @@ const HousingList = ({
   const ownerColumn = {
     name: 'owner',
     headerRender: () => getSortButton('owner', 'Propriétaire principal'),
-    render: ({ owner }: Housing) => (
-      <>
-        <AppLink
-          isSimple
-          title={owner.fullName}
-          to={`/proprietaires/${owner.id}`}
-        >
-          {owner.fullName}
-        </AppLink>
-        {owner.administrator && <div>({owner.administrator})</div>}
-      </>
-    ),
+    render: ({ owner }: Housing) =>
+      owner && (
+        <>
+          <AppLink
+            isSimple
+            title={owner.fullName}
+            to={`/proprietaires/${owner.id}`}
+          >
+            {owner.fullName}
+          </AppLink>
+          {owner.administrator && <div>({owner.administrator})</div>}
+        </>
+      ),
   };
 
   const occupancyColumn = {
@@ -236,23 +233,15 @@ const HousingList = ({
               .map((campaignId) =>
                 campaignList?.find((c) => c.id === campaignId)
               )
-              .sort(CampaignNumberSort)
+              .filter(isDefined)
+              .sort(campaignSort)
           )
             .filter(isDefined)
             .map((campaign, campaignIdx) => (
               <div key={id + '-campaign-' + campaignIdx}>
-                <AppLink
-                  isSimple
-                  to={
-                    '/campagnes/' +
-                    campaignBundleIdUrlFragment({
-                      campaignNumber: campaign.campaignNumber,
-                      reminderNumber: campaign.reminderNumber,
-                    })
-                  }
-                >
-                  {campaignFullName(campaign).substring(0, 17) +
-                    (campaignFullName(campaign).length > 17 ? '...' : '')}
+                <AppLink isSimple to={`/campagnes/${campaign.id}`}>
+                  {campaign.title.substring(0, 17) +
+                    (campaign.title.length > 17 ? '...' : '')}
                 </AppLink>
               </div>
             ))}
@@ -337,7 +326,7 @@ const HousingList = ({
           <Table
             caption="Logements"
             captionPosition="none"
-            rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
+            rowKey={(h: Housing) => `${h.id}_${h.owner?.id}`}
             data={housingList.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),

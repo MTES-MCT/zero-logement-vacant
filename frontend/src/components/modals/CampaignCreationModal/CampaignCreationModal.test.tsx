@@ -5,13 +5,10 @@ import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
-import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../store/store';
 
 describe('Campagne creation modal', () => {
-  const user = userEvent.setup();
-
   let store: any;
 
   const defaultFetchMock = (request: Request) => {
@@ -40,8 +37,7 @@ describe('Campagne creation modal', () => {
         <CampaignCreationModal
           housingCount={2}
           filters={{}}
-          onSubmit={() => {}}
-          openingButtonProps={{}}
+          onSubmit={() => Promise.resolve()}
         />
       </Provider>
     );
@@ -67,15 +63,12 @@ describe('Campagne creation modal', () => {
         <CampaignCreationModal
           housingCount={2}
           filters={{}}
-          onSubmit={() => {}}
-          openingButtonProps={{
-            children: 'Ouvrir',
-          }}
+          onSubmit={() => Promise.resolve()}
         />
       </Provider>
     );
 
-    expect(screen.getByText('Ouvrir')).toBeVisible();
+    expect(screen.getByText('Créer une campagne')).toBeVisible();
 
     // TODO How to open dsfr modal with Jest 🤔
     //

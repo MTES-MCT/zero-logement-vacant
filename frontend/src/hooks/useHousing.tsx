@@ -4,12 +4,13 @@ import { useFindEventsByHousingQuery } from '../services/event.service';
 import { useFindNotesByHousingQuery } from '../services/note.service';
 import { useFindOwnersByHousingQuery } from '../services/owner.service';
 import _ from 'lodash';
-import { CampaignNumberSort } from '../models/Campaign';
 import { useCampaignList } from './useCampaignList';
 import {
   useCountHousingQuery,
   useGetHousingQuery,
 } from '../services/housing.service';
+import { campaignSort } from '../models/Campaign';
+import { isDefined } from '../utils/compareUtils';
 
 export function useHousing() {
   const { housingId } = useParams<{ housingId: string }>();
@@ -41,8 +42,8 @@ export function useHousing() {
       _.uniq(
         housing?.campaignIds
           .map((campaignId) => campaignList?.find((c) => c.id === campaignId))
-          .filter((_) => !!_)
-          .sort(CampaignNumberSort)
+          .filter(isDefined)
+          .sort(campaignSort)
       ),
     [housing, campaignList]
   );

@@ -9,7 +9,6 @@ import {
 import housingFiltersApi, {
   HousingFiltersApi,
 } from '../models/HousingFiltersApi';
-import campaignRepository from '../repositories/campaignRepository';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
@@ -187,13 +186,6 @@ const updateHousing = async (
   }
 
   if (
-    housingUpdate.statusUpdate?.status !== HousingStatusApi.NeverContacted &&
-    !hasCampaigns(housing)
-  ) {
-    await addHousingInDefaultCampaign(housing, establishment.id);
-  }
-
-  if (
     housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted &&
     hasCampaigns(housing)
   ) {
@@ -233,23 +225,6 @@ const updateHousing = async (
   );
 
   return updatedHousing;
-};
-
-const addHousingInDefaultCampaign = async (
-  housingApi: HousingApi,
-  establishmentId: string
-) => {
-  const establishmentCampaigns = await campaignRepository.listCampaigns(
-    establishmentId
-  );
-  const defaultCampaign = establishmentCampaigns.find(
-    (_) => _.campaignNumber === 0
-  );
-  if (defaultCampaign) {
-    await campaignHousingRepository.insertHousingList(defaultCampaign.id, [
-      housingApi,
-    ]);
-  }
 };
 
 const updateListValidators = [

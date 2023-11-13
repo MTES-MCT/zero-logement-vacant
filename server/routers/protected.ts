@@ -13,12 +13,12 @@ import localityController from '../controllers/localityController';
 import { jwtCheck, userCheck } from '../middlewares/auth';
 import housingExportController from '../controllers/housingExportController';
 import settingsController from '../controllers/settingsController';
-import ownerProspectController from "../controllers/ownerProspectController";
+import ownerProspectController from '../controllers/ownerProspectController';
 import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
 import { param } from 'express-validator';
-import groupController from "../controllers/groupController";
-import dashboardController from "../controllers/dashboardController";
+import groupController from '../controllers/groupController';
+import dashboardController from '../controllers/dashboardController';
 
 const router = express.Router();
 
@@ -36,24 +36,18 @@ router.post('/groups', groupController.createValidators, validator.validate, gro
 router.get('/groups/:id', groupController.showValidators, validator.validate, groupController.show)
 router.put('/groups/:id', groupController.updateValidators, validator.validate, groupController.update)
 router.delete('/groups/:id', groupController.removeValidators, validator.validate, groupController.remove)
-router.post('/groups/:id/campaigns', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
 router.get('/groups/:id/export', housingExportController.exportGroupValidators, validator.validate, housingExportController.exportGroup)
 router.post('/groups/:id/housing', groupController.addHousingValidators, validator.validate, groupController.addHousing)
 router.delete('/groups/:id/housing', groupController.removeHousingValidators, validator.validate, groupController.removeHousing)
 
-router.get('/housing/export/campaigns/bundles/number/:campaignNumber?', housingExportController.exportHousingByCampaignBundle);
-router.get('/housing/export/campaigns/bundles/number/:campaignNumber/:reminderNumber?', housingExportController.exportHousingByCampaignBundle);
-
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.listCampaigns);
-router.post('/campaigns/creation', campaignController.createCampaign);
-router.put('/campaigns/:campaignId', campaignController.validateStepValidators, campaignController.validateStep);
-router.delete('/campaigns/:campaignId/housing', campaignController.removeHousingList);
-
-router.get('/campaigns/bundles', campaignController.listCampaignBundles);
-router.get('/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', campaignController.getCampaignBundleValidators, campaignController.getCampaignBundle);
-router.put('/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', campaignController.updateCampaignBundle);
-router.post('/campaigns/bundles/number/:campaignNumber?/:reminderNumber?', campaignController.createReminderCampaign);
-router.delete('/campaigns/bundles/number/:campaignNumber/:reminderNumber?', campaignController.deleteCampaignBundleValidators, campaignController.deleteCampaignBundle);
+router.get('/campaigns/:id', campaignController.getCampaignValidators, validator.validate, campaignController.getCampaign);
+router.post('/campaigns', campaignController.createCampaignValidators, validator.validate, campaignController.createCampaign);
+router.post('/campaigns/groups/:id', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
+router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
+router.put('/campaigns/:id', campaignController.updateCampaignValidators, validator.validate, campaignController.updateCampaign, campaignController.updateCampaign);
+router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);
+router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing)
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);

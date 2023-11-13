@@ -1,91 +1,163 @@
-import React, { useEffect } from 'react';
-import { Col, Row, Text } from '../../components/_dsfr';
-import { getCampaignBundle } from '../../store/actions/campaignAction';
-import CampaignBundleList from '../../components/CampaignBundleList/CampaignBundleList';
+import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
-import AppLink from '../../components/_app/AppLink/AppLink';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
-import CallOut from '@codegouvfr/react-dsfr/CallOut';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import Table from '@codegouvfr/react-dsfr/Table';
+import { format } from 'date-fns';
+import {
+  campaignStep,
+  CampaignSteps,
+  isCampaignDeletable,
+} from '../../models/Campaign';
+import AppLink from '../../components/_app/AppLink/AppLink';
+import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
+import { displayCount } from '../../utils/stringUtils';
+import { Text } from '../../components/_dsfr';
+import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import styles from './campaign.module.scss';
+import {
+  useRemoveCampaignMutation,
+  useUpdateCampaignMutation,
+} from '../../services/campaign.service';
+import CampaignCounts from '../../components/Campaign/CampaignCounts';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
-  const dispatch = useAppDispatch();
-  const { campaignBundle: inProgressCampaignBundle } = useAppSelector(
-    (state) => state.campaign
-  );
+  const { trackEvent } = useMatomo();
 
-  useEffect(() => {
-    dispatch(getCampaignBundle({}));
-  }, [dispatch]);
+  const campaigns = useCampaignList();
+
+  const [removeCampaign] = useRemoveCampaignMutation();
+  const onDeleteCampaign = async (campaignId: string) => {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.Campaigns.Delete,
+    });
+    await removeCampaign(campaignId);
+  };
+
+  const [updateCampaignStep] = useUpdateCampaignMutation();
+  const onArchiveCampaign = async (campaignId: string) => {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.Campaigns.Archive,
+    });
+
+    await updateCampaignStep({
+      id: campaignId,
+      campaignUpdate: {
+        stepUpdate: {
+          step: CampaignSteps.Archived,
+        },
+      },
+    });
+  };
 
   return (
     <MainContainer
       title={
         <>
-          Vos logements suivis ({inProgressCampaignBundle?.housingCount})
-          <AppLink
-            className="fr-ml-2w fr-link"
-            iconId="fr-icon-arrow-right-line"
-            iconPosition="right"
-            isSimple
-            to="/campagnes/C"
-          >
-            Voir tout
-          </AppLink>
+          Vos campagnes
           <Button
-            onClick={() =>
-              window.open(inProgressCampaignBundle?.exportURL, '_self')
-            }
+            priority="secondary"
+            linkProps={{
+              to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
+              target: '_blank',
+            }}
             className="float-right"
-            iconId="fr-icon-download-line"
           >
-            Exporter les données
+            Voir la bibliothèque des courriers
           </Button>
         </>
       }
     >
-      <CampaignBundleList withDeletion={true} />
-
-      <Row spacing="py-5w">
-        <Col>
-          <CallOut
-            title={
-              <Text size="lg">
-                Vous souhaitez créer une nouvelle campagne ?
-              </Text>
-            }
-            className="fr-mr-4w"
-            children="Vous pouvez également en créer une nouvelle directement dans une
-                campagne existante (pour une relance par exemple)"
-            buttonProps={{
-              priority: 'secondary',
-              linkProps: { to: '/parc-de-logements' },
-              children: 'Créer votre nouvelle campagne',
-            }}
+      {campaigns && (
+        <>
+          <div className="fr-mb-2w">
+            {displayCount(campaigns.length, 'campagne')}
+          </div>
+          <Table
+            caption="Liste des campagnes"
+            noCaption
+            className="zlv-table with-row-number campaign-list"
+            fixed
+            headers={[
+              '',
+              'Titre',
+              'Statut',
+              'Date de création',
+              'Date d’envoi',
+              'Effectifs',
+              '',
+            ]}
+            data={campaigns.map((campaign, index) => [
+              `#${index + 1}`,
+              <AppLink isSimple to={`/campagnes/${campaign.id}`}>
+                {campaign.title}
+              </AppLink>,
+              <CampaignStatusBadge step={campaignStep(campaign)} />,
+              format(campaign.createdAt, 'dd/MM/yyyy'),
+              campaign.sendingDate
+                ? format(campaign.sendingDate, 'dd/MM/yyyy')
+                : '',
+              <CampaignCounts campaignId={campaign.id} />,
+              <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
+                <Button
+                  priority="tertiary"
+                  linkProps={{ to: `/campagnes/${campaign.id}` }}
+                  className={styles.buttonInGroup}
+                >
+                  {campaignStep(campaign) < CampaignSteps.InProgress
+                    ? 'Accéder'
+                    : 'Suivre'}
+                </Button>
+                {campaignStep(campaign) === CampaignSteps.InProgress && (
+                  <ConfirmationModal
+                    onSubmit={() => onArchiveCampaign(campaign.id)}
+                    modalId={`archive-${campaign.id}`}
+                    openingButtonProps={{
+                      priority: 'tertiary',
+                      iconId: 'fr-icon-archive-fill',
+                      className: styles.buttonInGroup,
+                    }}
+                  >
+                    <Text size="md">
+                      Êtes-vous sûr de vouloir archiver cette campagne ?
+                    </Text>
+                  </ConfirmationModal>
+                )}
+                {isCampaignDeletable(campaign) && (
+                  <ConfirmationModal
+                    onSubmit={() => onDeleteCampaign(campaign.id)}
+                    modalId={`delete-${campaign.id}`}
+                    openingButtonProps={{
+                      priority: 'tertiary',
+                      iconId: 'fr-icon-delete-bin-fill',
+                      className: styles.buttonInGroup,
+                    }}
+                  >
+                    <Text size="md">
+                      Êtes-vous sûr de vouloir supprimer cette campagne ?
+                    </Text>
+                    <Alert
+                      description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                      severity="info"
+                      small
+                    />
+                  </ConfirmationModal>
+                )}
+              </div>,
+            ])}
           />
-        </Col>
-        <Col>
-          <CallOut
-            title={
-              <Text size="lg">
-                Vous souhaitez concevoir des courriers plus percutants ?
-              </Text>
-            }
-            className="fr-mr-4w"
-            children="Accédez à nos modèles de courriers et ceux envoyés par les autres collectivités"
-            buttonProps={{
-              priority: 'secondary',
-              linkProps: {
-                to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
-                target: '_blank',
-              },
-              children: 'Voir la bibliothèque des courriers',
-            }}
-          />
-        </Col>
-      </Row>
+        </>
+      )}
     </MainContainer>
   );
 };

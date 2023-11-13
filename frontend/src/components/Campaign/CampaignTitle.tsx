@@ -1,47 +1,38 @@
 import React, { useState } from 'react';
 import { Col, Container, Row, Text, Title } from '../_dsfr';
-import {
-  CampaignBundle,
-  CampaignBundleId,
-  campaignFullName,
-} from '../../models/Campaign';
+import { Campaign } from '../../models/Campaign';
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { updateCampaignBundleTitle } from '../../store/actions/campaignAction';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
-import AppHelp from '../_app/AppHelp/AppHelp';
 import { dateShortFormat } from '../../utils/dateUtils';
-import { useCampaignBundle } from '../../hooks/useCampaignBundle';
-import { useAppDispatch } from '../../hooks/useStore';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useUpdateCampaignMutation } from '../../services/campaign.service';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 const modal = createModal({
-  id: 'campaign-bundle-title-modal',
+  id: 'campaign-title-modal',
   isOpenedByDefault: false,
 });
 
 interface Props {
-  campaignBundle: CampaignBundle;
+  campaign: Campaign;
   as?: TitleAs;
   look?: TitleAs;
 }
 
-const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
-  const dispatch = useAppDispatch();
+const CampaignTitle = ({ campaign, as, look }: Props) => {
   const { trackEvent } = useMatomo();
-  const { isCampaign } = useCampaignBundle(campaignBundle);
 
-  const [campaignTitle, setCampaignTitle] = useState(
-    campaignBundle.title ?? ''
-  );
+  const [updateCampaignTitle] = useUpdateCampaignMutation();
+
+  const [campaignTitle, setCampaignTitle] = useState(campaign.title ?? '');
   const shape = {
     campaignTitle: campaignTitleValidator,
   };
@@ -52,17 +43,19 @@ const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
   });
 
   const submitTitle = async () => {
-    await form.validate(() => {
+    await form.validate(async () => {
       trackEvent({
         category: TrackEventCategories.Campaigns,
         action: TrackEventActions.Campaigns.Rename,
       });
-      dispatch(
-        updateCampaignBundleTitle(
-          campaignBundle as CampaignBundleId,
-          campaignTitle
-        )
-      );
+      await updateCampaignTitle({
+        id: campaign.id,
+        campaignUpdate: {
+          titleUpdate: {
+            title: campaignTitle,
+          },
+        },
+      });
       modal.close();
     });
   };
@@ -74,32 +67,20 @@ const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
         look={look ?? as ?? 'h1'}
         className="fr-mb-2w ds-fr--inline-block fr-mr-2w"
       >
-        {campaignFullName(campaignBundle)}
-        {isCampaign && (
-          <Button
-            iconId="fr-icon-edit-line"
-            iconPosition="right"
-            priority="tertiary no outline"
-            onClick={modal.open}
-          >
-            Renommer
-          </Button>
-        )}
+        {campaign.title}
+        <Button
+          iconId="fr-icon-edit-line"
+          iconPosition="right"
+          priority="tertiary no outline"
+          onClick={modal.open}
+        >
+          Renommer
+        </Button>
       </Title>
-      {isCampaign && campaignBundle.createdAt && (
+      {campaign.createdAt && (
         <Text className="weight-500" spacing="mb-1w" size="sm">
-          Campagne créé le {dateShortFormat(campaignBundle.createdAt)}
+          Campagne créé le {dateShortFormat(campaign.createdAt)}
         </Text>
-      )}
-      {campaignBundle.campaignNumber === 0 && (
-        <div className="fr-py-2w">
-          <AppHelp>
-            Les logements hors campagne sont les logements qui sont 
-            <b>
-              en cours de suivi mais qui ne sont pas compris dans une campagne.
-            </b>
-          </AppHelp>
-        </div>
       )}
       <modal.Component
         title={
@@ -140,4 +121,4 @@ const CampaignBundleTitle = ({ campaignBundle, as, look }: Props) => {
   );
 };
 
-export default CampaignBundleTitle;
+export default CampaignTitle;

@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
 import { Col, Row, Text } from '../../components/_dsfr';
-import {
-  removeCampaignHousingList,
-  validCampaignStep,
-} from '../../store/actions/campaignAction';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';
 import * as yup from 'yup';
@@ -24,7 +20,6 @@ import { useSelection } from '../../hooks/useSelection';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { pluralize, prependIf } from '../../utils/stringUtils';
 import { parseDateInput } from '../../utils/dateUtils';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -32,25 +27,28 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { useCampaign } from '../../hooks/useCampaign';
+import { isDefined } from '../../utils/compareUtils';
+import {
+  useRemoveCampaignHousingMutation,
+  useUpdateCampaignMutation,
+} from '../../services/campaign.service';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
 }
 
 function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
+  const [updateCampaignStep] = useUpdateCampaignMutation();
+  const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
+
   const [query, setQuery] = useState<string>();
-  const { campaignBundle, campaignList } = useAppSelector(
-    (state) => state.campaign
-  );
-  const campaign = campaignList?.find(
-    (_) => _.id === campaignBundle?.campaignIds[0]
-  );
+  const { campaign } = useCampaign();
 
   const filters: HousingFilters = {
-    campaignIds: campaignBundle?.campaignIds,
+    campaignIds: [campaign?.id].filter(isDefined),
     query,
   };
 
@@ -83,7 +81,7 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
   const { hasSelected, setSelected, selected, selectedCount } =
     useSelection(filteredHousingCount);
 
-  if (!campaignBundle) {
+  if (!campaign) {
     return <></>;
   }
 
@@ -96,38 +94,38 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.ValidStep(step),
     });
-    if (step === CampaignSteps.Sending) {
-      await sendingForm.validate(() =>
-        dispatch(
-          validCampaignStep(campaignBundle.campaignIds[0], step, {
-            sendingDate: parseDateInput(sendingDate),
-          })
-        )
-      );
-      next();
-    } else {
-      dispatch(validCampaignStep(campaignBundle.campaignIds[0], step));
-      next();
-    }
+    await sendingForm.validate(async () => {
+      await updateCampaignStep({
+        id: campaign.id,
+        campaignUpdate: {
+          stepUpdate: {
+            step,
+            sendingDate:
+              step === CampaignSteps.Sending
+                ? parseDateInput(sendingDate)
+                : undefined,
+          },
+        },
+      });
+    });
+    next();
   };
 
-  const submitCampaignHousingRemove = (removingId?: string) => {
-    dispatch(
-      removeCampaignHousingList(
-        campaignBundle.campaignIds[0],
-        removingId ? false : selected.all,
-        removingId ? [removingId] : selected.ids,
-        { query }
-      )
-    );
+  const submitCampaignHousingRemove = async (removingId?: string) => {
+    await removeCampaignHousing({
+      campaignId: campaign.id,
+      ids: removingId ? [removingId] : selected.ids,
+      all: removingId ? false : selected.all,
+      filters: { query },
+    });
   };
 
-  async function downloadCSV(downloadOnly = false): Promise<void> {
-    window.open(campaignBundle?.exportURL, '_self');
+  const downloadCSV = async (downloadOnly = false) => {
+    window.open(campaign.exportURL, '_self');
     if (!downloadOnly) {
       await validStep(CampaignSteps.Export);
     }
-  }
+  };
 
   const prependBravo = (condition: boolean) => prependIf(condition)('Bravo ! ');
 
@@ -187,15 +185,15 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
                           </Col>
                         ) : (
                           <ConfirmationModal
-                            modalId={campaignBundle.campaignIds[0]}
-                            onSubmit={submitCampaignHousingRemove}
+                            modalId={campaign.id}
+                            onSubmit={() => submitCampaignHousingRemove()}
                             openingButtonProps={{
                               children: 'Supprimer',
                             }}
                           >
                             Êtes-vous sûr de vouloir supprimer 
-                            {pluralize(selectedCount)('ce logement')}
-                            de la campagne ?
+                            {pluralize(selectedCount)('ce logement')}  de la
+                            campagne ?
                           </ConfirmationModal>
                         )}
                       </Row>

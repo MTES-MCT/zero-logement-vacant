@@ -121,7 +121,7 @@ describe('Group view', () => {
       await user.click(confirm);
 
       expect(router.location).toMatchObject({
-        pathname: `/campagnes/C${campaign.campaignNumber}/R${campaign.reminderNumber}`,
+        pathname: `/campagnes/${campaign.id}`,
       });
     });
   });

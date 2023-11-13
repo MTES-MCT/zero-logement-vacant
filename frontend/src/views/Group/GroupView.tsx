@@ -1,4 +1,4 @@
-import { Col, Container, Row } from '../../components/_dsfr';
+import { Col, Row } from '../../components/_dsfr';
 import { Redirect, useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
@@ -7,7 +7,7 @@ import {
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { filterCount } from '../../models/HousingFilters';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -18,17 +18,9 @@ import {
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppSelector } from '../../hooks/useStore';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  createCampaignFromGroup,
-  listCampaigns,
-} from '../../store/actions/campaignAction';
-import {
-  Campaign,
-  campaignBundleIdUrlFragment,
-  getCampaignBundleId,
-} from '../../models/Campaign';
+import { Campaign } from '../../models/Campaign';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { GroupPayload } from '../../models/GroupPayload';
@@ -36,6 +28,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import MainContainer from '../../components/MainContainer/MainContainer';
+import { useCreateCampaignFromGroupMutation } from '../../services/campaign.service';
 
 interface RouterState {
   alert?: string;
@@ -47,7 +42,6 @@ function GroupView() {
 
   useDocumentTitle(group?.title ?? 'Groupe');
 
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
   const {
     filters,
@@ -91,15 +85,16 @@ function GroupView() {
     }
   }
 
+  const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
   async function onCampaignCreate(
     campaign: Pick<Campaign, 'title'>
   ): Promise<void> {
     if (group) {
-      const created = await dispatch(
-        createCampaignFromGroup({ campaign, group })
-      );
-      const id = campaignBundleIdUrlFragment(getCampaignBundleId(created));
-      router.push(`/campagnes/${id}`);
+      const created = await createCampaignFromGroup({
+        campaign,
+        group,
+      }).unwrap();
+      router.push(`/campagnes/${created.id}`);
     }
   }
 
@@ -121,16 +116,11 @@ function GroupView() {
     }
   }
 
-  const { campaignList: campaigns } = useAppSelector((state) => state.campaign);
-  useEffect(() => {
-    dispatch(
-      listCampaigns({
-        filters: {
-          groupIds: [id],
-        },
-      })
-    );
-  }, [dispatch, id]);
+  const campaignList = useCampaignList({
+    filters: {
+      groupIds: [id],
+    },
+  });
 
   if (!group || isLoadingGroup) {
     return <></>;
@@ -141,10 +131,10 @@ function GroupView() {
   }
 
   return (
-    <Container as="section" spacing="py-4w">
+    <MainContainer>
       <Row spacing="mb-5w">
         <Group
-          campaigns={campaigns}
+          campaigns={campaignList}
           group={group}
           onCampaignCreate={onCampaignCreate}
           onExport={onGroupExport}
@@ -211,7 +201,7 @@ function GroupView() {
           showRemoveGroupHousing
         />
       )}
-    </Container>
+    </MainContainer>
   );
 }
 

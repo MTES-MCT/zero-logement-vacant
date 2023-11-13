@@ -14,10 +14,7 @@ import {
 } from '../models/AddressApi';
 import { AuthenticatedRequest } from 'express-jwt';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
-import { constants } from 'http2';
 import banAddressesRepository from '../repositories/banAddressesRepository';
-import mailService from '../services/mailService';
-import establishmentRepository from '../repositories/establishmentRepository';
 import { capitalize, reduceStringArray } from '../utils/stringUtils';
 import highland from 'highland';
 import { CampaignApi } from '../models/CampaignApi';
@@ -27,6 +24,7 @@ import exceljs from 'exceljs';
 import groupRepository from '../repositories/groupRepository';
 import GroupMissingError from '../errors/groupMissingError';
 import { param, ValidationChain } from 'express-validator';
+import CampaignMissingError from '../errors/campaignMissingError';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
@@ -35,44 +33,38 @@ interface HousingWithAddresses extends HousingApi {
   ownerAddress?: AddressApi;
 }
 
-const exportHousingByCampaignBundle = async (
-  request: Request,
-  response: Response
-) => {
-  const campaignNumber = request.params.campaignNumber;
-  const reminderNumber = request.params.reminderNumber;
-  const { auth, user } = request as AuthenticatedRequest;
-  const { establishmentId } = auth;
+const exportCampaignValidators: ValidationChain[] = [
+  param('id').isUUID().withMessage('Must be an UUID'),
+];
+const exportCampaign = async (request: Request, response: Response) => {
+  const { auth, params } = request as AuthenticatedRequest;
 
-  logger.info(
-    'Export housing by campaign bundle',
-    establishmentId,
-    campaignNumber,
-    reminderNumber
-  );
+  logger.info('Export campaign', {
+    id: params.id,
+  });
 
-  const [campaignApi, campaignList, establishment] = await Promise.all([
-    campaignRepository.getCampaignBundle(
-      establishmentId,
-      campaignNumber,
-      reminderNumber
-    ),
-    campaignRepository.listCampaigns(establishmentId),
-    establishmentRepository.get(establishmentId),
+  const [campaign, campaignList] = await Promise.all([
+    campaignRepository.findOne({
+      id: params.id,
+      establishmentId: auth.establishmentId,
+    }),
+    campaignRepository.find({
+      filters: {
+        establishmentId: auth.establishmentId,
+      },
+    }),
   ]);
 
-  if (!campaignApi || !establishment) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
   }
 
   const stream = housingRepository.streamWithFilters({
-    establishmentIds: [establishmentId],
-    campaignIds: campaignApi.campaignIds,
+    campaignIds: [campaign.id],
+    establishmentIds: [auth.establishmentId],
   });
 
-  const fileName = campaignNumber
-    ? `${campaignApi.title}.xlsx`
-    : 'LogementSuivis.xlsx';
+  const fileName = `${campaign.title}.xlsx`;
 
   const workbook = excelUtils.initWorkbook(fileName, response);
 
@@ -83,9 +75,7 @@ const exportHousingByCampaignBundle = async (
     campaignList,
     workbook
   ).done(() => {
-    mailService.emit('housing:exported', user.email, {
-      priority: establishment.priority,
-    });
+    logger.info('Exported campaign', { campaign: campaign.id });
   });
 };
 
@@ -101,7 +91,11 @@ const exportGroup = async (request: Request, response: Response) => {
       id: params.id,
       establishmentId: auth.establishmentId,
     }),
-    campaignRepository.listCampaigns(auth.establishmentId),
+    campaignRepository.find({
+      filters: {
+        establishmentId: auth.establishmentId,
+      },
+    }),
   ]);
 
   if (!group) {
@@ -372,7 +366,8 @@ const reduceAddressApi = (addressApi?: AddressApi) => {
 };
 
 const housingExportController = {
-  exportHousingByCampaignBundle,
+  exportCampaign,
+  exportCampaignValidators,
   exportGroup,
   exportGroupValidators,
 };

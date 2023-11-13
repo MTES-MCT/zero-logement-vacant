@@ -18,11 +18,7 @@ import {
   campaignEventsTable,
   HousingEvents,
 } from '../repositories/eventRepository';
-import {
-  CampaignApi,
-  CampaignKinds,
-  CampaignSteps,
-} from '../models/CampaignApi';
+import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
 import {
@@ -39,7 +35,7 @@ import {
   Groups,
   GroupsHousing,
 } from '../repositories/groupRepository';
-import { genGroupApi, genHousingApi } from '../test/testFixtures';
+import { genGroupApi, genHousingApi, genNumber } from '../test/testFixtures';
 import { User1 } from '../../database/seeds/test/003-users';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import {
@@ -52,63 +48,35 @@ const { app } = createServer();
 
 describe('Campaign controller', () => {
   describe('getCampaignBundle', () => {
-    const testRoute = (campaignNumber?: any, reminderNumber?: any) =>
-      `/api/campaigns/bundles/number${
-        campaignNumber
-          ? '/' +
-            campaignNumber +
-            (reminderNumber !== undefined ? '/' + reminderNumber : '')
-          : ''
-      }`;
+    const testRoute = (campaignId: string) => `/api/campaigns/${campaignId}`;
 
     it('should be forbidden for a not authenticated user', async () => {
       await request(app)
-        .get(testRoute(Campaign1.campaignNumber, Campaign1.reminderNumber))
+        .get(testRoute(Campaign1.id))
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should received a valid campaign number', async () => {
-      await withAccessToken(request(app).get(testRoute('number'))).expect(
+    it('should received a valid campaign id', async () => {
+      await withAccessToken(request(app).get(testRoute('id'))).expect(
         constants.HTTP_STATUS_BAD_REQUEST
       );
-
-      await withAccessToken(
-        request(app).get(testRoute(Campaign1.campaignNumber, 'number'))
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should return an error when there is no campaign bundle with the required ids', async () => {
-      await withAccessToken(request(app).get(testRoute(999))).expect(
+    it('should return an error when there is no campaign with the required id', async () => {
+      await withAccessToken(request(app).get(testRoute(uuidv4()))).expect(
         constants.HTTP_STATUS_NOT_FOUND
       );
     });
 
-    it('should return the campaign bundle for the required ids', async () => {
+    it('should return the campaign', async () => {
       const res = await withAccessToken(
-        request(app).get(
-          testRoute(Campaign1.campaignNumber, Campaign1.reminderNumber)
-        )
+        request(app).get(testRoute(Campaign1.id))
       ).expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.objectContaining({
-          campaignIds: [Campaign1.id],
-          campaignNumber: Campaign1.campaignNumber,
-          reminderNumber: Campaign1.reminderNumber,
+          id: Campaign1.id,
           filters: expect.objectContaining(Campaign1.filters),
-        })
-      );
-    });
-
-    it('should return the global campaign bundle', async () => {
-      const res = await withAccessToken(request(app).get(testRoute())).expect(
-        constants.HTTP_STATUS_OK
-      );
-
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          campaignIds: expect.arrayContaining([Campaign1.id]),
-          housingCount: 2,
         })
       );
     });
@@ -131,33 +99,7 @@ describe('Campaign controller', () => {
       expect(res.body).toMatchObject(
         expect.arrayContaining([
           expect.objectContaining({
-            campaignNumber: Campaign1.campaignNumber,
-            reminderNumber: Campaign1.reminderNumber,
-          }),
-        ])
-      );
-    });
-  });
-
-  describe('listCampaignBundles', () => {
-    const testRoute = '/api/campaigns/bundles';
-
-    it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute)
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should list campaign bundles', async () => {
-      const res = await withAccessToken(request(app).get(testRoute)).expect(
-        constants.HTTP_STATUS_OK
-      );
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            campaignIds: [Campaign1.id],
-            campaignNumber: Campaign1.campaignNumber,
+            id: Campaign1.id,
           }),
         ])
       );
@@ -165,7 +107,7 @@ describe('Campaign controller', () => {
   });
 
   describe('createCampaign', () => {
-    const testRoute = '/api/campaigns/creation';
+    const testRoute = '/api/campaigns';
 
     it('should be forbidden for a not authenticated user', async () => {
       await request(app)
@@ -174,67 +116,45 @@ describe('Campaign controller', () => {
     });
 
     it('should create a new campaign', async () => {
+      const campaignTitle = randomstring.generate();
       const res = await withAccessToken(request(app).post(testRoute))
         .send({
           draftCampaign: {
-            reminderNumber: 0,
             filters: {},
+            title: campaignTitle,
           },
           housingIds: [Housing1.id, Housing2.id],
+          allHousing: false,
         })
         .expect(constants.HTTP_STATUS_OK);
 
       expect(res.body).toMatchObject(
         expect.objectContaining({
-          reminderNumber: 0,
+          title: campaignTitle,
         })
       );
 
       await db(campaignsTable)
         .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', '2')
         .then((result) => {
-          expect(result[0]).toEqual(
-            expect.objectContaining({
-              campaign_number: 2,
-              reminder_number: 0,
-            })
+          expect(result).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                title: campaignTitle,
+              }),
+            ])
           );
         });
 
       await db(campaignsHousingTable)
         .join(campaignsTable, 'campaign_id', 'id')
         .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', 2)
+        .andWhere('title', campaignTitle)
         .then((result) => {
           expect(result).toEqual(
             expect.arrayContaining([
               expect.objectContaining({ housing_id: Housing1.id }),
               expect.objectContaining({ housing_id: Housing2.id }),
-            ])
-          );
-        });
-    });
-
-    it('should remove housing from default campaign', async () => {
-      await withAccessToken(request(app).post(testRoute))
-        .send({
-          draftCampaign: {
-            reminderNumber: 0,
-            filters: {},
-          },
-          housingIds: [Housing0.id],
-        })
-        .expect(constants.HTTP_STATUS_OK);
-
-      await db(campaignsHousingTable)
-        .join(campaignsTable, 'campaign_id', 'id')
-        .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', 0)
-        .then((result) => {
-          expect(result).toEqual(
-            expect.not.arrayContaining([
-              expect.objectContaining({ housing_id: Housing0.id }),
             ])
           );
         });
@@ -314,9 +234,6 @@ describe('Campaign controller', () => {
         },
         createdAt: expect.toBeDateString(),
         createdBy: User1.id,
-        campaignNumber: expect.any(Number),
-        reminderNumber: 0,
-        kind: CampaignKinds.Initial,
         validatedAt: expect.toBeDateString(),
       });
     });
@@ -355,7 +272,7 @@ describe('Campaign controller', () => {
     });
   });
 
-  describe('validateStep', () => {
+  describe('update campaign', () => {
     const testRoute = (campaignId: string) => `/api/campaigns/${campaignId}`;
 
     it('should be forbidden for a not authenticated user', async () => {
@@ -366,49 +283,92 @@ describe('Campaign controller', () => {
 
     it('should received a valid campaign id', async () => {
       await withAccessToken(
-        request(app).put(testRoute(randomstring.generate()))
+        request(app)
+          .put(testRoute(randomstring.generate()))
+          .send({ stepUpdate: { step: CampaignSteps.OwnersValidation } })
       ).expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await withAccessToken(
         request(app)
           .put(testRoute(uuidv4()))
-          .send({ step: CampaignSteps.OwnersValidation })
+          .send({ stepUpdate: { step: CampaignSteps.OwnersValidation } })
       ).expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should received a valid step', async () => {
-      await withAccessToken(
-        request(app).put(testRoute(Campaign1.id)).send({})
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+    it('should received a valid request', async () => {
+      const badRequestTest = async (payload?: Record<string, unknown>) => {
+        await withAccessToken(
+          request(app)
+            .put(testRoute(Campaign1.id))
+            .send(payload)
+            .expect(constants.HTTP_STATUS_BAD_REQUEST)
+        );
+      };
 
-      await withAccessToken(
-        request(app).put(testRoute(Campaign1.id)).send({ step: 15 })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+      await badRequestTest({
+        titleUpdate: {},
+      });
+      await badRequestTest({
+        titleUpdate: {
+          title: genNumber(),
+        },
+      });
+      await badRequestTest({
+        stepUpdate: {},
+      });
+      await badRequestTest({
+        stepUpdate: {
+          step: 15,
+        },
+      });
+      await badRequestTest({
+        stepUpdate: {
+          step: CampaignSteps.Sending,
+        },
+      });
+      await badRequestTest({
+        stepUpdate: {
+          step: CampaignSteps.Sending,
+          sendingDate: randomstring.generate(),
+        },
+      });
     });
 
-    it('should received a valid sending date on sending step', async () => {
+    it('should update the campaign title', async () => {
+      const newTitle = randomstring.generate();
       await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))
-          .send({ step: CampaignSteps.Sending })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+          .send({
+            titleUpdate: {
+              title: newTitle,
+            },
+          })
+      ).expect(constants.HTTP_STATUS_OK);
+
+      await db(campaignsTable)
+        .where('id', Campaign1.id)
+        .first()
+        .then((result) =>
+          expect(result).toMatchObject(
+            expect.objectContaining({
+              id: Campaign1.id,
+              title: newTitle,
+            })
+          )
+        );
     });
 
     it('should update the campaign when validating step OwnersValidation', async () => {
-      const res = await withAccessToken(
+      await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))
-          .send({ step: CampaignSteps.OwnersValidation })
+          .send({
+            stepUpdate: {
+              step: CampaignSteps.OwnersValidation,
+            },
+          })
       ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          id: Campaign1.id,
-          validatedAt: expect.anything(),
-          exportedAt: null,
-          sentAt: null,
-        })
-      );
 
       await db(campaignsTable)
         .where('id', Campaign1.id)
@@ -426,19 +386,15 @@ describe('Campaign controller', () => {
     });
 
     it('should update the campaign when validating step Export', async () => {
-      const res = await withAccessToken(
+      await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))
-          .send({ step: CampaignSteps.Export })
+          .send({
+            stepUpdate: {
+              step: CampaignSteps.Export,
+            },
+          })
       ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          id: Campaign1.id,
-          exportedAt: expect.anything(),
-          sentAt: null,
-        })
-      );
 
       await db(campaignsTable)
         .where('id', Campaign1.id)
@@ -476,22 +432,16 @@ describe('Campaign controller', () => {
         .where('id', Housing2.id)
         .where('geo_code', Housing2.geoCode);
 
-      const res = await withAccessToken(
+      await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))
           .send({
-            step: CampaignSteps.Sending,
-            sendingDate: formatISO(new Date()),
+            stepUpdate: {
+              step: CampaignSteps.Sending,
+              sendingDate: formatISO(new Date()),
+            },
           })
       ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          id: Campaign1.id,
-          sentAt: expect.any(String),
-          sendingDate: expect.any(String),
-        })
-      );
 
       await db(campaignsTable)
         .where('id', Campaign1.id)
@@ -525,17 +475,15 @@ describe('Campaign controller', () => {
     });
 
     it('should update the campaign when validating step Confirmation', async () => {
-      const { body, status } = await withAccessToken(
+      await withAccessToken(
         request(app)
           .put(testRoute(Campaign1.id))
-          .send({ step: CampaignSteps.Confirmation })
-      );
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        id: Campaign1.id,
-        confirmedAt: expect.any(String),
-      });
+          .send({
+            stepUpdate: {
+              step: CampaignSteps.Confirmation,
+            },
+          })
+      ).expect(constants.HTTP_STATUS_OK);
 
       const actual = await db(campaignsTable).where('id', Campaign1.id).first();
       expect(actual).toMatchObject({
@@ -545,44 +493,29 @@ describe('Campaign controller', () => {
     });
   });
 
-  describe('deleteCampaignBundle', () => {
-    const testRoute = (campaignNumber?: any, reminderNumber?: any) =>
-      `/api/campaigns/bundles/number${
-        campaignNumber
-          ? '/' +
-            campaignNumber +
-            (reminderNumber !== undefined ? '/' + reminderNumber : '')
-          : ''
-      }`;
+  describe('deleteCampaign', () => {
+    const testRoute = (campaignId: any) => `/api/campaigns/${campaignId}`;
 
     it('should be forbidden for a not authenticated user', async () => {
       await request(app)
-        .delete(testRoute(Campaign1.campaignNumber, Campaign1.reminderNumber))
+        .delete(testRoute(Campaign1.id))
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    it('should received a valid campaign number', async () => {
-      await withAccessToken(request(app).delete(testRoute())).expect(
-        constants.HTTP_STATUS_NOT_FOUND
-      );
-
-      await withAccessToken(request(app).delete(testRoute('number'))).expect(
+    it('should received a valid campaign id', async () => {
+      await withAccessToken(request(app).delete(testRoute('id'))).expect(
         constants.HTTP_STATUS_BAD_REQUEST
       );
-
-      await withAccessToken(
-        request(app).delete(testRoute(Campaign1.campaignNumber, 'number'))
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should delete linked campaigns, events and campaign housing', async () => {
+    it('should delete linked events and campaign housing', async () => {
       await withAccessToken(
-        request(app).delete(testRoute(Campaign1.campaignNumber))
+        request(app).delete(testRoute(Campaign1.id))
       ).expect(constants.HTTP_STATUS_OK);
 
       await db(campaignsTable)
         .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', '1')
+        .andWhere('id', Campaign1.id)
         .then((result) => {
           expect(result).toEqual([]);
         });
@@ -590,7 +523,7 @@ describe('Campaign controller', () => {
       await db(campaignsHousingTable)
         .join(campaignsTable, 'campaign_id', 'id')
         .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', '1')
+        .andWhere('id', Campaign1.id)
         .then((result) => {
           expect(result).toEqual([]);
         });
@@ -598,7 +531,7 @@ describe('Campaign controller', () => {
       await db(campaignEventsTable)
         .join(campaignsTable, 'campaign_id', `${campaignsTable}.id`)
         .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', '1')
+        .andWhere('id', Campaign1.id)
         .then((result) => {
           expect(result).toEqual([]);
         });
@@ -606,7 +539,7 @@ describe('Campaign controller', () => {
 
     it('should set status never contacted for waiting housing without anymore campaigns', async () => {
       await withAccessToken(
-        request(app).delete(testRoute(Campaign1.campaignNumber))
+        request(app).delete(testRoute(Campaign1.id))
       ).expect(constants.HTTP_STATUS_OK);
 
       await db(housingTable)
@@ -619,40 +552,6 @@ describe('Campaign controller', () => {
               status: HousingStatusApi.NeverContacted,
               sub_status: null,
             })
-          );
-        });
-    });
-
-    it('should add in default campaigns non waiting housing without anymore campaigns', async () => {
-      await db(housingTable)
-        .update({ status: HousingStatusApi.InProgress })
-        .where('id', Housing1.id);
-
-      await withAccessToken(
-        request(app).delete(testRoute(Campaign1.campaignNumber))
-      ).expect(constants.HTTP_STATUS_OK);
-
-      await db(housingTable)
-        .where('id', Housing1.id)
-        .first()
-        .then((result) => {
-          expect(result).toMatchObject(
-            expect.objectContaining({
-              id: Housing1.id,
-              status: HousingStatusApi.InProgress,
-            })
-          );
-        });
-
-      await db(campaignsHousingTable)
-        .join(campaignsTable, 'campaign_id', 'id')
-        .where('establishment_id', Establishment1.id)
-        .andWhere('campaign_number', '0')
-        .andWhere('housing_id', Housing1.id)
-        .first()
-        .then((result) => {
-          expect(result).toMatchObject(
-            expect.objectContaining({ housing_id: Housing1.id })
           );
         });
     });

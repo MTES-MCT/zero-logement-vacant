@@ -1,9 +1,7 @@
 import React, { useRef } from 'react';
 import { Container, Text, Title } from '../_dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import { useCampaignList } from '../../hooks/useCampaignList';
 import Aside from '../Aside/Aside';
-import { Campaign } from '../../models/Campaign';
 import HousingEditionForm from './HousingEditionForm';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
@@ -30,7 +28,6 @@ const HousingEditionSideMenu = ({
   onSubmit,
   onClose,
 }: Props) => {
-  const campaignList = useCampaignList();
   const statusFormRef = useRef<{ submit: () => void }>();
 
   if (!housing) {
@@ -41,9 +38,11 @@ const HousingEditionSideMenu = ({
   };
 
   const hasOnlyDefaultCampaign =
-    housing.campaignIds.length === 1 &&
-    campaignList?.find((_: Campaign) => _.id === housing.campaignIds[0])
-      ?.campaignNumber === 0;
+    housing.campaignIds === undefined || housing.campaignIds?.length === 0;
+  //TODO
+  // housing.campaignIds.length === 1 &&
+  // campaignList?.find((_: Campaign) => _.id === housing.campaignIds[0])
+  //   ?.campaignNumber === 0;
 
   return (
     <div className={styles.sideMenu}>

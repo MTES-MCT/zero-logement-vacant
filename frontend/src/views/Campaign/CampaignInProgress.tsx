@@ -1,65 +1,105 @@
-import React, { useState } from 'react';
 import { Col, Row } from '../../components/_dsfr';
-import { HousingStatus } from '../../models/HousingState';
-import FilterBadges from '../../components/FiltersBadges/FiltersBadges';
+import { useParams } from 'react-router-dom';
+import { filterCount } from '../../models/HousingFilters';
+import React from 'react';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useFilters } from '../../hooks/useFilters';
+import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import HousingListMap from '../HousingList/HousingListMap';
+import HousingListTabs from '../HousingList/HousingListTabs';
+import { useAppSelector } from '../../hooks/useStore';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Button from '@codegouvfr/react-dsfr/Button';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import CampaignInProgressTab from './CampaignInProgressTab';
-import { useStatusTabs } from '../../hooks/useStatusTabs';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import { useCampaign } from '../../hooks/useCampaign';
 
-const CampaignInProgress = () => {
-  const statusList = [
-    HousingStatus.Waiting,
-    HousingStatus.FirstContact,
-    HousingStatus.InProgress,
-    HousingStatus.Completed,
-    HousingStatus.Blocked,
-  ];
+function CampaignInProgress() {
+  const { campaign } = useCampaign();
+  useDocumentTitle(campaign?.title ?? 'Campaigne');
 
-  const [query, setQuery] = useState<string>();
+  const { trackEvent } = useMatomo();
+  const {
+    filters,
+    setFilters,
+    expand,
+    removeFilter,
+    setExpand,
+    onChangeFilters,
+    onResetFilters,
+  } = useFilters({
+    storage: 'state',
+    initialState: {
+      campaignIds: [useParams<{ campaignId: string }>().campaignId],
+    },
+  });
 
-  const { getTabLabel, setStatusCount } = useStatusTabs(statusList);
+  const { view } = useAppSelector((state) => state.housing);
+
+  function searchWithQuery(query: string): void {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.HousingList.Search,
+    });
+    setFilters({
+      ...filters,
+      query,
+    });
+  }
 
   return (
-    <>
-      <Row spacing="mb-4w">
-        <Col n="3">
+    <section>
+      <Row spacing="mb-1w" alignItems="top">
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
+        />
+        <Col n="6" className="d-flex">
           <AppSearchBar
-            onSearch={(input: string) => {
-              setQuery(input);
-            }}
+            onSearch={searchWithQuery}
+            initialQuery={filters.query}
+            placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
           />
+          <Button
+            title="Filtrer"
+            iconId="ri-filter-fill"
+            priority="secondary"
+            className="fr-ml-1w"
+            onClick={() => setExpand(true)}
+            data-testid="filter-button"
+          >
+            Filtrer ({filterCount(filters)})
+          </Button>
+        </Col>
+
+        <Col>
+          <HousingDisplaySwitch />
         </Col>
       </Row>
-      {query && (
-        <Row className="fr-pb-2w">
-          <Col>
-            <FilterBadges
-              options={[{ value: query, label: query }]}
-              filters={[query]}
-              onChange={() => setQuery('')}
-            />
-          </Col>
-        </Row>
-      )}
+
       <Row>
-        <Tabs
-          className="tabs-no-border statusTabs"
-          tabs={statusList.map((status) => ({
-            label: getTabLabel(status),
-            content: (
-              <CampaignInProgressTab
-                key={`status_tab_${status}`}
-                status={status}
-                query={query}
-                onCountFilteredHousing={setStatusCount(status)}
-              />
-            ),
-          }))}
+        <HousingFiltersBadges
+          filters={filters}
+          onChange={removeFilter}
+          onReset={onResetFilters}
         />
       </Row>
-    </>
+
+      {view === 'map' ? (
+        <HousingListMap filters={filters} />
+      ) : (
+        <HousingListTabs filters={filters} showCount={false} />
+      )}
+    </section>
   );
-};
+}
 
 export default CampaignInProgress;

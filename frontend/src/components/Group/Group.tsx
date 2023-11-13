@@ -112,7 +112,7 @@ function Group(props: GroupProps) {
                       iconPosition="left"
                       isSimple
                       key={campaign.id}
-                      to={`/campagnes/C${campaign.campaignNumber}`}
+                      to={`/campagnes/${campaign.id}`}
                     >
                       {campaign.title}
                     </AppLink>

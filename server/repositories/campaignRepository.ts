@@ -1,140 +1,32 @@
-import { CampaignApi, CampaignBundleApi } from '../models/CampaignApi';
+import { CampaignApi } from '../models/CampaignApi';
 import db from './db';
-import { campaignsHousingTable } from './campaignHousingRepository';
-import {
-  housingTable,
-  ownerHousingJoinClause,
-  queryOwnerHousingWhereClause,
-} from './housingRepository';
-import { ownerTable } from './ownerRepository';
-import {
-  HousingStatusApi,
-  InProgressWithSupportSubStatus,
-} from '../models/HousingStatusApi';
-import { GroupDBO, groupsTable, parseGroupApi } from './groupRepository';
-import { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
-import { housingOwnersTable } from './housingOwnerRepository';
 import { logger } from '../utils/logger';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
 
-const get = async (campaignId: string): Promise<CampaignApi | null> => {
-  const campaign: CampaignDBO | null = await Campaigns()
-    .select(`${campaignsTable}.*`)
-    .where(`${campaignsTable}.id`, campaignId)
-    .leftJoin(
-      campaignsHousingTable,
-      `${campaignsHousingTable}.campaign_id`,
-      `${campaignsTable}.id`
-    )
-    .leftJoin(housingTable, (join) => {
-      join
-        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-        .on(
-          `${housingTable}.geo_code`,
-          `${campaignsHousingTable}.housing_geo_code`
-        );
-    })
-    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
-    .groupBy(`${campaignsTable}.id`)
+interface FindOneOptions {
+  id: string;
+  establishmentId: string;
+}
+
+const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
+  logger.debug('Finding campaign...', opts);
+  const campaign: CampaignDBO | undefined = await Campaigns()
+    .modify(filterQuery(opts))
+    .where(`${campaignsTable}.id`, opts.id)
+    // .leftJoin(groupsTable, `${groupsTable}.id`, `${campaignsTable}.group_id`)
+    // .select(db.raw(`to_json(${groupsTable}.*) AS group`))
+    // .groupBy(`${groupsTable}.id`)
     .first();
+  if (!campaign) {
+    return null;
+  }
 
-  return campaign ? parseCampaignApi(campaign) : null;
-};
-
-const getCampaignBundle = async (
-  establishmentId: string,
-  campaignNumber?: string,
-  reminderNumber?: string,
-  query?: string
-): Promise<CampaignBundleApi | null> => {
-  const bundle = await db(campaignsTable)
-    .select(
-      db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-      )
-    )
-    .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
-    .countDistinct('o.id', { as: 'ownerCount' })
-    .from(campaignsTable)
-    .where(`${campaignsTable}.establishment_id`, establishmentId)
-    .leftJoin(
-      campaignsHousingTable,
-      'id',
-      `${campaignsHousingTable}.campaign_id`
-    )
-    .leftJoin(housingTable, (join) => {
-      join
-        .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-        .andOn(
-          `${housingTable}.geo_code`,
-          `${campaignsHousingTable}.housing_geo_code`
-        );
-    })
-    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
-    .modify((queryBuilder: any) => {
-      if (campaignNumber) {
-        queryBuilder
-          .select(
-            `${campaignsTable}.campaign_number`,
-            db.raw(
-              `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
-            ),
-            db.raw(
-              `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
-            ),
-            db.raw(
-              `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
-            ),
-            db.raw(
-              `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
-            )
-          )
-          .andWhere(`${campaignsTable}.campaign_number`, campaignNumber)
-          .groupBy(`${campaignsTable}.campaign_number`);
-      } else {
-        queryBuilder
-          .andWhereRaw(`${campaignsTable}.sending_date is not null`)
-          .andWhereRaw(`${campaignsTable}.archived_at is null`);
-      }
-      if (reminderNumber) {
-        queryBuilder
-          .select(`${campaignsTable}.reminder_number`)
-          .andWhere(`${campaignsTable}.reminder_number`, reminderNumber)
-          .groupBy(`${campaignsTable}.reminder_number`);
-      }
-      queryOwnerHousingWhereClause(queryBuilder, query);
-    })
-    .leftJoin(groupsTable, `${groupsTable}.id`, `${campaignsTable}.group_id`)
-    .select(db.raw(`to_json(${groupsTable}.*) AS group`))
-    .groupBy(`${groupsTable}.id`)
-    .first();
-
-  return bundle ? parseCampaignBundleApi(bundle) : null;
+  logger.debug('Found campaign', campaign);
+  return parseCampaignApi(campaign);
 };
 
 interface FindOptions {
@@ -143,115 +35,21 @@ interface FindOptions {
 
 const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
   const campaigns: CampaignDBO[] = await Campaigns()
-    .where({
-      establishment_id: opts.filters.establishmentId,
-    })
     .modify(filterQuery(opts.filters))
-    .orderBy('campaign_number');
+    .orderBy('created_at');
 
   return campaigns.map(parseCampaignApi);
 };
 
 const filterQuery = (filters: CampaignFiltersApi) => {
   return function (query: Knex.QueryBuilder<CampaignDBO>) {
+    if (filters?.establishmentId) {
+      query.where('establishment_id', filters.establishmentId);
+    }
     if (filters.groupIds?.length) {
       query.whereIn('group_id', filters.groupIds);
     }
   };
-};
-
-const listCampaigns = async (
-  establishmentId: string
-): Promise<CampaignApi[]> => {
-  const campaigns = await db(campaignsTable)
-    .where('establishment_id', establishmentId)
-    .orderBy('campaign_number')
-    .orderBy('reminder_number');
-
-  return campaigns.map(parseCampaignApi);
-};
-
-const listCampaignBundles = async (
-  establishmentId: string
-): Promise<CampaignBundleApi[]> => {
-  const bundles = await db
-    .select(
-      db.raw(`array_agg(distinct(${campaignsTable}.id)) as "campaignIds"`),
-      `${campaignsTable}.campaign_number`,
-      db.raw(
-        `(array_agg(${campaignsTable}.kind order by reminder_number asc))[1] as "kind"`
-      ),
-      db.raw(
-        `(array_agg(${campaignsTable}.filters order by reminder_number asc))[1] as "filters"`
-      ),
-      db.raw(
-        `(array_agg(${campaignsTable}.created_at order by reminder_number asc))[1] as "created_at"`
-      ),
-      db.raw(
-        `(array_agg(${campaignsTable}.title order by reminder_number asc))[1] as "title"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.NeverContacted}') as "neverContactedCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Waiting}') as "waitingCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}') as "inProgressCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Completed}') as "notVacantCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.Blocked}') as "noActionCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.sub_status = 'NPAI') as "npaiCount"`
-      ),
-      db.raw(
-        `count(distinct ${housingTable}.id) filter (where ${housingTable}.status = '${HousingStatusApi.InProgress}' and ${housingTable}.sub_status = '${InProgressWithSupportSubStatus}') as "inProgressWithSupportCount"`
-      )
-    )
-    .countDistinct(`${housingTable}.id`, { as: 'housingCount' })
-    .countDistinct('o.id', { as: 'ownerCount' })
-    .from(campaignsTable)
-    .leftJoin(
-      campaignsHousingTable,
-      'id',
-      `${campaignsHousingTable}.campaign_id`
-    )
-    .leftJoin(
-      housingTable,
-      `${housingTable}.id`,
-      `${campaignsHousingTable}.housing_id`
-    )
-    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-    .leftJoin({ o: ownerTable }, `${housingOwnersTable}.owner_id`, `o.id`)
-    .where(`${campaignsTable}.establishment_id`, establishmentId)
-    .orderBy('campaign_number')
-    .groupBy(`${campaignsTable}.campaign_number`);
-
-  return bundles.map((result: any) => parseCampaignBundleApi(result));
-};
-
-const lastCampaignNumber = async (establishmentId: string): Promise<any> => {
-  return db(campaignsTable)
-    .where('establishment_id', establishmentId)
-    .max('campaign_number')
-    .first()
-    .then((_) => (_ ? _.max : 0));
-};
-
-const lastReminderNumber = async (
-  establishmentId: string,
-  campaignNumber: number
-): Promise<any> => {
-  return db(campaignsTable)
-    .where('establishment_id', establishmentId)
-    .andWhere('campaign_number', campaignNumber)
-    .max('reminder_number')
-    .first()
-    .then((_) => (_ ? _.max : 0));
 };
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
@@ -273,16 +71,13 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
     .then((_) => _[0]);
 };
 
-const deleteCampaigns = async (campaignIds: string[]): Promise<number> => {
-  return db(campaignsTable).delete().whereIn('id', campaignIds);
+const remove = async (campaignId: string): Promise<void> => {
+  await db(campaignsTable).delete().where('id', campaignId);
 };
 
 export interface CampaignDBO {
   id: string;
   establishment_id: string;
-  campaign_number: number;
-  kind: number;
-  reminder_number: number;
   filters: object;
   created_by: string;
   created_at: Date;
@@ -292,16 +87,13 @@ export interface CampaignDBO {
   archived_at?: Date;
   sending_date?: Date;
   confirmed_at?: Date;
-  title?: string;
+  title: string;
   group_id?: string;
 }
 
 const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
   id: result.id,
   establishmentId: result.establishment_id,
-  campaignNumber: result.campaign_number,
-  kind: result.kind,
-  reminderNumber: result.reminder_number,
   filters: result.filters,
   createdBy: result.created_by,
   createdAt: result.created_at,
@@ -312,14 +104,12 @@ const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
   sendingDate: result.sending_date,
   confirmedAt: result.confirmed_at,
   title: result.title,
+  groupId: result.group_id,
 });
 
 const formatCampaignApi = (campaignApi: CampaignApi) => ({
   id: campaignApi.id,
   establishment_id: campaignApi.establishmentId,
-  campaign_number: campaignApi.campaignNumber,
-  kind: campaignApi.kind,
-  reminder_number: campaignApi.reminderNumber,
   filters: campaignApi.filters,
   title: campaignApi.title,
   created_by: campaignApi.createdBy,
@@ -335,58 +125,11 @@ const formatCampaignApi = (campaignApi: CampaignApi) => ({
   group_id: campaignApi.groupId,
 });
 
-interface CampaignBundleDBO {
-  campaignIds: string[];
-  campaign_number: number;
-  reminder_number: number;
-  kind: number;
-  neverContactedCount: string;
-  waitingCount: string;
-  inProgressCount: string;
-  notVacantCount: string;
-  noActionCount: string;
-  npaiCount: string;
-  inProgressWithSupportCount: string;
-  housingCount: string;
-  ownerCount: string;
-  created_at: Date;
-  filters: HousingFiltersApi;
-  title: string;
-  group?: GroupDBO;
-}
-
-const parseCampaignBundleApi = (
-  bundle: CampaignBundleDBO
-): CampaignBundleApi => ({
-  campaignIds: bundle.campaignIds,
-  campaignNumber: bundle.campaign_number,
-  reminderNumber: bundle.reminder_number,
-  createdAt: bundle.created_at,
-  title: bundle.title,
-  kind: bundle.kind,
-  filters: bundle.filters,
-  housingCount: Number(bundle.housingCount),
-  ownerCount: Number(bundle.ownerCount),
-  neverContactedCount: Number(bundle.neverContactedCount),
-  waitingCount: Number(bundle.waitingCount),
-  inProgressCount: Number(bundle.inProgressCount),
-  notVacantCount: Number(bundle.notVacantCount),
-  noActionCount: Number(bundle.noActionCount),
-  npaiCount: Number(bundle.npaiCount),
-  inProgressWithSupportCount: Number(bundle.inProgressWithSupportCount),
-  group: bundle.group ? parseGroupApi(bundle.group) : undefined,
-});
-
 export default {
-  get,
-  getCampaignBundle,
+  findOne,
   find,
-  listCampaigns,
-  listCampaignBundles,
-  lastCampaignNumber,
-  lastReminderNumber,
   insert,
   update,
-  deleteCampaigns,
+  remove,
   formatCampaignApi,
 };

@@ -139,9 +139,7 @@ export const campaignApi = createApi({
         url: campaignId,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, campaignId) => [
-        { type: 'Campaign', id: 'LIST' },
-      ],
+      invalidatesTags: () => [{ type: 'Campaign', id: 'LIST' }],
     }),
   }),
 });

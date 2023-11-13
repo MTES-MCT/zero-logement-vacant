@@ -37,13 +37,6 @@ const HousingEditionSideMenu = ({
     onSubmit(housing, housingUpdate);
   };
 
-  const hasOnlyDefaultCampaign =
-    housing.campaignIds === undefined || housing.campaignIds?.length === 0;
-  //TODO
-  // housing.campaignIds.length === 1 &&
-  // campaignList?.find((_: Campaign) => _.id === housing.campaignIds[0])
-  //   ?.campaignNumber === 0;
-
   return (
     <div className={styles.sideMenu}>
       <Aside
@@ -86,7 +79,6 @@ const HousingEditionSideMenu = ({
                   content: (
                     <HousingEditionForm
                       housing={housing}
-                      fromDefaultCampaign={hasOnlyDefaultCampaign}
                       onSubmit={submit}
                       ref={statusFormRef}
                     />

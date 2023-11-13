@@ -654,7 +654,7 @@ describe('Group controller', () => {
 
     describe('If a campaign was created from the group', () => {
       const campaign: CampaignApi = {
-        ...genCampaignApi(Establishment1.id, 0, 0, User1.id),
+        ...genCampaignApi(Establishment1.id, User1.id),
         groupId: group.id,
       };
 

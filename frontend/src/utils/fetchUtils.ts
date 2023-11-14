@@ -101,7 +101,6 @@ export const getURLQuery = (params: Object) => {
   Object.entries(params)
     .filter(([_, v]) => v instanceof Array && v.length)
     .forEach(([k, v]) => {
-      searchParams.set(k, v[0]);
       (v as Array<string>).forEach((_) => searchParams.append(k, _));
     });
 

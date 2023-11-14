@@ -52,13 +52,12 @@ const HousingListView = () => {
   };
 
   const router = useHistory<RouterState | undefined>();
-  function onHousingCreated(): void {
-    router.replace('/parc-de-logements', {
-      alert:
-        'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.',
-    });
-  }
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
+  function onFinish() {
+    setAlert(
+      'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.'
+    );
+  }
 
   return (
     <MainContainer>
@@ -74,7 +73,7 @@ const HousingListView = () => {
       </Row>
       <Row spacing="mb-2w">
         <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">Votre parc de logements</Title>
-        <HousingCreationModal onConfirm={onHousingCreated} />
+        <HousingCreationModal onFinish={onFinish} />
       </Row>
 
       <Alert

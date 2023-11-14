@@ -4,6 +4,8 @@ interface Props {
   title: string;
   /**
    * Return true to go to the next step, false otherwise.
+   * If this function is not provided, the modal goes to the next step without
+   * asking.
    */
   onConfirm?: () => Promise<boolean> | boolean;
 }

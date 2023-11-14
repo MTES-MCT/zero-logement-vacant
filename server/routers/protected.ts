@@ -89,6 +89,7 @@ router.put('/establishments/:id/settings', settingsController.updateSettingsVali
 
 router.get('/dashboards/:id', dashboardController.findOneValidators, validator.validate, dashboardController.findOne);
 
+router.get('/datafoncier/housing', datafoncierController.find)
 router.get('/datafoncier/housing/:id', datafoncierController.findOne)
 
 export default router;

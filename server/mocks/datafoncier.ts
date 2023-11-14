@@ -1,5 +1,7 @@
 import { constants } from 'http2';
+import fp from 'lodash/fp';
 import nock from 'nock';
+import { URLSearchParams } from 'url';
 
 import config from '../utils/config';
 import {
@@ -7,8 +9,6 @@ import {
   genDatafoncierOwner,
 } from '../test/testFixtures';
 import { DatafoncierHousing } from '../../shared';
-import { URLSearchParams } from 'url';
-import fp from 'lodash/fp';
 
 function mock() {
   if (!config.datafoncier.enabled) {

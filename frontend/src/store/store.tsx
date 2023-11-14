@@ -104,7 +104,7 @@ export function isHttpError(error: FetchBaseQueryError): error is HttpError {
   );
 }
 
-interface PrintableError {
+export interface PrintableError {
   name: string;
   message: string;
 }

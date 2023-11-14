@@ -6,7 +6,7 @@ import { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions, getURLSearchParams } from '../utils/fetchUtils';
+import { AbortOptions, getURLQuery } from '../utils/fetchUtils';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { parseOwner } from './owner.service';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
@@ -55,9 +55,9 @@ export const housingApi = createApi({
     }),
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
-        url: `?${getURLSearchParams({
+        url: getURLQuery({
           sort: toQuery(opts?.sort),
-        })}`,
+        }),
         method: 'POST',
         body: {
           filters: opts?.filters,

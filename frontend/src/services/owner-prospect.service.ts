@@ -5,7 +5,7 @@ import { PaginatedResult } from '../models/PaginatedResult';
 import { PaginationOptions } from '../../../shared/models/Pagination';
 import { SortOptions, toQuery } from '../models/Sort';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
-import { getURLSearchParams } from '../utils/fetchUtils';
+import { getURLQuery } from '../utils/fetchUtils';
 
 export type FindOptions = PaginationOptions &
   SortOptions<OwnerProspectSortable>;
@@ -23,9 +23,9 @@ export const ownerProspectApi = createApi({
     >({
       query: (options) => {
         return {
-          url: `?${getURLSearchParams({
+          url: getURLQuery({
             sort: toQuery(options.sort),
-          })}`,
+          }),
           headers: authService.withAuthHeader(),
         };
       },

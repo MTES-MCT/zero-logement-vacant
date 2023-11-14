@@ -9,7 +9,7 @@ import {
 } from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
-import { getURLSearchParams } from '../utils/fetchUtils';
+import { getURLQuery } from '../utils/fetchUtils';
 import { CampaignFilters } from '../models/CampaignFilters';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { housingApi } from './housing.service';
@@ -45,10 +45,10 @@ export const campaignApi = createApi({
     }),
     findCampaigns: builder.query<Campaign[], FindOptions | void>({
       query: (opts) => ({
-        url: `?${getURLSearchParams({
+        url: getURLQuery({
           groups: opts?.filters?.groupIds,
           sort: toQuery(opts?.sort),
-        })}`,
+        }),
       }),
       providesTags: (result) =>
         result

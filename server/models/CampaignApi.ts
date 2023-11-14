@@ -1,4 +1,5 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
+import { Sort } from './SortApi';
 
 export interface CampaignApi {
   id: string;
@@ -25,3 +26,9 @@ export enum CampaignSteps {
   Outside,
   Archived,
 }
+
+export type CampaignSortableApi = Pick<
+  CampaignApi,
+  'createdAt' | 'sendingDate'
+> & { status: string };
+export type CampaignSortApi = Sort<CampaignSortableApi>;

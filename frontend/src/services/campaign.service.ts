@@ -1,15 +1,21 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { parseISO } from 'date-fns';
-import { Campaign, CampaignUpdate, DraftCampaign } from '../models/Campaign';
+import {
+  Campaign,
+  CampaignSort,
+  CampaignUpdate,
+  DraftCampaign,
+} from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
 import { getURLSearchParams } from '../utils/fetchUtils';
 import { CampaignFilters } from '../models/CampaignFilters';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { housingApi } from './housing.service';
+import { SortOptions, toQuery } from '../models/Sort';
 
-export interface ListCampaignsOptions {
+export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
 }
 
@@ -37,13 +43,13 @@ export const campaignApi = createApi({
       transformResponse: (c) => parseCampaign(c),
       providesTags: (result, error, id) => [{ type: 'Campaign', id }],
     }),
-    findCampaigns: builder.query<Campaign[], ListCampaignsOptions | void>({
-      query: (opts) => {
-        const params = getURLSearchParams({
-          groups: opts?.filters?.groupIds?.join(','),
-        }).toString();
-        return params.length > 0 ? `?${params}` : '';
-      },
+    findCampaigns: builder.query<Campaign[], FindOptions | void>({
+      query: (opts) => ({
+        url: `?${getURLSearchParams({
+          groups: opts?.filters?.groupIds,
+          sort: toQuery(opts?.sort),
+        })}`,
+      }),
       providesTags: (result) =>
         result
           ? [

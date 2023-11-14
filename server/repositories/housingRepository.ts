@@ -848,7 +848,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
 const housingSortQuery = (sort?: HousingSortApi) =>
   sortQuery(sort, {
     keys: {
-      owner: (query) => query.orderBy('o.full_name', sort?.owner),
+      owner: (query) => query.orderBy(`${ownerTable}.full_name`, sort?.owner),
       rawAddress: (query) => {
         query
           .orderBy(`${housingTable}.raw_address[2]`, sort?.rawAddress)

@@ -1,5 +1,6 @@
 import { HousingFilters } from './HousingFilters';
 import { dateSort } from '../utils/dateUtils';
+import { Sort } from './Sort';
 
 export interface DraftCampaign {
   filters: HousingFilters;
@@ -49,6 +50,11 @@ export interface CampaignUpdate {
   titleUpdate?: Pick<Campaign, 'title'>;
   stepUpdate?: { step: CampaignSteps } & Pick<Campaign, 'sendingDate'>;
 }
+
+export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sendingDate'> & {
+  status: string;
+};
+export type CampaignSort = Sort<CampaignSortable>;
 
 export const campaignSort = (c1: Campaign, c2: Campaign) =>
   dateSort(c2.createdAt, c1.createdAt);

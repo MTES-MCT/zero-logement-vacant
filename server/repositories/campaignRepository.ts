@@ -1,8 +1,9 @@
-import { CampaignApi } from '../models/CampaignApi';
+import { CampaignApi, CampaignSortApi } from '../models/CampaignApi';
 import db from './db';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 import { logger } from '../utils/logger';
+import { sortQuery } from '../models/SortApi';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -17,9 +18,6 @@ const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
   const campaign: CampaignDBO | undefined = await Campaigns()
     .modify(filterQuery(opts))
     .where(`${campaignsTable}.id`, opts.id)
-    // .leftJoin(groupsTable, `${groupsTable}.id`, `${campaignsTable}.group_id`)
-    // .select(db.raw(`to_json(${groupsTable}.*) AS group`))
-    // .groupBy(`${groupsTable}.id`)
     .first();
   if (!campaign) {
     return null;
@@ -31,11 +29,13 @@ const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
 
 interface FindOptions {
   filters: CampaignFiltersApi;
+  sort?: CampaignSortApi;
 }
 
 const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
   const campaigns: CampaignDBO[] = await Campaigns()
     .modify(filterQuery(opts.filters))
+    .modify(campaignSortQuery(opts.sort))
     .orderBy('created_at');
 
   return campaigns.map(parseCampaignApi);
@@ -51,6 +51,21 @@ const filterQuery = (filters: CampaignFiltersApi) => {
     }
   };
 };
+
+const campaignSortQuery = (sort?: CampaignSortApi) =>
+  sortQuery(sort, {
+    keys: {
+      createdAt: (query) =>
+        query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
+      sendingDate: (query) =>
+        query.orderBy(`${campaignsTable}.sending_date`, sort?.sendingDate),
+      status: (query) =>
+        query.orderByRaw(
+          `(case when ${campaignsTable}.archived_at is not null then 2 when ${campaignsTable}.sending_date is not null then 1 else 0 end) ${sort?.status}`
+        ),
+    },
+    default: (query) => query.orderBy('created_at', 'desc'),
+  });
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
   logger.info(

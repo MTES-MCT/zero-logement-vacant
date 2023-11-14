@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignSortableApi,
+  CampaignSteps,
+} from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import localityRepository from '../repositories/localityRepository';
@@ -23,6 +27,7 @@ import {
   CampaignQuery,
 } from '../models/CampaignFiltersApi';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
+import sortApi from '../models/SortApi';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -46,11 +51,17 @@ const getCampaign = async (
   }
 };
 
-const listValidators: ValidationChain[] = [...campaignFiltersValidators];
+const listValidators: ValidationChain[] = [
+  ...campaignFiltersValidators,
+  ...sortApi.queryValidators,
+];
 
 const listCampaigns = async (request: Request, response: Response) => {
   const { auth } = request as AuthenticatedRequest;
   const query = request.query as CampaignQuery;
+  const sort = sortApi.parse<CampaignSortableApi>(
+    request.query.sort as string[] | undefined
+  );
   logger.info('List campaigns', query);
 
   const campaigns = await campaignRepository.find({
@@ -58,6 +69,7 @@ const listCampaigns = async (request: Request, response: Response) => {
       establishmentId: auth.establishmentId,
       groupIds: query.groups,
     },
+    sort,
   });
   response.status(constants.HTTP_STATUS_OK).json(campaigns);
 };

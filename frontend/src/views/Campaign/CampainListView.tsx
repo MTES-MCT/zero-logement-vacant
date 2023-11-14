@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -6,6 +6,8 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { format } from 'date-fns';
 import {
+  CampaignSort,
+  CampaignSortable,
   campaignStep,
   CampaignSteps,
   isCampaignDeletable,
@@ -27,12 +29,14 @@ import {
   useUpdateCampaignMutation,
 } from '../../services/campaign.service';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
+import { useSort } from '../../hooks/useSort';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
   const { trackEvent } = useMatomo();
 
-  const campaigns = useCampaignList();
+  const [sort, setSort] = useState<CampaignSort>({ createdAt: 'desc' });
+  const campaigns = useCampaignList({ sort });
 
   const [removeCampaign] = useRemoveCampaignMutation();
   const onDeleteCampaign = async (campaignId: string) => {
@@ -59,6 +63,11 @@ const CampaignsListView = () => {
       },
     });
   };
+
+  const { getSortButton } = useSort<CampaignSortable>({
+    onSort: setSort,
+    default: sort,
+  });
 
   return (
     <MainContainer
@@ -91,9 +100,9 @@ const CampaignsListView = () => {
             headers={[
               '',
               'Titre',
-              'Statut',
-              'Date de création',
-              'Date d’envoi',
+              getSortButton('status', 'Statut'),
+              getSortButton('createdAt', 'Date de création'),
+              getSortButton('sendingDate', "Date d'envoi"),
               'Effectifs',
               '',
             ]}

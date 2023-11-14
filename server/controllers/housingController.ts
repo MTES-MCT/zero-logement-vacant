@@ -62,7 +62,7 @@ const list = async (
 
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(
-    request.query.sort as string | undefined
+    request.query.sort as string[] | undefined
   );
   const filters: HousingFiltersApi = {
     ...body.filters,

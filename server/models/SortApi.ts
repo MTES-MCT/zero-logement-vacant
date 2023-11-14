@@ -2,6 +2,7 @@ import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
 
 import { keys } from '../utils/object';
+import validator from 'validator';
 
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
@@ -9,7 +10,7 @@ export type Sort<Sortable extends object = object> = Partial<
 >;
 
 /**
- * Parse sort query string to an object.
+ * Parse sort query string array to an object.
  * The query format is assumed to be validated at route-level.
  * @param query
  *
@@ -18,14 +19,13 @@ export type Sort<Sortable extends object = object> = Partial<
  * // { owner: 'asc', rawAddress: 'desc' }
  */
 function parse<Sortable extends object = object>(
-  query?: string
+  query?: string[]
 ): Sort<Sortable> | undefined {
   if (!query) {
     return;
   }
 
   return query
-    .split(',')
     .map((key) => {
       if (key.startsWith('-')) {
         const keyWithoutMinus = key.slice(1) as keyof Sortable;
@@ -63,9 +63,11 @@ export function sortQuery<Sortable extends object>(
 
 export const queryValidators: ValidationChain[] = [
   query('sort')
-    .isString()
-    .matches(/^-?[a-z]+(,-?[a-z]+)*$/i)
-    .optional(),
+    .optional()
+    .isArray()
+    .custom((value) =>
+      value.every((v: any) => validator.matches(v, /^-?[a-zA-Z]+$/i))
+    ),
 ];
 
 export default {

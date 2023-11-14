@@ -287,13 +287,13 @@ const updateCampaign = async (
   if (!campaignApi) {
     return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
   } else {
-    if (campaignUpdateApi.titleUpdate) {
+    if (campaignUpdateApi.titleUpdate?.title) {
       await updateCampaignTitle(
         campaignApi,
         campaignUpdateApi.titleUpdate.title
       );
     }
-    if (campaignUpdateApi.stepUpdate?.step) {
+    if (campaignUpdateApi.stepUpdate?.step !== undefined) {
       await updateCampaignStep(
         campaignApi,
         campaignUpdateApi.stepUpdate,

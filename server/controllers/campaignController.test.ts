@@ -162,7 +162,7 @@ describe('Campaign controller', () => {
   });
 
   describe('createCampaignFromGroup', () => {
-    const testRoute = (id: string) => `/api/groups/${id}/campaigns`;
+    const testRoute = (id: string) => `/api/campaigns/groups/${id}`;
 
     const geoCode = Establishment1.geoCodes[0];
     const group = genGroupApi(User1, Establishment1);

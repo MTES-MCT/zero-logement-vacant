@@ -2,7 +2,7 @@ import { HousingApi } from '../../server/models/HousingApi';
 import housingRepository from '../../server/repositories/housingRepository';
 import { tapAsync } from '../shared';
 import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
-import createDatafoncierHousingRepository from './datafoncierHousingRepository';
+import createDatafoncierHousingRepository from '../../server/repositories/datafoncierHousingRepository';
 import { logger } from '../../server/utils/logger';
 import ownerRepository from '../../server/repositories/ownerRepository';
 import {
@@ -37,6 +37,7 @@ const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
 export async function processHousing(housing: HousingApi): Promise<void> {
   const datafoncierHousing = await datafoncierHousingRepository.findOne({
     idlocal: housing.localId,
+    ccthp: 'L',
   });
   if (!datafoncierHousing) {
     logger.debug(

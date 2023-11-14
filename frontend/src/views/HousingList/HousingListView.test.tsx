@@ -319,162 +319,170 @@ describe('housing view', () => {
     expect(createCampaignButton).toBeInTheDocument();
   });
 
-  test('should add a housing', async () => {
-    const router = createMemoryHistory();
-    const datafoncierHousing = genDatafoncierHousing();
-    const housing = genHousing();
-    mockRequests([
-      ...defaultMatches,
-      {
-        pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
-        response: { body: JSON.stringify(housing) },
-      },
-      {
-        pathname: `/api/housing/${datafoncierHousing.idlocal}`,
-        response: {
-          status: 404,
-          body: JSON.stringify({
-            name: 'HousingMissingError',
-            message: `Housing ${datafoncierHousing.idlocal} missing`,
-          }),
+  describe('If the user does not know the local id', () => {
+    test('should add a housing', async () => {
+      const router = createMemoryHistory();
+      const datafoncierHousing = genDatafoncierHousing();
+      const housing = genHousing();
+      mockRequests([
+        ...defaultMatches,
+        {
+          pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
+          response: { body: JSON.stringify(housing) },
         },
-      },
-      {
-        pathname: '/api/housing/creation',
-        response: {
-          status: 201,
-          body: JSON.stringify(housing),
+        {
+          pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${datafoncierHousing.idlocal} missing`,
+            }),
+          },
         },
-      },
-    ]);
+        {
+          pathname: '/api/housing/creation',
+          response: {
+            status: 201,
+            body: JSON.stringify(housing),
+          },
+        },
+      ]);
 
-    render(
-      <Provider store={store}>
-        <Router history={router}>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
+      render(
+        <Provider store={store}>
+          <Router history={router}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
 
-    const button = screen.getByText('Ajouter un logement', {
-      selector: 'button',
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const knowsLocalId = await within(modal).findByText('Oui');
+      await user.click(knowsLocalId);
+      await user.click(within(modal).getByText('Confirmer'));
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(within(modal).getByText('Confirmer'));
+      await within(modal).findByText(
+        'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
+      );
+      await user.click(within(modal).getByText('Confirmer'));
+
+      expect(modal).not.toBeVisible();
+      const alert = await screen.findByText(
+        'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.'
+      );
+      expect(alert).toBeVisible();
     });
-    await user.click(button);
-    const modal = await screen.findByRole('dialog');
-    const input = await within(modal).findByLabelText(
-      'Identifiant du logement'
-    );
-    await user.type(input, datafoncierHousing.idlocal);
-    await user.click(within(modal).getByText('Confirmer'));
-    await within(modal).findByText(
-      'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
-    );
-    await user.click(within(modal).getByText('Confirmer'));
 
-    expect(modal).not.toBeVisible();
-    expect(router.location).toMatchObject({
-      pathname: '/parc-de-logements',
-      state: {
-        alert:
-          'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.',
-      },
+    test('should fail if the housing was not found in datafoncier', async () => {
+      const localId = randomstring.generate(12);
+      mockRequests([
+        ...defaultMatches,
+        // The housing is missing from datafoncier
+        {
+          pathname: `/api/datafoncier/housing/${localId}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${localId} missing`,
+            }),
+          },
+        },
+        {
+          pathname: `/api/housing/${localId}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${localId} missing`,
+            }),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const knowsLocalId = await within(modal).findByText('Oui');
+      await user.click(knowsLocalId);
+      await user.click(within(modal).getByText('Confirmer'));
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, localId);
+      await user.click(within(modal).getByText('Confirmer'));
+      const alert = await within(modal).findByText(
+        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
+      );
+      expect(alert).toBeVisible();
     });
-  });
 
-  test('should fail if the housing was not found in datafoncier', async () => {
-    const localId = randomstring.generate(12);
-    mockRequests([
-      ...defaultMatches,
-      // The housing is missing from datafoncier
-      {
-        pathname: `/api/datafoncier/housing/${localId}`,
-        response: {
-          status: 404,
-          body: JSON.stringify({
-            name: 'HousingMissingError',
-            message: `Housing ${localId} missing`,
-          }),
+    test('should fail if the housing already exists in our database', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const housing = genHousing();
+      mockRequests([
+        ...defaultMatches,
+        {
+          pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 200,
+            body: JSON.stringify(datafoncierHousing),
+          },
         },
-      },
-      {
-        pathname: `/api/housing/${localId}`,
-        response: {
-          status: 404,
-          body: JSON.stringify({
-            name: 'HousingMissingError',
-            message: `Housing ${localId} missing`,
-          }),
+        // The housing exists in our database
+        {
+          pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 200,
+            body: JSON.stringify(housing),
+          },
         },
-      },
-    ]);
+      ]);
 
-    render(
-      <Provider store={store}>
-        <Router history={createMemoryHistory()}>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
 
-    const button = screen.getByText('Ajouter un logement', {
-      selector: 'button',
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const knowsLocalId = await within(modal).findByText('Oui');
+      await user.click(knowsLocalId);
+      await user.click(within(modal).getByText('Confirmer'));
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(within(modal).getByText('Confirmer'));
+      const alert = await within(modal).findByText(
+        'Ce logement existe déjà dans votre parc.'
+      );
+      expect(alert).toBeVisible();
     });
-    await user.click(button);
-    const modal = await screen.findByRole('dialog');
-    const input = await within(modal).findByLabelText(
-      'Identifiant du logement'
-    );
-    await user.type(input, localId);
-    await user.click(within(modal).getByText('Confirmer'));
-    const alert = await within(modal).findByText(
-      'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
-    );
-    expect(alert).toBeVisible();
-  });
-
-  test('should fail if the housing already exists in our database', async () => {
-    const datafoncierHousing = genDatafoncierHousing();
-    const housing = genHousing();
-    mockRequests([
-      ...defaultMatches,
-      {
-        pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
-        response: {
-          status: 200,
-          body: JSON.stringify(datafoncierHousing),
-        },
-      },
-      // The housing exists in our database
-      {
-        pathname: `/api/housing/${datafoncierHousing.idlocal}`,
-        response: {
-          status: 200,
-          body: JSON.stringify(housing),
-        },
-      },
-    ]);
-
-    render(
-      <Provider store={store}>
-        <Router history={createMemoryHistory()}>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
-
-    const button = screen.getByText('Ajouter un logement', {
-      selector: 'button',
-    });
-    await user.click(button);
-    const modal = await screen.findByRole('dialog');
-    const input = await within(modal).findByLabelText(
-      'Identifiant du logement'
-    );
-    await user.type(input, datafoncierHousing.idlocal);
-    await user.click(within(modal).getByText('Confirmer'));
-    const alert = await within(modal).findByText(
-      'Ce logement existe déjà dans votre parc.'
-    );
-    expect(alert).toBeVisible();
   });
 });

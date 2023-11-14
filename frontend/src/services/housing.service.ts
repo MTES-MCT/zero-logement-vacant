@@ -100,7 +100,7 @@ export const housingApi = createApi({
         method: 'POST',
         body: payload,
       }),
-      invalidatesTags: [{ type: 'Housing', id: 'LIST' }],
+      invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus'],
     }),
     updateHousing: builder.mutation<
       void,

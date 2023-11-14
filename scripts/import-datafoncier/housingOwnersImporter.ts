@@ -1,7 +1,7 @@
 import Stream = Highland.Stream;
 import { v4 as uuidv4 } from 'uuid';
 import { HousingRecordApi } from '../../server/models/HousingApi';
-import createDatafoncierHousingRepository from './datafoncierHousingRepository';
+import createDatafoncierHousingRepository from '../../server/repositories/datafoncierHousingRepository';
 import { tapAsync, toHousingRecordApi } from '../shared';
 import housingRepository from '../../server/repositories/housingRepository';
 import HousingMissingError from '../../server/errors/housingMissingError';

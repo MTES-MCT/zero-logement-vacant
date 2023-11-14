@@ -2,7 +2,7 @@ import Stream = Highland.Stream;
 
 import { HousingRecordApi } from '../../server/models/HousingApi';
 import { tapAsync, toHousingRecordApi } from '../shared';
-import createDatafoncierHousingRepository from './datafoncierHousingRepository';
+import createDatafoncierHousingRepository from '../../server/repositories/datafoncierHousingRepository';
 import housingRepository from '../../server/repositories/housingRepository';
 import { logger } from '../../server/utils/logger';
 import { DatafoncierHousing } from '../../shared';

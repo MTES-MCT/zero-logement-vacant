@@ -42,6 +42,7 @@ import async from 'async';
 import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
+import { HousingEventApi } from '../models/EventApi';
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -149,7 +150,7 @@ const createValidators: ValidationChain[] = [
   body('localId').isString().isLength({ min: 12, max: 12 }),
 ];
 const create = async (request: Request, response: Response) => {
-  const { body } = request as AuthenticatedRequest;
+  const { auth, body } = request as AuthenticatedRequest;
   const geoCode = body.localId.substring(0, 5);
 
   const existing = await housingRepository.findOne({
@@ -184,11 +185,26 @@ const create = async (request: Request, response: Response) => {
     },
   });
 
-  // TODO: handle the case where datafoncier owners do not exist in our database
-
   const housing: HousingRecordApi = toHousingRecordApi(datafoncierHousing);
   await housingRepository.save(housing);
   await housingOwnerRepository.saveMany(toHousingOwnersApi(housing, owners));
+
+  const event: HousingEventApi = {
+    id: uuidv4(),
+    name: 'Création du logement',
+    section: 'Création du logement',
+    category: 'Followup',
+    kind: 'Create',
+    old: undefined,
+    new: housing,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id,
+    conflict: false,
+    createdAt: new Date(),
+    createdBy: auth.userId,
+  };
+  await eventRepository.insertHousingEvent(event);
+
   response.status(constants.HTTP_STATUS_CREATED).send(housing);
 };
 

@@ -1,8 +1,9 @@
-import { OccupancyKind } from '../../models/Housing';
+import { Housing, OccupancyKind } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Pagination } from '../../../../shared/models/Pagination';
+import { DatafoncierHousing } from '../../../../shared';
 
 export type ViewMode = 'list' | 'map';
 
@@ -23,6 +24,11 @@ export interface HousingState {
     q: string;
   };
   view: ViewMode;
+  creator: {
+    localId?: string;
+    geoCode?: string;
+    housingList?: DatafoncierHousing[];
+  };
 }
 
 export const initialHousingFilters = {
@@ -36,6 +42,7 @@ const initialState: HousingState = {
   filters: initialHousingFilters,
   filtersExpanded: false,
   view: 'list',
+  creator: {},
 };
 
 const housingSlice = createSlice({
@@ -68,7 +75,22 @@ const housingSlice = createSlice({
         q: action.payload.q,
       };
     },
+    changeCreator: (
+      state: HousingState,
+      action: PayloadAction<CreatorPayload>
+    ) => {
+      state.creator = {
+        ...state.creator,
+        ...action.payload,
+      };
+    },
   },
 });
+
+export interface CreatorPayload {
+  localId?: string;
+  geoCode?: string;
+  housingList?: DatafoncierHousing[];
+}
 
 export default housingSlice;

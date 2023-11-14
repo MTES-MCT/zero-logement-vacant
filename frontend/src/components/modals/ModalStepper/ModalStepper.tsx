@@ -27,6 +27,21 @@ const modal = createModal({
   isOpenedByDefault: false,
 });
 
+/**
+ * A modal stepper with linear steps i.e. the user can only go forward or
+ * backward.
+ * @param props
+ * @example
+ * <ModalStepper openingButtonProps={button}>
+ *   <ModalStep title="Title 1" onConfirm={validateBeforeGoingNext}>
+ *     <p>Step 1</p>
+ *   </ModalStep>
+ *   <ModalStep title="Title 2" onConfirm={doSomething}>
+ *     <p>Step 2</p>
+ *   </ModalStep>
+ * </ModalStepper>
+ * @constructor
+ */
 function ModalStepper(props: Props) {
   const steps = findChildren(props.children, ModalStep);
   const stepper = useStepper(fp.range(0, steps?.length ?? 0));

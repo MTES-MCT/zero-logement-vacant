@@ -37,6 +37,7 @@ const create = async (request: Request, response: Response): Promise<void> => {
   const { body, establishment, user } = request as AuthenticatedRequest;
 
   // Keep the housing list that are in the same establishment as the group
+  // TODO: OPTIMIZE THIS CALL
   const housingList = await housingRepository
     .find({
       filters: {

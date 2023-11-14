@@ -1,10 +1,4 @@
-import React, {
-  ChangeEvent,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {
@@ -20,10 +14,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import _ from 'lodash';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -37,10 +28,7 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import {
-  useCountHousingQuery,
-  useUpdateHousingMutation,
-} from '../../services/housing.service';
+import { useCountHousingQuery, useUpdateHousingMutation } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -197,19 +185,18 @@ const HousingList = ({
   const ownerColumn = {
     name: 'owner',
     headerRender: () => getSortButton('owner', 'Propriétaire principal'),
-    render: ({ owner }: Housing) =>
-      owner && (
-        <>
-          <AppLink
-            isSimple
-            title={owner.fullName}
-            to={`/proprietaires/${owner.id}`}
-          >
-            {owner.fullName}
-          </AppLink>
-          {owner.administrator && <div>({owner.administrator})</div>}
-        </>
-      ),
+    render: ({ owner }: Housing) => (
+      <>
+        <AppLink
+          isSimple
+          title={owner.fullName}
+          to={`/proprietaires/${owner.id}`}
+        >
+          {owner.fullName}
+        </AppLink>
+        {owner.administrator && <div>({owner.administrator})</div>}
+      </>
+    ),
   };
 
   const occupancyColumn = {
@@ -326,7 +313,7 @@ const HousingList = ({
           <Table
             caption="Logements"
             captionPosition="none"
-            rowKey={(h: Housing) => `${h.id}_${h.owner?.id}`}
+            rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
             data={housingList.map((_, index) => ({
               ..._,
               rowNumber: rowNumber(index),

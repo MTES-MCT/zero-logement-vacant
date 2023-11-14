@@ -54,7 +54,12 @@ function GroupHeader() {
   return (
     <Container as="article" fluid>
       <Container as="header" className="d-flex" fluid spacing="mb-2w">
-        <Title as="h6" className="d-inline-block" spacing="mb-0 mr-2w">
+        <Title
+          as="h1"
+          look="h3"
+          className="d-inline-block"
+          spacing="mb-0 mr-2w"
+        >
           Vos groupes de logements
         </Title>
         <GroupEditionModal
@@ -68,7 +73,7 @@ function GroupHeader() {
             <Alert
               severity="info"
               closable
-              title="Découvrez les groupes de logement"
+              title="Découvrez les groupes de logements"
               description="Pour étudier votre parc, vous pouvez créer des groupes de logements en fonction des critères de votre choix. Cela vous permettra notamment d'exporter la liste des logements ciblés et de préparer vos campagnes."
             />
           ) : (

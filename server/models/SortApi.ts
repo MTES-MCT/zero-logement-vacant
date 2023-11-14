@@ -3,6 +3,7 @@ import { Knex } from 'knex';
 
 import { keys } from '../utils/object';
 import validator from 'validator';
+import { isArrayOf, isString } from '../utils/validators';
 
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
@@ -19,13 +20,13 @@ export type Sort<Sortable extends object = object> = Partial<
  * // { owner: 'asc', rawAddress: 'desc' }
  */
 function parse<Sortable extends object = object>(
-  query?: string[]
+  query?: string[] | string
 ): Sort<Sortable> | undefined {
   if (!query) {
     return;
   }
 
-  return query
+  return (typeof query === 'string' ? [query] : query)
     .map((key) => {
       if (key.startsWith('-')) {
         const keyWithoutMinus = key.slice(1) as keyof Sortable;
@@ -64,9 +65,11 @@ export function sortQuery<Sortable extends object>(
 export const queryValidators: ValidationChain[] = [
   query('sort')
     .optional()
-    .isArray()
-    .custom((value) =>
-      value.every((v: any) => validator.matches(v, /^-?[a-zA-Z]+$/i))
+    .custom(
+      (value) =>
+        (isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i)) ||
+        (isArrayOf(isString)(value) &&
+          value.every((v: any) => validator.matches(v, /^-?[a-zA-Z]+$/i)))
     ),
 ];
 

@@ -221,7 +221,7 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
         `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
       )
     )
-    .join(
+    .leftJoin(
       localitiesTable,
       `${housingTable}.geo_code`,
       `${localitiesTable}.geo_code`

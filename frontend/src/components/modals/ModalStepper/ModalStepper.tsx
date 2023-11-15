@@ -1,11 +1,9 @@
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import fp from 'lodash/fp';
-import { ReactElement } from 'react';
+import { ForwardRefExoticComponent, RefAttributes, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { findChildren } from '../../../utils/elementUtils';
-import ModalStep from './ModalStep';
 import { useStepper } from '../../../hooks/useStepper';
 
 interface Props
@@ -18,8 +16,10 @@ interface Props
     | 'style'
     | 'topAnchor'
   > {
-  children?: ReactElement | ReactElement[];
+  title: string;
+  steps: Step[];
   openingButtonProps?: ButtonProps;
+  onFinish?: () => void;
 }
 
 const modal = createModal({
@@ -32,20 +32,15 @@ const modal = createModal({
  * backward.
  * @param props
  * @example
- * <ModalStepper openingButtonProps={button}>
- *   <ModalStep title="Title 1" onConfirm={validateBeforeGoingNext}>
- *     <p>Step 1</p>
- *   </ModalStep>
- *   <ModalStep title="Title 2" onConfirm={doSomething}>
- *     <p>Step 2</p>
- *   </ModalStep>
- * </ModalStepper>
+ * <ModalStepper openingButtonProps={openingButtonProps} steps={steps} />
  * @constructor
  */
 function ModalStepper(props: Props) {
-  const steps = findChildren(props.children, ModalStep);
-  const stepper = useStepper(fp.range(0, steps?.length ?? 0));
-  const step = steps?.[stepper.step];
+  const steps = props.steps;
+  const stepper = useStepper(fp.range(0, steps.length));
+  const currentStep = steps?.[stepper.step];
+  // Store a ref for the current step component
+  const ref = useRef<StepProps>(null);
 
   function open(): void {
     stepper.forceStep(0);
@@ -71,7 +66,7 @@ function ModalStepper(props: Props) {
       children: 'Confirmer',
       doClosesModal: false,
       onClick: async () => {
-        const next = (await step?.props?.onConfirm?.()) ?? true;
+        const next = (await ref.current?.onNext?.()) ?? true;
         if (next) {
           stepper.isOver() ? modal.close() : stepper.next();
         }
@@ -83,11 +78,23 @@ function ModalStepper(props: Props) {
     <>
       {/* @ts-ignore */}
       <Button {...props.openingButtonProps} onClick={open} />
-      <modal.Component {...props} buttons={buttons} title={step?.props?.title}>
-        {step}
+      <modal.Component {...props} buttons={buttons} title={currentStep?.title}>
+        <currentStep.Component ref={ref} />
       </modal.Component>
     </>
   );
+}
+
+export interface Step {
+  title?: string;
+  Component: ForwardRefExoticComponent<RefAttributes<StepProps>>;
+}
+
+export interface StepProps {
+  /**
+   * Return true to go to the next step, false otherwise.
+   */
+  onNext?: () => Promise<boolean>;
 }
 
 export default ModalStepper;

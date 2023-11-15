@@ -471,7 +471,7 @@ describe('housing view', () => {
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(within(modal).getByText('Confirmer'));
       const alert = await within(modal).findByText(
-        'Ce logement existe déjà dans votre parc.'
+        'Ce logement existe déjà dans votre parc'
       );
       expect(alert).toBeVisible();
     });

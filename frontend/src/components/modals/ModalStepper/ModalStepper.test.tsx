@@ -3,21 +3,32 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import ModalStep from './ModalStep';
-import ModalStepper from './ModalStepper';
+import ModalStepper, { Step } from './ModalStepper';
+import { forwardRef } from 'react';
 
 describe('Modal stepper', () => {
   const button: ButtonProps = {
     children: 'Ouvrir',
   };
   const user = userEvent.setup();
+  const steps: Step[] = [
+    {
+      title: 'Title 1',
+      Component: forwardRef(() => <p>Step 1</p>),
+    },
+    {
+      title: 'Title 2',
+      Component: forwardRef(() => <p>Step 2</p>),
+    },
+  ];
 
   it('should display the first step', async () => {
     render(
-      <ModalStepper openingButtonProps={button}>
-        <ModalStep title="Title 1">
-          <p>Step 1</p>
-        </ModalStep>
-      </ModalStepper>
+      <ModalStepper
+        openingButtonProps={button}
+        steps={steps}
+        title="Default title"
+      />
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -30,14 +41,11 @@ describe('Modal stepper', () => {
 
   it('should go to the next step', async () => {
     render(
-      <ModalStepper openingButtonProps={button}>
-        <ModalStep title="Title 1">
-          <p>Step 1</p>
-        </ModalStep>
-        <ModalStep title="Title 2">
-          <p>Step 2</p>
-        </ModalStep>
-      </ModalStepper>
+      <ModalStepper
+        openingButtonProps={button}
+        steps={steps}
+        title="Default title"
+      />
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -52,14 +60,11 @@ describe('Modal stepper', () => {
 
   it('should go back to the previous step', async () => {
     render(
-      <ModalStepper openingButtonProps={button}>
-        <ModalStep title="Title 1">
-          <p>Step 1</p>
-        </ModalStep>
-        <ModalStep title="Title 2">
-          <p>Step 2</p>
-        </ModalStep>
-      </ModalStepper>
+      <ModalStepper
+        openingButtonProps={button}
+        steps={steps}
+        title="Default title"
+      />
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -74,34 +79,30 @@ describe('Modal stepper', () => {
 
   it('should hide the modal if it is the first step', async () => {
     render(
-      <ModalStepper openingButtonProps={button}>
-        <ModalStep title="Title 1">
-          <p>Step 1</p>
-        </ModalStep>
-        <ModalStep title="Title 2">
-          <p>Step 2</p>
-        </ModalStep>
-      </ModalStepper>
+      <ModalStepper
+        openingButtonProps={button}
+        steps={steps}
+        title="Default title"
+      />
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
 
     const cancel = screen.getByText('Annuler');
     await user.click(cancel);
-    const modal = await screen.findByRole('dialog');
+    const modal = await screen.findByRole('dialog', {
+      hidden: true,
+    });
     expect(modal).not.toBeVisible();
   });
 
   it('should reset the stepper on open', async () => {
     render(
-      <ModalStepper openingButtonProps={button}>
-        <ModalStep title="Title 1">
-          <p>Step 1</p>
-        </ModalStep>
-        <ModalStep title="Title 2">
-          <p>Step 2</p>
-        </ModalStep>
-      </ModalStepper>
+      <ModalStepper
+        openingButtonProps={button}
+        steps={steps}
+        title="Default title"
+      />
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);

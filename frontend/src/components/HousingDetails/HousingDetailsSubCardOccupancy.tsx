@@ -7,7 +7,6 @@ import {
   OccupancyKindLabels,
 } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
-import { pluralize } from '../../utils/stringUtils';
 import DPE from '../DPE/DPE';
 import { useAppSelector } from '../../hooks/useStore';
 import { useFeature } from '../../hooks/useFeature';

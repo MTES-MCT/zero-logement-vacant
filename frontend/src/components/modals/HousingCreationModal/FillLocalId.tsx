@@ -1,7 +1,6 @@
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
 
-import { Step, StepProps } from '../../../hooks/useGraphStepper';
 import { Col, Row, Text } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
@@ -11,6 +10,7 @@ import { datafoncierApi } from '../../../services/datafoncier.service';
 import { housingApi } from '../../../services/housing.service';
 import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
+import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const step: Step = {
   id: 'fill-local-id',

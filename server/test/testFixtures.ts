@@ -408,8 +408,10 @@ export const genDatafoncierOwner = (
     dlign3: [
       faker.location.buildingNumber().substring(0, 4),
       faker.location.street(),
-    ].join(' '),
-    dlign4: [idcom, faker.location.city()].join(' '),
+    ]
+      .join(' ')
+      .substring(0, 30),
+    dlign4: [idcom, faker.location.city()].join(' ').substring(0, 30),
     dlign5: null,
     dlign6: null,
     ccopay: randomstring.generate(3),

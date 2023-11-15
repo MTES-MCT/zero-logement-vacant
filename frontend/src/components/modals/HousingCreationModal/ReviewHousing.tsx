@@ -1,7 +1,6 @@
 import fp from 'lodash/fp';
 import { forwardRef, useImperativeHandle } from 'react';
 
-import { Step, StepProps } from '../../../hooks/useGraphStepper';
 import HousingResult from '../../HousingResult/HousingResult';
 import { OccupancyKind } from '../../../models/Housing';
 import { Text } from '../../_dsfr';
@@ -9,6 +8,7 @@ import { useCreateHousingMutation } from '../../../services/housing.service';
 import { datafoncierApi } from '../../../services/datafoncier.service';
 import { DatafoncierHousing } from '../../../../../shared';
 import { useAppSelector } from '../../../hooks/useStore';
+import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const step: Step = {
   id: 'review-housing',

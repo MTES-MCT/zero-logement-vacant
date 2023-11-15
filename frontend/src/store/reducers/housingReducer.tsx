@@ -1,4 +1,4 @@
-import { Housing, OccupancyKind } from '../../models/Housing';
+import { OccupancyKind } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';

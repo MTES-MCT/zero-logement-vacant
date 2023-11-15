@@ -152,7 +152,6 @@ export function useForm<
       await onValid?.();
     } catch (errors) {
       setErrors((errors as yup.ValidationError).inner);
-      throw errors;
     }
   }
 

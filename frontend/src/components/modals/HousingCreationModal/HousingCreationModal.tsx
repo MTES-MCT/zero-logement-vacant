@@ -2,8 +2,7 @@ import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import React from 'react';
 
-import ModalGraphStepper from '../ModalStepper/ModalGraphStepper';
-import { Step } from '../../../hooks/useGraphStepper';
+import ModalGraphStepper, { Step } from '../ModalStepper/ModalGraphStepper';
 import fillLocalId from './FillLocalId';
 import reviewHousing from './ReviewHousing';
 

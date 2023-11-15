@@ -144,7 +144,7 @@ describe('Housing controller', () => {
         request(app).post(testRoute).send(payload)
       );
 
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should create a housing', async () => {
@@ -224,6 +224,7 @@ describe('Housing controller', () => {
           housing_geo_code: body.geoCode,
           housing_id: body.id,
         })
+        .join(eventsTable, 'id', 'event_id')
         .first();
       expect(event).toMatchObject({
         name: 'Création du logement',

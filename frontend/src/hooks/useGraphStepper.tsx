@@ -1,27 +1,15 @@
-import {
-  ForwardRefExoticComponent,
-  RefAttributes,
-  useRef,
-  useState,
-} from 'react';
+import { useState } from 'react';
 
-export interface Step {
-  id: string;
-  Component: ForwardRefExoticComponent<RefAttributes<StepProps>>;
-}
+import { Identifiable } from '../models/Identifiable';
 
-export interface StepProps {
-  onNext?: () => Promise<string | null>;
-}
-
-export function useGraphStepper(steps: Step[]) {
+export function useGraphStepper<T extends Identifiable = Identifiable>(
+  steps: T[]
+) {
   const [previousStep, setPreviousStep] = useState<string>();
   const [step, setStep] = useState(steps[0].id);
   const currentStep = get(step);
-  // Store a ref for the current step component
-  const ref = useRef<StepProps>(null);
 
-  function get(id: string): Step {
+  function get(id: string): T {
     const step = steps.find((step) => step.id === id);
     if (!step) {
       throw new Error(`Step ${id} not found`);
@@ -63,7 +51,6 @@ export function useGraphStepper(steps: Step[]) {
     isOver,
     next,
     previous,
-    ref,
     reset,
     steps,
   };

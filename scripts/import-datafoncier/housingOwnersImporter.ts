@@ -26,7 +26,7 @@ export function housingOwnersImporter(): Stream<HousingRecordApi> {
   return createDatafoncierHousingRepository()
     .stream()
     .consume(tapAsync(processHousingOwners))
-    .map(toHousingRecordApi)
+    .map(toHousingRecordApi({ source: 'datafoncier-import' }))
     .errors((error) => {
       logger.error(error);
     });

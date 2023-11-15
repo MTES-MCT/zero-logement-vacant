@@ -30,6 +30,7 @@ function mock() {
       })
       .persist()
       .get('/ff/proprios')
+      .query(true)
       .reply(async (uri) => {
         const query = new URLSearchParams(uri);
         const datafoncierOwners = new Array(fp.random(1, 6))

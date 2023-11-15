@@ -6,6 +6,7 @@ import { LocalityKinds } from './Locality';
 import { Note } from './Note';
 import { differenceInDays, format } from 'date-fns';
 import { Compare } from '../utils/compareUtils';
+import { HousingSource } from '../../../shared';
 
 export interface Housing {
   id: string;
@@ -41,6 +42,7 @@ export interface Housing {
   energyConsumptionAt?: Date;
   occupancy: OccupancyKind;
   occupancyIntended?: OccupancyKind;
+  source: HousingSource | null;
 }
 
 export interface SelectedHousing {
@@ -206,3 +208,13 @@ export const OccupancyKindBadgeLabels = {
   ...OccupancyKindLabels,
   [OccupancyKind.Others]: 'Occupation : Autres',
 };
+
+export function getSource(housing: Housing): string {
+  const year = housing.dataYears[0];
+  const map: Record<HousingSource, string> = {
+    lovac: `LOVAC ${year}`,
+    'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
+    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`,
+  };
+  return housing.source ? map[housing.source] : 'Inconnue';
+}

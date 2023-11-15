@@ -7,6 +7,6 @@ export function createQuery(
     // Faster than fp.omitBy
     fp.pickBy((value) => !fp.isNil(value)),
     (params: Record<string, string>) => new URLSearchParams(params),
-    (params) => (fp.size(params) > 0 ? `?${params}` : '')
+    (params) => ([...params.keys()].length > 0 ? `?${params}` : '')
   )(params);
 }

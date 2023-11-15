@@ -362,9 +362,6 @@ describe('housing view', () => {
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
-      const knowsLocalId = await within(modal).findByText('Oui');
-      await user.click(knowsLocalId);
-      await user.click(within(modal).getByText('Confirmer'));
       const input = await within(modal).findByLabelText(
         'Identifiant du logement'
       );
@@ -422,9 +419,6 @@ describe('housing view', () => {
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
-      const knowsLocalId = await within(modal).findByText('Oui');
-      await user.click(knowsLocalId);
-      await user.click(within(modal).getByText('Confirmer'));
       const input = await within(modal).findByLabelText(
         'Identifiant du logement'
       );
@@ -471,9 +465,6 @@ describe('housing view', () => {
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
-      const knowsLocalId = await within(modal).findByText('Oui');
-      await user.click(knowsLocalId);
-      await user.click(within(modal).getByText('Confirmer'));
       const input = await within(modal).findByLabelText(
         'Identifiant du logement'
       );

@@ -2,14 +2,13 @@ import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
 
 import { Step, StepProps } from '../../../hooks/useGraphStepper';
-import { Col, Row } from '../../_dsfr';
+import { Col, Row, Text } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
 import { unwrapError } from '../../../store/store';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { datafoncierApi } from '../../../services/datafoncier.service';
 import { housingApi } from '../../../services/housing.service';
-import { Link } from 'react-router-dom';
 import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
 
@@ -67,10 +66,30 @@ const step: Step = {
 
     return (
       <>
-        <p>Saisissez l’identifiant du logement (idlocal) à ajouter.</p>
+        <Text size="lg" spacing="mb-2w">
+          Saisissez l’identifiant du logement (idlocal) à ajouter.
+        </Text>
+        <Alert
+          className="fr-mb-2w"
+          severity="info"
+          title="Comment trouver l’identifiant du logement que je souhaite ajouter ?"
+          description={
+            <>
+              <a
+                href="https://doc-datafoncier.cerema.fr/doc/ff/pb52_pevlissage/idlocal"
+                target="_blank"
+                rel="noreferrer"
+              >
+                L’identifiant du logement
+              </a>
+               est une concaténation du code département du logement et de
+              l’invariant fiscal du logement, dans cet ordre-là.
+            </>
+          }
+        />
         <form id="housing-creation-form">
           <Row>
-            <Col>
+            <Col n="4">
               <AppTextInput<FormShape>
                 inputForm={form}
                 inputKey="localId"
@@ -98,8 +117,7 @@ const step: Step = {
           <Alert
             severity="error"
             className="fr-mt-2w"
-            title="Ce logement existe déjà dans votre parc."
-            description={<Link to={`/housing/${housing?.id}`}>ici</Link>}
+            title="Ce logement existe déjà dans votre parc"
             closable
           />
         )}

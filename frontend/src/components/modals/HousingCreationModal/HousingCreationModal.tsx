@@ -4,11 +4,8 @@ import React from 'react';
 
 import ModalGraphStepper from '../ModalStepper/ModalGraphStepper';
 import { Step } from '../../../hooks/useGraphStepper';
-import knowsLocalIdStep from './KnowsLocalIdStep';
 import fillLocalId from './FillLocalId';
 import reviewHousing from './ReviewHousing';
-import chooseLocality from './ChooseLocality';
-import searchHousing from './SearchHousing';
 
 interface Props {
   onFinish?: () => void;
@@ -27,13 +24,7 @@ function HousingCreationModal(props: Props) {
     onClick: modal.open,
   };
 
-  const steps: Step[] = [
-    knowsLocalIdStep,
-    searchHousing,
-    chooseLocality,
-    fillLocalId,
-    reviewHousing,
-  ];
+  const steps: Step[] = [fillLocalId, reviewHousing];
 
   return (
     <ModalGraphStepper

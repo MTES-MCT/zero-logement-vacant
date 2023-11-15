@@ -3,7 +3,6 @@ export type EventSection =
   | 'Suivi de campagne'
   | 'Propriétaire'
   | 'Coordonnées propriétaire'
-  | 'Création du logement'
   | 'Ajout d’un logement dans un groupe'
   | 'Retrait du logement d’un groupe'
   | 'Archivage d’un groupe'

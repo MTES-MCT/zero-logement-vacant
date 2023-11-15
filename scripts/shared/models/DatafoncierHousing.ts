@@ -1,3 +1,4 @@
+import fp from 'lodash/fp';
 import {
   HousingRecordApi,
   OccupancyKindApi,
@@ -6,32 +7,40 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { ReferenceDataYear } from '../../../server/repositories/housingRepository';
 import { HousingStatusApi } from '../../../server/models/HousingStatusApi';
-import { DatafoncierHousing } from '../../../shared';
+import { DatafoncierHousing, HousingSource } from '../../../shared';
 
-export function toHousingRecordApi(
-  housing: DatafoncierHousing
-): HousingRecordApi {
-  // Should be erased later in the chain
-  // by the original housing id if it exists
-  const housingId = uuidv4();
-  return {
-    id: housingId,
-    invariant: housing.invar,
-    localId: housing.idlocal,
-    rawAddress: [`${housing.dnvoiri} ${housing.dvoilib}`, housing.idcomtxt],
-    geoCode: housing.idcom,
-    // TODO: no data
-    uncomfortable: false,
-    housingKind: housing.dteloctxt === 'MAISON' ? 'MAISON' : 'APPART',
-    roomsCount: housing.npiece_p2,
-    livingArea: housing.stoth,
-    buildingYear: housing.jannath,
-    taxed: false,
-    dataYears: [ReferenceDataYear + 1],
-    buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
-    ownershipKind: housing.ctpdl as OwnershipKindsApi,
-    status: HousingStatusApi.NeverContacted,
-    occupancy: housing.ccthp as OccupancyKindApi,
-    occupancyRegistered: housing.ccthp as OccupancyKindApi,
-  };
+export const toHousingRecordApi = fp.curry(
+  (
+    additionalData: AdditionalData,
+    housing: DatafoncierHousing
+  ): HousingRecordApi => {
+    // Should be erased later in the chain
+    // by the original housing id if it exists
+    const housingId = uuidv4();
+    return {
+      id: housingId,
+      invariant: housing.invar,
+      localId: housing.idlocal,
+      rawAddress: [`${housing.dnvoiri} ${housing.dvoilib}`, housing.idcomtxt],
+      geoCode: housing.idcom,
+      // TODO: no data
+      uncomfortable: false,
+      housingKind: housing.dteloctxt === 'MAISON' ? 'MAISON' : 'APPART',
+      roomsCount: housing.npiece_p2,
+      livingArea: housing.stoth,
+      buildingYear: housing.jannath,
+      taxed: false,
+      dataYears: [ReferenceDataYear + 1],
+      buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
+      ownershipKind: housing.ctpdl as OwnershipKindsApi,
+      status: HousingStatusApi.NeverContacted,
+      occupancy: housing.ccthp as OccupancyKindApi,
+      occupancyRegistered: housing.ccthp as OccupancyKindApi,
+      source: additionalData.source,
+    };
+  }
+);
+
+interface AdditionalData {
+  source: HousingSource;
 }

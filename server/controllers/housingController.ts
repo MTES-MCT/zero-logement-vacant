@@ -31,7 +31,7 @@ import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
 import { toHousingRecordApi } from '../../scripts/shared';
 import HousingExistsError from '../errors/housingExistsError';
-import housingApiRepository from '../repositories/datafoncierHousingApiRepository';
+import datafoncierHousingApiRepository from '../repositories/datafoncierHousingApiRepository';
 import ownerRepository from '../repositories/ownerRepository';
 import datafoncierOwnerApiRepository from '../repositories/datafoncierOwnerApiRepository';
 import housingOwnerRepository from '../repositories/housingOwnerRepository';
@@ -39,9 +39,9 @@ import { toHousingOwnersApi } from '../models/HousingOwnerApi';
 import async from 'async';
 import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
+import { HousingEventApi } from '../models/EventApi';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
-import { HousingEventApi } from '../models/EventApi';
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -161,7 +161,7 @@ const create = async (request: Request, response: Response) => {
     throw new HousingExistsError(body.localId);
   }
 
-  const datafoncierHousing = await housingApiRepository.findOne({
+  const datafoncierHousing = await datafoncierHousingApiRepository.findOne({
     localId: body.localId,
   });
   if (!datafoncierHousing) {
@@ -184,18 +184,26 @@ const create = async (request: Request, response: Response) => {
     },
   });
 
-  const housing: HousingRecordApi = toHousingRecordApi(datafoncierHousing);
+  const housing: HousingRecordApi = toHousingRecordApi(
+    { source: 'datafoncier-manual' },
+    datafoncierHousing
+  );
   await housingRepository.save(housing);
   await housingOwnerRepository.saveMany(toHousingOwnersApi(housing, owners));
 
   const event: HousingEventApi = {
     id: uuidv4(),
     name: 'Création du logement',
-    section: 'Création du logement',
+    section: 'Situation',
     category: 'Followup',
     kind: 'Create',
     old: undefined,
-    new: housing,
+    new:
+      (await housingRepository.findOne({
+        geoCode: housing.geoCode,
+        id: housing.id,
+        includes: ['owner'],
+      })) ?? undefined,
     housingGeoCode: housing.geoCode,
     housingId: housing.id,
     conflict: false,
@@ -204,7 +212,7 @@ const create = async (request: Request, response: Response) => {
   };
   await eventRepository.insertHousingEvent(event);
 
-  response.status(constants.HTTP_STATUS_CREATED).send(housing);
+  response.status(constants.HTTP_STATUS_CREATED).json(housing);
 };
 
 export interface HousingUpdateBody {

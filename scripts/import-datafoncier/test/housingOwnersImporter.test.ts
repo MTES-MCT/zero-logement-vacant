@@ -40,7 +40,10 @@ describe('Housing owners importer', () => {
       ...genDatafoncierHousing(),
       idprocpte,
     };
-    const housingApi = toHousingRecordApi(dfHousing);
+    const housingApi = toHousingRecordApi(
+      { source: 'datafoncier-manual' },
+      dfHousing
+    );
 
     it('should reject if the housing is missing', async () => {
       await expect(processHousingOwners(dfHousing)).toReject();

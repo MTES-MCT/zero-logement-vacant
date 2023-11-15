@@ -25,7 +25,7 @@ describe('Housing importer', () => {
 
     it('should leave the existing housing untouched otherwise', async () => {
       await Housing().insert(
-        formatHousingRecordApi(toHousingRecordApi(housing))
+        formatHousingRecordApi(toHousingRecordApi({ source: 'lovac' }, housing))
       );
       const updated: DatafoncierHousing = {
         ...housing,

@@ -42,7 +42,10 @@ class HousingPostgresRepository implements HousingStreamRepository {
                 return null;
               }
 
-              const housingApi = toHousingRecordApi(housing);
+              const housingApi = toHousingRecordApi(
+                { source: 'datafoncier-import' },
+                housing
+              );
               const [owner, ...coowners] = owners.map((owner, i) => ({
                 ...owner,
                 housingId: housingApi.id,

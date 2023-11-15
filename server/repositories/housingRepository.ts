@@ -37,6 +37,7 @@ import {
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import isNumeric = validator.isNumeric;
+import { HousingSource } from '../../shared';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -969,6 +970,7 @@ interface HousingRecordDBO {
   occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
+  source: string | null;
 }
 
 interface HousingDBO extends HousingRecordDBO {
@@ -1024,6 +1026,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
+  source: housing.source as HousingSource,
 });
 
 export const formatHousingRecordApi = (
@@ -1058,6 +1061,7 @@ export const formatHousingRecordApi = (
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
+  source: housingRecordApi.source,
 });
 
 export default {

@@ -15,7 +15,10 @@ import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { Housing1 } from '../../database/seeds/test/005-housing';
-import { eventsTable, housingEventsTable } from '../repositories/eventRepository';
+import {
+  eventsTable,
+  HousingEvents,
+  housingEventsTable} from '../repositories/eventRepository';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { createServer } from '../server';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
@@ -120,7 +123,7 @@ describe('Housing controller', () => {
 
     it('should fail if the housing already exists', async () => {
       const payload = {
-        localId: Housing1.id,
+        localId: Housing1.localId,
       };
 
       const { status } = await withAccessToken(
@@ -132,7 +135,7 @@ describe('Housing controller', () => {
     it('should fail if the housing was not found in datafoncier', async () => {
       jest
         .spyOn(datafoncierHousingRepository, 'findOne')
-        .mockRejectedValueOnce(new Error('Not found'));
+        .mockResolvedValueOnce(null);
       const payload = {
         localId: randomstring.generate(12),
       };
@@ -146,9 +149,15 @@ describe('Housing controller', () => {
 
     it('should create a housing', async () => {
       const datafoncierHousing = genDatafoncierHousing();
+      const datafoncierOwners = new Array(3)
+        .fill(0)
+        .map(() => genDatafoncierOwner(datafoncierHousing.idprocpte));
       jest
         .spyOn(datafoncierHousingRepository, 'findOne')
         .mockResolvedValueOnce(datafoncierHousing);
+      jest
+        .spyOn(datafoncierOwnerRepository, 'find')
+        .mockResolvedValueOnce(datafoncierOwners);
       const payload = {
         localId: datafoncierHousing.idlocal,
       };
@@ -188,6 +197,41 @@ describe('Housing controller', () => {
         housing_id: body.id,
       });
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
+    });
+
+    it('should create an event', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const datafoncierOwners = [
+        genDatafoncierOwner(datafoncierHousing.idprocpte),
+      ];
+      jest
+        .spyOn(datafoncierHousingRepository, 'findOne')
+        .mockResolvedValueOnce(datafoncierHousing);
+      jest
+        .spyOn(datafoncierOwnerRepository, 'find')
+        .mockResolvedValueOnce(datafoncierOwners);
+      const payload = {
+        localId: datafoncierHousing.idlocal,
+      };
+
+      const { body, status } = await withAccessToken(
+        request(app).post(testRoute).send(payload)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const event = await HousingEvents()
+        .where({
+          housing_geo_code: body.geoCode,
+          housing_id: body.id,
+        })
+        .first();
+      expect(event).toMatchObject({
+        name: 'Création du logement',
+        kind: 'Create',
+        section: 'Situation',
+        category: 'Followup',
+        created_by: User1.id,
+      });
     });
   });
 

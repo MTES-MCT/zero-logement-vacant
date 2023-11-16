@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Col, Container, Row, Text, Title } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';

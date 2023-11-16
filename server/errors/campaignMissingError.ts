@@ -9,7 +9,7 @@ export default class CampaignMissingError
   constructor(id?: string) {
     super({
       name: 'CampaignMissingError',
-      message: `Campaign  missing`,
+      message: `Campaign missing`,
       status: constants.HTTP_STATUS_NOT_FOUND,
       data: {
         id,

@@ -1,11 +1,7 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import {
-  CampaignApi,
-  CampaignSortableApi,
-  CampaignSteps,
-} from '../models/CampaignApi';
+import { CampaignApi, CampaignSortableApi, CampaignSteps } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import localityRepository from '../repositories/localityRepository';
@@ -16,18 +12,14 @@ import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
 import async from 'async';
-import housingFiltersApi, {
-  HousingFiltersApi,
-} from '../models/HousingFiltersApi';
+import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { logger } from '../utils/logger';
 import groupRepository from '../repositories/groupRepository';
 import GroupMissingError from '../errors/groupMissingError';
-import {
-  campaignFiltersValidators,
-  CampaignQuery,
-} from '../models/CampaignFiltersApi';
+import { campaignFiltersValidators, CampaignQuery } from '../models/CampaignFiltersApi';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
+import CampaignMissingError from '../errors/campaignMissingError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -45,10 +37,10 @@ const getCampaign = async (
     establishmentId,
   });
   if (!campaign) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-  } else {
-    return response.status(constants.HTTP_STATUS_OK).json(campaign);
+    throw new CampaignMissingError(campaignId);
   }
+
+  return response.status(constants.HTTP_STATUS_OK).json(campaign);
 };
 
 const listValidators: ValidationChain[] = [
@@ -327,7 +319,7 @@ const updateCampaignStep = async (
   });
 
   const step = stepUpdate.step;
-  const updatedCampaign = {
+  const updatedCampaign: CampaignApi = {
     ...campaignApi,
     validatedAt:
       step === CampaignSteps.OwnersValidation
@@ -415,18 +407,19 @@ const removeCampaign = async (
   });
 
   if (!campaignApi) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-  } else {
-    await campaignHousingRepository.deleteHousingFromCampaigns([campaignId]);
-
-    await eventRepository.removeCampaignEvents(campaignId);
-
-    await campaignRepository.remove(campaignId);
-
-    await resetHousingWithoutCampaigns(establishmentId);
-
-    return response.sendStatus(constants.HTTP_STATUS_OK);
+    throw new CampaignMissingError(campaignId);
   }
+
+  await Promise.all([
+    campaignHousingRepository.deleteHousingFromCampaigns([campaignId]),
+    eventRepository.removeCampaignEvents(campaignId),
+  ]);
+
+  await campaignRepository.remove(campaignId);
+
+  await resetHousingWithoutCampaigns(establishmentId);
+
+  return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
 };
 
 const resetHousingWithoutCampaigns = async (establishmentId: string) => {
@@ -478,9 +471,7 @@ const removeHousing = async (
     })
     .then((_) =>
       _.map((_) => _.id).filter((id) =>
-        all
-          ? request.body.ids.indexOf(id) === -1
-          : request.body.ids.indexOf(id) !== -1
+        all ? !request.body.ids.includes(id) : request.body.ids.includes(id)
       )
     );
 

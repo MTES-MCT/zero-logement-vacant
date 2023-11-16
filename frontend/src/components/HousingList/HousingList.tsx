@@ -222,16 +222,14 @@ const HousingList = ({
               )
               .filter(isDefined)
               .sort(campaignSort)
-          )
-            .filter(isDefined)
-            .map((campaign, campaignIdx) => (
-              <div key={id + '-campaign-' + campaignIdx}>
-                <AppLink isSimple to={`/campagnes/${campaign.id}`}>
-                  {campaign.title.substring(0, 17) +
-                    (campaign.title.length > 17 ? '...' : '')}
-                </AppLink>
-              </div>
-            ))}
+          ).map((campaign, campaignIdx) => (
+            <div key={id + '-campaign-' + campaignIdx}>
+              <AppLink isSimple to={`/campagnes/${campaign.id}`}>
+                {campaign.title.substring(0, 17) +
+                  (campaign.title.length > 17 ? '...' : '')}
+              </AppLink>
+            </div>
+          ))}
       </>
     ),
   };

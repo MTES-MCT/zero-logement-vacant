@@ -5,10 +5,7 @@ import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
@@ -21,7 +18,7 @@ import { useCampaign } from '../../hooks/useCampaign';
 
 function CampaignInProgress() {
   const { campaign } = useCampaign();
-  useDocumentTitle(campaign?.title ?? 'Campaigne');
+  useDocumentTitle(campaign?.title ?? 'Campagne');
 
   const { trackEvent } = useMatomo();
   const {

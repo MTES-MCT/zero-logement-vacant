@@ -21,7 +21,7 @@ global.beforeEach(async () => {
     await db.seed.run();
   } catch (error) {
     logger.error(error);
-    // process.exit(1);
+    process.exit(1);
   } finally {
     await db.destroy();
   }

@@ -19,7 +19,7 @@ export interface Campaign {
   sendingDate?: Date;
   confirmedAt?: Date;
   exportURL: string;
-  groupId: string;
+  groupId?: string;
 }
 
 export enum CampaignSteps {
@@ -60,4 +60,4 @@ export const campaignSort = (c1: Campaign, c2: Campaign) =>
   dateSort(c2.createdAt, c1.createdAt);
 
 export const isCampaignDeletable = (campaign: Campaign) =>
-  !!campaign && campaignStep(campaign) !== CampaignSteps.Archived;
+  campaignStep(campaign) !== CampaignSteps.Archived;

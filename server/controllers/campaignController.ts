@@ -277,24 +277,17 @@ const updateCampaign = async (
   });
 
   if (!campaignApi) {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
-  } else {
-    if (campaignUpdateApi.titleUpdate?.title) {
-      await updateCampaignTitle(
-        campaignApi,
-        campaignUpdateApi.titleUpdate.title
-      );
-    }
-    if (campaignUpdateApi.stepUpdate?.step !== undefined) {
-      await updateCampaignStep(
-        campaignApi,
-        campaignUpdateApi.stepUpdate,
-        userId
-      );
-    }
-
-    return response.sendStatus(constants.HTTP_STATUS_OK);
+    throw new CampaignMissingError(campaignId);
   }
+
+  if (campaignUpdateApi.titleUpdate?.title) {
+    await updateCampaignTitle(campaignApi, campaignUpdateApi.titleUpdate.title);
+  }
+  if (campaignUpdateApi.stepUpdate?.step !== undefined) {
+    await updateCampaignStep(campaignApi, campaignUpdateApi.stepUpdate, userId);
+  }
+
+  return response.sendStatus(constants.HTTP_STATUS_OK);
 };
 
 const updateCampaignTitle = async (

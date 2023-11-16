@@ -5,9 +5,9 @@ export type Sort<Sortable extends object = object> = Partial<
   Record<keyof Sortable, Direction>
 >;
 
-export function toQuery(sort?: Sort): string[] | undefined {
+export function toQuery(sort?: Sort): string[] {
   if (!sort) {
-    return undefined;
+    return [];
   }
 
   const prependMinus = prepend('-');

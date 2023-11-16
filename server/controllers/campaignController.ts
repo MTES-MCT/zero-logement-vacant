@@ -269,7 +269,7 @@ const updateCampaign = async (
 ): Promise<Response> => {
   const campaignId = request.params.id;
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
-  const campaignUpdateApi = request.body as CampaignUpdateBody;
+  const campaignUpdate = request.body as CampaignUpdateBody;
 
   const campaignApi = await campaignRepository.findOne({
     id: campaignId,
@@ -280,32 +280,43 @@ const updateCampaign = async (
     throw new CampaignMissingError(campaignId);
   }
 
-  if (campaignUpdateApi.titleUpdate?.title) {
-    await updateCampaignTitle(campaignApi, campaignUpdateApi.titleUpdate.title);
+  if (campaignUpdate.titleUpdate?.title) {
+    const updatedCampaign = await updateCampaignTitle(
+      campaignApi,
+      campaignUpdate.titleUpdate.title
+    );
+    return response.status(constants.HTTP_STATUS_OK).json(updatedCampaign);
   }
-  if (campaignUpdateApi.stepUpdate?.step !== undefined) {
-    await updateCampaignStep(campaignApi, campaignUpdateApi.stepUpdate, userId);
+  if (campaignUpdate.stepUpdate?.step !== undefined) {
+    const updatedCampaign = await updateCampaignStep(
+      campaignApi,
+      campaignUpdate.stepUpdate,
+      userId
+    );
+    return response.status(constants.HTTP_STATUS_OK).json(updatedCampaign);
   }
 
-  return response.sendStatus(constants.HTTP_STATUS_OK);
+  return response.status(constants.HTTP_STATUS_OK).json(campaignApi);
 };
 
 const updateCampaignTitle = async (
   campaignApi: CampaignApi,
   title: string
-): Promise<void> => {
+): Promise<CampaignApi> => {
   logger.info('Update campaign title', { campaignId: campaignApi.id, title });
-  await campaignRepository.update({
+  const updatedCampaign: CampaignApi = {
     ...campaignApi,
     title,
-  });
+  };
+  await campaignRepository.update(updatedCampaign);
+  return updatedCampaign;
 };
 
 const updateCampaignStep = async (
   campaignApi: CampaignApi,
   stepUpdate: StepUpdate,
   userId: string
-): Promise<void> => {
+): Promise<CampaignApi> => {
   logger.info('Update campaign step', {
     campaignId: campaignApi.id,
     ...stepUpdate,
@@ -383,6 +394,8 @@ const updateCampaignStep = async (
   });
 
   await campaignRepository.update(updatedCampaign);
+
+  return updatedCampaign;
 };
 
 const removeCampaign = async (

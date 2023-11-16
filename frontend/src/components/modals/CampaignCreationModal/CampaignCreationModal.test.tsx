@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../../test/fixtures.test';
@@ -7,8 +7,10 @@ import config from '../../../utils/config';
 import fetchMock from 'jest-fetch-mock';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../store/store';
+import userEvent from '@testing-library/user-event';
 
 describe('Campagne creation modal', () => {
+  const user = userEvent.setup();
   let store: any;
 
   const defaultFetchMock = (request: Request) => {
@@ -68,17 +70,17 @@ describe('Campagne creation modal', () => {
       </Provider>
     );
 
-    expect(screen.getByText('Créer une campagne')).toBeVisible();
+    const createButton = screen.getByText('Créer une campagne');
+    expect(createButton).toBeVisible();
+    await user.click(createButton);
 
-    // TODO How to open dsfr modal with Jest 🤔
-    //
-    // await user.click(screen.getByText('Ouvrir'));
-    //
-    // await user.click(screen.getByText('Enregistrer'));
-    //
-    // const error = await screen.findByText(
-    //   'Veuillez renseigner le titre de la campagne.'
-    // );
-    // expect(error).toBeVisible();
+    const modal = screen.getByRole('dialog');
+    const save = within(modal).getByText('Enregistrer');
+    await user.click(save);
+
+    const error = await screen.findByText(
+      'Veuillez renseigner le titre de la campagne.'
+    );
+    expect(error).toBeVisible();
   });
 });

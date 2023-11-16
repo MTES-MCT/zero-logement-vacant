@@ -18,7 +18,7 @@ const CampaignStatusBadge = ({ step }: Props) => {
       }
     >
       {step < CampaignSteps.InProgress
-        ? 'En attente d’envoi'
+        ? 'Envoi en attente'
         : step < CampaignSteps.Archived
         ? 'Envoyée'
         : 'Archivée'}

@@ -29,6 +29,13 @@ describe('Datafoncier housing controller', () => {
     });
 
     it('should return "not found" otherwise', async () => {
+      fetchMock.mockIf(
+        (request) => request.url.endsWith(`/ff/locaux/missing`),
+        async () => ({
+          status: 404,
+        })
+      );
+
       const { status } = await withAccessToken(
         request(app).get(testRoute('missing'))
       );

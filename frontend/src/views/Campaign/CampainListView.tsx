@@ -18,16 +18,10 @@ import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
-import {
-  useRemoveCampaignMutation,
-  useUpdateCampaignMutation,
-} from '../../services/campaign.service';
+import { useRemoveCampaignMutation, useUpdateCampaignMutation } from '../../services/campaign.service';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useSort } from '../../hooks/useSort';
 
@@ -90,7 +84,10 @@ const CampaignsListView = () => {
       {campaigns && (
         <>
           <div className="fr-mb-2w">
-            {displayCount(campaigns.length, 'campagne')}
+            {displayCount(campaigns.length, 'campagne', {
+              capitalize: true,
+              feminine: true,
+            })}
           </div>
           <Table
             caption="Liste des campagnes"
@@ -108,7 +105,14 @@ const CampaignsListView = () => {
             ]}
             data={campaigns.map((campaign, index) => [
               `#${index + 1}`,
-              <AppLink isSimple to={`/campagnes/${campaign.id}`}>
+              <AppLink
+                isSimple
+                to={`${
+                  campaignStep(campaign) < CampaignSteps.InProgress
+                    ? ''
+                    : '/parc-de-logements'
+                }/campagnes/${campaign.id}`}
+              >
                 {campaign.title}
               </AppLink>,
               <CampaignStatusBadge step={campaignStep(campaign)} />,
@@ -120,7 +124,13 @@ const CampaignsListView = () => {
               <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
                 <Button
                   priority="tertiary"
-                  linkProps={{ to: `/campagnes/${campaign.id}` }}
+                  linkProps={{
+                    to: `${
+                      campaignStep(campaign) < CampaignSteps.InProgress
+                        ? ''
+                        : '/parc-de-logements'
+                    }/campagnes/${campaign.id}`,
+                  }}
                   className={styles.buttonInGroup}
                 >
                   {campaignStep(campaign) < CampaignSteps.InProgress
@@ -156,7 +166,7 @@ const CampaignsListView = () => {
                       Êtes-vous sûr de vouloir supprimer cette campagne ?
                     </Text>
                     <Alert
-                      description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                      description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
                       severity="info"
                       small
                     />

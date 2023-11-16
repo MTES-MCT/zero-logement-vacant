@@ -1,17 +1,10 @@
 import React from 'react';
 import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
-import {
-  campaignStep,
-  CampaignSteps,
-  isCampaignDeletable,
-} from '../../models/Campaign';
+import { campaignStep, CampaignSteps, isCampaignDeletable } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
@@ -77,7 +70,7 @@ const CampaignView = () => {
                     Êtes-vous sûr de vouloir supprimer cette campagne ?
                   </Text>
                   <Alert
-                    description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
+                    description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
                     severity="info"
                     small
                   />

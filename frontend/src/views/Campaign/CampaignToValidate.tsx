@@ -3,10 +3,7 @@ import { Col, Row, Text } from '../../components/_dsfr';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';
 import * as yup from 'yup';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import VerticalStepper from '../../components/VerticalStepper/VerticalStepper';
@@ -26,13 +23,9 @@ import { HousingFilters } from '../../models/HousingFilters';
 import { useCountHousingQuery } from '../../services/housing.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../../components/_app/AppLink/AppLink';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useCampaign } from '../../hooks/useCampaign';
 import { isDefined } from '../../utils/compareUtils';
-import {
-  useRemoveCampaignHousingMutation,
-  useUpdateCampaignMutation,
-} from '../../services/campaign.service';
+import { useRemoveCampaignHousingMutation, useUpdateCampaignMutation } from '../../services/campaign.service';
 
 interface CampaignToValidateProps {
   campaignStep: CampaignSteps;
@@ -131,14 +124,6 @@ function CampaignToValidate({ campaignStep }: CampaignToValidateProps) {
 
   return (
     <>
-      {!isCompleted(CampaignSteps.Export) && (
-        <Alert
-          closable
-          severity="info"
-          title="Bienvenue dans l’espace suivi de votre campagne !"
-          description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
-        />
-      )}
       <VerticalStepper step={index}>
         <VerticalStep
           completed={isCompleted(CampaignSteps.OwnersValidation)}

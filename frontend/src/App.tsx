@@ -97,6 +97,7 @@ function App() {
           {isAuthenticated ? [
             ...([
               {path:"/parc-de-logements", component:HousingListView},
+              {path:"/parc-de-logements/campagnes/:campaignId", component:CampaignView},
               {path:"/groupes/:id",component: GroupView},
               {path:"/campagnes", component:CampaignsListView},
               {path:"/campagnes/:campaignId", component:CampaignView},

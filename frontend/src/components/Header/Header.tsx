@@ -58,7 +58,7 @@ function Header() {
       ).url.substring(1)}`,
     },
     text: getUserNavItem(navItem).label,
-    isActive: location.pathname.indexOf(getUserNavItem(navItem).url) !== -1,
+    isActive: location.pathname.startsWith(getUserNavItem(navItem).url),
   });
 
   return (

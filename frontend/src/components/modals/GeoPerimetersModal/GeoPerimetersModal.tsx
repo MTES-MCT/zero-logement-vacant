@@ -1,22 +1,10 @@
 import React, { useMemo, useState } from 'react';
 
-import {
-  Col,
-  Modal,
-  ModalClose,
-  ModalContent,
-  ModalFooter,
-  ModalTitle,
-  Row,
-  Text,
-} from '../../_dsfr';
+import { Col, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row, Text } from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
@@ -240,7 +228,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             description={`Il y a ${displayCount(
               invalidGeoPerimeters.length,
               'périmètre',
-              false
+              { capitalize: false }
             )} qui ${
               invalidGeoPerimeters.length === 1
                 ? "n'est pas valide"

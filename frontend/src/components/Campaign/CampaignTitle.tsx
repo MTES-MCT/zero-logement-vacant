@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Col, Container, Row, Text, Title } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
@@ -79,7 +76,7 @@ const CampaignTitle = ({ campaign, as, look }: Props) => {
       </Title>
       {campaign.createdAt && (
         <Text className="weight-500" spacing="mb-1w" size="sm">
-          Campagne créé le {dateShortFormat(campaign.createdAt)}
+          Campagne créée le {dateShortFormat(campaign.createdAt)}
         </Text>
       )}
       <modal.Component

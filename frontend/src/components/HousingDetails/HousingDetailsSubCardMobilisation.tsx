@@ -5,11 +5,7 @@ import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import AppLink from '../_app/AppLink/AppLink';
-import {
-  Campaign,
-  campaignBundleIdUrlFragment,
-  campaignFullName,
-} from '../../models/Campaign';
+import { Campaign } from '../../models/Campaign';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';
@@ -126,20 +122,14 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               campaignInProgress.map((campaign) => (
                 <div key={campaign.id}>
                   <AppLink
-                    title={campaign?.name}
+                    title={campaign?.title}
                     key={campaign?.id}
                     isSimple
-                    to={
-                      '/campagnes/' +
-                      campaignBundleIdUrlFragment({
-                        campaignNumber: campaign.campaignNumber,
-                        reminderNumber: campaign.reminderNumber,
-                      })
-                    }
+                    to={`/campagnes/${campaign?.id}`}
                     iconId="fr-icon-mail-fill"
                     iconPosition="left"
                   >
-                    {campaignFullName(campaign)}
+                    {campaign?.title}
                   </AppLink>
                 </div>
               ))

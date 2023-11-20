@@ -1,10 +1,4 @@
-import React, {
-  ChangeEvent,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {
@@ -19,16 +13,8 @@ import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import {
-  campaignBundleIdUrlFragment,
-  campaignFullName,
-  CampaignNumberSort,
-} from '../../models/Campaign';
 import _ from 'lodash';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -42,15 +28,13 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import {
-  useCountHousingQuery,
-  useUpdateHousingMutation,
-} from '../../services/housing.service';
+import { useCountHousingQuery, useUpdateHousingMutation } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 import { useLocation } from 'react-router-dom';
+import { campaignSort } from '../../models/Campaign';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -236,26 +220,16 @@ const HousingList = ({
               .map((campaignId) =>
                 campaignList?.find((c) => c.id === campaignId)
               )
-              .sort(CampaignNumberSort)
-          )
-            .filter(isDefined)
-            .map((campaign, campaignIdx) => (
-              <div key={id + '-campaign-' + campaignIdx}>
-                <AppLink
-                  isSimple
-                  to={
-                    '/campagnes/' +
-                    campaignBundleIdUrlFragment({
-                      campaignNumber: campaign.campaignNumber,
-                      reminderNumber: campaign.reminderNumber,
-                    })
-                  }
-                >
-                  {campaignFullName(campaign).substring(0, 17) +
-                    (campaignFullName(campaign).length > 17 ? '...' : '')}
-                </AppLink>
-              </div>
-            ))}
+              .filter(isDefined)
+              .sort(campaignSort)
+          ).map((campaign, campaignIdx) => (
+            <div key={id + '-campaign-' + campaignIdx}>
+              <AppLink isSimple to={`/campagnes/${campaign.id}`}>
+                {campaign.title.substring(0, 17) +
+                  (campaign.title.length > 17 ? '...' : '')}
+              </AppLink>
+            </div>
+          ))}
       </>
     ),
   };

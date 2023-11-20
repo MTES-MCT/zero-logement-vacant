@@ -3,7 +3,7 @@ import { Establishment } from '../models/Establishment';
 import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
 import {
   createHttpService,
-  getURLSearchParams,
+  getURLQuery,
   normalizeUrlSegment,
 } from '../utils/fetchUtils';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
@@ -23,10 +23,10 @@ export const establishmentApi = createApi({
   endpoints: (builder) => ({
     findOneEstablishment: builder.query<Establishment, EstablishmentFilterApi>({
       query: (filters) =>
-        `?${getURLSearchParams({
+        getURLQuery({
           ...filters,
           name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
-        })}`,
+        }),
       transformResponse: (result: Establishment[]) => result[0],
       providesTags: (result) =>
         result
@@ -40,10 +40,10 @@ export const establishmentApi = createApi({
     }),
     findEstablishments: builder.query<Establishment[], EstablishmentFilterApi>({
       query: (filters) =>
-        `?${getURLSearchParams({
+        getURLQuery({
           ...filters,
           name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
-        })}`,
+        }),
       providesTags: (result) =>
         result
           ? [

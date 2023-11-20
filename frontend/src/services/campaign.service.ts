@@ -1,223 +1,18 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { parseISO } from 'date-fns';
-import {
-  Campaign,
-  CampaignBundle,
-  CampaignBundleId,
-  campaignBundleIdApiFragment,
-  CampaignKinds,
-  CampaignSteps,
-  DraftCampaign,
-} from '../models/Campaign';
-import { Housing } from '../models/Housing';
+import { Campaign, CampaignSort, CampaignUpdate, DraftCampaign } from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
-import { getURLSearchParams } from '../utils/fetchUtils';
+import { getURLQuery } from '../utils/fetchUtils';
 import { CampaignFilters } from '../models/CampaignFilters';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { housingApi } from './housing.service';
+import { SortOptions, toQuery } from '../models/Sort';
 
-export interface ListCampaignsOptions {
+export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
 }
-
-const listCampaigns = async (
-  opts?: ListCampaignsOptions
-): Promise<Campaign[]> => {
-  const params = getURLSearchParams({
-    groups: opts?.filters?.groupIds?.join(','),
-  }).toString();
-  const query = params.length > 0 ? `?${params}` : '';
-
-  return fetch(`${config.apiEndpoint}/api/campaigns${query}`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((_) => _.json())
-    .then((_) => _.map((_: any) => parseCampaign(_)));
-};
-
-const listCampaignBundles = async (): Promise<CampaignBundle[]> => {
-  return await fetch(`${config.apiEndpoint}/api/campaigns/bundles`, {
-    method: 'GET',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((_) => _.json())
-    .then((_) => _.map((_: any) => parseCampaignBundle(_)));
-};
-
-const getCampaignBundle = async (
-  campaignBundleId: CampaignBundleId,
-  query?: string
-): Promise<CampaignBundle> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(
-      campaignBundleId
-    )}${query ? `?q=${query}` : ''}`,
-    {
-      method: 'GET',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-    }
-  )
-    .then((_) => _.json())
-    .then((_: any) => parseCampaignBundle(_));
-};
-
-const createCampaign = async (
-  draftCampaign: DraftCampaign,
-  allHousing: boolean,
-  housingIds?: string[]
-): Promise<Campaign> => {
-  return await fetch(`${config.apiEndpoint}/api/campaigns/creation`, {
-    method: 'POST',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ draftCampaign, allHousing, housingIds }),
-  })
-    .then((_) => _.json())
-    .then((_) => parseCampaign(_));
-};
-
-const createCampaignFromGroup = async (payload: {
-  campaign: Pick<Campaign, 'title'>;
-  group: Group;
-}): Promise<Campaign> => {
-  const response = await fetch(
-    `${config.apiEndpoint}/api/groups/${payload.group.id}/campaigns`,
-    {
-      method: 'POST',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: payload.campaign.title,
-      }),
-    }
-  );
-
-  const body = await response.json();
-  return parseCampaign(body);
-};
-
-const updateCampaignBundleTitle = async (
-  campaignBundleId: CampaignBundleId,
-  title?: string
-) => {
-  return await fetch(
-    `${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(
-      campaignBundleId
-    )}`,
-    {
-      method: 'PUT',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title }),
-    }
-  );
-};
-
-const createCampaignBundleReminder = async (
-  campaignBundleId: CampaignBundleId,
-  kind: CampaignKinds,
-  allHousing: boolean,
-  housingIds?: string[]
-): Promise<Campaign> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(
-      campaignBundleId
-    )}`,
-    {
-      method: 'POST',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ kind, allHousing, housingIds }),
-    }
-  )
-    .then((_) => _.json())
-    .then((_) => parseCampaign(_));
-};
-
-const deleteCampaignBundle = async (
-  campaignBundleId: CampaignBundleId
-): Promise<void> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/campaigns/bundles/${campaignBundleIdApiFragment(
-      campaignBundleId
-    )}`,
-    {
-      method: 'DELETE',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-    }
-  ).then(() => {});
-};
-
-export interface ValidateCampaignStepParams {
-  sendingDate?: Date;
-  // Skip campaign confirmation after filling in the sentAt date
-  skipConfirmation?: boolean;
-}
-
-const validCampaignStep = async (
-  campaignId: string,
-  step: CampaignSteps,
-  params?: ValidateCampaignStepParams
-): Promise<Campaign> => {
-  return await fetch(`${config.apiEndpoint}/api/campaigns/${campaignId}`, {
-    method: 'PUT',
-    headers: {
-      ...authService.authHeader(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ ...params, step }),
-  })
-    .then((_) => _.json())
-    .then((_) => parseCampaign(_));
-};
-
-const removeHousingList = async (
-  campaignId: string,
-  allHousing: boolean,
-  housingIds: string[],
-  filters: HousingFilters
-): Promise<Housing> => {
-  return await fetch(
-    `${config.apiEndpoint}/api/campaigns/${campaignId}/housing`,
-    {
-      method: 'DELETE',
-      headers: {
-        ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ allHousing, housingIds, filters }),
-    }
-  ).then((_) => _.json());
-};
-
-const getExportURL = (campaignBundleId: CampaignBundleId) => {
-  return `${
-    config.apiEndpoint
-  }/api/housing/export/campaigns/bundles/${campaignBundleIdApiFragment(
-    campaignBundleId
-  )}?x-access-token=${authService.authHeader()?.['x-access-token']}`;
-};
 
 const parseCampaign = (c: any): Campaign =>
   ({
@@ -227,28 +22,142 @@ const parseCampaign = (c: any): Campaign =>
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
     archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
     sendingDate: c.sendingDate ? parseISO(c.sendingDate) : undefined,
+    exportURL: getExportURL(c.id),
   } as Campaign);
 
-const parseCampaignBundle = (c: any): CampaignBundle =>
-  ({
-    ...c,
-    name: c.campaignNumber ? `C${c.campaignNumber}` : 'Logements hors campagne',
-    createdAt: c.createdAt ? parseISO(c.createdAt) : undefined,
-    exportURL: getExportURL(c as CampaignBundleId),
-  } as CampaignBundle);
+export const campaignApi = createApi({
+  reducerPath: 'campaignApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${config.apiEndpoint}/api/campaigns`,
+    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+  }),
+  tagTypes: ['Campaign'],
+  endpoints: (builder) => ({
+    getCampaign: builder.query<Campaign, string>({
+      query: (campaignId) => campaignId,
+      transformResponse: (c) => parseCampaign(c),
+      providesTags: (result, error, id) => [{ type: 'Campaign', id }],
+    }),
+    findCampaigns: builder.query<Campaign[], FindOptions | void>({
+      query: (opts) => ({
+        url: getURLQuery({
+          groups: opts?.filters?.groupIds,
+          sort: toQuery(opts?.sort),
+        }),
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'Campaign' as const,
+                id,
+              })),
+              { type: 'Campaign', id: 'LIST' },
+            ]
+          : [{ type: 'Campaign', id: 'LIST' }],
+      transformResponse: (response: any[]) => response.map(parseCampaign),
+    }),
+    createCampaign: builder.mutation<
+      Campaign,
+      {
+        draftCampaign: DraftCampaign;
+        allHousing: boolean;
+        housingIds?: string[];
+      }
+    >({
+      query: (payload) => ({
+        url: '',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+      transformResponse: parseCampaign,
+    }),
+    createCampaignFromGroup: builder.mutation<
+      Campaign,
+      {
+        campaign: Pick<Campaign, 'title'>;
+        group: Group;
+      }
+    >({
+      query: (payload) => ({
+        url: `groups/${payload.group.id}`,
+        method: 'POST',
+        body: {
+          title: payload.campaign.title,
+        },
+      }),
+      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+      transformResponse: parseCampaign,
+    }),
+    updateCampaign: builder.mutation<
+      void,
+      {
+        id: string;
+        campaignUpdate: CampaignUpdate;
+      }
+    >({
+      query: ({ id, campaignUpdate }) => ({
+        url: id,
+        method: 'PUT',
+        body: { ...campaignUpdate },
+      }),
+      invalidatesTags: (result, error, args) => [
+        { type: 'Campaign', id: args.id },
+      ],
+    }),
+    removeCampaignHousing: builder.mutation<
+      void,
+      {
+        campaignId: string;
+        all: boolean;
+        ids: string[];
+        filters: HousingFilters;
+      }
+    >({
+      query: ({ campaignId, ...payload }) => ({
+        url: `/${campaignId}/housing`,
+        method: 'DELETE',
+        body: payload,
+      }),
+      invalidatesTags: (result, error, { campaignId }) => [
+        { type: 'Campaign', id: campaignId },
+      ],
+      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+        await queryFulfilled;
+        dispatch(
+          housingApi.util.invalidateTags([
+            'Housing',
+            'HousingByStatus',
+            'HousingCountByStatus',
+          ])
+        );
+      },
+    }),
+    removeCampaign: builder.mutation<void, string>({
+      query: (campaignId) => ({
+        url: campaignId,
+        method: 'DELETE',
+      }),
+      invalidatesTags: () => [{ type: 'Campaign', id: 'LIST' }],
+    }),
+  }),
+});
 
-const campaignService = {
-  listCampaigns,
-  listCampaignBundles,
-  getCampaignBundle,
-  createCampaign,
-  createCampaignFromGroup,
-  createCampaignBundleReminder,
-  updateCampaignBundleTitle,
-  deleteCampaignBundle,
-  validCampaignStep,
-  removeHousingList,
-  getExportURL,
+const getExportURL = (campaignId: string) => {
+  return `${
+    config.apiEndpoint
+  }/api/campaigns/${campaignId}/export?x-access-token=${
+    authService.authHeader()?.['x-access-token']
+  }`;
 };
 
-export default campaignService;
+export const {
+  useFindCampaignsQuery,
+  useGetCampaignQuery,
+  useUpdateCampaignMutation,
+  useRemoveCampaignHousingMutation,
+  useRemoveCampaignMutation,
+  useCreateCampaignMutation,
+  useCreateCampaignFromGroupMutation,
+} = campaignApi;

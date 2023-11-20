@@ -23,13 +23,15 @@ export const displayHousingCount = ({
   const items = displayCount(
     status === undefined ? totalCount : filteredHousingCount,
     'logement',
-    true,
+    { capitalize: true },
     status === undefined ? filteredHousingCount : undefined
   ).split(' ');
   items.splice(
     2,
     0,
-    `(${displayCount(filteredOwnerCount, 'propriétaire', false)})`
+    `(${displayCount(filteredOwnerCount, 'propriétaire', {
+      capitalize: false,
+    })})`
   );
   return items.join(' ');
 };

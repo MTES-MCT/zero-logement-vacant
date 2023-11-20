@@ -16,7 +16,6 @@ import { v4 as uuidv4 } from 'uuid';
 import establishmentRepository, {
   establishmentsTable,
 } from '../repositories/establishmentRepository';
-import { campaignsTable } from '../repositories/campaignRepository';
 import localityRepository, {
   localitiesTable,
 } from '../repositories/localityRepository';
@@ -234,17 +233,6 @@ describe('User controller', () => {
             expect.objectContaining({
               id: establishment.id,
               available: true,
-            })
-          );
-        });
-
-      await db(campaignsTable)
-        .where('establishment_id', establishment.id)
-        .then((result) => {
-          expect(result[0]).toEqual(
-            expect.objectContaining({
-              establishment_id: establishment.id,
-              campaign_number: 0,
             })
           );
         });

@@ -26,13 +26,12 @@ const modal = createModal({
 
 interface Props {
   housing?: Housing;
-  fromDefaultCampaign?: boolean;
   housingCount?: number;
   onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
 const HousingEditionForm = (
-  { housing, fromDefaultCampaign, housingCount, onSubmit }: Props,
+  { housing, housingCount, onSubmit }: Props,
   ref: any
 ) => {
   const [occupancy, setOccupancy] = useState(housing?.occupancy);
@@ -187,8 +186,7 @@ const HousingEditionForm = (
           <HousingStatusSelect
             selected={status}
             options={statusOptions(
-              fromDefaultCampaign ||
-                !housing?.status ||
+              !housing?.status ||
                 +housing.status === HousingStatus.NeverContacted
                 ? []
                 : [HousingStatus.NeverContacted]

@@ -17,9 +17,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { CampaignKinds } from '../../models/Campaign';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { useAppDispatch } from '../../hooks/useStore';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
 import fp from 'lodash/fp';
@@ -32,10 +30,10 @@ import {
 } from '../../services/group.service';
 import { Group } from '../../models/Group';
 import { useHistory, useParams } from 'react-router-dom';
-import { createCampaign } from '../../store/actions/campaignAction';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useCreateCampaignMutation } from '../../services/campaign.service';
 
 export type HousingListTabProps = {
   /**
@@ -59,8 +57,8 @@ const HousingListTab = ({
   showCreateCampaign,
   onCountFilteredHousing,
 }: HousingListTabProps) => {
-  const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
+  const router = useHistory();
   const [
     updateHousingList,
     { isSuccess: isUpdateSuccess, data: updatedCount },
@@ -85,24 +83,27 @@ const HousingListTab = ({
     onCountFilteredHousing?.(filteredHousingCount);
   }, [filteredHousingCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const onSubmitCampaignCreation = (campaignTitle?: string) => {
+  const [createCampaign] = useCreateCampaignMutation();
+  const onSubmitCampaignCreation = async (campaignTitle?: string) => {
     if (campaignTitle) {
       trackEvent({
         category: TrackEventCategories.HousingList,
         action: TrackEventActions.HousingList.SaveCampaign,
         value: selectedCount,
       });
-      dispatch(
-        createCampaign(
-          {
-            kind: CampaignKinds.Initial,
-            filters,
-            title: campaignTitle,
-          },
-          selected.all,
-          selected.ids
-        )
-      );
+
+      const created = await createCampaign({
+        draftCampaign: {
+          filters,
+          title: campaignTitle,
+        },
+        allHousing: selected.all,
+        housingIds: selected.ids,
+      }).unwrap();
+
+      router.push({
+        pathname: `/campagnes/${created.id}`,
+      });
     }
   };
 
@@ -122,7 +123,7 @@ const HousingListTab = ({
   };
 
   const [addGroupHousing] = useAddGroupHousingMutation();
-  const router = useHistory();
+
   function selectGroup(group: Group): void {
     if (selected) {
       addGroupHousing({
@@ -249,9 +250,6 @@ const HousingListTab = ({
                     onSubmit={(campaignTitle?: string) =>
                       onSubmitCampaignCreation(campaignTitle)
                     }
-                    openingButtonProps={{
-                      children: 'Créer une campagne',
-                    }}
                   />
                 )}
 

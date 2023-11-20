@@ -21,7 +21,6 @@ const FilterBadge = ({
 
   return (
     <Tag
-      className="fr-tag--dismiss"
       nativeButtonProps={{
         onClick: onClose,
       }}

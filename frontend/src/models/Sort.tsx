@@ -5,17 +5,15 @@ export type Sort<Sortable extends object = object> = Partial<
   Record<keyof Sortable, Direction>
 >;
 
-export function toQuery(sort?: Sort): string {
+export function toQuery(sort?: Sort): string[] {
   if (!sort) {
-    return '';
+    return [];
   }
 
   const prependMinus = prepend('-');
-  return Object.entries(sort)
-    .map(([property, direction]) =>
-      direction === 'desc' ? prependMinus(property) : property
-    )
-    .join(',');
+  return Object.entries(sort).map(([property, direction]) =>
+    direction === 'desc' ? prependMinus(property) : property
+  );
 }
 
 export interface SortOptions<Sortable extends object> {

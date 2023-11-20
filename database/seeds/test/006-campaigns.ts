@@ -1,7 +1,7 @@
 // @ts-ignore
 import { User1 } from './003-users';
 import { Establishment1 } from './001-establishments';
-import { Housing0, Housing1 } from './005-housing';
+import { Housing1 } from './005-housing';
 import { genCampaignApi } from '../../../server/test/testFixtures';
 import campaignRepository, {
   campaignsTable,
@@ -11,22 +11,10 @@ import { housingTable } from '../../../server/repositories/housingRepository';
 import { HousingStatusApi } from '../../../server/models/HousingStatusApi';
 import { Knex } from 'knex';
 
-export const Campaign1 = genCampaignApi(Establishment1.id, 1, 0, User1.id);
+export const Campaign1 = genCampaignApi(Establishment1.id, User1.id);
 
 exports.seed = function (knex: Knex) {
   return Promise.all([
-    knex
-      .table(campaignsTable)
-      .where('establishment_id', Establishment1.id)
-      .andWhere('campaign_number', 0)
-      .first()
-      .then((campaign) =>
-        knex.table(campaignsHousingTable).insert({
-          campaign_id: campaign.id,
-          housing_id: Housing0.id,
-          housing_geo_code: Housing0.geoCode,
-        })
-      ),
     knex
       .table(campaignsTable)
       .insert(campaignRepository.formatCampaignApi(Campaign1))

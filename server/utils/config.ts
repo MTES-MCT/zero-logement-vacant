@@ -68,6 +68,11 @@ interface Config {
   databaseEnvironment: string;
   databaseUrl: string;
   databaseUrlTest: string;
+  database: {
+    pool: {
+      max: number;
+    };
+  };
   datafoncier: {
     token: string | null;
   };
@@ -201,6 +206,15 @@ const config = convict<Config>({
     env: 'DATABASE_URL_TEST',
     format: String,
     default: null,
+  },
+  database: {
+    pool: {
+      max: {
+        env: 'DATABASE_POOL_MAX',
+        format: Number,
+        default: 10,
+      },
+    },
   },
   datafoncier: {
     token: {

@@ -6,12 +6,15 @@ import classNames from 'classnames';
 
 interface UseSortOptions<Sortable extends object> {
   onSort?(sort: Sort<Sortable>): void | Promise<void>;
+  default?: Sort<Sortable>;
 }
 
 export function useSort<Sortable extends object>(
   options?: UseSortOptions<Sortable>
 ) {
-  const [sort, setSort] = useState<Sort<Sortable>>();
+  const [sort, setSort] = useState<Sort<Sortable> | undefined>(
+    options?.default
+  );
 
   function getSortButton(key: keyof Sortable, title: string): JSX.Element {
     const direction = sort?.[key];

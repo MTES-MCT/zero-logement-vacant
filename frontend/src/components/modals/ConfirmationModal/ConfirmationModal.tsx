@@ -10,7 +10,7 @@ interface Props {
   modalId: string;
   children: ReactNode | ReactNode[];
   title?: string | ReactElement;
-  onSubmit: (param?: any) => void;
+  onSubmit: (param?: any) => void | Promise<void>;
   size?: 'small' | 'medium' | 'large';
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
   openingAppLinkAsButtonProps?: Omit<AppLinkAsButtonProps, 'onClick'>;

@@ -1,182 +1,139 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
-import { CampaignSteps } from '../../models/Campaign';
-import { useParams } from 'react-router-dom';
+import { campaignStep, CampaignSteps, isCampaignDeletable } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
 import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import {
-  deleteCampaignBundle,
-  getCampaignBundle,
-} from '../../store/actions/campaignAction';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import { useCampaignBundle } from '../../hooks/useCampaignBundle';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
+import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import CampaignBundleStats from '../../components/CampaignBundle/CampaignBundleStats';
-import CampaignBundleInfos from '../../components/CampaignBundle/CampaignBundleInfos';
-import CampaignBundleTitle from '../../components/CampaignBundle/CampaignBundleTitle';
+import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import { hasFilters } from '../../models/HousingFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch } from '../../hooks/useStore';
-import { numberOption } from '../../utils/numberUtils';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { useRemoveCampaignMutation } from '../../services/campaign.service';
+import { useHistory } from 'react-router-dom';
 import AppLink from '../../components/_app/AppLink/AppLink';
+import CampaignCounts from '../../components/Campaign/CampaignCounts';
+import { useGetGroupQuery } from '../../services/group.service';
+import { useCampaign } from '../../hooks/useCampaign';
 
 const CampaignView = () => {
   useDocumentTitle('Campagne');
-  const dispatch = useAppDispatch();
-  const campaignList = useCampaignList(true);
-  const { campaignNumber, reminderNumber } = useParams<{
-    campaignNumber: string;
-    reminderNumber: string;
-  }>();
+  const router = useHistory();
+
   const { trackEvent } = useMatomo();
 
-  const { bundle, step, isDeletable } = useCampaignBundle();
+  const [removeCampaign] = useRemoveCampaignMutation();
 
-  useEffect(() => {
-    dispatch(
-      getCampaignBundle({
-        campaignNumber: numberOption(campaignNumber),
-        reminderNumber: numberOption(reminderNumber),
-      })
-    );
-  }, [dispatch, campaignNumber, reminderNumber]);
+  const { campaign } = useCampaign();
+  const { data: group } = useGetGroupQuery(campaign?.groupId!, {
+    skip: !campaign?.groupId,
+  });
 
-  function removeCampaign(): void {
-    if (bundle) {
-      trackEvent({
-        category: TrackEventCategories.Campaigns,
-        action: TrackEventActions.Campaigns.Delete,
-      });
-      dispatch(deleteCampaignBundle(bundle));
-    }
+  if (!campaign) {
+    return <></>;
   }
 
-  return bundle &&
-    bundle.campaignNumber === numberOption(campaignNumber) &&
-    bundle.reminderNumber === numberOption(reminderNumber) ? (
+  const remove = async () => {
+    trackEvent({
+      category: TrackEventCategories.Campaigns,
+      action: TrackEventActions.Campaigns.Delete,
+    });
+    await removeCampaign(campaign.id);
+
+    router.push('/campagnes');
+  };
+
+  return (
     <MainContainer>
-      <Row>
-        <Col>
-          <CampaignBundleTitle campaignBundle={bundle} look="h3" />
-        </Col>
-        {isDeletable && (
-          <Col className="align-right">
-            <ConfirmationModal
-              modalId={`delete-${bundle.campaignNumber}-${bundle.reminderNumber}`}
-              onSubmit={removeCampaign}
-              openingButtonProps={{
-                iconId: 'fr-icon-delete-bin-fill',
-                priority: 'tertiary no outline',
-                children: 'Supprimer la campagne',
-                size: 'small',
-              }}
-            >
-              <Text>
-                Êtes-vous sûr de vouloir supprimer cette{' '}
-                {bundle.reminderNumber ? 'relance' : 'campagne'} ?
-              </Text>
-              {!bundle.reminderNumber &&
-                bundle.campaignNumber! < (campaignList ?? []).length && (
+      {campaignStep(campaign) < CampaignSteps.InProgress && (
+        <>
+          <Row>
+            <Col>
+              <CampaignTitle campaign={campaign} look="h3" />
+            </Col>
+            {isCampaignDeletable(campaign) && (
+              <Col className="align-right">
+                <ConfirmationModal
+                  modalId={`delete-${campaign.id}`}
+                  onSubmit={remove}
+                  openingButtonProps={{
+                    iconId: 'fr-icon-delete-bin-fill',
+                    priority: 'tertiary no outline',
+                    children: 'Supprimer la campagne',
+                    size: 'small',
+                  }}
+                >
+                  <Text>
+                    Êtes-vous sûr de vouloir supprimer cette campagne ?
+                  </Text>
                   <Alert
-                    description="Les campagnes suivantes seront renumérotées."
+                    description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
                     severity="info"
                     small
                   />
-                )}
-              <Alert
-                description='Les statuts des logements "En attente de retour" repasseront en "Jamais contacté". Les autres statuts mis à jour ne seront pas modifiés.'
-                severity="info"
-                small
-              />
-            </ConfirmationModal>
-          </Col>
-        )}
-      </Row>
-      <Row spacing="my-1w">
-        <Col>
-          <div>
-            <CampaignBundleInfos campaignBundle={bundle} />
-            {step && step >= CampaignSteps.InProgress && (
-              <CampaignBundleStats campaignBundle={bundle} />
+                </ConfirmationModal>
+              </Col>
             )}
-          </div>
-        </Col>
-      </Row>
-      {bundle.group && (
-        <Row spacing="mb-2w">
-          <Col className="d-flex">
-            <Text
-              as="span"
-              className="weight-500"
-              size="sm"
-              spacing="mb-0 mr-2w"
-            >
-              Créée à partir du groupe
-            </Text>
-            {!!bundle.group.archivedAt ? (
-              <>
-                <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
-                <Text as="span" spacing="mb-0">
-                  {bundle.group.title}
-                </Text>
-              </>
-            ) : (
-              <AppLink
-                to={`/groupes/${bundle.group.id}`}
-                iconId="ri-hotel-fill"
-                iconPosition="left"
-                isSimple
-              >
-                {bundle.group.title}
-              </AppLink>
-            )}
-          </Col>
-        </Row>
-      )}
-      {bundle.filters &&
-        hasFilters(bundle.filters) &&
-        !bundle.filters.groupIds?.length && (
-          <Row spacing="mb-5w">
-            <Col>
-              <Text size="sm" className="fr-mb-1w">
-                Filtres utilisés pour la création de l'échantillon :
-              </Text>
-              <HousingFiltersBadges filters={bundle.filters} />
-            </Col>
           </Row>
-        )}
-      {(bundle.campaignNumber ?? 0) > 0 &&
-        step &&
-        step >= CampaignSteps.InProgress && (
-          <Alert
-            title="Bienvenue dans l’espace suivi de votre campagne."
-            description="Vous retrouverez ici tous les logements ciblés par cette campagne. Mettez-les à jour logement par logement ou par groupe de logements."
-            className="fr-my-3w"
-            closable
-            severity="info"
-          />
-        )}
-      {step !== null && (
-        <Container spacing="pb-4w px-0" as="article">
-          {(bundle.campaignNumber ?? 0) > 0 &&
-          step < CampaignSteps.InProgress ? (
-            <CampaignToValidate campaignStep={step} />
-          ) : (
-            <CampaignInProgress />
+          <div className="fr-mb-2w">
+            <CampaignCounts campaignId={campaign.id} />
+          </div>
+          {group && (
+            <Row spacing="my-2w">
+              <Col className="d-flex">
+                <Text
+                  as="span"
+                  className="weight-500"
+                  size="sm"
+                  spacing="mb-0 mr-2w"
+                >
+                  Créée à partir du groupe
+                </Text>
+                {!!group.archivedAt ? (
+                  <>
+                    <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
+                    <Text as="span" spacing="mb-0">
+                      {group.title}
+                    </Text>
+                  </>
+                ) : (
+                  <AppLink
+                    to={`/groupes/${group.id}`}
+                    iconId="ri-hotel-fill"
+                    iconPosition="left"
+                    isSimple
+                  >
+                    {group.title}
+                  </AppLink>
+                )}
+              </Col>
+            </Row>
           )}
-        </Container>
+          {campaign.filters &&
+            hasFilters(campaign.filters) &&
+            !campaign.filters.groupIds?.length && (
+              <Row spacing="mb-3w">
+                <Col>
+                  <Text size="sm" className="fr-mb-1w">
+                    Filtres utilisés pour la création de l'échantillon :
+                  </Text>
+                  <HousingFiltersBadges filters={campaign.filters} />
+                </Col>
+              </Row>
+            )}
+        </>
       )}
+      <Container spacing="pb-4w px-0" as="article">
+        {campaignStep(campaign) < CampaignSteps.InProgress ? (
+          <CampaignToValidate campaignStep={campaignStep(campaign)} />
+        ) : (
+          <CampaignInProgress />
+        )}
+      </Container>
     </MainContainer>
-  ) : (
-    <></>
   );
 };
 

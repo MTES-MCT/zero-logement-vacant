@@ -13,7 +13,7 @@ import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
 import EventPartialOwnerContent from './EventPartialOwnerContent';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLink from '../_app/AppLink/AppLink';
-import { Campaign, campaignBundleIdUrlFragment } from '../../models/Campaign';
+import { Campaign } from '../../models/Campaign';
 import GroupEventContent from './GroupEventContent';
 
 interface Props {
@@ -198,15 +198,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                         Ce logement a été <b>ajouté dans une campagne</b>{' '}
                         {findNewCampaign(eventOrNote) && (
                           <AppLink
-                            to={
-                              '/campagnes/' +
-                              campaignBundleIdUrlFragment({
-                                campaignNumber:
-                                  findNewCampaign(eventOrNote).campaignNumber,
-                                reminderNumber:
-                                  findNewCampaign(eventOrNote).reminderNumber,
-                              })
-                            }
+                            to={`/campagnes/${findNewCampaign(eventOrNote).id}`}
                             isSimple
                             iconId="fr-icon-mail-fill"
                             iconPosition="left"

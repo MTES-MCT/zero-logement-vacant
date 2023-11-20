@@ -10,7 +10,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 interface Props {
   housingCount: number;
   open: boolean;
-  fromDefaultCampaign?: boolean;
   onSubmit: (housingUpdate: HousingUpdate) => void;
   onClose: () => void;
 }
@@ -18,7 +17,6 @@ interface Props {
 const HousingListEditionSideMenu = ({
   housingCount,
   open,
-  fromDefaultCampaign,
   onSubmit,
   onClose,
 }: Props) => {
@@ -54,7 +52,6 @@ const HousingListEditionSideMenu = ({
         <Container as="section">
           {open && (
             <HousingEditionForm
-              fromDefaultCampaign={fromDefaultCampaign}
               housingCount={housingCount}
               onSubmit={onSubmit}
               ref={statusFormRef}

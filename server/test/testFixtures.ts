@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
-import { AddressApi } from '../models/AddressApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
 import { addHours } from 'date-fns';
@@ -29,7 +28,6 @@ import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { NoteCreationDTO } from '../../shared/models/NoteDTO';
 import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
@@ -169,15 +167,6 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
   };
 };
 
-export const genAddressApi = () => {
-  return <AddressApi>{
-    houseNumber: randomstring.generate(),
-    street: randomstring.generate(),
-    postalCode: randomstring.generate(),
-    city: randomstring.generate(),
-  };
-};
-
 export const genOwnerApi = (): OwnerApi => {
   return {
     id: uuidv4(),
@@ -237,18 +226,11 @@ export const genHousingApi = (
   };
 };
 
-export const genCampaignApi = (
-  establishmentId: string,
-  campaignNumber: number,
-  reminderNumber: number,
-  createdBy: string
-) => {
+export const genCampaignApi = (establishmentId: string, createdBy: string) => {
   return <CampaignApi>{
     id: uuidv4(),
     establishmentId,
-    campaignNumber,
-    reminderNumber,
-    name: randomstring.generate(),
+    title: randomstring.generate(),
     filters: {
       geoPerimetersIncluded: [randomstring.generate()],
       geoPerimetersExcluded: [randomstring.generate()],
@@ -270,13 +252,6 @@ export const genGeoPerimeterApi = (establishmentId: string) => {
     kind: randomstring.generate(),
   };
 };
-
-export const genNoteCreationDTO = (): NoteCreationDTO => ({
-  content: randomstring.generate(),
-  noteKind: randomstring.generate(),
-  housingIds: [uuidv4()],
-  ownerId: uuidv4(),
-});
 
 export const genResetLinkApi = (userId: string) => {
   return <ResetLinkApi>{

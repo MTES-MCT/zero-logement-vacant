@@ -21,15 +21,18 @@ export const toTitleCase = (string: string) => {
 export const displayCount = (
   totalCount: number,
   label: string,
-  capitalize = true,
+  { capitalize, feminine }: { capitalize?: boolean; feminine?: boolean } = {
+    capitalize: true,
+    feminine: false,
+  },
   filteredCount?: number
 ): string => {
   if (!totalCount || totalCount === 0) {
-    return `${capitalize ? 'Aucun' : 'aucun'} ${label}`;
+    return `${capitalize ? 'Aucun' : 'aucun'}${feminine ? 'e' : ''} ${label}`;
   }
 
   if (totalCount === 1) {
-    return `${capitalize ? 'Un' : 'un'} ${label}`;
+    return `${capitalize ? 'Un' : 'un'}${feminine ? 'e' : ''} ${label}`;
   }
 
   if (filteredCount !== undefined && filteredCount !== totalCount) {

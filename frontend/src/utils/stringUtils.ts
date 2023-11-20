@@ -32,7 +32,7 @@ export const displayCount = (
   }
 
   if (totalCount === 1) {
-    return `${capitalize ? 'Un' : 'un'}${feminine ?? 'e'} ${label}`;
+    return `${capitalize ? 'Un' : 'un'}${feminine ? 'e' : ''} ${label}`;
   }
 
   if (filteredCount !== undefined && filteredCount !== totalCount) {

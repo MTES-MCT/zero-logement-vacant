@@ -19,7 +19,11 @@ const findOne = async (opts: FindOneOptions): Promise<OwnerMatchDBO | null> => {
 };
 
 const save = async (ownerMatch: OwnerMatchDBO): Promise<void> => {
-  await OwnerMatches().insert(ownerMatch).onConflict().ignore();
+  await saveMany([ownerMatch]);
+};
+
+const saveMany = async (ownerMatches: OwnerMatchDBO[]): Promise<void> => {
+  await OwnerMatches().insert(ownerMatches).onConflict().ignore();
 };
 
 export interface OwnerMatchDBO {
@@ -31,6 +35,7 @@ const ownerMatchRepository = {
   find,
   findOne,
   save,
+  saveMany,
 };
 
 export default ownerMatchRepository;

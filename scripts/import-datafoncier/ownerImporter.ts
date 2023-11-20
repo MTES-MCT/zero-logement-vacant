@@ -1,28 +1,43 @@
-import Stream = Highland.Stream;
+import highland from 'highland';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
-import { DatafoncierOwner, evaluate, tapAsync, toOwnerApi } from '../shared';
-import ownerMatchRepository from '../../server/repositories/ownerMatchRepository';
+import { DatafoncierOwner, evaluate, toOwnerApi } from '../shared';
+import OwnerMatchRepository, {
+  OwnerMatchDBO,
+} from '../../server/repositories/ownerMatchRepository';
 import { isMatch } from '../shared/owner-processor/duplicates';
-import ownerRepository from '../../server/repositories/ownerRepository';
 import { logger } from '../../server/utils/logger';
+import { isDefined } from '../../shared';
+import OwnerRepository from '../../server/repositories/ownerRepository';
+import Stream = Highland.Stream;
+import ownerMatchRepository from '../../server/repositories/ownerMatchRepository';
 
-export function ownerImporter(): Stream<OwnerApi> {
+export function ownerImporter(
+  stream: Stream<DatafoncierOwner> = createDatafoncierOwnersRepository().stream()
+) {
   logger.info('Importing owners...');
-  return createDatafoncierOwnersRepository()
-    .stream()
-    .consume(tapAsync(processOwner))
-    .map(toOwnerApi)
+  return stream
+    .flatMap((dfOwner) => highland(processOwner(dfOwner)))
+    .batch(1_000)
+    .tap((owners) => {
+      logger.info(`Saving ${owners.length} owners...`);
+    })
+    .flatMap(save)
     .errors((error) => {
       logger.error(error);
     });
+}
+
+interface Result {
+  match?: OwnerMatchDBO;
+  owner?: OwnerApi;
 }
 
 /**
  * Link a DataFoncier owner to our owner.
  * @param dfOwner
  */
-export async function processOwner(dfOwner: DatafoncierOwner): Promise<void> {
+export async function processOwner(dfOwner: DatafoncierOwner): Promise<Result> {
   logger.debug(`Processing ${dfOwner.idpersonne}...`);
   const dfOwnerApi = toOwnerApi(dfOwner);
 
@@ -33,18 +48,40 @@ export async function processOwner(dfOwner: DatafoncierOwner): Promise<void> {
   if (!ownerMatch) {
     const comparison = await evaluate(dfOwnerApi);
     if (isMatch(comparison.score) && !comparison.needsReview) {
-      await ownerMatchRepository.save({
-        owner_id: comparison.duplicates[0].value.id,
-        idpersonne: dfOwner.idpersonne,
-      });
+      return {
+        match: {
+          owner_id: comparison.duplicates[0].value.id,
+          idpersonne: dfOwner.idpersonne,
+        },
+      };
     } else {
-      await ownerRepository.save(dfOwnerApi);
-      await ownerMatchRepository.save({
-        owner_id: dfOwnerApi.id,
-        idpersonne: dfOwner.idpersonne,
-      });
+      return {
+        owner: dfOwnerApi,
+        match: {
+          owner_id: dfOwnerApi.id,
+          idpersonne: dfOwner.idpersonne,
+        },
+      };
     }
   }
+
+  return {};
+}
+
+function save(results: Result[]): Stream<void> {
+  async function saveResult(): Promise<void> {
+    const owners = results.map((result) => result.owner).filter(isDefined);
+    if (owners.length) {
+      await OwnerRepository.saveMany(owners);
+    }
+
+    const matches = results.map((result) => result.match).filter(isDefined);
+    if (matches.length) {
+      await OwnerMatchRepository.saveMany(matches);
+    }
+  }
+
+  return highland(saveResult());
 }
 
 export default ownerImporter;

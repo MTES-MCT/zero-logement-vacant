@@ -11,5 +11,7 @@ export interface CampaignQuery {
 }
 
 export const campaignFiltersValidators: ValidationChain[] = [
-  query('groups').custom(isArrayOf(isUUID)).optional(),
+  query('groups')
+    .custom(isUUID || isArrayOf(isUUID))
+    .optional(),
 ];

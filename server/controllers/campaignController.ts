@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSortableApi, CampaignSteps } from '../models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignSortableApi,
+  CampaignSteps,
+} from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import localityRepository from '../repositories/localityRepository';
@@ -12,11 +16,16 @@ import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '../models/HousingApi';
 import async from 'async';
-import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
+import housingFiltersApi, {
+  HousingFiltersApi,
+} from '../models/HousingFiltersApi';
 import { logger } from '../utils/logger';
 import groupRepository from '../repositories/groupRepository';
 import GroupMissingError from '../errors/groupMissingError';
-import { campaignFiltersValidators, CampaignQuery } from '../models/CampaignFiltersApi';
+import {
+  campaignFiltersValidators,
+  CampaignQuery,
+} from '../models/CampaignFiltersApi';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
@@ -59,7 +68,8 @@ const listCampaigns = async (request: Request, response: Response) => {
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds: query.groups,
+      groupIds:
+        typeof query.groups === 'string' ? [query.groups] : query.groups,
     },
     sort,
   });

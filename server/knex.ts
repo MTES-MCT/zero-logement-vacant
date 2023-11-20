@@ -11,7 +11,7 @@ const defaultConfig: KnexConfig = {
   acquireConnectionTimeout: 10_000,
   pool: {
     min: 0,
-    max: 10,
+    max: config.database.pool.max,
   },
   migrations: {
     tableName: 'knex_migrations',

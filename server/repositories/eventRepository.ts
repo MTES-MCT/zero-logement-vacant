@@ -15,6 +15,7 @@ import { EventSection } from '../../shared/types/EventSection';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { GroupApi } from '../models/GroupApi';
 import { logger } from '../utils/logger';
+import highland from 'highland';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -52,24 +53,31 @@ const insertManyHousingEvents = async (
   housingEvents: HousingEventApi[]
 ): Promise<void> => {
   if (housingEvents.length) {
-    await Events().insert(
-      housingEvents.map((housingEvent) => ({
-        ...formatEventApi(housingEvent),
-        new: Array.isArray(housingEvent.new)
-          ? JSON.stringify(housingEvent.new)
-          : denormalizeStatus(housingEvent.new),
-        old: Array.isArray(housingEvent.old)
-          ? JSON.stringify(housingEvent.old)
-          : denormalizeStatus(housingEvent.old),
-      }))
-    );
-    await HousingEvents().insert(
-      housingEvents.map((housingEvent) => ({
-        event_id: housingEvent.id,
-        housing_id: housingEvent.housingId,
-        housing_geo_code: housingEvent.housingGeoCode,
-      }))
-    );
+    highland(housingEvents)
+      .batch(100)
+      .each(async (events) => {
+        await db.transaction(async (transaction) => {
+          await Events(transaction).insert(
+            events.map((housingEvent) => ({
+              ...formatEventApi(housingEvent),
+              new: Array.isArray(housingEvent.new)
+                ? JSON.stringify(housingEvent.new)
+                : denormalizeStatus(housingEvent.new),
+              old: Array.isArray(housingEvent.old)
+                ? JSON.stringify(housingEvent.old)
+                : denormalizeStatus(housingEvent.old),
+            }))
+          );
+          await HousingEvents(transaction).insert(
+            events.map((housingEvent) => ({
+              event_id: housingEvent.id,
+              housing_id: housingEvent.housingId,
+              housing_geo_code: housingEvent.housingGeoCode,
+            }))
+          );
+        });
+      })
+      .done(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
   }
 };
 

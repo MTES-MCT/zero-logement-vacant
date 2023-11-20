@@ -10,7 +10,6 @@ import {
 } from '../../test/testFixtures';
 import db from '../db';
 import { OwnerApi } from '../../models/OwnerApi';
-import { startOfDay } from 'date-fns';
 import { DatafoncierOwners } from '../../../scripts/import-datafoncier/datafoncierOwnersRepository';
 import { OwnerMatches } from '../ownerMatchRepository';
 
@@ -69,9 +68,7 @@ describe('Owner repository', () => {
       expect(actual).toStrictEqual({
         ...owner,
         administrator: null,
-        birthDate: owner.birthDate
-          ? startOfDay(new Date(owner.birthDate))
-          : null,
+        birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
       });
     });
   });

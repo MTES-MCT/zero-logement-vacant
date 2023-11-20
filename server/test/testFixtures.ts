@@ -175,7 +175,8 @@ export const genOwnerApi = (): OwnerApi => {
   return {
     id: uuidv4(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
-    birthDate: new Date(),
+    // Get the start of the day to avoid time zone issues
+    birthDate: new Date(new Date().toISOString().substring(0, 10)),
     fullName: randomstring.generate(),
     email: genEmail(),
     phone: randomstring.generate(),

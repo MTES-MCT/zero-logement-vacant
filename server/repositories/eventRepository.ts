@@ -15,7 +15,7 @@ import { EventSection } from '../../shared/types/EventSection';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { GroupApi } from '../models/GroupApi';
 import { logger } from '../utils/logger';
-import highland from 'highland';
+import chunk from 'lodash/chunk';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -53,12 +53,11 @@ const insertManyHousingEvents = async (
   housingEvents: HousingEventApi[]
 ): Promise<void> => {
   if (housingEvents.length) {
-    highland(housingEvents)
-      .batch(100)
-      .each(async (events) => {
-        await db.transaction(async (transaction) => {
+    await db.transaction(async (transaction) => {
+      await Promise.all(
+        chunk(housingEvents, 1000).map(async (chunk) => {
           await Events(transaction).insert(
-            events.map((housingEvent) => ({
+            chunk.map((housingEvent) => ({
               ...formatEventApi(housingEvent),
               new: Array.isArray(housingEvent.new)
                 ? JSON.stringify(housingEvent.new)
@@ -69,15 +68,15 @@ const insertManyHousingEvents = async (
             }))
           );
           await HousingEvents(transaction).insert(
-            events.map((housingEvent) => ({
+            chunk.map((housingEvent) => ({
               event_id: housingEvent.id,
               housing_id: housingEvent.housingId,
               housing_geo_code: housingEvent.housingGeoCode,
             }))
           );
-        });
-      })
-      .done(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+        })
+      );
+    });
   }
 };
 
@@ -121,14 +120,18 @@ const insertManyGroupHousingEvents = async (
     events: groupHousingEvents.length,
   });
   await db.transaction(async (transaction) => {
-    await Events(transaction).insert(groupHousingEvents.map(formatEventApi));
-    await GroupHousingEvents(transaction).insert(
-      groupHousingEvents.map((event) => ({
-        event_id: event.id,
-        housing_geo_code: event.housingGeoCode,
-        housing_id: event.housingId,
-        group_id: event.groupId,
-      }))
+    await Promise.all(
+      chunk(groupHousingEvents, 1000).map(async (chunk) => {
+        await Events(transaction).insert(chunk.map(formatEventApi));
+        await GroupHousingEvents(transaction).insert(
+          chunk.map((event) => ({
+            event_id: event.id,
+            housing_geo_code: event.housingGeoCode,
+            housing_id: event.housingId,
+            group_id: event.groupId,
+          }))
+        );
+      })
     );
   });
 };

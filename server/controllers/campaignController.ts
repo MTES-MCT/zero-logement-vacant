@@ -29,6 +29,7 @@ import {
 import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
+import { HousingEventApi } from '../models/EventApi';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -94,7 +95,7 @@ const createCampaignValidators: ValidationChain[] = [
 const createCampaign = async (
   request: Request,
   response: Response
-): Promise<Response> => {
+): Promise<void> => {
   logger.info('Create campaign');
 
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
@@ -157,25 +158,28 @@ const createCampaign = async (
     },
   });
 
-  await eventRepository.insertManyHousingEvents(
-    housingList.map((housing) => ({
-      id: uuidv4(),
-      name: 'Ajout dans une campagne',
-      kind: 'Create',
-      category: 'Campaign',
-      section: 'Suivi de campagne',
-      old: housingList.find((_) => _.id === housing.id),
-      new: newHousingList
-        .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
-        .find((_) => _.id === housing.id),
-      createdBy: userId,
-      createdAt: new Date(),
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode,
-    }))
-  );
+  response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
 
-  return response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
+  const events: HousingEventApi[] = housingList.map((housing) => ({
+    id: uuidv4(),
+    name: 'Ajout dans une campagne',
+    kind: 'Create',
+    category: 'Campaign',
+    section: 'Suivi de campagne',
+    old: housingList.find((_) => _.id === housing.id),
+    new: newHousingList
+      .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
+      .find((_) => _.id === housing.id),
+    createdBy: userId,
+    createdAt: new Date(),
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  }));
+  eventRepository
+    .insertManyHousingEvents(events)
+    .catch((error) =>
+      logger.error('Error while inserting housing events', error)
+    );
 };
 
 const createCampaignFromGroup = async (
@@ -217,29 +221,32 @@ const createCampaignFromGroup = async (
   });
   await campaignHousingRepository.insertHousingList(campaign.id, housingList);
 
-  await eventRepository.insertManyHousingEvents(
-    housingList.map((housing) => ({
-      id: uuidv4(),
-      name: 'Ajout dans une campagne',
-      kind: 'Create',
-      category: 'Campaign',
-      section: 'Suivi de campagne',
-      old: housing,
-      new: {
-        ...housing,
-        campaignIds: [...housing.campaignIds, campaign.id],
-      },
-      createdBy: auth.userId,
-      createdAt: new Date(),
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode,
-    }))
-  );
-
   response.status(constants.HTTP_STATUS_CREATED).json(campaign);
+
+  const events: HousingEventApi[] = housingList.map((housing) => ({
+    id: uuidv4(),
+    name: 'Ajout dans une campagne',
+    kind: 'Create',
+    category: 'Campaign',
+    section: 'Suivi de campagne',
+    old: housing,
+    new: {
+      ...housing,
+      campaignIds: [...housing.campaignIds, campaign.id],
+    },
+    createdBy: auth.userId,
+    createdAt: new Date(),
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  }));
+  eventRepository
+    .insertManyHousingEvents(events)
+    .catch((error) =>
+      logger.error('Error while inserting housing events', error)
+    );
 };
 const createCampaignFromGroupValidators: ValidationChain[] = [
-  param('id').isString().isUUID().notEmpty(),
+  param('id').isUUID().notEmpty(),
   body('title').isString().notEmpty(),
 ];
 

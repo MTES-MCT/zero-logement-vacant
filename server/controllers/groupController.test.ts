@@ -238,7 +238,6 @@ describe('Group controller', () => {
           'Content-Type': 'application/json',
         })
       );
-
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const establishmentHousingList = housingList.filter((housing) =>
         Establishment1.geoCodes.includes(housing.geoCode)

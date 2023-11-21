@@ -1,15 +1,11 @@
 import { HousingFiltersApi } from './HousingFiltersApi';
-import { formatISO } from 'date-fns';
-import { GroupApi } from './GroupApi';
+import { Sort } from './SortApi';
 
 export interface CampaignApi {
   id: string;
   establishmentId: string;
-  campaignNumber: number;
-  kind: CampaignKinds;
-  reminderNumber: number;
   filters: HousingFiltersApi;
-  title?: string;
+  title: string;
   createdBy?: string;
   createdAt?: Date;
   validatedAt?: Date;
@@ -19,26 +15,6 @@ export interface CampaignApi {
   sendingDate?: Date;
   confirmedAt?: Date;
   groupId?: string;
-}
-
-export interface CampaignBundleApi {
-  campaignIds: string[];
-  campaignNumber: number;
-  reminderNumber: number;
-  createdAt: Date;
-  kind: CampaignKinds;
-  filters: HousingFiltersApi;
-  title?: string;
-  housingCount: number;
-  neverContactedCount: number;
-  waitingCount: number;
-  inProgressCount: number;
-  notVacantCount: number;
-  noActionCount: number;
-  npaiCount: number;
-  inProgressWithSupportCount: number;
-  ownerCount: number;
-  group?: GroupApi;
 }
 
 export enum CampaignSteps {
@@ -51,19 +27,8 @@ export enum CampaignSteps {
   Archived,
 }
 
-export enum CampaignKinds {
-  Initial,
-  Surveying,
-  DoorToDoor,
-  BeforeZlv,
-}
-
-export const DefaultCampaign = {
-  campaignNumber: 0,
-  filters: {},
-  createdAt: new Date(),
-  validatedAt: new Date(),
-  exportedAt: new Date(),
-  sentAt: new Date(),
-  sendingDate: formatISO(new Date()),
-};
+export type CampaignSortableApi = Pick<
+  CampaignApi,
+  'createdAt' | 'sendingDate'
+> & { status: string };
+export type CampaignSortApi = Sort<CampaignSortableApi>;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Row } from '../../components/_dsfr';
+import { Col, Row, Title } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
@@ -62,7 +62,9 @@ const HousingListView = () => {
       </Row>
       <Row spacing="mb-1w">
         <Col n="6">
-          <h6>Votre parc de logements</h6>
+          <Title as="h1" look="h3">
+            Votre parc de logements
+          </Title>
           <div className="d-flex">
             <AppSearchBar
               onSearch={searchWithQuery}

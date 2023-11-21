@@ -59,6 +59,14 @@
       padding: 0;
     }
   }
+
+  &.campaign-list {
+    th:last-child,
+    tr > td:last-child {
+      width: 220px;
+      padding: 0;
+    }
+  }
 }
 
 .zlv-table {

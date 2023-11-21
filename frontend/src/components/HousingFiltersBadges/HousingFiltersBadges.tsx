@@ -25,7 +25,6 @@ import {
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
-import { campaignFullName } from '../../models/Campaign';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   getSubStatusList,
@@ -36,6 +35,7 @@ import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import styles from './housing-filters-badges.module.scss';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -69,7 +69,7 @@ const HousingFiltersBadges = ({
 
   return (
     <>
-      <div className="fr-tags-group d-inline-block">
+      <div className="fr-tags-group">
         <FilterBadges
           options={allOccupancyOptions}
           filters={filters.occupancies}
@@ -255,7 +255,7 @@ const HousingFiltersBadges = ({
           <FilterBadges
             options={campaignList.map((c) => ({
               value: c.id,
-              label: campaignFullName(c),
+              label: c.title,
             }))}
             filters={filters.campaignIds}
             small={small}
@@ -296,12 +296,12 @@ const HousingFiltersBadges = ({
           small={small}
           onChange={onChange && (() => onChange({ query: '' }))}
         />
+        {canReset && (
+          <AppLinkAsButton onClick={reset} className={styles.reinit} size="sm">
+            Réinitialiser les filtres
+          </AppLinkAsButton>
+        )}
       </div>
-      {canReset && (
-        <AppLinkAsButton onClick={reset} className="fr-m-2w" size="sm">
-          Réinitialiser les filtres
-        </AppLinkAsButton>
-      )}
     </>
   );
 };

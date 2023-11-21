@@ -1,7 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
-import campaignReducer from './reducers/campaignReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 import { geoPerimetersApi } from '../services/geo.service';
@@ -19,22 +18,23 @@ import { ownerProspectApi } from '../services/owner-prospect.service';
 import { settingsApi } from '../services/settings.service';
 import { groupApi } from '../services/group.service';
 import { dashboardApi } from '../services/dashboard.service';
+import { campaignApi } from '../services/campaign.service';
 
 export const applicationReducer = {
   authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
-  campaign: campaignReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   loadingBar: loadingBarReducer,
+  [campaignApi.reducerPath]: campaignApi.reducer,
   [contactPointsApi.reducerPath]: contactPointsApi.reducer,
   [establishmentApi.reducerPath]: establishmentApi.reducer,
   [eventApi.reducerPath]: eventApi.reducer,
   [geoPerimetersApi.reducerPath]: geoPerimetersApi.reducer,
+  [groupApi.reducerPath]: groupApi.reducer,
   [housingApi.reducerPath]: housingApi.reducer,
   [localityApi.reducerPath]: localityApi.reducer,
   [noteApi.reducerPath]: noteApi.reducer,
   [ownerApi.reducerPath]: ownerApi.reducer,
-  [groupApi.reducerPath]: groupApi.reducer,
   [ownerProspectApi.reducerPath]: ownerProspectApi.reducer,
   [settingsApi.reducerPath]: settingsApi.reducer,
   [signupLinkApi.reducerPath]: signupLinkApi.reducer,
@@ -44,6 +44,7 @@ export const applicationReducer = {
 };
 
 export const applicationMiddlewares = [
+  campaignApi.middleware,
   contactPointsApi.middleware,
   dashboardApi.middleware,
   establishmentApi.middleware,

@@ -1,16 +1,10 @@
-import { useEffect } from 'react';
-import { listCampaigns } from '../store/actions/campaignAction';
-import { useAppDispatch, useAppSelector } from './useStore';
+import {
+  FindOptions,
+  useFindCampaignsQuery,
+} from '../services/campaign.service';
 
-export const useCampaignList = (forceReload = false) => {
-  const dispatch = useAppDispatch();
-  const { campaignList } = useAppSelector((state) => state.campaign);
-
-  useEffect(() => {
-    if (forceReload || !campaignList) {
-      dispatch(listCampaigns());
-    }
-  }, [dispatch]); //eslint-disable-line react-hooks/exhaustive-deps
+export const useCampaignList = (opts?: FindOptions) => {
+  const { data: campaignList } = useFindCampaignsQuery(opts);
 
   return campaignList;
 };

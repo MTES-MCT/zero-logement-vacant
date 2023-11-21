@@ -1,4 +1,4 @@
-import { body, param, query, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -14,6 +14,7 @@ import ownerProspectRepository from '../repositories/ownerProspectRepository';
 import pagination, { createPagination } from '../models/PaginationApi';
 import { isPartial } from '../models/PaginatedResultApi';
 import SortApi from '../models/SortApi';
+import sortApi from '../models/SortApi';
 import OwnerProspectMissingError from '../errors/ownerProspectMissingError';
 import mailService from '../services/mailService';
 import establishmentRepository from '../repositories/establishmentRepository';
@@ -78,22 +79,14 @@ const create = async (request: Request, response: Response) => {
 };
 
 export const findOwnerProspectsValidators: ValidationChain[] = [
-  query('sort')
-    .default('address')
-    .escape()
-    .whitelist('-,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-    .matches(/^-?[a-zA-Z]+(,-?[a-zA-Z]+)*$/)
-    .withMessage(
-      'Must a comma-separated string with an optional dash and letters only'
-    )
-    .optional(),
+  ...sortApi.queryValidators,
   ...pagination.queryValidators,
 ];
 
 const find = async (request: Request, response: Response) => {
   const { auth, query } = request as AuthenticatedRequest;
   const sort = SortApi.parse<OwnerProspectSortableApi>(
-    query.sort as string | undefined
+    query.sort as string[] | undefined
   );
 
   const ownerProspects = await ownerProspectRepository.find({

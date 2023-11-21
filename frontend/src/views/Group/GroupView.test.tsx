@@ -93,7 +93,7 @@ describe('Group view', () => {
           },
         },
         {
-          pathname: `/api/groups/${group.id}/campaigns`,
+          pathname: `/api/campaigns/groups/${group.id}`,
           method: 'POST',
           response: {
             status: 201,
@@ -121,7 +121,7 @@ describe('Group view', () => {
       await user.click(confirm);
 
       expect(router.location).toMatchObject({
-        pathname: `/campagnes/C${campaign.campaignNumber}/R${campaign.reminderNumber}`,
+        pathname: `/campagnes/${campaign.id}`,
       });
     });
   });

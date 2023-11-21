@@ -13,7 +13,6 @@ import CampaignsListView from './views/Campaign/CampainListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { createInstance, MatomoProvider, useMatomo } from '@datapunt/matomo-tracker-react';
-import { campaignBundleIdUrlFragment } from './models/Campaign';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
@@ -74,9 +73,6 @@ function App() {
   const {isLoggedOut} = useAppSelector(
     (state) => state.authentication
   );
-  const {campaignBundleFetchingId, campaignCreated} = useAppSelector(
-    (state) => state.campaign
-  );
 
   FetchInterceptor();
 
@@ -90,11 +86,6 @@ function App() {
         <Header/>
         <ScrollToTop/>
 
-        {isAuthenticated && campaignCreated && campaignBundleFetchingId &&
-            <Redirect push={true}
-                      to={`/campagnes/${campaignBundleIdUrlFragment(campaignBundleFetchingId)}`}/>
-        }
-
         <Switch>
           <Route path="/stats" component={StatsView}/>
           <Route path="/accessibilite" component={AccessibilityView}/>
@@ -106,18 +97,10 @@ function App() {
           {isAuthenticated ? [
             ...([
               {path:"/parc-de-logements", component:HousingListView},
+              {path:"/parc-de-logements/campagnes/:campaignId", component:CampaignView},
               {path:"/groupes/:id",component: GroupView},
               {path:"/campagnes", component:CampaignsListView},
-              {path:"/campagnes/C:campaignNumber?", component:CampaignView},
-              {path:"/campagnes/C:campaignNumber/R:reminderNumber?", component:CampaignView},
-              {path:"/campagnes/C:campaignNumber/proprietaires/:ownerId", component:OwnerView},
-              {path:"/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId", component:OwnerView},
-              {path:"/campagnes/C:campaignNumber/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
-              {path:"/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
-              {path:"/campagnes/C:campaignNumber/logements/:housingId", component:HousingView},
-              {path:"/campagnes/C:campaignNumber/R:reminderNumber/logements/:housingId", component:HousingView},
-              {path:"/campagnes/C:campaignNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
-              {path:"/campagnes/C:campaignNumber/R:reminderNumber/proprietaires/:ownerId/logements/:housingId", component:HousingView},
+              {path:"/campagnes/:campaignId", component:CampaignView},
               {path:"/proprietaires/:ownerId/logements/:housingId", component:HousingView},
               {path:"/proprietaires/:ownerId", component:OwnerView},
               {path:"/logements/:housingId/proprietaires/:ownerId", component:OwnerView},

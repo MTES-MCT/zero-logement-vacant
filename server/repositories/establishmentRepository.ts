@@ -1,18 +1,8 @@
-import { differenceInDays } from 'date-fns';
 import highland from 'highland';
 import { Knex } from 'knex';
 
 import db, { likeUnaccent } from './db';
-import {
-  EstablishmentApi,
-  EstablishmentDataApi,
-} from '../models/EstablishmentApi';
-import { housingTable, ReferenceDataYear } from './housingRepository';
-import { usersTable } from './userRepository';
-import { eventsTable, housingEventsTable } from './eventRepository';
-import { campaignsTable } from './campaignRepository';
-import { MonitoringFiltersApi } from '../models/MonitoringFiltersApi';
-import { HousingStatusApi } from '../models/HousingStatusApi';
+import { EstablishmentApi } from '../models/EstablishmentApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 import { logger } from '../utils/logger';
 
@@ -108,113 +98,6 @@ const stream = (options?: StreamOptions) => {
   return highland<EstablishmentDbo>(stream).map(parseEstablishmentApi);
 };
 
-const listDataWithFilters = async (
-  filters: MonitoringFiltersApi
-): Promise<EstablishmentDataApi[]> => {
-  try {
-    return db(establishmentsTable)
-      .select(
-        `${establishmentsTable}.*`,
-        db.raw(`count(distinct(${housingTable}.id)) as "housing_count"`),
-        db.raw(`min(${usersTable}.activated_at) as "first_activated_at"`),
-        db.raw(
-          `max(${usersTable}.last_authenticated_at) as "last_authenticated_at"`
-        ),
-        db.raw(
-          `count(distinct(${housingEventsTable}.housing_id)) as "last_month_updates_count"`
-        ),
-        db.raw(`count(distinct(${campaignsTable}.id)) as "campaigns_count"`),
-        db.raw(
-          `count(distinct(${housingTable}.id)) filter (where ${campaignsTable}.sending_date is not null and coalesce(${housingTable}.status, 0) <> ${HousingStatusApi.NeverContacted}) as "contacted_housing_count"`
-        ),
-        db.raw(
-          `min(${campaignsTable}.sending_date) as "first_campaign_sending_date"`
-        ),
-        db.raw(
-          `max(${campaignsTable}.sending_date) as "last_campaign_sending_date"`
-        ),
-        db.raw(`(select avg(diff.avg) from (
-                    select (age(sending_date, lag(sending_date) over (order by sending_date))) as "avg" from campaigns where establishment_id = ${establishmentsTable}.id and campaign_number <> 0) as diff
-                ) as "delay_between_campaigns"`),
-        db.raw(`(select avg(count.count) from (
-                    select count(*) from campaigns c, campaigns_housing ch where c.sending_date is not null and ch.campaign_id = c.id and c.establishment_id = ${establishmentsTable}.id group by ch.campaign_id) as count
-                )as "contacted_housing_per_campaign"`)
-      )
-      .joinRaw(
-        `join ${housingTable} on geo_code  = any (${establishmentsTable}.localities_geo_code)`
-      )
-      .modify((queryBuilder: any) => {
-        queryBuilder.andWhereRaw(
-          'vacancy_start_year <= ?',
-          ReferenceDataYear - 2
-        );
-        if (filters.dataYears?.length) {
-          queryBuilder.where(
-            db.raw('data_years && ?::integer[]', [filters.dataYears])
-          );
-        }
-      })
-      .joinRaw(
-        `left join ${campaignsTable} on ${campaignsTable}.establishment_id = ${establishmentsTable}.id and ${campaignsTable}.campaign_number > 0`
-      )
-      .leftJoin(
-        usersTable,
-        `${usersTable}.establishment_id`,
-        `${establishmentsTable}.id`
-      )
-      .leftJoin(
-        housingEventsTable,
-        `${housingEventsTable}.housing_id`,
-        `${housingTable}.id`
-      )
-      .joinRaw(
-        `left join ${eventsTable} on ${eventsTable}.id = ${housingEventsTable}.event_id and ${eventsTable}.created_by = ${usersTable}.id and ${eventsTable}.created_at > current_timestamp - interval '30D'`
-      )
-      .where('available', true)
-      .groupBy(`${establishmentsTable}.id`)
-      .orderBy(`${establishmentsTable}.name`)
-      .modify((queryBuilder: any) => {
-        if (filters.establishmentIds?.length) {
-          queryBuilder.whereIn(
-            `${establishmentsTable}.id`,
-            filters.establishmentIds
-          );
-        }
-      })
-      .then((_) =>
-        _.map(
-          (result: any) =>
-            <EstablishmentDataApi>{
-              id: result.id,
-              name: result.name,
-              housingCount: result.housing_count,
-              firstActivatedAt: result.first_activated_at,
-              lastAuthenticatedAt: result.last_authenticated_at,
-              lastMonthUpdatesCount: result.last_month_updates_count,
-              campaignsCount: result.campaigns_count,
-              contactedHousingCount: result.contacted_housing_count,
-              contactedHousingPerCampaign: result.contacted_housing_per_campaign
-                ? Math.floor(result.contacted_housing_per_campaign)
-                : undefined,
-              firstCampaignSendingDate: result.first_campaign_sending_date,
-              lastCampaignSendingDate: result.last_campaign_sending_date,
-              delayBetweenCampaigns: result.delay_between_campaigns,
-              firstCampaignSentDelay:
-                result.first_campaign_sending_date && result.first_activated_at
-                  ? differenceInDays(
-                      result.first_campaign_sending_date,
-                      result.first_activated_at
-                    )
-                  : undefined,
-            }
-        )
-      );
-  } catch (err) {
-    console.error('Listing establishment data failed', err);
-    throw new Error('Listing establishment data failed');
-  }
-};
-
 export interface EstablishmentDbo {
   id: string;
   name: string;
@@ -265,6 +148,5 @@ export default {
   findOne,
   update,
   stream,
-  listDataWithFilters,
   formatEstablishmentApi,
 };

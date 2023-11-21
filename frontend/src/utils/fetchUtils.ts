@@ -91,21 +91,20 @@ export interface AbortOptions {
   abortable?: boolean;
 }
 
-export const getURLSearchParams = (params: Object) => {
-  const searchParams = new URLSearchParams(
+export const getURLQuery = (params: Object) => {
+  const searchParams: URLSearchParams = new URLSearchParams(
     Object.entries(params).filter(
-      ([_, v]) => v != null && !(v instanceof Array)
+      ([_, v]) => v !== undefined && !(v instanceof Array)
     )
   );
 
   Object.entries(params)
     .filter(([_, v]) => v instanceof Array && v.length)
     .forEach(([k, v]) => {
-      searchParams.set(k, v[0]);
       (v as Array<string>).forEach((_) => searchParams.append(k, _));
     });
 
-  return searchParams;
+  return searchParams.toString() !== '' ? `?${searchParams}` : '';
 };
 
 export const normalizeUrlSegment = (segment: string) =>

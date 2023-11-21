@@ -35,7 +35,6 @@ import {
   getSubStatusListOptions,
   HousingStatus,
 } from '../../models/HousingState';
-import { campaignFullName } from '../../models/Campaign';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -145,7 +144,7 @@ function HousingListFiltersSidemenu(props: Props) {
                       label="Campagne"
                       options={campaignList.map((c) => ({
                         value: c.id,
-                        label: campaignFullName(c),
+                        label: c.title,
                       }))}
                       initialValues={filters.campaignIds}
                       onChange={(values) =>

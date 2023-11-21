@@ -68,3 +68,9 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
 .fr-icon-xs::before {
   --icon-size: .75em;
 }
+
+.fr-btn--close {
+  margin-left: auto !important;
+  margin-right: -1rem !important;
+  margin-bottom: 0 ! important;
+}

@@ -239,6 +239,7 @@ describe('Group controller', () => {
         })
       );
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      await new Promise((f) => setTimeout(f, 1000));
       const establishmentHousingList = housingList.filter((housing) =>
         Establishment1.geoCodes.includes(housing.geoCode)
       );

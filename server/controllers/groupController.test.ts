@@ -471,6 +471,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await new Promise((f) => setTimeout(f, 1000));
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -595,6 +596,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await new Promise((f) => setTimeout(f, 1000));
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -683,6 +685,7 @@ describe('Group controller', () => {
         );
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
+        await new Promise((f) => setTimeout(f, 1000));
         const after = await GroupHousingEvents()
           .whereNull('group_id')
           .join(

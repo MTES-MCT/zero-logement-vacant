@@ -37,7 +37,7 @@
     "@jest-mock/express": "^1.4.5",
     "@sendinblue/client": "^3.3.1",
     "@sentry/integrations": "^7.77.0",
-    "@sentry/node": "^7.74.1",
+    "@sentry/node": "^7.77.0",
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",

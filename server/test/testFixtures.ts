@@ -56,11 +56,6 @@ import {
   ESTABLISHMENT_KINDS,
   EstablishmentKind,
 } from '../../shared/types/EstablishmentKind';
-import {
-  ConflictApi,
-  HousingOwnerConflictApi,
-  OwnerConflictApi,
-} from '../models/ConflictApi';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
 
@@ -123,7 +118,7 @@ export const genEstablishmentApi = (
   const city = faker.location.city();
   return {
     id: uuidv4(),
-    name: `Commune de ${city}`,
+    name: city,
     shortName: city,
     siren: genSiren(),
     geoCodes,
@@ -496,9 +491,9 @@ export const genDatafoncierOwner = (
 export const genDatafoncierHousing = (
   geoCode = genGeoCode()
 ): DatafoncierHousing => {
-  const department = geoCode.substring(0, 2)
-  const localityCode = geoCode.substring(2, 5)
-  const invariant = genInvariant(localityCode)
+  const department = geoCode.substring(0, 2);
+  const localityCode = geoCode.substring(2, 5);
+  const invariant = genInvariant(localityCode);
   const localId = genLocalId(department, invariant);
   return {
     idlocal: localId,

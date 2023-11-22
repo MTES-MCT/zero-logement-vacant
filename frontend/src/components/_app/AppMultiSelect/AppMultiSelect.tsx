@@ -93,6 +93,7 @@ const AppMultiSelect = ({
                 (option, index) =>
                   option.markup?.({
                     key: key(index),
+                    checked: (initialValues ?? []).includes(option.value),
                     onChangeValue,
                     small,
                   }) ?? (

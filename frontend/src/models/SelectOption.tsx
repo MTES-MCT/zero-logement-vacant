@@ -13,6 +13,7 @@ export interface SelectOption {
 
 interface SelectOptionProps {
   key?: string;
+  checked?: boolean;
   onChangeValue?: (value: string, isChecked: boolean) => void;
   small?: boolean;
 }

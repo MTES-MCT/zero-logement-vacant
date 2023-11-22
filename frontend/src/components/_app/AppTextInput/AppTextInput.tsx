@@ -10,7 +10,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 type AppTextInputProps<T extends ObjectShape> = Partial<
   Pick<
     ComponentPropsWithoutRef<typeof Input>,
-    'label' | 'textArea' | 'hintText'
+    'label' | 'textArea' | 'hintText' | 'state' | 'stateRelatedMessage'
   >
 > &
   InputHTMLAttributes<HTMLInputElement> &
@@ -29,6 +29,8 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
     whenValid,
     placeholder,
     dataTestId,
+    state,
+    stateRelatedMessage,
     ...textInputProps
   } = props;
 
@@ -44,8 +46,11 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
             placeholder,
             onBlur: () => inputForm.validateAt(String(inputKey)),
           }}
-          state={inputForm.messageType(String(inputKey))}
-          stateRelatedMessage={inputForm.message(String(inputKey), whenValid)}
+          state={state ?? inputForm.messageType(String(inputKey))}
+          stateRelatedMessage={
+            stateRelatedMessage ??
+            inputForm.message(String(inputKey), whenValid)
+          }
         />
       ) : (
         <Input
@@ -56,8 +61,11 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
             placeholder,
             onBlur: () => inputForm.validateAt(String(inputKey)),
           }}
-          state={inputForm.messageType(String(inputKey))}
-          stateRelatedMessage={inputForm.message(String(inputKey), whenValid)}
+          state={state ?? inputForm.messageType(String(inputKey))}
+          stateRelatedMessage={
+            stateRelatedMessage ??
+            inputForm.message(String(inputKey), whenValid)
+          }
         />
       )}
     </>

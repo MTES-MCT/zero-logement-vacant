@@ -12,6 +12,8 @@ import { DatafoncierHousing } from '../../shared';
 
 function mock() {
   if (!config.datafoncier.enabled) {
+    const housingCache = new Map<string, DatafoncierHousing>();
+
     nock(config.datafoncier.api)
       .get(/^\/ff\/locaux\/.+/)
       .reply(async (uri) => {
@@ -20,12 +22,17 @@ function mock() {
           throw new Error(`Could not find a local id in ${uri}`);
         }
 
+        if (housingCache.has(localId)) {
+          return [constants.HTTP_STATUS_OK, housingCache.get(localId)];
+        }
+
         const geoCode = localId.substring(0, 5);
         const body: DatafoncierHousing = {
           ...genDatafoncierHousing(),
           idcom: geoCode,
           idlocal: localId,
         };
+        housingCache.set(localId, body);
         return [constants.HTTP_STATUS_OK, body];
       })
       .persist()

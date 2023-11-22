@@ -67,7 +67,7 @@ const step: Step = {
     return (
       <>
         <Text size="lg" spacing="mb-2w">
-          Saisissez l’identifiant du logement (idlocal) à ajouter.
+          Saisissez l’identifiant du logement à ajouter.
         </Text>
         <Alert
           className="fr-mb-2w"
@@ -76,26 +76,47 @@ const step: Step = {
           description={
             <>
               <a
-                href="https://doc-datafoncier.cerema.fr/doc/ff/pb52_pevlissage/idlocal"
+                href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/idlocal"
                 target="_blank"
                 rel="noreferrer"
               >
                 L’identifiant du logement
               </a>
-               est une concaténation du code département du logement et de
-              l’invariant fiscal du logement, dans cet ordre-là.
+               est une concaténation du 
+              <a
+                href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
+                target="_blank"
+                rel="noreferrer"
+              >
+                code département
+              </a>
+               du logement et de 
+              <a
+                href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/invar"
+                target="_blank"
+                rel="noreferrer"
+              >
+                l’invariant fiscal
+              </a>
+               du logement, dans cet ordre-là.
             </>
           }
         />
-        <form id="housing-creation-form">
+        <form id="housing-creation-form" onSubmit={(e) => e.preventDefault()}>
           <Row>
-            <Col n="4">
+            <Col n="6">
               <AppTextInput<FormShape>
                 inputForm={form}
                 inputKey="localId"
                 label="Identifiant du logement"
                 required
                 value={localId}
+                state={housing ? 'error' : 'default'}
+                stateRelatedMessage={
+                  housing
+                    ? 'Ce logement existe déjà dans votre parc'
+                    : undefined
+                }
                 onChange={(e) => setLocalId(e.target.value)}
               />
             </Col>
@@ -109,15 +130,6 @@ const step: Step = {
             className="fr-mt-2w"
             title="Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies."
             description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du local."
-            closable
-          />
-        )}
-
-        {housing && (
-          <Alert
-            severity="error"
-            className="fr-mt-2w"
-            title="Ce logement existe déjà dans votre parc"
             closable
           />
         )}

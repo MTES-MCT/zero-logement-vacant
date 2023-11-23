@@ -4,7 +4,6 @@ import { hasCampaigns, HousingApi, HousingSortableApi, OccupancyKindApi } from '
 import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
-import campaignHousingRepository from '../repositories/campaignHousingRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
@@ -178,16 +177,6 @@ const updateHousing = async (
   const housing = await housingRepository.get(housingId, establishment.id);
   if (!housing) {
     throw new HousingMissingError(housingId);
-  }
-
-  if (
-    housingUpdate.statusUpdate?.status === HousingStatusApi.NeverContacted &&
-    hasCampaigns(housing)
-  ) {
-    await campaignHousingRepository.deleteHousingFromCampaigns(
-      housing.campaignIds,
-      [housing.id]
-    );
   }
 
   const updatedHousing: HousingApi = {

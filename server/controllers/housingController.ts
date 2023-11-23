@@ -1,14 +1,7 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
-import {
-  hasCampaigns,
-  HousingApi,
-  HousingSortableApi,
-  OccupancyKindApi,
-} from '../models/HousingApi';
-import housingFiltersApi, {
-  HousingFiltersApi,
-} from '../models/HousingFiltersApi';
+import { hasCampaigns, HousingApi, HousingSortableApi, OccupancyKindApi } from '../models/HousingApi';
+import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
@@ -29,6 +22,7 @@ import _ from 'lodash';
 import { logger } from '../utils/logger';
 import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
+import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
@@ -261,6 +255,20 @@ const updateList = async (request: Request, response: Response) => {
           : housingIds.includes(housing.id)
       )
     );
+
+  const housingContactedWithCampaigns = housingList.filter(
+    (housing) =>
+      housing.status !== HousingStatusApi.NeverContacted &&
+      hasCampaigns(housing)
+  );
+  if (
+    housingUpdateApi.statusUpdate?.status === HousingStatusApi.NeverContacted &&
+    housingContactedWithCampaigns.length > 0
+  ) {
+    throw new HousingUpdateForbiddenError(
+      ...housingContactedWithCampaigns.map((housing) => housing.id)
+    );
+  }
 
   const updatedHousingList = await Promise.all(
     housingList.map((housing) =>

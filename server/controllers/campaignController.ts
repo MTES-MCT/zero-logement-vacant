@@ -158,7 +158,7 @@ const createCampaign = async (
     },
   });
 
-  response.status(constants.HTTP_STATUS_OK).json(newCampaignApi);
+  response.status(constants.HTTP_STATUS_CREATED).json(newCampaignApi);
 
   const events: HousingEventApi[] = housingList.map((housing) => ({
     id: uuidv4(),

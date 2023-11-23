@@ -43,6 +43,7 @@ import {
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
 import { isDefined } from '../../shared';
+import { wait } from '@hapi/hoek';
 
 const { app } = createServer();
 
@@ -263,7 +264,7 @@ describe('Campaign controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      await new Promise((f) => setTimeout(f, 1000));
+      await wait(1000);
       const housingIds = groupHousing.map((housing) => housing.id);
       const housingEvents = await HousingEvents().whereIn(
         'housing_id',

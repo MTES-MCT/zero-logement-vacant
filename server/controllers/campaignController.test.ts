@@ -1,47 +1,25 @@
-import {
-  CampaignsHousing,
-  campaignsHousingTable,
-} from '../repositories/campaignHousingRepository';
+import { CampaignsHousing, campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import db from '../repositories/db';
 import { campaignsTable } from '../repositories/campaignRepository';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
-import {
-  Housing0,
-  Housing1,
-  Housing2,
-} from '../../database/seeds/test/005-housing';
+import { Housing0, Housing1, Housing2 } from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import {
-  campaignEventsTable,
-  HousingEvents,
-} from '../repositories/eventRepository';
+import { campaignEventsTable, HousingEvents } from '../repositories/eventRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
-import {
-  formatHousingRecordApi,
-  Housing,
-  housingTable,
-} from '../repositories/housingRepository';
+import { formatHousingRecordApi, Housing, housingTable } from '../repositories/housingRepository';
 import randomstring from 'randomstring';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from '../server';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing,
-} from '../repositories/groupRepository';
+import { formatGroupApi, formatGroupHousingApi, Groups, GroupsHousing } from '../repositories/groupRepository';
 import { genGroupApi, genHousingApi, genNumber } from '../test/testFixtures';
 import { User1 } from '../../database/seeds/test/003-users';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
-import {
-  formatOwnerHousingApi,
-  HousingOwners,
-} from '../repositories/housingOwnerRepository';
+import { formatOwnerHousingApi, HousingOwners } from '../repositories/housingOwnerRepository';
 import { isDefined } from '../../shared';
 import { wait } from '@hapi/hoek';
 
@@ -127,7 +105,7 @@ describe('Campaign controller', () => {
           housingIds: [Housing1.id, Housing2.id],
           allHousing: false,
         })
-        .expect(constants.HTTP_STATUS_OK);
+        .expect(constants.HTTP_STATUS_CREATED);
 
       expect(res.body).toMatchObject(
         expect.objectContaining({

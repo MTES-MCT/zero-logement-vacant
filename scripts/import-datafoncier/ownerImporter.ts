@@ -18,10 +18,8 @@ export function ownerImporter(
   logger.info('Importing owners...');
   return stream
     .flatMap((dfOwner) => highland(processOwner(dfOwner)))
+    .filter((result) => !!result.match || !!result.owner)
     .batch(1_000)
-    .tap((owners) => {
-      logger.info(`Saving ${owners.length} owners...`);
-    })
     .flatMap(save)
     .errors((error) => {
       logger.error(error);

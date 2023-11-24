@@ -25,6 +25,7 @@ const save = async (ownerMatch: OwnerMatchDBO): Promise<void> => {
 };
 
 const saveMany = async (ownerMatches: OwnerMatchDBO[]): Promise<void> => {
+  logger.debug(`Saving ${ownerMatches.length} owner matches...`);
   await OwnerMatches().insert(ownerMatches).onConflict().ignore();
 };
 

@@ -8,9 +8,15 @@ import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
-import { useCountHousingQuery, useUpdateHousingListMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation,
+} from '../../services/housing.service';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
@@ -118,7 +124,7 @@ const HousingListTab = ({
     } catch (error: any) {
       if (error.data.name === 'HousingUpdateForbiddenError') {
         setError(
-          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n\'est pas possible de leur attribuer le statut "Non suivi".'
+          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
         );
       }
     }

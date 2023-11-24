@@ -3,6 +3,7 @@ import db from '../../server/repositories/db';
 import {
   DatafoncierHousing,
   DatafoncierOwner,
+  DatafoncierOwnerSortApi,
   ownerDatafoncierSchema,
   validator,
 } from '../shared';
@@ -15,6 +16,7 @@ import {
 } from '../../server/repositories/ownerRepository';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import fp from 'lodash/fp';
+import { sortQuery } from '../../server/models/SortApi';
 
 const FIELDS = [
   'idprodroit',
@@ -49,7 +51,7 @@ class DatafoncierOwnersRepository {
     return fp.pipe(fp.uniqBy('idpersonne'), fp.map(parseOwnerApi))(owners);
   }
 
-  stream(): Highland.Stream<DatafoncierOwner> {
+  stream(opts?: StreamOptions): Highland.Stream<DatafoncierOwner> {
     const query = DatafoncierOwners()
       .select(FIELDS)
       .where((whereBuilder) =>
@@ -58,12 +60,25 @@ class DatafoncierOwnersRepository {
       // Avoid importing owners that have no address at all
       .modify(hasAddress())
       .modify(hasName())
+      .modify(
+        sortQuery(opts?.sort, {
+          keys: {
+            idprocpte: (query) =>
+              query.orderBy('idprocpte', opts?.sort?.idprocpte),
+          },
+          default: (query) => query.orderBy('idprocpte'),
+        })
+      )
       .stream();
 
     return highland<DatafoncierOwner>(query).map(
       validator.validate(ownerDatafoncierSchema)
     );
   }
+}
+
+interface StreamOptions {
+  sort?: DatafoncierOwnerSortApi;
 }
 
 export function hasAddress() {

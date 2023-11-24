@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { OwnerApi } from '../../../server/models/OwnerApi';
 import { isNotNull } from '../../../shared/utils/compare';
+import { Sort } from '../../../server/models/SortApi';
 
 /**
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/proprietaire_droit/last/
@@ -73,6 +74,9 @@ export interface DatafoncierOwner {
   catpro3txt: string;
   idpk: number;
 }
+
+type DatafoncierOwnerSortable = Pick<DatafoncierOwner, 'idprocpte'>;
+export type DatafoncierOwnerSortApi = Sort<DatafoncierOwnerSortable>;
 
 export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   const kinds: Record<string, string> = {

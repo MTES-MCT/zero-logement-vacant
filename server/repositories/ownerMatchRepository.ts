@@ -1,4 +1,5 @@
 import db from './db';
+import { logger } from '../utils/logger';
 
 export const ownerMatchTable = 'owner_matches';
 export const OwnerMatches = () => db<OwnerMatchDBO>(ownerMatchTable);
@@ -12,6 +13,7 @@ interface FindOneOptions {
 }
 
 const findOne = async (opts: FindOneOptions): Promise<OwnerMatchDBO | null> => {
+  logger.debug('Finding one owner match...', opts);
   const match = await OwnerMatches()
     .where('idpersonne', opts.idpersonne)
     .first();

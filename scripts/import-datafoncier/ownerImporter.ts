@@ -5,7 +5,7 @@ import { DatafoncierOwner, evaluate, toOwnerApi } from '../shared';
 import OwnerMatchRepository, {
   OwnerMatchDBO,
 } from '../../server/repositories/ownerMatchRepository';
-import { isMatch } from '../shared/owner-processor/duplicates';
+import { isMatch, isPerfectMatch } from '../shared/owner-processor/duplicates';
 import { logger } from '../../server/utils/logger';
 import { isDefined } from '../../shared';
 import OwnerRepository from '../../server/repositories/ownerRepository';
@@ -38,7 +38,7 @@ interface Result {
  * @param dfOwner
  */
 export async function processOwner(dfOwner: DatafoncierOwner): Promise<Result> {
-  logger.debug(`Processing ${dfOwner.idpersonne}...`);
+  logger.info(`Processing ${dfOwner.idpersonne}...`);
   const dfOwnerApi = toOwnerApi(dfOwner);
 
   const ownerMatch = await ownerMatchRepository.findOne({
@@ -47,22 +47,34 @@ export async function processOwner(dfOwner: DatafoncierOwner): Promise<Result> {
 
   if (!ownerMatch) {
     const comparison = await evaluate(dfOwnerApi);
-    if (isMatch(comparison.score) && !comparison.needsReview) {
+
+    if (isPerfectMatch(comparison.score)) {
       return {
         match: {
           owner_id: comparison.duplicates[0].value.id,
           idpersonne: dfOwner.idpersonne,
         },
       };
-    } else {
-      return {
-        owner: dfOwnerApi,
-        match: {
-          owner_id: dfOwnerApi.id,
-          idpersonne: dfOwner.idpersonne,
-        },
-      };
     }
+
+    if (isMatch(comparison.score)) {
+      if (!comparison.needsReview) {
+        return {
+          match: {
+            owner_id: comparison.duplicates[0].value.id,
+            idpersonne: dfOwner.idpersonne,
+          },
+        };
+      }
+    }
+
+    return {
+      owner: dfOwnerApi,
+      match: {
+        owner_id: dfOwnerApi.id,
+        idpersonne: dfOwner.idpersonne,
+      },
+    };
   }
 
   return {};

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 
-import housingRepository from '../repositories/datafoncierHousingApiRepository';
+import datafoncierHousingRepository from '../repositories/datafoncierHousingApiRepository';
 import HousingMissingError from '../errors/housingMissingError';
 
 const find = async (request: Request, response: Response) => {
@@ -10,7 +10,7 @@ const find = async (request: Request, response: Response) => {
   const geoCode = query.geoCode as string;
   const idpar = query.idpar as string | undefined;
 
-  const housingList = await housingRepository.find({
+  const housingList = await datafoncierHousingRepository.find({
     filters: {
       geoCode,
       idpar,
@@ -21,9 +21,15 @@ const find = async (request: Request, response: Response) => {
 };
 
 const findOne = async (request: Request, response: Response) => {
-  // TODO: add idlocal only in my establishment
-  const housing = await housingRepository.findOne({
-    localId: request.params.id,
+  const { establishment } = request as AuthenticatedRequest;
+
+  const geoCode = request.params.localId.substring(0, 5);
+  if (!establishment.geoCodes.includes(geoCode)) {
+    throw new HousingMissingError(request.params.id);
+  }
+
+  const housing = await datafoncierHousingRepository.findOne({
+    localId: request.params.localId,
   });
   if (!housing) {
     throw new HousingMissingError(request.params.id);

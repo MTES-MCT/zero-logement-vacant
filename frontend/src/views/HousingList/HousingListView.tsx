@@ -55,7 +55,7 @@ const HousingListView = () => {
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
   function onFinish() {
     setAlert(
-      'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.'
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
   }
 
@@ -72,21 +72,21 @@ const HousingListView = () => {
         <GroupHeader />
       </Row>
       <Row spacing="mb-2w">
-        <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">Votre parc de logements</Title>
+        <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">
+          Votre parc de logements
+        </Title>
         <HousingCreationModal onFinish={onFinish} />
       </Row>
 
-      <Alert
-        severity="success"
-        description={alert}
-        closable
-        small
-        isClosed={!alert}
-        onClose={() => {
-          setAlert('');
-        }}
-        className="fr-mb-2w"
-      />
+      {alert && (
+        <Alert
+          severity="success"
+          description={alert}
+          closable
+          small
+          className="fr-mb-2w"
+        />
+      )}
 
       <Row spacing="mb-1w">
         <Col n="6">

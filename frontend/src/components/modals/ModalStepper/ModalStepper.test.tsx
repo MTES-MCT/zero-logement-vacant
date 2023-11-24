@@ -2,7 +2,6 @@ import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import ModalStep from './ModalStep';
 import ModalStepper, { Step } from './ModalStepper';
 import { forwardRef } from 'react';
 

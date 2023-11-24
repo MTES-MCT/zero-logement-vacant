@@ -1,6 +1,7 @@
 import { kebabCase } from 'lodash';
 
 import authService from '../services/auth.service';
+import fp from 'lodash/fp';
 
 interface HttpService {
   name: string;
@@ -92,19 +93,12 @@ export interface AbortOptions {
 }
 
 export const getURLQuery = (params: Object) => {
-  const searchParams: URLSearchParams = new URLSearchParams(
-    Object.entries(params).filter(
-      ([_, v]) => v !== undefined && !(v instanceof Array)
-    )
-  );
-
-  Object.entries(params)
-    .filter(([_, v]) => v instanceof Array && v.length)
-    .forEach(([k, v]) => {
-      (v as Array<string>).forEach((_) => searchParams.append(k, _));
-    });
-
-  return searchParams.toString() !== '' ? `?${searchParams}` : '';
+  return fp.pipe(
+    // Faster than fp.omitBy
+    fp.pickBy((value) => !fp.isNil(value) && !fp.isEmpty(value)),
+    (params: Record<string, string>) => new URLSearchParams(params),
+    (params) => (params.toString().length > 0 ? `?${params}` : '')
+  )(params);
 };
 
 export const normalizeUrlSegment = (segment: string) =>

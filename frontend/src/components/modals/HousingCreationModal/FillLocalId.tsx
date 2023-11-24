@@ -129,7 +129,7 @@ const step: Step = {
             severity="error"
             className="fr-mt-2w"
             title="Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies."
-            description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du local."
+            description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement."
             closable
           />
         )}

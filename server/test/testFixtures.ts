@@ -451,23 +451,24 @@ export const genDatafoncierOwner = (
   };
 };
 
-export const genDatafoncierHousing = (): DatafoncierHousing => {
-  const idcom = genGeoCode();
-  const localId = genLocalId(idcom);
+export const genDatafoncierHousing = (
+  geoCode = genGeoCode()
+): DatafoncierHousing => {
+  const localId = genLocalId(geoCode);
   return {
-    idlocal: genLocalId(idcom),
+    idlocal: genLocalId(geoCode),
     idbat: randomstring.generate(16),
     idpar: randomstring.generate(14),
     idtup: randomstring.generate(),
     idsec: randomstring.generate(10),
     idvoie: randomstring.generate(9),
     idprocpte: randomstring.generate(11),
-    idcom,
+    idcom: geoCode,
     idcomtxt: faker.location.county(),
     ccodep: randomstring.generate(2),
     ccodir: randomstring.generate(1),
     ccocom: randomstring.generate(3),
-    invar: localId.substring(idcom.length),
+    invar: localId.substring(geoCode.length),
     ccopre: randomstring.generate(3),
     ccosec: randomstring.generate(2),
     dnupla: randomstring.generate(4),

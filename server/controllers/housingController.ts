@@ -40,6 +40,7 @@ import async from 'async';
 import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '../models/EventApi';
+import ownerMatchRepository from '../repositories/ownerMatchRepository';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
@@ -176,7 +177,13 @@ const create = async (request: Request, response: Response) => {
   });
   // Create the missing datafoncier owners if needed
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
-    await processOwner(datafoncierOwner);
+    const { match, owner } = await processOwner(datafoncierOwner);
+    if (owner) {
+      await ownerRepository.save(owner);
+    }
+    if (match) {
+      await ownerMatchRepository.save(match);
+    }
   });
   const owners = await ownerRepository.find({
     filters: {

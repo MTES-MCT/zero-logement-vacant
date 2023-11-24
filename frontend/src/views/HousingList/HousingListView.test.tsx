@@ -374,7 +374,7 @@ describe('housing view', () => {
 
       expect(modal).not.toBeVisible();
       const alert = await screen.findByText(
-        'Le logement sélectionné a bien été ajouté à Zéro Logement Vacant.'
+        'Le logement sélectionné a bien été ajouté à votre parc de logements.'
       );
       expect(alert).toBeVisible();
     });

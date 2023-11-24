@@ -66,6 +66,7 @@ const HousingListTab = ({
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
+  const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery(
     fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
@@ -113,12 +114,20 @@ const HousingListTab = ({
       action: TrackEventActions.HousingList.UpdateList,
       value: selectedCount,
     });
-    await updateHousingList({
-      housingUpdate,
-      allHousing: selected.all,
-      housingIds: selected.ids,
-      filters,
-    });
+    try {
+      await updateHousingList({
+        housingUpdate,
+        allHousing: selected.all,
+        housingIds: selected.ids,
+        filters,
+      }).unwrap();
+    } catch (error: any) {
+      if (error.data.name === 'HousingUpdateForbiddenError') {
+        setError(
+          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
+        );
+      }
+    }
     setUpdatingSelectedHousing(undefined);
   };
 
@@ -190,6 +199,15 @@ const HousingListTab = ({
           severity="success"
           title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
+          closable
+          className="fr-mb-2w"
+        />
+      )}
+      {error && (
+        <Alert
+          severity="error"
+          title="Impossible de mettre à jour les logements sélectionnés"
+          description={error}
           closable
           className="fr-mb-2w"
         />

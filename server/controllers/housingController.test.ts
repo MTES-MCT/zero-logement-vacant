@@ -2,27 +2,17 @@ import db from '../repositories/db';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import {
-  formatHousingRecordApi,
-  housingTable,
-} from '../repositories/housingRepository';
+import { formatHousingRecordApi, housingTable } from '../repositories/housingRepository';
 import { genHousingApi } from '../test/testFixtures';
-import {
-  Establishment1,
-  Locality1,
-} from '../../database/seeds/test/001-establishments';
+import { Establishment1, Locality1 } from '../../database/seeds/test/001-establishments';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { Housing1 } from '../../database/seeds/test/005-housing';
-import {
-  eventsTable,
-  housingEventsTable,
-} from '../repositories/eventRepository';
+import { eventsTable, housingEventsTable } from '../repositories/eventRepository';
 import { User1, User2 } from '../../database/seeds/test/003-users';
-import { campaignsHousingTable } from '../repositories/campaignHousingRepository';
 import { createServer } from '../server';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { HousingEvent1 } from '../../database/seeds/test/011-events';
@@ -253,6 +243,21 @@ describe('Housing controller', () => {
       });
     });
 
+    it('should be forbidden to set status "NeverContacted" for a list of housing which one has already been contacted', async () => {
+      await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            ...validBody,
+            housingUpdate: {
+              statusUpdate: {
+                status: HousingStatusApi.NeverContacted,
+              },
+            },
+          })
+      ).expect(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
     it('should update the housing list and return the updated result', async () => {
       const res = await withAccessToken(
         request(app).post(testRoute).send(validBody)
@@ -375,28 +380,6 @@ describe('Housing controller', () => {
             })
           )
         );
-    });
-
-    it('should remove housing from campaign when updating to status NeverContacted', async () => {
-      await withAccessToken(
-        request(app)
-          .post(testRoute)
-          .send({
-            ...validBody,
-            housingUpdate: {
-              ...validBody.housingUpdate,
-              statusUpdate: {
-                status: HousingStatusApi.NeverContacted,
-              },
-            },
-          })
-      ).expect(constants.HTTP_STATUS_OK);
-
-      await db(campaignsHousingTable)
-        .where('housing_id', Housing1.id)
-        .andWhere('campaign_id', Campaign1.id)
-        .first()
-        .then((result) => expect(result).toBeUndefined());
     });
   });
 });

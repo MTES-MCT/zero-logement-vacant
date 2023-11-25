@@ -155,7 +155,7 @@ async function save(owner: OwnerApi, opts?: SaveOptions): Promise<void> {
 }
 
 async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
-  logger.trace(`Save ${owners.length} owner(s)`);
+  logger.debug(`Saving ${owners.length} owners...`);
 
   const ownersWithoutBirthdate = owners
     .filter((owner) => !owner.birthDate)

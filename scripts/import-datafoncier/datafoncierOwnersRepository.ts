@@ -54,6 +54,7 @@ class DatafoncierOwnersRepository {
   stream(opts?: StreamOptions): Highland.Stream<DatafoncierOwner> {
     const query = DatafoncierOwners()
       .select(FIELDS)
+      .distinctOn('idpersonne')
       .where((whereBuilder) =>
         whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
       )
@@ -66,7 +67,7 @@ class DatafoncierOwnersRepository {
             idprocpte: (query) =>
               query.orderBy('idprocpte', opts?.sort?.idprocpte),
           },
-          default: (query) => query.orderBy('idprocpte'),
+          default: (query) => query.orderBy('idpersonne'),
         })
       )
       .stream();

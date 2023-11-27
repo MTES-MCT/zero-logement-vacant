@@ -65,6 +65,7 @@ function GroupAddHousingModal(props: Props) {
   };
 
   const [title, setTitle] = useState('');
+  const [buttonsDisabled, setButtonsDisabled] = useState(false);
   const [description, setDescription] = useState('');
 
   const shape = {
@@ -89,18 +90,21 @@ function GroupAddHousingModal(props: Props) {
         children: 'Annuler',
         priority: 'secondary',
         className: 'fr-mr-2w',
+        disabled: buttonsDisabled,
       },
       {
         children: 'Confirmer',
         doClosesModal: false,
         onClick: async () => {
           await form.validate(() => {
+            setButtonsDisabled(true);
             props.onGroupCreate({
               title,
               description,
             });
           });
         },
+        disabled: buttonsDisabled,
       },
     ],
   };

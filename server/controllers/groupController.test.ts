@@ -49,6 +49,7 @@ import {
   HousingOwnerDBO,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
+import { wait } from '@hapi/hoek';
 
 describe('Group controller', () => {
   const { app } = createServer();
@@ -238,8 +239,8 @@ describe('Group controller', () => {
           'Content-Type': 'application/json',
         })
       );
-
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      await wait(1000);
       const establishmentHousingList = housingList.filter((housing) =>
         Establishment1.geoCodes.includes(housing.geoCode)
       );
@@ -472,6 +473,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await wait(1000);
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -596,6 +598,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await wait(1000);
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -684,6 +687,7 @@ describe('Group controller', () => {
         );
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
+        await wait(1000);
         const after = await GroupHousingEvents()
           .whereNull('group_id')
           .join(

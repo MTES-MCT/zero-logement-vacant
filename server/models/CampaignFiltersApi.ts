@@ -7,7 +7,7 @@ export interface CampaignFiltersApi {
 }
 
 export interface CampaignQuery {
-  groups?: string[];
+  groups?: string[] | string;
 }
 
 export const campaignFiltersValidators: ValidationChain[] = [

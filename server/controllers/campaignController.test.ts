@@ -21,6 +21,7 @@ import { User1 } from '../../database/seeds/test/003-users';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import { formatOwnerHousingApi, HousingOwners } from '../repositories/housingOwnerRepository';
 import { isDefined } from '../../shared';
+import { wait } from '@hapi/hoek';
 
 const { app } = createServer();
 
@@ -104,7 +105,7 @@ describe('Campaign controller', () => {
           housingIds: [Housing1.id, Housing2.id],
           allHousing: false,
         })
-        .expect(constants.HTTP_STATUS_OK);
+        .expect(constants.HTTP_STATUS_CREATED);
 
       expect(res.body).toMatchObject(
         expect.objectContaining({
@@ -241,6 +242,7 @@ describe('Campaign controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      await wait(1000);
       const housingIds = groupHousing.map((housing) => housing.id);
       const housingEvents = await HousingEvents().whereIn(
         'housing_id',

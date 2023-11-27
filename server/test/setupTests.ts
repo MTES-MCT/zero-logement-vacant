@@ -8,10 +8,6 @@ import { logger } from '../utils/logger';
 
 enableFetchMocks();
 
-jest.useFakeTimers({
-  legacyFakeTimers: true,
-});
-
 global.beforeEach(async () => {
   fetchMock.resetMocks();
 

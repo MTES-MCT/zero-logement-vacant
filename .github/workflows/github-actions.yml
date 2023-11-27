@@ -50,7 +50,7 @@ jobs:
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           TZ: Etc/UTC
       - name: Server tests
-        run: npm run test -- --test-timeout=30000
+        run: npm run test -- --test-timeout=30000 --coverage
         env:
           AUTH_SECRET: abcd1234
           CEREMA_API_AUTH_TOKEN: ''

@@ -1,6 +1,6 @@
 import highland from 'highland';
 
-import db, { notDeleted } from './db';
+import db, { notDeleted, getCurrentTransaction } from './db';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { UserFiltersApi } from '../models/UserFiltersApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
@@ -9,7 +9,10 @@ import { logger } from '../utils/logger';
 
 export const usersTable = 'users';
 
-export const Users = () => db<UserDBO>(usersTable);
+export const Users = () => {
+  const transaction = getCurrentTransaction()?.transaction ?? db;
+  return transaction<UserDBO>('users');
+};
 
 const get = async (id: string): Promise<UserApi | null> => {
   logger.debug('Get user by id', id);

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
-import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import {
   CampaignIntent,
@@ -22,6 +21,8 @@ import mailService from '../services/mailService';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
 import UserMissingError from '../errors/userMissingError';
 import { logger } from '../utils/logger';
+import { withinTransaction } from '../middlewares/transaction';
+import EstablishmentMissingError from '../errors/establishmentMissingError';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -51,7 +52,7 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-const createUser = async (request: JWTRequest, response: Response) => {
+const createUser = async (request: Request, response: Response) => {
   const body = request.body as CreateUserBody;
 
   if (isTestAccount(body.email)) {
@@ -71,7 +72,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
   );
   if (!userEstablishment) {
     logger.info('Establishment not found for id', body.establishmentId);
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+    throw new EstablishmentMissingError(body.establishmentId);
   }
 
   const userApi: UserApi = {
@@ -112,7 +113,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
   });
 };
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+const get = async (request: Request, response: Response) => {
   const userId = request.params.userId;
 
   logger.info('Get user', userId);
@@ -122,16 +123,15 @@ const get = async (request: Request, response: Response): Promise<Response> => {
   if (!user) {
     throw new UserMissingError(userId);
   }
-
-  return response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
+  response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
 };
 
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
   createUserValidators,
-  createUser,
-  get,
+  createUser: withinTransaction(createUser),
+  get: withinTransaction(get),
   userIdValidator,
 };
 

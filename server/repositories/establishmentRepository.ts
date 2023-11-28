@@ -1,12 +1,16 @@
 import highland from 'highland';
 import { Knex } from 'knex';
 
-import db, { likeUnaccent } from './db';
+import db, { getCurrentTransaction, likeUnaccent } from './db';
 import { EstablishmentApi } from '../models/EstablishmentApi';
 import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 import { logger } from '../utils/logger';
 
 export const establishmentsTable = 'establishments';
+export const Establishments = () => {
+  const transaction = getCurrentTransaction()?.transaction ?? db;
+  return transaction<EstablishmentDbo>(establishmentsTable);
+};
 
 type FindOptions = Partial<EstablishmentFilterApi>;
 
@@ -52,7 +56,7 @@ function filter(filters?: EstablishmentFilterApi) {
 const get = async (id: string): Promise<EstablishmentApi | null> => {
   logger.debug('Get establishment by id', id);
 
-  const establishment = await db(establishmentsTable)
+  const establishment = await Establishments()
     .where(`${establishmentsTable}.id`, id)
     .first();
 

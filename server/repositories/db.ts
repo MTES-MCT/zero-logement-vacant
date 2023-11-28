@@ -1,7 +1,10 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import knex, { Knex } from 'knex';
-import knexConfig from '../knex';
 import fp from 'lodash/fp';
+
+import knexConfig from '../knex';
 import { compact } from '../utils/object';
+import { logger } from '../utils/logger';
 
 export const notDeleted: Knex.QueryCallback = (builder) =>
   builder.whereNull('deleted_at');
@@ -36,4 +39,19 @@ interface WhereOptions {
   table?: string;
 }
 
-export default knex(knexConfig);
+interface Store {
+  id: string;
+  transaction: Knex.Transaction;
+}
+
+export const storage = new AsyncLocalStorage<Store>();
+
+export function getCurrentTransaction(): Store | null {
+  const store = storage.getStore();
+  logger.debug({ id: store?.id }, `Using transaction`);
+  return store ?? null;
+}
+
+export const db = knex(knexConfig);
+
+export default db;

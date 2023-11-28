@@ -255,11 +255,12 @@ describe('User controller', () => {
     });
 
     it('should retrieve the user', async () => {
-      const res = await withAdminAccessToken(
+      const { body, status } = await withAdminAccessToken(
         request(app).get(testRoute(User1.id))
-      ).expect(constants.HTTP_STATUS_OK);
+      );
 
-      expect(res.body).toMatchObject(
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject(
         expect.objectContaining({
           id: User1.id,
         })

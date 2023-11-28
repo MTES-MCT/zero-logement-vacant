@@ -1,7 +1,4 @@
 import express, { Application } from 'express';
-// Allows to throw an error or reject a promise in controllers
-// instead of having to call the next(err) function.
-import 'express-async-errors';
 import path from 'path';
 import unprotectedRouter from './routers/unprotected';
 import config from './utils/config';

@@ -1,4 +1,4 @@
-import express from 'express';
+import createRouter from "express-promise-router";
 
 import housingController from '../controllers/housingController';
 import ownerController from '../controllers/ownerController';
@@ -21,7 +21,7 @@ import groupController from '../controllers/groupController';
 import dashboardController from '../controllers/dashboardController';
 import datafoncierController from "../controllers/datafoncierHousingController";
 
-const router = express.Router();
+const router = createRouter();
 
 router.use(jwtCheck(true))
 router.use(userCheck());

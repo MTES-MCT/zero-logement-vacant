@@ -58,3 +58,8 @@ jobs:
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           LOG_LEVEL: error
           TZ: Etc/UTC
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_API_TOKEN }}

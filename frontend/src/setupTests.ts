@@ -11,6 +11,10 @@ jest.mock('./components/Aside/Aside.tsx');
 
 global.URL.createObjectURL = jest.fn();
 
+beforeEach(() => {
+  fetchMock.resetMocks();
+});
+
 // @ts-expect-error: Property 'dsfr' does not exist on type 'Window & typeof globalThis'.ts(2339)
 window.dsfr = (element: HTMLElement) => ({
   modal: {

@@ -1,4 +1,4 @@
-import db from './db';
+import db, { where } from './db';
 import { OwnerApi, OwnerPayloadApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
+import { ownerMatchTable } from './ownerMatchRepository';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
@@ -17,15 +18,41 @@ const get = async (ownerId: string): Promise<OwnerApi | null> => {
   return owner ? parseOwnerApi(owner) : null;
 };
 
-interface FindOptions {
+interface OwnerFilters {
   fullName?: string;
+  idpersonne?: string | string[];
+}
+
+interface FindOptions {
+  filters?: OwnerFilters;
 }
 
 const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
-  const owners = await db<OwnerDBO>(ownerTable)
+  const whereOptions = where<OwnerFilters>(['fullName']);
+
+  const owners = await Owners()
+    .where(whereOptions(opts?.filters))
     .modify((query) => {
-      if (opts?.fullName) {
-        query.where('full_name', opts.fullName);
+      if (opts?.filters?.idpersonne) {
+        query
+          .join(
+            ownerMatchTable,
+            `${ownerMatchTable}.owner_id`,
+            `${ownerTable}.id`
+          )
+          .modify((query) => {
+            if (opts?.filters?.idpersonne) {
+              Array.isArray(opts?.filters?.idpersonne)
+                ? query.whereIn(
+                    `${ownerMatchTable}.idpersonne`,
+                    opts?.filters?.idpersonne
+                  )
+                : query.where(
+                    `${ownerMatchTable}.idpersonne`,
+                    opts?.filters?.idpersonne
+                  );
+            }
+          });
       }
     })
     .orderBy('full_name');

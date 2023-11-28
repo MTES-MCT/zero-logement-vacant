@@ -25,7 +25,10 @@ const createGeoPerimeter = async (
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
-  logger.info('Create geo perimeter', establishmentId, file.name);
+  logger.info('Create geo perimeter', {
+    establishment: establishmentId,
+    name: file.name,
+  });
 
   const geojson = await shpjs(file.data);
 
@@ -81,7 +84,7 @@ const updateGeoPerimeter = async (
   const kind = request.body.kind;
   const name = request.body.name;
 
-  logger.info('Update geo perimeter', geoPerimeterId, kind, name);
+  logger.info('Update geo perimeter', { geoPerimeterId, kind, name });
 
   const geoPerimeter = await geoRepository.get(geoPerimeterId);
 

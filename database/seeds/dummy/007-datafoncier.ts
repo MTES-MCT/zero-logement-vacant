@@ -5,7 +5,7 @@ import {
   genDatafoncierOwner,
   genHousingApi,
 } from '../../../server/test/testFixtures';
-import { DatafoncierHouses } from '../../../scripts/import-datafoncier/datafoncierHousingRepository';
+import { DatafoncierHouses } from '../../../server/repositories/datafoncierHousingRepository';
 import {
   formatHousingRecordApi,
   Housing,

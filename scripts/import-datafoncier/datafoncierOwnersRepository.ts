@@ -1,12 +1,6 @@
 import highland from 'highland';
 import db from '../../server/repositories/db';
-import {
-  DatafoncierHousing,
-  DatafoncierOwner,
-  DatafoncierOwnerSortApi,
-  ownerDatafoncierSchema,
-  validator,
-} from '../shared';
+import { DatafoncierOwner, DatafoncierOwnerSortApi, ownerDatafoncierSchema, validator } from '../shared';
 import { Knex } from 'knex';
 import { ownerMatchTable } from '../../server/repositories/ownerMatchRepository';
 import {
@@ -17,6 +11,7 @@ import {
 import { OwnerApi } from '../../server/models/OwnerApi';
 import fp from 'lodash/fp';
 import { sortQuery } from '../../server/models/SortApi';
+import { DatafoncierHousing } from '../../shared';
 
 const FIELDS = [
   'idprodroit',

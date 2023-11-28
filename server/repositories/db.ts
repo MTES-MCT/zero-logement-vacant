@@ -18,7 +18,22 @@ export async function countQuery(query: Knex.QueryInterface): Promise<number> {
   return Number(result.count);
 }
 
-export const where = <T>(props: Array<keyof T>) =>
-  fp.pipe(fp.pick(props), compact, fp.mapKeys(fp.snakeCase));
+export const where = <T>(props: Array<keyof T>, opts?: WhereOptions) =>
+  fp.pipe(
+    fp.pick(props),
+    compact,
+    fp.mapKeys(
+      fp.pipe(fp.snakeCase, (key) =>
+        opts?.table ? `${opts?.table}.${key}` : key
+      )
+    )
+  );
+
+interface WhereOptions {
+  /**
+   * A table name to prefix columns and avoid ambiguity.
+   */
+  table?: string;
+}
 
 export default knex(knexConfig);

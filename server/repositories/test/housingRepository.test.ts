@@ -24,6 +24,7 @@ import {
 } from '../housingOwnerRepository';
 import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
 import { isDefined } from '../../../shared';
+import { Owner1 } from '../../../database/seeds/test/004-owner';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -106,6 +107,46 @@ describe('Housing repository', () => {
       });
 
       expect(actual).toSatisfyAll((housing) => housing.owner !== undefined);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should find by id', async () => {
+      const actual = await housingRepository.findOne({
+        geoCode: Housing1.geoCode,
+        id: Housing1.id,
+      });
+
+      expect(actual).toHaveProperty('id', Housing1.id);
+    });
+
+    it('should find by local id', async () => {
+      const actual = await housingRepository.findOne({
+        geoCode: Housing1.geoCode,
+        localId: Housing1.localId,
+      });
+
+      expect(actual).toHaveProperty('id', Housing1.id);
+    });
+
+    it('should not include owner by default', async () => {
+      const actual = await housingRepository.findOne({
+        geoCode: Housing1.geoCode,
+        id: Housing1.id,
+      });
+
+      expect(actual).toHaveProperty('owner', undefined);
+    });
+
+    it('should include owner on demand', async () => {
+      const actual = await housingRepository.findOne({
+        geoCode: Housing1.geoCode,
+        id: Housing1.id,
+        includes: ['owner'],
+      });
+
+      expect(actual).toHaveProperty('owner');
+      expect(actual?.owner).toHaveProperty('id', Owner1.id);
     });
   });
 

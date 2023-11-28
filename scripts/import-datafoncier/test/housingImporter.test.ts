@@ -4,7 +4,8 @@ import {
   formatHousingRecordApi,
   Housing,
 } from '../../../server/repositories/housingRepository';
-import { DatafoncierHousing, toHousingRecordApi } from '../../shared';
+import { toHousingRecordApi } from '../../shared';
+import { DatafoncierHousing } from '../../../shared';
 
 describe('Housing importer', () => {
   describe('processHousing', () => {
@@ -24,7 +25,7 @@ describe('Housing importer', () => {
 
     it('should leave the existing housing untouched otherwise', async () => {
       await Housing().insert(
-        formatHousingRecordApi(toHousingRecordApi(housing))
+        formatHousingRecordApi(toHousingRecordApi({ source: 'lovac' }, housing))
       );
       const updated: DatafoncierHousing = {
         ...housing,

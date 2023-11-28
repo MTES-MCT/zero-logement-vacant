@@ -15,6 +15,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLink from '../_app/AppLink/AppLink';
 import { Campaign } from '../../models/Campaign';
 import GroupEventContent from './GroupEventContent';
+import FollowupEventContent from './FollowupEventContent';
 
 interface Props {
   events: Event[];
@@ -60,62 +61,68 @@ const EventsHistory = ({ events, notes }: Props) => {
                   <Text size="md" bold spacing="mb-0">
                     {eventOrNote.name}
                   </Text>
+                  {eventOrNote.category === 'Followup' && (
+                    <FollowupEventContent event={eventOrNote} />
+                  )}
                   {(eventOrNote.section === 'Situation' ||
-                    eventOrNote.name === 'Changement de statut de suivi') && (
-                    <div className={styles.eventContentRowContainer}>
-                      {eventOrNote.old ? (
-                        <>
-                          <EventPartialHousingContent
-                            partialHousing={
-                              getHousingDiff(
-                                eventOrNote.old,
-                                eventOrNote.new ?? {}
-                              ).old
-                            }
-                          />
-                          {eventOrNote.conflict ? (
-                            <span className="fr-icon-error-warning-fill color-red-marianne-625" />
-                          ) : (
-                            <span className="fr-icon-arrow-right-s-line" />
-                          )}
-                          {eventOrNote.new ? (
+                    eventOrNote.name === 'Changement de statut de suivi') &&
+                    eventOrNote.name !== 'Création du logement' && (
+                      <div className={styles.eventContentRowContainer}>
+                        {eventOrNote.old ? (
+                          <>
                             <EventPartialHousingContent
                               partialHousing={
-                                getHousingDiff(eventOrNote.old, eventOrNote.new)
-                                  .new
+                                getHousingDiff(
+                                  eventOrNote.old,
+                                  eventOrNote.new ?? {}
+                                ).old
                               }
                             />
-                          ) : (
-                            <div
-                              className={classNames(
-                                styles.eventContent,
-                                'd-inline-block'
-                              )}
-                            >
-                              Ce logement <b>n'est plus présent</b> dans Lovac
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div
-                          className={classNames(
-                            styles.eventContent,
-                            'd-inline-block'
-                          )}
-                        >
-                          {eventOrNote.new ? (
-                            <>
-                              Ce logement est <b>nouveau</b> dans Lovac
-                            </>
-                          ) : (
-                            <>
-                              Ce logement <b>n'est plus présent</b> dans Lovac
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                            {eventOrNote.conflict ? (
+                              <span className="fr-icon-error-warning-fill color-red-marianne-625" />
+                            ) : (
+                              <span className="fr-icon-arrow-right-s-line" />
+                            )}
+                            {eventOrNote.new ? (
+                              <EventPartialHousingContent
+                                partialHousing={
+                                  getHousingDiff(
+                                    eventOrNote.old,
+                                    eventOrNote.new
+                                  ).new
+                                }
+                              />
+                            ) : (
+                              <div
+                                className={classNames(
+                                  styles.eventContent,
+                                  'd-inline-block'
+                                )}
+                              >
+                                Ce logement <b>n'est plus présent</b> dans Lovac
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div
+                            className={classNames(
+                              styles.eventContent,
+                              'd-inline-block'
+                            )}
+                          >
+                            {eventOrNote.new ? (
+                              <>
+                                Ce logement est <b>nouveau</b> dans Lovac
+                              </>
+                            ) : (
+                              <>
+                                Ce logement <b>n'est plus présent</b> dans Lovac
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   {eventOrNote.category === 'Ownership' && (
                     <>
                       {eventOrNote.section === 'Propriétaire' && (

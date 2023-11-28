@@ -6,8 +6,8 @@ import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
-  genAuthUser,
   genCampaign,
+  genDatafoncierHousing,
   genHousing,
   genPaginatedResult,
 } from '../../../test/fixtures.test';
@@ -15,20 +15,21 @@ import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
-import { configureStore } from '@reduxjs/toolkit';
 import {
-  applicationMiddlewares,
-  applicationReducer,
-  store as appStore,
-} from '../../store/store';
-import { getRequestCalls } from '../../utils/test/requestUtils';
+  getRequestCalls,
+  mockRequests,
+  RequestMatch,
+} from '../../utils/test/requestUtils';
 import { HousingStatus } from '../../models/HousingState';
+import configureTestStore from '../../utils/test/storeUtils';
+import { AppStore } from '../../store/store';
+import * as randomstring from 'randomstring';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
 describe('housing view', () => {
   const user = userEvent.setup();
-  let store = appStore;
+  let store: AppStore;
 
   const defaultFetchMock = (request: Request) => {
     return Promise.resolve(
@@ -51,17 +52,41 @@ describe('housing view', () => {
         : { body: '', init: { status: 404 } }
     );
   };
+  const defaultMatches: RequestMatch[] = [
+    {
+      pathname: '/api/housing',
+      response: {
+        body: JSON.stringify(genPaginatedResult([])),
+      },
+    },
+    {
+      pathname: '/api/campaigns',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/geo/perimeters',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/localities',
+      response: {
+        body: JSON.stringify([]),
+      },
+    },
+    {
+      pathname: '/api/housing/count',
+      response: {
+        body: JSON.stringify({ housing: 1, owners: 1 }),
+      },
+    },
+  ];
 
   beforeEach(() => {
-    fetchMock.resetMocks();
-    store = configureStore({
-      reducer: applicationReducer,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-          serializableCheck: false,
-        }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: genAuthUser() } },
-    });
+    store = configureTestStore();
   });
 
   test('should show filters side menu', async () => {
@@ -292,5 +317,163 @@ describe('housing view', () => {
       'create-campaign-button'
     );
     expect(createCampaignButton).toBeInTheDocument();
+  });
+
+  describe('If the user does not know the local id', () => {
+    test('should add a housing', async () => {
+      const router = createMemoryHistory();
+      const datafoncierHousing = genDatafoncierHousing();
+      const housing = genHousing();
+      mockRequests([
+        ...defaultMatches,
+        {
+          pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
+          response: { body: JSON.stringify(housing) },
+        },
+        {
+          pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${datafoncierHousing.idlocal} missing`,
+            }),
+          },
+        },
+        {
+          pathname: '/api/housing/creation',
+          response: {
+            status: 201,
+            body: JSON.stringify(housing),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={router}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(within(modal).getByText('Confirmer'));
+      await within(modal).findByText(
+        'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
+      );
+      await user.click(within(modal).getByText('Confirmer'));
+
+      expect(modal).not.toBeVisible();
+      const alert = await screen.findByText(
+        'Le logement sélectionné a bien été ajouté à votre parc de logements.'
+      );
+      expect(alert).toBeVisible();
+    });
+
+    test('should fail if the housing was not found in datafoncier', async () => {
+      const localId = randomstring.generate(12);
+      mockRequests([
+        ...defaultMatches,
+        // The housing is missing from datafoncier
+        {
+          pathname: `/api/datafoncier/housing/${localId}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${localId} missing`,
+            }),
+          },
+        },
+        {
+          pathname: `/api/housing/${localId}`,
+          response: {
+            status: 404,
+            body: JSON.stringify({
+              name: 'HousingMissingError',
+              message: `Housing ${localId} missing`,
+            }),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, localId);
+      await user.click(within(modal).getByText('Confirmer'));
+      const alert = await within(modal).findByText(
+        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
+      );
+      expect(alert).toBeVisible();
+    });
+
+    test('should fail if the housing already exists in our database', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const housing = genHousing();
+      mockRequests([
+        ...defaultMatches,
+        {
+          pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 200,
+            body: JSON.stringify(datafoncierHousing),
+          },
+        },
+        // The housing exists in our database
+        {
+          pathname: `/api/housing/${datafoncierHousing.idlocal}`,
+          response: {
+            status: 200,
+            body: JSON.stringify(housing),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button',
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        'Identifiant du logement'
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(within(modal).getByText('Confirmer'));
+      const alert = await within(modal).findByText(
+        'Ce logement existe déjà dans votre parc'
+      );
+      expect(alert).toBeVisible();
+    });
   });
 });

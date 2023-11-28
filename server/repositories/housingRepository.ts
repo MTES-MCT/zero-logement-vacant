@@ -37,6 +37,7 @@ import {
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import isNumeric = validator.isNumeric;
+import { HousingSource } from '../../shared';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -185,23 +186,62 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
 };
 
 interface FindOneOptions {
-  geoCode: string;
+  geoCode?: string | string[];
   id?: string;
-  invariant?: string;
   localId?: string;
-  establishmentId?: string;
+  includes?: HousingInclude[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
-  const whereOptions = where<FindOneOptions>(['id', 'invariant', 'localId']);
+  const whereOptions = where<FindOneOptions>(['id', 'localId'], {
+    table: housingTable,
+  });
 
   const housing = await Housing()
     .select(`${housingTable}.*`)
-    .where('geo_code', opts.geoCode)
     .where(whereOptions(opts))
-    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-    .leftJoin(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
-    .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
+    .modify((query) => {
+      if (opts.geoCode) {
+        Array.isArray(opts.geoCode)
+          ? query.whereIn(`${housingTable}.geo_code`, opts.geoCode)
+          : query.where(`${housingTable}.geo_code`, opts.geoCode);
+      }
+    })
+    .modify(include(opts.includes ?? []))
+    // TODO: simplify all this stuff
+    .select(
+      'perimeters.perimeter_kind as geo_perimeters',
+      `${buildingTable}.housing_count`,
+      `${buildingTable}.vacant_housing_count`,
+      `${localitiesTable}.locality_kind`,
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
+      ),
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
+      )
+    )
+    .leftJoin(
+      localitiesTable,
+      `${housingTable}.geo_code`,
+      `${localitiesTable}.geo_code`
+    )
+    .leftJoin(
+      buildingTable,
+      `${housingTable}.building_id`,
+      `${buildingTable}.id`
+    )
+    .joinRaw(
+      `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
+    )
+    .joinRaw(
+      `left join lateral (
+         select json_agg(distinct(kind)) as perimeter_kind
+         from ${geoPerimetersTable} perimeter
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+       ) perimeters on true`
+    )
+    .modify(queryHousingEventsJoinClause)
     .first();
   return housing ? parseHousingApi(housing) : null;
 };
@@ -278,7 +318,7 @@ const save = async (
 ): Promise<void> => {
   logger.debug('Saving housing...', { housing: housing.id });
   await saveMany([housing], opts);
-  logger.debug(`Housing saved.`, { housing: housing.id });
+  logger.info(`Housing saved.`, { housing: housing.id });
 };
 
 /**
@@ -930,6 +970,7 @@ interface HousingRecordDBO {
   occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
+  source: string | null;
 }
 
 interface HousingDBO extends HousingRecordDBO {
@@ -985,6 +1026,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
+  source: housing.source as HousingSource,
 });
 
 export const formatHousingRecordApi = (
@@ -1019,6 +1061,7 @@ export const formatHousingRecordApi = (
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
+  source: housingRecordApi.source,
 });
 
 export default {

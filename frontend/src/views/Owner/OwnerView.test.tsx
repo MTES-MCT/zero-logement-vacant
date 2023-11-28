@@ -73,9 +73,7 @@ describe('Owner view', () => {
       </Provider>
     );
 
-    await waitFor(async () => {
-      await screen.findByText(capitalize(owner.fullName));
-    });
+    await screen.findByText(capitalize(owner.fullName));
     if (owner.birthDate) {
       await screen.findByText(
         `né(e) le ${format(owner.birthDate, 'dd/MM/yyyy')}`

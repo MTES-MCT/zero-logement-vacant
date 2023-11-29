@@ -9,6 +9,8 @@ import {
   genDatafoncierOwner,
 } from '../test/testFixtures';
 import { DatafoncierHousing } from '../../shared';
+import { DatafoncierResultDTO } from '../models/DatafoncierResultDTO';
+import { DatafoncierOwner } from '../../scripts/shared';
 
 function mock() {
   if (!config.datafoncier.enabled) {
@@ -40,11 +42,17 @@ function mock() {
       .query(true)
       .reply(async (uri) => {
         const query = new URLSearchParams(uri);
-        const datafoncierOwners = new Array(fp.random(1, 6))
+        const owners = new Array(fp.random(1, 6))
           .fill(0)
           .map(() => genDatafoncierOwner(query.get('idprocpte')));
 
-        return [constants.HTTP_STATUS_OK, datafoncierOwners];
+        const body: DatafoncierResultDTO<DatafoncierOwner> = {
+          count: owners.length,
+          previous: null,
+          next: null,
+          results: owners,
+        };
+        return [constants.HTTP_STATUS_OK, body];
       })
       .persist();
   }

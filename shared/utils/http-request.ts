@@ -5,8 +5,8 @@ export function createQuery(
 ): string {
   return fp.pipe(
     // Faster than fp.omitBy
-    fp.pickBy((value) => !fp.isNil(value)),
+    fp.pickBy((value) => !fp.isNil(value) && !fp.isEmpty(value)),
     (params: Record<string, string>) => new URLSearchParams(params),
-    (params) => ([...params.keys()].length > 0 ? `?${params}` : '')
+    (params) => (params.toString().length > 0 ? `?${params}` : '')
   )(params);
 }

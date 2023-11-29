@@ -4,6 +4,7 @@ import config from '../utils/config';
 import { DatafoncierOwner } from '../../scripts/shared';
 import { logger } from '../utils/logger';
 import { createQuery } from '../../shared';
+import { DatafoncierResultDTO } from '../models/DatafoncierResultDTO';
 
 const API = config.datafoncier.api;
 
@@ -35,9 +36,9 @@ const find = async (opts: FindOptions): Promise<DatafoncierOwner[]> => {
     return [];
   }
 
-  const datafoncierOwners = await response.json();
-  logger.debug(`Found ${datafoncierOwners.length} datafoncier owners.`);
-  return datafoncierOwners;
+  const data: DatafoncierResultDTO<DatafoncierOwner> = await response.json();
+  logger.debug(`Found ${data.results.length} datafoncier owners.`);
+  return data.results;
 };
 
 export default {

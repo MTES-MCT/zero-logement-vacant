@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import { logger } from '../utils/logger';
 import config from '../utils/config';
 import { createQuery, DatafoncierHousing } from '../../shared';
+import { DatafoncierResultDTO } from '../models/DatafoncierResultDTO';
 
 const API = config.datafoncier.api;
 
@@ -33,7 +34,7 @@ const find = async (opts: FindOptions): Promise<DatafoncierHousing[]> => {
     return [];
   }
 
-  const data: ResultDTO<DatafoncierHousing> = await response.json();
+  const data: DatafoncierResultDTO<DatafoncierHousing> = await response.json();
   return data.results.filter(isAllowed);
 };
 
@@ -64,13 +65,6 @@ function isAllowed(housing: DatafoncierHousing): boolean {
   const ALLOWED_DTELOCS = ['1', '2'];
   // TODO: ccogrm introuvable dans datafoncier ?
   return ALLOWED_DTELOCS.includes(housing.dteloc);
-}
-
-interface ResultDTO<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
 }
 
 export default {

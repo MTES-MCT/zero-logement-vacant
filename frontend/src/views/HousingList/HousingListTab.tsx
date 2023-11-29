@@ -20,7 +20,6 @@ import {
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount } from '../../models/HousingCount';
-import fp from 'lodash/fp';
 import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
 import {
   useAddGroupHousingMutation,
@@ -34,8 +33,10 @@ import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/Gr
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCreateCampaignMutation } from '../../services/campaign.service';
+import fp from 'lodash/fp';
 
 export type HousingListTabProps = {
+  isActive: boolean;
   /**
    * @default true
    */
@@ -45,11 +46,12 @@ export type HousingListTabProps = {
   showCreateCampaign?: boolean;
   filters: HousingFilters;
   status?: HousingStatus;
-  onCountFilteredHousing?: (count?: number) => void;
+  onCountFilteredHousing?: (count: number) => void;
 };
 
 const HousingListTab = ({
   filters,
+  isActive,
   status,
   showCount,
   showCreateGroup,
@@ -81,7 +83,9 @@ const HousingListTab = ({
     useSelection(filteredHousingCount);
 
   useEffect(() => {
-    onCountFilteredHousing?.(filteredHousingCount);
+    if (filteredHousingCount !== undefined) {
+      onCountFilteredHousing?.(filteredHousingCount);
+    }
   }, [filteredHousingCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
@@ -190,6 +194,10 @@ const HousingListTab = ({
         filters: filters,
       });
     }
+  }
+
+  if (!isActive) {
+    return <></>;
   }
 
   return (

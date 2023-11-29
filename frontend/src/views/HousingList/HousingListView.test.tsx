@@ -27,7 +27,7 @@ import * as randomstring from 'randomstring';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
-describe('housing view', () => {
+describe('Housing list view', () => {
   const user = userEvent.setup();
   let store: AppStore;
 
@@ -474,6 +474,23 @@ describe('housing view', () => {
         'Ce logement existe déjà dans votre parc'
       );
       expect(alert).toBeVisible();
+    });
+  });
+
+  describe('Housing table', () => {
+    it('should select a default tab', async () => {
+      fetchMock.mockResponse(defaultFetchMock);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const tab = await screen.findByRole('tab', { selected: true });
+      expect(tab).toHaveTextContent(/^Non suivi/);
     });
   });
 });

@@ -25,6 +25,9 @@ import {
 import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
 import { isDefined } from '../../../shared';
 import { Owner1 } from '../../../database/seeds/test/004-owner';
+import async from 'async';
+import { startTimer } from '../../../scripts/shared/elapsed';
+import { logger } from '../../utils/logger';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -107,6 +110,38 @@ describe('Housing repository', () => {
       });
 
       expect(actual).toSatisfyAll((housing) => housing.owner !== undefined);
+    });
+  });
+
+  describe('count', () => {
+    describe('Benchmark', () => {
+      beforeEach(async () => {
+        await Housing().delete();
+      });
+
+      it('should process a large amount of data', async () => {
+        const amount = 100_000;
+        const housingList = new Array(amount)
+          .fill('0')
+          .map(() => genHousingApi());
+        await async.forEach(fp.chunk(1_000, housingList), async (chunk) => {
+          await Housing().insert(chunk.map(formatHousingRecordApi));
+          logger.debug(`Saved ${chunk.length} housing.`);
+        });
+        logger.info(`Saved ${amount} housing.`);
+
+        await new Promise<void>((resolve) => {
+          startTimer(async (stopTimer) => {
+            await housingRepository.count({
+              occupancies: [OccupancyKindApi.Vacant],
+              status: 0,
+            });
+            const elapsed = stopTimer();
+            logger.info(`Elapsed: ${elapsed}.`);
+            resolve();
+          });
+        });
+      }, 120_000 /* A specific timeout */);
     });
   });
 

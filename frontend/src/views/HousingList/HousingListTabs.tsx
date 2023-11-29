@@ -1,4 +1,4 @@
-import { HousingStatus } from '../../models/HousingState';
+import { HOUSING_STATUSES } from '../../models/HousingState';
 import React from 'react';
 import HousingListTab from './HousingListTab';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -23,40 +23,43 @@ const HousingListTabs = ({
   showRemoveGroupHousing,
   showCreateCampaign,
 }: Props) => {
-  const statusList = [
-    undefined,
-    HousingStatus.NeverContacted,
-    HousingStatus.Waiting,
-    HousingStatus.FirstContact,
-    HousingStatus.InProgress,
-    HousingStatus.Completed,
-    HousingStatus.Blocked,
-  ];
+  const statuses = HOUSING_STATUSES;
 
-  const { getTabLabel, setStatusCount } = useStatusTabs(statusList);
+  const {
+    activeTab,
+    getTabId,
+    getTabLabel,
+    isActive,
+    setActiveTab,
+    setStatusCount,
+  } = useStatusTabs(statuses);
+
+  const tabs = statuses.map((status) => ({
+    tabId: getTabId(status),
+    label: getTabLabel(status),
+  }));
 
   return (
     <Tabs
       className="tabs-no-border statusTabs fr-mt-2w"
-      tabs={statusList.map((status) => ({
-        label: getTabLabel(status),
-        content: (
-          <HousingListTab
-            key={`status_tab_${status}`}
-            status={status}
-            showCount={showCount}
-            showCreateGroup={showCreateGroup}
-            showRemoveGroupHousing={showRemoveGroupHousing}
-            showCreateCampaign={showCreateCampaign}
-            filters={{
-              ...filters,
-              status,
-            }}
-            onCountFilteredHousing={setStatusCount(status)}
-          />
-        ),
-      }))}
-    />
+      selectedTabId={getTabId(activeTab)}
+      onTabChange={(tab: string) => setActiveTab(Number(tab))}
+      tabs={tabs}
+    >
+      {statuses.map((status) => (
+        <HousingListTab
+          key={`status_tab_${status}`}
+          isActive={isActive(status)}
+          status={status}
+          showCount={showCount}
+          showCreateGroup={showCreateGroup}
+          showRemoveGroupHousing={showRemoveGroupHousing}
+          showCreateCampaign={showCreateCampaign}
+          filters={{ ...filters, status }}
+          onCountFilteredHousing={setStatusCount(status)}
+        />
+      ))}
+    </Tabs>
   );
 };
 

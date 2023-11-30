@@ -121,13 +121,19 @@ describe('Housing repository', () => {
 
       it('should process a large amount of data', async () => {
         const amount = 100_000;
+        const maxParallel = 10;
+
         const housingList = new Array(amount)
           .fill('0')
           .map(() => genHousingApi());
-        await async.forEach(fp.chunk(1_000, housingList), async (chunk) => {
-          await Housing().insert(chunk.map(formatHousingRecordApi));
-          logger.debug(`Saved ${chunk.length} housing.`);
-        });
+        await async.forEachLimit(
+          fp.chunk(1_000, housingList),
+          maxParallel,
+          async (chunk) => {
+            await Housing().insert(chunk.map(formatHousingRecordApi));
+            logger.debug(`Saved ${chunk.length} housing.`);
+          }
+        );
         logger.info(`Saved ${amount} housing.`);
 
         await new Promise<void>((resolve) => {

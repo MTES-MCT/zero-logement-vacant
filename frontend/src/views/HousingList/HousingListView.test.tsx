@@ -133,30 +133,19 @@ describe('Housing list view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    [
-      undefined,
-      HousingStatus.NeverContacted,
-      HousingStatus.Waiting,
-      HousingStatus.FirstContact,
-      HousingStatus.InProgress,
-      HousingStatus.Completed,
-      HousingStatus.Blocked,
-    ].forEach((status) =>
-      expect(requests).toContainEqual({
-        url: `${config.apiEndpoint}/api/housing`,
-        method: 'POST',
-        body: {
-          filters: {
-            ...initialHousingFilters,
-            status,
-            ownerKinds: [ownerKindOptions[0].value],
-          },
-          page: 1,
-          perPage: config.perPageDefault,
-          paginate: true,
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: {
+          ...initialHousingFilters,
+          ownerKinds: [ownerKindOptions[0].value],
         },
-      })
-    );
+        page: 1,
+        perPage: config.perPageDefault,
+        paginate: true,
+      },
+    });
 
     expect(requests).toContainEqual({
       url: `${config.apiEndpoint}/api/housing/count`,
@@ -211,26 +200,16 @@ describe('Housing list view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    [
-      undefined,
-      HousingStatus.NeverContacted,
-      HousingStatus.Waiting,
-      HousingStatus.FirstContact,
-      HousingStatus.InProgress,
-      HousingStatus.Completed,
-      HousingStatus.Blocked,
-    ].forEach((status) =>
-      expect(requests).toContainEqual({
-        url: `${config.apiEndpoint}/api/housing`,
-        method: 'POST',
-        body: {
-          filters: { ...initialHousingFilters, query: 'my search', status },
-          page: 1,
-          perPage: config.perPageDefault,
-          paginate: true,
-        },
-      })
-    );
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: { ...initialHousingFilters, query: 'my search' },
+        page: 1,
+        perPage: config.perPageDefault,
+        paginate: true,
+      },
+    });
   });
 
   test('should not display the button to create campaign if no housing are selected', async () => {

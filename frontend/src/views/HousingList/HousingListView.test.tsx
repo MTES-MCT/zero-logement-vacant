@@ -24,6 +24,7 @@ import { HousingStatus } from '../../models/HousingState';
 import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
 import * as randomstring from 'randomstring';
+import { Housing } from '../../models/Housing';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -477,9 +478,9 @@ describe('Housing list view', () => {
     });
   });
 
-  describe('Housing table', () => {
+  describe('Housing tabs', () => {
     it('should select a default tab', async () => {
-      fetchMock.mockResponse(defaultFetchMock);
+      mockRequests(defaultMatches);
 
       render(
         <Provider store={store}>
@@ -490,7 +491,39 @@ describe('Housing list view', () => {
       );
 
       const tab = await screen.findByRole('tab', { selected: true });
-      expect(tab).toHaveTextContent(/^Non suivi/);
+      expect(tab).toHaveTextContent(/^Tous/);
+    });
+
+    it('should open another tab', async () => {
+      const housing: Housing = {
+        ...genHousing(),
+        status: HousingStatus.Waiting,
+      };
+      mockRequests([
+        ...defaultMatches.slice(1),
+        {
+          pathname: '/api/housing',
+          method: 'POST',
+          response: {
+            body: JSON.stringify([housing]),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const tab = await screen.findByRole('tab', {
+        selected: false,
+        name: /^En attente de retour/,
+      });
+      await user.click(tab);
+      expect(tab).toHaveAttribute('aria-selected', 'true');
     });
   });
 });

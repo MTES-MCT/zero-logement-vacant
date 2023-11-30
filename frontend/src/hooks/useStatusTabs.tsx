@@ -1,42 +1,49 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { getHousingState, HousingStatus } from '../models/HousingState';
+import { HousingStatus } from '../models/HousingState';
+import { HousingCount } from '../models/HousingCount';
 
-export function useStatusTabs(statuses: HousingStatus[]) {
-  const [activeTab, setActiveTab] = useState(statuses[0]);
+interface Status {
+  id: string;
+  label: string;
+  value: HousingStatus | undefined;
+}
 
-  const [statusCounts, setStatusCounts] = useState<(number | undefined)[]>(
-    new Array(statuses.length)
-  );
+export function useStatusTabs(statuses: Status[]) {
+  const [activeTab, setActiveTab] = useState(statuses[0].id);
 
-  const setStatusCount = (status: HousingStatus) => {
-    return (count: number) => {
+  const [statusCounts, setStatusCounts] = useState<
+    (HousingCount | undefined)[]
+  >(new Array(statuses.length));
+
+  const setStatusCount = (status: Status) => {
+    return (count: HousingCount) => {
       // Use of prevState is required to prevent concurrency issues
       setStatusCounts((prevState) => {
         const tmp = [...prevState];
-        tmp.splice(status, 1, count);
+        const index = statuses.findIndex((s) => s.id === status.id);
+        if (index === -1) {
+          throw new Error('Not found');
+        }
+        tmp.splice(index, 1, count);
         return tmp;
       });
     };
   };
 
-  function isActive(status: HousingStatus): boolean {
-    return activeTab === status;
+  function isActive(status: Status): boolean {
+    return activeTab === status.id;
   }
 
-  function getTabId(status: HousingStatus): string {
-    return status.toString();
-  }
-
-  const getTabLabel = (status: HousingStatus) => {
-    const count = statusCounts[status];
-    return `${getHousingState(status).title} (${count ?? '...'})`;
+  const getTabLabel = (status: Status): string => {
+    const i = statuses.findIndex((s) => s.id === status.id);
+    const count = statusCounts[i];
+    return `${status.label} (${count?.housing ?? '...'})`;
   };
 
   return {
     activeTab,
     isActive,
-    getTabId,
     getTabLabel,
     setActiveTab,
     setStatusCount,

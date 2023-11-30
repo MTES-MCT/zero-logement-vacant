@@ -856,7 +856,11 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.localityKinds?.length) {
       queryBuilder
-        .join(localitiesTable, 'geo_code', `${localitiesTable}.geo_code`)
+        .join(
+          localitiesTable,
+          `${housingTable}.geo_code`,
+          `${localitiesTable}.geo_code`
+        )
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {

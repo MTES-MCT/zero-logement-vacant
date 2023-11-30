@@ -19,7 +19,7 @@ import {
 } from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
-import { displayHousingCount } from '../../models/HousingCount';
+import { displayHousingCount, HousingCount } from '../../models/HousingCount';
 import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
 import {
   useAddGroupHousingMutation,
@@ -46,17 +46,17 @@ export type HousingListTabProps = {
   showCreateCampaign?: boolean;
   filters: HousingFilters;
   status?: HousingStatus;
-  onCountFilteredHousing?: (count: number) => void;
+  onCountFilteredHousing?: (count: HousingCount) => void;
 };
 
 const HousingListTab = ({
   filters,
   isActive,
-  status,
   showCount,
   showCreateGroup,
   showRemoveGroupHousing,
   showCreateCampaign,
+  status,
   onCountFilteredHousing,
 }: HousingListTabProps) => {
   const { trackEvent } = useMatomo();
@@ -75,18 +75,20 @@ const HousingListTab = ({
   );
   const totalCount = housingCount?.housing;
 
-  const { data: count, isFetching: isCounting } = useCountHousingQuery(filters);
-  const filteredHousingCount = isCounting ? undefined : count?.housing;
-  const filteredOwnerCount = isCounting ? undefined : count?.owners;
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredCount = count;
 
-  const { selectedCount, selected, setSelected } =
-    useSelection(filteredHousingCount);
+  const { selectedCount, selected, setSelected } = useSelection(
+    filteredCount?.housing
+  );
+  const filteredHousingCount = filteredCount?.housing;
+  const filteredOwnerCount = filteredCount?.owners;
 
   useEffect(() => {
-    if (filteredHousingCount !== undefined) {
-      onCountFilteredHousing?.(filteredHousingCount);
+    if (filteredCount !== undefined) {
+      onCountFilteredHousing?.(filteredCount);
     }
-  }, [filteredHousingCount]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
   const onSubmitCampaignCreation = async (campaignTitle?: string) => {

@@ -6,7 +6,7 @@ import { tapAsync, toHousingRecordApi } from '../shared';
 import housingRepository from '../../server/repositories/housingRepository';
 import HousingMissingError from '../../server/errors/housingMissingError';
 import ownerRepository from '../../server/repositories/ownerRepository';
-import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
+import createDatafoncierOwnersRepository from '../../server/repositories/datafoncierOwnersRepository';
 import {
   equals,
   HousingOwnerApi,
@@ -44,7 +44,11 @@ export async function processHousingOwners(
   }
 
   const [datafoncierOwners, housingOwners] = await Promise.all([
-    datafoncierOwnersRepository.findOwners(datafoncierHousing),
+    datafoncierOwnersRepository.find({
+      filters: {
+        idprocpte: datafoncierHousing.idprocpte,
+      },
+    }),
     ownerRepository.findByHousing(housing),
   ]);
   const datafoncierHousingOwners: HousingOwnerApi[] = toHousingOwnersApi(

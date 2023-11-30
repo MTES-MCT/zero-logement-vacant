@@ -4,21 +4,15 @@ import createDatafoncierOwnersRepository, {
 import {
   genDatafoncierHousing,
   genDatafoncierOwner,
-} from '../../../server/test/testFixtures';
-import { DatafoncierOwner, toOwnerApi } from '../../shared';
-import {
-  OwnerMatchDBO,
-  OwnerMatches,
-} from '../../../server/repositories/ownerMatchRepository';
-import {
-  formatOwnerApi,
-  Owners,
-} from '../../../server/repositories/ownerRepository';
+} from '../../test/testFixtures';
+import { DatafoncierOwner, toOwnerApi } from '../../../scripts/shared';
+import { OwnerMatchDBO, OwnerMatches } from '../ownerMatchRepository';
+import { formatOwnerApi, Owners } from '../ownerRepository';
 
 describe('Datafoncier owners repository', () => {
   const repository = createDatafoncierOwnersRepository();
 
-  describe('findOwners', () => {
+  describe('find', () => {
     const datafoncierHousing = genDatafoncierHousing();
     const datafoncierOwners: DatafoncierOwner[] = new Array(6)
       .fill('0')
@@ -39,7 +33,11 @@ describe('Datafoncier owners repository', () => {
     });
 
     it('should return the owners of a housing', async () => {
-      const actual = await repository.findOwners(datafoncierHousing);
+      const actual = await repository.find({
+        filters: {
+          idprocpte: datafoncierHousing.idprocpte,
+        },
+      });
 
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
     });

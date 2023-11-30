@@ -4,7 +4,7 @@ import {
   genHousingApi,
   genOwnerApi,
 } from '../../../server/test/testFixtures';
-import { DatafoncierOwners } from '../datafoncierOwnersRepository';
+import { DatafoncierOwners } from '../../../server/repositories/datafoncierOwnersRepository';
 import { DatafoncierHouses } from '../../../server/repositories/datafoncierHousingRepository';
 import {
   formatOwnerApi,

@@ -1,7 +1,7 @@
 import { HousingApi } from '../../server/models/HousingApi';
 import housingRepository from '../../server/repositories/housingRepository';
 import { tapAsync } from '../shared';
-import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
+import createDatafoncierOwnersRepository from '../../server/repositories/datafoncierOwnersRepository';
 import createDatafoncierHousingRepository from '../../server/repositories/datafoncierHousingRepository';
 import { logger } from '../../server/utils/logger';
 import ownerRepository from '../../server/repositories/ownerRepository';
@@ -48,7 +48,11 @@ export async function processHousing(housing: HousingApi): Promise<void> {
 
   logger.debug(`Found datafoncier housing for idlocal ${housing.localId}`);
   const [datafoncierOwners, housingOwners] = await Promise.all([
-    datafoncierOwnersRepository.findOwners(datafoncierHousing),
+    datafoncierOwnersRepository.find({
+      filters: {
+        idprocpte: datafoncierHousing.idprocpte,
+      },
+    }),
     ownerRepository.findByHousing(housing),
   ]);
   const datafoncierHousingOwners: HousingOwnerApi[] = toHousingOwnersApi(

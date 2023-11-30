@@ -22,7 +22,7 @@ import {
   formatHousingOwnersApi,
   HousingOwners,
 } from '../../../server/repositories/housingOwnerRepository';
-import { DatafoncierOwners } from '../datafoncierOwnersRepository';
+import { DatafoncierOwners } from '../../../server/repositories/datafoncierOwnersRepository';
 import fp from 'lodash/fp';
 import { DatafoncierHousing } from '../../../shared';
 

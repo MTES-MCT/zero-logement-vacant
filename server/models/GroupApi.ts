@@ -11,6 +11,7 @@ export interface GroupApi
    */
   createdBy?: UserApi;
   establishmentId: string;
+  exportedAt: Date | null;
   archivedAt: Date | null;
 }
 

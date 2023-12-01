@@ -91,23 +91,25 @@ const createUser = async (request: Request, response: Response) => {
     establishmentId: userApi.establishmentId,
   });
 
-  const createdUser = await userRepository.insert(userApi);
+  await withinTransaction(async () => {
+    const createdUser = await userRepository.insert(userApi);
 
-  if (!userEstablishment.campaignIntent && body.campaignIntent) {
-    userEstablishment.campaignIntent = body.campaignIntent;
-    userEstablishment.priority = hasPriority(userEstablishment)
-      ? 'high'
-      : 'standard';
-    await establishmentRepository.update(userEstablishment);
-  }
+    if (!userEstablishment.campaignIntent && body.campaignIntent) {
+      userEstablishment.campaignIntent = body.campaignIntent;
+      userEstablishment.priority = hasPriority(userEstablishment)
+        ? 'high'
+        : 'standard';
+      await establishmentRepository.update(userEstablishment);
+    }
 
-  if (!userEstablishment.available) {
-    await establishmentService.makeEstablishmentAvailable(userEstablishment);
-  }
-  // Remove associated prospect
-  await prospectRepository.remove(prospect.email);
+    if (!userEstablishment.available) {
+      await establishmentService.makeEstablishmentAvailable(userEstablishment);
+    }
+    // Remove associated prospect
+    await prospectRepository.remove(prospect.email);
 
-  response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
+    response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
+  });
   mailService.emit('user:created', prospect.email, {
     createdAt: new Date(),
   });
@@ -130,8 +132,8 @@ const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
   createUserValidators,
-  createUser: withinTransaction(createUser),
-  get: withinTransaction(get),
+  createUser,
+  get,
   userIdValidator,
 };
 

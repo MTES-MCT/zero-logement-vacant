@@ -15,26 +15,23 @@ export default function transaction() {
   };
 }
 
-interface Handler {
-  (req: Request, res: Response): Promise<void>;
-}
+type Handler<R> = () => Promise<R>;
 
-export function withinTransaction(handler: Handler) {
-  return async (request: Request, response: Response) => {
-    const transaction = await db.transaction();
-    const id = uuidv4();
+export async function withinTransaction<R>(handler: Handler<R>): Promise<R> {
+  const transaction = await db.transaction();
+  const id = uuidv4();
 
-    await storage.run({ id, transaction }, async () => {
-      try {
-        logger.debug(`Starting transaction ${id}...`);
-        await handler(request, response);
-        transaction?.commit();
-        logger.debug(`Commit transaction ${id}`);
-      } catch (error) {
-        transaction?.rollback();
-        logger.debug(`Roll back transaction ${id}`);
-        throw error;
-      }
-    });
-  };
+  return storage.run({ id, transaction }, async () => {
+    try {
+      logger.debug(`Starting transaction ${id}...`);
+      const returned = await handler();
+      await transaction?.commit();
+      logger.debug(`Commit transaction ${id}`);
+      return returned;
+    } catch (error) {
+      await transaction?.rollback();
+      logger.debug(`Roll back transaction ${id}`);
+      throw error;
+    }
+  });
 }

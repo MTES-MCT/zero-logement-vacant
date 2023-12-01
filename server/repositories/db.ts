@@ -48,7 +48,7 @@ export const storage = new AsyncLocalStorage<Store>();
 
 export function getCurrentTransaction(): Store | null {
   const store = storage.getStore();
-  logger.debug({ id: store?.id }, `Using transaction`);
+  logger.debug(`Using transaction`, { id: store?.id });
   return store ?? null;
 }
 

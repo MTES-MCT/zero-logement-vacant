@@ -1,17 +1,17 @@
 import highland from 'highland';
-import db from '../../server/repositories/db';
-import { DatafoncierOwner, DatafoncierOwnerSortApi, ownerDatafoncierSchema, validator } from '../shared';
-import { Knex } from 'knex';
-import { ownerMatchTable } from '../../server/repositories/ownerMatchRepository';
+import db, { where } from './db';
 import {
-  OwnerDBO,
-  ownerTable,
-  parseOwnerApi,
-} from '../../server/repositories/ownerRepository';
-import { OwnerApi } from '../../server/models/OwnerApi';
+  DatafoncierOwner,
+  DatafoncierOwnerSortApi,
+  ownerDatafoncierSchema,
+  validator,
+} from '../../scripts/shared';
+import { Knex } from 'knex';
+import { ownerMatchTable } from './ownerMatchRepository';
+import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
+import { OwnerApi } from '../models/OwnerApi';
 import fp from 'lodash/fp';
-import { sortQuery } from '../../server/models/SortApi';
-import { DatafoncierHousing } from '../../shared';
+import { sortQuery } from '../models/SortApi';
 
 const FIELDS = [
   'idprodroit',
@@ -30,12 +30,20 @@ export const datafoncierOwnersTable = 'df_owners_nat';
 export const DatafoncierOwners = (transaction = db) =>
   transaction<DatafoncierOwner>(datafoncierOwnersTable);
 
+interface DatafoncierOwnerFilters {
+  idprocpte?: string;
+}
+
+interface FindOptions {
+  filters?: DatafoncierOwnerFilters;
+}
+
 class DatafoncierOwnersRepository {
-  async findOwners(housing: DatafoncierHousing): Promise<OwnerApi[]> {
+  async find(opts?: FindOptions): Promise<OwnerApi[]> {
+    const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
+
     const owners: Array<OwnerDBO> = await DatafoncierOwners()
-      .where({
-        idprocpte: housing.idprocpte,
-      })
+      .where(whereOptions(opts?.filters))
       .join(
         ownerMatchTable,
         `${ownerMatchTable}.idpersonne`,

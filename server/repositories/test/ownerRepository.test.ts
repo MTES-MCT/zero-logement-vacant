@@ -10,7 +10,7 @@ import {
 } from '../../test/testFixtures';
 import db from '../db';
 import { OwnerApi } from '../../models/OwnerApi';
-import { DatafoncierOwners } from '../../../scripts/import-datafoncier/datafoncierOwnersRepository';
+import { DatafoncierOwners } from '../datafoncierOwnersRepository';
 import { OwnerMatches } from '../ownerMatchRepository';
 
 describe('Owner repository', () => {

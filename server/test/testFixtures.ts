@@ -4,13 +4,26 @@ import { OwnerApi } from '../models/OwnerApi';
 import { v4 as uuidv4 } from 'uuid';
 import { EstablishmentApi } from '../models/EstablishmentApi';
 import { addHours } from 'date-fns';
-import { EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi, OwnershipKindsApi } from '../models/HousingApi';
+import {
+  EnergyConsumptionGradesApi,
+  HousingApi,
+  OccupancyKindApi,
+  OwnershipKindsApi,
+} from '../models/HousingApi';
 import { CampaignApi } from '../models/CampaignApi';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 import { ProspectApi } from '../models/ProspectApi';
-import { RESET_LINK_EXPIRATION, RESET_LINK_LENGTH, ResetLinkApi } from '../models/ResetLinkApi';
+import {
+  RESET_LINK_EXPIRATION,
+  RESET_LINK_LENGTH,
+  ResetLinkApi,
+} from '../models/ResetLinkApi';
 import { ContactPointApi } from '../models/ContactPointApi';
-import { SIGNUP_LINK_EXPIRATION, SIGNUP_LINK_LENGTH, SignupLinkApi } from '../models/SignupLinkApi';
+import {
+  SIGNUP_LINK_EXPIRATION,
+  SIGNUP_LINK_LENGTH,
+  SignupLinkApi,
+} from '../models/SignupLinkApi';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
@@ -19,13 +32,21 @@ import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
-import { DatafoncierHousing, HOUSING_SOURCES, UserAccountDTO } from '../../shared';
+import {
+  DatafoncierHousing,
+  HOUSING_SOURCES,
+  UserAccountDTO,
+} from '../../shared';
 import { GroupApi } from '../models/GroupApi';
 import { DatafoncierOwner } from '../../scripts/shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '../repositories/ownerMatchRepository';
-import { ConflictApi, HousingOwnerConflictApi, OwnerConflictApi } from '../models/ConflictApi';
+import {
+  ConflictApi,
+  HousingOwnerConflictApi,
+  OwnerConflictApi,
+} from '../models/ConflictApi';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
 
@@ -83,7 +104,6 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: randomstring.generate(),
-    kind: faker.helpers.arrayElement(['ACV', 'PVD', undefined]),
     taxKind: TaxKindsApi.None,
   };
 };

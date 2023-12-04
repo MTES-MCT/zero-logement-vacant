@@ -45,6 +45,7 @@ const create = async (request: Request, response: Response): Promise<void> => {
               ...body.housing.filters,
               establishmentIds: [establishment.id],
             },
+            includes: ['owner'],
             pagination: { paginate: false },
           })
           .then((housingList) => {
@@ -178,6 +179,7 @@ const addHousing = async (
           ...body.filters,
           establishmentIds: [auth.establishmentId],
         },
+        includes: ['owner'],
         pagination: { paginate: false },
       })
       .then((housingList) => {
@@ -191,6 +193,7 @@ const addHousing = async (
         groupIds: [group.id],
         establishmentIds: [auth.establishmentId],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);
@@ -272,6 +275,7 @@ const removeHousing = async (request: Request, response: Response) => {
         groupIds: [group.id],
         establishmentIds: [auth.establishmentId],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);
@@ -336,6 +340,7 @@ const remove = async (request: Request, response: Response): Promise<void> => {
         establishmentIds: [auth.establishmentId],
         groupIds: [group.id],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);

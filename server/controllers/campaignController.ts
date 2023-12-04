@@ -128,6 +128,7 @@ const createCampaign = async (
             establishmentIds: [establishmentId],
             localities: filterLocalities,
           },
+          includes: ['owner'],
           pagination: { paginate: false },
         })
         .then((housingList) =>
@@ -135,6 +136,7 @@ const createCampaign = async (
         )
     : await housingRepository.find({
         filters: {
+          // TODO: check if it's faster to use the `draftCampaign.filters`
           establishmentIds: [establishmentId],
           housingIds: request.body.housingIds,
         },
@@ -490,6 +492,7 @@ const removeHousing = async (
         establishmentIds: [establishmentId],
         campaignIds: [campaignId],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     })
     .then((_) =>

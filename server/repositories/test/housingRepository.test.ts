@@ -44,6 +44,7 @@ import {
   formatBuildingApi,
 } from '../buildingRepository';
 import async from 'async';
+import { OwnerApi } from '../../models/OwnerApi';
 import { startTimer } from '../../../scripts/shared/elapsed';
 import { logger } from '../../utils/logger';
 
@@ -248,6 +249,33 @@ describe('Housing repository', () => {
             building.vacant_housing_count / building.housing_count
           ).toSatisfy((rate) => 0.05 <= rate && rate <= 0.2);
         });
+      });
+
+      it('should query by an owner’s name', async () => {
+        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        const owner: OwnerApi = {
+          ...genOwnerApi(),
+          fullName: 'Jean Dupont',
+        };
+        await Owners().insert(formatOwnerApi(owner));
+        await HousingOwners().insert(
+          housingList.flatMap((housing) =>
+            formatHousingOwnersApi(housing, [owner])
+          )
+        );
+        const query = 'Dupon';
+
+        const actual = await housingRepository.find({
+          filters: {
+            query,
+          },
+          includes: ['owner'],
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>(
+          (housing) => housing.owner?.fullName?.includes(query) ?? false
+        );
       });
 
       it('should filter by group', async () => {

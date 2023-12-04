@@ -106,11 +106,18 @@ describe('Fetch utils', () => {
       const actual = getURLQuery({
         string: 'string',
         number: '123',
+        boolean: true,
         undefined: undefined,
         null: null,
       });
 
-      expect(actual).toBe('?string=string&number=123');
+      expect(actual).toBe('?string=string&number=123&boolean=true');
+    });
+
+    it('should return an empty query string if the given object is empty', () => {
+      const actual = getURLQuery({});
+
+      expect(actual).toBe('');
     });
   });
 });

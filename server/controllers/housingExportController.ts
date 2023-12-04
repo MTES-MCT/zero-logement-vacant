@@ -104,9 +104,15 @@ const exportGroup = async (request: Request, response: Response) => {
   });
   const fileName = `${group.title}.xlsx`;
   const workbook = excelUtils.initWorkbook(fileName, response);
-  writeWorkbook(stream, ['owner', 'housing'], campaigns, workbook).done(() => {
-    logger.info('Exported group', { group: group.id });
-  });
+  writeWorkbook(stream, ['owner', 'housing'], campaigns, workbook).done(
+    async () => {
+      await groupRepository.save({
+        ...group,
+        exportedAt: group.exportedAt ?? new Date(),
+      });
+      logger.info('Exported group', { group: group.id });
+    }
+  );
 };
 const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),

@@ -66,6 +66,7 @@ const create = async (request: Request, response: Response): Promise<void> => {
     createdBy: user,
     userId: user.id,
     establishmentId: establishment.id,
+    exportedAt: null,
     archivedAt: null,
   };
 

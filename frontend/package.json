@@ -39,7 +39,7 @@
     "@turf/turf": "^6.5.0",
     "@typeform/embed-react": "^2.31.0",
     "@types/jest": "^28.1.8",
-    "@types/node": "^16.18.60",
+    "@types/node": "^16.18.61",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.14",
     "@types/react-router-dom": "^5.3.3",

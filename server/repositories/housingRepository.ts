@@ -804,25 +804,30 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
+    if (filters.housingCounts?.length || filters.vacancyRates?.length) {
+      queryBuilder.join(
+        buildingTable,
+        `${housingTable}.building_id`,
+        `${buildingTable}.id`
+      );
+    }
+
     if (filters.housingCounts?.length) {
-      queryBuilder
-        .leftJoin(buildingTable, `building_id`, `${buildingTable}.id`)
-        .where(function (whereBuilder: any) {
-          if (filters.housingCounts?.indexOf('lt5') !== -1) {
-            whereBuilder.orWhereRaw(
-              'coalesce(housing_count, 0) between 0 and 4'
-            );
-          }
-          if (filters.housingCounts?.indexOf('5to20') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [5, 20]);
-          }
-          if (filters.housingCounts?.indexOf('20to50') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [20, 50]);
-          }
-          if (filters.housingCounts?.indexOf('gt50') !== -1) {
-            whereBuilder.orWhereRaw('housing_count > 50');
-          }
-        });
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.housingCounts?.indexOf('lt5') !== -1) {
+          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
+        }
+        if (filters.housingCounts?.indexOf('5to20') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [5, 20]);
+        }
+        if (filters.housingCounts?.indexOf('20to50') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [20, 50]);
+        }
+        if (filters.housingCounts?.indexOf('gt50') !== -1) {
+          whereBuilder.orWhereRaw('housing_count > 50');
+        }
+      });
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where(function (whereBuilder: any) {
@@ -993,6 +998,16 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   invariant: housing.invariant,
   localId: housing.local_id,
   buildingGroupId: housing.building_group_id,
+  buildingHousingCount: housing.housing_count,
+  buildingId: housing.building_id,
+  buildingLocation: housing.building_location,
+  buildingVacancyRate: housing.vacant_housing_count
+    ? Math.round(
+        (housing.vacant_housing_count * 100) /
+          (housing.housing_count ?? housing.vacant_housing_count)
+      )
+    : undefined,
+  buildingYear: housing.building_year,
   rawAddress: housing.raw_address,
   geoCode: housing.geo_code,
   longitude: housing.longitude_ban ?? housing.longitude,
@@ -1004,11 +1019,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   roomsCount: housing.rooms_count,
   livingArea: housing.living_area,
   cadastralReference: housing.cadastral_reference,
-  buildingYear: housing.building_year,
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  buildingLocation: housing.building_location,
   ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
@@ -1022,13 +1035,6 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   geoPerimeters: housing.geo_perimeters,
   owner: housing.owner ? parseOwnerApi(housing.owner) : undefined,
   coowners: [],
-  buildingHousingCount: housing.housing_count,
-  buildingVacancyRate: housing.vacant_housing_count
-    ? Math.round(
-        (housing.vacant_housing_count * 100) /
-          (housing.housing_count ?? housing.vacant_housing_count)
-      )
-    : undefined,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
@@ -1041,7 +1047,10 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  building_id: housingRecordApi.buildingId,
   building_group_id: housingRecordApi.buildingGroupId,
+  building_location: housingRecordApi.buildingLocation,
+  building_year: housingRecordApi.buildingYear,
   raw_address: housingRecordApi.rawAddress,
   geo_code: housingRecordApi.geoCode,
   longitude: housingRecordApi.longitude,
@@ -1053,8 +1062,6 @@ export const formatHousingRecordApi = (
   rooms_count: housingRecordApi.roomsCount,
   living_area: housingRecordApi.livingArea,
   cadastral_reference: housingRecordApi.cadastralReference,
-  building_year: housingRecordApi.buildingYear,
-  building_location: housingRecordApi.buildingLocation,
   vacancy_reasons: housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
   ownership_kind: housingRecordApi.ownershipKind,

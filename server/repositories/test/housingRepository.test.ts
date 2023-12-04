@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker/locale/fr';
+
 import housingRepository, {
   formatHousingRecordApi,
   Housing,
@@ -8,6 +10,7 @@ import {
 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
 import {
+  genBuildingApi,
   genGroupApi,
   genHousingApi,
   genLocalityApi,
@@ -34,6 +37,12 @@ import { Owner1 } from '../../../database/seeds/test/004-owner';
 import { differenceInYears } from 'date-fns';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '../../models/LocalityApi';
+import { BuildingApi } from '../../models/BuildingApi';
+import {
+  BuildingDBO,
+  Buildings,
+  formatBuildingApi,
+} from '../buildingRepository';
 import async from 'async';
 import { startTimer } from '../../../scripts/shared/elapsed';
 import { logger } from '../../utils/logger';
@@ -197,6 +206,48 @@ describe('Housing repository', () => {
             .map((locality) => locality.geoCode)
             .includes(housing.geoCode)
         );
+      });
+
+      it('should filter by building vacancy rate', async () => {
+        const buildingId = faker.string.uuid();
+        const housingList: HousingApi[] = new Array(10)
+          .fill('0')
+          .map(() => genHousingApi())
+          .map((housing, i, array) => ({
+            ...housing,
+            buildingId,
+            // Create one vacant housing and nine others
+            occupancy:
+              i === array.length - 1
+                ? OccupancyKindApi.Vacant
+                : OccupancyKindApi.Rent,
+          }));
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        const building: BuildingApi = {
+          ...genBuildingApi(housingList),
+          id: buildingId,
+        };
+        expect(building.vacantHousingCount).toBe(1);
+        await Buildings().insert(formatBuildingApi(building));
+
+        const actual = await housingRepository.find({
+          filters: {
+            vacancyRates: ['5to20'],
+          },
+        });
+
+        const buildingIds = fp.uniq(
+          actual.map((housing) => housing.buildingId)
+        );
+        await async.forEach(buildingIds, async (id) => {
+          const building: BuildingDBO = await Buildings()
+            .where('id', id)
+            .first();
+          expect(building).toBeDefined();
+          expect(
+            building.vacant_housing_count / building.housing_count
+          ).toSatisfy((rate) => 0.05 <= rate && rate <= 0.2);
+        });
       });
 
       it('should filter by group', async () => {

@@ -27,6 +27,7 @@ import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '../repositories/ownerMatchRepository';
 import { ConflictApi, HousingOwnerConflictApi, OwnerConflictApi } from '../models/ConflictApi';
 import { logger } from '../utils/logger';
+import { BuildingApi } from '../models/BuildingApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -180,6 +181,16 @@ export const genHousingOwnerApi = (
 
 export const genLocalId = (geoCode: string): string =>
   `${geoCode}${randomstring.generate({ length: 7, charset: 'numeric' })}`;
+
+export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
+  return {
+    id: uuidv4(),
+    housingCount: housingList.length,
+    vacantHousingCount: housingList.filter(
+      (housing) => housing.occupancy === OccupancyKindApi.Vacant
+    ).length,
+  };
+};
 
 export const genHousingApi = (
   geoCode: string = genGeoCode()

@@ -105,13 +105,15 @@ describe('Fetch utils', () => {
     it('should return a query string', () => {
       const actual = getURLQuery({
         string: 'string',
-        number: '123',
+        number: 123,
+        empty: '',
+        array: ['a', 'b'],
         boolean: true,
         undefined: undefined,
         null: null,
       });
 
-      expect(actual).toBe('?string=string&number=123&boolean=true');
+      expect(actual).toBe('?string=string&number=123&array=a%2Cb&boolean=true');
     });
 
     it('should return an empty query string if the given object is empty', () => {

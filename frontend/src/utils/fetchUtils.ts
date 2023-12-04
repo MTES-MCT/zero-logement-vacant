@@ -93,7 +93,12 @@ export const getURLQuery = (params: Object): string => {
 
   return fp.pipe(
     // Faster than fp.omitBy
-    fp.pickBy((value) => !fp.isNil(value)),
+    fp.pickBy((value) => {
+      return (
+        !fp.isNil(value) &&
+        (fp.isBoolean(value) || fp.isNumber(value) || !fp.isEmpty(value))
+      );
+    }),
     (params: Record<string, string>) => new URLSearchParams(params),
     (params) => (params.toString().length > 0 ? `?${params}` : '')
   )(params);

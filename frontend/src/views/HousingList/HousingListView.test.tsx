@@ -24,10 +24,11 @@ import { HousingStatus } from '../../models/HousingState';
 import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
 import * as randomstring from 'randomstring';
+import { Housing } from '../../models/Housing';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
-describe('housing view', () => {
+describe('Housing list view', () => {
   const user = userEvent.setup();
   let store: AppStore;
 
@@ -132,30 +133,19 @@ describe('housing view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    [
-      undefined,
-      HousingStatus.NeverContacted,
-      HousingStatus.Waiting,
-      HousingStatus.FirstContact,
-      HousingStatus.InProgress,
-      HousingStatus.Completed,
-      HousingStatus.Blocked,
-    ].forEach((status) =>
-      expect(requests).toContainEqual({
-        url: `${config.apiEndpoint}/api/housing`,
-        method: 'POST',
-        body: {
-          filters: {
-            ...initialHousingFilters,
-            status,
-            ownerKinds: [ownerKindOptions[0].value],
-          },
-          page: 1,
-          perPage: config.perPageDefault,
-          paginate: true,
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: {
+          ...initialHousingFilters,
+          ownerKinds: [ownerKindOptions[0].value],
         },
-      })
-    );
+        page: 1,
+        perPage: config.perPageDefault,
+        paginate: true,
+      },
+    });
 
     expect(requests).toContainEqual({
       url: `${config.apiEndpoint}/api/housing/count`,
@@ -210,26 +200,16 @@ describe('housing view', () => {
 
     const requests = await getRequestCalls(fetchMock);
 
-    [
-      undefined,
-      HousingStatus.NeverContacted,
-      HousingStatus.Waiting,
-      HousingStatus.FirstContact,
-      HousingStatus.InProgress,
-      HousingStatus.Completed,
-      HousingStatus.Blocked,
-    ].forEach((status) =>
-      expect(requests).toContainEqual({
-        url: `${config.apiEndpoint}/api/housing`,
-        method: 'POST',
-        body: {
-          filters: { ...initialHousingFilters, query: 'my search', status },
-          page: 1,
-          perPage: config.perPageDefault,
-          paginate: true,
-        },
-      })
-    );
+    expect(requests).toContainEqual({
+      url: `${config.apiEndpoint}/api/housing`,
+      method: 'POST',
+      body: {
+        filters: { ...initialHousingFilters, query: 'my search' },
+        page: 1,
+        perPage: config.perPageDefault,
+        paginate: true,
+      },
+    });
   });
 
   test('should not display the button to create campaign if no housing are selected', async () => {
@@ -474,6 +454,55 @@ describe('housing view', () => {
         'Ce logement existe déjà dans votre parc'
       );
       expect(alert).toBeVisible();
+    });
+  });
+
+  describe('Housing tabs', () => {
+    it('should select a default tab', async () => {
+      mockRequests(defaultMatches);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const tab = await screen.findByRole('tab', { selected: true });
+      expect(tab).toHaveTextContent(/^Tous/);
+    });
+
+    it('should open another tab', async () => {
+      const housing: Housing = {
+        ...genHousing(),
+        status: HousingStatus.Waiting,
+      };
+      mockRequests([
+        ...defaultMatches.slice(1),
+        {
+          pathname: '/api/housing',
+          method: 'POST',
+          response: {
+            body: JSON.stringify([housing]),
+          },
+        },
+      ]);
+
+      render(
+        <Provider store={store}>
+          <Router history={createMemoryHistory()}>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const tab = await screen.findByRole('tab', {
+        selected: false,
+        name: /^En attente de retour/,
+      });
+      await user.click(tab);
+      expect(tab).toHaveAttribute('aria-selected', 'true');
     });
   });
 });

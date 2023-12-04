@@ -609,6 +609,7 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
@@ -617,27 +618,27 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.ownerAges?.indexOf('lt40') !== -1) {
+        if (filters.ownerAges?.includes('lt40')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) <= 40"
           );
         }
-        if (filters.ownerAges?.indexOf('40to60') !== -1) {
+        if (filters.ownerAges?.includes('40to60')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 40 and 60"
           );
         }
-        if (filters.ownerAges?.indexOf('60to75') !== -1) {
+        if (filters.ownerAges?.includes('60to75')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 60 and 75"
           );
         }
-        if (filters.ownerAges?.indexOf('75to100') !== -1) {
+        if (filters.ownerAges?.includes('75to100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 75 and 100"
           );
         }
-        if (filters.ownerAges?.indexOf('gt100') !== -1) {
+        if (filters.ownerAges?.includes('gt100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) >= 100"
           );
@@ -646,18 +647,19 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.multiOwners?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.multiOwners?.indexOf('true') !== -1) {
+        if (filters.multiOwners?.includes('true')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
-        if (filters.multiOwners?.indexOf('false') !== -1) {
+        if (filters.multiOwners?.includes('false')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
       });
     }
+
     if (filters.beneficiaryCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
         whereBuilder.whereIn(

@@ -82,6 +82,7 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: randomstring.generate(),
+    kind: faker.helpers.arrayElement(['ACV', 'PVD', undefined]),
     taxKind: TaxKindsApi.None,
   };
 };

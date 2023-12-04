@@ -7,7 +7,13 @@ import {
   Establishment2,
 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
-import { genGroupApi, genHousingApi, oneOf } from '../../test/testFixtures';
+import {
+  genGroupApi,
+  genHousingApi,
+  genLocalityApi,
+  genOwnerApi,
+  oneOf,
+} from '../../test/testFixtures';
 import { User1 } from '../../../database/seeds/test/003-users';
 import {
   formatGroupApi,
@@ -25,6 +31,9 @@ import {
 import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
 import { isDefined } from '../../../shared';
 import { Owner1 } from '../../../database/seeds/test/004-owner';
+import { differenceInYears } from 'date-fns';
+import { formatLocalityApi, Localities } from '../localityRepository';
+import { LocalityApi } from '../../models/LocalityApi';
 import async from 'async';
 import { startTimer } from '../../../scripts/shared/elapsed';
 import { logger } from '../../utils/logger';
@@ -40,69 +49,6 @@ describe('Housing repository', () => {
       expect(actual).toBeSortedBy('id');
     });
 
-    it('should filter by housing ids', async () => {
-      const actual = await housingRepository.find({
-        filters: {
-          establishmentIds: [Establishment1.id],
-          housingIds: [Housing1.id],
-        },
-      });
-
-      expect(actual).toBeArrayOfSize(1);
-      expect(actual[0]).toMatchObject({
-        id: Housing1.id,
-        geoCode: Housing1.geoCode,
-      });
-    });
-
-    it('should filter by establishment', async () => {
-      const establishment = Establishment2;
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(housing.owner));
-      await HousingOwners().insert(
-        formatHousingOwnersApi(housing, [housing.owner])
-      );
-
-      const actual = await housingRepository.find({
-        filters: {
-          establishmentIds: [establishment.id],
-        },
-      });
-
-      expect(actual).toSatisfyAll<HousingApi>((housing) =>
-        establishment.geoCodes.some((geoCode) => geoCode === housing.geoCode)
-      );
-    });
-
-    it('should filter by group', async () => {
-      const group = genGroupApi(User1, Establishment1);
-      const housingList = [
-        genHousingApi(oneOf(Establishment1.geoCodes)),
-        genHousingApi(oneOf(Establishment1.geoCodes)),
-        genHousingApi(oneOf(Establishment1.geoCodes)),
-      ];
-      const owners = housingList
-        .map((housing) => housing.owner)
-        .filter(isDefined);
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      await Owners().insert(owners.map(formatOwnerApi));
-      await HousingOwners().insert(housingList.map(formatOwnerHousingApi));
-      await Groups().insert(formatGroupApi(group));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
-
-      const actual = await housingRepository.find({
-        filters: {
-          establishmentIds: [Establishment1.id],
-          groupIds: [group.id],
-        },
-      });
-
-      expect(actual).toBeArrayOfSize(3);
-      const ids = housingList.map(fp.pick(['id']));
-      expect(actual).toIncludeAllPartialMembers(ids);
-    });
-
     it('should include owner on demand', async () => {
       const actual = await housingRepository.find({
         filters: {},
@@ -110,6 +56,176 @@ describe('Housing repository', () => {
       });
 
       expect(actual).toSatisfyAll((housing) => housing.owner !== undefined);
+    });
+
+    describe('Filters', () => {
+      it('should filter by housing ids', async () => {
+        const actual = await housingRepository.find({
+          filters: {
+            establishmentIds: [Establishment1.id],
+            housingIds: [Housing1.id],
+          },
+        });
+
+        expect(actual).toBeArrayOfSize(1);
+        expect(actual[0]).toMatchObject({
+          id: Housing1.id,
+          geoCode: Housing1.geoCode,
+        });
+      });
+
+      it('should filter by establishment', async () => {
+        const establishment = Establishment2;
+        const housing = genHousingApi(oneOf(establishment.geoCodes));
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Owners().insert(formatOwnerApi(housing.owner));
+        await HousingOwners().insert(
+          formatHousingOwnersApi(housing, [housing.owner])
+        );
+
+        const actual = await housingRepository.find({
+          filters: {
+            establishmentIds: [establishment.id],
+          },
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((housing) =>
+          establishment.geoCodes.some((geoCode) => geoCode === housing.geoCode)
+        );
+      });
+
+      it('should filter by owner ids', async () => {
+        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        const owner = genOwnerApi();
+        await Owners().insert(formatOwnerApi(owner));
+        await HousingOwners().insert(
+          housingList.flatMap((housing) =>
+            formatHousingOwnersApi(housing, [owner])
+          )
+        );
+
+        const actual = await housingRepository.find({
+          filters: {
+            ownerIds: [owner.id],
+          },
+          includes: ['owner'],
+        });
+
+        expect(actual).toBeArrayOfSize(housingList.length);
+        expect(actual).toSatisfyAll<HousingApi>((housing) => {
+          return owner.id === housing.owner?.id;
+        });
+      });
+
+      it('should filter by owner kind', async () => {
+        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        const owners = housingList.map((housing) => housing.owner);
+        await Owners().insert(owners.map(formatOwnerApi));
+        await HousingOwners().insert(
+          housingList.flatMap((housing) =>
+            formatHousingOwnersApi(housing, [housing.owner])
+          )
+        );
+
+        const actual = await housingRepository.find({
+          filters: {
+            ownerAges: ['lt40'],
+          },
+          includes: ['owner'],
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((housing) => {
+          return (
+            !!housing.owner?.birthDate &&
+            differenceInYears(new Date(), new Date(housing.owner?.birthDate)) <
+              40
+          );
+        });
+      });
+
+      it('should filter by multi owners', async () => {
+        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        const owner = genOwnerApi();
+        await Owners().insert(formatOwnerApi(owner));
+        await HousingOwners().insert(
+          housingList.flatMap((housing) =>
+            formatHousingOwnersApi(housing, [owner])
+          )
+        );
+
+        const actual = await housingRepository.find({
+          filters: {
+            multiOwners: ['true'],
+          },
+          includes: ['owner'],
+        });
+
+        const countOwners = fp.pipe(
+          fp.map((housing: HousingApi) => housing.owner),
+          fp.groupBy('id'),
+          fp.mapValues(fp.size),
+          fp.values,
+          fp.every((occurence) => occurence > 1)
+        );
+        expect(actual).toSatisfy<HousingApi[]>(countOwners);
+      });
+
+      it('should filter by locality kind', async () => {
+        const localities: LocalityApi[] = [
+          { ...genLocalityApi(), kind: 'ACV' },
+          { ...genLocalityApi(), kind: 'PVD' },
+        ];
+        await Localities().insert(localities.map(formatLocalityApi));
+        const housingList = new Array(10).fill('0').map(() => {
+          const geoCode = oneOf(localities).geoCode;
+          return genHousingApi(geoCode);
+        });
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+
+        const actual = await housingRepository.find({
+          filters: {
+            localityKinds: ['ACV', 'PVD'],
+          },
+          includes: ['owner'],
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((housing) =>
+          localities
+            .map((locality) => locality.geoCode)
+            .includes(housing.geoCode)
+        );
+      });
+
+      it('should filter by group', async () => {
+        const group = genGroupApi(User1, Establishment1);
+        const housingList = [
+          genHousingApi(oneOf(Establishment1.geoCodes)),
+          genHousingApi(oneOf(Establishment1.geoCodes)),
+          genHousingApi(oneOf(Establishment1.geoCodes)),
+        ];
+        const owners = housingList
+          .map((housing) => housing.owner)
+          .filter(isDefined);
+        await Housing().insert(housingList.map(formatHousingRecordApi));
+        await Owners().insert(owners.map(formatOwnerApi));
+        await HousingOwners().insert(housingList.map(formatOwnerHousingApi));
+        await Groups().insert(formatGroupApi(group));
+        await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+
+        const actual = await housingRepository.find({
+          filters: {
+            establishmentIds: [Establishment1.id],
+            groupIds: [group.id],
+          },
+        });
+
+        expect(actual).toBeArrayOfSize(3);
+        const ids = housingList.map(fp.pick(['id']));
+        expect(actual).toIncludeAllPartialMembers(ids);
+      });
     });
   });
 

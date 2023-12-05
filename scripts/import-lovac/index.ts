@@ -17,7 +17,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import fp from 'lodash/fp';
 import config from '../../server/utils/config';
-import { tapAsync } from '../shared/stream';
+import { tapAsync } from '../shared';
 import { logger } from '../../server/utils/logger';
 
 const BATCH_SIZE = config.application.batchSize;

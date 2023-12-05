@@ -24,7 +24,7 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import validator from 'validator';
-import { PaginationOptions } from '../../shared/models/Pagination';
+import { HousingSource, PaginationOptions } from '../../shared';
 import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
@@ -36,7 +36,6 @@ import {
   housingOwnersTable,
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
-import { HousingSource } from '../../shared';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';

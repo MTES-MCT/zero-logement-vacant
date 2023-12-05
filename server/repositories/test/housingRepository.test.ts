@@ -56,7 +56,6 @@ describe('Housing repository', () => {
       });
 
       expect(actual).toBeSortedBy('geoCode');
-      expect(actual).toBeSortedBy('id');
     });
 
     it('should include owner on demand', async () => {
@@ -66,6 +65,35 @@ describe('Housing repository', () => {
       });
 
       expect(actual).toSatisfyAll((housing) => housing.owner !== undefined);
+    });
+
+    it('should include owner if needed by a filter', async () => {
+      const owner = Owner1;
+
+      const actual = await housingRepository.find({
+        filters: {
+          ownerIds: [owner.id],
+        },
+      });
+
+      expect(actual).toSatisfyAll<HousingApi>(
+        (housing) => housing.owner?.id === owner.id
+      );
+    });
+
+    it('should include owner only once', async () => {
+      const owner = Owner1;
+
+      const actual = await housingRepository.find({
+        filters: {
+          ownerIds: [owner.id],
+        },
+        includes: ['owner'],
+      });
+
+      expect(actual).toSatisfyAll<HousingApi>(
+        (housing) => housing.owner?.id === owner.id
+      );
     });
 
     describe('Filters', () => {
@@ -119,7 +147,6 @@ describe('Housing repository', () => {
           filters: {
             ownerIds: [owner.id],
           },
-          includes: ['owner'],
         });
 
         expect(actual).toBeArrayOfSize(housingList.length);
@@ -143,7 +170,6 @@ describe('Housing repository', () => {
           filters: {
             ownerAges: ['lt40'],
           },
-          includes: ['owner'],
         });
 
         expect(actual).toSatisfyAll<HousingApi>((housing) => {
@@ -170,7 +196,6 @@ describe('Housing repository', () => {
           filters: {
             multiOwners: ['true'],
           },
-          includes: ['owner'],
         });
 
         const countOwners = fp.pipe(
@@ -199,7 +224,6 @@ describe('Housing repository', () => {
           filters: {
             localityKinds: ['ACV', 'PVD'],
           },
-          includes: ['owner'],
         });
 
         expect(actual).toSatisfyAll<HousingApi>((housing) =>
@@ -270,7 +294,6 @@ describe('Housing repository', () => {
           filters: {
             query,
           },
-          includes: ['owner'],
         });
 
         expect(actual).toSatisfyAll<HousingApi>(

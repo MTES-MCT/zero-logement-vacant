@@ -262,6 +262,7 @@ const removeHousing = async (request: Request, response: Response) => {
           ...body.filters,
           establishmentIds: [auth.establishmentId],
         },
+        includes: ['owner'],
         pagination: { paginate: false },
       })
       .then((housingList) => {
@@ -340,7 +341,6 @@ const remove = async (request: Request, response: Response): Promise<void> => {
         establishmentIds: [auth.establishmentId],
         groupIds: [group.id],
       },
-      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);

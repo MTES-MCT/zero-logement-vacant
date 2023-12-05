@@ -553,11 +553,17 @@ const fastListQuery = (opts: ListQueryOptions) => {
           establishmentIds: opts.filters.establishmentIds ?? [],
         }
       )
-      .modify(filteredQuery(fp.omit(['establishmentIds'], opts.filters)))
+      .modify(
+        filteredQuery({
+          filters: fp.omit(['establishmentIds'], opts.filters),
+          includes: opts.includes,
+        })
+      )
   );
 };
 
-const filteredQuery = (filters: HousingFiltersApi) => {
+const filteredQuery = (opts: ListQueryOptions) => {
+  const { filters, includes } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
       queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
@@ -608,6 +614,17 @@ const filteredQuery = (filters: HousingFiltersApi) => {
           whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3);
         }
       });
+    }
+
+    const filterByOwner = [
+      filters.ownerIds,
+      filters.ownerKinds,
+      filters.ownerAges,
+      filters.multiOwners,
+      filters.query,
+    ].some((filter) => filter?.length);
+    if (!includes?.includes('owner') && filterByOwner) {
+      include(['owner'])(queryBuilder);
     }
 
     if (filters.ownerIds?.length) {

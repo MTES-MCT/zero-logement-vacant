@@ -1,5 +1,6 @@
 import db from './db';
 import { HousingApi } from '../models/HousingApi';
+import chunk from 'lodash/chunk';
 
 export const campaignsHousingTable = 'campaigns_housing';
 export const CampaignsHousing = () =>
@@ -9,17 +10,21 @@ const insertHousingList = async (
   campaignId: string,
   housingList: HousingApi[]
 ): Promise<void> => {
-  await CampaignsHousing()
-    .insert(
-      housingList.map((housing) => ({
-        campaign_id: campaignId,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-      }))
-    )
-    .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
-    .ignore()
-    .returning('housing_id');
+  await Promise.all(
+    chunk(housingList, 1000).map(async (chunk) => {
+      await CampaignsHousing()
+        .insert(
+          chunk.map((housing) => ({
+            campaign_id: campaignId,
+            housing_id: housing.id,
+            housing_geo_code: housing.geoCode,
+          }))
+        )
+        .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
+        .ignore()
+        .returning('housing_id');
+    })
+  );
 };
 
 const deleteHousingFromCampaigns = async (

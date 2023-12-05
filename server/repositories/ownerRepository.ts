@@ -8,6 +8,16 @@ import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import highland from 'highland';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { ownerMatchTable } from './ownerMatchRepository';
+import { Knex } from 'knex';
+import {
+  HousingDBO,
+  housingTable,
+  ownerHousingJoinClause,
+  parseHousingApi,
+} from './housingRepository';
+import { campaignsHousingTable } from './campaignHousingRepository';
+import { groupsHousingTable } from './groupRepository';
+import { OwnerExportStreamApi } from '../controllers/housingExportController';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
@@ -21,11 +31,53 @@ const get = async (ownerId: string): Promise<OwnerApi | null> => {
 interface OwnerFilters {
   fullName?: string;
   idpersonne?: string | string[];
+  campaignId?: string;
+  groupId?: string;
 }
 
 interface FindOptions {
   filters?: OwnerFilters;
 }
+
+const filteredQuery =
+  (filters?: OwnerFilters) => (query: Knex.QueryBuilder) => {
+    if (filters?.campaignId) {
+      query
+        .join(
+          housingOwnersTable,
+          `${ownerTable}.id`,
+          `${housingOwnersTable}.owner_id`
+        )
+        .join(housingTable, ownerHousingJoinClause)
+        .join(campaignsHousingTable, (query) =>
+          query
+            .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .andOn(
+              `${housingTable}.geo_code`,
+              `${campaignsHousingTable}.housing_geo_code`
+            )
+        )
+        .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
+    }
+    if (filters?.groupId) {
+      query
+        .join(
+          housingOwnersTable,
+          `${ownerTable}.id`,
+          `${housingOwnersTable}.owner_id`
+        )
+        .join(housingTable, ownerHousingJoinClause)
+        .join(groupsHousingTable, (query) =>
+          query
+            .on(`${housingTable}.id`, `${groupsHousingTable}.housing_id`)
+            .andOn(
+              `${housingTable}.geo_code`,
+              `${groupsHousingTable}.housing_geo_code`
+            )
+        )
+        .where(`${groupsHousingTable}.group_id`, filters.groupId);
+    }
+  };
 
 const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
   const whereOptions = where<OwnerFilters>(['fullName']);
@@ -63,6 +115,35 @@ const stream = (): Stream<OwnerApi> => {
   const stream = db<OwnerDBO>(ownerTable).orderBy('full_name').stream();
 
   return highland<OwnerDBO>(stream).map(parseOwnerApi);
+};
+
+type StreamOptions = FindOptions;
+
+type OwnerExportStreamDBO = OwnerDBO & {
+  housing_list: HousingDBO[];
+};
+
+const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
+  const stream = Owners()
+    .modify(filteredQuery(opts.filters))
+    .select(
+      `${ownerTable}.id`,
+      `${ownerTable}.raw_address`,
+      `${ownerTable}.full_name`,
+      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`)
+    )
+    .groupBy(`${ownerTable}.id`)
+    .orderByRaw(`count(distinct(${housingOwnersTable}.housing_id)) desc`)
+    .stream();
+
+  return highland<OwnerExportStreamDBO>(stream).map(
+    (result: OwnerExportStreamDBO): OwnerExportStreamApi => ({
+      ...parseOwnerApi(result),
+      housingList: result.housing_list.map((housing) =>
+        parseHousingApi(housing)
+      ),
+    })
+  );
 };
 
 interface FindOneOptions {
@@ -387,6 +468,7 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
 export default {
   find,
   stream,
+  exportStream,
   get,
   findOne,
   searchOwners,

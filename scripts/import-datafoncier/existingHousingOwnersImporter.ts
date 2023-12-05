@@ -24,6 +24,7 @@ export function existingHousingOwnersImporter(): Stream<HousingApi> {
   return housingRepository
     .stream({
       filters: {},
+      includes: ['owner'],
     })
     .consume(tapAsync(processHousing))
     .errors((error) => {

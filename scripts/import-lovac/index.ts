@@ -163,6 +163,7 @@ function oldHousing() {
   return housingRepository
     .stream({
       filters: {},
+      includes: ['owner'],
     })
     .map((housing) => ({ before: housing }))
     .through(

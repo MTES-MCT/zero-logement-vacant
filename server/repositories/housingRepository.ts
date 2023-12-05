@@ -36,8 +36,8 @@ import {
   housingOwnersTable,
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
-import isNumeric = validator.isNumeric;
 import { HousingSource } from '../../shared';
+import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -77,7 +77,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
         ? opts.filters.localities
         : geoCodes,
     },
-    includes: opts.includes,
+    includes: [...(opts.includes ?? []), ...filtersInclude(opts.filters)],
   })
     .modify(housingSortQuery(opts.sort))
     .modify(paginationQuery(opts.pagination as PaginationApi));
@@ -86,35 +86,9 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
   return housingList.map(parseHousingApi);
 };
 
-/**
- * @deprecated
- * @see {stream}
- */
-const streamWithFilters = (
-  filters: HousingFiltersApi
-): Highland.Stream<HousingApi> => {
-  return highland(fetchGeoCodes(filters.establishmentIds ?? []))
-    .flatten()
-    .collect()
-    .flatMap((geoCodes) => {
-      return highland<HousingDBO>(
-        fastListQuery({
-          filters: {
-            ...filters,
-            localities: filters.localities?.length
-              ? filters.localities
-              : geoCodes,
-          },
-          includes: ['owner'],
-        })
-          .modify(queryHousingEventsJoinClause)
-          .stream()
-      );
-    })
-    .map(parseHousingApi);
+type StreamOptions = FindOptions & {
+  includes: HousingInclude[];
 };
-
-type StreamOptions = FindOptions;
 
 const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
   return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
@@ -127,9 +101,8 @@ const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
               ? opts.filters.localities
               : geoCodes,
           },
-          includes: ['owner'],
+          includes: opts.includes,
         })
-          .modify(housingSortQuery(opts.sort))
           .modify(paginationQuery(opts.pagination as PaginationApi))
           .stream()
       );
@@ -207,7 +180,7 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
           : query.where(`${housingTable}.geo_code`, opts.geoCode);
       }
     })
-    .modify(include(opts.includes ?? []))
+    .modify(include(['events', ...(opts.includes ?? [])]))
     // TODO: simplify all this stuff
     .select(
       'perimeters.perimeter_kind as geo_perimeters',
@@ -241,7 +214,6 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
          where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
        ) perimeters on true`
     )
-    .modify(queryHousingEventsJoinClause)
     .first();
   return housing ? parseHousingApi(housing) : null;
 };
@@ -260,7 +232,7 @@ const get = async (
       establishmentIds: [establishmentId],
       localities: establishment.geoCodes,
     },
-    includes: ['owner'],
+    includes: ['owner', 'events'],
   })
     .select(
       'perimeters.perimeter_kind as geo_perimeters',
@@ -294,7 +266,6 @@ const get = async (
          where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
        ) perimeters on true`
     )
-    .modify(queryHousingEventsJoinClause)
     .where(`${housingTable}.id`, housingId)
     .first();
 
@@ -404,12 +375,19 @@ const saveManyWithOwner = async (
   });
 };
 
-type HousingInclude = 'owner';
+type HousingInclude = 'owner' | 'events';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
   includes?: HousingInclude[];
 }
+
+const filtersInclude = (filters: HousingFiltersApi): HousingInclude[] => {
+  if (filters.ownerIds?.length || filters.ownerKinds?.length) {
+    return ['owner'];
+  }
+  return [];
+};
 
 function include(includes: HousingInclude[]) {
   const joins: Record<HousingInclude, (query: Knex.QueryBuilder) => void> = {
@@ -419,10 +397,22 @@ function include(includes: HousingInclude[]) {
         .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
         .select(`${ownerTable}.id as owner_id`)
         .select(db.raw(`to_json(${ownerTable}.*) AS owner`)),
+    events: (query) =>
+      query
+        .joinRaw(
+          `left join lateral (
+            select count(${eventsTable}) as contact_count,
+                   max(${eventsTable}.created_at) as last_contact
+            from ${housingEventsTable}
+            join ${eventsTable} on ${eventsTable}.id = ${housingEventsTable}.event_id
+            where ${housingTable}.id = ${housingEventsTable}.housing_id
+          ) events on true`
+        )
+        .select('events.contact_count', 'events.last_contact'),
   };
 
   return (query: Knex.QueryBuilder) => {
-    includes.forEach((include) => {
+    _.uniqBy(includes, (include) => include).forEach((include) => {
       joins[include](query);
     });
   };
@@ -452,23 +442,6 @@ export const ownerHousingJoinClause = (query: any) => {
     .on(`${housingTable}.id`, `${housingOwnersTable}.housing_id`)
     .andOn(`${housingTable}.geo_code`, `${housingOwnersTable}.housing_geo_code`)
     .andOnVal('rank', 1);
-};
-
-export const queryHousingEventsJoinClause = (queryBuilder: any) => {
-  queryBuilder
-    .joinRaw(
-      `
-    LEFT JOIN LATERAL (
-      SELECT
-        COUNT(${eventsTable}) AS contact_count,
-        MAX(${eventsTable}.created_at) AS last_contact
-      FROM ${housingEventsTable}
-      JOIN ${eventsTable} ON ${eventsTable}.id = ${housingEventsTable}.event_id
-      WHERE ${housingTable}.id = ${housingEventsTable}.housing_id
-    ) events ON true
-  `
-    )
-    .select('events.contact_count', 'events.last_contact');
 };
 
 export const queryOwnerHousingWhereClause = (
@@ -1001,7 +974,7 @@ interface HousingRecordDBO {
   source: string | null;
 }
 
-interface HousingDBO extends HousingRecordDBO {
+export interface HousingDBO extends HousingRecordDBO {
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
@@ -1098,7 +1071,6 @@ export default {
   find,
   findOne,
   get,
-  streamWithFilters,
   stream,
   count,
   countVacant,

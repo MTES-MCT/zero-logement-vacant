@@ -3,7 +3,10 @@ import { GroupDTO } from '../../shared';
 import fp from 'lodash/fp';
 
 export interface GroupApi
-  extends Omit<GroupDTO, 'createdAt' | 'createdBy' | 'archivedAt'> {
+  extends Omit<
+    GroupDTO,
+    'createdAt' | 'createdBy' | 'exportedAt' | 'archivedAt'
+  > {
   userId: string;
   createdAt: Date;
   /**
@@ -23,6 +26,7 @@ export function toGroupDTO(group: GroupApi): GroupDTO {
     ),
     createdAt: group.createdAt.toJSON(),
     createdBy: group.createdBy ? toUserDTO(group.createdBy) : undefined,
+    exportedAt: group.exportedAt?.toJSON() ?? null,
     archivedAt: group.archivedAt?.toJSON() ?? null,
   };
 }

@@ -15,7 +15,9 @@ import { EventSection } from '../../shared/types/EventSection';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { GroupApi } from '../models/GroupApi';
 import { logger } from '../utils/logger';
-import chunk from 'lodash/chunk';
+import config from '../utils/config';
+import async from 'async';
+import fp from 'lodash/fp';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -54,8 +56,9 @@ const insertManyHousingEvents = async (
 ): Promise<void> => {
   if (housingEvents.length) {
     await db.transaction(async (transaction) => {
-      await Promise.all(
-        chunk(housingEvents, 1000).map(async (chunk) => {
+      await async.forEach(
+        fp.chunk(config.application.batchSize, housingEvents),
+        async (chunk) => {
           await Events(transaction).insert(
             chunk.map((housingEvent) => ({
               ...formatEventApi(housingEvent),
@@ -74,7 +77,7 @@ const insertManyHousingEvents = async (
               housing_geo_code: housingEvent.housingGeoCode,
             }))
           );
-        })
+        }
       );
     });
   }
@@ -120,8 +123,9 @@ const insertManyGroupHousingEvents = async (
     events: groupHousingEvents.length,
   });
   await db.transaction(async (transaction) => {
-    await Promise.all(
-      chunk(groupHousingEvents, 1000).map(async (chunk) => {
+    await async.forEach(
+      fp.chunk(config.application.batchSize, groupHousingEvents),
+      async (chunk) => {
         await Events(transaction).insert(chunk.map(formatEventApi));
         await GroupHousingEvents(transaction).insert(
           chunk.map((event) => ({
@@ -131,7 +135,7 @@ const insertManyGroupHousingEvents = async (
             group_id: event.groupId,
           }))
         );
-      })
+      }
     );
   });
 };

@@ -114,7 +114,7 @@ const save = async (
       }
     }
   });
-  logger.debug('Saved group', group.id);
+  logger.info('Saved group', { group: group.id });
 };
 
 const addHousing = async (
@@ -134,6 +134,10 @@ const addHousing = async (
   });
 
   await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+  logger.info(`Added housing to a group.`, {
+    group,
+    housing: housingList.length,
+  });
 };
 
 const removeHousing = async (

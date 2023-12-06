@@ -22,7 +22,6 @@ import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
 import { useRemoveCampaignMutation, useUpdateCampaignMutation } from '../../services/campaign.service';
-import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useSort } from '../../hooks/useSort';
 
 const CampaignsListView = () => {
@@ -100,7 +99,6 @@ const CampaignsListView = () => {
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
               getSortButton('sendingDate', "Date d'envoi"),
-              'Effectifs',
               '',
             ]}
             data={campaigns.map((campaign, index) => [
@@ -120,7 +118,6 @@ const CampaignsListView = () => {
               campaign.sendingDate
                 ? format(campaign.sendingDate, 'dd/MM/yyyy')
                 : '',
-              <CampaignCounts campaignId={campaign.id} />,
               <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
                 <Button
                   priority="tertiary"

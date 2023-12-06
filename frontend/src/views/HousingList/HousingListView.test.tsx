@@ -8,6 +8,7 @@ import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import {
   genCampaign,
   genDatafoncierHousing,
+  genGroup,
   genHousing,
   genPaginatedResult,
 } from '../../../test/fixtures.test';
@@ -25,6 +26,7 @@ import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
 import * as randomstring from 'randomstring';
 import { Housing } from '../../models/Housing';
+import { Group } from '../../models/Group';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -454,6 +456,163 @@ describe('Housing list view', () => {
         'Ce logement existe déjà dans votre parc'
       );
       expect(alert).toBeVisible();
+    });
+  });
+
+  test('should add all housing to a group immediately', async () => {
+    const router = createMemoryHistory();
+    const housingCount = 10;
+    mockRequests([
+      ...defaultMatches.filter(
+        (match) => !match.pathname.startsWith('/api/housing')
+      ),
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify(
+            genPaginatedResult(
+              new Array(housingCount).fill('0').map(() => genHousing())
+            )
+          ),
+          status: 200,
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({ housing: housingCount, owners: 1 }),
+        },
+      },
+      {
+        pathname: '/api/groups',
+        method: 'POST',
+        response: async (request) => {
+          const body = await request.json();
+          const group: Group = {
+            ...genGroup(),
+            housingCount,
+            ownerCount: 1,
+            title: body.title,
+            description: body.description,
+          };
+          return {
+            status: 201,
+            body: JSON.stringify(group),
+          };
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={router}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+
+    const checkboxes = await within(
+      await screen.findByTestId('housing-table')
+    ).findAllByRole('checkbox');
+    const [checkAll] = checkboxes;
+    await user.click(checkAll);
+    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
+    await user.click(addGroupHousing);
+    const modal = await screen.findByRole('dialog');
+    const createGroup = await within(modal).findByText(
+      /^Créer un nouveau groupe/
+    );
+    await user.click(createGroup);
+    const groupName = await within(modal).findByLabelText('Nom du groupe');
+    await user.type(groupName, 'My group');
+    const groupDescription = await within(modal).findByLabelText('Description');
+    await user.type(groupDescription, 'My group description');
+    const confirm = await within(modal).findByText('Confirmer');
+    await user.click(confirm);
+
+    expect(confirm).toBeDisabled();
+    expect(router.location).toMatchObject({
+      pathname: expect.stringMatching(/^\/groupes\/.+/),
+      state: {
+        alert:
+          'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
+      },
+    });
+  });
+
+  test('should create the group immediately and add the housing later', async () => {
+    const router = createMemoryHistory();
+    const group = genGroup();
+    const housingCount = 10;
+    mockRequests([
+      ...defaultMatches.filter(
+        (match) => !match.pathname.startsWith('/api/housing')
+      ),
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify(
+            genPaginatedResult(
+              new Array(housingCount).fill('0').map(() => genHousing())
+            )
+          ),
+          status: 200,
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({ housing: housingCount, owners: 1 }),
+        },
+      },
+      {
+        pathname: '/api/groups',
+        method: 'POST',
+        response: {
+          status: 202,
+          body: JSON.stringify(group),
+        },
+      },
+    ]);
+
+    render(
+      <Provider store={store}>
+        <Router history={router}>
+          <HousingListView />
+        </Router>
+      </Provider>
+    );
+
+    const checkboxes = await within(
+      await screen.findByTestId('housing-table')
+    ).findAllByRole('checkbox');
+    const [checkAll] = checkboxes;
+    await user.click(checkAll);
+    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
+    await user.click(addGroupHousing);
+    const modal = await screen.findByRole('dialog');
+    const createGroup = await within(modal).findByText(
+      /^Créer un nouveau groupe/
+    );
+    await user.click(createGroup);
+    const groupName = await within(modal).findByLabelText('Nom du groupe');
+    await user.type(groupName, 'My group');
+    const groupDescription = await within(modal).findByLabelText('Description');
+    await user.type(groupDescription, 'My group description');
+    const confirm = await within(modal).findByText('Confirmer');
+    await user.click(confirm);
+
+    expect(confirm).toBeDisabled();
+    expect(router.location).toMatchObject({
+      pathname: expect.stringMatching(/^\/groupes\/.+/),
+      state: {
+        alert:
+          'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...',
+      },
     });
   });
 

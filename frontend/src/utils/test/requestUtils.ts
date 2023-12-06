@@ -57,7 +57,7 @@ export const mockRequests = (matches: RequestMatch[]): void => {
 
 const isMockResponseInitFunction = (
   response: unknown
-): response is MockResponseInitFunction => isMockFunction(response);
+): response is MockResponseInitFunction => typeof response === 'function';
 
 class MockError extends Error {
   constructor(request: Request) {

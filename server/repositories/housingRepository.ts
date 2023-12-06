@@ -553,11 +553,17 @@ const fastListQuery = (opts: ListQueryOptions) => {
           establishmentIds: opts.filters.establishmentIds ?? [],
         }
       )
-      .modify(filteredQuery(fp.omit(['establishmentIds'], opts.filters)))
+      .modify(
+        filteredQuery({
+          filters: fp.omit(['establishmentIds'], opts.filters),
+          includes: opts.includes,
+        })
+      )
   );
 };
 
-const filteredQuery = (filters: HousingFiltersApi) => {
+const filteredQuery = (opts: ListQueryOptions) => {
+  const { filters, includes } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
       queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
@@ -609,6 +615,18 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
+    const filterByOwner = [
+      filters.ownerIds,
+      filters.ownerKinds,
+      filters.ownerAges,
+      filters.multiOwners,
+      filters.query,
+    ].some((filter) => filter?.length);
+    if (!includes?.includes('owner') && filterByOwner) {
+      include(['owner'])(queryBuilder);
+    }
+
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
@@ -617,27 +635,27 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.ownerAges?.indexOf('lt40') !== -1) {
+        if (filters.ownerAges?.includes('lt40')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) <= 40"
           );
         }
-        if (filters.ownerAges?.indexOf('40to60') !== -1) {
+        if (filters.ownerAges?.includes('40to60')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 40 and 60"
           );
         }
-        if (filters.ownerAges?.indexOf('60to75') !== -1) {
+        if (filters.ownerAges?.includes('60to75')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 60 and 75"
           );
         }
-        if (filters.ownerAges?.indexOf('75to100') !== -1) {
+        if (filters.ownerAges?.includes('75to100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 75 and 100"
           );
         }
-        if (filters.ownerAges?.indexOf('gt100') !== -1) {
+        if (filters.ownerAges?.includes('gt100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) >= 100"
           );
@@ -646,18 +664,19 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.multiOwners?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.multiOwners?.indexOf('true') !== -1) {
+        if (filters.multiOwners?.includes('true')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
-        if (filters.multiOwners?.indexOf('false') !== -1) {
+        if (filters.multiOwners?.includes('false')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
       });
     }
+
     if (filters.beneficiaryCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
         whereBuilder.whereIn(
@@ -802,25 +821,30 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
+    if (filters.housingCounts?.length || filters.vacancyRates?.length) {
+      queryBuilder.join(
+        buildingTable,
+        `${housingTable}.building_id`,
+        `${buildingTable}.id`
+      );
+    }
+
     if (filters.housingCounts?.length) {
-      queryBuilder
-        .leftJoin(buildingTable, `building_id`, `${buildingTable}.id`)
-        .where(function (whereBuilder: any) {
-          if (filters.housingCounts?.indexOf('lt5') !== -1) {
-            whereBuilder.orWhereRaw(
-              'coalesce(housing_count, 0) between 0 and 4'
-            );
-          }
-          if (filters.housingCounts?.indexOf('5to20') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [5, 20]);
-          }
-          if (filters.housingCounts?.indexOf('20to50') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [20, 50]);
-          }
-          if (filters.housingCounts?.indexOf('gt50') !== -1) {
-            whereBuilder.orWhereRaw('housing_count > 50');
-          }
-        });
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.housingCounts?.indexOf('lt5') !== -1) {
+          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
+        }
+        if (filters.housingCounts?.indexOf('5to20') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [5, 20]);
+        }
+        if (filters.housingCounts?.indexOf('20to50') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [20, 50]);
+        }
+        if (filters.housingCounts?.indexOf('gt50') !== -1) {
+          whereBuilder.orWhereRaw('housing_count > 50');
+        }
+      });
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where(function (whereBuilder: any) {
@@ -991,6 +1015,16 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   invariant: housing.invariant,
   localId: housing.local_id,
   buildingGroupId: housing.building_group_id,
+  buildingHousingCount: housing.housing_count,
+  buildingId: housing.building_id,
+  buildingLocation: housing.building_location,
+  buildingVacancyRate: housing.vacant_housing_count
+    ? Math.round(
+        (housing.vacant_housing_count * 100) /
+          (housing.housing_count ?? housing.vacant_housing_count)
+      )
+    : undefined,
+  buildingYear: housing.building_year,
   rawAddress: housing.raw_address,
   geoCode: housing.geo_code,
   longitude: housing.longitude_ban ?? housing.longitude,
@@ -1002,11 +1036,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   roomsCount: housing.rooms_count,
   livingArea: housing.living_area,
   cadastralReference: housing.cadastral_reference,
-  buildingYear: housing.building_year,
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  buildingLocation: housing.building_location,
   ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
@@ -1020,13 +1052,6 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   geoPerimeters: housing.geo_perimeters,
   owner: housing.owner ? parseOwnerApi(housing.owner) : undefined,
   coowners: [],
-  buildingHousingCount: housing.housing_count,
-  buildingVacancyRate: housing.vacant_housing_count
-    ? Math.round(
-        (housing.vacant_housing_count * 100) /
-          (housing.housing_count ?? housing.vacant_housing_count)
-      )
-    : undefined,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
@@ -1039,7 +1064,10 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  building_id: housingRecordApi.buildingId,
   building_group_id: housingRecordApi.buildingGroupId,
+  building_location: housingRecordApi.buildingLocation,
+  building_year: housingRecordApi.buildingYear,
   raw_address: housingRecordApi.rawAddress,
   geo_code: housingRecordApi.geoCode,
   longitude: housingRecordApi.longitude,
@@ -1051,8 +1079,6 @@ export const formatHousingRecordApi = (
   rooms_count: housingRecordApi.roomsCount,
   living_area: housingRecordApi.livingArea,
   cadastral_reference: housingRecordApi.cadastralReference,
-  building_year: housingRecordApi.buildingYear,
-  building_location: housingRecordApi.buildingLocation,
   vacancy_reasons: housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
   ownership_kind: housingRecordApi.ownershipKind,

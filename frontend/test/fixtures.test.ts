@@ -97,6 +97,7 @@ export function genHousing(): Housing {
     ownershipKind: OwnershipKinds.Single,
     buildingVacancyRate: genNumber(2),
     status: HousingStatus.NeverContacted,
+    source: null,
     occupancy: OccupancyKind.Vacant,
   };
 }

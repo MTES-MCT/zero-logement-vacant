@@ -40,22 +40,21 @@ export const groupApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Group', id }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
     }),
-    createGroup: builder.mutation<Group, GroupPayload>({
+    createGroup: builder.mutation<
+      { status: number; group: Group },
+      GroupPayload
+    >({
       query: (group) => ({
         url: '',
         method: 'POST',
         body: group,
       }),
       invalidatesTags: [{ type: 'Group', id: 'LIST' }],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
-        await queryFulfilled;
-        dispatch(
-          housingApi.util.invalidateTags([
-            'Housing',
-            'HousingByStatus',
-            'HousingCountByStatus',
-          ])
-        );
+      transformResponse: (group: GroupDTO, meta) => {
+        return {
+          status: meta?.response?.status ?? 201,
+          group: fromGroupDTO(group),
+        };
       },
     }),
     updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({

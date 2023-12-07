@@ -161,7 +161,7 @@ const HousingListTab = ({
     group: Pick<Group, 'title' | 'description'>
   ): Promise<void> {
     try {
-      const created = await createGroup({
+      const response = await createGroup({
         title: group.title,
         description: group.description,
         housing: {
@@ -171,10 +171,12 @@ const HousingListTab = ({
         },
       }).unwrap();
       router.push({
-        pathname: `/groupes/${created.id}`,
+        pathname: `/groupes/${response.group.id}`,
         state: {
           alert:
-            'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
+            response.status === 202
+              ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
+              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
         },
       });
     } catch (error) {

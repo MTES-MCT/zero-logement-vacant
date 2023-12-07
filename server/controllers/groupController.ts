@@ -1,3 +1,4 @@
+import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
@@ -15,6 +16,7 @@ import campaignRepository from '../repositories/campaignRepository';
 import { GroupHousingEventApi } from '../models/EventApi';
 import eventRepository from '../repositories/eventRepository';
 import housingFiltersApi from '../models/HousingFiltersApi';
+import config from '../utils/config';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -71,9 +73,20 @@ const create = async (request: Request, response: Response): Promise<void> => {
     archivedAt: null,
   };
 
-  await groupRepository.save(group, housingList);
+  if (housingList.length > config.application.batchSize) {
+    // Save the group immediately
+    await groupRepository.save(group);
+    response.status(constants.HTTP_STATUS_ACCEPTED).json(toGroupDTO(group));
 
-  response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
+    // Add housing later to avoid blocking the user
+    const chunks = fp.chunk(config.application.batchSize, housingList);
+    await async.forEach(chunks, async (chunk) => {
+      await groupRepository.addHousing(group, chunk);
+    });
+  } else {
+    await groupRepository.save(group, housingList);
+    response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
+  }
 
   const events: GroupHousingEventApi[] = housingList.map(
     (housing): GroupHousingEventApi => ({

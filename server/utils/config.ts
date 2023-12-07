@@ -122,7 +122,7 @@ const config = convict<Config>({
     batchSize: {
       env: 'BATCH_SIZE',
       format: Number,
-      default: 10,
+      default: 1_000,
     },
     host: {
       env: 'APPLICATION_HOST',

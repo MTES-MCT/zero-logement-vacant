@@ -41,6 +41,7 @@
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
     "async": "^3.2.5",
     "bcryptjs": "^2.4.3",
+    "better-sse": "^0.10.0",
     "cli-progress": "^3.12.0",
     "compose-middleware": "^5.0.1",
     "convict": "^6.2.4",

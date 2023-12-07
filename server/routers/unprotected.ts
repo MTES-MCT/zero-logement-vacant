@@ -13,6 +13,7 @@ import contactPointController from '../controllers/contactPointController';
 import config from "../utils/config";
 import { noop } from "../middlewares/noop";
 import settingsController from "../controllers/settingsController";
+import pushController from "../controllers/pushController";
 
 const router = express.Router();
 
@@ -49,5 +50,7 @@ router.get('/localities', localityController.listLocalitiesValidators, validator
 router.get('/localities/:geoCode', localityController.getLocalityValidators, validator.validate, localityController.getLocality);
 
 router.get('/contact-points/public', contactPointController.listContactPointsValidators, validator.validate, contactPointController.listContactPoints(true));
+
+router.get('/push', pushController.subscribe)
 
 export default router;

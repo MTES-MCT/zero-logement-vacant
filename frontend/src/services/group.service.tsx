@@ -8,6 +8,9 @@ import { GroupDTO } from '../../../shared/models/GroupDTO';
 import fp from 'lodash/fp';
 import { GroupPayload } from '../models/GroupPayload';
 import { housingApi } from './housing.service';
+import { createSession } from '../utils/serverSentEventUtils';
+import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
 interface FindOptions extends PaginationOptions {
   filters: GroupFilters;
@@ -55,6 +58,29 @@ export const groupApi = createApi({
           status: meta?.response?.status ?? 201,
           group: fromGroupDTO(group),
         };
+      },
+      onCacheEntryAdded: async (payload, api) => {
+        const session = createSession();
+        try {
+          await api.cacheDataLoaded;
+          const cache = api.getCacheEntry().data?.group;
+          session.onGroupFinalized((group) => {
+            if (cache?.id === group.id) {
+              toast.info<GroupDTO>(
+                <p>
+                  <Link to={`/groups/${cache?.id}`}>Votre groupe</Link> a été
+                  finalisé !
+                </p>
+              );
+              groupApi.util?.updateQueryData('getGroup', group.id, (cache) => {
+                return { ...cache, ...fromGroupDTO(group) };
+              });
+            }
+          });
+        } catch {
+          await api.cacheEntryRemoved;
+          session.close();
+        }
       },
     }),
     updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({

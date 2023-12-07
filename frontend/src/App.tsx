@@ -36,6 +36,7 @@ import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
+import Notification from "./components/Notification/Notification";
 
 declare module "@codegouvfr/react-dsfr/spa" {
   interface RegisterLink {
@@ -84,6 +85,7 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <Header/>
+        <Notification />
         <ScrollToTop/>
 
         <Switch>

@@ -29,7 +29,6 @@ describe('GroupApi', () => {
               establishmentId: group.createdBy.establishmentId,
             }
           : undefined,
-        exportedAt: null,
         archivedAt: null,
       });
     });

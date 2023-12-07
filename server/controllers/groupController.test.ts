@@ -177,7 +177,6 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: null,
         archivedAt: null,
       });
     });
@@ -233,7 +232,6 @@ describe('Group controller', () => {
         ownerCount: filteredOwners.length,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: null,
         archivedAt: null,
       });
     });
@@ -315,7 +313,6 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: null,
         archivedAt: null,
       });
     });
@@ -395,7 +392,6 @@ describe('Group controller', () => {
         ownerCount: group.ownerCount,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: group.exportedAt?.toJSON() ?? null,
         archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
@@ -501,7 +497,6 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: group.exportedAt?.toJSON() ?? null,
         archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });
@@ -643,7 +638,6 @@ describe('Group controller', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(User1),
-        exportedAt: group.exportedAt?.toJSON() ?? null,
         archivedAt: group.archivedAt?.toJSON() ?? null,
       });
     });

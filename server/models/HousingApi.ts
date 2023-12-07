@@ -122,6 +122,10 @@ export enum EnergyConsumptionGradesApi {
   G = 'G',
 }
 
+export const ENERGY_CONSUMPTION_GRADES = Object.values(
+  EnergyConsumptionGradesApi
+);
+
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
 
 export function getBuildingLocation(housing: HousingApi) {

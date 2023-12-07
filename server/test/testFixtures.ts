@@ -2,10 +2,15 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { v4 as uuidv4 } from 'uuid';
-import { EstablishmentApi } from '../models/EstablishmentApi';
+import {
+  CampaignIntent,
+  EstablishmentApi,
+  hasPriority,
+  INTENTS,
+} from '../models/EstablishmentApi';
 import { addHours } from 'date-fns';
 import {
-  EnergyConsumptionGradesApi,
+  ENERGY_CONSUMPTION_GRADES,
   HousingApi,
   OccupancyKindApi,
   OwnershipKindsApi,
@@ -47,6 +52,10 @@ import {
   HousingOwnerConflictApi,
   OwnerConflictApi,
 } from '../models/ConflictApi';
+import {
+  ESTABLISHMENT_KINDS,
+  EstablishmentKind,
+} from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
 
@@ -54,24 +63,7 @@ logger.debug(`Seed: ${faker.seed()}`);
 
 const randomstring = require('randomstring');
 
-export const genEmail = () => {
-  return (
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    }) +
-    '@' +
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    }) +
-    '.' +
-    randomstring.generate({
-      length: 2,
-      charset: 'alphabetic',
-    })
-  );
-};
+export const genEmail = () => faker.internet.email();
 
 export const genGeoCode = (): string => {
   const geoCode = faker.location.zipCode();
@@ -83,6 +75,17 @@ export const genGeoCode = (): string => {
   return needsReroll ? genGeoCode() : geoCode;
 };
 
+/**
+ * A locality string of 3 numeric characters
+ * @param locality
+ */
+export const genInvariant = (
+  locality: string = faker.string.numeric(3)
+): string => locality + faker.string.alpha(7);
+
+export const genLocalId = (department: string, invariant: string): string =>
+  department + invariant;
+
 export const genNumber = (length = 10) => {
   return Number(
     randomstring.generate({
@@ -92,7 +95,7 @@ export const genNumber = (length = 10) => {
   );
 };
 
-export const genBoolean = () => Math.random() < 0.5;
+export const genBoolean = () => faker.datatype.boolean();
 
 export const genSiren = () => genNumber(9);
 export function oneOf<T>(array: Array<T>): T {
@@ -103,17 +106,26 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
   return {
     id: uuidv4(),
     geoCode,
-    name: randomstring.generate(),
+    name: faker.location.city(),
     taxKind: TaxKindsApi.None,
   };
 };
 
-export const genEstablishmentApi = (...geoCodes: string[]) => {
-  return <EstablishmentApi>{
+export const genEstablishmentApi = (
+  ...geoCodes: string[]
+): EstablishmentApi => {
+  const campaignIntent = oneOf<CampaignIntent>(INTENTS);
+  const city = faker.location.city();
+  return {
     id: uuidv4(),
-    name: randomstring.generate(),
+    name: city,
+    shortName: city,
     siren: genSiren(),
     geoCodes,
+    campaignIntent,
+    available: true,
+    priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
+    kind: oneOf<EstablishmentKind>(ESTABLISHMENT_KINDS),
   };
 };
 
@@ -122,13 +134,13 @@ export const genUserApi = (establishmentId: string): UserApi => {
     id: uuidv4(),
     email: genEmail(),
     password: randomstring.generate(),
-    firstName: randomstring.generate(),
-    lastName: randomstring.generate(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     establishmentId,
     role: UserRoles.Usual,
     activatedAt: new Date(),
-    phone: randomstring.generate({ length: 10, charset: 'numeric' }),
-    position: randomstring.generate(),
+    phone: faker.phone.number(),
+    position: faker.person.jobType(),
     timePerWeek: randomstring.generate(),
     lastAuthenticatedAt: new Date(),
     updatedAt: new Date(),
@@ -138,10 +150,10 @@ export const genUserApi = (establishmentId: string): UserApi => {
 };
 
 export const genUserAccountDTO: UserAccountDTO = {
-  firstName: randomstring.generate(),
-  lastName: randomstring.generate(),
-  phone: randomstring.generate(),
-  position: randomstring.generate(),
+  firstName: faker.person.firstName(),
+  lastName: faker.person.lastName(),
+  phone: faker.phone.number(),
+  position: faker.person.jobType(),
   timePerWeek: randomstring.generate(),
 };
 
@@ -178,12 +190,15 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
 export const genOwnerApi = (): OwnerApi => {
   return {
     id: uuidv4(),
-    rawAddress: [randomstring.generate(), randomstring.generate()],
+    rawAddress: [
+      faker.location.streetAddress(),
+      `${faker.location.zipCode()}, ${faker.location.city()}`,
+    ],
     // Get the start of the day to avoid time zone issues
-    birthDate: new Date(new Date().toISOString().substring(0, 10)),
-    fullName: randomstring.generate(),
+    birthDate: faker.date.birthdate(),
+    fullName: faker.person.fullName(),
     email: genEmail(),
-    phone: randomstring.generate(),
+    phone: faker.phone.number(),
     kind: randomstring.generate(),
     kindDetail: randomstring.generate(),
   };
@@ -199,9 +214,6 @@ export const genHousingOwnerApi = (
   rank: genNumber(1),
 });
 
-export const genLocalId = (geoCode: string): string =>
-  `${geoCode}${randomstring.generate({ length: 7, charset: 'numeric' })}`;
-
 export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
   return {
     id: uuidv4(),
@@ -216,11 +228,17 @@ export const genHousingApi = (
   geoCode: string = genGeoCode()
 ): MarkRequired<HousingApi, 'owner'> => {
   const id = uuidv4();
+  const department = geoCode.substring(0, 2);
+  const locality = geoCode.substring(2, 5);
+  const invariant = genInvariant(locality);
   return {
     id,
-    invariant: randomstring.generate(),
-    localId: genLocalId(geoCode),
-    rawAddress: [randomstring.generate(), randomstring.generate()],
+    invariant,
+    localId: genLocalId(department, invariant),
+    rawAddress: [
+      faker.location.streetAddress(),
+      `${geoCode} ${faker.location.city()}`,
+    ],
     geoCode,
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
@@ -228,18 +246,18 @@ export const genHousingApi = (
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
-    vacancyStartYear: 1000 + genNumber(3),
+    vacancyStartYear: faker.date.past().getUTCFullYear(),
     housingKind: randomstring.generate(),
     roomsCount: genNumber(1),
     cadastralReference: randomstring.generate(),
-    buildingYear: genNumber(4),
+    buildingYear: faker.date.past().getUTCFullYear(),
     taxed: false,
     vacancyReasons: [],
     dataYears: [2022],
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,
-    energyConsumption: EnergyConsumptionGradesApi.A,
+    energyConsumption: oneOf(ENERGY_CONSUMPTION_GRADES),
     occupancy: OccupancyKindApi.Vacant,
     occupancyRegistered: OccupancyKindApi.Vacant,
     buildingVacancyRate: genNumber(2),
@@ -249,8 +267,11 @@ export const genHousingApi = (
   };
 };
 
-export const genCampaignApi = (establishmentId: string, createdBy: string) => {
-  return <CampaignApi>{
+export const genCampaignApi = (
+  establishmentId: string,
+  createdBy: string
+): CampaignApi => {
+  return {
     id: uuidv4(),
     establishmentId,
     title: randomstring.generate(),
@@ -258,17 +279,16 @@ export const genCampaignApi = (establishmentId: string, createdBy: string) => {
       geoPerimetersIncluded: [randomstring.generate()],
       geoPerimetersExcluded: [randomstring.generate()],
     },
-    housingCount: genNumber(2),
-    ownerCount: genNumber(2),
-    kind: 1,
     createdAt: new Date(),
     createdBy,
     sendingDate: new Date(),
   };
 };
 
-export const genGeoPerimeterApi = (establishmentId: string) => {
-  return <GeoPerimeterApi>{
+export const genGeoPerimeterApi = (
+  establishmentId: string
+): GeoPerimeterApi => {
+  return {
     id: uuidv4(),
     establishmentId,
     name: randomstring.generate(),
@@ -276,8 +296,8 @@ export const genGeoPerimeterApi = (establishmentId: string) => {
   };
 };
 
-export const genResetLinkApi = (userId: string) => {
-  return <ResetLinkApi>{
+export const genResetLinkApi = (userId: string): ResetLinkApi => {
+  return {
     id: randomstring.generate({
       length: RESET_LINK_LENGTH,
       charset: 'alphanumeric',
@@ -298,13 +318,15 @@ export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
 });
 
-export const genContactPointApi = (establishmentId: string) => {
-  return <ContactPointApi>{
+export const genContactPointApi = (
+  establishmentId: string
+): ContactPointApi => {
+  return {
     id: uuidv4(),
     establishmentId,
     title: randomstring.generate(),
     opening: randomstring.generate(),
-    address: randomstring.generate(),
+    address: `${faker.location.streetAddress()}, ${faker.location.zipCode()} ${faker.location.city()}`,
     email: genEmail(),
     geoCodes: [genGeoCode()],
   };
@@ -368,8 +390,8 @@ export const genGroupApi = (
 ): GroupApi => {
   return {
     id: uuidv4(),
-    title: randomstring.generate(),
-    description: randomstring.generate(),
+    title: faker.commerce.productName(),
+    description: faker.commerce.productDescription(),
     housingCount: 0,
     ownerCount: 0,
     createdAt: new Date(),
@@ -386,7 +408,7 @@ export const genDatafoncierOwner = (
 ): DatafoncierOwner => {
   const idcom = genGeoCode();
   return {
-    idprodroit: randomstring.generate(13),
+    idprodroit: `01${idprocpte}`,
     idprocpte,
     idpersonne: randomstring.generate(8),
     idvoie: randomstring.generate(9),
@@ -469,9 +491,12 @@ export const genDatafoncierOwner = (
 export const genDatafoncierHousing = (
   geoCode = genGeoCode()
 ): DatafoncierHousing => {
-  const localId = genLocalId(geoCode);
+  const department = geoCode.substring(0, 2);
+  const localityCode = geoCode.substring(2, 5);
+  const invariant = genInvariant(localityCode);
+  const localId = genLocalId(department, invariant);
   return {
-    idlocal: genLocalId(geoCode),
+    idlocal: localId,
     idbat: randomstring.generate(16),
     idpar: randomstring.generate(14),
     idtup: randomstring.generate(),
@@ -482,8 +507,8 @@ export const genDatafoncierHousing = (
     idcomtxt: faker.location.county(),
     ccodep: randomstring.generate(2),
     ccodir: randomstring.generate(1),
-    ccocom: randomstring.generate(3),
-    invar: localId.substring(geoCode.length),
+    ccocom: localityCode,
+    invar: invariant,
     ccopre: randomstring.generate(3),
     ccosec: randomstring.generate(2),
     dnupla: randomstring.generate(4),

@@ -9,7 +9,6 @@ export interface GroupDTO {
   ownerCount: number;
   createdAt: string;
   createdBy?: UserDTO;
-  exportedAt: string | null;
   archivedAt: string | null;
 }
 

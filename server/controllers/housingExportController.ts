@@ -68,15 +68,11 @@ const exportCampaign = async (request: Request, response: Response) => {
 
   const workbook = excelUtils.initWorkbook(fileName, response);
 
-  writeWorkbook(
-    stream,
-    fileName,
-    ['owner', 'housing'],
-    campaignList,
-    workbook
-  ).done(() => {
-    logger.info('Exported campaign', { campaign: campaign.id });
-  });
+  writeWorkbook(stream, ['owner', 'housing'], campaignList, workbook).done(
+    () => {
+      logger.info('Exported campaign', { campaign: campaign.id });
+    }
+  );
 };
 
 const exportGroup = async (request: Request, response: Response) => {
@@ -108,15 +104,15 @@ const exportGroup = async (request: Request, response: Response) => {
   });
   const fileName = `${group.title}.xlsx`;
   const workbook = excelUtils.initWorkbook(fileName, response);
-  writeWorkbook(
-    stream,
-    fileName,
-    ['owner', 'housing'],
-    campaigns,
-    workbook
-  ).done(() => {
-    logger.info('Exported group', { group: group.id });
-  });
+  writeWorkbook(stream, ['owner', 'housing'], campaigns, workbook).done(
+    async () => {
+      await groupRepository.save({
+        ...group,
+        exportedAt: group.exportedAt ?? new Date(),
+      });
+      logger.info('Exported group', { group: group.id });
+    }
+  );
 };
 const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
@@ -124,7 +120,6 @@ const exportGroupValidators: ValidationChain[] = [
 
 const writeWorkbook = (
   stream: Stream<HousingApi>,
-  fileName: string,
   worksheets: ('owner' | 'housing')[],
   campaignList: CampaignApi[],
   workbook: WorkbookWriter

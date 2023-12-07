@@ -15,6 +15,9 @@ import { EventSection } from '../../shared/types/EventSection';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import { GroupApi } from '../models/GroupApi';
 import { logger } from '../utils/logger';
+import config from '../utils/config';
+import async from 'async';
+import fp from 'lodash/fp';
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -52,24 +55,31 @@ const insertManyHousingEvents = async (
   housingEvents: HousingEventApi[]
 ): Promise<void> => {
   if (housingEvents.length) {
-    await Events().insert(
-      housingEvents.map((housingEvent) => ({
-        ...formatEventApi(housingEvent),
-        new: Array.isArray(housingEvent.new)
-          ? JSON.stringify(housingEvent.new)
-          : denormalizeStatus(housingEvent.new),
-        old: Array.isArray(housingEvent.old)
-          ? JSON.stringify(housingEvent.old)
-          : denormalizeStatus(housingEvent.old),
-      }))
-    );
-    await HousingEvents().insert(
-      housingEvents.map((housingEvent) => ({
-        event_id: housingEvent.id,
-        housing_id: housingEvent.housingId,
-        housing_geo_code: housingEvent.housingGeoCode,
-      }))
-    );
+    await db.transaction(async (transaction) => {
+      await async.forEach(
+        fp.chunk(config.application.batchSize, housingEvents),
+        async (chunk) => {
+          await Events(transaction).insert(
+            chunk.map((housingEvent) => ({
+              ...formatEventApi(housingEvent),
+              new: Array.isArray(housingEvent.new)
+                ? JSON.stringify(housingEvent.new)
+                : denormalizeStatus(housingEvent.new),
+              old: Array.isArray(housingEvent.old)
+                ? JSON.stringify(housingEvent.old)
+                : denormalizeStatus(housingEvent.old),
+            }))
+          );
+          await HousingEvents(transaction).insert(
+            chunk.map((housingEvent) => ({
+              event_id: housingEvent.id,
+              housing_id: housingEvent.housingId,
+              housing_geo_code: housingEvent.housingGeoCode,
+            }))
+          );
+        }
+      );
+    });
   }
 };
 
@@ -113,14 +123,19 @@ const insertManyGroupHousingEvents = async (
     events: groupHousingEvents.length,
   });
   await db.transaction(async (transaction) => {
-    await Events(transaction).insert(groupHousingEvents.map(formatEventApi));
-    await GroupHousingEvents(transaction).insert(
-      groupHousingEvents.map((event) => ({
-        event_id: event.id,
-        housing_geo_code: event.housingGeoCode,
-        housing_id: event.housingId,
-        group_id: event.groupId,
-      }))
+    await async.forEach(
+      fp.chunk(config.application.batchSize, groupHousingEvents),
+      async (chunk) => {
+        await Events(transaction).insert(chunk.map(formatEventApi));
+        await GroupHousingEvents(transaction).insert(
+          chunk.map((event) => ({
+            event_id: event.id,
+            housing_geo_code: event.housingGeoCode,
+            housing_id: event.housingId,
+            group_id: event.groupId,
+          }))
+        );
+      }
     );
   });
 };

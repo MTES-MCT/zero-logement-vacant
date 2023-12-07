@@ -2,7 +2,7 @@ import { toGroupDTO } from '../GroupApi';
 import { genGroupApi } from '../../test/testFixtures';
 import { User1 } from '../../../database/seeds/test/003-users';
 import { Establishment1 } from '../../../database/seeds/test/001-establishments';
-import { GroupDTO } from '../../../shared/models/GroupDTO';
+import { GroupDTO } from '../../../shared/';
 
 describe('GroupApi', () => {
   describe('toGroupDTO', () => {

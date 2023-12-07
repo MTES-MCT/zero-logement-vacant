@@ -60,7 +60,10 @@ const createContactPoint = async (request: Request, response: Response) => {
   const { establishmentId } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
-  logger.info('Create contact point', establishmentId, body.title);
+  logger.info('Create contact point', {
+    establishment: establishmentId,
+    title: body.title,
+  });
 
   const contactPoint: ContactPointApi = {
     ...body,

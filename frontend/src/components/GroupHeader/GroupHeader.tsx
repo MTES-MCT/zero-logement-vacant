@@ -36,12 +36,12 @@ function GroupHeader() {
 
   async function doCreateGroup(group: GroupPayload): Promise<void> {
     try {
-      const created = await createGroup({
+      const { group: created } = await createGroup({
         title: group.title,
         description: group.description,
       }).unwrap();
       router.push({
-        pathname: `/groupes/${created.id}`,
+        pathname: `/groupes/${created?.id}`,
         state: {
           alert: 'Votre nouveau groupe a bien été créé.',
         },

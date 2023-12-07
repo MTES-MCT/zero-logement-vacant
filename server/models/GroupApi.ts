@@ -1,5 +1,5 @@
 import { toUserDTO, UserApi } from './UserApi';
-import { GroupDTO } from '../../shared/models/GroupDTO';
+import { GroupDTO } from '../../shared';
 import fp from 'lodash/fp';
 
 export interface GroupApi
@@ -11,6 +11,7 @@ export interface GroupApi
    */
   createdBy?: UserApi;
   establishmentId: string;
+  exportedAt: Date | null;
   archivedAt: Date | null;
 }
 

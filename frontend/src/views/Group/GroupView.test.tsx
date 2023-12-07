@@ -8,6 +8,7 @@ import { Route, Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import GroupView from './GroupView';
 import configureTestStore from '../../utils/test/storeUtils';
+
 import { mockRequests } from '../../utils/test/requestUtils';
 
 describe('Group view', () => {

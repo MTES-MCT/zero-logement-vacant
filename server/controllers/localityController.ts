@@ -64,7 +64,10 @@ const updateLocalityTax = async (
   const taxRate = request.body.taxRate;
   const taxKind = request.body.taxKind;
 
-  logger.info('Update locality tax', geoCode, taxRate);
+  logger.info('Update locality tax', {
+    geoCode,
+    taxRate,
+  });
 
   const establishment = await establishmentRepository.get(establishmentId);
   const locality = await localityRepository.get(geoCode);

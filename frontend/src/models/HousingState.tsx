@@ -24,6 +24,10 @@ export enum HousingStatus {
   Blocked,
 }
 
+export const HOUSING_STATUSES: HousingStatus[] = Object.values(
+  HousingStatus
+).filter((_) => typeof _ === 'number') as HousingStatus[];
+
 export const FirstContactToContactedSubStatus =
   'Intérêt potentiel / En réflexion';
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement';

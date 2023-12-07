@@ -92,27 +92,29 @@ const filterQuery = (opts?: FilterOptions) => {
 
 const save = async (
   group: GroupApi,
-  housingList: HousingApi[]
+  housingList?: HousingApi[]
 ): Promise<void> => {
   logger.debug('Saving group...', {
     group,
-    housing: housingList.length,
+    housing: housingList?.length,
   });
 
   await db.transaction(async (transaction) => {
     await Groups(transaction)
       .insert(formatGroupApi(group))
       .onConflict(['id'])
-      .merge(['title', 'description']);
+      .merge(['title', 'description', 'exported_at']);
 
-    await GroupsHousing(transaction).where({ group_id: group.id }).delete();
-    if (housingList.length > 0) {
-      await GroupsHousing(transaction).insert(
-        formatGroupHousingApi(group, housingList)
-      );
+    if (housingList) {
+      await GroupsHousing(transaction).where({ group_id: group.id }).delete();
+      if (housingList.length > 0) {
+        await GroupsHousing(transaction).insert(
+          formatGroupHousingApi(group, housingList)
+        );
+      }
     }
   });
-  logger.debug('Saved group', group.id);
+  logger.info('Saved group', { group: group.id });
 };
 
 const addHousing = async (
@@ -132,6 +134,10 @@ const addHousing = async (
   });
 
   await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+  logger.info(`Added housing to a group.`, {
+    group,
+    housing: housingList.length,
+  });
 };
 
 const removeHousing = async (
@@ -179,22 +185,16 @@ export interface GroupRecordDBO {
   title: string;
   description: string;
   created_at: Date;
+  exported_at: Date | null;
   archived_at: Date | null;
   user_id: string;
   establishment_id: string;
 }
 
 export interface GroupDBO extends GroupRecordDBO {
-  id: string;
-  title: string;
-  description: string;
   housing_count: string;
   owner_count: string;
-  created_at: Date;
-  archived_at: Date | null;
-  user_id: string;
   user?: UserDBO;
-  establishment_id: string;
 }
 
 export const formatGroupApi = (group: GroupApi): GroupRecordDBO => ({
@@ -202,6 +202,7 @@ export const formatGroupApi = (group: GroupApi): GroupRecordDBO => ({
   title: group.title,
   description: group.description,
   created_at: group.createdAt,
+  exported_at: group.exportedAt,
   user_id: group.userId,
   establishment_id: group.establishmentId,
   archived_at: null,
@@ -215,6 +216,7 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     housingCount: Number(group.housing_count),
     ownerCount: Number(group.owner_count),
     createdAt: group.created_at,
+    exportedAt: group.exported_at,
     userId: group.user_id,
     createdBy: group.user ? parseUserApi(group.user) : undefined,
     establishmentId: group.establishment_id,

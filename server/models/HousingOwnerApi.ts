@@ -1,6 +1,6 @@
 import { OwnerApi } from './OwnerApi';
 import { compare, includeSameMembers } from '../utils/compareUtils';
-import { HousingApi } from './HousingApi';
+import { HousingRecordApi } from './HousingApi';
 import { isDefined, isUndefined } from '../../shared';
 
 export const MAX_OWNERS = 6;
@@ -16,7 +16,7 @@ export interface HousingOwnerApi extends OwnerApi {
 }
 
 export function toHousingOwnersApi(
-  housing: HousingApi,
+  housing: HousingRecordApi,
   owners: OwnerApi[]
 ): HousingOwnerApi[] {
   return owners.map((owner, i) => ({

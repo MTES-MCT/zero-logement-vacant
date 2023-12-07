@@ -26,14 +26,14 @@ export const getRequestCalls = (fetchMock: FetchMock) =>
     })
   );
 
-interface Match {
+export interface RequestMatch {
   pathname: string;
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   response: MockResponseInitFunction | MockResponseInit;
 }
 
-export const mockRequests = (matches: Match[]): void => {
-  function predicates(match: Match): Predicate<Request>[] {
+export const mockRequests = (matches: RequestMatch[]): void => {
+  function predicates(match: RequestMatch): Predicate<Request>[] {
     return [
       (request) => request.url.endsWith(match.pathname),
       (request) => (match.method ? request.method === match.method : true),
@@ -46,7 +46,7 @@ export const mockRequests = (matches: Match[]): void => {
       return predicates(match).every((predicate) => predicate(request));
     });
     if (!match) {
-      throw new Error('Request must be mocked');
+      throw new MockError(request);
     }
 
     return isMockResponseInitFunction(match.response)
@@ -57,4 +57,11 @@ export const mockRequests = (matches: Match[]): void => {
 
 const isMockResponseInitFunction = (
   response: unknown
-): response is MockResponseInitFunction => isMockFunction(response);
+): response is MockResponseInitFunction => typeof response === 'function';
+
+class MockError extends Error {
+  constructor(request: Request) {
+    super(`Request to ${request.url} must be mocked`);
+    this.name = 'MockError';
+  }
+}

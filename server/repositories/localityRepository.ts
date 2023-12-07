@@ -2,8 +2,10 @@ import db from './db';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { establishmentsLocalitiesTable } from './housingRepository';
 import { logger } from '../utils/logger';
+import { LocalityKind } from '../../shared/models/LocalityDTO';
 
 export const localitiesTable = 'localities';
+export const Localities = () => db(localitiesTable);
 
 const get = async (geoCode: string): Promise<LocalityApi | null> => {
   logger.info('Get LocalityApi with geoCode', geoCode);
@@ -35,6 +37,7 @@ export interface LocalityDbo {
   id: string;
   geo_code: string;
   name: string;
+  locality_kind?: string;
   tax_kind?: string;
   tax_rate?: number;
 }
@@ -50,18 +53,20 @@ const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
     .then((_) => parseLocalityApi(_[0]));
 };
 
-const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
+export const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
   id: localityApi.id,
   geo_code: localityApi.geoCode,
   name: localityApi.name,
+  locality_kind: localityApi.kind,
   tax_kind: localityApi.taxKind,
   tax_rate: localityApi.taxRate,
 });
 
-const parseLocalityApi = (localityDbo: LocalityDbo): LocalityApi => ({
+export const parseLocalityApi = (localityDbo: LocalityDbo): LocalityApi => ({
   id: localityDbo.id,
   geoCode: localityDbo.geo_code,
   name: localityDbo.name,
+  kind: localityDbo.locality_kind as LocalityKind,
   taxKind: localityDbo.tax_kind as TaxKindsApi,
   taxRate: localityDbo.tax_rate,
 });

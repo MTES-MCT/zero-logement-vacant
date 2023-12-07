@@ -15,6 +15,10 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
     return i < index;
   }
 
+  function isOver(): boolean {
+    return index === steps.length - 1;
+  }
+
   function isInBounds(index: number): boolean {
     return Number.isInteger(index) && 0 <= index && index <= steps.length - 1;
   }
@@ -22,6 +26,12 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
   function forceStep(index: number): void {
     if (isInBounds(index)) {
       setIndex(index);
+    }
+  }
+
+  function previous(): void {
+    if (isInBounds(index - 1)) {
+      setIndex(index - 1);
     }
   }
 
@@ -35,6 +45,8 @@ export function useStepper(steps: Step[], options?: StepperOptions) {
     forceStep,
     index,
     isCompleted,
+    isOver,
+    previous,
     next,
     step,
   };

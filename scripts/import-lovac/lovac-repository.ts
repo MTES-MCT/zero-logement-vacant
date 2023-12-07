@@ -254,6 +254,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     latitude: housing.latitude,
     buildingYear: housing.building_year,
     ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
+    source: 'lovac',
   };
 }
 

@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "command": "*/10 19-23,0-7 * * * node dist/server/services/addressService.js"
+      "command": "*/10 19-23,0-6 * * * node dist/server/services/addressService.js"
     }
   ]
 }

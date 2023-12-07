@@ -1,6 +1,9 @@
 export interface OwnerPayloadDTO {
   rawAddress: string[];
   fullName: string;
+  /**
+   * A date formatted like YYYY-MM-DD
+   */
   birthDate?: string;
   email?: string;
   phone?: string;

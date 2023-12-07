@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -20,6 +20,9 @@ import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
 import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import { useHistory } from 'react-router-dom';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -48,6 +51,14 @@ const HousingListView = () => {
     });
   };
 
+  const router = useHistory<RouterState | undefined>();
+  const [alert, setAlert] = useState(router.location.state?.alert ?? '');
+  function onFinish() {
+    setAlert(
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
+    );
+  }
+
   return (
     <MainContainer>
       <HousingListFiltersSidemenu
@@ -60,11 +71,25 @@ const HousingListView = () => {
       <Row spacing="mb-5w">
         <GroupHeader />
       </Row>
+      <Row spacing="mb-2w">
+        <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">
+          Votre parc de logements
+        </Title>
+        <HousingCreationModal onFinish={onFinish} />
+      </Row>
+
+      {alert && (
+        <Alert
+          severity="success"
+          description={alert}
+          closable
+          small
+          className="fr-mb-2w"
+        />
+      )}
+
       <Row spacing="mb-1w">
         <Col n="6">
-          <Title as="h1" look="h3">
-            Votre parc de logements
-          </Title>
           <div className="d-flex">
             <AppSearchBar
               onSearch={searchWithQuery}
@@ -105,5 +130,9 @@ const HousingListView = () => {
     </MainContainer>
   );
 };
+
+interface RouterState {
+  alert?: string;
+}
 
 export default HousingListView;

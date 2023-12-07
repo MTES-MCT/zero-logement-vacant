@@ -1,3 +1,4 @@
+import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
@@ -15,6 +16,7 @@ import campaignRepository from '../repositories/campaignRepository';
 import { GroupHousingEventApi } from '../models/EventApi';
 import eventRepository from '../repositories/eventRepository';
 import housingFiltersApi from '../models/HousingFiltersApi';
+import config from '../utils/config';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -37,20 +39,24 @@ const create = async (request: Request, response: Response): Promise<void> => {
   const { body, establishment, user } = request as AuthenticatedRequest;
 
   // Keep the housing list that are in the same establishment as the group
-  const housingList = await housingRepository
-    .find({
-      filters: {
-        ...body.housing.filters,
-        establishmentIds: [establishment.id],
-      },
-      pagination: { paginate: false },
-    })
-    .then((housingList) => {
-      const ids = new Set(body.housing.ids);
-      return housingList.filter((housing) =>
-        body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
-      );
-    });
+  const housingList =
+    body.housing.all !== undefined
+      ? await housingRepository
+          .find({
+            filters: {
+              ...body.housing.filters,
+              establishmentIds: [establishment.id],
+            },
+            includes: ['owner'],
+            pagination: { paginate: false },
+          })
+          .then((housingList) => {
+            const ids = new Set(body.housing.ids);
+            return housingList.filter((housing) =>
+              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
+            );
+          })
+      : [];
   const owners = housingList.map((housing) => housing.owner);
 
   const group: GroupApi = {
@@ -63,29 +69,47 @@ const create = async (request: Request, response: Response): Promise<void> => {
     createdBy: user,
     userId: user.id,
     establishmentId: establishment.id,
+    exportedAt: null,
     archivedAt: null,
   };
-  await groupRepository.save(group, housingList);
 
-  const events: GroupHousingEventApi[] = housingList.map((housing) => ({
-    id: uuidv4(),
-    name: 'Ajout dans un groupe',
-    kind: 'Create',
-    category: 'Group',
-    section: 'Ajout d’un logement dans un groupe',
-    conflict: false,
-    old: undefined,
-    new: group,
-    createdAt: new Date(),
-    createdBy: user.id,
-    groupId: group.id,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode,
-  }));
-  await eventRepository.insertManyGroupHousingEvents(events);
+  if (housingList.length > config.application.batchSize) {
+    // Save the group immediately
+    await groupRepository.save(group);
+    response.status(constants.HTTP_STATUS_ACCEPTED).json(toGroupDTO(group));
 
-  response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
+    // Add housing later to avoid blocking the user
+    const chunks = fp.chunk(config.application.batchSize, housingList);
+    await async.forEach(chunks, async (chunk) => {
+      await groupRepository.addHousing(group, chunk);
+    });
+  } else {
+    await groupRepository.save(group, housingList);
+    response.status(constants.HTTP_STATUS_CREATED).json(toGroupDTO(group));
+  }
+
+  const events: GroupHousingEventApi[] = housingList.map(
+    (housing): GroupHousingEventApi => ({
+      id: uuidv4(),
+      name: 'Ajout dans un groupe',
+      kind: 'Create',
+      category: 'Group',
+      section: 'Ajout d’un logement dans un groupe',
+      conflict: false,
+      old: undefined,
+      new: group,
+      createdAt: new Date(),
+      createdBy: user.id,
+      groupId: group.id,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+    })
+  );
+  eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
+    logger.error(error);
+  });
 };
+
 const createValidators: ValidationChain[] = [
   body('title').isString().notEmpty(),
   body('description').isString().notEmpty(),
@@ -168,6 +192,7 @@ const addHousing = async (
           ...body.filters,
           establishmentIds: [auth.establishmentId],
         },
+        includes: ['owner'],
         pagination: { paginate: false },
       })
       .then((housingList) => {
@@ -181,6 +206,7 @@ const addHousing = async (
         groupIds: [group.id],
         establishmentIds: [auth.establishmentId],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);
@@ -197,6 +223,13 @@ const addHousing = async (
 
   await groupRepository.addHousing(group, diff);
 
+  const updatedGroup: GroupApi = {
+    ...group,
+    housingCount: uniqueHousingList.length,
+    ownerCount: uniqueOwners.length,
+  };
+  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
+
   const events: GroupHousingEventApi[] = diff.map((housing) => ({
     id: uuidv4(),
     name: 'Ajout dans un groupe',
@@ -212,14 +245,9 @@ const addHousing = async (
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
   }));
-  await eventRepository.insertManyGroupHousingEvents(events);
-
-  const updatedGroup: GroupApi = {
-    ...group,
-    housingCount: uniqueHousingList.length,
-    ownerCount: uniqueOwners.length,
-  };
-  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
+  eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
+    logger.error(error);
+  });
 };
 const addHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
@@ -247,6 +275,7 @@ const removeHousing = async (request: Request, response: Response) => {
           ...body.filters,
           establishmentIds: [auth.establishmentId],
         },
+        includes: ['owner'],
         pagination: { paginate: false },
       })
       .then((housingList) => {
@@ -260,6 +289,7 @@ const removeHousing = async (request: Request, response: Response) => {
         groupIds: [group.id],
         establishmentIds: [auth.establishmentId],
       },
+      includes: ['owner'],
       pagination: { paginate: false },
     }),
   ]);
@@ -278,6 +308,8 @@ const removeHousing = async (request: Request, response: Response) => {
   };
   await groupRepository.removeHousing(updatedGroup, removingHousingList);
 
+  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
+
   const events: GroupHousingEventApi[] = removingHousingList.map((housing) => ({
     id: uuidv4(),
     name: 'Retrait d’un groupe',
@@ -293,9 +325,9 @@ const removeHousing = async (request: Request, response: Response) => {
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
   }));
-  await eventRepository.insertManyGroupHousingEvents(events);
-
-  response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
+  eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
+    logger.error(error);
+  });
 };
 const removeHousingValidators: ValidationChain[] = addHousingValidators;
 
@@ -328,6 +360,9 @@ const remove = async (request: Request, response: Response): Promise<void> => {
 
   if (campaigns.length > 0) {
     const archived = await groupRepository.archive(group);
+
+    response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
+
     const events = housingList.map<GroupHousingEventApi>((housing) => ({
       id: uuidv4(),
       name: 'Archivage d’un groupe',
@@ -343,10 +378,14 @@ const remove = async (request: Request, response: Response): Promise<void> => {
       housingGeoCode: housing.geoCode,
       groupId: null,
     }));
-    await eventRepository.insertManyGroupHousingEvents(events);
-    response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
+    eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
+      logger.error(error);
+    });
     return;
   }
+
+  await groupRepository.remove(group);
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 
   const events = housingList.map<GroupHousingEventApi>((housing) => ({
     id: uuidv4(),
@@ -363,9 +402,9 @@ const remove = async (request: Request, response: Response): Promise<void> => {
     housingGeoCode: housing.geoCode,
     groupId: null,
   }));
-  await groupRepository.remove(group);
-  await eventRepository.insertManyGroupHousingEvents(events);
-  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+  eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
+    logger.error(error);
+  });
 };
 const removeValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 

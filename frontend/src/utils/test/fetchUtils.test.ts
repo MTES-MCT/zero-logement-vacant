@@ -1,6 +1,6 @@
 import fetchMock from 'jest-fetch-mock';
 
-import { createHttpService, HttpMethod } from '../fetchUtils';
+import { createHttpService, getURLQuery, HttpMethod } from '../fetchUtils';
 import authService from '../../services/auth.service';
 
 describe('Fetch utils', () => {
@@ -98,6 +98,19 @@ describe('Fetch utils', () => {
           method,
         })
       );
+    });
+  });
+
+  describe('getURLQuery', () => {
+    it('should return a query string', () => {
+      const actual = getURLQuery({
+        string: 'string',
+        number: '123',
+        undefined: undefined,
+        null: null,
+      });
+
+      expect(actual).toBe('?string=string&number=123');
     });
   });
 });

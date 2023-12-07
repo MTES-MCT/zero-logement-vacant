@@ -1,11 +1,11 @@
 import { Knex } from 'knex';
-import { DatafoncierOwners } from '../../../scripts/import-datafoncier/datafoncierOwnersRepository';
+import { DatafoncierOwners } from '../../../server/repositories/datafoncierOwnersRepository';
 import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
 } from '../../../server/test/testFixtures';
-import { DatafoncierHouses } from '../../../scripts/import-datafoncier/datafoncierHousingRepository';
+import { DatafoncierHouses } from '../../../server/repositories/datafoncierHousingRepository';
 import {
   formatHousingRecordApi,
   Housing,

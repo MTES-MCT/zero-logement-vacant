@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, SerializedError } from '@reduxjs/toolkit';
 import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
@@ -18,6 +18,9 @@ import { ownerProspectApi } from '../services/owner-prospect.service';
 import { settingsApi } from '../services/settings.service';
 import { groupApi } from '../services/group.service';
 import { dashboardApi } from '../services/dashboard.service';
+import { datafoncierApi } from '../services/datafoncier.service';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import fp from 'lodash/fp';
 import { campaignApi } from '../services/campaign.service';
 
 export const applicationReducer = {
@@ -41,12 +44,14 @@ export const applicationReducer = {
   [userAccountApi.reducerPath]: userAccountApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [dashboardApi.reducerPath]: dashboardApi.reducer,
+  [datafoncierApi.reducerPath]: datafoncierApi.reducer,
 };
 
 export const applicationMiddlewares = [
   campaignApi.middleware,
   contactPointsApi.middleware,
   dashboardApi.middleware,
+  datafoncierApi.middleware,
   establishmentApi.middleware,
   eventApi.middleware,
   geoPerimetersApi.middleware,
@@ -72,3 +77,44 @@ export const store = configureStore({
 
 export type AppState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export type AppStore = typeof store;
+
+export function isFetchBaseQueryError(
+  error: unknown
+): error is FetchBaseQueryError {
+  return fp.isObject(error) && 'status' in error;
+}
+
+interface HttpError {
+  status: number;
+  data: {
+    name: string;
+    message: string;
+  };
+}
+
+export function isHttpError(error: FetchBaseQueryError): error is HttpError {
+  return (
+    'data' in error &&
+    fp.isObject(error.data) &&
+    'name' in error.data &&
+    fp.isString(error.data.name) &&
+    'message' in error.data &&
+    fp.isString(error.data.message)
+  );
+}
+
+export interface PrintableError {
+  name: string;
+  message: string;
+}
+
+export function unwrapError(
+  error: FetchBaseQueryError | SerializedError | undefined
+): PrintableError | undefined {
+  if (isFetchBaseQueryError(error)) {
+    if (isHttpError(error)) {
+      return error.data;
+    }
+  }
+}

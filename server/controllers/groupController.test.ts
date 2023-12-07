@@ -1,9 +1,10 @@
+import async from 'async';
 import { constants } from 'http2';
 import request from 'supertest';
+
 import { createServer } from '../server';
 import { withAccessToken } from '../test/testUtils';
 import { User1, User2 } from '../../database/seeds/test/003-users';
-
 import { GroupApi } from '../models/GroupApi';
 import {
   genCampaignApi,
@@ -23,7 +24,7 @@ import {
   GroupsHousing,
 } from '../repositories/groupRepository';
 import fp from 'lodash/fp';
-import { GroupDTO, GroupPayloadDTO } from '../../shared/models/GroupDTO';
+import { GroupDTO, GroupPayloadDTO } from '../../shared/';
 import {
   formatHousingRecordApi,
   Housing,
@@ -46,9 +47,12 @@ import campaignRepository, {
 } from '../repositories/campaignRepository';
 import { CampaignApi } from '../models/CampaignApi';
 import {
+  formatHousingOwnersApi,
   HousingOwnerDBO,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
+import { wait } from '@hapi/hoek';
+import config from '../utils/config';
 
 describe('Group controller', () => {
   const { app } = createServer();
@@ -238,8 +242,8 @@ describe('Group controller', () => {
           'Content-Type': 'application/json',
         })
       );
-
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      await wait(1000);
       const establishmentHousingList = housingList.filter((housing) =>
         Establishment1.geoCodes.includes(housing.geoCode)
       );
@@ -262,6 +266,55 @@ describe('Group controller', () => {
           createdBy: User1.id,
         }))
       );
+    });
+
+    it('should create the group immediately and add housing later if the volume of housing exceeds the threshold', async () => {
+      await GroupHousingEvents().delete();
+      await Housing().delete();
+      const housingList = new Array(config.application.batchSize * 2)
+        .fill('0')
+        .map(() => genHousingApi(oneOf(Establishment1.geoCodes)));
+      await async.forEach(
+        fp.chunk(config.application.batchSize, housingList),
+        async (chunk) => {
+          await Housing().insert(chunk.map(formatHousingRecordApi));
+        }
+      );
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        housingList.flatMap((housing) =>
+          formatHousingOwnersApi(housing, [owner])
+        )
+      );
+
+      const { body, status } = await withAccessToken(
+        request(app)
+          .post(testRoute)
+          .send({
+            ...payload,
+            housing: {
+              all: true,
+              ids: [],
+              filters: {},
+            },
+          } as GroupPayloadDTO)
+          .set({
+            'Content-Type': 'application/json',
+          })
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_ACCEPTED);
+      expect(body).toStrictEqual<GroupDTO>({
+        id: expect.any(String),
+        title: payload.title,
+        description: payload.description,
+        housingCount: housingList.length,
+        ownerCount: 1,
+        createdAt: expect.toBeDateString(),
+        createdBy: toUserDTO(User1),
+        archivedAt: null,
+      });
     });
   });
 
@@ -472,6 +525,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await wait(1000);
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -596,6 +650,7 @@ describe('Group controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      await wait(1000);
       const events = await Events()
         .join(
           groupHousingEventsTable,
@@ -684,6 +739,7 @@ describe('Group controller', () => {
         );
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
+        await wait(1000);
         const after = await GroupHousingEvents()
           .whereNull('group_id')
           .join(

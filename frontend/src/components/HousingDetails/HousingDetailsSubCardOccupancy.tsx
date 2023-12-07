@@ -1,12 +1,12 @@
 import { Col, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import {
+  getSource,
   Housing,
   OccupancyKind,
   OccupancyKindLabels,
 } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
-import { pluralize } from '../../utils/stringUtils';
 import DPE from '../DPE/DPE';
 import { useAppSelector } from '../../hooks/useStore';
 import { useFeature } from '../../hooks/useFeature';
@@ -16,6 +16,7 @@ import { Event } from '../../models/Event';
 import { getYear } from 'date-fns';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Badge from '@codegouvfr/react-dsfr/Badge';
+import Label from '../Label/Label';
 
 interface Props {
   housing: Housing;
@@ -79,10 +80,8 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           </Text>
         </Col>
         <Col n="4">
-          <Text size="sm" className="zlv-label">
-            {pluralize(housing.dataYears.length)('Millésime fichier')} LOVAC
-          </Text>
-          <Text spacing="mb-1w">{housing.dataYears.join(', ')}</Text>
+          <Label>Source</Label>
+          <p>{getSource(housing)}</p>
         </Col>
         <Col n="4">
           {features.isEnabled('occupancy') && (

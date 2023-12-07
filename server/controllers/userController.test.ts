@@ -167,6 +167,9 @@ describe('User controller', () => {
 
     it('should save the establishment campaign intent if it was not provided yet', async () => {
       const campaignIntent: CampaignIntent = '2-4';
+      await db(establishmentsTable).where('id', Establishment1.id).update({
+        campaign_intent: null,
+      });
 
       const { status } = await request(app)
         .post(testRoute)

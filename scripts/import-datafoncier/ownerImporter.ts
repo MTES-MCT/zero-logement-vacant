@@ -1,6 +1,6 @@
 import highland from 'highland';
 import { OwnerApi } from '../../server/models/OwnerApi';
-import createDatafoncierOwnersRepository from './datafoncierOwnersRepository';
+import createDatafoncierOwnersRepository from '../../server/repositories/datafoncierOwnersRepository';
 import { DatafoncierOwner, evaluate, toOwnerApi } from '../shared';
 import OwnerMatchRepository, {
   OwnerMatchDBO,

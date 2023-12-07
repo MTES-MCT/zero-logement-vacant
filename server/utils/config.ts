@@ -74,6 +74,8 @@ interface Config {
     };
   };
   datafoncier: {
+    api: string;
+    enabled: boolean;
     token: string | null;
   };
   environment: string;
@@ -120,7 +122,7 @@ const config = convict<Config>({
     batchSize: {
       env: 'BATCH_SIZE',
       format: Number,
-      default: 10,
+      default: 1_000,
     },
     host: {
       env: 'APPLICATION_HOST',
@@ -217,6 +219,16 @@ const config = convict<Config>({
     },
   },
   datafoncier: {
+    api: {
+      env: 'DATAFONCIER_API',
+      format: String,
+      default: 'https://apidf-preprod.cerema.fr',
+    },
+    enabled: {
+      env: 'DATAFONCIER_ENABLED',
+      format: 'strict-boolean',
+      default: false,
+    },
     token: {
       env: 'DATAFONCIER_TOKEN',
       format: String,

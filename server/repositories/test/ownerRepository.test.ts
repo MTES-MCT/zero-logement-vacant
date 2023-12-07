@@ -1,13 +1,40 @@
 import ownerRepository, {
   formatOwnerApi,
+  Owners,
   ownerTable,
 } from '../ownerRepository';
-import { genOwnerApi } from '../../test/testFixtures';
+import {
+  genDatafoncierOwner,
+  genOwnerApi,
+  genOwnerMatch,
+} from '../../test/testFixtures';
 import db from '../db';
 import { OwnerApi } from '../../models/OwnerApi';
-import { startOfDay } from 'date-fns';
+import { DatafoncierOwners } from '../datafoncierOwnersRepository';
+import { OwnerMatches } from '../ownerMatchRepository';
 
 describe('Owner repository', () => {
+  describe('find', () => {
+    it('should find owners by idpersonne', async () => {
+      const owners = new Array(6).fill(0).map(() => genOwnerApi());
+      const datafoncierOwners = owners.map(() => genDatafoncierOwner());
+      const matches = owners.map((owner, i) =>
+        genOwnerMatch(datafoncierOwners[i], owner)
+      );
+      await Owners().insert(owners.map(formatOwnerApi));
+      await DatafoncierOwners().insert(datafoncierOwners);
+      await OwnerMatches().insert(matches);
+
+      const actual = await ownerRepository.find({
+        filters: {
+          idpersonne: datafoncierOwners.map((owner) => owner.idpersonne),
+        },
+      });
+
+      expect(actual).toBeArrayOfSize(owners.length);
+    });
+  });
+
   describe('findOne', () => {
     it('should find a owner without birth date', async () => {
       const owner: OwnerApi = {
@@ -41,9 +68,7 @@ describe('Owner repository', () => {
       expect(actual).toStrictEqual({
         ...owner,
         administrator: null,
-        birthDate: owner.birthDate
-          ? startOfDay(new Date(owner.birthDate))
-          : null,
+        birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
       });
     });
   });

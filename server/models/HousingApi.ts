@@ -4,6 +4,7 @@ import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
 import { HousingOwnerApi } from './HousingOwnerApi';
+import { HousingSource } from '../../shared';
 
 export interface HousingRecordApi {
   id: string;
@@ -36,6 +37,7 @@ export interface HousingRecordApi {
   occupancy: OccupancyKindApi;
   occupancyRegistered?: OccupancyKindApi;
   occupancyIntended?: OccupancyKindApi;
+  source: HousingSource | null;
 }
 
 export interface HousingApi extends HousingRecordApi {
@@ -119,6 +121,10 @@ export enum EnergyConsumptionGradesApi {
   F = 'F',
   G = 'G',
 }
+
+export const ENERGY_CONSUMPTION_GRADES = Object.values(
+  EnergyConsumptionGradesApi
+);
 
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
 

@@ -37,6 +37,7 @@ import {
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import isNumeric = validator.isNumeric;
+import { HousingSource } from '../../shared';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -185,23 +186,62 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
 };
 
 interface FindOneOptions {
-  geoCode: string;
+  geoCode?: string | string[];
   id?: string;
-  invariant?: string;
   localId?: string;
-  establishmentId?: string;
+  includes?: HousingInclude[];
 }
 
 const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
-  const whereOptions = where<FindOneOptions>(['id', 'invariant', 'localId']);
+  const whereOptions = where<FindOneOptions>(['id', 'localId'], {
+    table: housingTable,
+  });
 
   const housing = await Housing()
     .select(`${housingTable}.*`)
-    .where('geo_code', opts.geoCode)
     .where(whereOptions(opts))
-    .leftJoin(housingOwnersTable, ownerHousingJoinClause)
-    .leftJoin(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
-    .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
+    .modify((query) => {
+      if (opts.geoCode) {
+        Array.isArray(opts.geoCode)
+          ? query.whereIn(`${housingTable}.geo_code`, opts.geoCode)
+          : query.where(`${housingTable}.geo_code`, opts.geoCode);
+      }
+    })
+    .modify(include(opts.includes ?? []))
+    // TODO: simplify all this stuff
+    .select(
+      'perimeters.perimeter_kind as geo_perimeters',
+      `${buildingTable}.housing_count`,
+      `${buildingTable}.vacant_housing_count`,
+      `${localitiesTable}.locality_kind`,
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
+      ),
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
+      )
+    )
+    .leftJoin(
+      localitiesTable,
+      `${housingTable}.geo_code`,
+      `${localitiesTable}.geo_code`
+    )
+    .leftJoin(
+      buildingTable,
+      `${housingTable}.building_id`,
+      `${buildingTable}.id`
+    )
+    .joinRaw(
+      `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
+    )
+    .joinRaw(
+      `left join lateral (
+         select json_agg(distinct(kind)) as perimeter_kind
+         from ${geoPerimetersTable} perimeter
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+       ) perimeters on true`
+    )
+    .modify(queryHousingEventsJoinClause)
     .first();
   return housing ? parseHousingApi(housing) : null;
 };
@@ -278,7 +318,7 @@ const save = async (
 ): Promise<void> => {
   logger.debug('Saving housing...', { housing: housing.id });
   await saveMany([housing], opts);
-  logger.debug(`Housing saved.`, { housing: housing.id });
+  logger.info(`Housing saved.`, { housing: housing.id });
 };
 
 /**
@@ -513,11 +553,17 @@ const fastListQuery = (opts: ListQueryOptions) => {
           establishmentIds: opts.filters.establishmentIds ?? [],
         }
       )
-      .modify(filteredQuery(fp.omit(['establishmentIds'], opts.filters)))
+      .modify(
+        filteredQuery({
+          filters: fp.omit(['establishmentIds'], opts.filters),
+          includes: opts.includes,
+        })
+      )
   );
 };
 
-const filteredQuery = (filters: HousingFiltersApi) => {
+const filteredQuery = (opts: ListQueryOptions) => {
+  const { filters, includes } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
       queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
@@ -569,6 +615,18 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
+    const filterByOwner = [
+      filters.ownerIds,
+      filters.ownerKinds,
+      filters.ownerAges,
+      filters.multiOwners,
+      filters.query,
+    ].some((filter) => filter?.length);
+    if (!includes?.includes('owner') && filterByOwner) {
+      include(['owner'])(queryBuilder);
+    }
+
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
@@ -577,27 +635,27 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.ownerAges?.indexOf('lt40') !== -1) {
+        if (filters.ownerAges?.includes('lt40')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) <= 40"
           );
         }
-        if (filters.ownerAges?.indexOf('40to60') !== -1) {
+        if (filters.ownerAges?.includes('40to60')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 40 and 60"
           );
         }
-        if (filters.ownerAges?.indexOf('60to75') !== -1) {
+        if (filters.ownerAges?.includes('60to75')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 60 and 75"
           );
         }
-        if (filters.ownerAges?.indexOf('75to100') !== -1) {
+        if (filters.ownerAges?.includes('75to100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) between 75 and 100"
           );
         }
-        if (filters.ownerAges?.indexOf('gt100') !== -1) {
+        if (filters.ownerAges?.includes('gt100')) {
           whereBuilder.orWhereRaw(
             "date_part('year', current_date) - date_part('year', birth_date) >= 100"
           );
@@ -606,18 +664,19 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.multiOwners?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.multiOwners?.indexOf('true') !== -1) {
+        if (filters.multiOwners?.includes('true')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
-        if (filters.multiOwners?.indexOf('false') !== -1) {
+        if (filters.multiOwners?.includes('false')) {
           whereBuilder.orWhereRaw(
-            `(select count(*) from owners_housing oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
+            `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
       });
     }
+
     if (filters.beneficiaryCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
         whereBuilder.whereIn(
@@ -762,25 +821,30 @@ const filteredQuery = (filters: HousingFiltersApi) => {
         }
       });
     }
+
+    if (filters.housingCounts?.length || filters.vacancyRates?.length) {
+      queryBuilder.join(
+        buildingTable,
+        `${housingTable}.building_id`,
+        `${buildingTable}.id`
+      );
+    }
+
     if (filters.housingCounts?.length) {
-      queryBuilder
-        .leftJoin(buildingTable, `building_id`, `${buildingTable}.id`)
-        .where(function (whereBuilder: any) {
-          if (filters.housingCounts?.indexOf('lt5') !== -1) {
-            whereBuilder.orWhereRaw(
-              'coalesce(housing_count, 0) between 0 and 4'
-            );
-          }
-          if (filters.housingCounts?.indexOf('5to20') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [5, 20]);
-          }
-          if (filters.housingCounts?.indexOf('20to50') !== -1) {
-            whereBuilder.orWhereBetween('housing_count', [20, 50]);
-          }
-          if (filters.housingCounts?.indexOf('gt50') !== -1) {
-            whereBuilder.orWhereRaw('housing_count > 50');
-          }
-        });
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.housingCounts?.indexOf('lt5') !== -1) {
+          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
+        }
+        if (filters.housingCounts?.indexOf('5to20') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [5, 20]);
+        }
+        if (filters.housingCounts?.indexOf('20to50') !== -1) {
+          whereBuilder.orWhereBetween('housing_count', [20, 50]);
+        }
+        if (filters.housingCounts?.indexOf('gt50') !== -1) {
+          whereBuilder.orWhereRaw('housing_count > 50');
+        }
+      });
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where(function (whereBuilder: any) {
@@ -816,7 +880,11 @@ const filteredQuery = (filters: HousingFiltersApi) => {
     }
     if (filters.localityKinds?.length) {
       queryBuilder
-        .join(localitiesTable, 'geo_code', `${localitiesTable}.geo_code`)
+        .join(
+          localitiesTable,
+          `${housingTable}.geo_code`,
+          `${localitiesTable}.geo_code`
+        )
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
@@ -930,6 +998,7 @@ interface HousingRecordDBO {
   occupancy_intended?: OccupancyKindApi;
   latitude_ban?: number;
   longitude_ban?: number;
+  source: string | null;
 }
 
 interface HousingDBO extends HousingRecordDBO {
@@ -946,6 +1015,16 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   invariant: housing.invariant,
   localId: housing.local_id,
   buildingGroupId: housing.building_group_id,
+  buildingHousingCount: housing.housing_count,
+  buildingId: housing.building_id,
+  buildingLocation: housing.building_location,
+  buildingVacancyRate: housing.vacant_housing_count
+    ? Math.round(
+        (housing.vacant_housing_count * 100) /
+          (housing.housing_count ?? housing.vacant_housing_count)
+      )
+    : undefined,
+  buildingYear: housing.building_year,
   rawAddress: housing.raw_address,
   geoCode: housing.geo_code,
   longitude: housing.longitude_ban ?? housing.longitude,
@@ -957,11 +1036,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   roomsCount: housing.rooms_count,
   livingArea: housing.living_area,
   cadastralReference: housing.cadastral_reference,
-  buildingYear: housing.building_year,
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  buildingLocation: housing.building_location,
   ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
@@ -975,16 +1052,10 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   geoPerimeters: housing.geo_perimeters,
   owner: housing.owner ? parseOwnerApi(housing.owner) : undefined,
   coowners: [],
-  buildingHousingCount: housing.housing_count,
-  buildingVacancyRate: housing.vacant_housing_count
-    ? Math.round(
-        (housing.vacant_housing_count * 100) /
-          (housing.housing_count ?? housing.vacant_housing_count)
-      )
-    : undefined,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
+  source: housing.source as HousingSource,
 });
 
 export const formatHousingRecordApi = (
@@ -993,7 +1064,10 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  building_id: housingRecordApi.buildingId,
   building_group_id: housingRecordApi.buildingGroupId,
+  building_location: housingRecordApi.buildingLocation,
+  building_year: housingRecordApi.buildingYear,
   raw_address: housingRecordApi.rawAddress,
   geo_code: housingRecordApi.geoCode,
   longitude: housingRecordApi.longitude,
@@ -1005,8 +1079,6 @@ export const formatHousingRecordApi = (
   rooms_count: housingRecordApi.roomsCount,
   living_area: housingRecordApi.livingArea,
   cadastral_reference: housingRecordApi.cadastralReference,
-  building_year: housingRecordApi.buildingYear,
-  building_location: housingRecordApi.buildingLocation,
   vacancy_reasons: housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
   ownership_kind: housingRecordApi.ownershipKind,
@@ -1019,6 +1091,7 @@ export const formatHousingRecordApi = (
   occupancy: housingRecordApi.occupancy,
   occupancy_registered: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
+  source: housingRecordApi.source,
 });
 
 export default {

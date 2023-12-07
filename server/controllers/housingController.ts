@@ -1,13 +1,21 @@
 import { Request, Response } from 'express';
 import housingRepository from '../repositories/housingRepository';
-import { hasCampaigns, HousingApi, HousingSortableApi, OccupancyKindApi } from '../models/HousingApi';
-import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
+import {
+  hasCampaigns,
+  HousingApi,
+  HousingRecordApi,
+  HousingSortableApi,
+  OccupancyKindApi,
+} from '../models/HousingApi';
+import housingFiltersApi, {
+  HousingFiltersApi,
+} from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { constants } from 'http2';
-import { body, ValidationChain } from 'express-validator';
+import { body, oneOf, param, ValidationChain } from 'express-validator';
 import validator from 'validator';
 import sortApi from '../models/SortApi';
 import { HousingPaginatedResultApi } from '../models/PaginatedResultApi';
@@ -21,19 +29,41 @@ import _ from 'lodash';
 import { logger } from '../utils/logger';
 import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
+import { toHousingRecordApi } from '../../scripts/shared';
+import HousingExistsError from '../errors/housingExistsError';
+import datafoncierHousingApiRepository from '../repositories/datafoncierHousingApiRepository';
+import ownerRepository from '../repositories/ownerRepository';
+import datafoncierOwnerApiRepository from '../repositories/datafoncierOwnerApiRepository';
+import housingOwnerRepository from '../repositories/housingOwnerRepository';
+import { toHousingOwnersApi } from '../models/HousingOwnerApi';
+import async from 'async';
+import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
+import { HousingEventApi } from '../models/EventApi';
+import ownerMatchRepository from '../repositories/ownerMatchRepository';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
+const getValidators = oneOf([
+  param('id').isString().isLength({ min: 12, max: 12 }), // localId
+  param('id').isUUID(), // id
+]);
 const get = async (request: Request, response: Response) => {
-  const id = request.params.id;
-  const establishment = (request as AuthenticatedRequest).establishment;
+  const { params, establishment } = request as AuthenticatedRequest;
 
-  logger.info('Get housing', id);
+  logger.info('Get housing', params.id);
 
-  const housing = await housingRepository.get(id, establishment.id);
+  const id = params.id.length !== 12 ? params.id : undefined;
+  const localId = params.id.length === 12 ? params.id : undefined;
+
+  const housing = await housingRepository.findOne({
+    geoCode: establishment.geoCodes,
+    id,
+    localId,
+    includes: ['owner'],
+  });
   if (!housing) {
-    throw new HousingMissingError(id);
+    throw new HousingMissingError(params.id);
   }
 
   response.status(constants.HTTP_STATUS_OK).json(housing);
@@ -114,6 +144,82 @@ const count = async (request: Request, response: Response): Promise<void> => {
         : [establishmentId],
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
+};
+
+const createValidators: ValidationChain[] = [
+  body('localId').isString().isLength({ min: 12, max: 12 }),
+];
+const create = async (request: Request, response: Response) => {
+  const { auth, body } = request as AuthenticatedRequest;
+  const geoCode = body.localId.substring(0, 5);
+
+  const existing = await housingRepository.findOne({
+    // Extract the geo code from the localId
+    geoCode,
+    localId: body.localId,
+  });
+  if (existing) {
+    throw new HousingExistsError(body.localId);
+  }
+
+  const datafoncierHousing = await datafoncierHousingApiRepository.findOne({
+    localId: body.localId,
+  });
+  if (!datafoncierHousing) {
+    throw new HousingMissingError(body.localId);
+  }
+
+  const datafoncierOwners = await datafoncierOwnerApiRepository.find({
+    filters: {
+      geoCode,
+      idprocpte: datafoncierHousing.idprocpte,
+    },
+  });
+  // Create the missing datafoncier owners if needed
+  await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
+    const { match, owner } = await processOwner(datafoncierOwner);
+    if (owner) {
+      await ownerRepository.save(owner);
+    }
+    if (match) {
+      await ownerMatchRepository.save(match);
+    }
+  });
+  const owners = await ownerRepository.find({
+    filters: {
+      idpersonne: datafoncierOwners.map((owner) => owner.idpersonne),
+    },
+  });
+
+  const housing: HousingRecordApi = toHousingRecordApi(
+    { source: 'datafoncier-manual' },
+    datafoncierHousing
+  );
+  await housingRepository.save(housing);
+  await housingOwnerRepository.saveMany(toHousingOwnersApi(housing, owners));
+
+  const event: HousingEventApi = {
+    id: uuidv4(),
+    name: 'Création du logement',
+    section: 'Situation',
+    category: 'Followup',
+    kind: 'Create',
+    old: undefined,
+    new:
+      (await housingRepository.findOne({
+        geoCode: housing.geoCode,
+        id: housing.id,
+        includes: ['owner'],
+      })) ?? undefined,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id,
+    conflict: false,
+    createdAt: new Date(),
+    createdBy: auth.userId,
+  };
+  await eventRepository.insertHousingEvent(event);
+
+  response.status(constants.HTTP_STATUS_CREATED).json(housing);
 };
 
 export interface HousingUpdateBody {
@@ -346,10 +452,13 @@ const createHousingUpdateNote = async (
 };
 
 const housingController = {
+  getValidators,
   get,
   listValidators,
   list,
   count,
+  createValidators,
+  create,
   updateValidators,
   update,
   updateListValidators,

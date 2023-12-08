@@ -121,9 +121,14 @@ export interface DatafoncierHousing {
   source_geo: string;
   vecteur: string;
   ban_id: string;
+  ban_geom: string | null;
   ban_type: string;
-  ban_score: number;
+  ban_score: string;
   ban_cp: string;
+  code_epci: string | null;
+  lib_epci: string | null;
+  geomloc: string | null;
+  idpk: number | null;
   dis_ban_ff: number;
 }
 

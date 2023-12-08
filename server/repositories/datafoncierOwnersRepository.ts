@@ -42,7 +42,7 @@ class DatafoncierOwnersRepository {
   async find(opts?: FindOptions): Promise<OwnerApi[]> {
     const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
 
-    const owners: Array<OwnerDBO> = await DatafoncierOwners()
+    const owners: OwnerDBO[] = await DatafoncierOwners()
       .where(whereOptions(opts?.filters))
       .join(
         ownerMatchTable,
@@ -52,6 +52,15 @@ class DatafoncierOwnersRepository {
       .join(ownerTable, `${ownerTable}.id`, `${ownerMatchTable}.owner_id`)
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
     return fp.pipe(fp.uniqBy('idpersonne'), fp.map(parseOwnerApi))(owners);
+  }
+
+  async findDatafoncierOwners(opts?: FindOptions): Promise<DatafoncierOwner[]> {
+    const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
+
+    const owners: DatafoncierOwner[] = await DatafoncierOwners()
+      .where(whereOptions(opts?.filters))
+      .orderBy(`${datafoncierOwnersTable}.dnulp`);
+    return fp.pipe(fp.uniqBy('idpersonne'))(owners);
   }
 
   stream(opts?: StreamOptions): Highland.Stream<DatafoncierOwner> {

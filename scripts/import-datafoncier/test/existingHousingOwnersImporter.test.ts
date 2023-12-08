@@ -40,7 +40,7 @@ describe('Import housing owners from existing housing', () => {
     };
     const datafoncierOwners = new Array(6)
       .fill(0)
-      .map(genDatafoncierOwner)
+      .map(() => genDatafoncierOwner())
       .map((owner, i) => ({
         ...owner,
         idprocpte: datafoncierHousing.idprocpte,

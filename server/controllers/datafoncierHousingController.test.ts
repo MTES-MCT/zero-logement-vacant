@@ -4,6 +4,7 @@ import { createServer } from '../server';
 import { withAccessToken } from '../test/testUtils';
 import { genDatafoncierHousing } from '../test/testFixtures';
 import { Locality1 } from '../../database/seeds/test/001-establishments';
+import { DatafoncierHouses } from '../repositories/datafoncierHousingRepository';
 
 describe('Datafoncier housing controller', () => {
   const { app } = createServer();
@@ -14,13 +15,7 @@ describe('Datafoncier housing controller', () => {
 
     it('should return the housing if it exists', async () => {
       const housing = genDatafoncierHousing(Locality1.geoCode);
-      fetchMock.mockIf(
-        (request) => request.url.endsWith(`/ff/locaux/${housing.idlocal}`),
-        async () => ({
-          status: 200,
-          body: JSON.stringify(housing),
-        })
-      );
+      await DatafoncierHouses().insert(housing);
 
       const { body, status } = await withAccessToken(
         request(app).get(testRoute(housing.idlocal))
@@ -31,8 +26,10 @@ describe('Datafoncier housing controller', () => {
     });
 
     it('should return "not found" if the given local id does not belong to the user’s establishment', async () => {
+      const housing = genDatafoncierHousing('12345');
+      await DatafoncierHouses().insert(housing);
       const { status } = await withAccessToken(
-        request(app).get(testRoute(`0000012345678`))
+        request(app).get(testRoute(`1234512345678`))
       );
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);

@@ -2,23 +2,10 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 
-import datafoncierHousingRepository from '../repositories/datafoncierHousingApiRepository';
 import HousingMissingError from '../errors/housingMissingError';
+import createDatafoncierHousingRepository from '../repositories/datafoncierHousingRepository';
 
-const find = async (request: Request, response: Response) => {
-  const { query } = request as AuthenticatedRequest;
-  const geoCode = query.geoCode as string;
-  const idpar = query.idpar as string | undefined;
-
-  const housingList = await datafoncierHousingRepository.find({
-    filters: {
-      geoCode,
-      idpar,
-    },
-  });
-
-  response.status(constants.HTTP_STATUS_OK).json(housingList);
-};
+const datafoncierHousingRepository = createDatafoncierHousingRepository();
 
 const findOne = async (request: Request, response: Response) => {
   const { establishment } = request as AuthenticatedRequest;
@@ -29,7 +16,7 @@ const findOne = async (request: Request, response: Response) => {
   }
 
   const housing = await datafoncierHousingRepository.findOne({
-    localId: request.params.localId,
+    idlocal: request.params.localId,
   });
   if (!housing) {
     throw new HousingMissingError(request.params.id);
@@ -39,6 +26,5 @@ const findOne = async (request: Request, response: Response) => {
 };
 
 export default {
-  find,
   findOne,
 };

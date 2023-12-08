@@ -18,7 +18,9 @@ import {
 } from '../../../server/repositories/ownerRepository';
 
 exports.seed = async (knex: Knex) => {
-  const datafoncierHouses = new Array(10).fill(0).map(genDatafoncierHousing);
+  const datafoncierHouses = new Array(10)
+    .fill(0)
+    .map(() => genDatafoncierHousing());
   await DatafoncierHouses(knex).insert(datafoncierHouses);
 
   const datafoncierOwners = datafoncierHouses.flatMap((housing) =>

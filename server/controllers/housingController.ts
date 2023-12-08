@@ -31,9 +31,7 @@ import fp from 'lodash/fp';
 import { Pagination } from '../../shared/models/Pagination';
 import { toHousingRecordApi } from '../../scripts/shared';
 import HousingExistsError from '../errors/housingExistsError';
-import datafoncierHousingApiRepository from '../repositories/datafoncierHousingApiRepository';
 import ownerRepository from '../repositories/ownerRepository';
-import datafoncierOwnerApiRepository from '../repositories/datafoncierOwnerApiRepository';
 import housingOwnerRepository from '../repositories/housingOwnerRepository';
 import { toHousingOwnersApi } from '../models/HousingOwnerApi';
 import async from 'async';
@@ -41,6 +39,8 @@ import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '../models/EventApi';
 import ownerMatchRepository from '../repositories/ownerMatchRepository';
+import createDatafoncierHousingRepository from '../repositories/datafoncierHousingRepository';
+import createDatafoncierOwnersRepository from '../repositories/datafoncierOwnersRepository';
 import isIn = validator.isIn;
 import isEmpty = validator.isEmpty;
 
@@ -146,6 +146,9 @@ const count = async (request: Request, response: Response): Promise<void> => {
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
+const datafoncierHousingRepository = createDatafoncierHousingRepository();
+const datafoncierOwnerRepository = createDatafoncierOwnersRepository();
+
 const createValidators: ValidationChain[] = [
   body('localId').isString().isLength({ min: 12, max: 12 }),
 ];
@@ -162,19 +165,19 @@ const create = async (request: Request, response: Response) => {
     throw new HousingExistsError(body.localId);
   }
 
-  const datafoncierHousing = await datafoncierHousingApiRepository.findOne({
-    localId: body.localId,
+  const datafoncierHousing = await datafoncierHousingRepository.findOne({
+    idlocal: body.localId,
   });
   if (!datafoncierHousing) {
     throw new HousingMissingError(body.localId);
   }
 
-  const datafoncierOwners = await datafoncierOwnerApiRepository.find({
-    filters: {
-      geoCode,
-      idprocpte: datafoncierHousing.idprocpte,
-    },
-  });
+  const datafoncierOwners =
+    await datafoncierOwnerRepository.findDatafoncierOwners({
+      filters: {
+        idprocpte: datafoncierHousing.idprocpte,
+      },
+    });
   // Create the missing datafoncier owners if needed
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
     const { match, owner } = await processOwner(datafoncierOwner);

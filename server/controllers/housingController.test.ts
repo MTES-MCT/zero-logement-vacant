@@ -2,13 +2,19 @@ import db from '../repositories/db';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import { formatHousingRecordApi, housingTable } from '../repositories/housingRepository';
+import {
+  formatHousingRecordApi,
+  housingTable,
+} from '../repositories/housingRepository';
 import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
 } from '../test/testFixtures';
-import { Establishment1, Locality1 } from '../../database/seeds/test/001-establishments';
+import {
+  Establishment1,
+  Locality1,
+} from '../../database/seeds/test/001-establishments';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
@@ -18,17 +24,18 @@ import { Housing1 } from '../../database/seeds/test/005-housing';
 import {
   eventsTable,
   HousingEvents,
-  housingEventsTable} from '../repositories/eventRepository';
+  housingEventsTable,
+} from '../repositories/eventRepository';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { createServer } from '../server';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
 import { HousingEvent1 } from '../../database/seeds/test/011-events';
 import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, notesTable } from '../repositories/noteRepository';
-import datafoncierHousingRepository from '../repositories/datafoncierHousingApiRepository';
-import datafoncierOwnerRepository from '../repositories/datafoncierOwnerApiRepository';
 
 import { HousingOwners } from '../repositories/housingOwnerRepository';
+import { DatafoncierHouses } from '../repositories/datafoncierHousingRepository';
+import { DatafoncierOwners } from '../repositories/datafoncierOwnersRepository';
 
 const { app } = createServer();
 
@@ -133,9 +140,6 @@ describe('Housing controller', () => {
     });
 
     it('should fail if the housing was not found in datafoncier', async () => {
-      jest
-        .spyOn(datafoncierHousingRepository, 'findOne')
-        .mockResolvedValueOnce(null);
       const payload = {
         localId: randomstring.generate(12),
       };
@@ -152,12 +156,8 @@ describe('Housing controller', () => {
       const datafoncierOwners = new Array(3)
         .fill(0)
         .map(() => genDatafoncierOwner(datafoncierHousing.idprocpte));
-      jest
-        .spyOn(datafoncierHousingRepository, 'findOne')
-        .mockResolvedValueOnce(datafoncierHousing);
-      jest
-        .spyOn(datafoncierOwnerRepository, 'find')
-        .mockResolvedValueOnce(datafoncierOwners);
+      await DatafoncierHouses().insert(datafoncierHousing);
+      await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
         localId: datafoncierHousing.idlocal,
       };
@@ -174,15 +174,11 @@ describe('Housing controller', () => {
 
     it('should assign its owners', async () => {
       const datafoncierHousing = genDatafoncierHousing();
-      jest
-        .spyOn(datafoncierHousingRepository, 'findOne')
-        .mockResolvedValueOnce(datafoncierHousing);
       const datafoncierOwners = new Array(6)
         .fill(0)
         .map(() => genDatafoncierOwner(datafoncierHousing.idprocpte));
-      jest
-        .spyOn(datafoncierOwnerRepository, 'find')
-        .mockResolvedValueOnce(datafoncierOwners);
+      await DatafoncierHouses().insert(datafoncierHousing);
+      await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
         localId: datafoncierHousing.idlocal,
       };
@@ -204,12 +200,8 @@ describe('Housing controller', () => {
       const datafoncierOwners = [
         genDatafoncierOwner(datafoncierHousing.idprocpte),
       ];
-      jest
-        .spyOn(datafoncierHousingRepository, 'findOne')
-        .mockResolvedValueOnce(datafoncierHousing);
-      jest
-        .spyOn(datafoncierOwnerRepository, 'find')
-        .mockResolvedValueOnce(datafoncierOwners);
+      await DatafoncierHouses().insert(datafoncierHousing);
+      await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
         localId: datafoncierHousing.idlocal,
       };

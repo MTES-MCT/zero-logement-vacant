@@ -6,7 +6,6 @@ import { Knex } from 'knex';
 import { logger } from '../utils/logger';
 import { housingTable } from './housingRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
-import chunk from 'lodash/chunk';
 
 export const groupsTable = 'groups';
 export const groupsHousingTable = 'groups_housing';
@@ -109,12 +108,8 @@ const save = async (
     if (housingList) {
       await GroupsHousing(transaction).where({ group_id: group.id }).delete();
       if (housingList.length > 0) {
-        await Promise.all(
-          chunk(housingList, 1000).map(async (chunk) => {
-            await GroupsHousing(transaction).insert(
-              formatGroupHousingApi(group, chunk)
-            );
-          })
+        await GroupsHousing(transaction).insert(
+          formatGroupHousingApi(group, housingList)
         );
       }
     }

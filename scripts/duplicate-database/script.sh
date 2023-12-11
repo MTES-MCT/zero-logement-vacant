@@ -2,28 +2,39 @@
 
 archive_name="backup.tar.gz"
 
-echo "Install the Scalingo CLI tool in the container:"
+# "Install the Scalingo CLI tool in the container:"
+echo "=> Install the Scalingo CLI tool"
 install-scalingo-cli
 
-echo "Install additional tools to interact with the database:"
+# "Install additional tools to interact with the database:"
+echo "=> Install additional tools"
 dbclient-fetcher postgresql
 
-echo "Login to Scalingo, using the token stored in `DUPLICATE_API_TOKEN`:"
+# "Login to Scalingo, using the token stored in `DUPLICATE_API_TOKEN`:"
+echo "=> Login to Scalingo"
 scalingo login --api-token ${DUPLICATE_API_TOKEN}
 
-echo "Retrieve the addon id:"
+# "Retrieve the addon id:"
 addon_id="$( scalingo --app "${APP}" addons \
              | grep postgresql \
              | cut -d "|" -f 3 \
              | tr -d " " )"
-echo "Download the latest backup available for the specified addon:"
+
+# "Download the latest backup available for the specified addon:"
+echo "=> Download the latest backup available"
 scalingo --app "${APP}" --addon "${addon_id}" \
     backups-download --output "${archive_name}"
 
-echo "Extract the archive containing the downloaded backup and get the name of the backup file:"
+wait
+
+# "Extract the archive containing the downloaded backup and get the name of the backup file:"
+echo "=> Extract the archive"
 backup_file_name="$( tar --extract --verbose --file="${archive_name}" --directory="/app/" \
                      | cut -d " " -f 2 | cut -d "/" -f 2 )"
 
-echo "Restore the data:"
+wait
+
+# "Restore the data"
+echo "=> Restore the data:"
 pg_restore --clean --if-exists --no-owner --no-privileges --no-comments \
 --dbname ${DUPLICATE_DATABASE_URL} ${backup_file_name}

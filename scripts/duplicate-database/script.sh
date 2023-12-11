@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if ${IS_REVIEW_APP} then
+  exit
+fi
+
 archive_name="backup.tar.gz"
 
 # "Install the Scalingo CLI tool in the container:"

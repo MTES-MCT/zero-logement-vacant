@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-if ${IS_REVIEW_APP} then
-  exit
+if ${IS_REVIEW_APP}
+then
+  exit;
 fi
 
 archive_name="backup.tar.gz"

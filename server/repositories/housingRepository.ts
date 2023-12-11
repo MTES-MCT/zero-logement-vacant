@@ -76,7 +76,7 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
         ? opts.filters.localities
         : geoCodes,
     },
-    includes: [...(opts.includes ?? []), ...filtersInclude(opts.filters)],
+    includes: opts.includes,
   })
     .modify(housingSortQuery(opts.sort))
     .modify(paginationQuery(opts.pagination as PaginationApi));
@@ -380,13 +380,6 @@ interface ListQueryOptions {
   filters: HousingFiltersApi;
   includes?: HousingInclude[];
 }
-
-const filtersInclude = (filters: HousingFiltersApi): HousingInclude[] => {
-  if (filters.ownerIds?.length || filters.ownerKinds?.length) {
-    return ['owner'];
-  }
-  return [];
-};
 
 function include(includes: HousingInclude[]) {
   const joins: Record<HousingInclude, (query: Knex.QueryBuilder) => void> = {

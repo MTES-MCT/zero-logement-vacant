@@ -1,4 +1,4 @@
-import { Comparison } from '../shared/models/Comparison';
+import { Comparison } from '../shared/';
 import { Report } from './report';
 import { logger } from '../../server/utils/logger';
 import { isMatch } from '../shared/owner-processor/duplicates';
@@ -25,15 +25,13 @@ class Recorder {
     return (stream: Stream<Comparison>): Stream<Report> => {
       return stream
         .reduce(this.report, (acc, comparison) => {
-          const matches = comparison.duplicates.filter((_) => isMatch(_.score));
-          const nonMatches = comparison.duplicates.filter(
-            (_) => !isMatch(_.score)
-          );
+          const match = isMatch(comparison.score) && !comparison.needsReview;
+          const nonMatch = !match && !comparison.needsReview;
 
           this.report = {
             overall: acc.overall + 1,
-            match: acc.match + matches.length,
-            nonMatch: acc.nonMatch + nonMatches.length,
+            match: acc.match + (match ? 1 : 0),
+            nonMatch: acc.nonMatch + (nonMatch ? 1 : 0),
             needReview: acc.needReview + (comparison.needsReview ? 1 : 0),
             removed: this.report.removed,
             score: {

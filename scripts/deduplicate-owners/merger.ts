@@ -24,7 +24,6 @@ export interface MergerEventMap {
 class Merger extends EventManager<MergerEventMap> {
   async merge(comparison: Comparison): Promise<void> {
     if (comparison.needsReview) {
-      logger.debug('Manual review needed. Skipping...', comparison);
       return;
     }
 
@@ -60,18 +59,25 @@ class Merger extends EventManager<MergerEventMap> {
           );
         }
 
-        await transaction(housingOwnersTable)
-          .update({ owner_id: keeping.id })
-          .whereIn('owner_id', removingIds);
-        await transaction(ownerEventsTable)
-          .update({ owner_id: keeping.id })
-          .whereIn('owner_id', removingIds);
-        await transaction(ownerNotesTable)
-          .update({ owner_id: keeping.id })
-          .whereIn('owner_id', removingIds);
-        await transaction('old_events')
-          .update({ owner_id: keeping.id })
-          .whereIn('owner_id', removingIds);
+        await Promise.all([
+          // Transfer housing owners
+          transaction(housingOwnersTable)
+            .update({ owner_id: keeping.id })
+            .whereIn('owner_id', removingIds),
+          // Transfer owner events
+          transaction(ownerEventsTable)
+            .update({ owner_id: keeping.id })
+            .whereIn('owner_id', removingIds),
+          // Transfer owner notes
+          transaction(ownerNotesTable)
+            .update({ owner_id: keeping.id })
+            .whereIn('owner_id', removingIds),
+          // Transfer old events
+          transaction('old_events')
+            .update({ owner_id: keeping.id })
+            .whereIn('owner_id', removingIds),
+        ]);
+
         const removed = await transaction(ownerTable)
           .whereIn('id', removingIds)
           .delete();
@@ -128,7 +134,7 @@ function findHousingOwnerDuplicates(
   )(housingOwners);
 }
 
-function createMerger(): Merger {
+function createMerger() {
   return new Merger();
 }
 

@@ -1,5 +1,5 @@
 import { OwnerApi } from '../../../server/models/OwnerApi';
-import { Comparison } from '../models';
+import { Comparison } from '../models/Comparison';
 import {
   compare,
   findBest,
@@ -14,8 +14,9 @@ export async function evaluate(owner: OwnerApi): Promise<Comparison> {
   const dups = await findDuplicatesByName(owner);
 
   cache.currentName(owner.fullName);
-  const scores = fp.sortBy(
+  const scores = fp.orderBy(
     'score',
+    ['desc'],
     dups
       .filter((dup) => !cache.has(owner.id, dup.id))
       .map((dup) => ({

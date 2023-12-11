@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 archive_name="backup.tar.gz"
-app_name="zerologementvacant"
 
 # Install the Scalingo CLI tool in the container:
 install-scalingo-cli
@@ -13,13 +12,13 @@ dbclient-fetcher postgresql
 scalingo login --api-token ${DUPLICATE_API_TOKEN}
 
 # Retrieve the addon id:
-addon_id="$( scalingo --app "${app_name}" addons \
+addon_id="$( scalingo --app "${APP}" addons \
              | grep postgresql \
              | cut -d "|" -f 3 \
              | tr -d " " )"
 
 # Download the latest backup available for the specified addon:
-scalingo --app "${app_name}" --addon "${addon_id}" \
+scalingo --app "${APP}" --addon "${addon_id}" \
     backups-download --output "${archive_name}"
 
 # Extract the archive containing the downloaded backup and get the name of the backup file:

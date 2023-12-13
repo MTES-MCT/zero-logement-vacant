@@ -70,27 +70,15 @@ function Footer() {
             },
             {
               linkProps: {
-                to: '/informations-publiques',
+                to: '/ressources',
               },
-              text: 'Informations publiques',
+              text: 'Ressources',
             },
             {
               linkProps: {
                 to: '/compte',
               },
               text: 'Profil',
-            },
-            {
-              linkProps: {
-                to: '/messagerie',
-              },
-              text: 'Messagerie',
-            },
-            {
-              linkProps: {
-                to: '/ressources',
-              },
-              text: 'Ressources',
             },
           ],
         },

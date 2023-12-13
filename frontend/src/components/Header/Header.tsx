@@ -12,7 +12,6 @@ import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import Collapse from '../Collapse/Collapse';
 import { Container } from '../_dsfr';
-import { useFindOwnerProspectsQuery } from '../../services/owner-prospect.service';
 
 function Header() {
   const location = useLocation();
@@ -21,17 +20,6 @@ function Header() {
   const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
-
-  const { data: ownerProspects } = useFindOwnerProspectsQuery(
-    {},
-    {
-      skip: !isAuthenticated,
-    }
-  );
-
-  const unreadMessages = ownerProspects?.entities?.filter(
-    (entity) => !entity.read
-  );
 
   useEffect(() => {
     trackPageView({});

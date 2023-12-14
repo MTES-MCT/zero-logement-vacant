@@ -1,5 +1,4 @@
 import { Container, Text, Title } from '../../../components/_dsfr';
-import AppLinkAsButton from '../../../components/_app/AppLinkAsButton/AppLinkAsButton';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
@@ -33,7 +32,11 @@ function AccountAccessForbiddenView() {
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
             transmettre l'acte d'engagement permettant d'accéder aux données
             LOVAC en suivant la procédure indiquée sur 
-            <AppLink isSimple to="https://datafoncier.cerema.fr/" size="sm">
+            <AppLink
+              isSimple
+              to="https://datafoncier.cerema.fr/lovac"
+              size="sm"
+            >
               le site du CEREMA
             </AppLink>
             .
@@ -47,9 +50,9 @@ function AccountAccessForbiddenView() {
         <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Dans ce cas, 
-            <AppLinkAsButton isSimple onClick={back}>
+            <AppLink isSimple to="/inscription/email">
               réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
-            </AppLinkAsButton>
+            </AppLink>
             . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous
             rendre sur 
             <AppLink
@@ -80,7 +83,8 @@ function AccountAccessForbiddenView() {
       </div>
       <Container as="section" fluid spacing="mb-4w">
         <AppLink
-          to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+          to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq"
+          target="_blank"
           isSimple
           size="sm"
         >

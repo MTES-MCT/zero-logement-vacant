@@ -1,14 +1,11 @@
 import { Container, Text, Title } from '../../../components/_dsfr';
 import React from 'react';
-import { useHistory } from 'react-router-dom';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { fr } from '@codegouvfr/react-dsfr';
 import classNames from 'classnames';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAccessForbiddenView() {
-  const router = useHistory();
-
   return (
     <>
       <Title as="h2">

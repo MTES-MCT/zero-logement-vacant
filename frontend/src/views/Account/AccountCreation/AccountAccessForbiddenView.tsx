@@ -9,10 +9,6 @@ import AppLink from '../../../components/_app/AppLink/AppLink';
 function AccountAccessForbiddenView() {
   const router = useHistory();
 
-  function back() {
-    router.push('/inscription/email');
-  }
-
   return (
     <>
       <Title as="h2">

@@ -10,37 +10,20 @@ import {
 import db from '../../server/repositories/db';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
-import createMerger from './merger';
+import merger from './merger';
 import ownersDuplicatesRepository from './ownersDuplicatesRepository';
 import { OwnerDuplicate } from './OwnerDuplicate';
-import { evaluate } from '../shared';
 import { formatElapsed, timer } from '../shared/elapsed';
+import evaluator from '../shared/owner-processor/evaluator';
 
 const recorder = createRecorder();
 const reporter = createReporter('json');
-const merger = createMerger();
-
-merger.on('owners:removed', (count) => {
-  recorder.update({
-    removed: {
-      owners: recorder.report.removed.owners + count,
-    },
-  });
-});
-
-merger.on('owners-housing:removed', (count) => {
-  recorder.update({
-    removed: {
-      ownersHousing: recorder.report.removed.ownersHousing + count,
-    },
-  });
-});
 
 function run(): void {
   const comparisons = ownerRepository
     .stream()
     .tap((owner) => logger.trace(`Processing ${owner.fullName}...`))
-    .flatMap((owner) => highland(evaluate(owner)));
+    .through(evaluator.evaluate());
 
   comparisons
     .fork()
@@ -52,7 +35,6 @@ function run(): void {
 
   const duplicateWriter = comparisons
     .fork()
-    .filter((comparison) => comparison.needsReview)
     .map((comparison) =>
       comparison.duplicates
         .filter((duplicate) =>
@@ -64,7 +46,12 @@ function run(): void {
         }))
     )
     .flatten()
-    .tap((duplicate) => logger.trace('Found duplicate', duplicate.fullName))
+    .tap((duplicate) =>
+      logger.trace('Found duplicate', {
+        id: duplicate.id,
+        fullName: duplicate.fullName,
+      })
+    )
     .batch(1000)
     .flatMap((duplicates) =>
       highland(ownersDuplicatesRepository.save(...duplicates))
@@ -74,7 +61,21 @@ function run(): void {
     .fork()
     .filter((comparison) => isMatch(comparison.score))
     .filter((comparison) => !comparison.needsReview)
-    .flatMap((comparison) => highland(merger.merge(comparison)));
+    .on('owners:removed', (count: number) => {
+      recorder.update({
+        removed: {
+          owners: recorder.report.removed.owners + count,
+        },
+      });
+    })
+    .on('owners-housing:removed', (count: number) => {
+      recorder.update({
+        removed: {
+          ownersHousing: recorder.report.removed.ownersHousing + count,
+        },
+      });
+    })
+    .through(merger.merge());
 
   highland([duplicateWriter, ownerMerger])
     .merge()

@@ -1,4 +1,4 @@
-import createMerger from '../merger';
+import { merge } from '../merger';
 import { Comparison } from '../../shared';
 import {
   genHousingApi,
@@ -26,8 +26,6 @@ import {
 } from '../../../server/repositories/housingOwnerRepository';
 
 describe('Merger', () => {
-  const merger = createMerger();
-
   describe('merge', () => {
     const source = genOwnerApi();
     const duplicates = [genOwnerApi(), genOwnerApi()];
@@ -77,7 +75,7 @@ describe('Merger', () => {
         needsReview: true,
       };
 
-      await merger.merge(comparison);
+      await merge(comparison);
 
       const ownerEvents = await db(ownerEventsTable).whereIn(
         'event_id',
@@ -99,7 +97,7 @@ describe('Merger', () => {
         needsReview: false,
       };
 
-      await merger.merge(comparison);
+      await merge(comparison);
 
       const ownerHousing = await db(housingOwnersTable).whereIn(
         'housing_id',
@@ -127,7 +125,7 @@ describe('Merger', () => {
         needsReview: false,
       };
 
-      await merger.merge(comparison);
+      await merge(comparison);
 
       const dups = await db(ownerTable).whereIn(
         'id',

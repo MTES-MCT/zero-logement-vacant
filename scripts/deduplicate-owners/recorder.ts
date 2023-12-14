@@ -26,7 +26,8 @@ class Recorder {
       return stream
         .reduce(this.report, (acc, comparison) => {
           const match = isMatch(comparison.score) && !comparison.needsReview;
-          const nonMatch = !match && !comparison.needsReview;
+          const nonMatch =
+            !isMatch(comparison.score) && !comparison.needsReview;
 
           this.report = {
             overall: acc.overall + 1,

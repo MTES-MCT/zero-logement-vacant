@@ -5,7 +5,11 @@ import { DatafoncierOwner, evaluate, toOwnerApi } from '../shared';
 import OwnerMatchRepository, {
   OwnerMatchDBO,
 } from '../../server/repositories/ownerMatchRepository';
-import { isMatch, isPerfectMatch } from '../shared/owner-processor/duplicates';
+import {
+  findDuplicatesByName,
+  isMatch,
+  isPerfectMatch,
+} from '../shared/owner-processor/duplicates';
 import { logger } from '../../server/utils/logger';
 import { isDefined } from '../../shared';
 import OwnerRepository from '../../server/repositories/ownerRepository';
@@ -44,7 +48,8 @@ export async function processOwner(dfOwner: DatafoncierOwner): Promise<Result> {
   });
 
   if (!ownerMatch) {
-    const comparison = await evaluate(dfOwnerApi);
+    const duplicates = await findDuplicatesByName(dfOwnerApi);
+    const comparison = evaluate(dfOwnerApi, duplicates);
 
     if (isPerfectMatch(comparison.score)) {
       return {

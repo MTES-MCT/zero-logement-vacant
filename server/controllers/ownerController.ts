@@ -1,12 +1,7 @@
 import { Request, Response } from 'express';
 import { body, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
-import {
-  fromOwnerPayloadDTO,
-  hasContactChanges,
-  hasIdentityChanges,
-  OwnerApi,
-} from '../models/OwnerApi';
+import { fromOwnerPayloadDTO, hasContactChanges, hasIdentityChanges, OwnerApi } from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
@@ -47,12 +42,14 @@ const search = async (request: Request, response: Response) => {
 
 const listByHousing = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+  const establishment = (request as AuthenticatedRequest).establishment;
 
   logger.info('List owner for housing', housingId);
 
-  const housing = await housingRepository.get(housingId, establishmentId);
+  const housing = await housingRepository.findOne({
+    id: housingId,
+    geoCode: establishment.geoCodes,
+  });
   if (!housing) {
     throw new HousingMissingError(housingId);
   }
@@ -189,12 +186,15 @@ const updateOwner = async (
 };
 
 const updateHousingOwners = async (request: Request, response: Response) => {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, establishment } = request as AuthenticatedRequest;
   const housingId = params.housingId;
 
   logger.debug('Update housing owners', { housing: housingId });
 
-  const housing = await housingRepository.get(housingId, auth.establishmentId);
+  const housing = await housingRepository.findOne({
+    id: housingId,
+    geoCode: establishment.geoCodes,
+  });
   if (!housing) {
     throw new HousingMissingError(housingId);
   }

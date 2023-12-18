@@ -1,36 +1,21 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import housingRepository, {
-  formatHousingRecordApi,
-  Housing,
-} from '../housingRepository';
-import {
-  Establishment1,
-  Establishment2,
-} from '../../../database/seeds/test/001-establishments';
+import housingRepository, { formatHousingRecordApi, Housing } from '../housingRepository';
+import { Establishment1, Establishment2 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
 import {
-  genBuildingApi,
-  genGroupApi,
-  genHousingApi,
-  genLocalityApi,
-  genOwnerApi,
-  oneOf,
+    genBuildingApi,
+    genGroupApi,
+    genHousingApi,
+    genLocalityApi,
+    genOwnerApi,
+    oneOf,
 } from '../../test/testFixtures';
 import { User1 } from '../../../database/seeds/test/003-users';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing,
-} from '../groupRepository';
+import { formatGroupApi, formatGroupHousingApi, Groups, GroupsHousing } from '../groupRepository';
 import fp from 'lodash/fp';
 import { formatOwnerApi, Owners } from '../ownerRepository';
-import {
-  formatHousingOwnersApi,
-  formatOwnerHousingApi,
-  HousingOwners,
-} from '../housingOwnerRepository';
+import { formatHousingOwnersApi, formatOwnerHousingApi, HousingOwners } from '../housingOwnerRepository';
 import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
 import { isDefined } from '../../../shared';
 import { Owner1 } from '../../../database/seeds/test/004-owner';
@@ -38,11 +23,7 @@ import { differenceInYears } from 'date-fns';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '../../models/LocalityApi';
 import { BuildingApi } from '../../models/BuildingApi';
-import {
-  BuildingDBO,
-  Buildings,
-  formatBuildingApi,
-} from '../buildingRepository';
+import { BuildingDBO, Buildings, formatBuildingApi } from '../buildingRepository';
 import async from 'async';
 import { OwnerApi } from '../../models/OwnerApi';
 import { startTimer } from '../../../scripts/shared/elapsed';
@@ -423,26 +404,6 @@ describe('Housing repository', () => {
           expect(establishment.geoCodes).toContain(housing.geoCode);
         })
         .done(done);
-    });
-  });
-
-  describe('get', () => {
-    it('should return the housing if it exists', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment1.id
-      );
-
-      expect(actual).toBeDefined();
-    });
-
-    it('should return null otherwise', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment2.id
-      );
-
-      expect(actual).toBeNull();
     });
   });
 

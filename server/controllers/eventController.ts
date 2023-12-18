@@ -26,11 +26,14 @@ const listByOwnerId = async (
 
 const listByHousingId = async (request: Request, response: Response) => {
   const housingId = request.params.housingId;
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
+  const establishment = (request as AuthenticatedRequest).establishment;
 
   logger.info('List events for housing', housingId);
 
-  const housing = await housingRepository.get(housingId, establishmentId);
+  const housing = await housingRepository.findOne({
+    id: housingId,
+    geoCode: establishment.geoCodes,
+  });
   if (!housing) {
     throw new HousingMissingError(housingId);
   }

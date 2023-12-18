@@ -7,9 +7,7 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import housingFiltersApi, {
-  HousingFiltersApi,
-} from '../models/HousingFiltersApi';
+import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -28,7 +26,7 @@ import { NoteApi } from '../models/NoteApi';
 import _ from 'lodash';
 import { logger } from '../utils/logger';
 import fp from 'lodash/fp';
-import { Pagination } from '../../shared/models/Pagination';
+import { Pagination } from '../../shared';
 import { toHousingRecordApi } from '../../scripts/shared';
 import HousingExistsError from '../errors/housingExistsError';
 import ownerRepository from '../repositories/ownerRepository';
@@ -60,7 +58,7 @@ const get = async (request: Request, response: Response) => {
     geoCode: establishment.geoCodes,
     id,
     localId,
-    includes: ['owner'],
+    includes: ['events', 'owner', 'perimeters', 'campaigns'],
   });
   if (!housing) {
     throw new HousingMissingError(params.id);
@@ -106,7 +104,7 @@ const list = async (
       filters,
       pagination,
       sort,
-      includes: ['owner'],
+      includes: ['owner', 'campaigns'],
     }),
     // Kept for backward-compatibility
     // TODO: remove this
@@ -157,7 +155,6 @@ const create = async (request: Request, response: Response) => {
   const geoCode = body.localId.substring(0, 5);
 
   const existing = await housingRepository.findOne({
-    // Extract the geo code from the localId
     geoCode,
     localId: body.localId,
   });
@@ -283,7 +280,10 @@ const updateHousing = async (
 
   const { establishment, user } = authUser;
 
-  const housing = await housingRepository.get(housingId, establishment.id);
+  const housing = await housingRepository.findOne({
+    id: housingId,
+    geoCode: establishment.geoCodes,
+  });
   if (!housing) {
     throw new HousingMissingError(housingId);
   }

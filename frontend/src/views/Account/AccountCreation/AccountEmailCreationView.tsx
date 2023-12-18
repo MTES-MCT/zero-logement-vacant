@@ -54,9 +54,10 @@ function AccountEmailCreationView() {
         <Row justifyContent="right">
           <AppLink
             className={styles.help}
-            to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
+            to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq"
             isSimple
             size="sm"
+            target="_blank"
           >
             Besoin d’aide pour créer votre compte ?
           </AppLink>

@@ -4,12 +4,12 @@ import housingRepository, { formatHousingRecordApi, Housing } from '../housingRe
 import { Establishment1, Establishment2 } from '../../../database/seeds/test/001-establishments';
 import { Housing1 } from '../../../database/seeds/test/005-housing';
 import {
-    genBuildingApi,
-    genGroupApi,
-    genHousingApi,
-    genLocalityApi,
-    genOwnerApi,
-    oneOf,
+  genBuildingApi,
+  genGroupApi,
+  genHousingApi,
+  genLocalityApi,
+  genOwnerApi,
+  oneOf,
 } from '../../test/testFixtures';
 import { User1 } from '../../../database/seeds/test/003-users';
 import { formatGroupApi, formatGroupHousingApi, Groups, GroupsHousing } from '../groupRepository';

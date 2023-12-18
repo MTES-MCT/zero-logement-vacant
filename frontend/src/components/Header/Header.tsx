@@ -9,11 +9,9 @@ import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
-import VerticalLink from '../VerticalLink/VerticalLink';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import Collapse from '../Collapse/Collapse';
 import { Container } from '../_dsfr';
-import { useFindOwnerProspectsQuery } from '../../services/owner-prospect.service';
 
 function Header() {
   const location = useLocation();
@@ -22,17 +20,6 @@ function Header() {
   const { isAdmin, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
-
-  const { data: ownerProspects } = useFindOwnerProspectsQuery(
-    {},
-    {
-      skip: !isAuthenticated,
-    }
-  );
-
-  const unreadMessages = ownerProspects?.entities?.filter(
-    (entity) => !entity.read
-  );
 
   useEffect(() => {
     trackPageView({});
@@ -46,9 +33,7 @@ function Header() {
       : '';
   }
 
-  const withNavItems = ['/', '/collectivites', '/proprietaires'].includes(
-    location.pathname
-  );
+  const withNavItems = ['/'].includes(location.pathname);
 
   const getMainNavigationItem = (navItem: UserNavItems) => ({
     linkProps: {
@@ -118,23 +103,6 @@ function Header() {
                     </Container>
                   }
                 />,
-                <div className="fr-ml-2w">
-                  <VerticalLink
-                    badge={unreadMessages?.length}
-                    current={location.pathname === '/messagerie'}
-                    icon="fr-icon-mail-fill"
-                    label="Messagerie"
-                    to="/messagerie"
-                  />
-                </div>,
-                <div className="fr-ml-2w">
-                  <VerticalLink
-                    current={location.pathname === '/ressources'}
-                    icon="fr-icon-question-fill"
-                    label="Ressources"
-                    to="/ressources"
-                  />
-                </div>,
               ]
             : [
                 {
@@ -151,26 +119,9 @@ function Header() {
             ? [
                 getMainNavigationItem(UserNavItems.HousingList),
                 getMainNavigationItem(UserNavItems.Campaign),
-                getMainNavigationItem(UserNavItems.Establishment),
+                getMainNavigationItem(UserNavItems.Resources),
               ]
-            : withNavItems && [
-                {
-                  linkProps: {
-                    to: getUserNavItem(UserNavItems.EstablishmentHome).url,
-                  },
-                  text: getUserNavItem(UserNavItems.EstablishmentHome).label,
-                  isActive:
-                    location.pathname === '/' ||
-                    location.pathname.indexOf('/collectivites') === 0,
-                },
-                {
-                  linkProps: {
-                    to: getUserNavItem(UserNavItems.OwnerHome).url,
-                  },
-                  text: getUserNavItem(UserNavItems.OwnerHome).label,
-                  isActive: location.pathname.indexOf('/proprietaires') === 0,
-                },
-              ]
+            : withNavItems && []
         }
         data-testid="header"
       />

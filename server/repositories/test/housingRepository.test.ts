@@ -417,6 +417,7 @@ describe('Housing repository', () => {
           filters: {
             establishmentIds: [establishment.id],
           },
+          includes: ['owner'],
         })
         .each((housing) => {
           expect(establishment.geoCodes).toContain(housing.geoCode);

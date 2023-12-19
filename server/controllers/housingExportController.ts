@@ -25,6 +25,8 @@ import groupRepository from '../repositories/groupRepository';
 import GroupMissingError from '../errors/groupMissingError';
 import { param, ValidationChain } from 'express-validator';
 import CampaignMissingError from '../errors/campaignMissingError';
+import { OwnerApi } from '../models/OwnerApi';
+import ownerRepository from '../repositories/ownerRepository';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
@@ -32,6 +34,8 @@ interface HousingWithAddresses extends HousingApi {
   housingAddress?: AddressApi;
   ownerAddress?: AddressApi;
 }
+
+export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 
 const exportCampaignValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
@@ -59,20 +63,33 @@ const exportCampaign = async (request: Request, response: Response) => {
     throw new CampaignMissingError(params.id);
   }
 
-  const stream = housingRepository.streamWithFilters({
-    campaignIds: [campaign.id],
-    establishmentIds: [auth.establishmentId],
-  });
-
   const fileName = `${campaign.title}.xlsx`;
 
   const workbook = excelUtils.initWorkbook(fileName, response);
 
-  writeWorkbook(stream, ['owner', 'housing'], campaignList, workbook).done(
-    () => {
+  const housingStream = housingRepository.stream({
+    filters: {
+      campaignIds: [campaign.id],
+      establishmentIds: [auth.establishmentId],
+    },
+    includes: ['owner', 'events'],
+  });
+
+  const ownerStream = ownerRepository.exportStream({
+    filters: {
+      campaignId: campaign.id,
+    },
+  });
+
+  highland([
+    writeHousingWorksheet(housingStream, campaignList, workbook),
+    writeOwnerWorksheet(ownerStream, workbook),
+  ])
+    .merge()
+    .done(() => {
+      workbook.commit();
       logger.info('Exported campaign', { campaign: campaign.id });
-    }
-  );
+    });
 };
 
 const exportGroup = async (request: Request, response: Response) => {
@@ -97,41 +114,48 @@ const exportGroup = async (request: Request, response: Response) => {
   if (!group) {
     throw new GroupMissingError(params.id);
   }
-
-  const stream = housingRepository.streamWithFilters({
-    groupIds: [params.id],
-    establishmentIds: [auth.establishmentId],
-  });
   const fileName = `${group.title}.xlsx`;
   const workbook = excelUtils.initWorkbook(fileName, response);
-  writeWorkbook(stream, ['owner', 'housing'], campaigns, workbook).done(
-    async () => {
+
+  const housingStream = housingRepository.stream({
+    filters: {
+      groupIds: [params.id],
+      establishmentIds: [auth.establishmentId],
+    },
+    includes: ['owner', 'events'],
+  });
+
+  const ownerStream = ownerRepository.exportStream({
+    filters: {
+      groupId: group.id,
+    },
+  });
+
+  highland([
+    writeHousingWorksheet(housingStream, campaigns, workbook),
+    writeOwnerWorksheet(ownerStream, workbook),
+  ])
+    .merge()
+    .done(async () => {
+      workbook.commit();
       await groupRepository.save({
         ...group,
         exportedAt: group.exportedAt ?? new Date(),
       });
       logger.info('Exported group', { group: group.id });
-    }
-  );
+    });
 };
+
 const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
 ];
 
-const writeWorkbook = (
+const writeHousingWorksheet = (
   stream: Stream<HousingApi>,
-  worksheets: ('owner' | 'housing')[],
   campaignList: CampaignApi[],
   workbook: WorkbookWriter
 ) => {
-  const housingWorksheet = worksheets.includes('housing')
-    ? addHousingtWorksheet(workbook)
-    : undefined;
-  const ownerWorksheet = worksheets.includes('owner')
-    ? addOwnerWorksheet(workbook)
-    : undefined;
-
-  const ownersRowNumber: string[] = [];
+  const housingWorksheet = addHousingtWorksheet(workbook);
 
   return stream
     .flatMap((housingApi) => {
@@ -158,100 +182,123 @@ const writeWorkbook = (
     .tap((housingWithAddresses) => {
       assertOwner(housingWithAddresses);
 
-      if (housingWorksheet) {
-        const housingAddress = housingWithAddresses.housingAddress ?? undefined;
-        const building = getBuildingLocation(housingWithAddresses);
+      const housingAddress = housingWithAddresses.housingAddress ?? undefined;
+      const building = getBuildingLocation(housingWithAddresses);
 
-        housingWorksheet.addRow({
-          invariant: housingWithAddresses.invariant,
-          cadastralReference: housingWithAddresses.cadastralReference,
-          geoCode: housingWithAddresses.geoCode,
-          housingRawAddress: reduceStringArray(housingWithAddresses.rawAddress),
-          housingAddress: reduceAddressApi(housingAddress),
-          housingAddressScore: housingAddress?.score,
-          latitude: housingWithAddresses.latitude,
-          longitude: housingWithAddresses.longitude,
-          buildingLocation: building
-            ? [
-                building.building,
-                building.entrance,
-                building.level,
-                building.local,
-              ].join(', ')
-            : null,
-          housingKind:
-            housingWithAddresses.housingKind === 'APPART'
-              ? 'Appartement'
-              : capitalize(housingWithAddresses.housingKind),
-          energyConsumption: housingWithAddresses.energyConsumption,
-          energyConsumptionAt: housingWithAddresses.energyConsumptionAt,
-          livingArea: housingWithAddresses.livingArea,
-          roomsCount: housingWithAddresses.roomsCount,
-          buildingYear: housingWithAddresses.buildingYear,
-          occupancy: OccupancyKindApiLabels[housingWithAddresses.occupancy],
-          vacancyStartYear: housingWithAddresses.vacancyStartYear,
-          status: getHousingStatusApiLabel(housingWithAddresses.status),
-          subStatus: housingWithAddresses.subStatus,
-          vacancyReasons: reduceStringArray(
-            housingWithAddresses.vacancyReasons
-          ),
-          precisions: reduceStringArray(housingWithAddresses.precisions),
-          campaigns: reduceStringArray(
-            housingWithAddresses.campaignIds.map(
-              (campaignId) =>
-                campaignList.find((c) => c.id === campaignId)?.title
-            )
-          ),
-          contactCount: housingWithAddresses.contactCount,
-          lastContact: housingWithAddresses.lastContact,
-          ...ownerRowData(housingWithAddresses),
-        });
-      }
-      if (ownerWorksheet) {
-        if (!ownersRowNumber.includes(housingWithAddresses.owner.id)) {
-          ownerWorksheet.addRow(ownerRowData(housingWithAddresses));
-          ownersRowNumber.push(housingWithAddresses.owner.id);
-        }
-        const row = ownerWorksheet.getRow(
-          ownersRowNumber.indexOf(housingWithAddresses.owner.id) + 2
-        );
-        row.splice(
-          row.cellCount + 1,
-          0,
-          reduceStringArray(housingWithAddresses.rawAddress),
-          reduceAddressApi(housingWithAddresses.housingAddress ?? undefined)
-        );
-        const headerRow = ownerWorksheet.getRow(1);
-        if (row.cellCount > headerRow.cellCount) {
-          headerRow.splice(
-            headerRow.cellCount + 1,
-            0,
-            ...[
-              `Adresse LOVAC du logement ${
-                (row.cellCount - ownerWorksheetColumns.length) / 2
-              }`,
-              `Adresse BAN du logement ${
-                (row.cellCount - ownerWorksheetColumns.length) / 2
-              }`,
-            ]
-          );
-        }
-      }
+      const row = {
+        invariant: housingWithAddresses.invariant,
+        cadastralReference: housingWithAddresses.cadastralReference,
+        geoCode: housingWithAddresses.geoCode,
+        housingRawAddress: reduceStringArray(housingWithAddresses.rawAddress),
+        housingAddress: reduceAddressApi(housingAddress),
+        housingAddressScore: housingAddress?.score,
+        latitude: housingWithAddresses.latitude,
+        longitude: housingWithAddresses.longitude,
+        buildingLocation: building
+          ? [
+              building.building,
+              building.entrance,
+              building.level,
+              building.local,
+            ].join(', ')
+          : null,
+        housingKind:
+          housingWithAddresses.housingKind === 'APPART'
+            ? 'Appartement'
+            : capitalize(housingWithAddresses.housingKind),
+        energyConsumption: housingWithAddresses.energyConsumption,
+        energyConsumptionAt: housingWithAddresses.energyConsumptionAt,
+        livingArea: housingWithAddresses.livingArea,
+        roomsCount: housingWithAddresses.roomsCount,
+        buildingYear: housingWithAddresses.buildingYear,
+        occupancy: OccupancyKindApiLabels[housingWithAddresses.occupancy],
+        vacancyStartYear: housingWithAddresses.vacancyStartYear,
+        status: getHousingStatusApiLabel(housingWithAddresses.status),
+        subStatus: housingWithAddresses.subStatus,
+        vacancyReasons: reduceStringArray(housingWithAddresses.vacancyReasons),
+        precisions: reduceStringArray(housingWithAddresses.precisions),
+        campaigns: reduceStringArray(
+          housingWithAddresses.campaignIds.map(
+            (campaignId) => campaignList.find((c) => c.id === campaignId)?.title
+          )
+        ),
+        contactCount: housingWithAddresses.contactCount,
+        lastContact: housingWithAddresses.lastContact,
+        ...ownerRowData(
+          housingWithAddresses.owner,
+          housingWithAddresses.ownerAddress
+        ),
+      };
+      housingWorksheet.addRow(row).commit();
     })
     .collect()
     .tap(() => {
-      excelUtils.formatWorksheet(housingWorksheet);
-      excelUtils.formatWorksheet(ownerWorksheet);
-      workbook.commit();
+      housingWorksheet.commit();
+    })
+    .map(() => {
+      logger.debug('Housing worksheet written');
+    });
+};
+const writeOwnerWorksheet = (
+  stream: Stream<OwnerExportStreamApi>,
+  workbook: WorkbookWriter
+) => {
+  return stream
+    .flatMap((ownerStreamApi) => {
+      return highland(
+        Promise.all([
+          banAddressesRepository.getByRefId(
+            ownerStreamApi.id,
+            AddressKinds.Owner
+          ),
+          ...ownerStreamApi.housingList.map((housingApi) =>
+            banAddressesRepository
+              .getByRefId(housingApi.id, AddressKinds.Housing)
+              .then((housingAddress) => ({ housingApi, housingAddress }))
+          ),
+        ]).then(([ownerAddress, ...housingList]) => ({
+          ownerStreamApi,
+          housingList,
+          ownerAddress,
+        }))
+      );
+    })
+    .tap(({ ownerStreamApi, housingList, ownerAddress }) => {
+      if (!workbook.getWorksheet('Propriétaires')) {
+        addOwnerWorksheet(
+          workbook,
+          housingList.map(({ housingApi }) => housingApi)
+        );
+      }
+
+      const ownerWorksheet = workbook.getWorksheet('Propriétaires');
+      const row = housingList.reduce(
+        (prev, { housingApi, housingAddress }, index) => ({
+          ...prev,
+          [`housingRawAddress${index + 1}`]: reduceStringArray(
+            housingApi.rawAddress
+          ),
+          [`housingAddress${index + 1}`]: reduceAddressApi(
+            housingAddress ?? undefined
+          ),
+        }),
+        ownerRowData(ownerStreamApi, ownerAddress ?? undefined)
+      );
+      ownerWorksheet.addRow(row).commit();
+    })
+    .collect()
+    .tap(() => {
+      workbook.getWorksheet('Propriétaires').commit();
+    })
+    .map(() => {
+      logger.debug('Owner worksheet written');
     });
 };
 
-const ownerRowData = (housingWithAddresses: HousingWithAddresses) => {
-  assertOwner(housingWithAddresses);
-  const ownerAddress = housingWithAddresses.ownerAddress ?? undefined;
-  const rawAddress = housingWithAddresses.owner.rawAddress;
+const ownerRowData = (owner: OwnerApi, ownerAddress?: AddressApi) => {
+  const rawAddress = owner.rawAddress;
   return {
-    owner: housingWithAddresses.owner.fullName,
+    owner: owner.fullName,
     ownerRawAddress: reduceStringArray(rawAddress),
     ownerRawAddress1: rawAddress[0],
     ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
@@ -302,9 +349,26 @@ const ownerWorksheetColumns = [
   },
 ];
 
-const addOwnerWorksheet = (workbook: WorkbookWriter) => {
+const addOwnerWorksheet = (
+  workbook: WorkbookWriter,
+  housingList: HousingApi[]
+) => {
   const ownerWorksheet = workbook.addWorksheet('Propriétaires');
-  ownerWorksheet.columns = ownerWorksheetColumns;
+  ownerWorksheet.columns = [
+    ...ownerWorksheetColumns,
+    ...housingList
+      .map((_, index) => [
+        {
+          header: `Adresse LOVAC du logement ${index + 1}`,
+          key: `housingRawAddress${index + 1}`,
+        },
+        {
+          header: `Adresse BAN du logement ${index + 1}`,
+          key: `housingAddress${index + 1}`,
+        },
+      ])
+      .flat(),
+  ];
 
   return ownerWorksheet;
 };

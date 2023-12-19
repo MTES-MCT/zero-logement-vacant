@@ -8,52 +8,33 @@ import {
   needsManualReview,
 } from '../shared/owner-processor/duplicates';
 import db from '../../server/repositories/db';
-import { formatDuration, intervalToDuration } from 'date-fns';
 import { createReporter } from './reporter';
 import { createRecorder } from './recorder';
-import createMerger from './merger';
+import merger from './merger';
 import ownersDuplicatesRepository from './ownersDuplicatesRepository';
 import { OwnerDuplicate } from './OwnerDuplicate';
-import { evaluate } from '../shared';
+import { formatElapsed, timer } from '../shared/elapsed';
+import evaluator from '../shared/owner-processor/evaluator';
 
 const recorder = createRecorder();
 const reporter = createReporter('json');
-const merger = createMerger();
-
-merger.on('owners:removed', (count) => {
-  recorder.update({
-    removed: {
-      owners: recorder.report.removed.owners + count,
-    },
-  });
-});
-
-merger.on('owners-housing:removed', (count) => {
-  recorder.update({
-    removed: {
-      ownersHousing: recorder.report.removed.ownersHousing + count,
-    },
-  });
-});
 
 function run(): void {
   const comparisons = ownerRepository
     .stream()
-    .tap(logger.trace.bind(logger))
-    .flatMap((owner) => highland(evaluate(owner)));
+    .tap((owner) => logger.trace(`Processing ${owner.fullName}...`))
+    .through(evaluator.evaluate());
 
   comparisons
     .fork()
     .through(recorder.record())
     .map(reporter.toString)
-    .pipe(script.stdout)
-    .on('finish', () => {
-      logger.info('Report written.');
+    .each((report) => {
+      logger.info(report);
     });
 
   const duplicateWriter = comparisons
     .fork()
-    .filter((comparison) => comparison.needsReview)
     .map((comparison) =>
       comparison.duplicates
         .filter((duplicate) =>
@@ -65,7 +46,12 @@ function run(): void {
         }))
     )
     .flatten()
-    .tap(logger.trace.bind(logger))
+    .tap((duplicate) =>
+      logger.trace('Found duplicate', {
+        id: duplicate.id,
+        fullName: duplicate.fullName,
+      })
+    )
     .batch(1000)
     .flatMap((duplicates) =>
       highland(ownersDuplicatesRepository.save(...duplicates))
@@ -75,7 +61,21 @@ function run(): void {
     .fork()
     .filter((comparison) => isMatch(comparison.score))
     .filter((comparison) => !comparison.needsReview)
-    .flatMap((comparison) => highland(merger.merge(comparison)));
+    .on('owners:removed', (count: number) => {
+      recorder.update({
+        removed: {
+          owners: recorder.report.removed.owners + count,
+        },
+      });
+    })
+    .on('owners-housing:removed', (count: number) => {
+      recorder.update({
+        removed: {
+          ownersHousing: recorder.report.removed.ownersHousing + count,
+        },
+      });
+    })
+    .through(merger.merge());
 
   highland([duplicateWriter, ownerMerger])
     .merge()
@@ -103,12 +103,10 @@ function cleanUp() {
   script.exit();
 }
 
-const start = new Date();
+const stop = timer();
 
 script.on('exit', () => {
-  const end = new Date();
-  const duration = intervalToDuration({ start, end });
-  const elapsed = formatDuration(duration);
+  const elapsed = formatElapsed(stop());
   logger.info(`Done in ${elapsed}.`);
 
   return db.destroy();

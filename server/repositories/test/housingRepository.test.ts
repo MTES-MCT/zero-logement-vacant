@@ -426,26 +426,6 @@ describe('Housing repository', () => {
     });
   });
 
-  describe('get', () => {
-    it('should return the housing if it exists', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment1.id
-      );
-
-      expect(actual).toBeDefined();
-    });
-
-    it('should return null otherwise', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment2.id
-      );
-
-      expect(actual).toBeNull();
-    });
-  });
-
   describe('save', () => {
     it('should create a housing if it does not exist', async () => {
       const housing = genHousingApi(oneOf(Establishment1.geoCodes));

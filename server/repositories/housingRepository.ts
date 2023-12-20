@@ -36,6 +36,8 @@ import {
   housingOwnersTable,
 } from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
+import { campaignsHousingTable } from './campaignHousingRepository';
+import { campaignsTable } from './campaignRepository';
 import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
@@ -170,7 +172,18 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
   });
 
   const housing = await Housing()
-    .select(`${housingTable}.*`)
+    .select(
+      `${housingTable}.*`,
+      `${buildingTable}.housing_count`,
+      `${buildingTable}.vacant_housing_count`,
+      `${localitiesTable}.locality_kind`,
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
+      ),
+      db.raw(
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
+      )
+    )
     .where(whereOptions(opts))
     .modify((query) => {
       if (opts.geoCode) {
@@ -179,20 +192,7 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
           : query.where(`${housingTable}.geo_code`, opts.geoCode);
       }
     })
-    .modify(include(['events', ...(opts.includes ?? [])]))
-    // TODO: simplify all this stuff
-    .select(
-      'perimeters.perimeter_kind as geo_perimeters',
-      `${buildingTable}.housing_count`,
-      `${buildingTable}.vacant_housing_count`,
-      `${localitiesTable}.locality_kind`,
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
-      ),
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
-      )
-    )
+    .modify(include(opts.includes ?? []))
     .leftJoin(
       localitiesTable,
       `${housingTable}.geo_code`,
@@ -204,70 +204,9 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
       `${buildingTable}.id`
     )
     .joinRaw(
-      `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
-    )
-    .joinRaw(
-      `left join lateral (
-         select json_agg(distinct(kind)) as perimeter_kind
-         from ${geoPerimetersTable} perimeter
-         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
-       ) perimeters on true`
+      `left join ${banAddressesTable} on ${banAddressesTable}.ref_id = ${housingTable}.id and ${banAddressesTable}.address_kind='Housing'`
     )
     .first();
-  return housing ? parseHousingApi(housing) : null;
-};
-
-const get = async (
-  housingId: string,
-  establishmentId: string
-): Promise<HousingApi | null> => {
-  const establishment = await establishmentRepository.get(establishmentId);
-  if (!establishment) {
-    return null;
-  }
-
-  const housing = await fastListQuery({
-    filters: {
-      establishmentIds: [establishmentId],
-      localities: establishment.geoCodes,
-    },
-    includes: ['owner', 'events'],
-  })
-    .select(
-      'perimeters.perimeter_kind as geo_perimeters',
-      `${buildingTable}.housing_count`,
-      `${buildingTable}.vacant_housing_count`,
-      `${localitiesTable}.locality_kind`,
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.latitude else null end) as latitude_ban`
-      ),
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(ban.latitude, ban.longitude)) < 200 then ban.longitude else null end) as longitude_ban`
-      )
-    )
-    .join(
-      localitiesTable,
-      `${housingTable}.geo_code`,
-      `${localitiesTable}.geo_code`
-    )
-    .leftJoin(
-      buildingTable,
-      `${housingTable}.building_id`,
-      `${buildingTable}.id`
-    )
-    .joinRaw(
-      `left join ${banAddressesTable} as ban on ban.ref_id = ${housingTable}.id and ban.address_kind='Housing'`
-    )
-    .joinRaw(
-      `left join lateral (
-         select json_agg(distinct(kind)) as perimeter_kind 
-         from ${geoPerimetersTable} perimeter
-         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
-       ) perimeters on true`
-    )
-    .where(`${housingTable}.id`, housingId)
-    .first();
-
   return housing ? parseHousingApi(housing) : null;
 };
 
@@ -374,14 +313,14 @@ const saveManyWithOwner = async (
   });
 };
 
-type HousingInclude = 'owner' | 'events';
+type HousingInclude = 'owner' | 'events' | 'campaigns' | 'perimeters';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
   includes?: HousingInclude[];
 }
 
-function include(includes: HousingInclude[]) {
+function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   const joins: Record<HousingInclude, (query: Knex.QueryBuilder) => void> = {
     owner: (query) =>
       query
@@ -390,21 +329,73 @@ function include(includes: HousingInclude[]) {
         .select(`${ownerTable}.id as owner_id`)
         .select(db.raw(`to_json(${ownerTable}.*) AS owner`)),
     events: (query) =>
-      query
-        .joinRaw(
-          `left join lateral (
+      query.select('events.contact_count', 'events.last_contact').joinRaw(
+        `left join lateral (
             select count(${eventsTable}) as contact_count,
                    max(${eventsTable}.created_at) as last_contact
             from ${housingEventsTable}
             join ${eventsTable} on ${eventsTable}.id = ${housingEventsTable}.event_id
             where ${housingTable}.id = ${housingEventsTable}.housing_id
           ) events on true`
-        )
-        .select('events.contact_count', 'events.last_contact'),
+      ),
+    campaigns: (query) =>
+      query
+        .select('campaigns.campaign_ids', 'campaigns.campaign_count')
+        .joinRaw(
+          `left join lateral (
+               select array_agg(distinct(campaign_id)) as campaign_ids, 
+                      array_length(array_agg(distinct(campaign_id)), 1) AS campaign_count
+               from ${campaignsHousingTable}, ${campaignsTable}
+               where ${housingTable}.id = ${campaignsHousingTable}.housing_id 
+                 and ${housingTable}.geo_code = ${campaignsHousingTable}.housing_geo_code 
+                 and ${campaignsTable}.id = ${campaignsHousingTable}.campaign_id
+                 ${
+                   filters?.campaignIds?.length
+                     ? ` and campaign_id = any(:campaignIds)`
+                     : ''
+                 }
+                 ${
+                   filters?.establishmentIds?.length
+                     ? ` and ${campaignsTable}.establishment_id = any(:establishmentIds)`
+                     : ''
+                 }
+             ) campaigns on true`,
+          {
+            campaignIds: filters?.campaignIds ?? [],
+            establishmentIds: filters?.establishmentIds ?? [],
+          }
+        ),
+    perimeters: (query) =>
+      query.select('perimeters.perimeter_kind as geo_perimeters').joinRaw(
+        `left join lateral (
+         select json_agg(distinct(kind)) as perimeter_kind
+         from ${geoPerimetersTable} perimeter
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+       ) perimeters on true`
+      ),
   };
 
+  const filterByOwner = [
+    filters?.ownerIds,
+    filters?.ownerKinds,
+    filters?.ownerAges,
+    filters?.multiOwners,
+    filters?.query,
+  ].some((filter) => filter?.length);
+  if (filterByOwner) {
+    includes.push('owner');
+  }
+
+  const filterByCampaign = [
+    filters?.campaignIds,
+    filters?.campaignsCounts,
+  ].some((filter) => filter?.length);
+  if (filterByCampaign) {
+    includes.push('campaigns');
+  }
+
   return (query: Knex.QueryBuilder) => {
-    _.uniqBy(includes, (include) => include).forEach((include) => {
+    _.uniq(includes).forEach((include) => {
       joins[include](query);
     });
   };
@@ -488,47 +479,20 @@ export const queryOwnerHousingWhereClause = (
 };
 
 const fastListQuery = (opts: ListQueryOptions) => {
-  return (
-    db
-      .select(`${housingTable}.*`)
-      .from(housingTable)
-      .modify(include(opts.includes ?? []))
-      // Campaigns
-      .select('campaigns.*')
-      .joinRaw(
-        `LEFT JOIN LATERAL (
-           SELECT array_agg(distinct(campaign_id)) AS campaign_ids, ARRAY_LENGTH(array_agg(distinct(campaign_id)), 1) AS campaign_count
-           FROM campaigns_housing ch, campaigns c 
-           WHERE ${housingTable}.id = ch.housing_id 
-           AND ${housingTable}.geo_code = ch.housing_geo_code
-           AND c.id = ch.campaign_id
-           ${
-             opts.filters.campaignIds?.length
-               ? ` AND campaign_id = ANY(:campaignIds)`
-               : ''
-           }
-           ${
-             opts.filters.establishmentIds?.length
-               ? ` AND c.establishment_id = ANY(:establishmentIds)`
-               : ''
-           }
-         ) campaigns ON true`,
-        {
-          campaignIds: opts.filters.campaignIds ?? [],
-          establishmentIds: opts.filters.establishmentIds ?? [],
-        }
-      )
-      .modify(
-        filteredQuery({
-          filters: fp.omit(['establishmentIds'], opts.filters),
-          includes: opts.includes,
-        })
-      )
-  );
+  return db
+    .select(`${housingTable}.*`)
+    .from(housingTable)
+    .modify(include(opts.includes ?? [], opts.filters))
+    .modify(
+      filteredQuery({
+        filters: fp.omit(['establishmentIds'], opts.filters),
+        includes: opts.includes,
+      })
+    );
 };
 
 const filteredQuery = (opts: ListQueryOptions) => {
-  const { filters, includes } = opts;
+  const { filters } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
       queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
@@ -579,17 +543,6 @@ const filteredQuery = (opts: ListQueryOptions) => {
           whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3);
         }
       });
-    }
-
-    const filterByOwner = [
-      filters.ownerIds,
-      filters.ownerKinds,
-      filters.ownerAges,
-      filters.multiOwners,
-      filters.query,
-    ].some((filter) => filter?.length);
-    if (!includes?.includes('owner') && filterByOwner) {
-      include(['owner'])(queryBuilder);
     }
 
     if (filters.ownerIds?.length) {
@@ -1062,7 +1015,6 @@ export const formatHousingRecordApi = (
 export default {
   find,
   findOne,
-  get,
   stream,
   count,
   countVacant,

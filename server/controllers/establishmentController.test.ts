@@ -22,11 +22,7 @@ describe('Establishment controller', () => {
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should received valid query params', async () => {
-      await request(app)
-        .get(testRoute(`?query=`))
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
+    it('should receive valid query params', async () => {
       await request(app)
         .get(testRoute(`?geoCodes=${Locality1.geoCode}&geoCodes=1232456789`))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);

@@ -16,7 +16,9 @@ import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
-import establishmentRepository, { establishmentsTable } from './establishmentRepository';
+import establishmentRepository, {
+  establishmentsTable,
+} from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
 import highland from 'highland';
 import { Knex } from 'knex';
@@ -28,7 +30,11 @@ import { HousingCountApi } from '../models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '../models/PaginationApi';
 import { sortQuery } from '../models/SortApi';
 import { groupsHousingTable } from './groupRepository';
-import { formatHousingOwnerApi, HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
+import {
+  formatHousingOwnerApi,
+  HousingOwnerDBO,
+  housingOwnersTable,
+} from './housingOwnerRepository';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
@@ -389,7 +395,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   }
 
   return (query: Knex.QueryBuilder) => {
-    _.uniqBy(includes, (include) => include).forEach((include) => {
+    _.uniq(includes).forEach((include) => {
       joins[include](query);
     });
   };

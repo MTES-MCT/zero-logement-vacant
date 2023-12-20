@@ -1,7 +1,9 @@
 import React from 'react';
 import { Footer as DSFRFooter } from '@codegouvfr/react-dsfr/Footer';
+import { useUser } from '../../hooks/useUser';
 
 function Footer() {
+  const { isAuthenticated } = useUser();
   return (
     <DSFRFooter
       accessibility="non compliant"
@@ -55,44 +57,41 @@ function Footer() {
         { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
         {
           categoryName: 'Navigation',
-          links: [
-            {
-              linkProps: {
-                to: '/parc-de-logements',
-              },
-              text: 'Parc de logements',
-            },
-            {
-              linkProps: {
-                to: '/campagnes',
-              },
-              text: 'Campagnes',
-            },
-            {
-              linkProps: {
-                to: '/informations-publiques',
-              },
-              text: 'Informations publiques',
-            },
-            {
-              linkProps: {
-                to: '/compte',
-              },
-              text: 'Profil',
-            },
-            {
-              linkProps: {
-                to: '/messagerie',
-              },
-              text: 'Messagerie',
-            },
-            {
-              linkProps: {
-                to: '/ressources',
-              },
-              text: 'Ressources',
-            },
-          ],
+          links: isAuthenticated
+            ? [
+                {
+                  linkProps: {
+                    to: '/parc-de-logements',
+                  },
+                  text: 'Parc de logements',
+                },
+                {
+                  linkProps: {
+                    to: '/campagnes',
+                  },
+                  text: 'Campagnes',
+                },
+                {
+                  linkProps: {
+                    to: '/ressources',
+                  },
+                  text: 'Ressources',
+                },
+                {
+                  linkProps: {
+                    to: '/compte',
+                  },
+                  text: 'Profil',
+                },
+              ]
+            : [
+                {
+                  linkProps: {
+                    to: '/connexion',
+                  },
+                  text: 'Connexion',
+                },
+              ],
         },
       ]}
     />

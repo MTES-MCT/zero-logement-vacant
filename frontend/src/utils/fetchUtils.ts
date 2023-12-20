@@ -78,12 +78,6 @@ function abortSafely(id: string): void {
   controller?.abort();
 }
 
-export function handleAbort(error: Error) {
-  if (error.name !== 'AbortError') {
-    throw error;
-  }
-}
-
 export function toJSON(response: Response): any {
   return response.json();
 }

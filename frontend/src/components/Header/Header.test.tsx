@@ -65,11 +65,11 @@ describe('AppHeader', () => {
     const campaignNavItem = screen.queryByTestId(
       'fr-header-nav-item-campagnes'
     );
-    const infosNavItem = screen.queryByTestId(
-      'fr-header-nav-item-informations-publiques'
+    const resourcesNavItem = screen.queryByTestId(
+      'fr-header-nav-item-ressources'
     );
     expect(housingNavItem).toBeInTheDocument();
     expect(campaignNavItem).toBeInTheDocument();
-    expect(infosNavItem).toBeInTheDocument();
+    expect(resourcesNavItem).toBeInTheDocument();
   });
 });

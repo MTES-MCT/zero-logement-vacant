@@ -1,6 +1,6 @@
 import { isEqual } from 'date-fns';
 import fp from 'lodash/fp';
-import { jarowinkler } from 'wuzzy';
+import { jaccard } from 'wuzzy';
 
 import { OwnerApi } from '../../../server/models/OwnerApi';
 import ownerRepository from '../../../server/repositories/ownerRepository';
@@ -29,20 +29,30 @@ export async function findDuplicatesByName(
 export function compare(source: OwnerApi, duplicate: OwnerApi): number {
   const addressScore =
     source.rawAddress.length && duplicate.rawAddress.length
-      ? jarowinkler(source.rawAddress.join(''), duplicate.rawAddress.join(''))
-      : null;
-
-  const birthdayScore =
-    source.birthDate && duplicate.birthDate
-      ? jarowinkler(
-          source.birthDate.toISOString(),
-          duplicate.birthDate.toISOString()
+      ? jaccard(
+          preprocessAddress(source.rawAddress),
+          preprocessAddress(duplicate.rawAddress)
         )
       : null;
 
-  const computeScore = fp.pipe(fp.compact, fp.mean);
+  const birthdayScore = compareBirthdates(
+    source.birthDate,
+    duplicate.birthDate
+  );
+
+  const computeScore = fp.pipe(fp.filter(isNotNull), fp.mean);
   return computeScore([addressScore, birthdayScore]) ?? 0;
 }
+
+export const isStreetNumber = (address: string) => /^\d{4}\s/.test(address);
+
+export const preprocessAddress = fp.pipe(
+  fp.map((address: string) =>
+    isStreetNumber(address) ? fp.trimCharsStart('0', address) : address
+  ),
+  fp.join(' '),
+  fp.replace(/\s+/g, ' ')
+);
 
 export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
   const best = fp.maxBy('score', scores);
@@ -69,14 +79,30 @@ export function needsManualReview(
     .filter((_) => isReviewMatch(_.score) || isMatch(_.score))
     .filter((_) => !isPerfectMatch(_.score));
 
-  const owners = [source, ...duplicates.map((_) => _.value)];
   return (
-    matches.some((match) => isReviewMatch(match.score)) || dateConflict(owners)
+    duplicates.every((match) => isReviewMatch(match.score)) ||
+    dateConflict(
+      source,
+      matches.map((_) => _.value)
+    )
   );
 }
 
-function dateConflict(owners: OwnerApi[]): boolean {
-  const dates = owners
+function compareBirthdates(
+  a: Date | undefined,
+  b: Date | undefined
+): number | null {
+  if (!a || !b) {
+    return null;
+  }
+
+  const da = a.toISOString().substring(0, 10);
+  const db = b.toISOString().substring(0, 10);
+  return da === db ? 1 : 0;
+}
+
+function dateConflict(source: OwnerApi, matches: OwnerApi[]): boolean {
+  const dates = [source, ...matches]
     .map((owner) => owner.birthDate)
     .filter(isDefined)
     .filter(isNotNull);

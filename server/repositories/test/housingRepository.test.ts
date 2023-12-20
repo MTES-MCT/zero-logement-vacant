@@ -417,31 +417,12 @@ describe('Housing repository', () => {
           filters: {
             establishmentIds: [establishment.id],
           },
+          includes: ['owner'],
         })
         .each((housing) => {
           expect(establishment.geoCodes).toContain(housing.geoCode);
         })
         .done(done);
-    });
-  });
-
-  describe('get', () => {
-    it('should return the housing if it exists', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment1.id
-      );
-
-      expect(actual).toBeDefined();
-    });
-
-    it('should return null otherwise', async () => {
-      const actual = await housingRepository.get(
-        Housing1.id,
-        Establishment2.id
-      );
-
-      expect(actual).toBeNull();
     });
   });
 

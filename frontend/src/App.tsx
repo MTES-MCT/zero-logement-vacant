@@ -21,15 +21,11 @@ import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
-import EstablishmentView from './views/Establishment/EstablishmentView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import OwnerEstablishmentHomeView from './views/Home/OwnerEstablishmentHomeView';
 import config from './utils/config';
 import { store } from './store/store';
 import { useAppSelector } from './hooks/useStore';
-import OwnerGenericHomeView from './views/Home/OwnerGenericHomeView';
-import InboxView from './views/Inbox/InboxView';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
@@ -90,10 +86,6 @@ function App() {
           <Route path="/stats" component={StatsView}/>
           <Route path="/accessibilite" component={AccessibilityView}/>
           <Route path="/mentions-legales" component={LegalNoticesView}/>,
-          <Route path="/communes/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
-          <Route path="/collectivites/:establishmentRef" component={OwnerEstablishmentHomeView}/>,
-          <Route path="/collectivites" component={EstablishmentHomeView}/>,
-          <Route exact path="/proprietaires" component={OwnerGenericHomeView}/>,
           {isAuthenticated ? [
             ...([
               {path:"/parc-de-logements", component:HousingListView},
@@ -105,8 +97,6 @@ function App() {
               {path:"/proprietaires/:ownerId", component:OwnerView},
               {path:"/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
               {path:"/logements/:housingId", component:HousingView},
-              {path:"/messagerie", component:InboxView},
-              {path:"*/informations-publiques", component:EstablishmentView},
               {path:"/ressources/statuts", component:StatusView},
               {path:"/ressources", component:ResourcesView},
               {path:"/compte", component:AccountView},
@@ -126,7 +116,7 @@ function App() {
               {path:"/", component:EstablishmentHomeView},
             ].map(route => <Route exact path={route.path} component={route.component} key={`route_${route.path}`} /> )),
             <Route path="/*" key="route_default">
-              {isLoggedOut ? <Redirect to="/connexion"/> : <Redirect to="/collectivites"/>}
+              {isLoggedOut ? <Redirect to="/connexion"/> : <Redirect to="/"/>}
             </Route>
           ]}
         </Switch>

@@ -1,5 +1,6 @@
 import validator from 'validator';
 import { body, param, ValidationChain } from 'express-validator';
+import { Predicate } from '../../shared';
 
 type Refinement = (value: unknown) => boolean;
 
@@ -9,6 +10,10 @@ export function isArrayOf(refine: Refinement) {
       values !== undefined && Array.isArray(values) && values.every(refine)
     );
   };
+}
+
+export function every<T>(predicate: Predicate<T>) {
+  return (values: T[]): boolean => values.every(predicate);
 }
 
 type Coerce<T> = (value: string) => T;
@@ -44,6 +49,17 @@ export function isNumber(value: unknown): boolean {
 
 export function isUUID(value: unknown): boolean {
   return isString(value) && validator.isUUID(value);
+}
+
+export function isGeoCode(value: string): boolean {
+  return (
+    validator.isAlphanumeric(value) &&
+    validator.isLength(value, { min: 5, max: 5 })
+  );
+}
+
+export function hasKeys(value: Record<string, unknown>): boolean {
+  return Object.keys(value).length > 0;
 }
 
 export const emailValidator = () =>

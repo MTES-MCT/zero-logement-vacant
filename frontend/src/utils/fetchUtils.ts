@@ -86,7 +86,7 @@ export interface AbortOptions {
   abortable?: boolean;
 }
 
-export const getURLQuery = (params: Object): string => {
+export const getURLQuery = (params: object): string => {
   if (fp.isEmpty(params)) {
     return '';
   }

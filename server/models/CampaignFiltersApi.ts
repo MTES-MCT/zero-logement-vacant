@@ -1,5 +1,10 @@
 import { query, ValidationChain } from 'express-validator';
-import { isArrayOf, isUUID } from '../utils/validators';
+import {
+  isArrayOf,
+  isCommaDelimitedString,
+  isUUID,
+  split,
+} from '../utils/validators';
 
 export interface CampaignFiltersApi {
   establishmentId: string;
@@ -7,11 +12,17 @@ export interface CampaignFiltersApi {
 }
 
 export interface CampaignQuery {
-  groups?: string[] | string;
+  groups?: string;
 }
 
 export const campaignFiltersValidators: ValidationChain[] = [
   query('groups')
-    .custom(isUUID || isArrayOf(isUUID))
+    .isString()
+    .trim()
+    .custom(isCommaDelimitedString)
+    .withMessage('Must be a comma delimited string')
+    .customSanitizer(split(','))
+    .custom(isArrayOf(isUUID))
+    .withMessage('Must be an array of UUIDs')
     .optional(),
 ];

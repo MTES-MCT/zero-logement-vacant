@@ -269,7 +269,8 @@ export const genHousingApi = (
 
 export const genCampaignApi = (
   establishmentId: string,
-  createdBy: string
+  createdBy: string,
+  group?: GroupApi
 ): CampaignApi => {
   return {
     id: uuidv4(),
@@ -282,6 +283,7 @@ export const genCampaignApi = (
     createdAt: new Date(),
     createdBy,
     sendingDate: new Date(),
+    groupId: group?.id,
   };
 };
 

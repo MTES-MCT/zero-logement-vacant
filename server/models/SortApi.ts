@@ -65,13 +65,11 @@ export function sortQuery<Sortable extends object>(
 export const queryValidators: ValidationChain[] = [
   query('sort')
     .optional()
-    .custom(
-      (value) =>
-        (isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i)) ||
-        (isArrayOf(isString)(value) &&
-          value.every((v: any) => validator.matches(v, /^-?[a-zA-Z]+$/i)))
-    ),
+    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value)),
 ];
+
+const isSortValue = (value: unknown): value is string =>
+  isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i);
 
 export default {
   parse,

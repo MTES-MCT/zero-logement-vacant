@@ -21,6 +21,7 @@ const listValidators: ValidationChain[] = [
     .optional({ nullable: true })
     .isString()
     .custom(isCommaDelimitedString)
+    .bail()
     .customSanitizer(split(','))
     .custom(every(isGeoCode)),
   query().isObject({ strict: true }).custom(hasKeys),

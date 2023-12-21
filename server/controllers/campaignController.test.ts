@@ -1,25 +1,56 @@
-import { CampaignsHousing, campaignsHousingTable } from '../repositories/campaignHousingRepository';
+import {
+  CampaignsHousing,
+  campaignsHousingTable,
+} from '../repositories/campaignHousingRepository';
 import db from '../repositories/db';
-import { campaignsTable } from '../repositories/campaignRepository';
+import {
+  Campaigns,
+  campaignsTable,
+  formatCampaignApi,
+} from '../repositories/campaignRepository';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
 import { Establishment1 } from '../../database/seeds/test/001-establishments';
-import { Housing0, Housing1, Housing2 } from '../../database/seeds/test/005-housing';
+import {
+  Housing0,
+  Housing1,
+  Housing2,
+} from '../../database/seeds/test/005-housing';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
-import { campaignEventsTable, HousingEvents } from '../repositories/eventRepository';
+import {
+  campaignEventsTable,
+  HousingEvents,
+} from '../repositories/eventRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { formatISO } from 'date-fns';
-import { formatHousingRecordApi, Housing, housingTable } from '../repositories/housingRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+  housingTable,
+} from '../repositories/housingRepository';
 import randomstring from 'randomstring';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from '../server';
-import { formatGroupApi, formatGroupHousingApi, Groups, GroupsHousing } from '../repositories/groupRepository';
-import { genGroupApi, genHousingApi, genNumber } from '../test/testFixtures';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+} from '../repositories/groupRepository';
+import {
+  genCampaignApi,
+  genGroupApi,
+  genHousingApi,
+  genNumber,
+} from '../test/testFixtures';
 import { User1 } from '../../database/seeds/test/003-users';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
-import { formatOwnerHousingApi, HousingOwners } from '../repositories/housingOwnerRepository';
+import {
+  formatOwnerHousingApi,
+  HousingOwners,
+} from '../repositories/housingOwnerRepository';
 import { isDefined } from '../../shared';
 import { wait } from '@hapi/hoek';
 
@@ -82,6 +113,34 @@ describe('Campaign controller', () => {
           }),
         ])
       );
+    });
+
+    it('should filter by group', async () => {
+      const groups = new Array(2)
+        .fill('0')
+        .map(() => genGroupApi(User1, Establishment1));
+      await Groups().insert(groups.map(formatGroupApi));
+      const campaigns = groups.map((group) => {
+        return genCampaignApi(Establishment1.id, User1.id, group);
+      });
+      await Campaigns().insert(campaigns.map(formatCampaignApi));
+      const query = 'groups=' + groups.map((group) => group.id).join(',');
+
+      const { body, status } = await withAccessToken(
+        request(app).get(testRoute).query(query)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toIncludeAllPartialMembers([
+        {
+          id: campaigns[0].id,
+          groupId: campaigns[0].groupId,
+        },
+        {
+          id: campaigns[1].id,
+          groupId: campaigns[1].groupId,
+        },
+      ]);
     });
   });
 

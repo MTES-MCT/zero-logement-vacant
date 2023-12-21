@@ -1,11 +1,6 @@
-import {
-  AddressApi,
-  AddressKinds,
-  AddressToNormalize,
-} from '../models/AddressApi';
+import { AddressApi, AddressKinds, AddressToNormalize } from '../models/AddressApi';
 import db from './db';
 import { housingTable } from './housingRepository';
-import { ownerTable } from './ownerRepository';
 import config from '../utils/config';
 import { logger } from '../utils/logger';
 
@@ -43,42 +38,20 @@ const lastUpdatedClause = (query: any) => {
 };
 
 const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
-  return db
-    .union(
-      [
-        db(housingTable)
-          .select(
-            'id',
-            'raw_address',
-            db.raw(`'${AddressKinds.Housing}' as address_kind`),
-            'last_updated_at',
-            'geo_code'
-          )
-          .leftJoin(banAddressesTable, (query: any) => {
-            query
-              .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
-              .andOnVal('address_kind', AddressKinds.Housing);
-          })
-          .modify(lastUpdatedClause)
-          .modify(orderWithLimit),
-        db(ownerTable)
-          .select(
-            'id',
-            'raw_address',
-            db.raw(`'${AddressKinds.Owner}' as address_kind`),
-            'last_updated_at',
-            db.raw('null as geo_code')
-          )
-          .leftJoin(banAddressesTable, (query: any) => {
-            query
-              .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
-              .andOnVal('address_kind', AddressKinds.Owner);
-          })
-          .modify(lastUpdatedClause)
-          .modify(orderWithLimit),
-      ],
-      true
+  return db(housingTable)
+    .select(
+      'id',
+      'raw_address',
+      db.raw(`'${AddressKinds.Housing}' as address_kind`),
+      'last_updated_at',
+      'geo_code'
     )
+    .leftJoin(banAddressesTable, (query: any) => {
+      query
+        .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
+        .andOnVal('address_kind', AddressKinds.Housing);
+    })
+    .modify(lastUpdatedClause)
     .modify(orderWithLimit)
     .then((_) =>
       _.map(

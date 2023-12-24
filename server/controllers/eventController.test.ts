@@ -13,62 +13,60 @@ describe('Event controller', () => {
   const { app } = createServer();
 
   describe('listByOwnerId', () => {
-    const testRoute = (ownerId: string) => `/api/events/owner/${ownerId}`;
+    const testRoute = (id: string) => `/api/owner/${id}/events`;
 
     it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Owner1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+      const { status } = await request(app).get(testRoute(Owner1.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid ownerId', async () => {
-      await withAccessToken(request(app).get(testRoute('id'))).expect(
-        constants.HTTP_STATUS_BAD_REQUEST
+      const { status } = await withAccessToken(
+        request(app).get(testRoute('id'))
       );
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the owner events', async () => {
-      const res = await withAccessToken(
+      const { body, status } = await withAccessToken(
         request(app).get(testRoute(Owner1.id))
-      ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: OwnerEvent1.id,
-          }),
-        ])
       );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toIncludeAllPartialMembers([{ id: OwnerEvent1.id }]);
     });
   });
 
   describe('listByHousingId', () => {
-    const testRoute = (housingId: string) => `/api/events/housing/${housingId}`;
+    const testRoute = (id: string) => `/api/housing/${id}/events`;
 
     it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Housing1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+      const { status } = await request(app).get(testRoute(Housing1.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      await withAccessToken(request(app).get(testRoute('id'))).expect(
-        constants.HTTP_STATUS_BAD_REQUEST
+      const { status } = await withAccessToken(
+        request(app).get(testRoute('id'))
       );
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the housing events', async () => {
-      const res = await withAccessToken(
+      const { body, status } = await withAccessToken(
         request(app).get(testRoute(Housing1.id))
-      ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: HousingEvent1.id,
-          }),
-        ])
       );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toIncludeAllPartialMembers([
+        {
+          id: HousingEvent1.id,
+        },
+      ]);
     });
   });
 });

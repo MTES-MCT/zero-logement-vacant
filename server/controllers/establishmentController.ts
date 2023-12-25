@@ -3,46 +3,38 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import { constants } from 'http2';
 import { query, ValidationChain } from 'express-validator';
 import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
-import validator from 'validator';
-import BadRequestError from '../errors/badRequestError';
 import { logger } from '../utils/logger';
+import {
+  every,
+  hasKeys,
+  isCommaDelimitedString,
+  isGeoCode,
+  split,
+} from '../utils/validators';
 
 const listValidators: ValidationChain[] = [
-  query('available').optional({ nullable: true }).isBoolean(),
+  query('available').optional({ nullable: true }).isBoolean().toBoolean(true),
   query('query').optional({ nullable: true }).isString(),
   query('kind').optional({ nullable: true }).isString(),
   query('name').optional({ nullable: true }).isString(),
   query('geoCodes')
     .optional({ nullable: true })
-    .isArray()
-    .custom((value) =>
-      value.every(
-        (v: any) =>
-          validator.isAlphanumeric(v) &&
-          validator.isLength(v, { min: 5, max: 5 })
-      )
-    ),
+    .isString()
+    .custom(isCommaDelimitedString)
+    .bail()
+    .customSanitizer(split(','))
+    .custom(every(isGeoCode)),
+  query().isObject({ strict: true }).custom(hasKeys),
 ];
 
 const list = async (request: Request, response: Response) => {
   logger.info('List establishments');
 
-  const available = request.query.available
-    ? Boolean(request.query.available)
-    : undefined;
+  const available = request.query.available as unknown as boolean;
   const searchQuery = request.query.query as string;
   const name = request.query.name as string;
   const geoCodes = request.query.geoCodes as string[];
   const kind = request.query.kind as EstablishmentKind;
-
-  if (
-    available === undefined &&
-    !searchQuery?.length &&
-    !geoCodes?.length &&
-    !name?.length
-  ) {
-    throw new BadRequestError();
-  }
 
   const establishments = await establishmentRepository.find({
     available,

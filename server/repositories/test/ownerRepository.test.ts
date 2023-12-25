@@ -72,4 +72,31 @@ describe('Owner repository', () => {
       });
     });
   });
+
+  describe('stream', () => {
+    it('should group by full name', async () => {
+      const owners = new Array(4)
+        .fill('0')
+        .map(() => genOwnerApi())
+        .map<OwnerApi>((owner) => ({
+          ...owner,
+          fullName: 'Jean Dupont',
+        }));
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const actual = await ownerRepository
+        .stream({
+          groupBy: ['full_name'],
+        })
+        .collect()
+        .toPromise(Promise);
+
+      expect(actual).toSatisfyAll<OwnerApi>((owner) => {
+        return !actual
+          .filter((o) => o.id !== owner.id)
+          .map((o) => o.fullName)
+          .includes(owner.fullName);
+      });
+    });
+  });
 });

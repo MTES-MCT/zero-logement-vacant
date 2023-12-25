@@ -42,9 +42,17 @@ export default {
   evaluate() {
     return (stream: Stream<OwnerApi>): Stream<Comparison> => {
       return stream.flatMap((owner) =>
-        highland(findDuplicatesByName(owner)).map((duplicates) =>
-          evaluate(owner, duplicates)
-        )
+        highland(findDuplicatesByName(owner))
+          .map((duplicates) => [owner, ...duplicates])
+          .map((owners) => {
+            return owners.flatMap((owner) => {
+              return evaluate(
+                owner,
+                owners.filter((o) => o.id !== owner.id)
+              );
+            });
+          })
+          .flatten()
       );
     };
   },

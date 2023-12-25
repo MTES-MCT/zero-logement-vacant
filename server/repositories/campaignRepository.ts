@@ -106,7 +106,7 @@ export interface CampaignDBO {
   group_id?: string;
 }
 
-const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
+export const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
   id: result.id,
   establishmentId: result.establishment_id,
   filters: result.filters,
@@ -122,7 +122,7 @@ const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
   groupId: result.group_id,
 });
 
-const formatCampaignApi = (campaignApi: CampaignApi) => ({
+export const formatCampaignApi = (campaignApi: CampaignApi) => ({
   id: campaignApi.id,
   establishment_id: campaignApi.establishmentId,
   filters: campaignApi.filters,

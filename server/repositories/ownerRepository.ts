@@ -1,4 +1,4 @@
-import db, { where } from './db';
+import db, { groupBy, where } from './db';
 import { OwnerApi, OwnerPayloadApi } from '../models/OwnerApi';
 import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
@@ -37,6 +37,7 @@ interface OwnerFilters {
 
 interface FindOptions {
   filters?: OwnerFilters;
+  groupBy?: Array<keyof OwnerDBO>;
 }
 
 const filteredQuery =
@@ -111,8 +112,11 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
   return owners.map(parseOwnerApi);
 };
 
-const stream = (): Stream<OwnerApi> => {
-  const stream = db<OwnerDBO>(ownerTable).orderBy('full_name').stream();
+const stream = (opts?: StreamOptions): Stream<OwnerApi> => {
+  const stream = Owners()
+    .modify(groupBy<OwnerDBO>(opts?.groupBy))
+    .orderBy('full_name')
+    .stream();
 
   return highland<OwnerDBO>(stream).map(parseOwnerApi);
 };

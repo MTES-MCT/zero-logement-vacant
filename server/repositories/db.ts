@@ -29,6 +29,14 @@ export const where = <T>(props: Array<keyof T>, opts?: WhereOptions) =>
     )
   );
 
+export function groupBy<T>(props?: Array<keyof T>) {
+  return (query: Knex.QueryBuilder) => {
+    if (props?.length) {
+      return query.distinctOn(...props);
+    }
+  };
+}
+
 interface WhereOptions {
   /**
    * A table name to prefix columns and avoid ambiguity.

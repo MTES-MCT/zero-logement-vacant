@@ -21,7 +21,9 @@ const reporter = createReporter('json');
 
 function run(): void {
   const comparisons = ownerRepository
-    .stream()
+    .stream({
+      groupBy: ['full_name'],
+    })
     .tap((owner) => logger.trace(`Processing ${owner.fullName}...`))
     .through(evaluator.evaluate());
 

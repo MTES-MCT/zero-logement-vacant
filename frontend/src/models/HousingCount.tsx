@@ -17,7 +17,7 @@ export const displayHousingCount = ({
   totalCount?: number;
   status?: HousingStatus;
 }): string => {
-  if (!totalCount) {
+  if (totalCount === undefined) {
     return 'Comptage des logements...';
   }
   const items = displayCount(

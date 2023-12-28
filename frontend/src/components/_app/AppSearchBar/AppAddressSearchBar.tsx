@@ -1,5 +1,7 @@
 import React from 'react';
-import addressService, { AddressSearchResult } from '../../../services/address.service';
+import addressService, {
+  AddressSearchResult,
+} from '../../../services/address.service';
 import AppSearchBar, { SearchResult } from './AppSearchBar';
 
 interface Props {

@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
 import { body, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
-import { fromOwnerPayloadDTO, hasContactChanges, hasIdentityChanges, OwnerApi } from '../models/OwnerApi';
+import {
+  fromOwnerPayloadDTO,
+  hasContactChanges,
+  hasIdentityChanges,
+  OwnerApi,
+} from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';

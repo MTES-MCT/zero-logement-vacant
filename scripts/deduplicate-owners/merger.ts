@@ -89,6 +89,10 @@ export async function merge(
         .whereIn('id', removingIds)
         .delete();
       stream?.emit('owners:removed', removed);
+      logger.info('Removed owners', {
+        fullName: keeping.fullName,
+        removed,
+      });
 
       const owners = [keeping, ...removing];
       const merged: Partial<OwnerDBO> = fp.pickBy((value) => !fp.isNil(value), {

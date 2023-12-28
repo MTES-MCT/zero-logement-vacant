@@ -35,13 +35,8 @@ export function compare(source: OwnerApi, duplicate: OwnerApi): number {
         )
       : null;
 
-  const birthdayScore = compareBirthdates(
-    source.birthDate,
-    duplicate.birthDate
-  );
-
   const computeScore = fp.pipe(fp.filter(isNotNull), fp.mean);
-  return computeScore([addressScore, birthdayScore]) ?? 0;
+  return computeScore([addressScore]) ?? 0;
 }
 
 export const isStreetNumber = (address: string) => /^\d{4}\s/.test(address);
@@ -75,9 +70,9 @@ export function needsManualReview(
   source: OwnerApi,
   duplicates: ScoredOwner[]
 ): boolean {
-  const matches = duplicates
-    .filter((_) => isReviewMatch(_.score) || isMatch(_.score))
-    .filter((_) => !isPerfectMatch(_.score));
+  const matches = duplicates.filter(
+    (_) => isReviewMatch(_.score) || isMatch(_.score)
+  );
 
   return (
     duplicates.every((match) => isReviewMatch(match.score)) ||
@@ -86,19 +81,6 @@ export function needsManualReview(
       matches.map((_) => _.value)
     )
   );
-}
-
-function compareBirthdates(
-  a: Date | undefined,
-  b: Date | undefined
-): number | null {
-  if (!a || !b) {
-    return null;
-  }
-
-  const da = a.toISOString().substring(0, 10);
-  const db = b.toISOString().substring(0, 10);
-  return da === db ? 1 : 0;
 }
 
 function dateConflict(source: OwnerApi, matches: OwnerApi[]): boolean {

@@ -24,7 +24,7 @@ function run(): void {
     .stream({
       groupBy: ['full_name'],
     })
-    .tap((owner) => logger.trace(`Processing ${owner.fullName}...`))
+    .tap((owner) => logger.debug(`Processing ${owner.fullName}...`))
     .through(evaluator.evaluate());
 
   comparisons
@@ -81,7 +81,7 @@ function run(): void {
 
   highland([duplicateWriter, ownerMerger])
     .merge()
-    .errors((error) => {
+    .stopOnError((error) => {
       logger.error(error);
     })
     .done(() => {

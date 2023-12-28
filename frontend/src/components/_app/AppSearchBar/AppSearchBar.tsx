@@ -97,7 +97,7 @@ const AppSearchBar = ({
         })();
       }
     }
-  }, [initialQuery, initialSearch]);
+  }, [initialQuery, initialSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <form

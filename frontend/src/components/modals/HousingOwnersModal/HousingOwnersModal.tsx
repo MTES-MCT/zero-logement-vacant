@@ -5,7 +5,7 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -16,6 +16,10 @@ import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import AppSelect from '../../_app/AppSelect/AppSelect';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { AddressSearchResult } from '../../../services/address.service';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
+import config from '../../../utils/config';
 
 interface Props {
   housingId: string;
@@ -30,7 +34,14 @@ const HousingOwnersModal = ({
 }: Props) => {
   type OwnerInput = Pick<
     HousingOwner,
-    'id' | 'fullName' | 'rawAddress' | 'email' | 'phone' | 'kind'
+    | 'id'
+    | 'fullName'
+    | 'rawAddress'
+    | 'email'
+    | 'phone'
+    | 'kind'
+    | 'banAddress'
+    | 'additionalAddress'
   > & {
     rank: string;
     birthDate: string;
@@ -84,6 +95,8 @@ const HousingOwnersModal = ({
           .required('Veuillez renseigner un nom.'),
         [`email${index}`]: emailValidator.nullable().notRequired(),
         [`birthDate${index}`]: dateValidator.nullable().notRequired(),
+        [`banAddress${index}`]: banAddressValidator,
+        [`additionalAddress${index}`]: yup.string().nullable().notRequired(),
       }),
       {}
     ),
@@ -142,6 +155,8 @@ const HousingOwnersModal = ({
           [`fullName${index}`]: ownerInput.fullName,
           [`email${index}`]: ownerInput.email,
           [`birthDate${index}`]: ownerInput.birthDate,
+          [`banAddress${index}`]: ownerInput.banAddress,
+          [`additionalAddress${index}`]: ownerInput.additionalAddress,
         }),
         {}
       ),
@@ -175,6 +190,16 @@ const HousingOwnersModal = ({
         }))
       );
       modal.close();
+    });
+  };
+
+  const onSelectAddress = (
+    ownerInput: OwnerInput,
+    addressSearchResult?: AddressSearchResult
+  ) => {
+    changeOwnerInputs({
+      ...ownerInput,
+      banAddress: addressSearchResult,
     });
   };
 
@@ -265,6 +290,12 @@ const HousingOwnersModal = ({
                       <Text size="sm" className="zlv-label fr-ml-1w" as="span">
                         {getHousingOwnerRankLabel(Number(ownerInput.rank))}
                       </Text>
+                      {(ownerInput.banAddress?.score ?? 0) <
+                        config.banEligibleScore && (
+                        <Badge severity="info" className="fr-ml-1w">
+                          ADRESSE AMÉLIORABLE
+                        </Badge>
+                      )}
                     </div>
                   }
                   id={String(index)}
@@ -272,8 +303,10 @@ const HousingOwnersModal = ({
                   className={classNames({
                     error:
                       hasError(`fullName${index}`) ||
+                      hasError(`banAddress${index}`) ||
                       hasError(`birthDate${index}`) ||
-                      hasError(`email${index}`),
+                      hasError(`email${index}`) ||
+                      hasError(`additionalAddress${index}`),
                   })}
                 >
                   <AppSelect<FormShape>
@@ -322,20 +355,26 @@ const HousingOwnersModal = ({
                       />
                     </Col>
                     <Col n="12">
+                      <OwnerAddressEdition
+                        banAddress={ownerInput.banAddress}
+                        rawAddress={ownerInput.rawAddress}
+                        onSelectAddress={(a) => onSelectAddress(ownerInput, a)}
+                        errorMessage={message(`banAddress${index}`)}
+                      />
+                    </Col>
+                    <Col n="12">
                       <AppTextInput<FormShape>
-                        textArea
-                        rows={3}
-                        value={ownerInput.rawAddress.join('\n')}
+                        value={ownerInput.additionalAddress}
                         onChange={(e) =>
                           changeOwnerInputs({
                             ...ownerInput,
-                            rawAddress: e.target.value.split('\n'),
+                            additionalAddress: e.target.value,
                           })
                         }
-                        label="Adresse postale"
+                        label="Complément d'adresse"
                         inputForm={form}
                         // @ts-ignore
-                        inputKey={`rawAddress$${index}`}
+                        inputKey={`additionalAddress$${index}`}
                       />
                     </Col>
                     <Col n="6">

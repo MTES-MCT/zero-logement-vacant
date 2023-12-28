@@ -10,7 +10,17 @@ export type OwnerApi = OwnerDTO;
 
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
   return {
-    ...fp.pick(['rawAddress', 'fullName', 'email', 'phone'], payload),
+    ...fp.pick(
+      [
+        'rawAddress',
+        'fullName',
+        'email',
+        'phone',
+        'banAddress',
+        'additionalAddress',
+      ],
+      payload
+    ),
     birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined,
   };
 }
@@ -23,7 +33,14 @@ export function hasIdentityChanges(prev: OwnerApi, curr: OwnerApi): boolean {
 
 export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
   return (
-    Object.values(compare(prev, curr, ['rawAddress', 'email', 'phone']))
-      .length > 0
+    Object.values(
+      compare(prev, curr, [
+        'rawAddress',
+        'email',
+        'phone',
+        'banAddress',
+        'additionalAddress',
+      ])
+    ).length > 0
   );
 }

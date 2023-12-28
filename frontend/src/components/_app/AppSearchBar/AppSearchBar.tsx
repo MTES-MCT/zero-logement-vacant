@@ -8,19 +8,29 @@ export interface SearchResult {
   onclick?: () => void;
 }
 
+interface AppSearchResultProps {
+  searchResult: SearchResult;
+  query: string;
+  onClick: () => void;
+}
+
 const AppSearchResult = ({
   searchResult,
   query,
-}: {
-  searchResult: SearchResult;
-  query: string;
-}) => {
+  onClick,
+}: AppSearchResultProps) => {
   const queryIndex = searchResult.title
     .toLowerCase()
     .indexOf(query.toLowerCase());
 
   return (
-    <div title="Afficher le détail" onClick={searchResult.onclick}>
+    <div
+      title="Afficher le détail"
+      onClick={() => {
+        searchResult.onclick?.();
+        onClick();
+      }}
+    >
       {queryIndex === -1 ? (
         searchResult.title
       ) : (
@@ -34,6 +44,17 @@ const AppSearchResult = ({
   );
 };
 
+interface Props {
+  onSearch: (text: string) => void;
+  onKeySearch?: (text: string) => Promise<SearchResult[] | void>;
+  placeholder?: string;
+  buttonLabel?: string;
+  size?: string;
+  maxResults?: number;
+  initialQuery?: string;
+  initialSearch?: boolean;
+}
+
 const AppSearchBar = ({
   onSearch,
   onKeySearch,
@@ -42,15 +63,8 @@ const AppSearchBar = ({
   size,
   maxResults,
   initialQuery,
-}: {
-  onSearch: (text: string) => void;
-  onKeySearch?: (text: string) => Promise<SearchResult[] | void>;
-  placeholder?: string;
-  buttonLabel?: string;
-  size?: string;
-  maxResults?: number;
-  initialQuery?: string;
-}) => {
+  initialSearch,
+}: Props) => {
   const [searchInput, setSearchInput] = useState<string>(initialQuery ?? '');
   const [searchResults, setSearchResults] = useState<
     SearchResult[] | undefined
@@ -77,8 +91,13 @@ const AppSearchBar = ({
   useEffect(() => {
     if (initialQuery) {
       setSearchInput(initialQuery.trim());
+      if (initialSearch) {
+        (async function forceSearch() {
+          await onKeyUp();
+        })();
+      }
     }
-  }, [initialQuery]);
+  }, [initialQuery, initialSearch]);
 
   return (
     <form
@@ -119,6 +138,10 @@ const AppSearchBar = ({
                 key={'result_' + index}
                 searchResult={result}
                 query={searchInput}
+                onClick={() => {
+                  setSearchInput(result.title);
+                  setSearchResults(undefined);
+                }}
               />
             ))
           )}

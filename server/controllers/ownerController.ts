@@ -136,6 +136,8 @@ const updateOwner = async (
     rawAddress: ownerApi.rawAddress,
     email: ownerApi.email,
     phone: ownerApi.phone,
+    banAddress: ownerApi.banAddress,
+    additionalAddress: ownerApi.additionalAddress,
   };
 
   if (
@@ -146,10 +148,18 @@ const updateOwner = async (
 
     await ownerRepository.update(updatedOwnerApi);
 
-    await banAddressesRepository.markAddressToBeNormalized(
-      ownerApi.id,
-      AddressKinds.Owner
-    );
+    if (
+      updatedOwnerApi.banAddress &&
+      updatedOwnerApi.banAddress !== prevOwnerApi.banAddress
+    ) {
+      await banAddressesRepository.upsertList([
+        {
+          refId: ownerApi.id,
+          addressKind: AddressKinds.Owner,
+          ...updatedOwnerApi.banAddress,
+        },
+      ]);
+    }
 
     if (hasIdentityChanges(prevOwnerApi, updatedOwnerApi)) {
       await eventRepository.insertOwnerEvent({
@@ -260,6 +270,14 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
+  body('banAddress.houseNumber').isString().optional(),
+  body('banAddress.street').isString().optional(),
+  body('banAddress.postalCode').isString().optional(),
+  body('banAddress.city').isString().optional(),
+  body('banAddress.latitude').isNumeric().optional(),
+  body('banAddress.longitude').isNumeric().optional(),
+  body('banAddress.score').isNumeric().optional(),
+  body('additionalAddress').isString().optional(),
 ];
 
 const ownerController = {

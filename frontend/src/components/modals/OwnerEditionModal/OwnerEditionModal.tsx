@@ -5,12 +5,13 @@ import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { format } from 'date-fns';
 import { parseDateInput } from '../../../utils/dateUtils';
-import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
+import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 
 const modal = createModal({
   id: 'owner-edition-modal',
@@ -26,29 +27,32 @@ const OwnerEditionModal = ({ owner }: Props) => {
   const [birthDate, setBirthDate] = useState(
     owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
   );
-  const [rawAddress, setRawAddress] = useState<string[]>(
-    owner?.rawAddress ?? []
-  );
+  const [banAddress, setBanAddress] = useState(owner?.banAddress);
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
+  const [additionalAddress, setAdditionalAddress] = useState(
+    owner?.additionalAddress
+  );
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
     birthDate: dateValidator.nullable().notRequired(),
-    rawAddress: yup.array().nullable(),
+    banAddress: banAddressValidator,
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),
+    additionalAddress: yup.string().nullable().notRequired(),
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     fullName,
     birthDate,
-    rawAddress,
+    banAddress,
     email,
     phone,
+    additionalAddress,
   });
   const submit = async () => {
     await form.validate(() => {
@@ -57,9 +61,10 @@ const OwnerEditionModal = ({ owner }: Props) => {
           ...owner,
           fullName,
           birthDate: parseDateInput(birthDate),
-          rawAddress,
+          banAddress,
           email,
           phone,
+          additionalAddress,
         });
         modal.close();
       }
@@ -116,14 +121,20 @@ const OwnerEditionModal = ({ owner }: Props) => {
             />
           </Col>
           <Col n="12">
+            <OwnerAddressEdition
+              banAddress={owner.banAddress}
+              rawAddress={owner.rawAddress}
+              onSelectAddress={(a) => setBanAddress(a)}
+              errorMessage={form.message('banAddress')}
+            />
+          </Col>
+          <Col n="12">
             <AppTextInput<FormShape>
-              textArea
-              value={rawAddress.join('\n')}
-              onChange={(e) => setRawAddress(e.target.value.split('\n'))}
-              label="Adresse postale"
+              value={additionalAddress}
+              onChange={(e) => setAdditionalAddress(e.target.value)}
+              label="Complément d'adresse"
               inputForm={form}
-              inputKey="rawAddress"
-              rows={3}
+              inputKey="additionalAddress"
             />
           </Col>
           <Col n="6">

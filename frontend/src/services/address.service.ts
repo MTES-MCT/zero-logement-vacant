@@ -1,12 +1,11 @@
 import config from '../utils/config';
 import { createHttpService } from '../utils/fetchUtils';
 import { Feature } from 'maplibre-gl';
+import { Address } from '../models/Address';
 
-export interface AddressSearchResult {
+export type AddressSearchResult = Address & {
   label: string;
-  geoCode: string;
-  city: string;
-}
+};
 
 const http = createHttpService('address', {
   authenticated: false,
@@ -23,8 +22,13 @@ const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
   return addresses.features.map(
     (a: Feature): AddressSearchResult => ({
       label: a.properties.label,
-      geoCode: a.properties.citycode,
+      street: a.properties.street,
+      houseNumber: a.properties.housenumber,
+      postalCode: a.properties.postcode,
       city: a.properties.city,
+      longitude: a.properties.x,
+      latitude: a.properties.y,
+      score: a.properties.score,
     })
   );
 };

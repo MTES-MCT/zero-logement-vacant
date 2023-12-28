@@ -1,19 +1,16 @@
 import { Icon, Text, Title } from '../_dsfr';
 import React, { ReactNode } from 'react';
 
-import {
-  getHousingOwnerRankLabel,
-  HousingOwner,
-  isHousingOwner,
-  Owner,
-} from '../../models/Owner';
+import { getHousingOwnerRankLabel, HousingOwner, isHousingOwner, Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
-import { capitalize, mailto } from '../../utils/stringUtils';
+import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
+import Notice from '@codegouvfr/react-dsfr/Notice';
+import config from '../../utils/config';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -51,7 +48,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               title="Voir tous ses logements"
               priority="secondary"
               linkProps={{
-                to: `/proprietaires/${owner.id}`
+                to: `/proprietaires/${owner.id}`,
               }}
               className={styles.housingBouton}
             >
@@ -73,16 +70,33 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <Text size="sm" className="zlv-label">
                 Adresse postale
               </Text>
-              {owner.rawAddress.map((address, i) => (
-                <Text
-                  className="capitalize"
-                  key={`${owner.id}_address_${i}`}
-                  spacing="mb-0"
-                >
-                  {capitalize(address)}
-                </Text>
-              ))}
+              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
+              <br />
+              {owner.banAddress?.postalCode} {owner.banAddress?.city}
+              {[owner, ...(coOwners ?? [])].find(
+                (owner) =>
+                  (owner.banAddress?.score ?? 0) < config.banEligibleScore
+              ) && (
+                <Notice
+                  className={classNames(styles.addressNotice, 'fr-mt-2w')}
+                  title={
+                    <>
+                      <div className="fr-mb-2w">ADRESSE AMÉLIORABLE</div>
+                      L’amélioration que nous avons détecté concernant l’adresse
+                      d’un des propriétaires nécessite votre vérification.
+                    </>
+                  }
+                ></Notice>
+              )}
             </div>
+            {owner.additionalAddress && (
+              <div>
+                <Text size="sm" className="zlv-label">
+                  Complément d'adresse
+                </Text>
+                <Text className="fr-mb-0">{owner.additionalAddress}</Text>
+              </div>
+            )}
             {owner.email && (
               <div>
                 <Text size="sm" className="zlv-label">

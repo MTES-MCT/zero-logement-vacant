@@ -94,3 +94,12 @@ export const mailto = (email: string): string => `mailto:${email}`;
 export function initials(firstName: string, lastName: string): string {
   return `${firstName[0]}${lastName[0]}`.toUpperCase();
 }
+
+export const reduceStringArray = (
+  stringArray?: (string | undefined)[],
+  breakLine = true
+) => {
+  return stringArray
+    ?.filter((_) => _)
+    .join(breakLine ? String.fromCharCode(10) : ' ');
+};

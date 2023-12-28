@@ -22,7 +22,7 @@ const OwnerGenericHomeView = () => {
 
   const { establishment, nearbyEstablishments } = useEstablishment(
     addressSearchResult?.city,
-    addressSearchResult ? [addressSearchResult.geoCode] : undefined
+    addressSearchResult ? [addressSearchResult.postalCode] : undefined
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {

@@ -9,7 +9,12 @@ import highland from 'highland';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { ownerMatchTable } from './ownerMatchRepository';
 import { Knex } from 'knex';
-import { HousingDBO, housingTable, ownerHousingJoinClause, parseHousingApi } from './housingRepository';
+import {
+  HousingDBO,
+  housingTable,
+  ownerHousingJoinClause,
+  parseHousingApi,
+} from './housingRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { groupsHousingTable } from './groupRepository';
 import { OwnerExportStreamApi } from '../controllers/housingExportController';

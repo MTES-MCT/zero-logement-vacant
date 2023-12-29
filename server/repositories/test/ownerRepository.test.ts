@@ -52,6 +52,13 @@ describe('Owner repository', () => {
         ...owner,
         administrator: null,
         birthDate: null,
+        banAddress: {
+          city: undefined,
+          houseNumber: undefined,
+          postalCode: undefined,
+          score: undefined,
+          street: undefined,
+        },
       });
     });
 
@@ -69,6 +76,13 @@ describe('Owner repository', () => {
         ...owner,
         administrator: null,
         birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
+        banAddress: {
+          city: undefined,
+          houseNumber: undefined,
+          postalCode: undefined,
+          score: undefined,
+          street: undefined,
+        },
       });
     });
   });

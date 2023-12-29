@@ -58,6 +58,7 @@ import {
 } from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
+import { AddressApi, AddressKinds } from '../models/AddressApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -188,8 +189,9 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
 };
 
 export const genOwnerApi = (): OwnerApi => {
+  const id = uuidv4();
   return {
-    id: uuidv4(),
+    id,
     rawAddress: [
       faker.location.streetAddress(),
       `${faker.location.zipCode()}, ${faker.location.city()}`,
@@ -201,6 +203,24 @@ export const genOwnerApi = (): OwnerApi => {
     phone: faker.phone.number(),
     kind: randomstring.generate(),
     kindDetail: randomstring.generate(),
+    additionalAddress: randomstring.generate(),
+  };
+};
+
+export const genAddressApi = (
+  refId: string,
+  addressKind: AddressKinds
+): AddressApi => {
+  return {
+    refId,
+    addressKind,
+    houseNumber: faker.location.buildingNumber(),
+    street: faker.location.street(),
+    postalCode: faker.location.zipCode(),
+    city: faker.location.city(),
+    latitude: faker.address.latitude(),
+    longitude: faker.address.longitude(),
+    score: Math.random(),
   };
 };
 

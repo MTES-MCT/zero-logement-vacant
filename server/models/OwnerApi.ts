@@ -34,12 +34,14 @@ export function hasIdentityChanges(prev: OwnerApi, curr: OwnerApi): boolean {
 export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
   return (
     Object.values(
-      compare(prev, curr, [
-        'rawAddress',
-        'email',
-        'phone',
-        'banAddress',
-        'additionalAddress',
+      compare(prev, curr, ['rawAddress', 'email', 'phone', 'additionalAddress'])
+    ).length > 0 ||
+    Object.values(
+      compare(prev.banAddress ?? {}, curr.banAddress ?? {}, [
+        'city',
+        'street',
+        'houseNumber',
+        'postalCode',
       ])
     ).length > 0
   );

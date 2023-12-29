@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createServer } from '../server';
 import { withAccessToken } from '../test/testUtils';
 import { Housing1 } from '../../database/seeds/test/005-housing';
-import { genOwnerApi } from '../test/testFixtures';
+import { genAddressApi, genOwnerApi } from '../test/testFixtures';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import { OwnerPayloadDTO } from '../../shared';
 import {
@@ -16,6 +16,12 @@ import {
 } from '../repositories/eventRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { addDays } from 'date-fns';
+import { AddressKinds } from '../models/AddressApi';
+import db from '../repositories/db';
+import {
+  banAddressesTable,
+  formatAddressApi,
+} from '../repositories/banAddressesRepository';
 
 describe('Owner controller', () => {
   const { app } = createServer();
@@ -133,13 +139,50 @@ describe('Owner controller', () => {
       });
     });
 
-    it('should create an event if the address, email or phone has changed', async () => {
+    it('should create an event if the email or phone has changed', async () => {
       const original = genOwnerApi();
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
         birthDate: original.birthDate?.toISOString(),
         phone: '+33 6 12 34 56 78',
+      };
+
+      const { status } = await withAccessToken(
+        request(app)
+          .put(testRoute(original.id))
+          .send(payload)
+          .set('Content-Type', 'application/json')
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(
+          ownerEventsTable,
+          `${ownerEventsTable}.event_id`,
+          `${eventsTable}.id`
+        )
+        .where({ owner_id: original.id });
+      expect(events).toPartiallyContain<
+        Partial<EventDBO<OwnerApi> & OwnerEventDBO>
+      >({
+        owner_id: original.id,
+        name: 'Modification de coordonnées',
+        kind: 'Update',
+        category: 'Ownership',
+        section: 'Coordonnées propriétaire',
+      });
+    });
+
+    it('should create an event if the address has changed', async () => {
+      const original = genOwnerApi();
+      const originalAddress = genAddressApi(original.id, AddressKinds.Owner);
+      await Owners().insert(formatOwnerApi(original));
+      await db(banAddressesTable).insert(formatAddressApi(originalAddress));
+      const payload: OwnerPayloadDTO = {
+        ...original,
+        birthDate: original.birthDate?.toISOString(),
+        banAddress: genAddressApi(original.id, AddressKinds.Owner),
       };
 
       const { status } = await withAccessToken(

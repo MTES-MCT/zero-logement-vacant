@@ -1,4 +1,8 @@
-import { AddressApi, AddressKinds, AddressToNormalize } from '../models/AddressApi';
+import {
+  AddressApi,
+  AddressKinds,
+  AddressToNormalize,
+} from '../models/AddressApi';
 import db from './db';
 import { housingTable } from './housingRepository';
 import config from '../utils/config';
@@ -132,7 +136,7 @@ const escapeValue = (value?: string) => {
   return value ? value.replace(/'/g, "''") : '';
 };
 
-const formatAddressApi = (addressApi: AddressApi) => ({
+export const formatAddressApi = (addressApi: AddressApi) => ({
   ref_id: addressApi.refId,
   address_kind: addressApi.addressKind,
   house_number: addressApi.houseNumber ?? '',

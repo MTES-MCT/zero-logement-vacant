@@ -5,6 +5,9 @@
     },
     {
       "command": "0 23 * * * scripts/duplicate-database/start.sh"
+    },
+    {
+      "command": "0 0 1 * * 'npm install --production=false && npm run seed -- --specific 003-buildings.ts'"
     }
   ]
 }

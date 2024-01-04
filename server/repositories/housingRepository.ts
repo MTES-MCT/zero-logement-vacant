@@ -884,11 +884,11 @@ async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
 }
 
 interface HousingRecordDBO {
+  // In the same order as the database
   id: string;
   invariant: string;
   local_id: string;
   building_id?: string;
-  building_group_id?: string;
   raw_address: string[];
   geo_code: string;
   longitude?: number;
@@ -901,25 +901,30 @@ interface HousingRecordDBO {
   living_area: number;
   cadastral_reference?: string;
   building_year?: number;
+  mutation_date?: Date;
   taxed?: boolean;
   vacancy_reasons?: string[];
   data_years: number[];
+  beneficiary_count?: number;
   building_location?: string;
+  rental_value?: number;
   ownership_kind?: OwnershipKindsApi;
   status: HousingStatusApi;
   sub_status?: string;
   precisions?: string[];
   energy_consumption?: EnergyConsumptionGradesApi;
-  energy_consumption_at?: Date;
   occupancy: OccupancyKindApi;
-  occupancy_registered?: OccupancyKindApi;
+  occupancy_registered: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
-  latitude_ban?: number;
-  longitude_ban?: number;
+  plot_id?: string;
+  energy_consumption_at?: Date;
+  building_group_id?: string;
   source: string | null;
 }
 
 export interface HousingDBO extends HousingRecordDBO {
+  latitude_ban?: number;
+  longitude_ban?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
@@ -974,6 +979,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   contactCount: Number(housing.contact_count),
   lastContact: housing.last_contact,
   source: housing.source as HousingSource,
+  mutationDate: housing.mutation_date ?? null,
 });
 
 export const formatHousingRecordApi = (

@@ -31,6 +31,14 @@ export function tapAsync<T>(f: (data: T) => Promise<void>) {
   };
 }
 
+export function prependAsync<T>(f: (data: T[]) => Promise<T[]>) {
+  return (stream: Stream<T[]>): Stream<T[]> => {
+    return stream.flatMap((array) =>
+      highland(f(array).then((items) => [...items, ...array]))
+    );
+  };
+}
+
 export function tapAllAsync<T>(f: (data: T) => Promise<T>) {
   return (
     error: Error | null,

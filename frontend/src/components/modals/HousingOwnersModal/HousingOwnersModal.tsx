@@ -183,6 +183,12 @@ const HousingOwnersModal = ({
   // @ts-ignore
   const hasError = (key: string) => form.hasError(key);
 
+  function iconName(kind: string = '') {
+    return ['SCI', 'Investisseur'].includes(kind)
+      ? 'fr-icon-team-fill'
+      : 'fr-icon-user-fill';
+  }
+
   return (
     <>
       <Button
@@ -247,21 +253,11 @@ const HousingOwnersModal = ({
                   label={
                     <div>
                       <span className="icon-xs">
-                        {['SCI', 'Investisseur'].includes(
-                          ownerInput.kind ?? ''
-                        ) ? (
-                          <Icon
-                            name="fr-icon-team-fill"
-                            iconPosition="center"
-                            size="xs"
-                          />
-                        ) : (
-                          <Icon
-                            name="fr-icon-user-fill"
-                            iconPosition="center"
-                            size="xs"
-                          />
-                        )}
+                        <Icon
+                          name={iconName(ownerInput.kind)}
+                          iconPosition="center"
+                          size="xs"
+                        />
                       </span>
                       <Text as="span">
                         <b>{ownerInput.fullName}</b>

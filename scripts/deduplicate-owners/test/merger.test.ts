@@ -28,7 +28,10 @@ import {
 describe('Merger', () => {
   describe('merge', () => {
     const source = genOwnerApi();
-    const duplicates = [genOwnerApi(), genOwnerApi()];
+    const duplicates = new Array(2)
+      .fill('0')
+      .map(() => genOwnerApi())
+      .map((owner) => ({ ...owner, birthDate: undefined }));
     const suggestion = source;
     const events = duplicates.map((owner) =>
       genOwnerEventApi(owner.id, User1.id)

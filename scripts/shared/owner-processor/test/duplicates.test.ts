@@ -40,16 +40,15 @@ describe('Duplicates', () => {
     });
 
     test.each`
-      a                                                                                           | b
-      ${genOwner(['62 AV DE LA ROUDET', 'RES LE PINTEY', '33500 LIBOURNE'])}                      | ${genOwner(['0168 AV  DU PRESIDENT WILSON', '93100 MONTREUIL'])}
-      ${genOwner(['0015 RUE DES SEIGNEURS', '68740 BALGAU'])}                                     | ${genOwner(['0014 RUE DES GLACIERES', '67000 STRASBOURG'])}
-      ${genOwner(['6 RUE DU DOLMEN', '79400 NANTEUIL'])}                                          | ${genOwner(['10 RUE DU RONCEY', '78920 ECQUEVILLY'])}
-      ${genOwner(['PAR MR OLIVIER', '0067 RUE DES CHARRETIERS', '45000 ORLEANS'])}                | ${genOwner(['600 R PIERRE BROSSOLETTE LABUISS', '62700 BRUAY LA BUISSIERE'])}
-      ${genOwner(['3 ALL DE LA BEAUCE', '78640 ST GERMAIN DE LA GRANGE'])}                        | ${genOwner(['0001 PL  DE L ECOLE', '95400 VILLIERS LE BEL'])}
-      ${genOwner(['PAR M CLAUDE', '0125 RUE SAINT CHARLES', '75015 PARIS'])}                      | ${genOwner(['0005 RUE DU COLONEL TIFFOINET', '51200 EPERNAY'])}
-      ${genOwner(['PAR MR JEAN', 'RUE DES LANDES', '72110 BEAUFAY'])}                             | ${genOwner(['0602 RTE DES LANDES', '72110 BEAUFAY'])}
-      ${genOwner(['4 RUE ADRIEN SIMONNOT', '21700 COMBLANCHIEN'])}                                | ${genOwner(['PAR M INCONNU', 'LES COMBES', '71170 SAINT-IGNY-DE-ROCHE'])}
-      ${genOwner(['42A RUE DE CALLENELLE', '59158 FLINES LES MORTAGNE'], new Date('1988-11-03'))} | ${genOwner(['42A RUE DE CALLENELLE', '59158 FLINES LES MORTAGNE'], new Date('1976-10-30'))}
+      a                                                                            | b
+      ${genOwner(['62 AV DE LA ROUDET', 'RES LE PINTEY', '33500 LIBOURNE'])}       | ${genOwner(['0168 AV  DU PRESIDENT WILSON', '93100 MONTREUIL'])}
+      ${genOwner(['0015 RUE DES SEIGNEURS', '68740 BALGAU'])}                      | ${genOwner(['0014 RUE DES GLACIERES', '67000 STRASBOURG'])}
+      ${genOwner(['6 RUE DU DOLMEN', '79400 NANTEUIL'])}                           | ${genOwner(['10 RUE DU RONCEY', '78920 ECQUEVILLY'])}
+      ${genOwner(['PAR MR OLIVIER', '0067 RUE DES CHARRETIERS', '45000 ORLEANS'])} | ${genOwner(['600 R PIERRE BROSSOLETTE LABUISS', '62700 BRUAY LA BUISSIERE'])}
+      ${genOwner(['3 ALL DE LA BEAUCE', '78640 ST GERMAIN DE LA GRANGE'])}         | ${genOwner(['0001 PL  DE L ECOLE', '95400 VILLIERS LE BEL'])}
+      ${genOwner(['PAR M CLAUDE', '0125 RUE SAINT CHARLES', '75015 PARIS'])}       | ${genOwner(['0005 RUE DU COLONEL TIFFOINET', '51200 EPERNAY'])}
+      ${genOwner(['PAR MR JEAN', 'RUE DES LANDES', '72110 BEAUFAY'])}              | ${genOwner(['0602 RTE DES LANDES', '72110 BEAUFAY'])}
+      ${genOwner(['4 RUE ADRIEN SIMONNOT', '21700 COMBLANCHIEN'])}                 | ${genOwner(['PAR M INCONNU', 'LES COMBES', '71170 SAINT-IGNY-DE-ROCHE'])}
     `('should not match $a.rawAddress with $b.rawAddress', async ({ a, b }) => {
       const actual = compare(a, b);
       expect(actual).toBeLessThan(MATCH_THRESHOLD);
@@ -116,6 +115,23 @@ describe('Duplicates', () => {
         {
           score: MATCH_THRESHOLD,
           value: { ...genOwnerApi(), birthDate: undefined },
+        },
+      ];
+
+      const actual = needsManualReview(source, duplicates);
+
+      expect(actual).toBeTrue();
+    });
+
+    it('should need review if there is a perfect match and it has a different birth date', () => {
+      const source: OwnerApi = {
+        ...genOwnerApi(),
+        birthDate: new Date('2000-01-01'),
+      };
+      const duplicates: ScoredOwner[] = [
+        {
+          score: 1,
+          value: { ...genOwnerApi(), birthDate: new Date('1999-01-01') },
         },
       ];
 

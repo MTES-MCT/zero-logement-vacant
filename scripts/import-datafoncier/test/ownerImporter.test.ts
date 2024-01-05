@@ -5,7 +5,10 @@ import {
   formatOwnerApi,
   Owners,
 } from '../../../server/repositories/ownerRepository';
-import { OwnerMatches } from '../../../server/repositories/ownerMatchRepository';
+import {
+  OwnerMatchDBO,
+  OwnerMatches,
+} from '../../../server/repositories/ownerMatchRepository';
 import { OwnerApi } from '../../../server/models/OwnerApi';
 import { DatafoncierOwner, toOwnerApi } from '../../shared';
 import { OwnerEvents } from '../../../server/repositories/eventRepository';
@@ -13,6 +16,7 @@ import { HousingOwners } from '../../../server/repositories/housingOwnerReposito
 import highland from 'highland';
 import { startTimer } from '../../shared/elapsed';
 import { logger } from '../../../server/utils/logger';
+import randomstring from 'randomstring';
 
 describe('Import owners', () => {
   describe('Benchmark', () => {
@@ -46,6 +50,27 @@ describe('Import owners', () => {
       });
       // It should succeed within 2 minutes
     }, 120_000 /* A specific timeout */);
+  });
+
+  describe('Importer', () => {
+    it('should save one owner and two matches if the same owner appears twice in the stream', async () => {
+      const a = genDatafoncierOwner();
+      const b = { ...a, idpersonne: randomstring.generate(8) };
+
+      await highland<DatafoncierOwner>([a, b])
+        .through(ownerImporter)
+        .collect()
+        .toPromise(Promise);
+
+      const matches = await OwnerMatches().whereIn('idpersonne', [
+        a.idpersonne,
+        b.idpersonne,
+      ]);
+      expect(matches).toHaveLength(2);
+      expect(matches).toSatisfyAll<OwnerMatchDBO>(
+        (match) => match.owner_id === matches[0].owner_id
+      );
+    });
   });
 
   describe('processOwner', () => {

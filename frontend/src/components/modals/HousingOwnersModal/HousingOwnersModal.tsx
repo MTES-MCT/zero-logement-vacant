@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Col, Container, Icon, Row, Text } from '../../_dsfr';
+import { Col, Icon, Row, Text } from '../../_dsfr';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
 import * as yup from 'yup';
@@ -30,7 +30,7 @@ const HousingOwnersModal = ({
 }: Props) => {
   type OwnerInput = Pick<
     HousingOwner,
-    'id' | 'fullName' | 'rawAddress' | 'email' | 'phone'
+    'id' | 'fullName' | 'rawAddress' | 'email' | 'phone' | 'kind'
   > & {
     rank: string;
     birthDate: string;
@@ -183,6 +183,12 @@ const HousingOwnersModal = ({
   // @ts-ignore
   const hasError = (key: string) => form.hasError(key);
 
+  function iconName(kind: string = '') {
+    return ['SCI', 'Investisseur'].includes(kind)
+      ? 'fr-icon-team-fill'
+      : 'fr-icon-user-fill';
+  }
+
   return (
     <>
       <Button
@@ -197,9 +203,22 @@ const HousingOwnersModal = ({
       <modal.Component
         size="large"
         title={
-          modalMode === 'list'
-            ? 'Modifier les propriétaires'
-            : "Ajout d'un nouveau propriétaire"
+          modalMode === 'list' ? (
+            <>
+              Modifier les propriétaires
+              <Button
+                priority="secondary"
+                iconId="fr-icon-add-line"
+                title="Ajouter un propriétaire"
+                onClick={() => setModalMode('add')}
+                className="float-right"
+              >
+                Ajouter un propriétaire
+              </Button>
+            </>
+          ) : (
+            "Ajout d'un nouveau propriétaire"
+          )
         }
         buttons={
           modalMode === 'list'
@@ -235,7 +254,7 @@ const HousingOwnersModal = ({
                     <div>
                       <span className="icon-xs">
                         <Icon
-                          name="fr-icon-user-fill"
+                          name={iconName(ownerInput.kind)}
                           iconPosition="center"
                           size="xs"
                         />
@@ -354,25 +373,9 @@ const HousingOwnersModal = ({
                 </Accordion>
               ))}
             </div>
-            <Container as="section" spacing="p-0">
-              {hasError('ownerRanks') && (
-                <p className="fr-error-text fr-mb-2w fr-mt-0">
-                  {message('ownerRanks')}
-                </p>
-              )}
-              <Row gutters spacing="mt-2w">
-                <Col className="align-right">
-                  <Button
-                    priority="secondary"
-                    iconId="fr-icon-add-line"
-                    title="Ajouter un propriétaire"
-                    onClick={() => setModalMode('add')}
-                  >
-                    Ajouter un propriétaire
-                  </Button>
-                </Col>
-              </Row>
-            </Container>
+            {hasError('ownerRanks') && (
+              <p className="fr-error-text fr-m-2w">{message('ownerRanks')}</p>
+            )}
           </>
         ) : (
           <HousingAdditionalOwner

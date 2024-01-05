@@ -9,11 +9,15 @@ interface FindOneOptions {
 }
 
 const findOne = async (opts: FindOneOptions): Promise<OwnerMatchDBO | null> => {
-  logger.debug('Finding one owner match...', opts);
   const match = await OwnerMatches()
     .where('idpersonne', opts.idpersonne)
     .first();
-  return match ?? null;
+
+  if (!match) {
+    return null;
+  }
+  logger.debug('Found owner match', match);
+  return match;
 };
 
 const save = async (ownerMatch: OwnerMatchDBO): Promise<void> => {

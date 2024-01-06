@@ -58,6 +58,7 @@ import {
 } from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
+import { HousingNoteApi, NoteApi } from '../models/NoteApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -264,6 +265,7 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCES),
+    mutationDate: faker.date.past(),
   };
 };
 
@@ -654,6 +656,23 @@ export const genHousingOwnerConflictApi = (
   replacement: HousingOwnerApi
 ): HousingOwnerConflictApi => ({
   ...genConflictApi(existing, replacement),
+  housingGeoCode: housing.geoCode,
+  housingId: housing.id,
+});
+
+const genNoteApi = (creator: UserApi): NoteApi => ({
+  id: uuidv4(),
+  noteKind: faker.word.noun(),
+  content: faker.lorem.paragraph(),
+  createdBy: creator.id,
+  createdAt: faker.date.past(),
+});
+
+export const genHousingNoteApi = (
+  creator: UserApi,
+  housing: HousingApi
+): HousingNoteApi => ({
+  ...genNoteApi(creator),
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
 });

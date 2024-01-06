@@ -14,7 +14,7 @@ export function housingStream(): Stream<HousingApi> {
     .orderBy('local_id')
     .stream();
 
-  return highland<HousingDBO>(query).map(parseHousingApi);
+  return highland<HousingDBO>(query).map(parseHousingApi).map(validate);
 }
 
 export function parseLocalId(badLocalId: string): string {
@@ -40,4 +40,15 @@ export function prependOriginalHousing(
         return originalHousing ? [originalHousing] : [];
       })
     );
+}
+
+function validate(housing: HousingApi): HousingApi {
+  return {
+    ...housing,
+    mutationDate:
+      // Specific rule because of the given data
+      !!housing.mutationDate && housing.mutationDate < new Date('3000-01-01')
+        ? housing.mutationDate
+        : null,
+  };
 }

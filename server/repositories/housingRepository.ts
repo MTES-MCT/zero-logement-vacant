@@ -420,6 +420,18 @@ const update = async (housing: HousingApi): Promise<void> => {
     });
 };
 
+const remove = async (housing: HousingApi): Promise<void> => {
+  const info = fp.pick(['geoCode', 'id', 'localId'], housing);
+  logger.debug('Removing housing...', info);
+  await Housing()
+    .where({
+      geo_code: housing.geoCode,
+      id: housing.id,
+    })
+    .delete();
+  logger.info('Removed housing.', info);
+};
+
 export const ownerHousingJoinClause = (query: any) => {
   query
     .on(`${housingTable}.id`, `${housingOwnersTable}.housing_id`)
@@ -1028,4 +1040,5 @@ export default {
   save,
   saveMany,
   saveManyWithOwner,
+  remove,
 };

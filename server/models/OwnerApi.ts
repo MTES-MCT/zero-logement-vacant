@@ -32,17 +32,23 @@ export function hasIdentityChanges(prev: OwnerApi, curr: OwnerApi): boolean {
 }
 
 export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
+  const emptyAddress = {
+    city: '',
+    street: '',
+    houseNumber: '',
+    postalCode: '',
+  };
+
   return (
     Object.values(
       compare(prev, curr, ['rawAddress', 'email', 'phone', 'additionalAddress'])
     ).length > 0 ||
     Object.values(
-      compare(prev.banAddress ?? {}, curr.banAddress ?? {}, [
-        'city',
-        'street',
-        'houseNumber',
-        'postalCode',
-      ])
+      compare(
+        prev.banAddress ?? emptyAddress,
+        curr.banAddress ?? emptyAddress,
+        ['city', 'street', 'houseNumber', 'postalCode']
+      )
     ).length > 0
   );
 }

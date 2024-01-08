@@ -485,10 +485,10 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
     result.score,
   ].some(isDefined)
     ? {
-        postalCode: result.postal_code,
+        postalCode: result.postal_code ?? '',
         houseNumber: result.house_number,
         street: result.street,
-        city: result.city,
+        city: result.city ?? '',
         score: result.score,
       }
     : undefined,

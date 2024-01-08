@@ -9,9 +9,9 @@ export interface OwnerPayloadDTO {
   phone?: string;
   banAddress?: {
     houseNumber?: string;
-    postalCode?: string;
+    postalCode: string;
     street?: string;
-    city?: string;
+    city: string;
     score?: number;
   };
   additionalAddress?: string;

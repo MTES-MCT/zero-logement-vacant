@@ -1,7 +1,12 @@
 import { Icon, Text, Title } from '../_dsfr';
 import React, { ReactNode } from 'react';
 
-import { getHousingOwnerRankLabel, HousingOwner, isHousingOwner, Owner } from '../../models/Owner';
+import {
+  getHousingOwnerRankLabel,
+  HousingOwner,
+  isHousingOwner,
+  Owner,
+} from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -63,7 +68,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               spacing="mb-1w"
               className={styles.titleInline}
             >
-              Coordonnées
+              Coordonnées du propriétaire
             </Title>
             <hr />
             <div>

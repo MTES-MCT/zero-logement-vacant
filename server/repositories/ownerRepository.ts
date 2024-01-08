@@ -20,7 +20,7 @@ import { groupsHousingTable } from './groupRepository';
 import { OwnerExportStreamApi } from '../controllers/housingExportController';
 import { banAddressesTable } from './banAddressesRepository';
 import _ from 'lodash';
-import { isDefined } from '../../shared';
+import { isDefined, isNotNull } from '../../shared';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
 import Stream = Highland.Stream;
 
@@ -483,7 +483,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
     result.street,
     result.city,
     result.score,
-  ].some(isDefined)
+  ].some((_) => isDefined(_) && isNotNull(_))
     ? {
         postalCode: result.postal_code ?? '',
         houseNumber: result.house_number,

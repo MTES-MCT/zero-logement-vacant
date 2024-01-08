@@ -33,7 +33,12 @@ import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
+import {
+  EventApi,
+  GroupHousingEventApi,
+  HousingEventApi,
+  OwnerEventApi,
+} from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
@@ -375,16 +380,30 @@ export const genOwnerEventApi = (
 };
 
 export const genHousingEventApi = (
-  housingId: string,
-  createdBy: string
+  housing: HousingApi,
+  createdBy: UserApi
 ): HousingEventApi => {
-  const geoCode = genGeoCode();
   return {
-    ...genEventApi<HousingApi>(createdBy),
-    old: { ...genHousingApi(geoCode), id: housingId },
-    new: { ...genHousingApi(geoCode), id: housingId },
-    housingId,
-    housingGeoCode: geoCode,
+    ...genEventApi<HousingApi>(createdBy.id),
+    old: housing,
+    new: { ...genHousingApi(housing.geoCode), id: housing.id },
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  };
+};
+
+export const genGroupHousingEventApi = (
+  housing: HousingApi,
+  group: GroupApi,
+  createdBy: UserApi
+): GroupHousingEventApi => {
+  return {
+    ...genEventApi<GroupApi>(createdBy.id),
+    old: group,
+    new: group,
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
   };
 };
 

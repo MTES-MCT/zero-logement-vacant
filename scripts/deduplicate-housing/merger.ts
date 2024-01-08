@@ -7,7 +7,6 @@ import {
   firstDefined,
   max,
   merge as mergeObjects,
-  shortest,
 } from '../../shared/';
 import { logger } from '../../server/utils/logger';
 import highland from 'highland';
@@ -18,16 +17,21 @@ import {
 import db from '../../server/repositories/db';
 import { CampaignsHousing } from '../../server/repositories/campaignHousingRepository';
 import { Knex } from 'knex';
-import Stream = Highland.Stream;
 import { HousingNotes } from '../../server/repositories/noteRepository';
+import {
+  GroupHousingEvents,
+  HousingEvents,
+} from '../../server/repositories/eventRepository';
+import { GroupsHousing } from '../../server/repositories/groupRepository';
+import Stream = Highland.Stream;
 
-export function merge() {
+function merge() {
   return (stream: Stream<HousingApi[]>): Stream<HousingRecordApi> => {
     return stream
       .flatMap((housingList) => {
         const merged = fp
           .orderBy<HousingRecordApi>(
-            ['mutationDate', 'dataYears'],
+            ['dataYears', 'mutationDate'],
             ['desc', 'desc'],
             housingList
           )
@@ -36,66 +40,38 @@ export function merge() {
             return mergeObjects<HousingRecordApi>({
               id: first,
               invariant: first,
-              localId: shortest,
-              buildingId: youngestOrFirstDefined<'buildingId'>(
-                youngest.buildingId
-              ),
-              buildingGroupId: youngestOrFirstDefined<'buildingGroupId'>(
-                youngest.buildingGroupId
-              ),
+              localId: first,
+              buildingId: firstDefined,
+              buildingGroupId: firstDefined,
               rawAddress: first,
               geoCode: first,
-              longitude: youngestOrFirstDefined<'longitude'>(
-                youngest.longitude
-              ),
-              latitude: youngestOrFirstDefined<'latitude'>(youngest.latitude),
-              cadastralClassification:
-                youngestOrFirstDefined<'cadastralClassification'>(
-                  youngest.cadastralClassification
-                ),
+              longitude: firstDefined,
+              latitude: firstDefined,
+              cadastralClassification: firstDefined,
               uncomfortable: first,
-              vacancyStartYear: youngestOrFirstDefined<'vacancyStartYear'>(
-                youngest.vacancyStartYear
-              ),
+              vacancyStartYear: firstDefined,
               housingKind: () => youngest.housingKind,
               roomsCount: () => youngest.roomsCount,
               livingArea: () => youngest.livingArea,
-              cadastralReference: youngestOrFirstDefined<'cadastralReference'>(
-                youngest.cadastralReference
-              ),
-              buildingYear: youngestOrFirstDefined<'buildingYear'>(
-                youngest.buildingYear
-              ),
-              taxed: youngestOrFirstDefined<'taxed'>(youngest.taxed),
-              vacancyReasons: youngestOrFirstDefined<'vacancyReasons'>(
-                youngest.vacancyReasons
-              ),
+              cadastralReference: firstDefined,
+              buildingYear: firstDefined,
+              taxed: firstDefined,
+              vacancyReasons: firstDefined,
               dataYears: fp.pipe(fp.union<number>, (dataYears) =>
-                fp.orderBy<number>(['dataYears'], ['desc'])(dataYears)
+                fp.orderBy<number>(fp.identity, 'desc', dataYears)
               ),
-              buildingLocation: youngestOrFirstDefined<'buildingLocation'>(
-                youngest.buildingLocation
-              ),
-              ownershipKind: youngestOrFirstDefined<'ownershipKind'>(
-                youngest.ownershipKind
-              ),
+              buildingLocation: firstDefined,
+              ownershipKind: firstDefined,
               status: () => youngest.status,
               subStatus: () => youngest.subStatus,
               precisions: () => youngest.precisions,
-              energyConsumption: youngestOrFirstDefined<'energyConsumption'>(
-                youngest.energyConsumption
-              ),
-              energyConsumptionAt:
-                youngestOrFirstDefined<'energyConsumptionAt'>(
-                  youngest.energyConsumptionAt
-                ),
+              energyConsumption: firstDefined,
+              energyConsumptionAt: firstDefined,
               occupancy: () => youngest.occupancy,
               occupancyRegistered: () => youngest.occupancyRegistered,
               occupancyIntended: () => youngest.occupancyIntended,
               source: () => youngest.source,
-              mutationDate: youngestOrFirstDefined<'mutationDate'>(
-                youngest.mutationDate
-              ),
+              mutationDate: firstDefined,
             })(a, b);
           });
 
@@ -123,12 +99,36 @@ export async function cleanup(
         table: 'campaigns_housing',
       })
     );
+    await HousingEvents(transaction).modify(
+      transfer({
+        from: houses,
+        to: merged,
+        foreignKey: 'event_id',
+        table: 'housing_events',
+      })
+    );
     await HousingNotes(transaction).modify(
       transfer({
         from: houses,
         to: merged,
         foreignKey: 'note_id',
         table: 'housing_notes',
+      })
+    );
+    await GroupsHousing(transaction).modify(
+      transfer({
+        from: houses,
+        to: merged,
+        foreignKey: 'group_id',
+        table: 'groups_housing',
+      })
+    );
+    await GroupHousingEvents(transaction).modify(
+      transfer({
+        from: houses,
+        to: merged,
+        foreignKey: ['event_id', 'group_id'],
+        table: 'group_housing_events',
       })
     );
 
@@ -144,6 +144,18 @@ export async function cleanup(
         houses.map((housing) => housing.id)
       )
       .delete();
+
+    // Clean up local_id
+    if (merged.localId.includes(':')) {
+      await Housing(transaction)
+        .where({
+          geo_code: merged.geoCode,
+          local_id: merged.localId,
+        })
+        .update({
+          local_id: merged.localId.split(':')[0],
+        });
+    }
   });
   return merged;
 }
@@ -151,36 +163,40 @@ export async function cleanup(
 interface TransferOptions {
   from: HousingRecordApi[];
   to: HousingRecordApi;
-  foreignKey: string;
+  foreignKey: string | string[];
   table: string;
 }
 
 function transfer({ from, to, foreignKey, table }: TransferOptions) {
   return (query: Knex.QueryBuilder): void => {
+    const foreignKeys = Array.isArray(foreignKey) ? foreignKey : [foreignKey];
     query
       .update({
         housing_geo_code: to.geoCode,
         housing_id: to.id,
       })
-      .whereIn([foreignKey, 'housing_geo_code', 'housing_id'], (query) => {
+      .whereIn([...foreignKeys, 'housing_geo_code', 'housing_id'], (query) => {
         query
-          .select([foreignKey, 'housing_geo_code', 'housing_id'])
+          .select([...foreignKeys, 'housing_geo_code', 'housing_id'])
           .from(table)
           .whereIn(
             ['housing_geo_code', 'housing_id'],
             from.map((housing) => [housing.geoCode, housing.id])
           )
           .whereNotExists((query) => {
+            const refs = fp.fromPairs(
+              foreignKeys.map((key) => [key, db.ref(`${table}.${key}`)])
+            );
             query
               .select('*')
               .from({ subquery: table })
               .where({
-                [foreignKey]: db.ref(`${table}.${foreignKey}`),
+                ...refs,
                 housing_geo_code: to.geoCode,
                 housing_id: to.id,
               });
           })
-          .distinctOn(foreignKey);
+          .distinctOn(...foreignKeys);
       });
   };
 }
@@ -190,17 +206,6 @@ const youngestOf = max<HousingRecordApi>(
     DEFAULT_ORDER
   )
 );
-
-function youngestOrFirstDefined<K extends keyof HousingRecordApi>(
-  youngest: HousingRecordApi[K]
-) {
-  return (
-    first: HousingRecordApi[K],
-    second: HousingRecordApi[K]
-  ): HousingRecordApi[K] => {
-    return youngest ?? firstDefined(first, second);
-  };
-}
 
 export default {
   merge,

@@ -35,7 +35,7 @@ export function prependOriginalHousing(
         const { geoCode, localId } = housingList[0];
         const originalHousing = await housingRepository.findOne({
           geoCode,
-          localId,
+          localId: parseLocalId(localId),
         });
         return originalHousing ? [originalHousing] : [];
       })

@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { Text } from '../_dsfr';
-import { Address, addressToString } from '../../models/Address';
+import { Address, addressToString, isBanEligible } from '../../models/Address';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppAddressSearchBar from '../_app/AppSearchBar/AppAddressSearchBar';
-import config from '../../utils/config';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { AddressSearchResult } from '../../services/address.service';
+
+const ScoreBadge = ({ banAddress }: { banAddress: Address }) => (
+  <Badge noIcon severity="error">
+    {Math.round((banAddress.score ?? 0) * 100)}%
+  </Badge>
+);
 
 interface Props {
   banAddress?: Address;
@@ -72,7 +77,7 @@ const OwnerAddressEdition = ({
               <p className="fr-error-text fr-m-2w">{errorMessage}</p>
             )}
           </div>
-          {banAddress && (banAddress.score ?? 0) < config.banEligibleScore && (
+          {banAddress && !isBanEligible(banAddress) && (
             <div className="fr-mt-3w fr-p-2w bg-bf975">
               <Text size="md" className="fr-mb-2w">
                 L'adresse de la Base Adresse Nationale ci-dessus semble
@@ -86,9 +91,7 @@ const OwnerAddressEdition = ({
                 Source : LOVAC
                 <span className="fr-ml-4w">
                   Taux de correspondance : 
-                  <Badge noIcon severity="error">
-                    {Math.round((banAddress.score ?? 0) * 100)}%
-                  </Badge>
+                  <ScoreBadge banAddress={banAddress} />
                 </span>
               </Text>
               <ButtonsGroup

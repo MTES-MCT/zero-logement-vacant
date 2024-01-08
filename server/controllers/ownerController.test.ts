@@ -16,12 +16,12 @@ import {
 } from '../repositories/eventRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import { addDays } from 'date-fns';
-import { AddressKinds } from '../models/AddressApi';
 import db from '../repositories/db';
 import {
   banAddressesTable,
   formatAddressApi,
 } from '../repositories/banAddressesRepository';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 describe('Owner controller', () => {
   const { app } = createServer();

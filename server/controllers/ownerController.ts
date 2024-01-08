@@ -10,7 +10,6 @@ import {
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,6 +20,7 @@ import housingRepository from '../repositories/housingRepository';
 import HousingMissingError from '../errors/housingMissingError';
 import { OwnerPayloadDTO } from '../../shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;

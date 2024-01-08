@@ -58,7 +58,8 @@ import {
 } from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
-import { AddressApi, AddressKinds } from '../models/AddressApi';
+import { AddressApi } from '../models/AddressApi';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 logger.debug(`Seed: ${faker.seed()}`);
 

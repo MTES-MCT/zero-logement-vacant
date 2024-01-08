@@ -1,4 +1,5 @@
 import { Owner } from '../src/models/Owner';
+import { Address } from '../src/models/Address';
 import { Housing, OccupancyKind, OwnershipKinds } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { Campaign } from '../src/models/Campaign';
@@ -102,20 +103,20 @@ export function genHousing(): Housing {
   };
 }
 
-export function genCampaign() {
-  return {
-    id: randomstring.generate(),
-    campaignNumber: genNumber(1),
-    startMonth: '2201',
-    reminderNumber: 0,
-    name: randomstring.generate(),
-    filters: initialHousingFilters,
-    createdAt: new Date(),
-    housingCount: genNumber(2),
-    ownerCount: genNumber(2),
-    kind: 1,
-  } as Campaign;
-}
+export const genAddress: Address = {
+  street: randomstring.generate(),
+  houseNumber: randomstring.generate(),
+  postalCode: randomstring.generate(),
+  city: randomstring.generate(),
+};
+
+export const genCampaign = (): Campaign => ({
+  id: randomstring.generate(),
+  title: randomstring.generate(),
+  filters: initialHousingFilters,
+  createdAt: new Date(),
+  exportURL: randomstring.generate(),
+});
 
 export function genPaginatedResult<T>(results: Array<T>) {
   return {

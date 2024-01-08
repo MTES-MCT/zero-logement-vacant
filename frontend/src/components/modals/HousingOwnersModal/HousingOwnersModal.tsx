@@ -5,7 +5,12 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import {
+  banAddressValidator,
+  dateValidator,
+  emailValidator,
+  useForm,
+} from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -19,7 +24,7 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { AddressSearchResult } from '../../../services/address.service';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
-import config from '../../../utils/config';
+import { isBanEligible } from '../../../models/Address';
 
 interface Props {
   housingId: string;
@@ -290,8 +295,7 @@ const HousingOwnersModal = ({
                       <Text size="sm" className="zlv-label fr-ml-1w" as="span">
                         {getHousingOwnerRankLabel(Number(ownerInput.rank))}
                       </Text>
-                      {(ownerInput.banAddress?.score ?? 0) <
-                        config.banEligibleScore && (
+                      {!isBanEligible(ownerInput.banAddress) && (
                         <Badge severity="info" className="fr-ml-1w">
                           ADRESSE AMÉLIORABLE
                         </Badge>

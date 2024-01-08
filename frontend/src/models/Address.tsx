@@ -1,14 +1,8 @@
 import { reduceStringArray } from '../utils/stringUtils';
+import config from '../utils/config';
+import { AddressDTO } from '../../../shared/models/AdresseDTO';
 
-export interface Address {
-  street?: string;
-  houseNumber?: string;
-  postalCode: string;
-  city: string;
-  latitude?: number;
-  longitude?: number;
-  score?: number;
-}
+export type Address = Omit<AddressDTO, 'refId' | 'addressKind'>;
 
 export const addressToString = (address?: Address, breakLine = true) => {
   if (address) {
@@ -22,4 +16,10 @@ export const addressToString = (address?: Address, breakLine = true) => {
       breakLine
     );
   }
+};
+
+export const isBanEligible = (address?: Pick<Address, 'score'>) => {
+  return (
+    address?.score !== undefined && address.score >= config.banEligibleScore
+  );
 };

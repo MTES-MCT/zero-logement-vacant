@@ -1,6 +1,6 @@
 import db, { groupBy, where } from './db';
 import { OwnerApi, OwnerPayloadApi } from '../models/OwnerApi';
-import { AddressApi, AddressKinds } from '../models/AddressApi';
+import { AddressApi } from '../models/AddressApi';
 import { HousingApi } from '../models/HousingApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import { logger } from '../utils/logger';
@@ -20,13 +20,15 @@ import { groupsHousingTable } from './groupRepository';
 import { OwnerExportStreamApi } from '../controllers/housingExportController';
 import { banAddressesTable } from './banAddressesRepository';
 import _ from 'lodash';
+import { isDefined } from '../../shared';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
 export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
-  const owner = await db<OwnerDBO>(ownerTable)
+  const owner = await Owners()
     .modify(include(['banAddress']))
     .where('id', ownerId)
     .first();
@@ -475,13 +477,21 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   phone: result.phone,
   kind: result.owner_kind,
   kindDetail: result.owner_kind_detail,
-  banAddress: {
-    postalCode: result.postal_code,
-    houseNumber: result.house_number,
-    street: result.street,
-    city: result.city,
-    score: result.score,
-  },
+  banAddress: [
+    result.postal_code,
+    result.house_number,
+    result.street,
+    result.city,
+    result.score,
+  ].some(isDefined)
+    ? {
+        postalCode: result.postal_code,
+        houseNumber: result.house_number,
+        street: result.street,
+        city: result.city,
+        score: result.score,
+      }
+    : undefined,
   additionalAddress: result.additional_address,
 });
 

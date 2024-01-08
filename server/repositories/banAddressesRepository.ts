@@ -1,12 +1,9 @@
-import {
-  AddressApi,
-  AddressKinds,
-  AddressToNormalize,
-} from '../models/AddressApi';
+import { AddressApi, AddressToNormalize } from '../models/AddressApi';
 import db from './db';
 import { housingTable } from './housingRepository';
 import config from '../utils/config';
 import { logger } from '../utils/logger';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 export const banAddressesTable = 'ban_addresses';
 

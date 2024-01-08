@@ -15,7 +15,7 @@ import Card from '@codegouvfr/react-dsfr/Card';
 import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
 import Notice from '@codegouvfr/react-dsfr/Notice';
-import config from '../../utils/config';
+import { isBanEligible } from '../../models/Address';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -79,8 +79,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <br />
               {owner.banAddress?.postalCode} {owner.banAddress?.city}
               {[owner, ...(coOwners ?? [])].find(
-                (owner) =>
-                  (owner.banAddress?.score ?? 0) < config.banEligibleScore
+                (owner) => !isBanEligible(owner.banAddress)
               ) && (
                 <Notice
                   className={classNames(styles.addressNotice, 'fr-mt-2w')}

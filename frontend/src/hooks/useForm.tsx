@@ -3,7 +3,6 @@ import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';
 import { parseDateInput } from '../utils/dateUtils';
-import { isBanEligible } from '../models/Address';
 
 export const emailValidator = yup
   .string()
@@ -58,8 +57,7 @@ export const fileValidator = (supportedFormats: string[]) =>
 
 export const banAddressValidator = yup
   .object()
-  .required('Veuillez sélectionner une adresse issue de la BAN.')
-  .test('score', 'Adresse améliorable', isBanEligible);
+  .required('Veuillez sélectionner une adresse issue de la BAN.');
 
 export type MessageType = 'error' | 'success' | 'default';
 

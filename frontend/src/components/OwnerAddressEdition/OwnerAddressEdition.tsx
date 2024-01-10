@@ -27,18 +27,19 @@ const OwnerAddressEdition = ({
   errorMessage,
 }: Props) => {
   const [searchAddressFromLovac, setSearchAddressFromLovac] = useState(false);
+  const [previousAddress, setPreviousAddress] = useState<Address | undefined>();
 
   return (
     <>
       {searchAddressFromLovac ? (
         <>
-          {banAddress && (
+          {previousAddress && (
             <div className="fr-p-2w fr-mb-2w bg-bf975">
               <Text size="md" className="fr-mb-2w">
                 Adresse précédente :
               </Text>
               <Text size="md" className="fr-mb-2w weight-900">
-                {addressToString(banAddress)}
+                {addressToString(previousAddress)}
               </Text>
               <div className="align-right">
                 <Button
@@ -47,7 +48,7 @@ const OwnerAddressEdition = ({
                   onClick={() => {
                     setSearchAddressFromLovac(false);
                     onSelectAddress({
-                      ...banAddress,
+                      ...previousAddress,
                       label: addressToString(banAddress, false)!,
                     });
                   }}
@@ -87,7 +88,7 @@ const OwnerAddressEdition = ({
               <Text size="md" className="fr-mb-2w weight-900">
                 {rawAddress.join(' ')}
               </Text>
-              <Text size="md" className="fr-mb-0">
+              <Text size="md" className="fr-mb-2w">
                 Source : LOVAC
                 <span className="fr-ml-4w">
                   Taux de correspondance : 
@@ -97,10 +98,12 @@ const OwnerAddressEdition = ({
               <ButtonsGroup
                 buttons={[
                   {
-                    children: 'Appliquer',
+                    children: 'Appliquer l’ancienne adresse',
                     priority: 'secondary',
                     onClick: () => {
                       setSearchAddressFromLovac(true);
+                      setPreviousAddress(banAddress);
+                      onSelectAddress(undefined);
                     },
                   },
                   {

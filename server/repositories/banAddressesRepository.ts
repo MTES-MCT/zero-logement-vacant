@@ -129,17 +129,13 @@ export const parseAddressApi = (result: any) =>
     score: result.score,
   };
 
-const escapeValue = (value?: string) => {
-  return value ? value.replace(/'/g, "''") : '';
-};
-
 export const formatAddressApi = (addressApi: AddressApi) => ({
   ref_id: addressApi.refId,
   address_kind: addressApi.addressKind,
   house_number: addressApi.houseNumber ?? '',
-  street: escapeValue(addressApi.street),
+  street: addressApi.street,
   postal_code: addressApi.postalCode,
-  city: escapeValue(addressApi.city),
+  city: addressApi.city,
   latitude: addressApi.latitude,
   longitude: addressApi.longitude,
   score: addressApi.score,

@@ -5,7 +5,7 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -97,7 +97,7 @@ const HousingOwnersModal = ({
           .required('Veuillez renseigner un nom.'),
         [`email${index}`]: emailValidator.nullable().notRequired(),
         [`birthDate${index}`]: dateValidator.nullable().notRequired(),
-        [`banAddress${index}`]: yup.object(),
+        [`banAddress${index}`]: banAddressValidator,
         [`additionalAddress${index}`]: yup.string().nullable().notRequired(),
       }),
       {}
@@ -204,6 +204,14 @@ const HousingOwnersModal = ({
       banAddress: addressSearchResult,
     });
   };
+
+  useEffect(() => {
+    {
+      ownerInputs.forEach((_, index) =>
+        form.validateAt(`banAddress${index}` as keyof FormShape)
+      );
+    }
+  }, [ownerInputs]);
 
   // @ts-ignore
   const message = (key: string) => form.message(key);

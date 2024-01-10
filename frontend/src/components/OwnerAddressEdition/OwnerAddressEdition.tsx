@@ -81,9 +81,9 @@ const OwnerAddressEdition = ({
           {banAddress && !isBanEligible(banAddress) && (
             <div className="fr-mt-3w fr-p-2w bg-bf975">
               <Text size="md" className="fr-mb-2w">
-                L'adresse de la Base Adresse Nationale ci-dessus semble
-                différente de l'adresse LOVAC ci-dessous trouvée pour ce
-                logement :
+                La nouvelle adresse issue de la Base Adresse Nationale, proposée
+                dans le champ Adresse ci-dessus, semble différente de l’adresse
+                initialement présente qui était :
               </Text>
               <Text size="md" className="fr-mb-2w weight-900">
                 {rawAddress.join(' ')}

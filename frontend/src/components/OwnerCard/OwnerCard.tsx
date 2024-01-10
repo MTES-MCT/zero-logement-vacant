@@ -75,23 +75,26 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <Text size="sm" className="zlv-label">
                 Adresse postale
               </Text>
-              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
-              <br />
-              {owner.banAddress?.postalCode} {owner.banAddress?.city}
-              {[owner, ...(coOwners ?? [])].find(
-                (owner) => !isBanEligible(owner.banAddress)
-              ) && (
-                <Notice
-                  className={classNames(styles.addressNotice, 'fr-mt-2w')}
-                  title={
-                    <>
-                      <div className="fr-mb-2w">ADRESSE AMÉLIORABLE</div>
-                      L’amélioration que nous avons détecté concernant l’adresse
-                      d’un des propriétaires nécessite votre vérification.
-                    </>
-                  }
-                ></Notice>
-              )}
+              <Text className="fr-mb-0">
+                {owner.banAddress?.houseNumber} {owner.banAddress?.street}
+                <br />
+                {owner.banAddress?.postalCode} {owner.banAddress?.city}
+                {[owner, ...(coOwners ?? [])].find(
+                  (owner) => !isBanEligible(owner.banAddress)
+                ) && (
+                  <Notice
+                    className={classNames(styles.addressNotice, 'fr-mt-2w')}
+                    title={
+                      <>
+                        <div className="fr-mb-2w">ADRESSE AMÉLIORABLE</div>
+                        L’amélioration que nous avons détecté concernant
+                        l’adresse d’un des propriétaires nécessite votre
+                        vérification.
+                      </>
+                    }
+                  ></Notice>
+                )}
+              </Text>
             </div>
             {owner.additionalAddress && (
               <div>

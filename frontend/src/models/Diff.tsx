@@ -50,4 +50,6 @@ export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
     'rawAddress',
     'email',
     'phone',
+    'banAddress',
+    'additionalAddress',
   ]);

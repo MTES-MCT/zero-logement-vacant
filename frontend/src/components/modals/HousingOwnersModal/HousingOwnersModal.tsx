@@ -206,12 +206,10 @@ const HousingOwnersModal = ({
   };
 
   useEffect(() => {
-    {
-      ownerInputs.forEach((_, index) =>
-        form.validateAt(`banAddress${index}` as keyof FormShape)
-      );
-    }
-  }, [ownerInputs]);
+    ownerInputs.forEach((_, index) =>
+      form.validateAt(`banAddress${index}` as keyof FormShape)
+    );
+  }, [ownerInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // @ts-ignore
   const message = (key: string) => form.message(key);

@@ -1,8 +1,7 @@
 import React from 'react';
-import addressService, {
-  AddressSearchResult,
-} from '../../../services/address.service';
+import addressService, { AddressSearchResult } from '../../../services/address.service';
 import AppSearchBar, { SearchResult } from './AppSearchBar';
+import AppLink from '../AppLink/AppLink';
 
 interface Props {
   label?: string;
@@ -37,7 +36,14 @@ const AppAddressSearchBar = ({
   return (
     <>
       <label className="fr-label fr-mb-1w">
-        Adresse (source : Base Adresse Nationale)
+        Adresse (source : 
+        <AppLink
+          to="https://www.data.gouv.fr/fr/datasets/logements-vacants-du-parc-prive-par-anciennete-de-vacance-par-commune-et-par-epci/"
+          target="_blank"
+        >
+          Base Adresse Nationale
+        </AppLink>
+        )
       </label>
       <AppSearchBar
         onSearch={quickSearch}

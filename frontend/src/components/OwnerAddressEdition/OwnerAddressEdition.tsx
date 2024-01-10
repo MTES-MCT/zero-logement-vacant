@@ -99,19 +99,19 @@ const OwnerAddressEdition = ({
                   {
                     children: 'Appliquer',
                     priority: 'secondary',
+                    onClick: () => {
+                      setSearchAddressFromLovac(true);
+                    },
+                  },
+                  {
+                    children: 'Ignorer',
+                    priority: 'secondary',
                     onClick: () =>
                       onSelectAddress({
                         ...banAddress,
                         label: addressToString(banAddress, false)!,
                         score: 1,
                       }),
-                  },
-                  {
-                    children: 'Ignorer',
-                    priority: 'secondary',
-                    onClick: () => {
-                      setSearchAddressFromLovac(true);
-                    },
                   },
                 ]}
                 alignment="right"

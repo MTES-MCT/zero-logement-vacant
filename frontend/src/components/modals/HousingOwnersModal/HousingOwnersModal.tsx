@@ -5,12 +5,7 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import {
-  banAddressValidator,
-  dateValidator,
-  emailValidator,
-  useForm,
-} from '../../../hooks/useForm';
+import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -30,12 +25,14 @@ interface Props {
   housingId: string;
   housingOwners: HousingOwner[];
   onSubmit: (owners: HousingOwner[]) => Promise<void>;
+  onCancel?: () => void;
 }
 
 const HousingOwnersModal = ({
   housingId,
   housingOwners: initialHousingOwners,
   onSubmit,
+  onCancel,
 }: Props) => {
   type OwnerInput = Pick<
     HousingOwner,
@@ -100,7 +97,7 @@ const HousingOwnersModal = ({
           .required('Veuillez renseigner un nom.'),
         [`email${index}`]: emailValidator.nullable().notRequired(),
         [`birthDate${index}`]: dateValidator.nullable().notRequired(),
-        [`banAddress${index}`]: banAddressValidator,
+        [`banAddress${index}`]: yup.object(),
         [`additionalAddress${index}`]: yup.string().nullable().notRequired(),
       }),
       {}
@@ -256,7 +253,7 @@ const HousingOwnersModal = ({
                 {
                   children: 'Annuler',
                   priority: 'secondary',
-                  onClick: () => setHousingOwners(initialHousingOwners),
+                  onClick: onCancel,
                 },
                 {
                   children: 'Enregistrer',

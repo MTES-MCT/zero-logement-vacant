@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
@@ -31,6 +31,10 @@ const HousingView = () => {
   );
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
+  const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
+    new Date().getTime()
+  );
+
   if (!housing) {
     return <></>;
   }
@@ -61,6 +65,10 @@ const HousingView = () => {
                       housingId={housing.id}
                       housingOwners={housingOwners}
                       onSubmit={submitHousingOwnersUpdate}
+                      key={housingOwnersModalKey}
+                      onCancel={() =>
+                        setHousingOwnersModalKey(new Date().getTime())
+                      }
                     />
                   }
                 ></OwnerCard>

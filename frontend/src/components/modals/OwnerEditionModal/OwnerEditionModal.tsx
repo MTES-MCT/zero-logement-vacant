@@ -5,7 +5,7 @@ import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { format } from 'date-fns';
 import { parseDateInput } from '../../../utils/dateUtils';
-import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
@@ -20,9 +20,10 @@ const modal = createModal({
 
 interface Props {
   owner: Owner;
+  onCancel?: () => void;
 }
 
-const OwnerEditionModal = ({ owner }: Props) => {
+const OwnerEditionModal = ({ owner, onCancel }: Props) => {
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
     owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
@@ -39,7 +40,7 @@ const OwnerEditionModal = ({ owner }: Props) => {
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
     birthDate: dateValidator.nullable().notRequired(),
-    banAddress: banAddressValidator,
+    banAddress: yup.object(),
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),
     additionalAddress: yup.string().nullable().notRequired(),
@@ -89,6 +90,7 @@ const OwnerEditionModal = ({ owner }: Props) => {
             children: 'Annuler',
             priority: 'secondary',
             className: 'fr-mr-2w',
+            onClick: onCancel,
           },
           {
             children: 'Enregistrer',

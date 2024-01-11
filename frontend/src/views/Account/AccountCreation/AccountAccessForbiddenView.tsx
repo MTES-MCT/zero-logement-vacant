@@ -17,10 +17,7 @@ function AccountAccessForbiddenView() {
         cas suivants :
       </Text>
       <div className={classNames(fr.cx('fr-accordions-group'), 'fr-mb-2w')}>
-        <Accordion
-          label="Votre structure n’est pas autorisée à accéder aux données LOVAC"
-          defaultExpanded
-        >
+        <Accordion label="Votre structure n’est pas autorisée à accéder aux données LOVAC">
           <Text className="color-grey-50" size="sm">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
             transmettre l'acte d'engagement permettant d'accéder aux données
@@ -43,7 +40,7 @@ function AccountAccessForbiddenView() {
         <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Dans ce cas, 
-            <AppLink isSimple to="/inscription/email">
+            <AppLink isSimple to="/inscription/email" size="sm">
               réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
             </AppLink>
             . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous

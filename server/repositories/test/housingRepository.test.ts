@@ -11,6 +11,7 @@ import {
 import { Housing1 } from '../../../database/seeds/test/005-housing';
 import {
   genBuildingApi,
+  genCampaignApi,
   genGroupApi,
   genHousingApi,
   genLocalityApi,
@@ -47,6 +48,11 @@ import async from 'async';
 import { OwnerApi } from '../../models/OwnerApi';
 import { startTimer } from '../../../scripts/shared/elapsed';
 import { logger } from '../../utils/logger';
+import {
+  CampaignsHousing,
+  formatCampaignHousingApi,
+} from '../campaignHousingRepository';
+import { Campaigns, formatCampaignApi } from '../campaignRepository';
 
 describe('Housing repository', () => {
   describe('find', () => {
@@ -479,6 +485,26 @@ describe('Housing repository', () => {
         occupancy: update.occupancy,
         occupancy_intended: original.occupancyIntended,
       });
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove the links with a campaign in cascade', async () => {
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+      const campaign = genCampaignApi(Establishment1.id, User1.id);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      await CampaignsHousing().insert(
+        formatCampaignHousingApi(campaign, [housing])
+      );
+
+      await housingRepository.remove(housing);
+
+      const actual = await CampaignsHousing().where({
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id,
+      });
+      expect(actual).toBeArrayOfSize(0);
     });
   });
 });

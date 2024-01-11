@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { db, storage } from '../repositories/db';
-import { logger } from '../utils/logger';
+import { logger } from './logger';
 
 type Handler<R> = () => Promise<R>;
 

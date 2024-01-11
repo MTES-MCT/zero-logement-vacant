@@ -21,7 +21,7 @@ import mailService from '../services/mailService';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
 import UserMissingError from '../errors/userMissingError';
 import { logger } from '../utils/logger';
-import { withinTransaction } from '../middlewares/transaction';
+import { withinTransaction } from '../utils/transaction';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 
 const createUserValidators = [

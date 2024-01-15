@@ -48,6 +48,11 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <b>({age(owner.birthDate)} ans)</b>
             </Text>
           )}
+          {owner.kind && (
+            <Text size="md" className="fr-mb-0">
+              Type = {owner.kind}
+            </Text>
+          )}
           {isHousingOwner(owner) && (
             <Button
               title="Voir tous ses logements"

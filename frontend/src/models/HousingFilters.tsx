@@ -14,6 +14,7 @@ export interface HousingFilters {
   establishmentIds?: string[];
   groupIds?: string[];
   ownerKinds?: string[];
+  ownerLocations?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
   beneficiaryCounts?: string[];
@@ -69,10 +70,35 @@ export const ownerAgeOptions: SelectOption[] = [
 ];
 
 export const ownerKindOptions: SelectOption[] = [
-  { value: 'Particulier', label: 'Particulier' },
-  { value: 'Investisseur', label: 'Investisseur' },
-  { value: 'SCI', label: 'SCI' },
-  { value: 'Autre', label: 'Autres' },
+  {
+    value: 'etat-et-collectivite-territoriale',
+    label: 'Etat et collectivité territoriale',
+  },
+  {
+    value: 'bailleur-social-amenageur-investisseur-public',
+    label: 'Bailleur social, Aménageur, Investisseur public',
+  },
+  {
+    value: 'promoteur-investisseur-prive',
+    label: 'Promoteur, Investisseur privé',
+  },
+  {
+    value: 'sci-copropriete-autres-personnes-morales',
+    label: 'SCI, Copropriété, Autres personnes morales',
+  },
+  { value: 'personne-physique', label: 'Particulier' },
+  { value: 'absence-de-proprietaire', label: 'Absence de propriétaire' },
+  { value: 'autres', label: 'Autres' },
+];
+
+export const ownerLocationOptions: SelectOption[] = [
+  { value: 'commune', label: 'Dans la commune' },
+  { value: 'departement', label: 'Dans le département' },
+  { value: 'region', label: 'Dans la région' },
+  { value: 'metropole', label: 'En métropole' },
+  { value: 'outre-mer', label: 'En outre-mer' },
+  { value: 'etranger', label: 'À l’étranger' },
+  { value: 'inconnu', label: 'Inconnu' },
 ];
 
 export const campaignsCountOptions: SelectOption[] = [

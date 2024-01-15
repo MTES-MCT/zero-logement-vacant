@@ -13,6 +13,7 @@ export interface HousingFiltersApi {
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
+  ownerLocations?: string[];
   beneficiaryCounts?: string[];
   housingKinds?: string[];
   cadastralClassifications?: string[];
@@ -50,6 +51,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.ownerKinds`).default([]).custom(isArrayOf(isString)),
   body(`${property}.ownerAges`).default([]).custom(isArrayOf(isString)),
   body(`${property}.multiOwners`).default([]).custom(isArrayOf(isString)),
+  body(`${property}.ownerLocations`).default([]).custom(isArrayOf(isString)),
   body(`${property}.beneficiaryCounts`).default([]).custom(isArrayOf(isString)),
   body(`${property}.housingKinds`).default([]).custom(isArrayOf(isString)),
   body(`${property}.cadastralClassificiations`)

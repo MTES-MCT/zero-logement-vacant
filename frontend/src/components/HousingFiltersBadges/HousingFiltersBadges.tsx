@@ -16,6 +16,7 @@ import {
   multiOwnerOptions,
   ownerAgeOptions,
   ownerKindOptions,
+  ownerLocationOptions,
   ownershipKindsOptions,
   roomsCountOptions,
   statusOptions,
@@ -100,6 +101,14 @@ const HousingFiltersBadges = ({
           small={small}
           onChange={
             onChange && ((values) => onChange({ beneficiaryCounts: values }))
+          }
+        />
+        <FilterBadges
+          options={ownerLocationOptions}
+          filters={filters.ownerLocations}
+          small={small}
+          onChange={
+            onChange && ((values) => onChange({ ownerLocations: values }))
           }
         />
         <FilterBadges

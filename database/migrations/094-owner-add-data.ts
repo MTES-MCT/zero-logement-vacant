@@ -4,6 +4,7 @@ exports.up = async (knex: Knex) => {
   await knex.schema.alterTable('owners', (table) => {
     table.string('location');
   });
+  if (process.env.DATABASE_ENV !== 'test') {
   await knex.raw(
     'update owners o\n' +
       'set (owner_kind, owner_kind_detail, location) = (select ' +
@@ -69,6 +70,7 @@ exports.up = async (knex: Knex) => {
       '  and om.idpersonne = dfo.idpersonne' +
       '  limit 1)'
   );
+
 };
 
 exports.down = async (knex: Knex) => {

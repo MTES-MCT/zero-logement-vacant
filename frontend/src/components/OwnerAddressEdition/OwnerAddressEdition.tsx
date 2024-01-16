@@ -3,15 +3,8 @@ import { Text } from '../_dsfr';
 import { Address, addressToString, isBanEligible } from '../../models/Address';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppAddressSearchBar from '../_app/AppSearchBar/AppAddressSearchBar';
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { AddressSearchResult } from '../../services/address.service';
-
-const ScoreBadge = ({ banAddress }: { banAddress: Address }) => (
-  <Badge noIcon severity="error">
-    {Math.round((banAddress.score ?? 0) * 100)}%
-  </Badge>
-);
 
 interface Props {
   banAddress?: Address;

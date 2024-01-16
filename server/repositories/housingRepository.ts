@@ -622,7 +622,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
       });
     }
     if (filters.ownerLocations?.length) {
-      queryBuilder.whereIn('owner_locationkind', filters.ownerLocations);
+      queryBuilder.whereIn('location', filters.ownerLocations);
     }
     if (filters.housingKinds?.length) {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);

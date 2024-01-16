@@ -16,6 +16,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
 import Notice from '@codegouvfr/react-dsfr/Notice';
 import { isBanEligible } from '../../models/Address';
+import { getOwnerKindLabel } from '../../models/HousingFilters';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -48,10 +49,13 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <b>({age(owner.birthDate)} ans)</b>
             </Text>
           )}
-          {owner.kind && (
-            <Text size="md" className="fr-mb-0">
-              Type = {owner.kind}
-            </Text>
+          {getOwnerKindLabel(owner) && (
+            <div>
+              <Text size="sm" className="zlv-label">
+                Type
+              </Text>
+              <Text spacing="mb-0">{getOwnerKindLabel(owner)}</Text>
+            </div>
           )}
           {isHousingOwner(owner) && (
             <Button

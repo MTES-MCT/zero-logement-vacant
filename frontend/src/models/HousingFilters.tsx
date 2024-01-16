@@ -9,6 +9,7 @@ import {
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
+import { Owner } from './Owner';
 
 export interface HousingFilters {
   establishmentIds?: string[];
@@ -90,6 +91,10 @@ export const ownerKindOptions: SelectOption[] = [
   { value: 'absence-de-proprietaire', label: 'Absence de propriétaire' },
   { value: 'autres', label: 'Autres' },
 ];
+
+export const getOwnerKindLabel = (owner: Owner) => {
+  return ownerKindOptions.find((_) => _.value === owner.kind)?.label;
+};
 
 export const ownerLocationOptions: SelectOption[] = [
   { value: 'commune', label: 'Dans la commune' },

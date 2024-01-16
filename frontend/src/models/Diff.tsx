@@ -11,7 +11,10 @@ export interface Diff<T> {
 function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
   return fp.pipe(
     fp.pick(props),
-    fp.pickBy((value, key) => !fp.isEqual(value, b[key as keyof typeof value]))
+    fp.pickBy(
+      (value, key) =>
+        !fp.isEqualWith(customizer, value, b[key as keyof typeof value])
+    )
   )(a);
 }
 
@@ -28,6 +31,19 @@ export function hasValues<T>(partial: Partial<T>) {
       (_) => _ !== undefined && _ !== null && (_ as any[]).length !== 0
     ).length > 0
   );
+}
+
+function customizer(a?: any, b?: any) {
+  if (typeof a === 'string' && typeof b === 'string') {
+    return a.toUpperCase() === b.toUpperCase();
+  }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return fp.isEqual(
+      a.map((_) => _.toUpperCase()),
+      b.map((_) => _.toUpperCase())
+    );
+  }
+  return fp.isEqual(a, b);
 }
 
 export const getHousingDiff = (

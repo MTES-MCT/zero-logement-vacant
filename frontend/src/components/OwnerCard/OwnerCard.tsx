@@ -86,10 +86,11 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                     className={classNames(styles.addressNotice, 'fr-mt-2w')}
                     title={
                       <>
-                        <div className="fr-mb-2w">ADRESSE AMÉLIORABLE</div>
-                        L’amélioration que nous avons détecté concernant
-                        l’adresse d’un des propriétaires nécessite votre
+                        <div className="fr-mb-2w">ADRESSE À VÉRIFIER</div>
+                        L'adresse d’un des propriétaires nécessite votre
                         vérification.
+                        <br />
+                        Cliquez sur Modifier ci-dessus.
                       </>
                     }
                   ></Notice>

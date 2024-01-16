@@ -80,25 +80,21 @@ const OwnerAddressEdition = ({
           </div>
           {banAddress && !isBanEligible(banAddress) && (
             <div className="fr-mt-3w fr-p-2w bg-bf975">
+              <Text size="md" className="color-info-425 weight-900">
+                Amélioration possible
+              </Text>
               <Text size="md" className="fr-mb-2w">
-                La nouvelle adresse issue de la Base Adresse Nationale, proposée
+                L'adresse issue de la <u>Base Adresse Nationale</u>, indiquée
                 dans le champ Adresse ci-dessus, semble différente de l’adresse
-                initialement présente qui était :
-              </Text>
-              <Text size="md" className="fr-mb-2w weight-900">
-                {rawAddress.join(' ')}
+                issue de la <u>DGFIP</u> : <b>{rawAddress.join(' ')}</b>
               </Text>
               <Text size="md" className="fr-mb-2w">
-                Source : LOVAC
-                <span className="fr-ml-4w">
-                  Taux de correspondance : 
-                  <ScoreBadge banAddress={banAddress} />
-                </span>
+                Modifier le champ Adresse à partir de l’adresse DGFIP ?
               </Text>
               <ButtonsGroup
                 buttons={[
                   {
-                    children: 'Appliquer l’ancienne adresse',
+                    children: 'Oui',
                     priority: 'secondary',
                     onClick: () => {
                       setSearchAddressFromLovac(true);
@@ -107,7 +103,7 @@ const OwnerAddressEdition = ({
                     },
                   },
                   {
-                    children: 'Ignorer',
+                    children: 'Non',
                     priority: 'secondary',
                     onClick: () =>
                       onSelectAddress({
@@ -117,7 +113,7 @@ const OwnerAddressEdition = ({
                       }),
                   },
                 ]}
-                alignment="right"
+                alignment="left"
                 inlineLayoutWhen="sm and up"
               ></ButtonsGroup>
             </div>

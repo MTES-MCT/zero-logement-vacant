@@ -55,6 +55,10 @@ export const fileValidator = (supportedFormats: string[]) =>
       (value) => value && supportedFormats.includes(value.type)
     );
 
+export const banAddressValidator = yup
+  .object()
+  .required('Veuillez sélectionner une adresse issue de la BAN.');
+
 export type MessageType = 'error' | 'success' | 'default';
 
 interface Message {

@@ -7,6 +7,14 @@ export interface OwnerPayloadDTO {
   birthDate?: string;
   email?: string;
   phone?: string;
+  banAddress?: {
+    houseNumber?: string;
+    postalCode: string;
+    street?: string;
+    city: string;
+    score?: number;
+  };
+  additionalAddress?: string;
 }
 
 export interface OwnerDTO extends Omit<OwnerPayloadDTO, 'birthDate'> {

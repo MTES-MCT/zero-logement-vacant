@@ -1,3 +1,5 @@
+import { Address } from './Address';
+
 export interface DraftOwner {
   rawAddress: string[];
   fullName: string;
@@ -15,6 +17,8 @@ export interface Owner {
   email?: string;
   phone?: string;
   kind?: string;
+  banAddress?: Address;
+  additionalAddress?: string;
 }
 
 export interface HousingOwner extends Owner {

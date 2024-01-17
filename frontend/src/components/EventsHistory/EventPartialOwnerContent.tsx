@@ -3,6 +3,7 @@ import React from 'react';
 import { hasValues } from '../../models/Diff';
 import { Owner } from '../../models/Owner';
 import { birthdate } from '../../utils/dateUtils';
+import { addressToString } from '../../models/Address';
 
 interface Props {
   partialOwner: Partial<Owner>;
@@ -43,6 +44,20 @@ const EventPartialOwnerContent = ({
               <>
                 <span className="color-grey-625">Adresse postale</span>
                 {partialOwner.rawAddress.join(' - ')}
+              </>
+            )}
+          {partialOwner.banAddress !== undefined &&
+            partialOwner.banAddress !== null && (
+              <>
+                <span className="color-grey-625">Adresse postale</span>
+                {addressToString(partialOwner.banAddress)}
+              </>
+            )}
+          {partialOwner.additionalAddress !== undefined &&
+            partialOwner.additionalAddress !== null && (
+              <>
+                <span className="color-grey-625">Complément d'adresse</span>
+                {partialOwner.additionalAddress}
               </>
             )}
           {partialOwner.email !== undefined && partialOwner.email !== null && (

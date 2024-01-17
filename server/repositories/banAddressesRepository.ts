@@ -1,13 +1,9 @@
-import {
-  AddressApi,
-  AddressKinds,
-  AddressToNormalize,
-} from '../models/AddressApi';
+import { AddressApi, AddressToNormalize } from '../models/AddressApi';
 import db from './db';
 import { housingTable } from './housingRepository';
-import { ownerTable } from './ownerRepository';
 import config from '../utils/config';
 import { logger } from '../utils/logger';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 export const banAddressesTable = 'ban_addresses';
 
@@ -43,42 +39,20 @@ const lastUpdatedClause = (query: any) => {
 };
 
 const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
-  return db
-    .union(
-      [
-        db(housingTable)
-          .select(
-            'id',
-            'raw_address',
-            db.raw(`'${AddressKinds.Housing}' as address_kind`),
-            'last_updated_at',
-            'geo_code'
-          )
-          .leftJoin(banAddressesTable, (query: any) => {
-            query
-              .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
-              .andOnVal('address_kind', AddressKinds.Housing);
-          })
-          .modify(lastUpdatedClause)
-          .modify(orderWithLimit),
-        db(ownerTable)
-          .select(
-            'id',
-            'raw_address',
-            db.raw(`'${AddressKinds.Owner}' as address_kind`),
-            'last_updated_at',
-            db.raw('null as geo_code')
-          )
-          .leftJoin(banAddressesTable, (query: any) => {
-            query
-              .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
-              .andOnVal('address_kind', AddressKinds.Owner);
-          })
-          .modify(lastUpdatedClause)
-          .modify(orderWithLimit),
-      ],
-      true
+  return db(housingTable)
+    .select(
+      'id',
+      'raw_address',
+      db.raw(`'${AddressKinds.Housing}' as address_kind`),
+      'last_updated_at',
+      'geo_code'
     )
+    .leftJoin(banAddressesTable, (query: any) => {
+      query
+        .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
+        .andOnVal('address_kind', AddressKinds.Housing);
+    })
+    .modify(lastUpdatedClause)
     .modify(orderWithLimit)
     .then((_) =>
       _.map(
@@ -155,17 +129,13 @@ export const parseAddressApi = (result: any) =>
     score: result.score,
   };
 
-const escapeValue = (value?: string) => {
-  return value ? value.replace(/'/g, "''") : '';
-};
-
-const formatAddressApi = (addressApi: AddressApi) => ({
+export const formatAddressApi = (addressApi: AddressApi) => ({
   ref_id: addressApi.refId,
   address_kind: addressApi.addressKind,
   house_number: addressApi.houseNumber ?? '',
-  street: escapeValue(addressApi.street),
+  street: addressApi.street,
   postal_code: addressApi.postalCode,
-  city: escapeValue(addressApi.city),
+  city: addressApi.city,
   latitude: addressApi.latitude,
   longitude: addressApi.longitude,
   score: addressApi.score,

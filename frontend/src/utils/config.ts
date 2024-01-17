@@ -15,6 +15,7 @@ const config = {
   },
   perPageDefault: 50,
   dataYear: 2022,
+  banEligibleScore: 0.8,
   feature: {
     /**
      * @example

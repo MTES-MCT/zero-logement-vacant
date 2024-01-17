@@ -18,13 +18,20 @@ import {
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { groupsHousingTable } from './groupRepository';
 import { OwnerExportStreamApi } from '../controllers/housingExportController';
+import { banAddressesTable } from './banAddressesRepository';
+import _ from 'lodash';
+import { isDefined, isNotNull } from '../../shared';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
 export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
-  const owner = await db<OwnerDBO>(ownerTable).where('id', ownerId).first();
+  const owner = await Owners()
+    .modify(include(['banAddress']))
+    .where('id', ownerId)
+    .first();
   return owner ? parseOwnerApi(owner) : null;
 };
 
@@ -111,6 +118,25 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
     .orderBy('full_name');
   return owners.map(parseOwnerApi);
 };
+
+type OwnerInclude = 'banAddress';
+
+function include(includes: OwnerInclude[]) {
+  const joins: Record<OwnerInclude, (query: Knex.QueryBuilder) => void> = {
+    banAddress: (query) =>
+      query.leftJoin(banAddressesTable, (query: any) => {
+        query
+          .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+          .andOnVal('address_kind', AddressKinds.Owner);
+      }),
+  };
+
+  return (query: Knex.QueryBuilder) => {
+    _.uniq(includes).forEach((include) => {
+      joins[include](query);
+    });
+  };
+}
 
 const stream = (opts?: StreamOptions): Stream<OwnerApi> => {
   const stream = Owners()
@@ -232,6 +258,7 @@ const findByHousing = async (
       `${ownerTable}.id`,
       `${housingOwnersTable}.owner_id`
     )
+    .modify(include(['banAddress']))
     .whereRaw(`${housingOwnersTable}.rank >= 1`)
     .where(`${housingOwnersTable}.housing_id`, housing.id)
     .where(`${housingOwnersTable}.housing_geo_code`, housing.geoCode)
@@ -337,6 +364,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
         birth_date: ownerApi.birthDate,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
+        additional_address: ownerApi.additionalAddress ?? null,
       })
       .returning('*')
       .then((_) => parseOwnerApi(_[0]));
@@ -431,6 +459,12 @@ export interface OwnerDBO {
   owner_kind_detail?: string;
   email?: string;
   phone?: string;
+  postal_code?: string;
+  house_number?: string;
+  street?: string;
+  city?: string;
+  score?: number;
+  additional_address?: string;
 }
 
 export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
@@ -443,6 +477,22 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   phone: result.phone,
   kind: result.owner_kind,
   kindDetail: result.owner_kind_detail,
+  banAddress: [
+    result.postal_code,
+    result.house_number,
+    result.street,
+    result.city,
+    result.score,
+  ].some((_) => isDefined(_) && isNotNull(_))
+    ? {
+        postalCode: result.postal_code ?? '',
+        houseNumber: result.house_number,
+        street: result.street,
+        city: result.city ?? '',
+        score: result.score,
+      }
+    : undefined,
+  additionalAddress: result.additional_address,
 });
 
 export const parseHousingOwnerApi = (
@@ -467,6 +517,7 @@ export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
   phone: ownerApi.phone,
   owner_kind: ownerApi.kind,
   owner_kind_detail: ownerApi.kindDetail,
+  additional_address: ownerApi.additionalAddress,
 });
 
 export default {

@@ -1,4 +1,4 @@
-import { displayCount } from '../stringUtils';
+import { displayCount, reduceStringArray } from '../stringUtils';
 
 describe('String utils', () => {
   describe('displayCount', () => {
@@ -25,6 +25,28 @@ describe('String utils', () => {
     it('should feminize the string', () => {
       const actual = displayCount(2, 'maison', { feminine: true });
       expect(actual).toBe('2 maisons');
+    });
+  });
+
+  describe('reduceStringArray', () => {
+    it('should return an empty string when the array is empty', () => {
+      const actual = reduceStringArray([]);
+      expect(actual).toBe('');
+    });
+
+    it('should return a string without undefined elements', () => {
+      const actual = reduceStringArray(['a', undefined]);
+      expect(actual).toBe('a');
+    });
+
+    it('should return a string with two elements join by a break line by default', () => {
+      const actual = reduceStringArray(['a', 'b']);
+      expect(actual).toBe('a\nb');
+    });
+
+    it('should return a string with two elements join by a space', () => {
+      const actual = reduceStringArray(['a', 'b'], false);
+      expect(actual).toBe('a b');
     });
   });
 });

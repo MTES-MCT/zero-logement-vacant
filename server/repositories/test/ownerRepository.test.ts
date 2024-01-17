@@ -52,6 +52,7 @@ describe('Owner repository', () => {
         ...owner,
         administrator: null,
         birthDate: null,
+        banAddress: undefined,
       });
     });
 
@@ -69,6 +70,7 @@ describe('Owner repository', () => {
         ...owner,
         administrator: null,
         birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
+        banAddress: undefined,
       });
     });
   });

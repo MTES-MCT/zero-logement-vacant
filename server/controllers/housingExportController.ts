@@ -7,11 +7,7 @@ import {
   OccupancyKindApiLabels,
 } from '../models/HousingApi';
 import campaignRepository from '../repositories/campaignRepository';
-import {
-  AddressApi,
-  AddressKinds,
-  formatAddressApi,
-} from '../models/AddressApi';
+import { AddressApi, formatAddressApi } from '../models/AddressApi';
 import { AuthenticatedRequest } from 'express-jwt';
 import { getHousingStatusApiLabel } from '../models/HousingStatusApi';
 import banAddressesRepository from '../repositories/banAddressesRepository';
@@ -27,6 +23,7 @@ import { param, ValidationChain } from 'express-validator';
 import CampaignMissingError from '../errors/campaignMissingError';
 import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 

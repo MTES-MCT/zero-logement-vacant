@@ -21,7 +21,7 @@ const OwnerProspectForm = ({
   onCreateOwnerProspect,
 }: Props) => {
   const [address, setAddress] = useState(addressSearchResult?.label ?? '');
-  const [geoCode, setGeoCode] = useState(addressSearchResult?.geoCode ?? '');
+  const [geoCode, setGeoCode] = useState(addressSearchResult?.postalCode ?? '');
   const [invariant, setInvariant] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -77,7 +77,7 @@ const OwnerProspectForm = ({
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
     setAddress(addressSearchResult.label);
-    setGeoCode(addressSearchResult.geoCode);
+    setGeoCode(addressSearchResult.postalCode);
   };
 
   return (

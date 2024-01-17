@@ -4,6 +4,7 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "scripts": {
+    "prepare": "husky install",
     "frontend:build": "npm --prefix frontend install && npm run --prefix frontend build",
     "frontend:start": "npm --prefix frontend start",
     "frontend:lint": "npm --prefix frontend run lint",

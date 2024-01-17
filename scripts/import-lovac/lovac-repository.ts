@@ -13,6 +13,7 @@ import { HousingStatusApi } from '../../server/models/HousingStatusApi';
 import { ownerTable } from '../../server/repositories/ownerRepository';
 import { Knex } from 'knex';
 import { HousingOwnerApi } from '../../server/models/HousingOwnerApi';
+import { parse } from 'date-fns';
 
 export const lovacTable = 'lovac';
 
@@ -231,6 +232,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     localId: housing.local_id,
     localityKind: '',
     occupancy: OccupancyKindApi.Vacant,
+    occupancyRegistered: OccupancyKindApi.Vacant,
     owner: {
       id: housing.owner_id ?? uuidv4(),
       fullName: housing.full_name,
@@ -255,6 +257,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     buildingYear: housing.building_year,
     ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
     source: 'lovac',
+    mutationDate: parse(housing.mutation_date, 'yyyy-MM-dd', new Date()),
   };
 }
 

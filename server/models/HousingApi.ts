@@ -24,10 +24,13 @@ export interface HousingRecordApi {
   livingArea: number;
   cadastralReference?: string;
   buildingYear?: number;
+  mutationDate: Date | null;
   taxed?: boolean;
   vacancyReasons?: string[];
   dataYears: number[];
+  beneficiaryCount?: number;
   buildingLocation?: string;
+  rentalValue?: number;
   ownershipKind?: OwnershipKindsApi;
   status: HousingStatusApi;
   subStatus?: string;
@@ -35,8 +38,9 @@ export interface HousingRecordApi {
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;
   occupancy: OccupancyKindApi;
-  occupancyRegistered?: OccupancyKindApi;
+  occupancyRegistered: OccupancyKindApi;
   occupancyIntended?: OccupancyKindApi;
+  plotId?: string;
   source: HousingSource | null;
 }
 

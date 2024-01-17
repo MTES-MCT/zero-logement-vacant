@@ -6,10 +6,11 @@ export const notesTable = 'notes';
 export const ownerNotesTable = 'owner_notes';
 export const housingNotesTable = 'housing_notes';
 
-const Notes = () => db<NoteDBO>(notesTable);
-const OwnerNotes = () =>
+export const Notes = () => db<NoteDBO>(notesTable);
+export const OwnerNotes = () =>
   db<{ note_id: string; owner_id: string }>(ownerNotesTable);
-const HousingNotes = () => db<HousingNoteDBO>(housingNotesTable);
+export const HousingNotes = (transaction = db) =>
+  transaction<HousingNoteDBO>(housingNotesTable);
 
 const insertOwnerNote = async (ownerNoteApi: OwnerNoteApi): Promise<void> => {
   logger.info('Insert OwnerNoteApi');
@@ -81,7 +82,7 @@ interface HousingNoteDBO {
   housing_geo_code: string;
 }
 
-const formatNoteApi = (noteApi: NoteApi): NoteDBO => ({
+export const formatNoteApi = (noteApi: NoteApi): NoteDBO => ({
   id: noteApi.id,
   created_by: noteApi.createdBy,
   created_at: noteApi.createdAt,
@@ -89,7 +90,13 @@ const formatNoteApi = (noteApi: NoteApi): NoteDBO => ({
   content: noteApi.content,
 });
 
-const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
+export const formatHousingNoteApi = (note: HousingNoteApi): HousingNoteDBO => ({
+  note_id: note.id,
+  housing_id: note.housingId,
+  housing_geo_code: note.housingGeoCode,
+});
+
+export const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
   id: noteDbo.id,
   createdBy: noteDbo.created_by,
   createdAt: noteDbo.created_at,

@@ -13,7 +13,7 @@ import { Housing1 } from './005-housing';
 import { User1 } from './003-users';
 
 export const OwnerEvent1 = genOwnerEventApi(Owner1.id, User1.id);
-export const HousingEvent1 = genHousingEventApi(Housing1.id, User1.id);
+export const HousingEvent1 = genHousingEventApi(Housing1, User1);
 
 exports.seed = function (knex: Knex) {
   return Promise.all([
@@ -29,13 +29,11 @@ exports.seed = function (knex: Knex) {
       .table(eventsTable)
       .insert([eventRepository.formatEventApi(HousingEvent1)])
       .then(() =>
-        knex
-          .table(housingEventsTable)
-          .insert({
-            event_id: HousingEvent1.id,
-            housing_id: Housing1.id,
-            housing_geo_code: Housing1.geoCode,
-          })
+        knex.table(housingEventsTable).insert({
+          event_id: HousingEvent1.id,
+          housing_id: Housing1.id,
+          housing_geo_code: Housing1.geoCode,
+        })
       ),
   ]);
 };

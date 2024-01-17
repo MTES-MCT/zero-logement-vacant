@@ -1,9 +1,10 @@
 import db from './db';
 import { HousingApi } from '../models/HousingApi';
+import { CampaignApi } from '../models/CampaignApi';
 
 export const campaignsHousingTable = 'campaigns_housing';
-export const CampaignsHousing = () =>
-  db<CampaignHousingDBO>(campaignsHousingTable);
+export const CampaignsHousing = (transaction = db) =>
+  transaction<CampaignHousingDBO>(campaignsHousingTable);
 
 const insertHousingList = async (
   campaignId: string,
@@ -52,6 +53,17 @@ export interface CampaignHousingDBO {
   housing_geo_code: string;
   advice?: string;
 }
+
+export const formatCampaignHousingApi = (
+  campaign: CampaignApi,
+  housingList: HousingApi[]
+): CampaignHousingDBO[] => {
+  return housingList.map((housing) => ({
+    campaign_id: campaign.id,
+    housing_id: housing.id,
+    housing_geo_code: housing.geoCode,
+  }));
+};
 
 export default {
   insertHousingList,

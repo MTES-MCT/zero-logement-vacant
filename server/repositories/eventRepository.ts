@@ -30,20 +30,12 @@ export const Events = (transaction = db) =>
 export const OwnerEvents = (transaction = db) =>
   transaction<OwnerEventDBO>(ownerEventsTable);
 export const HousingEvents = (transaction = db) =>
-  transaction<{
-    event_id: string;
-    housing_id: string;
-    housing_geo_code: string;
-  }>(housingEventsTable);
+  transaction<HousingEventDBO>(housingEventsTable);
 export const CampaignEvents = (transaction = db) =>
   transaction<{ event_id: string; campaign_id: string }>(campaignEventsTable);
+
 export const GroupHousingEvents = (transaction = db) =>
-  transaction<{
-    event_id: string;
-    housing_id: string;
-    housing_geo_code: string;
-    group_id: string | null;
-  }>(groupHousingEventsTable);
+  transaction<GroupHousingEventDBO>(groupHousingEventsTable);
 
 const insertHousingEvent = async (
   housingEvent: HousingEventApi
@@ -225,6 +217,19 @@ export interface OwnerEventDBO {
   owner_id: string;
 }
 
+export interface HousingEventDBO {
+  event_id: string;
+  housing_geo_code: string;
+  housing_id: string;
+}
+
+export interface GroupHousingEventDBO {
+  event_id: string;
+  housing_geo_code: string;
+  housing_id: string;
+  group_id: string | null;
+}
+
 export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   return {
     id: eventApi.id,
@@ -237,6 +242,25 @@ export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
     new: eventApi.new,
     created_at: eventApi.createdAt,
     created_by: eventApi.createdBy,
+  };
+}
+
+export function formatHousingEventApi(event: HousingEventApi): HousingEventDBO {
+  return {
+    event_id: event.id,
+    housing_geo_code: event.housingGeoCode,
+    housing_id: event.housingId,
+  };
+}
+
+export function formatGroupHousingEventApi(
+  event: GroupHousingEventApi
+): GroupHousingEventDBO {
+  return {
+    event_id: event.id,
+    housing_geo_code: event.housingGeoCode,
+    housing_id: event.housingId,
+    group_id: event.groupId,
   };
 }
 

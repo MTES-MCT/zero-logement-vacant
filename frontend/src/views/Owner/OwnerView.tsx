@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';
@@ -15,6 +15,10 @@ const OwnerView = () => {
   const { count, owner, paginatedHousing } = useOwner();
   const housingCount = count?.housing ?? 0;
 
+  const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(
+    new Date().getTime()
+  );
+
   if (!owner || !paginatedHousing) {
     return <></>;
   }
@@ -26,7 +30,13 @@ const OwnerView = () => {
           <OwnerCard
             owner={owner}
             housingCount={housingCount}
-            modify={<OwnerEditionModal owner={owner} />}
+            modify={
+              <OwnerEditionModal
+                owner={owner}
+                key={ownerEditionModalKey}
+                onCancel={() => setOwnerEditionModalKey(new Date().getTime())}
+              />
+            }
           />
         </Col>
         <Col n="8">

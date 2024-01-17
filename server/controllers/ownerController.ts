@@ -5,7 +5,6 @@ import { fromOwnerPayloadDTO, hasContactChanges, hasIdentityChanges, OwnerApi } 
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
-import { AddressKinds } from '../models/AddressApi';
 import OwnerMissingError from '../errors/ownerMissingError';
 import banAddressesRepository from '../repositories/banAddressesRepository';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +15,7 @@ import housingRepository from '../repositories/housingRepository';
 import HousingMissingError from '../errors/housingMissingError';
 import { OwnerPayloadDTO } from '../../shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 const get = async (request: Request, response: Response) => {
   const { id } = request.params;
@@ -136,20 +136,31 @@ const updateOwner = async (
     rawAddress: ownerApi.rawAddress,
     email: ownerApi.email,
     phone: ownerApi.phone,
+    banAddress: ownerApi.banAddress,
+    additionalAddress: ownerApi.additionalAddress,
   };
 
   if (
     hasIdentityChanges(prevOwnerApi, updatedOwnerApi) ||
-    hasContactChanges(prevOwnerApi, updatedOwnerApi)
+    hasContactChanges(prevOwnerApi, updatedOwnerApi) ||
+    updatedOwnerApi.banAddress !== prevOwnerApi.banAddress
   ) {
     logger.debug('updatedOwnerApi', updatedOwnerApi);
 
     await ownerRepository.update(updatedOwnerApi);
 
-    await banAddressesRepository.markAddressToBeNormalized(
-      ownerApi.id,
-      AddressKinds.Owner
-    );
+    if (
+      updatedOwnerApi.banAddress &&
+      updatedOwnerApi.banAddress !== prevOwnerApi.banAddress
+    ) {
+      await banAddressesRepository.upsertList([
+        {
+          refId: ownerApi.id,
+          addressKind: AddressKinds.Owner,
+          ...updatedOwnerApi.banAddress,
+        },
+      ]);
+    }
 
     if (hasIdentityChanges(prevOwnerApi, updatedOwnerApi)) {
       await eventRepository.insertOwnerEvent({
@@ -260,6 +271,14 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
+  body('banAddress.houseNumber').isString().optional(),
+  body('banAddress.street').isString().optional(),
+  body('banAddress.postalCode').isString().optional(),
+  body('banAddress.city').isString().optional(),
+  body('banAddress.latitude').isNumeric().optional(),
+  body('banAddress.longitude').isNumeric().optional(),
+  body('banAddress.score').isNumeric().optional(),
+  body('additionalAddress').isString().optional(),
 ];
 
 const ownerController = {

@@ -33,7 +33,12 @@ import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { SettingsApi } from '../models/SettingsApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
-import { EventApi, HousingEventApi, OwnerEventApi } from '../models/EventApi';
+import {
+  EventApi,
+  GroupHousingEventApi,
+  HousingEventApi,
+  OwnerEventApi,
+} from '../models/EventApi';
 import { EventKinds } from '../../shared/types/EventKind';
 import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
@@ -58,6 +63,9 @@ import {
 } from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import { BuildingApi } from '../models/BuildingApi';
+import { AddressApi } from '../models/AddressApi';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
+import { HousingNoteApi, NoteApi } from '../models/NoteApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -188,8 +196,9 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
 };
 
 export const genOwnerApi = (): OwnerApi => {
+  const id = uuidv4();
   return {
-    id: uuidv4(),
+    id,
     rawAddress: [
       faker.location.streetAddress(),
       `${faker.location.zipCode()}, ${faker.location.city()}`,
@@ -201,6 +210,24 @@ export const genOwnerApi = (): OwnerApi => {
     phone: faker.phone.number(),
     kind: randomstring.generate(),
     kindDetail: randomstring.generate(),
+    additionalAddress: randomstring.generate(),
+  };
+};
+
+export const genAddressApi = (
+  refId: string,
+  addressKind: AddressKinds
+): AddressApi => {
+  return {
+    refId,
+    addressKind,
+    houseNumber: faker.location.buildingNumber(),
+    street: faker.location.street(),
+    postalCode: faker.location.zipCode(),
+    city: faker.location.city(),
+    latitude: faker.address.latitude(),
+    longitude: faker.address.longitude(),
+    score: Math.random(),
   };
 };
 
@@ -264,6 +291,7 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCES),
+    mutationDate: faker.date.past(),
   };
 };
 
@@ -373,16 +401,30 @@ export const genOwnerEventApi = (
 };
 
 export const genHousingEventApi = (
-  housingId: string,
-  createdBy: string
+  housing: HousingApi,
+  createdBy: UserApi
 ): HousingEventApi => {
-  const geoCode = genGeoCode();
   return {
-    ...genEventApi<HousingApi>(createdBy),
-    old: { ...genHousingApi(geoCode), id: housingId },
-    new: { ...genHousingApi(geoCode), id: housingId },
-    housingId,
-    housingGeoCode: geoCode,
+    ...genEventApi<HousingApi>(createdBy.id),
+    old: housing,
+    new: { ...genHousingApi(housing.geoCode), id: housing.id },
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
+  };
+};
+
+export const genGroupHousingEventApi = (
+  housing: HousingApi,
+  group: GroupApi,
+  createdBy: UserApi
+): GroupHousingEventApi => {
+  return {
+    ...genEventApi<GroupApi>(createdBy.id),
+    old: group,
+    new: group,
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode,
   };
 };
 
@@ -654,6 +696,23 @@ export const genHousingOwnerConflictApi = (
   replacement: HousingOwnerApi
 ): HousingOwnerConflictApi => ({
   ...genConflictApi(existing, replacement),
+  housingGeoCode: housing.geoCode,
+  housingId: housing.id,
+});
+
+const genNoteApi = (creator: UserApi): NoteApi => ({
+  id: uuidv4(),
+  noteKind: faker.word.noun(),
+  content: faker.lorem.paragraph(),
+  createdBy: creator.id,
+  createdAt: faker.date.past(),
+});
+
+export const genHousingNoteApi = (
+  creator: UserApi,
+  housing: HousingApi
+): HousingNoteApi => ({
+  ...genNoteApi(creator),
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
 });

@@ -2,17 +2,10 @@ import React, { useState } from 'react';
 import { Text } from '../../components/_dsfr';
 import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
-import {
-  hasPerimetersFilter,
-  HousingFilters,
-} from '../../models/HousingFilters';
+import { hasPerimetersFilter, HousingFilters } from '../../models/HousingFilters';
 import GeoPerimetersModalLink from '../../components/modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import {
-  excludeWith,
-  includeExcludeWith,
-  includeWith,
-} from '../../utils/arrayUtils';
+import { excludeWith, includeExcludeWith, includeWith } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Label from '../../components/Label/Label';
 import { useHousingList } from '../../hooks/useHousingList';
@@ -84,8 +77,8 @@ const HousingListMap = ({ filters }: Props) => {
         </div>
       </Text>
       <Label spacing="mb-1w">
-        Les nombres affichés dans les cercles correspondent aux nombres
-        d'immeubles.
+        Les nombres affichés dans les cercles correspondent aux nombres de
+        bâtiments.
       </Label>
       <Map
         housingList={housingList}

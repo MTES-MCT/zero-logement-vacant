@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HousingOwner, Owner } from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
-import styles from './housing-additional-owner-modal.module.scss';
+import styles from './housing-owner-modal.module.scss';
 import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';
 import HousingAdditionalOwnerCreation from './HousingAdditionalOwnerCreation';
 import Select from '@codegouvfr/react-dsfr/Select';

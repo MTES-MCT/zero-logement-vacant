@@ -626,16 +626,16 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
     if (filters.housingAreas?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.housingAreas?.indexOf('lt35') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [0, 35]);
+        if (filters.housingAreas?.includes('lt35')) {
+          whereBuilder.orWhereBetween('living_area', [0, 34]);
         }
-        if (filters.housingAreas?.indexOf('35to75') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [35, 75]);
+        if (filters.housingAreas?.includes('35to74')) {
+          whereBuilder.orWhereBetween('living_area', [35, 74]);
         }
-        if (filters.housingAreas?.indexOf('75to100') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [75, 100]);
+        if (filters.housingAreas?.includes('75to99')) {
+          whereBuilder.orWhereBetween('living_area', [75, 99]);
         }
-        if (filters.housingAreas?.indexOf('gt100') !== -1) {
+        if (filters.housingAreas?.includes('gt100')) {
           whereBuilder.orWhereRaw('living_area >= 100');
         }
       });

@@ -118,6 +118,62 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by living area', () => {
+        beforeEach(async () => {
+          const housingList: HousingApi[] = [
+            { ...genHousingApi(), livingArea: 34 },
+            { ...genHousingApi(), livingArea: 35 },
+            { ...genHousingApi(), livingArea: 74 },
+            { ...genHousingApi(), livingArea: 75 },
+            { ...genHousingApi(), livingArea: 99 },
+            { ...genHousingApi(), livingArea: 100 },
+          ];
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housingList.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+        });
+
+        const tests = [
+          {
+            name: 'less than 35 m2',
+            filter: ['lt35'],
+            predicate: (housing: HousingApi) => housing.livingArea < 35,
+          },
+          {
+            name: 'between 35 and 74 m2',
+            filter: ['35to74'],
+            predicate: (housing: HousingApi) =>
+              35 <= housing.livingArea && housing.livingArea <= 74,
+          },
+          {
+            name: 'between 75 and 99 m2',
+            filter: ['75to99'],
+            predicate: (housing: HousingApi) =>
+              75 <= housing.livingArea && housing.livingArea <= 99,
+          },
+          {
+            name: 'more than 100 m2',
+            filter: ['gt100'],
+            predicate: (housing: HousingApi) => housing.livingArea >= 100,
+          },
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              housingAreas: filter,
+            },
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
+      });
+
       it('should filter by establishment', async () => {
         const establishment = Establishment2;
         const housing = genHousingApi(oneOf(establishment.geoCodes));

@@ -162,8 +162,8 @@ export const housingKindOptions: SelectOption[] = [
 
 export const housingAreaOptions: SelectOption[] = [
   { value: 'lt35', label: 'Moins de 35 m2' },
-  { value: '35to75', label: '35 - 75 m2' },
-  { value: '75to100', label: '75 - 100 m2' },
+  { value: '35to74', label: '35 - 74 m2' },
+  { value: '75to99', label: '75 - 99 m2' },
   { value: 'gt100', label: 'Plus de 100 m2' },
 ];
 

@@ -116,7 +116,7 @@ export const housingCountOptions: SelectOption[] = [
     label: 'Entre 20 et 49',
     badgeLabel: 'Entre 20 et 49 logements',
   },
-  { value: 'gt50', label: 'Plus de 50', badgeLabel: 'Plus de 50 logements' },
+  { value: 'gt50', label: '50 et plus', badgeLabel: 'Plus de 50 logements' },
 ];
 
 export const vacancyRateOptions: SelectOption[] = [
@@ -126,21 +126,21 @@ export const vacancyRateOptions: SelectOption[] = [
     badgeLabel: 'Moins de 20% de vacance',
   },
   {
-    value: '20to40',
-    label: '20% - 40%',
-    badgeLabel: 'Entre 20% et 40% de vacance',
+    value: '20to39',
+    label: '20% - 39%',
+    badgeLabel: 'Entre 20% et 39% de vacance',
   },
   {
-    value: '40to60',
-    label: '40% - 60%',
-    badgeLabel: 'Entre 40% et 60% de vacance',
+    value: '40to59',
+    label: '40% - 59%',
+    badgeLabel: 'Entre 40% et 59% de vacance',
   },
   {
-    value: '60to80',
-    label: '60% - 80%',
-    badgeLabel: 'Entre 60% et 80% de vacance',
+    value: '60to79',
+    label: '60% - 79%',
+    badgeLabel: 'Entre 60% et 79% de vacance',
   },
-  { value: 'gt80', label: 'Plus de 80%', badgeLabel: 'Plus de 80% de vacance' },
+  { value: 'gt80', label: '80% et plus', badgeLabel: 'Plus de 80% de vacance' },
 ];
 
 const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -225,8 +225,8 @@ export const vacancyDurationOptions: SelectOption[] = [
   },
   {
     value: 'gt10',
-    label: 'Plus de 10 ans',
-    badgeLabel: 'Durée de vacance : plus de 10 ans',
+    label: '10 ans et plus',
+    badgeLabel: 'Durée de vacance : 10 ans et plus',
   },
 ];
 

@@ -107,14 +107,14 @@ export const beneficiaryCountOptions: SelectOption[] = [
 export const housingCountOptions: SelectOption[] = [
   { value: 'lt5', label: 'Moins de 5', badgeLabel: 'Moins de 5 logements' },
   {
-    value: '5to20',
-    label: 'Entre 5 et 20',
-    badgeLabel: 'Entre 5 et 20 logements',
+    value: '5to19',
+    label: 'Entre 5 et 19',
+    badgeLabel: 'Entre 5 et 19 logements',
   },
   {
-    value: '20to50',
-    label: 'Entre 20 et 50',
-    badgeLabel: 'Entre 20 et 50 logements',
+    value: '20to49',
+    label: 'Entre 20 et 49',
+    badgeLabel: 'Entre 20 et 49 logements',
   },
   { value: 'gt50', label: 'Plus de 50', badgeLabel: 'Plus de 50 logements' },
 ];

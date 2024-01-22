@@ -757,18 +757,18 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
 
     if (filters.housingCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.housingCounts?.indexOf('lt5') !== -1) {
+      queryBuilder.where((whereBuilder) => {
+        if (filters.housingCounts?.includes('lt5')) {
           whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
         }
-        if (filters.housingCounts?.indexOf('5to20') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [5, 20]);
+        if (filters.housingCounts?.includes('5to19')) {
+          whereBuilder.orWhereBetween('housing_count', [5, 19]);
         }
-        if (filters.housingCounts?.indexOf('20to50') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [20, 50]);
+        if (filters.housingCounts?.includes('20to49')) {
+          whereBuilder.orWhereBetween('housing_count', [20, 49]);
         }
-        if (filters.housingCounts?.indexOf('gt50') !== -1) {
-          whereBuilder.orWhereRaw('housing_count > 50');
+        if (filters.housingCounts?.includes('gt50')) {
+          whereBuilder.orWhereRaw('housing_count >= 50');
         }
       });
     }

@@ -44,6 +44,7 @@ import { EventCategories } from '../../shared/types/EventCategory';
 import { EventSections } from '../../shared/types/EventSection';
 import {
   DatafoncierHousing,
+  firstDefined,
   HOUSING_SOURCES,
   UserAccountDTO,
 } from '../../shared';
@@ -243,7 +244,9 @@ export const genHousingOwnerApi = (
 
 export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
   return {
-    id: uuidv4(),
+    id:
+      housingList.map((housing) => housing.buildingId).reduce(firstDefined) ??
+      uuidv4(),
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
       (housing) => housing.occupancy === OccupancyKindApi.Vacant

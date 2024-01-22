@@ -658,7 +658,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
       );
     }
     if (filters.buildingPeriods?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((whereBuilder) => {
         if (filters.buildingPeriods?.indexOf('lt1919') !== -1) {
           whereBuilder.orWhereBetween('building_year', [0, 1918]);
         }
@@ -675,47 +675,43 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
     if (filters.vacancyDurations?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
+        if (filters.vacancyDurations?.includes('lt2')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 1,
             referenceDataYearFromFilters(filters),
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('gt2') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            0,
-            referenceDataYearFromFilters(filters) - 2,
-          ]);
-        }
-        if (filters.vacancyDurations?.indexOf('2') !== -1) {
+        if (filters.vacancyDurations?.includes('2')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
             referenceDataYearFromFilters(filters) - 2
           );
         }
-        if (filters.vacancyDurations?.indexOf('3to5') !== -1) {
+        if (filters.vacancyDurations?.includes('gt2')) {
+          whereBuilder.orWhere(
+            'vacancy_start_year',
+            '<',
+            referenceDataYearFromFilters(filters) - 2
+          );
+        }
+        if (filters.vacancyDurations?.includes('3to4')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 4,
             referenceDataYearFromFilters(filters) - 3,
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 4,
-            referenceDataYearFromFilters(filters) - 2,
-          ]);
-        }
-        if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
+        if (filters.vacancyDurations?.includes('5to9')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 9,
             referenceDataYearFromFilters(filters) - 5,
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            0,
-            referenceDataYearFromFilters(filters) - 10,
-          ]);
+        if (filters.vacancyDurations?.includes('gt10')) {
+          whereBuilder.orWhere(
+            'vacancy_start_year',
+            '<',
+            referenceDataYearFromFilters(filters) - 10
+          );
         }
       });
     }

@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import housingRepository, {
   formatHousingRecordApi,
   Housing,
+  ReferenceDataYear,
 } from '../housingRepository';
 import {
   Establishment1,
@@ -167,6 +168,80 @@ describe('Housing repository', () => {
           const actual = await housingRepository.find({
             filters: {
               housingAreas: filter,
+            },
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
+      });
+
+      describe('by vacancy duration', () => {
+        beforeEach(async () => {
+          const housingList: HousingApi[] = new Array(12)
+            .fill('0')
+            .map((_, i) => ({
+              ...genHousingApi(),
+              vacancyStartYear: ReferenceDataYear - i,
+            }));
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housingList.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+        });
+
+        const tests = [
+          {
+            name: 'less than 2 years',
+            filter: ['lt2'],
+            predicate: (housing: HousingApi) =>
+              ReferenceDataYear - (housing.vacancyStartYear as number) < 2,
+          },
+          {
+            name: '2 years',
+            filter: ['2'],
+            predicate: (housing: HousingApi) =>
+              ReferenceDataYear - (housing.vacancyStartYear as number) === 2,
+          },
+          {
+            name: 'more than 2 years',
+            filter: ['gt2'],
+            predicate: (housing: HousingApi) =>
+              ReferenceDataYear - (housing.vacancyStartYear as number) > 2,
+          },
+          {
+            name: 'between 3 and 4 years',
+            filter: ['3to4'],
+            predicate: (housing: HousingApi) => {
+              const diff =
+                ReferenceDataYear - (housing.vacancyStartYear as number);
+              return 3 <= diff && diff <= 4;
+            },
+          },
+          {
+            name: 'between 5 and 9 years',
+            filter: ['5to9'],
+            predicate: (housing: HousingApi) => {
+              const diff =
+                ReferenceDataYear - (housing.vacancyStartYear as number);
+              return 5 <= diff && diff <= 9;
+            },
+          },
+          {
+            name: 'more than 10 years',
+            filter: ['gt10'],
+            predicate: (housing: HousingApi) =>
+              ReferenceDataYear - (housing.vacancyStartYear as number) >= 10,
+          },
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              vacancyDurations: filter,
             },
           });
 

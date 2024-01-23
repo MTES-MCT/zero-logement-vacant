@@ -160,7 +160,7 @@ describe('Housing repository', () => {
           },
           {
             name: 'more than 100 m2',
-            filter: ['gt100'],
+            filter: ['gte100'],
             predicate: (housing: HousingApi) => housing.livingArea >= 100,
           },
         ];
@@ -172,7 +172,7 @@ describe('Housing repository', () => {
             },
           });
 
-          expect(actual).toBeGreaterThan(0);
+          expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>(predicate);
         });
       });
@@ -233,8 +233,8 @@ describe('Housing repository', () => {
             },
           },
           {
-            name: 'more than 10 years',
-            filter: ['gt10'],
+            name: '10 years and more',
+            filter: ['gte10'],
             predicate: (housing: HousingApi) =>
               ReferenceDataYear - (housing.vacancyStartYear as number) >= 10,
           },
@@ -307,8 +307,8 @@ describe('Housing repository', () => {
             },
           },
           {
-            name: 'more than 50',
-            filter: ['gt50'],
+            name: '50 and more',
+            filter: ['gte50'],
             predicate: (building: BuildingApi) => {
               return building.housingCount >= 50;
             },
@@ -406,8 +406,8 @@ describe('Housing repository', () => {
             },
           },
           {
-            name: 'more than 80 %',
-            filter: ['gt80'],
+            name: '80 % and more',
+            filter: ['gte80'],
             predicate: (building: BuildingApi) => {
               return building.vacantHousingCount / building.housingCount >= 0.8;
             },

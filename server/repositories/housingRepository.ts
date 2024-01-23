@@ -621,7 +621,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);
     }
     if (filters.housingAreas?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((whereBuilder) => {
         if (filters.housingAreas?.includes('lt35')) {
           whereBuilder.orWhereBetween('living_area', [0, 34]);
         }
@@ -631,7 +631,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
         if (filters.housingAreas?.includes('75to99')) {
           whereBuilder.orWhereBetween('living_area', [75, 99]);
         }
-        if (filters.housingAreas?.includes('gt100')) {
+        if (filters.housingAreas?.includes('gte100')) {
           whereBuilder.orWhereRaw('living_area >= 100');
         }
       });
@@ -702,10 +702,10 @@ const filteredQuery = (opts: ListQueryOptions) => {
             referenceDataYearFromFilters(filters) - 5,
           ]);
         }
-        if (filters.vacancyDurations?.includes('gt10')) {
+        if (filters.vacancyDurations?.includes('gte10')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
-            '<',
+            '<=',
             referenceDataYearFromFilters(filters) - 10
           );
         }
@@ -763,7 +763,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
         if (filters.housingCounts?.includes('20to49')) {
           whereBuilder.orWhereBetween('housing_count', [20, 49]);
         }
-        if (filters.housingCounts?.includes('gt50')) {
+        if (filters.housingCounts?.includes('gte50')) {
           whereBuilder.orWhereRaw('housing_count >= 50');
         }
       });
@@ -790,7 +790,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
             'vacant_housing_count * 100 / housing_count between 60 and 79'
           );
         }
-        if (filters.vacancyRates?.includes('gt80')) {
+        if (filters.vacancyRates?.includes('gte80')) {
           whereBuilder.orWhereRaw(
             'vacant_housing_count * 100 / housing_count >= 80'
           );

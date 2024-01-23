@@ -62,7 +62,7 @@ export const ownerAgeOptions: SelectOption[] = [
   { value: '60to75', label: '60 - 75 ans', badgeLabel: 'Âge : 60 - 75 ans' },
   { value: '75to100', label: '75 - 100 ans', badgeLabel: 'Âge : 75 - 100 ans' },
   {
-    value: 'gt100',
+    value: 'gte100',
     label: '100 ans et plus',
     badgeLabel: 'Âge : 100 ans et plus',
   },

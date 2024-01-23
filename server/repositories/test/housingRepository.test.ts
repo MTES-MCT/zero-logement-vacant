@@ -432,6 +432,108 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by owner’s age', () => {
+        function createOwner(age: number): OwnerApi {
+          return {
+            ...genOwnerApi(),
+            birthDate: faker.date.birthdate({
+              min: age,
+              max: age,
+              mode: 'age',
+            }),
+          };
+        }
+
+        beforeEach(async () => {
+          const owners: OwnerApi[] = [
+            createOwner(39),
+            createOwner(40),
+            createOwner(59),
+            createOwner(60),
+            createOwner(74),
+            createOwner(75),
+            createOwner(99),
+            createOwner(100),
+          ];
+          await Owners().insert(owners.map(formatOwnerApi));
+          const housingList: HousingApi[] = owners.map(() => genHousingApi());
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+          await HousingOwners().insert(
+            housingList.flatMap((housing, i) =>
+              formatHousingOwnersApi(housing, owners.slice(i, i + 1))
+            )
+          );
+        });
+
+        const tests = [
+          {
+            name: 'less than 40 years old',
+            filter: ['lt40'],
+            predicate: (owner: OwnerApi) => {
+              return (
+                differenceInYears(new Date(), owner.birthDate as Date) < 40
+              );
+            },
+          },
+          {
+            name: 'between 40 and 59 years old',
+            filter: ['40to59'],
+            predicate: (owner: OwnerApi) => {
+              const diff = differenceInYears(
+                new Date(),
+                owner.birthDate as Date
+              );
+              return 40 <= diff && diff <= 59;
+            },
+          },
+          {
+            name: 'between 60 and 74 years old',
+            filter: ['60to74'],
+            predicate: (owner: OwnerApi) => {
+              const diff = differenceInYears(
+                new Date(),
+                owner.birthDate as Date
+              );
+              return 60 <= diff && diff <= 74;
+            },
+          },
+          {
+            name: 'between 75 and 99 years old',
+            filter: ['75to99'],
+            predicate: (owner: OwnerApi) => {
+              const diff = differenceInYears(
+                new Date(),
+                owner.birthDate as Date
+              );
+              return 75 <= diff && diff <= 99;
+            },
+          },
+          {
+            name: '100 years old and more',
+            filter: ['gte100'],
+            predicate: (owner: OwnerApi) => {
+              return (
+                differenceInYears(new Date(), owner.birthDate as Date) >= 100
+              );
+            },
+          },
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              ownerAges: filter,
+            },
+            includes: ['owner'],
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(
+            (housing) => !!housing.owner && predicate(housing.owner)
+          );
+        });
+      });
+
       it('should filter by establishment', async () => {
         const establishment = Establishment2;
         const housing = genHousingApi(oneOf(establishment.geoCodes));

@@ -2,12 +2,14 @@ export interface DashboardApi {
   url: string;
 }
 
-export type Resource = 'utilisateurs';
+export type Resource = 'utilisateurs' | 'etablissements';
 
 export function getResource(id: Resource): number {
   switch (id) {
     case 'utilisateurs':
       return 27;
+    case 'etablissements':
+      return 33;
   }
 }
 

@@ -6,7 +6,7 @@ interface FindOneOptions {
   id: Resource;
 }
 
-type Resource = 'utilisateurs';
+type Resource = 'utilisateurs' | 'etablissements';
 
 interface Dashboard {
   url: string;

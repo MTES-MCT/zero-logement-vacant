@@ -54,6 +54,15 @@ const AccountSideMenu = () => {
           Voir les utilisateurs
         </AppLink>
       </div>
+      <div className="fr-pb-2w">
+        <AppLink
+          to="/autres-etablissements"
+          iconId="fr-icon-group-fill"
+          iconPosition="left"
+        >
+          Voir les autres établissements
+        </AppLink>
+      </div>
       <hr className="fr-py-1w" />
       <AppLink
         to="#"

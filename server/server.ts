@@ -54,6 +54,7 @@ export function createServer(): Server {
           ],
           imgSrc: [
             "'self'",
+            'https://stats.beta.gouv.fr',
             'https://image.crisp.chat',
             'https://client.crisp.chat',
             'data:',

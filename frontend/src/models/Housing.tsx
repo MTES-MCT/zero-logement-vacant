@@ -40,7 +40,7 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionAt?: Date;
-  occupancy: OccupancyKind;
+  occupancy?: OccupancyKind;
   occupancyIntended?: OccupancyKind;
   source: HousingSource | null;
 }

@@ -32,6 +32,7 @@ import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
+import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 
 declare module "@codegouvfr/react-dsfr/spa" {
   interface RegisterLink {
@@ -102,6 +103,7 @@ function App() {
               {path:"/compte", component:AccountView},
               {path:"/compte/mot-de-passe", component:AccountPasswordView},
               {path:"/utilisateurs", component:UsersView},
+              {path:"/autres-etablissements", component:TerritoryEstablishmentsView},
             ].map((route: RouteProps) => <Route path={route.path} exact component={route.component} key={`route_${route.path}`} /> )),
               <Route path="/*" key="route_default">
                 <Redirect to="/parc-de-logements"/>

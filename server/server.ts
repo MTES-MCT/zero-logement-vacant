@@ -83,9 +83,9 @@ export function createServer(): Server {
     })
   );
 
-  if (config.environment === 'development') {
-    app.use(cors({ origin: 'http://localhost:3000' }));
-  }
+  app.use(
+    cors({ origin: [config.application.host, 'https://stats.beta.gouv.fr'] })
+  );
 
   // Mock services like Datafoncier API on specific environments
   mockServices();

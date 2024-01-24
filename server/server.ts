@@ -93,7 +93,8 @@ export function createServer(): Server {
   mockServices();
 
   app.use(fileUpload());
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb' }));
 
   const rateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes window

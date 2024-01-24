@@ -36,6 +36,7 @@ export const InProgressWithSupportSubStatus = 'En accompagnement';
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique';
 export const InProgressWithoutSupportSubStatus =
   'En sortie sans accompagnement';
+export const MutationInProgress = 'Mutation en cours';
 export const CompletedWithVacancyExit = 'Sortie de la vacance';
 export const CompletedNotVacant = "N'était pas vacant";
 export const CompletedWithPoorlyInsulatedExit =
@@ -105,6 +106,9 @@ export const HousingStates: HousingState[] = [
       },
       {
         title: InProgressWithoutSupportSubStatus,
+      },
+      {
+        title: MutationInProgress,
       },
     ],
   },

@@ -60,7 +60,7 @@ const AccountSideMenu = () => {
           iconId="fr-icon-group-fill"
           iconPosition="left"
         >
-          Voir les autres structures
+          Voir les autres établissements
         </AppLink>
       </div>
       <hr className="fr-py-1w" />

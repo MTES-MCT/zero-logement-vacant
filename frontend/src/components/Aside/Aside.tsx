@@ -1,4 +1,4 @@
-import { Title } from '../_dsfr';
+import { Container, Title } from '../_dsfr';
 import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';
@@ -24,22 +24,24 @@ function Aside(props: AsideProps) {
       })}
     >
       <article className={classNames(styles.article, props.className)}>
-        <header>
-          {props.title && typeof props.title === 'string' ? (
-            <>
-              <Button
-                title="Fermer"
-                className="fr-p-0"
-                iconId="fr-icon-arrow-right-s-line-double"
-                priority="tertiary no outline"
-                onClick={props.onClose}
-              />
-              <Title as="h6">{props.title}</Title>
-            </>
-          ) : (
-            props.title
-          )}
-        </header>
+        {props.title && typeof props.title === 'string' ? (
+          <Container as="header" className="d-flex" fluid>
+            <Title as="h6" className="d-inline-block" spacing="mb-0">
+              {props.title}
+            </Title>
+
+            <Button
+              priority="tertiary no outline"
+              iconId="ri-close-line"
+              iconPosition="right"
+              onClick={props.onClose}
+            >
+              Fermer
+            </Button>
+          </Container>
+        ) : (
+          props.title
+        )}
         <main className={styles.main}>{props.content}</main>
         <footer>{props.footer}</footer>
       </article>

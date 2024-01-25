@@ -1,6 +1,7 @@
-## Scripts
+# Scripts
 Each script is executed in a one-off container duplicated upon an existing one.
-Thus, it executes even on review apps! Scalingo does not allow to configure this
+Thus, it executes even on review apps!
+Scalingo does not allow configuring this,
 so it should be checked in user code.
 
 An environment variable `IS_REVIEW_APP` is defined in `scalingo.json`. It can be
@@ -25,3 +26,8 @@ run()
     logger.info('DB connection destroyed.')
   })
 ```
+
+## List of available scripts
+
+- [import-datafoncier](import-datafoncier/README.md): import Datafoncier
+  owners and housing to our database

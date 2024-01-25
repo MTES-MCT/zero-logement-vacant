@@ -78,6 +78,7 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
+            'https://unpkg.com',
           ],
           workerSrc: ["'self'", 'blob:'],
         },
@@ -93,8 +94,7 @@ export function createServer(): Server {
   mockServices();
 
   app.use(fileUpload());
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ limit: '10mb' }));
+  app.use(express.json());
 
   const rateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes window

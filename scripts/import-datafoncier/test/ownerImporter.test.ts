@@ -14,7 +14,7 @@ import { DatafoncierOwner, toOwnerApi } from '../../shared';
 import { OwnerEvents } from '../../../server/repositories/eventRepository';
 import { HousingOwners } from '../../../server/repositories/housingOwnerRepository';
 import highland from 'highland';
-import { startTimer } from '../../shared/elapsed';
+import { formatElapsed, timer } from '../../shared/elapsed';
 import { logger } from '../../../server/utils/logger';
 import randomstring from 'randomstring';
 
@@ -41,12 +41,11 @@ describe('Import owners', () => {
       const iterations = 5_000;
       const generator = createGenerator(iterations);
       const stream = highland<DatafoncierOwner>(generator);
-      startTimer((stopTimer) => {
-        stream.through(ownerImporter).done(() => {
-          const elapsed = stopTimer();
-          logger.info(`Done in ${elapsed}.`);
-          done();
-        });
+      const stop = timer();
+      stream.through(ownerImporter).done(() => {
+        const elapsed = stop();
+        logger.info(`Done in ${formatElapsed(elapsed)}.`);
+        done();
       });
       // It should succeed within 2 minutes
     }, 120_000 /* A specific timeout */);

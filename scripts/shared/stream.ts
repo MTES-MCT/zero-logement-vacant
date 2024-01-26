@@ -39,54 +39,6 @@ export function prependAsync<T>(f: (data: T[]) => Promise<T[]>) {
   };
 }
 
-export function tapAllAsync<T>(f: (data: T) => Promise<T>) {
-  return (
-    error: Error | null,
-    array: T[] | Highland.Nil,
-    push: (err: Error | null, value?: T[] | Highland.Nil) => void,
-    next: () => void
-  ): void => {
-    if (error) {
-      push(error);
-      next();
-      return;
-    }
-
-    if (highland.isNil(array)) {
-      push(null, highland.nil);
-      return;
-    }
-
-    Promise.allSettled(array.map(f))
-      .then((promises) => {
-        const values: T[] = promises
-          .filter(
-            (promise): promise is PromiseFulfilledResult<Awaited<T>> =>
-              promise.status === 'fulfilled'
-          )
-          .map((promise) => promise.value);
-        push(null, values);
-
-        promises
-          .filter(
-            (promise): promise is PromiseRejectedResult =>
-              promise.status === 'rejected'
-          )
-          .map((promise) => promise.reason)
-          .forEach((reason) => {
-            if (reason instanceof Error) {
-              push(reason);
-            } else if (typeof reason === 'string') {
-              push(new Error(reason));
-            } else {
-              push(new Error());
-            }
-          });
-      })
-      .finally(next);
-  };
-}
-
 export function counter(message: (count: number) => string) {
   let count = 0;
 

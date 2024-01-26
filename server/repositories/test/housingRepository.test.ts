@@ -46,7 +46,7 @@ import {
 } from '../buildingRepository';
 import async from 'async';
 import { OwnerApi } from '../../models/OwnerApi';
-import { startTimer } from '../../../scripts/shared/elapsed';
+import { formatElapsed, timer } from '../../../scripts/shared/elapsed';
 import { logger } from '../../utils/logger';
 import {
   CampaignsHousing,
@@ -361,15 +361,17 @@ describe('Housing repository', () => {
         logger.info(`Saved ${amount} housing.`);
 
         await new Promise<void>((resolve) => {
-          startTimer(async (stopTimer) => {
-            await housingRepository.count({
+          const stop = timer();
+          return housingRepository
+            .count({
               occupancies: [OccupancyKindApi.Vacant],
               status: 0,
+            })
+            .then(() => {
+              const elapsed = stop();
+              logger.info(`Elapsed: ${formatElapsed(elapsed)}.`);
+              resolve();
             });
-            const elapsed = stopTimer();
-            logger.info(`Elapsed: ${elapsed}.`);
-            resolve();
-          });
         });
       }, 120_000 /* A specific timeout */);
     });

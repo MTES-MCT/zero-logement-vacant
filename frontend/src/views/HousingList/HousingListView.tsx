@@ -44,6 +44,7 @@ const HousingListView = () => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.Search,
+      name: query,
     });
     setFilters({
       ...filters,

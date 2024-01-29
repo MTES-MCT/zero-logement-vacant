@@ -2,8 +2,9 @@
 
 ### Requirements
 
-The plot ids of concerned housing must be completed on the table.
-<br/>If they are not completed, it can be done by the following SQL commands (from the Scalingo console by example `scalingo -a my-app pgsql-console`)
+The plot ids of concerned housing must be completed on the table.  
+If they are not completed, it can be done by the following SQL commands
+(from the Scalingo console by example `scalingo -a my-app pgsql-console`)
 ```shell
 create index zlv_logt_epci_idlocal_index
     on public.zlv_logt_epci (idlocal);
@@ -16,8 +17,9 @@ update fast_housing h
 ```
 
 ### Use
-The department codes must be passed separated by commas as a unique argument (01,08,14,15,17,22,24,28,36,37,38,43,54,50,54,55,59,61,62,69,71,75,76,85)
-When no argument is passed, the script handle all the departments by default
+The department codes must be passed separated by commas as a unique argument
+(01,08,14).  
+When no argument is passed, the script handles all the departments by default.
 
 ```shell
 

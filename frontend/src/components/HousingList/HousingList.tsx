@@ -1,4 +1,10 @@
-import React, { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
+import React, {
+  ChangeEvent,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useState,
+} from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {
@@ -14,7 +20,10 @@ import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import _ from 'lodash';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -28,7 +37,10 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '../../../../shared/models/Pagination';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import { useCountHousingQuery, useUpdateHousingMutation } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useUpdateHousingMutation,
+} from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -204,7 +216,7 @@ const HousingList = ({
     headerRender: () => getSortButton('occupancy', 'Occupation'),
     render: ({ occupancy }: Housing) => (
       <Badge className="bg-bf950 color-bf113">
-        {OccupancyKindLabels[occupancy]}
+        {occupancy ? OccupancyKindLabels[occupancy] : 'Pas d’info'}
       </Badge>
     ),
   };

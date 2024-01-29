@@ -142,7 +142,7 @@ const HousingEditionForm = (
         : undefined,
       occupancyUpdate: isOccupancyUpdate
         ? {
-            occupancy: occupancy!,
+            occupancy,
             occupancyIntended,
           }
         : undefined,
@@ -249,7 +249,12 @@ const HousingEditionForm = (
               inputForm={form}
               inputKey="occupancy"
               options={[
-                { value: '', label: 'Sélectionnez une occupation actuelle' },
+                {
+                  label: housing
+                    ? 'Pas d’informations'
+                    : 'Sélectionnez une occupation actuelle',
+                  value: '',
+                },
                 ...allOccupancyOptions,
               ]}
             />

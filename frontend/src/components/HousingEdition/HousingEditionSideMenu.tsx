@@ -45,7 +45,7 @@ const HousingEditionSideMenu = ({
         title={
           <>
             <Container as="header" className="d-flex" fluid spacing="pb-0">
-              <Title as="h6" className="fr-mb-0">
+              <Title as="h6" className="fr-mb-0 fr-pt-1w">
                 {housing.rawAddress.join(' - ')}
               </Title>
               <Button

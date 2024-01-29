@@ -26,7 +26,7 @@ function Aside(props: AsideProps) {
       <article className={classNames(styles.article, props.className)}>
         {props.title && typeof props.title === 'string' ? (
           <Container as="header" className="d-flex" fluid>
-            <Title as="h6" className="d-inline-block" spacing="mb-0">
+            <Title as="h6" className="d-inline-block" spacing="mb-0 pt-1w">
               {props.title}
             </Title>
 

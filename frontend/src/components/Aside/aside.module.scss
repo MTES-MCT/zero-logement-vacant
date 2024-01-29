@@ -1,7 +1,7 @@
 .aside {
-  height: fit-content;
+  height: 100vh;
   z-index: 1500;
-  position: absolute;
+  position: fixed;
   display: flex;
   top: 0;
   right: 0;
@@ -23,11 +23,11 @@
 }
 
 .aside.collapsed {
-  transition: width 0.4s var(--material-transition-curve);
+  transition: cubic-bezier(.39,.4,.82,.78);
 }
 
 .aside:not(.collapsed) {
-  transition: width 0.2s var(--material-transition-curve);
+  transition: cubic-bezier(.39,.4,.82,.78);
 }
 
 .collapsed {
@@ -58,4 +58,5 @@
 .main {
   margin-bottom: 1.5rem;
   flex: 1;
+  overflow-y: scroll;
 }

@@ -71,25 +71,25 @@ export const ownerAgeOptions: SelectOption[] = [
 ];
 
 export const ownerKindOptions: SelectOption[] = [
+  { value: 'personne-physique', label: 'Particulier' },
   {
-    value: 'etat-et-collectivite-territoriale',
-    label: 'Etat et collectivité territoriale',
-  },
-  {
-    value: 'bailleur-social-amenageur-investisseur-public',
-    label: 'Bailleur social, Aménageur, Investisseur public',
+    value: 'sci-copropriete-autres-personnes-morales',
+    label: 'SCI, Copropriété, Autres personnes morales',
   },
   {
     value: 'promoteur-investisseur-prive',
     label: 'Promoteur, Investisseur privé',
   },
   {
-    value: 'sci-copropriete-autres-personnes-morales',
-    label: 'SCI, Copropriété, Autres personnes morales',
+    value: 'bailleur-social-amenageur-investisseur-public',
+    label: 'Bailleur social, Aménageur, Investisseur public',
   },
-  { value: 'personne-physique', label: 'Particulier' },
-  { value: 'absence-de-proprietaire', label: 'Absence de propriétaire' },
+  {
+    value: 'etat-et-collectivite-territoriale',
+    label: 'Etat et collectivité territoriale',
+  },
   { value: 'autres', label: 'Autres' },
+  { value: 'absence-de-proprietaire', label: 'Absence de propriétaire' },
 ];
 
 export const getOwnerKindLabel = (owner: Owner) => {

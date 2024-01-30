@@ -7,6 +7,9 @@ function Footer() {
   return (
     <DSFRFooter
       accessibility="non compliant"
+      accessibilityLinkProps={{
+        to: '/accessibilite',
+      }}
       termsLinkProps={{
         to: '/mentions-legales',
         content: 'Politique de confidentialité',

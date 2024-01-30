@@ -23,16 +23,15 @@
 }
 
 .aside.collapsed {
-  transition: cubic-bezier(.39,.4,.82,.78);
+  transition: width 0.2s var(--material-transition-curve);
 }
 
 .aside:not(.collapsed) {
-  transition: cubic-bezier(.39,.4,.82,.78);
+  transition: width 0.2s var(--material-transition-curve);
 }
 
 .collapsed {
   width: 0;
-  visibility: collapse;
 }
 
 .article {

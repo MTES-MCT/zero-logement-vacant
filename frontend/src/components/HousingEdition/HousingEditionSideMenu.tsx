@@ -30,11 +30,10 @@ const HousingEditionSideMenu = ({
 }: Props) => {
   const statusFormRef = useRef<{ submit: () => void }>();
 
-  if (!housing) {
-    return <></>;
-  }
   const submit = (housingUpdate: HousingUpdate) => {
-    onSubmit(housing, housingUpdate);
+    if (housing) {
+      onSubmit(housing, housingUpdate);
+    }
   };
 
   return (
@@ -46,7 +45,7 @@ const HousingEditionSideMenu = ({
           <>
             <Container as="header" className="d-flex" fluid spacing="pb-0">
               <Title as="h6" className="fr-mb-0 fr-pt-1w">
-                {housing.rawAddress.join(' - ')}
+                {housing?.rawAddress.join(' - ')}
               </Title>
               <Button
                 priority="tertiary no outline"
@@ -60,9 +59,13 @@ const HousingEditionSideMenu = ({
             <Container as="section" spacing="p-0 mb-3w">
               <Text size="sm" spacing="m-0">
                 <span className="zlv-label">Invariant fiscal : </span>
-                {housing.invariant}
+                {housing?.invariant}
               </Text>
-              <AppLink to={'/logements/' + housing.id} isSimple target="_blank">
+              <AppLink
+                to={'/logements/' + housing?.id}
+                isSimple
+                target="_blank"
+              >
                 Voir la fiche logement
               </AppLink>
             </Container>

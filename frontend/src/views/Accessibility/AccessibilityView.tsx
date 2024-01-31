@@ -23,7 +23,6 @@ const AccessibilityView = () => {
         </span>
         .
       </p>
-
       <Title as="h2">État de conformité</Title>
       <p>
         <strong>Zéro Logement Vacant</strong> est{' '}
@@ -37,7 +36,17 @@ const AccessibilityView = () => {
         </abbr>
         .<span>Le site n’a encore pas été audité.</span>
       </p>
-
+      <Title as="h2">Contenus de l'application Zéro Logement Vacant</Title>
+      <p>
+        Zéro Logement Vacant n'a pas encore été audité. Nous ne pouvons donc pas
+        garantir le respect des normes d'accessibilité sur notre outil. Nous
+        avons commencé à intégrer l'accessibilité dans nos pratiques, avec
+        notamment, dès 2023, une utilisation rigoureuse du DSFR sur la
+        plateforme. Vous pouvez contacter l'équipe Zéro Logement Vacant qui
+        mettra tout en oeuvre pour vous aider à avoir accès aux informations
+        nécessaires à la réalisation de votre tâche de lutte contre la vacance
+        sur votre territoire.
+      </p>
       <Title as="h2">Amélioration et contact</Title>
       <p>
         Si vous n’arrivez pas à accéder à un contenu ou à un service, vous
@@ -54,7 +63,6 @@ const AccessibilityView = () => {
           </a>
         </li>
       </ul>
-
       <Title as="h2">Voie de recours</Title>
       <p>
         Cette procédure est à utiliser dans le cas suivant&nbsp;: vous avez
@@ -85,9 +93,7 @@ const AccessibilityView = () => {
           Libre réponse 71120 75342 Paris CEDEX 07
         </li>
       </ul>
-
       <hr />
-
       <p>
         Cette déclaration d’accessibilité a été créé le{' '}
         <span>27 juin 2022</span> grâce au{' '}

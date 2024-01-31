@@ -125,7 +125,7 @@ function Map(props: MapProps) {
   return (
     <ReactiveMap
       {...viewState}
-      attributionControl={false}
+      attributionControl
       id="housingMap"
       mapLib={maplibregl}
       mapStyle={STYLE.uri}

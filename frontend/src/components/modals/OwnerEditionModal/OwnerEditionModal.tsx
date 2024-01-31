@@ -5,7 +5,12 @@ import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { format } from 'date-fns';
 import { parseDateInput } from '../../../utils/dateUtils';
-import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import {
+  banAddressValidator,
+  birthDateValidator,
+  emailValidator,
+  useForm,
+} from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
@@ -39,7 +44,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
-    birthDate: dateValidator.nullable().notRequired(),
+    birthDate: birthDateValidator,
     banAddress: banAddressValidator,
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),

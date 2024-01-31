@@ -10,6 +10,7 @@ import styles from './housing-edition.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLink from '../_app/AppLink/AppLink';
+import Label from '../Label/Label';
 
 interface Props {
   housing?: Housing;
@@ -58,7 +59,7 @@ const HousingEditionSideMenu = ({
             </Container>
             <Container as="section" spacing="p-0 mb-3w">
               <Text size="sm" spacing="m-0">
-                <span className="zlv-label">Invariant fiscal : </span>
+                <Label as="span">Invariant fiscal : </Label>
                 {housing?.invariant}
               </Text>
               <AppLink

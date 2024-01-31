@@ -10,6 +10,7 @@ import styles from './housing-edition.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLink from '../_app/AppLink/AppLink';
+import Label from '../Label/Label';
 
 interface Props {
   housing?: Housing;
@@ -30,11 +31,10 @@ const HousingEditionSideMenu = ({
 }: Props) => {
   const statusFormRef = useRef<{ submit: () => void }>();
 
-  if (!housing) {
-    return <></>;
-  }
   const submit = (housingUpdate: HousingUpdate) => {
-    onSubmit(housing, housingUpdate);
+    if (housing) {
+      onSubmit(housing, housingUpdate);
+    }
   };
 
   return (
@@ -44,31 +44,34 @@ const HousingEditionSideMenu = ({
         onClose={onClose}
         title={
           <>
-            <Button
-              title="Fermer"
-              className="fr-p-0"
-              iconId="fr-icon-arrow-right-s-line-double"
-              priority="tertiary no outline"
-              onClick={onClose}
-            />
-            <AppLink
-              to={'/logements/' + housing.id}
-              isSimple
-              target="_blank"
-              className="float-right"
-            >
-              Voir la fiche logement
-            </AppLink>
-            <Title as="h6" className="fr-mb-0">
-              {housing.rawAddress.join(' - ')}
-            </Title>
-            <Text size="sm">
-              <span className="zlv-label">Invariant fiscal : </span>
-              {housing.invariant}
-            </Text>
+            <Container as="header" className="d-flex" fluid spacing="pb-0">
+              <Title as="h6" className="fr-mb-0 fr-pt-1w">
+                {housing?.rawAddress.join(' - ')}
+              </Title>
+              <Button
+                priority="tertiary no outline"
+                iconId="ri-close-line"
+                iconPosition="right"
+                onClick={onClose}
+              >
+                Fermer
+              </Button>
+            </Container>
+            <Container as="section" spacing="p-0 mb-3w">
+              <Text size="sm" spacing="m-0">
+                <Label as="span">Invariant fiscal : </Label>
+                {housing?.invariant}
+              </Text>
+              <AppLink
+                to={'/logements/' + housing?.id}
+                isSimple
+                target="_blank"
+              >
+                Voir la fiche logement
+              </AppLink>
+            </Container>
           </>
         }
-        className="fr-p-0"
         content={
           <Container as="section" spacing="p-0">
             <Tabs

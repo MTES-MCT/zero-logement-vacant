@@ -10,7 +10,7 @@
   box-shadow: var(--overlap-shadow);
   overflow-x: hidden;
   visibility: visible;
-  
+
   @media (min-width: 1280px) {
     width: 600px;
   }
@@ -23,7 +23,7 @@
 }
 
 .aside.collapsed {
-  transition: width 0.4s var(--material-transition-curve);
+  transition: width 0.2s var(--material-transition-curve);
 }
 
 .aside:not(.collapsed) {
@@ -32,7 +32,6 @@
 
 .collapsed {
   width: 0;
-  visibility: collapse;
 }
 
 .article {
@@ -42,8 +41,16 @@
   max-width: 100%;
   padding: 2rem 1.5rem;
 
-  header, footer {
-    padding: 2rem 1.5rem;
+  header {
+    padding-bottom: 1rem;
+
+    h6 {
+      flex: 1
+    }
+  }
+
+  footer {
+    padding-top: 1rem
   }
 }
 

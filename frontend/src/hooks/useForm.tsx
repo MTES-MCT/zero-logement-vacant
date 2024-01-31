@@ -59,6 +59,8 @@ export const banAddressValidator = yup
   .object()
   .required('Veuillez sélectionner une adresse issue de la BAN.');
 
+export const birthDateValidator = dateValidator.nullable().notRequired();
+
 export type MessageType = 'error' | 'success' | 'default';
 
 interface Message {

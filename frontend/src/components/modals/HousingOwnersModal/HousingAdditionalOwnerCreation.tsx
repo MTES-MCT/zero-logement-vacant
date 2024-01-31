@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Col, Container, Row, Text } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
-import { dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import {
+  birthDateValidator,
+  emailValidator,
+  useForm,
+} from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useCreateOwnerMutation } from '../../../services/owner.service';
@@ -23,7 +27,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
-    birthDate: dateValidator,
+    birthDate: birthDateValidator,
     rawAddress: yup.array().nullable(),
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable().notRequired(),

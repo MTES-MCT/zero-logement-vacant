@@ -58,11 +58,11 @@ export const ownerAgeOptions: SelectOption[] = [
     label: 'Moins de 40 ans',
     badgeLabel: 'Âge : moins de 40 ans',
   },
-  { value: '40to60', label: '40 - 60 ans', badgeLabel: 'Âge : 40 - 60 ans' },
-  { value: '60to75', label: '60 - 75 ans', badgeLabel: 'Âge : 60 - 75 ans' },
+  { value: '40to59', label: '40 - 59 ans', badgeLabel: 'Âge : 40 - 59 ans' },
+  { value: '60to74', label: '60 - 74 ans', badgeLabel: 'Âge : 60 - 74 ans' },
   { value: '75to100', label: '75 - 100 ans', badgeLabel: 'Âge : 75 - 100 ans' },
   {
-    value: 'gt100',
+    value: 'gte100',
     label: '100 ans et plus',
     badgeLabel: 'Âge : 100 ans et plus',
   },
@@ -80,7 +80,7 @@ export const campaignsCountOptions: SelectOption[] = [
   { value: 'current', label: 'Dans une campagne en cours' },
   { value: '1', label: 'Déjà contacté 1 fois' },
   { value: '2', label: 'Déjà contacté 2 fois' },
-  { value: 'gt3', label: 'Déjà contacté 3 fois ou plus' },
+  { value: 'gt3', label: 'Déjà contacté 3 fois et plus' },
 ];
 
 export const statusOptions = (
@@ -101,22 +101,22 @@ export const beneficiaryCountOptions: SelectOption[] = [
   { value: '2', label: '2', badgeLabel: '2 bénéficiaires' },
   { value: '3', label: '3', badgeLabel: '3 bénéficiaires' },
   { value: '4', label: '4', badgeLabel: '4 bénéficiaires' },
-  { value: 'gt5', label: '5 ou plus', badgeLabel: '5 bénéficiaires ou plus' },
+  { value: 'gt5', label: '5 et plus', badgeLabel: '5 bénéficiaires et plus' },
 ];
 
 export const housingCountOptions: SelectOption[] = [
   { value: 'lt5', label: 'Moins de 5', badgeLabel: 'Moins de 5 logements' },
   {
-    value: '5to20',
-    label: 'Entre 5 et 20',
-    badgeLabel: 'Entre 5 et 20 logements',
+    value: '5to19',
+    label: 'Entre 5 et 19',
+    badgeLabel: 'Entre 5 et 19 logements',
   },
   {
-    value: '20to50',
-    label: 'Entre 20 et 50',
-    badgeLabel: 'Entre 20 et 50 logements',
+    value: '20to49',
+    label: 'Entre 20 et 49',
+    badgeLabel: 'Entre 20 et 49 logements',
   },
-  { value: 'gt50', label: 'Plus de 50', badgeLabel: 'Plus de 50 logements' },
+  { value: 'gte50', label: '50 et plus', badgeLabel: '50 logements et plus' },
 ];
 
 export const vacancyRateOptions: SelectOption[] = [
@@ -126,21 +126,25 @@ export const vacancyRateOptions: SelectOption[] = [
     badgeLabel: 'Moins de 20% de vacance',
   },
   {
-    value: '20to40',
-    label: '20% - 40%',
-    badgeLabel: 'Entre 20% et 40% de vacance',
+    value: '20to39',
+    label: '20% - 39%',
+    badgeLabel: 'Entre 20% et 39% de vacance',
   },
   {
-    value: '40to60',
-    label: '40% - 60%',
-    badgeLabel: 'Entre 40% et 60% de vacance',
+    value: '40to59',
+    label: '40% - 59%',
+    badgeLabel: 'Entre 40% et 59% de vacance',
   },
   {
-    value: '60to80',
-    label: '60% - 80%',
-    badgeLabel: 'Entre 60% et 80% de vacance',
+    value: '60to79',
+    label: '60% - 79%',
+    badgeLabel: 'Entre 60% et 79% de vacance',
   },
-  { value: 'gt80', label: 'Plus de 80%', badgeLabel: 'Plus de 80% de vacance' },
+  {
+    value: 'gte80',
+    label: '80% et plus',
+    badgeLabel: '80% de vacance et plus',
+  },
 ];
 
 const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -161,10 +165,10 @@ export const housingKindOptions: SelectOption[] = [
 ];
 
 export const housingAreaOptions: SelectOption[] = [
-  { value: 'lt35', label: 'Moins de 35 m2' },
-  { value: '35to75', label: '35 - 75 m2' },
-  { value: '75to100', label: '75 - 100 m2' },
-  { value: 'gt100', label: 'Plus de 100 m2' },
+  { value: 'lt35', label: 'Moins de 35 m²' },
+  { value: '35to74', label: '35 - 74 m²' },
+  { value: '75to99', label: '75 - 99 m²' },
+  { value: 'gte100', label: '100 m² et plus' },
 ];
 
 export const roomsCountOptions: SelectOption[] = [
@@ -205,34 +209,28 @@ export const vacancyDurationOptions: SelectOption[] = [
     label: 'Vacance conjoncturelle (Moins de 2 ans)',
   },
   {
-    value: 'gt2',
-    label: 'Vacance structurelle (2 ans et plus)',
-  },
-  {
     value: '2',
     label: '2 ans',
     badgeLabel: 'Durée de vacance : 2 ans',
   },
   {
-    value: '2to5',
-    label: 'Entre 2 et 5 ans',
-    badgeLabel: 'Durée de vacance : entre 2 et 5 ans',
-    hidden: true,
+    value: 'gt2',
+    label: 'Vacance structurelle (2 ans et plus)',
   },
   {
-    value: '3to5',
-    label: 'Entre 3 et 5 ans',
-    badgeLabel: 'Durée de vacance : entre 3 et 5 ans',
+    value: '3to4',
+    label: 'Entre 3 et 4 ans',
+    badgeLabel: 'Durée de vacance : entre 3 et 4 ans',
   },
   {
-    value: '5to10',
-    label: 'Entre 5 et 10 ans',
-    badgeLabel: 'Durée de vacance : entre 5 et 10 ans',
+    value: '5to9',
+    label: 'Entre 5 et 9 ans',
+    badgeLabel: 'Durée de vacance : entre 5 et 9 ans',
   },
   {
-    value: 'gt10',
-    label: 'Plus de 10 ans',
-    badgeLabel: 'Durée de vacance : plus de 10 ans',
+    value: 'gte10',
+    label: '10 ans et plus',
+    badgeLabel: 'Durée de vacance : 10 ans et plus',
   },
 ];
 

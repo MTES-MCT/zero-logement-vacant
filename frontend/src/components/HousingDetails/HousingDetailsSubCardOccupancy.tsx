@@ -51,7 +51,9 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           </Title>
           <div className="fr-ml-1w d-inline-block">
             <Badge className="bg-975">
-              {OccupancyKindLabels[housing.occupancy]}
+              {housing.occupancy
+                ? OccupancyKindLabels[housing.occupancy]
+                : 'pas d’informations'}
             </Badge>
           </div>
           <div className="d-inline-block float-right">
@@ -59,7 +61,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             <Badge className="bg-975 fr-ml-1w">
               {housing.occupancyIntended
                 ? OccupancyKindLabels[housing.occupancyIntended]
-                : "pas d'informations"}
+                : 'pas d’informations'}
             </Badge>
           </div>
         </>

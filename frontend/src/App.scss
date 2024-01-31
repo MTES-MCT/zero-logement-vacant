@@ -3,7 +3,7 @@
 @use "src/components/Map/housing-popup-overrides";
 
 :root {
-  --material-transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
+  --material-transition-curve: cubic-bezier(.39,.4,.82,.78);
 }
 
 .zlv-container {

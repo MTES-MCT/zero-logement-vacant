@@ -361,7 +361,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
       .update({
         raw_address: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate,
+        birth_date: ownerApi.birthDate ?? null,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
         additional_address: ownerApi.additionalAddress ?? null,
@@ -452,7 +452,7 @@ const escapeValue = (value?: string) => {
 export interface OwnerDBO {
   id: string;
   full_name: string;
-  birth_date?: Date;
+  birth_date?: Date | string;
   administrator?: string;
   raw_address: string[];
   owner_kind?: string;
@@ -472,7 +472,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
   rawAddress: result.raw_address.filter((_: string) => _ && _.length),
   fullName: result.full_name,
   administrator: result.administrator,
-  birthDate: result.birth_date,
+  birthDate: result.birth_date ? new Date(result.birth_date) : undefined,
   email: result.email,
   phone: result.phone,
   kind: result.owner_kind,

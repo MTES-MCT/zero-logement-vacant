@@ -64,6 +64,7 @@ function GroupView() {
     trackEvent({
       category: TrackEventCategories.Group,
       action: TrackEventActions.HousingList.Search,
+      name: query,
     });
     setFilters({
       ...filters,

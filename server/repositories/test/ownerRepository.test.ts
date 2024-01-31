@@ -51,7 +51,7 @@ describe('Owner repository', () => {
       expect(actual).toStrictEqual({
         ...owner,
         administrator: null,
-        birthDate: null,
+        birthDate: undefined,
         banAddress: undefined,
       });
     });

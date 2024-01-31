@@ -29,27 +29,29 @@ const HousingListEditionSideMenu = ({
       expand={open}
       onClose={onClose}
       title={
-        <>
-          <Button
-            title="Fermer"
-            className="fr-p-0"
-            iconId="fr-icon-arrow-right-s-line-double"
-            priority="tertiary no outline"
-            onClick={onClose}
-          />
-          <Alert
-            description="Mise à jour groupée"
-            small
-            severity="warning"
-            className="float-right"
-          ></Alert>
-          <Title as="h6" className="fr-mb-0">
+        <Container as="header" className="d-flex" fluid>
+          <Title as="h6" className="d-inline-block" spacing="mb-0 pt-1w">
             {displayCount(housingCount, 'logement sélectionné')}
           </Title>
-        </>
+          <div className="align-right">
+            <Button
+              priority="tertiary no outline"
+              iconId="ri-close-line"
+              iconPosition="right"
+              onClick={onClose}
+            >
+              Fermer
+            </Button>
+            <Alert
+              description="Mise à jour groupée"
+              small
+              severity="warning"
+            ></Alert>
+          </div>
+        </Container>
       }
       content={
-        <Container as="section">
+        <>
           {open && (
             <HousingEditionForm
               housingCount={housingCount}
@@ -57,9 +59,8 @@ const HousingListEditionSideMenu = ({
               ref={statusFormRef}
             />
           )}
-        </Container>
+        </>
       }
-      className="fr-p-0"
       footer={
         <>
           <Button

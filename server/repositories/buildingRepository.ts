@@ -15,3 +15,9 @@ export const formatBuildingApi = (building: BuildingApi): BuildingDBO => ({
   housing_count: building.housingCount,
   vacant_housing_count: building.vacantHousingCount,
 });
+
+export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
+  id: building.id,
+  housingCount: building.housing_count,
+  vacantHousingCount: building.vacant_housing_count,
+});

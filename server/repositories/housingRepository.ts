@@ -564,31 +564,27 @@ const filteredQuery = (opts: ListQueryOptions) => {
       queryBuilder.whereIn('owner_kind', filters.ownerKinds);
     }
     if (filters.ownerAges?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((whereBuilder) => {
         if (filters.ownerAges?.includes('lt40')) {
+          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) < 40');
+        }
+        if (filters.ownerAges?.includes('40to59')) {
           whereBuilder.orWhereRaw(
-            "date_part('year', current_date) - date_part('year', birth_date) <= 40"
+            'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 40 AND 59'
           );
         }
-        if (filters.ownerAges?.includes('40to60')) {
+        if (filters.ownerAges?.includes('60to74')) {
           whereBuilder.orWhereRaw(
-            "date_part('year', current_date) - date_part('year', birth_date) between 40 and 60"
+            'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 60 AND 74'
           );
         }
-        if (filters.ownerAges?.includes('60to75')) {
+        if (filters.ownerAges?.includes('75to99')) {
           whereBuilder.orWhereRaw(
-            "date_part('year', current_date) - date_part('year', birth_date) between 60 and 75"
+            'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 75 AND 99'
           );
         }
-        if (filters.ownerAges?.includes('75to100')) {
-          whereBuilder.orWhereRaw(
-            "date_part('year', current_date) - date_part('year', birth_date) between 75 and 100"
-          );
-        }
-        if (filters.ownerAges?.includes('gt100')) {
-          whereBuilder.orWhereRaw(
-            "date_part('year', current_date) - date_part('year', birth_date) >= 100"
-          );
+        if (filters.ownerAges?.includes('gte100')) {
+          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
         }
       });
     }
@@ -625,17 +621,17 @@ const filteredQuery = (opts: ListQueryOptions) => {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);
     }
     if (filters.housingAreas?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.housingAreas?.indexOf('lt35') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [0, 35]);
+      queryBuilder.where((whereBuilder) => {
+        if (filters.housingAreas?.includes('lt35')) {
+          whereBuilder.orWhereBetween('living_area', [0, 34]);
         }
-        if (filters.housingAreas?.indexOf('35to75') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [35, 75]);
+        if (filters.housingAreas?.includes('35to74')) {
+          whereBuilder.orWhereBetween('living_area', [35, 74]);
         }
-        if (filters.housingAreas?.indexOf('75to100') !== -1) {
-          whereBuilder.orWhereBetween('living_area', [75, 100]);
+        if (filters.housingAreas?.includes('75to99')) {
+          whereBuilder.orWhereBetween('living_area', [75, 99]);
         }
-        if (filters.housingAreas?.indexOf('gt100') !== -1) {
+        if (filters.housingAreas?.includes('gte100')) {
           whereBuilder.orWhereRaw('living_area >= 100');
         }
       });
@@ -658,7 +654,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
       );
     }
     if (filters.buildingPeriods?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((whereBuilder) => {
         if (filters.buildingPeriods?.indexOf('lt1919') !== -1) {
           whereBuilder.orWhereBetween('building_year', [0, 1918]);
         }
@@ -675,47 +671,43 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
     if (filters.vacancyDurations?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.vacancyDurations?.indexOf('lt2') !== -1) {
+        if (filters.vacancyDurations?.includes('lt2')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 1,
             referenceDataYearFromFilters(filters),
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('gt2') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            0,
-            referenceDataYearFromFilters(filters) - 2,
-          ]);
-        }
-        if (filters.vacancyDurations?.indexOf('2') !== -1) {
+        if (filters.vacancyDurations?.includes('2')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
             referenceDataYearFromFilters(filters) - 2
           );
         }
-        if (filters.vacancyDurations?.indexOf('3to5') !== -1) {
+        if (filters.vacancyDurations?.includes('gt2')) {
+          whereBuilder.orWhere(
+            'vacancy_start_year',
+            '<',
+            referenceDataYearFromFilters(filters) - 2
+          );
+        }
+        if (filters.vacancyDurations?.includes('3to4')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 4,
             referenceDataYearFromFilters(filters) - 3,
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('2to5') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 4,
-            referenceDataYearFromFilters(filters) - 2,
-          ]);
-        }
-        if (filters.vacancyDurations?.indexOf('5to10') !== -1) {
+        if (filters.vacancyDurations?.includes('5to9')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
             referenceDataYearFromFilters(filters) - 9,
             referenceDataYearFromFilters(filters) - 5,
           ]);
         }
-        if (filters.vacancyDurations?.indexOf('gt10') !== -1) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            0,
-            referenceDataYearFromFilters(filters) - 10,
-          ]);
+        if (filters.vacancyDurations?.includes('gte10')) {
+          whereBuilder.orWhere(
+            'vacancy_start_year',
+            '<=',
+            referenceDataYearFromFilters(filters) - 10
+          );
         }
       });
     }
@@ -761,46 +753,46 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
 
     if (filters.housingCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.housingCounts?.indexOf('lt5') !== -1) {
+      queryBuilder.where((whereBuilder) => {
+        if (filters.housingCounts?.includes('lt5')) {
           whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
         }
-        if (filters.housingCounts?.indexOf('5to20') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [5, 20]);
+        if (filters.housingCounts?.includes('5to19')) {
+          whereBuilder.orWhereBetween('housing_count', [5, 19]);
         }
-        if (filters.housingCounts?.indexOf('20to50') !== -1) {
-          whereBuilder.orWhereBetween('housing_count', [20, 50]);
+        if (filters.housingCounts?.includes('20to49')) {
+          whereBuilder.orWhereBetween('housing_count', [20, 49]);
         }
-        if (filters.housingCounts?.indexOf('gt50') !== -1) {
-          whereBuilder.orWhereRaw('housing_count > 50');
+        if (filters.housingCounts?.includes('gte50')) {
+          whereBuilder.orWhereRaw('housing_count >= 50');
         }
       });
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.vacancyRates?.indexOf('lt20') !== -1) {
+        if (filters.vacancyRates?.includes('lt20')) {
           whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) < 20'
+            'vacant_housing_count * 100 / housing_count < 20'
           );
         }
-        if (filters.vacancyRates?.indexOf('20to40') !== -1) {
+        if (filters.vacancyRates?.includes('20to39')) {
           whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 20 and 40'
+            'vacant_housing_count * 100 / housing_count between 20 and 39'
           );
         }
-        if (filters.vacancyRates?.indexOf('40to60') !== -1) {
+        if (filters.vacancyRates?.includes('40to59')) {
           whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 40 and 60'
+            'vacant_housing_count * 100 / housing_count between 40 and 59'
           );
         }
-        if (filters.vacancyRates?.indexOf('60to80') !== -1) {
+        if (filters.vacancyRates?.includes('60to79')) {
           whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) between 60 and 80'
+            'vacant_housing_count * 100 / housing_count between 60 and 79'
           );
         }
-        if (filters.vacancyRates?.indexOf('gt80') !== -1) {
+        if (filters.vacancyRates?.includes('gte80')) {
           whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / coalesce(housing_count, vacant_housing_count) > 80'
+            'vacant_housing_count * 100 / housing_count >= 80'
           );
         }
       });

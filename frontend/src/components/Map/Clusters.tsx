@@ -6,6 +6,7 @@ import { deserialize } from '../../utils/jsonUtils';
 import { HousingStatus } from '../../models/HousingState';
 import { fr } from '@codegouvfr/react-dsfr';
 import fp from 'lodash/fp';
+import { BUILDING_DARK } from './Icon';
 
 interface Props<T> {
   id: string;
@@ -70,7 +71,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         map.getCanvas().style.cursor = 'pointer';
       });
 
-      map.on('mouseleave', 'clusters', function () {
+      map.on('mouseleave', 'unclustered-points', function () {
         map.getCanvas().style.cursor = '';
       });
     }
@@ -142,7 +143,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
           'icon-image': [
             'case',
             ['>=', ['get', 'housingCount'], 2],
-            'building',
+            BUILDING_DARK,
             '',
           ],
           'icon-size': 0.75,

@@ -22,6 +22,8 @@ import {
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Perimeters from './Perimeters';
 import MapControls from './MapControls';
+import Points from './Points';
+import { BUILDING_DARK, BUILDING_LIGHT, loadIcon } from './Icon';
 
 const STYLE = {
   title: 'Carte',
@@ -73,13 +75,12 @@ function Map(props: MapProps) {
     [housingList]
   );
 
-  const points = useMemo(
-    () =>
-      Object.values(buildingsById).map((building) =>
-        turf.point([building.longitude, building.latitude], building)
-      ),
-    [buildingsById]
-  );
+  const [clusterize, setClusterize] = useState(true);
+  const points = useMemo(() => {
+    return Object.values(buildingsById).map((building) =>
+      turf.point([building.longitude, building.latitude], building)
+    );
+  }, [buildingsById]);
 
   const perimeters = props.perimeters ?? [];
   const includedPerimeters = props.perimetersIncluded ?? [];
@@ -88,11 +89,8 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (map && !map.hasImage('building')) {
-      map.loadImage('/icons/building/building-4-fill.png', (error, image) => {
-        if (image) {
-          map.addImage('building', image);
-        }
-      });
+      loadIcon(map, '/map/building-4-fill-white.png', BUILDING_DARK);
+      loadIcon(map, '/map/building-4-fill-black.png', BUILDING_LIGHT);
     }
   }, [map]);
 
@@ -169,10 +167,16 @@ function Map(props: MapProps) {
         map={map}
         perimeters={includedPerimeters}
       />
-      <Clusters id="housing" points={points} map={map} onClick={popUp} />
+      {clusterize ? (
+        <Clusters id="housing" points={points} map={map} onClick={popUp} />
+      ) : (
+        <Points id="housing" points={points} map={map} onClick={popUp} />
+      )}
       {popups}
       <MapControls
+        clusterize={clusterize}
         perimeters={showPerimeters}
+        onClusterizeChange={setClusterize}
         onPerimetersChange={setShowPerimeters}
       />
       <NavigationControl showCompass={false} showZoom visualizePitch={false} />

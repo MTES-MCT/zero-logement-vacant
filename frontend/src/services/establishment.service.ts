@@ -1,7 +1,11 @@
 import config from '../utils/config';
 import { Establishment } from '../models/Establishment';
 import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
-import { createHttpService, getURLQuery, normalizeUrlSegment } from '../utils/fetchUtils';
+import {
+  createHttpService,
+  getURLQuery,
+  normalizeUrlSegment,
+} from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
 
 const http = createHttpService('establishment', {

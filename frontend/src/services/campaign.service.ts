@@ -1,7 +1,12 @@
 import config from '../utils/config';
 import authService from './auth.service';
 import { parseISO } from 'date-fns';
-import { Campaign, CampaignSort, CampaignUpdate, DraftCampaign } from '../models/Campaign';
+import {
+  Campaign,
+  CampaignSort,
+  CampaignUpdate,
+  DraftCampaign,
+} from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
 import { getURLQuery } from '../utils/fetchUtils';

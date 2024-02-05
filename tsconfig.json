@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["esnext"],
-    "outDir": "./dist",
+    "outDir": "dist",
     "target": "esnext",
     "allowJs": true,
     "strict": true,
@@ -14,7 +14,7 @@
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "types"]
   },
-  "files": ["node_modules/jest-extended/types/index.d.ts"],
-  "include": ["**/*.ts", "**/*.js"],
-  "exclude": ["node_modules", "**/*.d.ts", "dist", "frontend"]
+  "files": [],
+  "references": [{ "path": "./shared" }, { "path": "./server" }],
+  "exclude": ["node_modules", "**/*.d.ts"]
 }

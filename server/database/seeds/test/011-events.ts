@@ -2,13 +2,13 @@ import { Knex } from 'knex';
 import {
   genHousingEventApi,
   genOwnerEventApi,
-} from '../../../server/test/testFixtures';
+} from '../../../test/testFixtures';
 import { Owner1 } from './004-owner';
 import eventRepository, {
   eventsTable,
   housingEventsTable,
   ownerEventsTable,
-} from '../../../server/repositories/eventRepository';
+} from '../../../repositories/eventRepository';
 import { Housing1 } from './005-housing';
 import { User1 } from './003-users';
 

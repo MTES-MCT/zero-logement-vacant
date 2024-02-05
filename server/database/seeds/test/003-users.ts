@@ -1,7 +1,7 @@
-import { genUserApi } from '../../../server/test/testFixtures';
+import { genUserApi } from '../../../test/testFixtures';
 import userRepository, {
   usersTable,
-} from '../../../server/repositories/userRepository';
+} from '../../../repositories/userRepository';
 import { Establishment1, Establishment2 } from './001-establishments';
 import { Knex } from 'knex';
 import { UserApi, UserRoles } from '../../../server/models/UserApi';

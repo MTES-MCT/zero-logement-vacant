@@ -1,11 +1,11 @@
 // @ts-ignore
 import { User1 } from './002-users';
 import { Establishment1, Establishment2 } from './001-establishments';
-import { genContactPointApi } from '../../../server/test/testFixtures';
+import { genContactPointApi } from '../../../test/testFixtures';
 import { Knex } from 'knex';
 import contactPointsRepository, {
   contactPointsTable,
-} from '../../../server/repositories/contactPointsRepository';
+} from '../../../repositories/contactPointsRepository';
 
 export const ContactPoint1 = genContactPointApi(Establishment1.id);
 export const ContactPoint2 = genContactPointApi(Establishment2.id);

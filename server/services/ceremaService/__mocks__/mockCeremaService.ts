@@ -1,5 +1,5 @@
 import { CeremaUser, ConsultUserService } from '../consultUserService';
-import { Establishment1 } from '../../../../database/seeds/test/001-establishments';
+import { Establishment1 } from '../../../database/seeds/test/001-establishments';
 
 class MockCeremaService implements ConsultUserService {
   async consultUsers(email: string): Promise<CeremaUser[]> {

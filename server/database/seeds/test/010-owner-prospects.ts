@@ -1,8 +1,8 @@
 import { Knex } from 'knex';
 import ownerProspectRepository, {
   ownerProspectsTable,
-} from '../../../server/repositories/ownerProspectRepository';
-import { genOwnerProspectApi } from '../../../server/test/testFixtures';
+} from '../../../repositories/ownerProspectRepository';
+import { genOwnerProspectApi } from '../../../test/testFixtures';
 import { Locality1, Locality2 } from './001-establishments';
 
 export const OwnerProspect1 = genOwnerProspectApi(Locality1.geoCode);

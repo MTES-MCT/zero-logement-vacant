@@ -1,5 +1,4 @@
 import { UserDTO } from './UserDTO';
-import { HousingFiltersApi } from '../../server/models/HousingFiltersApi';
 
 export interface GroupDTO {
   id: string;
@@ -17,6 +16,7 @@ export interface GroupPayloadDTO
   housing: {
     all: boolean;
     ids: string[];
-    filters: Omit<HousingFiltersApi, 'groupId'>;
+    // filters: Omit<HousingFiltersApi, 'groupId'>;
+    filters: any;
   };
 }

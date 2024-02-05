@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 
-import db from '../../server/repositories/db';
+import db from '../../repositories/db';
 import path from 'path';
-import { logger } from '../../server/utils/logger';
+import { logger } from '../../utils/logger';
 
 async function run(): Promise<void> {
   async function load(path: string): Promise<void> {

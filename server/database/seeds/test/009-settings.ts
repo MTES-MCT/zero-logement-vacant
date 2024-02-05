@@ -3,8 +3,8 @@ import { Knex } from 'knex';
 import {
   formatSettingsApi,
   settingsTable,
-} from '../../../server/repositories/settingsRepository';
-import { genSettingsApi } from '../../../server/test/testFixtures';
+} from '../../../repositories/settingsRepository';
+import { genSettingsApi } from '../../../test/testFixtures';
 
 export const Settings1 = {
   ...genSettingsApi(Establishment1.id),

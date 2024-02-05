@@ -2,13 +2,13 @@
 import { User1 } from './003-users';
 import { Establishment1 } from './001-establishments';
 import { Housing1 } from './005-housing';
-import { genCampaignApi } from '../../../server/test/testFixtures';
+import { genCampaignApi } from '../../../test/testFixtures';
 import campaignRepository, {
   campaignsTable,
-} from '../../../server/repositories/campaignRepository';
-import { campaignsHousingTable } from '../../../server/repositories/campaignHousingRepository';
-import { housingTable } from '../../../server/repositories/housingRepository';
-import { HousingStatusApi } from '../../../server/models/HousingStatusApi';
+} from '../../../repositories/campaignRepository';
+import { campaignsHousingTable } from '../../../repositories/campaignHousingRepository';
+import { housingTable } from '../../../repositories/housingRepository';
+import { HousingStatusApi } from '../../../models/HousingStatusApi';
 import { Knex } from 'knex';
 
 export const Campaign1 = genCampaignApi(Establishment1.id, User1.id);

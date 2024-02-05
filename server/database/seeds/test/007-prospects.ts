@@ -1,7 +1,7 @@
-import { genProspectApi } from '../../../server/test/testFixtures';
+import { genProspectApi } from '../../../test/testFixtures';
 import prospectRepository, {
   prospectsTable,
-} from '../../../server/repositories/prospectRepository';
+} from '../../../repositories/prospectRepository';
 import { Knex } from 'knex';
 import { Establishment1 } from './001-establishments';
 

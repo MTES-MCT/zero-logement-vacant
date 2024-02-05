@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { TokenPayload, UserApi } from '../models/UserApi';
 import { Test } from 'supertest';
-import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
-import { Establishment1 } from '../../database/seeds/test/001-establishments';
+import { AdminUser1, User1 } from '../database/seeds/test/003-users';
+import { Establishment1 } from '../database/seeds/test/001-establishments';
 
 export const accessTokenTest = (payload: TokenPayload) =>
   jwt.sign(payload, 'secret', { expiresIn: 86400 });

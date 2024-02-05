@@ -4,7 +4,10 @@ import { zlvApi } from './api.service';
 
 export const datafoncierApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    findHousing: builder.query<DatafoncierHousing[], DatafoncierHousingQuery>({
+    findDataFoncierHousing: builder.query<
+      DatafoncierHousing[],
+      DatafoncierHousingQuery
+    >({
       query: (params) => `datafoncier/housing${getURLQuery(params)}`,
       providesTags: () => [{ type: 'Datafoncier housing', id: 'LIST' }],
     }),

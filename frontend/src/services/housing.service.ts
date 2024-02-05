@@ -47,7 +47,7 @@ export const housingApi = zlvApi.injectEndpoints({
     }),
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
-        url: `housing/${getURLQuery({
+        url: `housing${getURLQuery({
           sort: toQuery(opts?.sort),
         })}`,
         method: 'POST',

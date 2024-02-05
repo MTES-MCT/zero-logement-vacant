@@ -123,7 +123,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
             // Default
             '#000091',
           ],
-          'circle-radius': 16,
+          'circle-radius': ['case', ['>=', ['get', 'housingCount'], 2], 16, 8],
           'circle-stroke-width': 2,
           'circle-stroke-color': [
             'match',
@@ -147,13 +147,6 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
             '',
           ],
           'icon-size': 0.75,
-          'text-field': [
-            'case',
-            ['==', ['get', 'housingCount'], 1],
-            ['get', 'order', ['at', 0, ['get', 'housingList']]],
-            '',
-          ],
-          'text-size': 12,
         }}
         paint={{
           'text-color': [

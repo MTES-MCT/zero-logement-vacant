@@ -1,18 +1,11 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { Locality, TaxKinds } from '../models/Locality';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { zlvApi } from './api.service';
 
-export const localityApi = createApi({
-  reducerPath: 'localityApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/localities`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Locality'],
+export const localityApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     listLocalities: builder.query<Locality[], string>({
-      query: (establishmentId) => `?establishmentId=${establishmentId}`,
+      query: (establishmentId) =>
+        `localities?establishmentId=${establishmentId}`,
       providesTags: (result) =>
         result
           ? [
@@ -33,7 +26,7 @@ export const localityApi = createApi({
       }
     >({
       query: ({ geoCode, taxKind, taxRate }) => ({
-        url: `${geoCode}/tax`,
+        url: `localities/${geoCode}/tax`,
         method: 'PUT',
         body: { taxKind, taxRate },
       }),

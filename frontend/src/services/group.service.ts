@@ -1,28 +1,19 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
-import config from '../utils/config';
-import authService from './auth.service';
-import { PaginationOptions } from '../../../shared/models/Pagination';
+import { GroupDTO, PaginationOptions } from '../../../shared';
 import { fromGroupDTO, Group } from '../models/Group';
 import { GroupFilters } from '../models/GroupFilters';
-import { GroupDTO } from '../../../shared/models/GroupDTO';
 import fp from 'lodash/fp';
 import { GroupPayload } from '../models/GroupPayload';
 import { housingApi } from './housing.service';
+import { zlvApi } from './api.service';
 
 interface FindOptions extends PaginationOptions {
   filters: GroupFilters;
 }
 
-export const groupApi = createApi({
-  reducerPath: 'groupApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/groups`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Group'],
+export const groupApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findGroups: builder.query<Group[], FindOptions | void>({
-      query: () => '',
+      query: () => 'groups',
       providesTags: (groups) =>
         groups
           ? [
@@ -36,7 +27,7 @@ export const groupApi = createApi({
       transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
     }),
     getGroup: builder.query<Group, string>({
-      query: (id: string) => `/${id}`,
+      query: (id: string) => `groups/${id}`,
       providesTags: (result, error, id) => [{ type: 'Group', id }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
     }),
@@ -45,7 +36,7 @@ export const groupApi = createApi({
       GroupPayload
     >({
       query: (group) => ({
-        url: '',
+        url: 'groups',
         method: 'POST',
         body: group,
       }),
@@ -59,7 +50,7 @@ export const groupApi = createApi({
     }),
     updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
       query: ({ id, ...group }) => ({
-        url: `/${id}`,
+        url: `groups/${id}`,
         method: 'PUT',
         body: group,
       }),
@@ -72,7 +63,7 @@ export const groupApi = createApi({
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
       query: (group) => ({
-        url: `/${group.id}/housing`,
+        url: `groups/${group.id}/housing`,
         method: 'POST',
         body: fp.omit(['id'], group),
       }),
@@ -95,7 +86,7 @@ export const groupApi = createApi({
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
       query: (group) => ({
-        url: `/${group.id}/housing`,
+        url: `groups/${group.id}/housing`,
         method: 'DELETE',
         body: fp.omit(['id'], group),
       }),
@@ -115,7 +106,7 @@ export const groupApi = createApi({
     }),
     removeGroup: builder.mutation<void, Group>({
       query: (group) => ({
-        url: `/${group.id}`,
+        url: `groups/${group.id}`,
         method: 'DELETE',
       }),
       invalidatesTags: (result, error, group) => [

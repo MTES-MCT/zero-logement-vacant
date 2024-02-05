@@ -1,18 +1,10 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { GeoPerimeter } from '../models/GeoPerimeter';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { zlvApi } from './api.service';
 
-export const geoPerimetersApi = createApi({
-  reducerPath: 'geoPerimetersApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/geo/perimeters`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['GeoPerimeter'],
+export const geoPerimetersApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     listGeoPerimeters: builder.query<GeoPerimeter[], void>({
-      query: () => '',
+      query: () => 'geo/perimeters',
       providesTags: (result) =>
         result
           ? [
@@ -29,7 +21,7 @@ export const geoPerimetersApi = createApi({
       { geoPerimeterId: string; kind: string; name?: string }
     >({
       query: ({ geoPerimeterId, kind, name }) => ({
-        url: geoPerimeterId,
+        url: `geo/perimeters/${geoPerimeterId}`,
         method: 'PUT',
         body: { kind, name },
       }),
@@ -39,7 +31,7 @@ export const geoPerimetersApi = createApi({
     }),
     deleteGeoPerimeters: builder.mutation<void, string[]>({
       query: (geoPerimeterIds) => ({
-        url: '',
+        url: 'geo/perimeters',
         method: 'DELETE',
         body: { geoPerimeterIds },
       }),
@@ -49,7 +41,7 @@ export const geoPerimetersApi = createApi({
     }),
     uploadGeoPerimeterFile: builder.mutation<void, File>({
       query: (file) => ({
-        url: '',
+        url: 'geo/perimeters',
         method: 'POST',
         body: fileToFormData(file),
       }),

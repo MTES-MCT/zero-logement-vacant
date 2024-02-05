@@ -1,12 +1,8 @@
 import config from '../utils/config';
 import { Establishment } from '../models/Establishment';
 import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
-import {
-  createHttpService,
-  getURLQuery,
-  normalizeUrlSegment,
-} from '../utils/fetchUtils';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { createHttpService, getURLQuery, normalizeUrlSegment } from '../utils/fetchUtils';
+import { zlvApi } from './api.service';
 
 const http = createHttpService('establishment', {
   host: config.apiEndpoint,
@@ -14,19 +10,14 @@ const http = createHttpService('establishment', {
   json: true,
 });
 
-export const establishmentApi = createApi({
-  reducerPath: 'establishmentApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/establishments`,
-  }),
-  tagTypes: ['Establishment'],
+export const establishmentApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findOneEstablishment: builder.query<Establishment, EstablishmentFilterApi>({
       query: (filters) =>
-        getURLQuery({
+        `establishments/${getURLQuery({
           ...filters,
           name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
-        }),
+        })}`,
       transformResponse: (result: Establishment[]) => result[0],
       providesTags: (result) =>
         result
@@ -40,10 +31,10 @@ export const establishmentApi = createApi({
     }),
     findEstablishments: builder.query<Establishment[], EstablishmentFilterApi>({
       query: (filters) =>
-        getURLQuery({
+        `establishments/${getURLQuery({
           ...filters,
           name: filters.name ? normalizeUrlSegment(filters.name) : undefined,
-        }),
+        })}`,
       providesTags: (result) =>
         result
           ? [

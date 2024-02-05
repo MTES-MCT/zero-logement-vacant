@@ -6,9 +6,9 @@ import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
 import { getURLQuery } from '../utils/fetchUtils';
 import { CampaignFilters } from '../models/CampaignFilters';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { housingApi } from './housing.service';
 import { SortOptions, toQuery } from '../models/Sort';
+import { zlvApi } from './api.service';
 
 export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
@@ -25,25 +25,19 @@ const parseCampaign = (c: any): Campaign =>
     exportURL: getExportURL(c.id),
   } as Campaign);
 
-export const campaignApi = createApi({
-  reducerPath: 'campaignApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/campaigns`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Campaign'],
+export const campaignApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getCampaign: builder.query<Campaign, string>({
-      query: (campaignId) => campaignId,
+      query: (campaignId) => `campaigns/${campaignId}`,
       transformResponse: (c) => parseCampaign(c),
       providesTags: (result, error, id) => [{ type: 'Campaign', id }],
     }),
     findCampaigns: builder.query<Campaign[], FindOptions | void>({
       query: (opts) => ({
-        url: getURLQuery({
+        url: `campaigns/${getURLQuery({
           groups: opts?.filters?.groupIds,
           sort: toQuery(opts?.sort),
-        }),
+        })}`,
       }),
       providesTags: (result) =>
         result
@@ -66,7 +60,7 @@ export const campaignApi = createApi({
       }
     >({
       query: (payload) => ({
-        url: '',
+        url: 'campaigns',
         method: 'POST',
         body: payload,
       }),
@@ -81,7 +75,7 @@ export const campaignApi = createApi({
       }
     >({
       query: (payload) => ({
-        url: `groups/${payload.group.id}`,
+        url: `campaigns/groups/${payload.group.id}`,
         method: 'POST',
         body: {
           title: payload.campaign.title,
@@ -98,7 +92,7 @@ export const campaignApi = createApi({
       }
     >({
       query: ({ id, campaignUpdate }) => ({
-        url: id,
+        url: `campaigns/${id}`,
         method: 'PUT',
         body: { ...campaignUpdate },
       }),
@@ -116,7 +110,7 @@ export const campaignApi = createApi({
       }
     >({
       query: ({ campaignId, ...payload }) => ({
-        url: `/${campaignId}/housing`,
+        url: `campaigns/${campaignId}/housing`,
         method: 'DELETE',
         body: payload,
       }),
@@ -136,7 +130,7 @@ export const campaignApi = createApi({
     }),
     removeCampaign: builder.mutation<void, string>({
       query: (campaignId) => ({
-        url: campaignId,
+        url: `campaigns/${campaignId}`,
         method: 'DELETE',
       }),
       invalidatesTags: () => [{ type: 'Campaign', id: 'LIST' }],

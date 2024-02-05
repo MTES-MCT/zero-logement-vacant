@@ -1,21 +1,15 @@
-import config from '../utils/config';
 import { OwnerProspect, OwnerProspectSortable } from '../models/OwnerProspect';
 import authService from './auth.service';
 import { PaginatedResult } from '../models/PaginatedResult';
-import { PaginationOptions } from '../../../shared/models/Pagination';
+import { PaginationOptions } from '../../../shared';
 import { SortOptions, toQuery } from '../models/Sort';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { getURLQuery } from '../utils/fetchUtils';
+import { zlvApi } from './api.service';
 
 export type FindOptions = PaginationOptions &
   SortOptions<OwnerProspectSortable>;
 
-export const ownerProspectApi = createApi({
-  reducerPath: 'ownerProspectApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/owner-prospects`,
-  }),
-  tagTypes: ['OwnerProspect'],
+export const ownerProspectApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findOwnerProspects: builder.query<
       PaginatedResult<OwnerProspect>,
@@ -23,9 +17,9 @@ export const ownerProspectApi = createApi({
     >({
       query: (options) => {
         return {
-          url: getURLQuery({
+          url: `owner-prospects${getURLQuery({
             sort: toQuery(options.sort),
-          }),
+          })}`,
           headers: authService.withAuthHeader(),
         };
       },
@@ -42,7 +36,7 @@ export const ownerProspectApi = createApi({
     }),
     createOwnerProspect: builder.mutation<OwnerProspect, OwnerProspect>({
       query: (ownerProspect) => ({
-        url: '',
+        url: 'owner-prospects',
         method: 'POST',
         body: ownerProspect,
       }),
@@ -51,7 +45,7 @@ export const ownerProspectApi = createApi({
       query: (ownerProspect) => {
         const { id, ...op } = ownerProspect;
         return {
-          url: `${id}`,
+          url: `owner-prospects/${id}`,
           method: 'PUT',
           body: op,
           headers: authService.withAuthHeader(),

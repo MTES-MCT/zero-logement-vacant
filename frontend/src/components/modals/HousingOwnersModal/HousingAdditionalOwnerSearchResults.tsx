@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Pagination, Row, Table } from '../../_dsfr';
+import { Col, Pagination, Row, Table, Text } from '../../_dsfr';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
@@ -16,9 +16,11 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
   const dispatch = useAppDispatch();
   const { additionalOwnersQuery } = useAppSelector((state) => state.housing);
 
-  const { data: additionalOwners } = useFindOwnersQuery(
+  const { data: additionalOwners, isLoading } = useFindOwnersQuery(
     additionalOwnersQuery!,
-    { skip: !additionalOwnersQuery }
+    {
+      skip: !additionalOwnersQuery,
+    }
   );
 
   const { pageCount, rowNumber, hasPagination } = usePagination({
@@ -58,54 +60,60 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
     },
   ];
 
-  if (!additionalOwners || !additionalOwnersQuery) {
-    return <></>;
-  }
-
   return (
     <>
-      {!additionalOwners.loading && (
-        <Row alignItems="middle" className="fr-py-1w">
-          <Col>
-            <b>
-              {displayCount(
-                additionalOwners.filteredCount,
-                'propriétaire trouvé'
-              )}
-            </b>
-          </Col>
-        </Row>
-      )}
-
-      {additionalOwners.filteredCount > 0 && (
+      {isLoading ? (
+        <Text className="fr-mt-2w">Recherche en cours...</Text>
+      ) : (
         <>
-          <Table
-            caption="Propriétaires"
-            captionPosition="none"
-            rowKey="id"
-            data={additionalOwners.entities.map((_, index) => ({
-              ..._,
-              rowNumber: rowNumber(index),
-            }))}
-            columns={columns()}
-            fixedLayout={true}
-            className="no-head"
-          />
-          {hasPagination && (
-            <div className="fr-react-table--pagination-center nav">
-              <Pagination
-                onClick={(page: number) =>
-                  dispatch(
-                    housingSlice.actions.fetchingAdditionalOwners({
-                      ...additionalOwnersQuery,
-                      page,
-                    })
-                  )
-                }
-                currentPage={additionalOwners.page}
-                pageCount={pageCount}
-              />
-            </div>
+          {!additionalOwners || !additionalOwnersQuery ? (
+            <></>
+          ) : (
+            <>
+              <Row alignItems="middle" className="fr-py-1w">
+                <Col>
+                  <b>
+                    {displayCount(
+                      additionalOwners.filteredCount,
+                      'propriétaire trouvé'
+                    )}
+                  </b>
+                </Col>
+              </Row>
+
+              {additionalOwners.filteredCount > 0 && (
+                <>
+                  <Table
+                    caption="Propriétaires"
+                    captionPosition="none"
+                    rowKey="id"
+                    data={additionalOwners.entities.map((_, index) => ({
+                      ..._,
+                      rowNumber: rowNumber(index),
+                    }))}
+                    columns={columns()}
+                    fixedLayout={true}
+                    className="no-head"
+                  />
+                  {hasPagination && (
+                    <div className="fr-react-table--pagination-center nav">
+                      <Pagination
+                        onClick={(page: number) =>
+                          dispatch(
+                            housingSlice.actions.fetchingAdditionalOwners({
+                              ...additionalOwnersQuery,
+                              page,
+                            })
+                          )
+                        }
+                        currentPage={additionalOwners.page}
+                        pageCount={pageCount}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
         </>
       )}

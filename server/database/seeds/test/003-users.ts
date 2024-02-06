@@ -4,8 +4,8 @@ import userRepository, {
 } from '../../../repositories/userRepository';
 import { Establishment1, Establishment2 } from './001-establishments';
 import { Knex } from 'knex';
-import { UserApi, UserRoles } from '../../../server/models/UserApi';
-import config from '../../../server/utils/config';
+import { UserApi, UserRoles } from '../../../models/UserApi';
+import config from '../../../utils/config';
 import bcrypt from 'bcryptjs';
 
 export const TEST_SALT = bcrypt.genSaltSync();

@@ -3,8 +3,8 @@ import {
   buildingTable,
   housingTable,
   ReferenceDataYear,
-} from '../../../server/repositories/housingRepository';
-import { OccupancyKindApi } from '../../../server/models/HousingApi';
+} from '../../../repositories/housingRepository';
+import { OccupancyKindApi } from '../../../models/HousingApi';
 
 exports.seed = function (knex: Knex) {
   return knex.raw(

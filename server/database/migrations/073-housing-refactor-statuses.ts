@@ -4,8 +4,8 @@ import { Knex } from 'knex';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
-import { isNotNull } from '../../shared/utils/compare';
-import { logger } from '../../server/utils/logger';
+import { isNotNull } from '../../../shared/utils/compare';
+import { logger } from '../../utils/logger';
 
 const BATCH_SIZE = 100_000;
 

@@ -1,8 +1,8 @@
-import { genOwnerApi } from '../../../server/test/testFixtures';
+import { genOwnerApi } from '../../../test/testFixtures';
 import {
   formatOwnerApi,
   ownerTable,
-} from '../../../server/repositories/ownerRepository';
+} from '../../../repositories/ownerRepository';
 import { Knex } from 'knex';
 
 export const Owner1 = genOwnerApi();

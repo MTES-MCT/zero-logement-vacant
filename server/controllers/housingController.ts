@@ -7,7 +7,9 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
+import housingFiltersApi, {
+  HousingFiltersApi,
+} from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -27,13 +29,13 @@ import _ from 'lodash';
 import { logger } from '../utils/logger';
 import fp from 'lodash/fp';
 import { Pagination } from '../../shared';
-import { toHousingRecordApi } from '../../scripts/shared';
+import { toHousingRecordApi } from '../scripts/shared';
 import HousingExistsError from '../errors/housingExistsError';
 import ownerRepository from '../repositories/ownerRepository';
 import housingOwnerRepository from '../repositories/housingOwnerRepository';
 import { toHousingOwnersApi } from '../models/HousingOwnerApi';
 import async from 'async';
-import { processOwner } from '../../scripts/import-datafoncier/ownerImporter';
+import { processOwner } from '../scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '../errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '../models/EventApi';
 import ownerMatchRepository from '../repositories/ownerMatchRepository';

@@ -1,16 +1,15 @@
-// @ts-ignore
-import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
+import { establishmentsTable } from '../../../repositories/establishmentRepository';
 import { Knex } from 'knex';
 import { SirenSaintLo, SirenStrasbourg } from './001-establishments';
 import userRepository, {
   usersTable,
-} from '../../../server/repositories/userRepository';
-import { UserApi, UserRoles } from '../../../server/models/UserApi';
+} from '../../../repositories/userRepository';
+import { UserApi, UserRoles } from '../../../models/UserApi';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { genUserApi } from '../../../server/test/testFixtures';
+import { genUserApi } from '../../../test/testFixtures';
 import { Establishment1 } from '../test/001-establishments';
-import config from '../../../server/utils/config';
+import config from '../../../utils/config';
 
 exports.seed = function (knex: Knex) {
   const lovac: UserApi = {

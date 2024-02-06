@@ -1,16 +1,16 @@
 import {
   genEstablishmentApi,
   genLocalityApi,
-} from '../../../server/test/testFixtures';
+} from '../../../test/testFixtures';
 import establishmentRepository, {
   establishmentsTable,
-} from '../../../server/repositories/establishmentRepository';
+} from '../../../repositories/establishmentRepository';
 import localityRepository, {
   localitiesTable,
-} from '../../../server/repositories/localityRepository';
+} from '../../../repositories/localityRepository';
 import { Knex } from 'knex';
-import { LocalityApi, TaxKindsApi } from '../../../server/models/LocalityApi';
-import { establishmentsLocalitiesTable } from '../../../server/repositories/housingRepository';
+import { LocalityApi, TaxKindsApi } from '../../../models/LocalityApi';
+import { establishmentsLocalitiesTable } from '../../../repositories/housingRepository';
 
 export const Locality1: LocalityApi = genLocalityApi();
 export const Locality2: LocalityApi = {

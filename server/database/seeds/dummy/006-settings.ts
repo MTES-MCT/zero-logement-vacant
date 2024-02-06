@@ -1,12 +1,12 @@
 import async from 'async';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
-import { genSettingsApi } from '../../../server/test/testFixtures';
-import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
+import { genSettingsApi } from '../../../test/testFixtures';
+import { establishmentsTable } from '../../../repositories/establishmentRepository';
 import {
   formatSettingsApi,
   settingsTable,
-} from '../../../server/repositories/settingsRepository';
+} from '../../../repositories/settingsRepository';
 
 exports.seed = async (knex: Knex) => {
   const establishmentIds = await knex.table(establishmentsTable).select('id');

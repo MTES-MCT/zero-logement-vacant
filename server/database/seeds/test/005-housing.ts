@@ -1,13 +1,13 @@
 import { Owner1, Owner2 } from './004-owner';
-import { genHousingApi } from '../../../server/test/testFixtures';
+import { genHousingApi } from '../../../test/testFixtures';
 import {
   formatHousingRecordApi,
   housingTable,
   ReferenceDataYear,
-} from '../../../server/repositories/housingRepository';
+} from '../../../repositories/housingRepository';
 import { Locality1 } from './001-establishments';
 import { Knex } from 'knex';
-import { housingOwnersTable } from '../../../server/repositories/housingOwnerRepository';
+import { housingOwnersTable } from '../../../repositories/housingOwnerRepository';
 
 export const Housing0 = genHousingApi(Locality1.geoCode);
 export const Housing1 = genHousingApi(Locality1.geoCode);

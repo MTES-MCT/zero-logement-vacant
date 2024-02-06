@@ -1,6 +1,6 @@
 import async from 'async';
 import { Knex } from 'knex';
-import { logger } from '../server/utils/logger';
+import { logger } from '../utils/logger';
 
 interface Migration {
   file: string;

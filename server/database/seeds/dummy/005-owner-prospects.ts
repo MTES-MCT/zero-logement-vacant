@@ -1,9 +1,9 @@
 import { Knex } from 'knex';
 import ownerProspectRepository, {
   ownerProspectsTable,
-} from '../../../server/repositories/ownerProspectRepository';
-import { genOwnerProspectApi } from '../../../server/test/testFixtures';
-import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
+} from '../../../repositories/ownerProspectRepository';
+import { genOwnerProspectApi } from '../../../test/testFixtures';
+import { establishmentsTable } from '../../../repositories/establishmentRepository';
 import { SirenStrasbourg } from './001-establishments';
 
 exports.seed = async function (knex: Knex) {

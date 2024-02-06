@@ -1,22 +1,22 @@
 import { Knex } from 'knex';
-import { genGroupApi, genNumber } from '../../../server/test/testFixtures';
+import { genGroupApi, genNumber } from '../../../test/testFixtures';
 import {
   formatGroupApi,
   GroupHousingDBO,
   groupsHousingTable,
   groupsTable,
-} from '../../../server/repositories/groupRepository';
+} from '../../../repositories/groupRepository';
 import {
   parseUserApi,
   UserDBO,
   usersTable,
-} from '../../../server/repositories/userRepository';
+} from '../../../repositories/userRepository';
 import {
   establishmentsTable,
   parseEstablishmentApi,
-} from '../../../server/repositories/establishmentRepository';
+} from '../../../repositories/establishmentRepository';
 import async from 'async';
-import { housingTable } from '../../../server/repositories/housingRepository';
+import { housingTable } from '../../../repositories/housingRepository';
 import fp from 'lodash/fp';
 
 exports.seed = async function (knex: Knex) {

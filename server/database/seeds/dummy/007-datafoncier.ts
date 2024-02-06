@@ -1,21 +1,18 @@
 import { Knex } from 'knex';
-import { DatafoncierOwners } from '../../../server/repositories/datafoncierOwnersRepository';
+import { DatafoncierOwners } from '../../../repositories/datafoncierOwnersRepository';
 import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
-} from '../../../server/test/testFixtures';
-import { DatafoncierHouses } from '../../../server/repositories/datafoncierHousingRepository';
+} from '../../../test/testFixtures';
+import { DatafoncierHouses } from '../../../repositories/datafoncierHousingRepository';
 import {
   formatHousingRecordApi,
   Housing,
-} from '../../../server/repositories/housingRepository';
-import { OwnerApi } from '../../../server/models/OwnerApi';
+} from '../../../repositories/housingRepository';
+import { OwnerApi } from '../../../models/OwnerApi';
 import { toOwnerApi } from '../../../scripts/shared';
-import {
-  formatOwnerApi,
-  Owners,
-} from '../../../server/repositories/ownerRepository';
+import { formatOwnerApi, Owners } from '../../../repositories/ownerRepository';
 
 exports.seed = async (knex: Knex) => {
   const datafoncierHouses = new Array(10)

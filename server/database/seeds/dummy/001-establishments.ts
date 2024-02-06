@@ -1,7 +1,7 @@
-import { establishmentsTable } from '../../../server/repositories/establishmentRepository';
+import { establishmentsTable } from '../../../repositories/establishmentRepository';
 import { Knex } from 'knex';
-import { establishmentsLocalitiesTable } from '../../../server/repositories/housingRepository';
-import { localitiesTable } from '../../../server/repositories/localityRepository';
+import { establishmentsLocalitiesTable } from '../../../repositories/housingRepository';
+import { localitiesTable } from '../../../repositories/localityRepository';
 
 export const SirenStrasbourg = '246700488';
 export const SirenSaintLo = '200066389';

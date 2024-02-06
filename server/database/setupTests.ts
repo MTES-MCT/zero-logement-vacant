@@ -1,9 +1,9 @@
 import { Knex, knex } from 'knex';
 
-import db from '../server/repositories/db';
-import config from '../server/utils/config';
+import db from '../repositories/db';
+import config from '../utils/config';
 import path from 'path';
-import { logger } from '../server/utils/logger';
+import { logger } from '../utils/logger';
 
 const knexConfig: Knex.Config = {
   client: 'pg',

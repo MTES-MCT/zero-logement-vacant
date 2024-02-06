@@ -1,4 +1,4 @@
-import { logger } from '../../server/utils/logger';
+import { logger } from '../../utils/logger';
 import downloader from './downloader';
 import loader from './loader';
 

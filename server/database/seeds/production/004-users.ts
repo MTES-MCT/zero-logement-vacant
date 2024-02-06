@@ -3,9 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import userRepository, {
   usersTable,
-} from '../../../server/repositories/userRepository';
-import { UserApi, UserRoles } from '../../../server/models/UserApi';
-import config from '../../../server/utils/config';
+} from '../../../repositories/userRepository';
+import { UserApi, UserRoles } from '../../../models/UserApi';
+import config from '../../../utils/config';
 
 export const Lovac2023: UserApi = {
   id: uuidv4(),

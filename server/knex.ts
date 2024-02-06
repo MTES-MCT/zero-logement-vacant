@@ -15,14 +15,14 @@ const defaultConfig: KnexConfig = {
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: path.join(__dirname, '..', 'database', 'migrations'),
+    directory: path.join(__dirname, 'database', 'migrations'),
   },
 };
 
 const dummyConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
-    directory: path.join(__dirname, '..', 'database', 'seeds', 'dummy'),
+    directory: path.join(__dirname, 'database', 'seeds', 'dummy'),
     extension: 'ts',
   },
 };
@@ -32,10 +32,10 @@ const testConfig: KnexConfig = {
   connection: config.databaseUrlTest,
   migrations: {
     ...defaultConfig.migrations,
-    directory: path.join(__dirname, '..', 'database', 'migrations'),
+    directory: path.join(__dirname, 'database', 'migrations'),
   },
   seeds: {
-    directory: path.join(__dirname, '..', 'database', 'seeds', 'test'),
+    directory: path.join(__dirname, 'database', 'seeds', 'test'),
     extension: 'ts',
   },
 };
@@ -43,7 +43,7 @@ const testConfig: KnexConfig = {
 const productionConfig: KnexConfig = {
   ...defaultConfig,
   seeds: {
-    directory: path.join(__dirname, '..', 'database', 'seeds', 'production'),
+    directory: path.join(__dirname, 'database', 'seeds', 'production'),
     extension: 'ts',
   },
 };

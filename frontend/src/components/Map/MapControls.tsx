@@ -19,7 +19,7 @@ function MapControls(props: Props) {
       />
       <ToggleSwitch
         checked={props.clusterize}
-        label="Grouper les immeubles"
+        label="Grouper les bâtiments"
         onChange={props.onClusterizeChange}
       />
     </section>

@@ -23,7 +23,7 @@ import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Perimeters from './Perimeters';
 import MapControls from './MapControls';
 import Points from './Points';
-import { BUILDING_DARK, BUILDING_LIGHT, loadIcon } from './Icon';
+import { BUILDING_DARK, loadIcon } from './Icon';
 
 const STYLE = {
   title: 'Carte',
@@ -89,8 +89,7 @@ function Map(props: MapProps) {
 
   useEffect(() => {
     if (map && !map.hasImage('building')) {
-      loadIcon(map, '/map/building-4-fill-white.png', BUILDING_DARK);
-      loadIcon(map, '/map/building-4-fill-black.png', BUILDING_LIGHT);
+      loadIcon(map, '/map/square-fill.png', BUILDING_DARK);
     }
   }, [map]);
 

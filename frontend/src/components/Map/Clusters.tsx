@@ -60,19 +60,22 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
   useEffect(() => {
     const { map } = props;
     if (map) {
-      map.on('click', 'unclustered-points', (e) => {
-        const properties = e.features?.[0]?.properties;
-        if (properties) {
-          props.onClick?.(deserialize(properties) as T);
-        }
-      });
+      const layers = ['unclustered-points', 'buildings'];
+      layers.forEach((layer) => {
+        map.on('click', layer, (e) => {
+          const properties = e.features?.[0]?.properties;
+          if (properties) {
+            props.onClick?.(deserialize(properties) as T);
+          }
+        });
 
-      map.on('mouseenter', 'unclustered-points', () => {
-        map.getCanvas().style.cursor = 'pointer';
-      });
+        map.on('mouseenter', layer, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
 
-      map.on('mouseleave', 'unclustered-points', function () {
-        map.getCanvas().style.cursor = '';
+        map.on('mouseleave', layer, function () {
+          map.getCanvas().style.cursor = '';
+        });
       });
     }
   }, [props, props.map]);
@@ -89,7 +92,6 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
       <Layer
         id="clusters"
         type="circle"
-        interactive
         paint={{
           'circle-color': 'rgba(227, 227, 253, 0.8)',
           'circle-stroke-color': '#000091',
@@ -112,7 +114,11 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
       <Layer
         id="unclustered-points"
         type="circle"
-        filter={['!', ['has', 'point_count']]}
+        filter={[
+          'all',
+          ['!', ['has', 'point_count']],
+          ['==', ['get', 'housingCount'], 1],
+        ]}
         paint={{
           'circle-color': [
             'match',
@@ -123,8 +129,8 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
             // Default
             '#000091',
           ],
-          'circle-radius': ['case', ['>=', ['get', 'housingCount'], 2], 16, 8],
-          'circle-stroke-width': 2,
+          'circle-radius': 8,
+          'circle-stroke-width': 1,
           'circle-stroke-color': [
             'match',
             ['get', 'status', ['at', 0, ['get', 'housingList']]],
@@ -138,14 +144,14 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
       <Layer
         id="buildings"
         type="symbol"
-        filter={['!', ['has', 'point_count']]}
+        filter={[
+          'all',
+          ['!', ['has', 'point_count']],
+          ['>=', ['get', 'housingCount'], 2],
+        ]}
         layout={{
-          'icon-image': [
-            'case',
-            ['>=', ['get', 'housingCount'], 2],
-            BUILDING_DARK,
-            '',
-          ],
+          'icon-allow-overlap': true,
+          'icon-image': BUILDING_DARK,
           'icon-size': 0.75,
         }}
         paint={{

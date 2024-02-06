@@ -17,19 +17,22 @@ function Points<T extends turf.Properties>(props: Props<T>) {
   useEffect(() => {
     const { map } = props;
     if (map) {
-      map.on('click', 'unclustered-points', (e) => {
-        const properties = e.features?.[0]?.properties;
-        if (properties) {
-          props.onClick?.(deserialize(properties) as T);
-        }
-      });
+      const layers = ['unclustered-points', 'buildings'];
+      layers.forEach((layer) => {
+        map.on('click', layer, (e) => {
+          const properties = e.features?.[0]?.properties;
+          if (properties) {
+            props.onClick?.(deserialize(properties) as T);
+          }
+        });
 
-      map.on('mouseenter', 'unclustered-points', () => {
-        map.getCanvas().style.cursor = 'pointer';
-      });
+        map.on('mouseenter', layer, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
 
-      map.on('mouseleave', 'unclustered-points', function () {
-        map.getCanvas().style.cursor = '';
+        map.on('mouseleave', layer, function () {
+          map.getCanvas().style.cursor = '';
+        });
       });
     }
   }, [props, props.map]);
@@ -39,29 +42,28 @@ function Points<T extends turf.Properties>(props: Props<T>) {
       <Layer
         id="unclustered-points"
         type="circle"
-        filter={['!', ['has', 'point_count']]}
+        filter={['==', ['get', 'housingCount'], 1]}
         paint={{
           'circle-color': '#000091',
-          'circle-radius': ['case', ['>=', ['get', 'housingCount'], 2], 16, 8],
-          'circle-stroke-width': 2,
+          'circle-radius': 8,
+          'circle-stroke-width': 1,
           'circle-stroke-color': '#fff',
         }}
       />
       <Layer
         id="buildings"
         type="symbol"
-        filter={['!', ['has', 'point_count']]}
+        filter={['>=', ['get', 'housingCount'], 2]}
         layout={{
-          'icon-image': [
-            'case',
-            ['>=', ['get', 'housingCount'], 2],
-            BUILDING_DARK,
-            '',
-          ],
+          'icon-allow-overlap': true,
+          'icon-image': BUILDING_DARK,
           'icon-size': 0.75,
         }}
         paint={{
-          'text-color': '#fff',
+          'icon-color': '#000091',
+          'icon-halo-color': '#fff',
+          'icon-halo-width': 4,
+          'icon-halo-blur': 0,
         }}
       />
     </Source>

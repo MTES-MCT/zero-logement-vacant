@@ -5,7 +5,12 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
+import {
+  banAddressValidator,
+  dateValidator,
+  emailValidator,
+  useForm,
+} from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -222,6 +227,18 @@ const HousingOwnersModal = ({
       : 'fr-icon-user-fill';
   }
 
+  useEffect(() => {
+    const element = document.getElementById(modal.id);
+    const onConceal = () => onCancel?.();
+    if (element && isOpen) {
+      element.addEventListener('dsfr.conceal', onConceal);
+
+      return () => {
+        element.removeEventListener('dsfr.conceal', onConceal);
+      };
+    }
+  }, [modal, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       <Button
@@ -277,7 +294,6 @@ const HousingOwnersModal = ({
               ]
         }
         style={{ textAlign: 'initial', fontWeight: 'initial' }}
-        concealingBackdrop={false}
       >
         {modalMode === 'list' ? (
           <>

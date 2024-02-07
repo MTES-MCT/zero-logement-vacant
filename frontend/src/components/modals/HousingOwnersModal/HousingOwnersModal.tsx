@@ -5,12 +5,7 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
 import { format } from 'date-fns';
-import {
-  banAddressValidator,
-  dateValidator,
-  emailValidator,
-  useForm,
-} from '../../../hooks/useForm';
+import { banAddressValidator, dateValidator, emailValidator, useForm } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
@@ -282,6 +277,7 @@ const HousingOwnersModal = ({
               ]
         }
         style={{ textAlign: 'initial', fontWeight: 'initial' }}
+        concealingBackdrop={false}
       >
         {modalMode === 'list' ? (
           <>

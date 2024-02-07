@@ -63,15 +63,7 @@ const HousingEditionForm = (
   };
 
   const shape = {
-    occupancy: yup
-      .string()
-      .nullable()
-      .when('hasCurrent', {
-        is: true,
-        then: yup
-          .string()
-          .required("Veuillez sélectionner un statut d'occupation."),
-      }),
+    occupancy: yup.string().nullable(),
     occupancyIntended: yup.string().nullable(),
     status: yup
       .string()

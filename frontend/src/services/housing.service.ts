@@ -1,5 +1,3 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { HousingFilters } from '../models/HousingFilters';
 import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { HousingPaginatedResult } from '../models/PaginatedResult';
@@ -7,11 +5,10 @@ import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions, getURLQuery } from '../utils/fetchUtils';
-import { PaginationOptions } from '../../../shared/models/Pagination';
+import { HousingPayloadDTO, PaginationOptions } from '../../../shared';
 import { parseOwner } from './owner.service';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { HousingCount } from '../models/HousingCount';
-import { HousingPayloadDTO } from '../../../shared';
+import { zlvApi } from './api.service';
 
 export interface FindOptions
   extends PaginationOptions,
@@ -33,16 +30,10 @@ export const parseHousing = (h: any): Housing =>
       : undefined,
   } as Housing);
 
-export const housingApi = createApi({
-  reducerPath: 'housingApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/housing`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Housing', 'HousingByStatus', 'HousingCountByStatus'],
+export const housingApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getHousing: builder.query<Housing, string>({
-      query: (housingId) => housingId,
+      query: (housingId) => `housing/${housingId}`,
       transformResponse: parseHousing,
       providesTags: (result) =>
         result
@@ -56,9 +47,9 @@ export const housingApi = createApi({
     }),
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
-        url: getURLQuery({
+        url: `housing${getURLQuery({
           sort: toQuery(opts?.sort),
-        }),
+        })}`,
         method: 'POST',
         body: {
           filters: opts?.filters,
@@ -84,7 +75,7 @@ export const housingApi = createApi({
     }),
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
-        url: 'count',
+        url: 'housing/count',
         method: 'POST',
         body: { filters },
       }),
@@ -97,7 +88,7 @@ export const housingApi = createApi({
     }),
     createHousing: builder.mutation<Housing, HousingPayloadDTO>({
       query: (payload) => ({
-        url: '/creation',
+        url: 'housing/creation',
         method: 'POST',
         body: payload,
       }),
@@ -111,7 +102,7 @@ export const housingApi = createApi({
       }
     >({
       query: ({ housing, housingUpdate }) => ({
-        url: housing.id,
+        url: `housing/${housing.id}`,
         method: 'POST',
         body: {
           housingId: housing.id,
@@ -142,7 +133,7 @@ export const housingApi = createApi({
       }
     >({
       query: ({ housingUpdate, allHousing, housingIds, filters }) => ({
-        url: 'list',
+        url: 'housing/list',
         method: 'POST',
         body: {
           housingUpdate,

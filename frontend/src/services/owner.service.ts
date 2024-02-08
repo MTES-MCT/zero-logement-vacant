@@ -1,21 +1,13 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { DraftOwner, HousingOwner, Owner } from '../models/Owner';
 import { format, parseISO } from 'date-fns';
 import { toTitleCase } from '../utils/stringUtils';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { PaginatedResult } from '../models/PaginatedResult';
+import { zlvApi } from './api.service';
 
-export const ownerApi = createApi({
-  reducerPath: 'ownerApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/owners`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Owner', 'HousingOwner'],
+export const ownerApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getOwner: builder.query<Owner, string>({
-      query: (ownerId) => ownerId,
+      query: (ownerId) => `owners/${ownerId}`,
       transformResponse: (o) => parseOwner(o),
       providesTags: (result) =>
         result
@@ -32,7 +24,7 @@ export const ownerApi = createApi({
       { q: string; page: number; perPage: number }
     >({
       query: ({ q, page, perPage }) => ({
-        url: '',
+        url: 'owners',
         method: 'POST',
         body: { q, page, perPage },
       }),
@@ -45,14 +37,14 @@ export const ownerApi = createApi({
       },
     }),
     findOwnersByHousing: builder.query<HousingOwner[], string>({
-      query: (housingId) => `/housing/${housingId}`,
+      query: (housingId) => `owners/housing/${housingId}`,
       providesTags: () => ['HousingOwner'],
       transformResponse: (response: any[]) =>
         response.map((_) => parseHousingOwner(_)),
     }),
     createOwner: builder.mutation<Owner, DraftOwner>({
       query: (draftOwner) => ({
-        url: 'creation',
+        url: 'owners/creation',
         method: 'POST',
         body: formatOwner(draftOwner),
       }),
@@ -60,7 +52,7 @@ export const ownerApi = createApi({
     }),
     updateOwner: builder.mutation<void, Owner>({
       query: (owner) => ({
-        url: owner.id,
+        url: `owners/${owner.id}`,
         method: 'PUT',
         body: formatOwner(owner),
       }),
@@ -71,7 +63,7 @@ export const ownerApi = createApi({
       { housingId: string; housingOwners: HousingOwner[] }
     >({
       query: ({ housingId, housingOwners }) => ({
-        url: `housing/${housingId}`,
+        url: `owners/housing/${housingId}`,
         method: 'PUT',
         body: housingOwners.map((ho) => formatOwner(ho)),
       }),

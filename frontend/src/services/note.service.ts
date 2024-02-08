@@ -1,20 +1,12 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { Note } from '../models/Note';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
-import { NoteDTO } from '../../../shared/models/NoteDTO';
+import { NoteDTO } from '../../../shared';
 import { parseISO } from 'date-fns';
+import { zlvApi } from './api.service';
 
-export const noteApi = createApi({
-  reducerPath: 'noteApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/notes`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Note'],
+export const noteApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findNotesByHousing: builder.query<Note[], string>({
-      query: (housingId) => `/housing/${housingId}`,
+      query: (housingId) => `notes/housing/${housingId}`,
       providesTags: () => ['Note'],
       transformResponse: (response: any[]) => response.map((_) => parseNote(_)),
     }),

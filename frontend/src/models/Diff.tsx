@@ -1,6 +1,6 @@
 import fp from 'lodash/fp';
 
-import { Housing } from './Housing';
+import { getOccupancy, Housing } from './Housing';
 import { Owner } from './Owner';
 
 export interface Diff<T> {
@@ -50,14 +50,26 @@ export const getHousingDiff = (
   oldHousing: Housing,
   newHousing: Housing
 ): Diff<Housing> =>
-  getDiff(oldHousing, newHousing, [
-    'status',
-    'subStatus',
-    'precisions',
-    'vacancyReasons',
-    'occupancy',
-    'occupancyIntended',
-  ]);
+  getDiff(
+    {
+      ...oldHousing,
+      occupancy: getOccupancy(oldHousing.occupancy),
+      occupancyIntended: getOccupancy(oldHousing.occupancyIntended),
+    },
+    {
+      ...newHousing,
+      occupancy: getOccupancy(newHousing.occupancy),
+      occupancyIntended: getOccupancy(newHousing.occupancyIntended),
+    },
+    [
+      'status',
+      'subStatus',
+      'precisions',
+      'vacancyReasons',
+      'occupancy',
+      'occupancyIntended',
+    ]
+  );
 
 export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
   getDiff(oldOwner, newOwner, [

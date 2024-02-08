@@ -1,19 +1,11 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { DraftUser, User } from '../models/User';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { parseISO } from 'date-fns';
+import { zlvApi } from './api.service';
 
-export const userApi = createApi({
-  reducerPath: 'userApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/users`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['User'],
+export const userApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getUser: builder.query<User, string>({
-      query: (userId) => userId,
+      query: (userId) => `users/${userId}`,
       transformResponse: (r) => parseUser(r),
       providesTags: (result) =>
         result
@@ -27,7 +19,7 @@ export const userApi = createApi({
     }),
     createUser: builder.mutation<User, DraftUser>({
       query: (draftUser) => ({
-        url: 'creation',
+        url: 'users/creation',
         method: 'POST',
         body: draftUser,
       }),

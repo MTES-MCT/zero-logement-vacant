@@ -1,16 +1,10 @@
-import config from '../utils/config';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { zlvApi } from './api.service';
 
-export const signupLinkApi = createApi({
-  reducerPath: 'signupLinkApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/signup-links`,
-  }),
-  tagTypes: ['SignupLink'],
+export const signupLinkApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     sendActivationEmail: builder.mutation<void, string>({
       query: (email) => ({
-        url: '',
+        url: 'signup-links',
         method: 'POST',
         body: { email },
       }),

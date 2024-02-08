@@ -74,6 +74,7 @@ const HousingFiltersBadges = ({
           options={allOccupancyOptions}
           filters={filters.occupancies}
           small={small}
+          keepEmptyValue
           onChange={onChange && ((values) => onChange({ occupancies: values }))}
         />
         <FilterBadges

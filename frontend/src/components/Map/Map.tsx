@@ -96,6 +96,16 @@ function Map(props: MapProps) {
     }
   }, [map]);
 
+  useEffect(() => {
+    if (map && points.length > 0) {
+      const bounds = turf.bbox(turf.featureCollection(points));
+      map.fitBounds(bounds as [number, number, number, number], {
+        padding: 64,
+        duration: 800,
+      });
+    }
+  }, [map, points]);
+
   function popUp(building: Building): void {
     setOpenPopups((state) => ({
       ...state,

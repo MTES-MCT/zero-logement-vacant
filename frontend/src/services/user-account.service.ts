@@ -1,23 +1,15 @@
-import config from '../utils/config';
-import authService from './auth.service';
 import { UserAccount } from '../models/User';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { zlvApi } from './api.service';
 
-export const userAccountApi = createApi({
-  reducerPath: 'userAccountApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/account`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Account'],
+export const userAccountApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getUserAccount: builder.query<UserAccount, void>({
-      query: () => '',
+      query: () => 'account',
       providesTags: () => ['Account'],
     }),
     updateUserAccount: builder.mutation<void, UserAccount>({
       query: (userAccount) => ({
-        url: '',
+        url: 'account',
         method: 'PUT',
         body: userAccount,
       }),
@@ -28,7 +20,7 @@ export const userAccountApi = createApi({
       { currentPassword: string; newPassword: string }
     >({
       query: ({ currentPassword, newPassword }) => ({
-        url: 'password',
+        url: 'account/password',
         method: 'PUT',
         body: { currentPassword, newPassword },
       }),

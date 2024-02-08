@@ -25,7 +25,7 @@ import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
 import config from './utils/config';
 import { store } from './store/store';
-import { useAppSelector } from './hooks/useStore';
+import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
@@ -33,6 +33,7 @@ import GroupView from './views/Group/GroupView';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
 
 declare module "@codegouvfr/react-dsfr/spa" {
   interface RegisterLink {
@@ -70,12 +71,25 @@ function App() {
   const {isLoggedOut} = useAppSelector(
     (state) => state.authentication
   );
+  const dispatch = useAppDispatch();
+  const isSomeQueryPending = useAppSelector(state => Object.values(state.api.queries).some(query => query?.status === 'pending'));
 
   FetchInterceptor();
 
   useEffect(() => {
     pushInstruction('setUserId', user?.id);
   }, [user])
+
+
+  useEffect(() => {
+    if (isSomeQueryPending) {
+      dispatch(showLoading())
+    }
+    else {
+      dispatch(hideLoading())
+    }
+  }, [isSomeQueryPending]);
+
 
   return (
     <React.Suspense fallback={<></>}>

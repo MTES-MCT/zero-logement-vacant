@@ -43,62 +43,66 @@ const HousingEditionSideMenu = ({
         expand={expand}
         onClose={onClose}
         title={
-          <>
-            <Container as="header" className="d-flex" fluid spacing="pb-0">
-              <Title as="h6" className="fr-mb-0 fr-pt-1w">
-                {housing?.rawAddress.join(' - ')}
-              </Title>
-              <Button
-                priority="tertiary no outline"
-                iconId="ri-close-line"
-                iconPosition="right"
-                onClick={onClose}
-              >
-                Fermer
-              </Button>
-            </Container>
-            <Container as="section" spacing="p-0 mb-3w">
-              <Text size="sm" spacing="m-0">
-                <Label as="span">Invariant fiscal : </Label>
-                {housing?.invariant}
-              </Text>
-              <AppLink
-                to={'/logements/' + housing?.id}
-                isSimple
-                target="_blank"
-              >
-                Voir la fiche logement
-              </AppLink>
-            </Container>
-          </>
+          housing && (
+            <>
+              <Container as="header" className="d-flex" fluid spacing="pb-0">
+                <Title as="h6" className="fr-mb-0 fr-pt-1w">
+                  {housing.rawAddress.join(' - ')}
+                </Title>
+                <Button
+                  priority="tertiary no outline"
+                  iconId="ri-close-line"
+                  iconPosition="right"
+                  onClick={onClose}
+                >
+                  Fermer
+                </Button>
+              </Container>
+              <Container as="section" spacing="p-0 mb-3w">
+                <Text size="sm" spacing="m-0">
+                  <Label as="span">Invariant fiscal : </Label>
+                  {housing.invariant}
+                </Text>
+                <AppLink
+                  to={'/logements/' + housing.id}
+                  isSimple
+                  target="_blank"
+                >
+                  Voir la fiche logement
+                </AppLink>
+              </Container>
+            </>
+          )
         }
         content={
-          <Container as="section" spacing="p-0">
-            <Tabs
-              className="no-border first-tab-grey"
-              tabs={[
-                {
-                  label: '+ Nouvelle mise à jour / note',
-                  content: (
-                    <HousingEditionForm
-                      housing={housing}
-                      onSubmit={submit}
-                      ref={statusFormRef}
-                    />
-                  ),
-                },
-                {
-                  label: 'Historique de suivi',
-                  content: (
-                    <EventsHistory
-                      events={housingEvents ?? []}
-                      notes={housingNotes ?? []}
-                    />
-                  ),
-                },
-              ]}
-            ></Tabs>
-          </Container>
+          housing && (
+            <Container as="section" spacing="p-0">
+              <Tabs
+                className="no-border first-tab-grey"
+                tabs={[
+                  {
+                    label: '+ Nouvelle mise à jour / note',
+                    content: (
+                      <HousingEditionForm
+                        housing={housing}
+                        onSubmit={submit}
+                        ref={statusFormRef}
+                      />
+                    ),
+                  },
+                  {
+                    label: 'Historique de suivi',
+                    content: (
+                      <EventsHistory
+                        events={housingEvents ?? []}
+                        notes={housingNotes ?? []}
+                      />
+                    ),
+                  },
+                ]}
+              ></Tabs>
+            </Container>
+          )
         }
         footer={
           <>

@@ -1,18 +1,7 @@
-import config from '../utils/config';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../shared/models/ContactPoint';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
-import authService from './auth.service';
+import { ContactPoint, DraftContactPoint } from '../../../shared';
+import { zlvApi } from './api.service';
 
-export const contactPointsApi = createApi({
-  reducerPath: 'contactPointsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/contact-points`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['ContactPoint'],
+export const contactPointsApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findContactPoints: builder.query<
       ContactPoint[],
@@ -22,7 +11,9 @@ export const contactPointsApi = createApi({
       }
     >({
       query: ({ establishmentId, publicOnly }) =>
-        `${publicOnly ? '/public' : ''}?establishmentId=${establishmentId}`,
+        `contact-points/${
+          publicOnly ? '/public' : ''
+        }?establishmentId=${establishmentId}`,
       providesTags: (result) =>
         result
           ? [
@@ -36,7 +27,7 @@ export const contactPointsApi = createApi({
     }),
     createContactPoint: builder.mutation<void, DraftContactPoint>({
       query: (draftContactPoint) => ({
-        url: '',
+        url: 'contact-points',
         method: 'POST',
         body: draftContactPoint,
       }),
@@ -44,7 +35,7 @@ export const contactPointsApi = createApi({
     }),
     updateContactPoint: builder.mutation<void, ContactPoint>({
       query: ({ id, ...body }) => ({
-        url: id,
+        url: `contact-points/${id}`,
         method: 'PUT',
         body,
       }),
@@ -54,7 +45,7 @@ export const contactPointsApi = createApi({
     }),
     removeContactPoint: builder.mutation<void, string>({
       query: (contactPointId) => ({
-        url: contactPointId,
+        url: `contact-points/${contactPointId}`,
         method: 'DELETE',
       }),
       invalidatesTags: (result, error, contactPointId) => [

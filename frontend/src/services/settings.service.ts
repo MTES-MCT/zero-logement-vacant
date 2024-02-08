@@ -1,8 +1,6 @@
-import { Settings } from '../../../shared/models/Settings';
-import config from '../utils/config';
-import authService from './auth.service';
+import { Settings } from '../../../shared';
 import { DeepPartial } from 'ts-essentials';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
+import { zlvApi } from './api.service';
 
 interface FindOneOptions {
   establishmentId: string;
@@ -17,16 +15,10 @@ const DEFAULT_SETTINGS: Settings = {
   },
 };
 
-export const settingsApi = createApi({
-  reducerPath: 'settingsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${config.apiEndpoint}/api/establishments`,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-  }),
-  tagTypes: ['Settings'],
+export const settingsApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findSettings: builder.query<Settings, FindOneOptions>({
-      query: (options) => `/${options.establishmentId}/settings`,
+      query: (options) => `establishments/${options.establishmentId}/settings`,
       providesTags: () => ['Settings'],
       transformErrorResponse: (response) => {
         if (response.status === 404) {
@@ -42,7 +34,7 @@ export const settingsApi = createApi({
       }
     >({
       query: ({ establishmentId, settings }) => ({
-        url: `/${establishmentId}/settings`,
+        url: `establishments/${establishmentId}/settings`,
         method: 'PUT',
         body: settings,
       }),

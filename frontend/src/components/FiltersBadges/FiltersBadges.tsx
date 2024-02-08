@@ -37,6 +37,7 @@ interface FilterBadgesProps {
   filters: string[] | undefined;
   onChange?: (value: string[]) => void;
   small?: boolean;
+  keepEmptyValue?: boolean;
 }
 
 const FilterBadges = (props: FilterBadgesProps) => {
@@ -47,7 +48,11 @@ const FilterBadges = (props: FilterBadgesProps) => {
   return (
     <>
       {options
-        .filter((o) => o.value.length && filters.includes(o.value))
+        .filter(
+          (o) =>
+            (props.keepEmptyValue || o.value.length) &&
+            filters.includes(o.value)
+        )
         .map((option, index) => (
           <FilterBadge
             option={option}

@@ -7,7 +7,9 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
+import housingFiltersApi, {
+  HousingFiltersApi,
+} from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -415,8 +417,9 @@ const createHousingUpdateEvents = async (
   const occupancyUpdate = housingUpdate.occupancyUpdate;
   if (
     occupancyUpdate &&
-    (housingApi.occupancy !== occupancyUpdate.occupancy ||
-      housingApi.occupancyIntended !== occupancyUpdate.occupancyIntended)
+    ((housingApi.occupancy ?? '') !== (occupancyUpdate.occupancy ?? '') ||
+      (housingApi.occupancyIntended ?? '') !==
+        (occupancyUpdate.occupancyIntended ?? ''))
   ) {
     await eventRepository.insertHousingEvent({
       id: uuidv4(),

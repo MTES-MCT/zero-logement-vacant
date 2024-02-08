@@ -40,8 +40,8 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionAt?: Date;
-  occupancy?: OccupancyKind;
-  occupancyIntended?: OccupancyKind;
+  occupancy?: OccupancyKind | NoOccupancyInfoKind;
+  occupancyIntended?: OccupancyKind | NoOccupancyInfoKind;
   source: HousingSource | null;
 }
 
@@ -192,6 +192,10 @@ export enum OccupancyKind {
   Others = 'A',
 }
 
+export const NoOccupancyInfo = 'NoOccupancyInfo';
+
+export type NoOccupancyInfoKind = typeof NoOccupancyInfo;
+
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
   [OccupancyKind.Rent]: 'En location',
@@ -202,12 +206,16 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
+  [NoOccupancyInfo]: 'Pas d’informations',
 };
 
 export const OccupancyKindBadgeLabels = {
   ...OccupancyKindLabels,
   [OccupancyKind.Others]: 'Occupation : Autres',
 };
+
+export const getOccupancy = (occupancy?: OccupancyKind | NoOccupancyInfoKind) =>
+  occupancy && occupancy.length > 0 ? occupancy : NoOccupancyInfo;
 
 export function getSource(housing: Housing): string {
   const year = housing.dataYears[0];

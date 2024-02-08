@@ -30,13 +30,17 @@ interface Props {
   onSubmit: (housingUpdate: HousingUpdate) => void;
 }
 
+const MultiHousingOccupancyDefaultValue = '-1';
+
 const HousingEditionForm = (
   { housing, housingCount, onSubmit }: Props,
   ref: any
 ) => {
-  const [occupancy, setOccupancy] = useState(housing?.occupancy);
+  const [occupancy, setOccupancy] = useState(
+    housing ? housing?.occupancy : MultiHousingOccupancyDefaultValue
+  );
   const [occupancyIntended, setOccupancyIntended] = useState(
-    housing?.occupancyIntended
+    housing ? housing?.occupancyIntended : MultiHousingOccupancyDefaultValue
   );
   const [status, setStatus] = useState<HousingStatus>();
   const [subStatus, setSubStatus] = useState(housing?.subStatus);
@@ -63,15 +67,7 @@ const HousingEditionForm = (
   };
 
   const shape = {
-    occupancy: yup
-      .string()
-      .nullable()
-      .when('hasCurrent', {
-        is: true,
-        then: yup
-          .string()
-          .required("Veuillez sélectionner un statut d'occupation."),
-      }),
+    occupancy: yup.string().nullable(),
     occupancyIntended: yup.string().nullable(),
     status: yup
       .string()
@@ -103,9 +99,19 @@ const HousingEditionForm = (
     !_.isEqual(housing?.precisions, precisions) ||
     !_.isEqual(housing?.vacancyReasons, vacancyReasons);
 
-  const isOccupancyUpdate =
-    housing?.occupancy !== occupancy ||
-    housing?.occupancyIntended !== occupancyIntended;
+  const isOccupancyUpdate = () => {
+    if (housing) {
+      return (
+        housing?.occupancy !== occupancy ||
+        housing?.occupancyIntended !== occupancyIntended
+      );
+    } else {
+      return (
+        occupancy !== MultiHousingOccupancyDefaultValue ||
+        occupancyIntended !== MultiHousingOccupancyDefaultValue
+      );
+    }
+  };
 
   const hasNote = comment !== undefined && comment.length > 0;
 
@@ -119,9 +125,11 @@ const HousingEditionForm = (
     comment,
     noteKind,
     hasChange:
-      [housing, status, occupancy, occupancyIntended].some(
-        (prop) => prop !== undefined
-      ) || hasNote,
+      [housing, status].some((prop) => prop !== undefined) ||
+      [occupancy, occupancyIntended].some(
+        (prop) => prop !== MultiHousingOccupancyDefaultValue
+      ) ||
+      hasNote,
   });
 
   useImperativeHandle(ref, () => ({
@@ -140,10 +148,16 @@ const HousingEditionForm = (
             vacancyReasons: vacancyReasons ?? [],
           }
         : undefined,
-      occupancyUpdate: isOccupancyUpdate
+      occupancyUpdate: isOccupancyUpdate()
         ? {
-            occupancy,
-            occupancyIntended,
+            occupancy:
+              occupancy === MultiHousingOccupancyDefaultValue
+                ? undefined
+                : (occupancy as OccupancyKind),
+            occupancyIntended:
+              occupancyIntended === MultiHousingOccupancyDefaultValue
+                ? undefined
+                : (occupancyIntended as OccupancyKind),
           }
         : undefined,
       note: hasNote
@@ -249,12 +263,15 @@ const HousingEditionForm = (
               inputForm={form}
               inputKey="occupancy"
               options={[
-                {
-                  label: housing
-                    ? 'Pas d’informations'
-                    : 'Sélectionnez une occupation actuelle',
-                  value: '',
-                },
+                ...(housing
+                  ? []
+                  : [
+                      {
+                        label: 'Sélectionnez une occupation actuelle',
+                        value: MultiHousingOccupancyDefaultValue,
+                        disabled: true,
+                      },
+                    ]),
                 ...allOccupancyOptions,
               ]}
             />
@@ -267,12 +284,15 @@ const HousingEditionForm = (
               inputForm={form}
               inputKey="occupancyIntended"
               options={[
-                {
-                  label: housing
-                    ? "Pas d'informations"
-                    : 'Sélectionnez une occupation prévisionnelle',
-                  value: '',
-                },
+                ...(housing
+                  ? []
+                  : [
+                      {
+                        label: 'Sélectionnez une occupation prévisionnelle',
+                        value: MultiHousingOccupancyDefaultValue,
+                        disabled: true,
+                      },
+                    ]),
                 ...allOccupancyOptions,
               ]}
             />
@@ -333,10 +353,10 @@ const HousingEditionForm = (
             {subStatus !== undefined && (
               <li>Mobilisation du logement - Sous-statut de suivi</li>
             )}
-            {occupancy !== undefined && (
+            {occupancy !== MultiHousingOccupancyDefaultValue && (
               <li>Occupation du logement - Occupation actuelle</li>
             )}
-            {occupancyIntended !== undefined && (
+            {occupancyIntended !== MultiHousingOccupancyDefaultValue && (
               <li>Occupation du logement - Occupation prévisionnelle</li>
             )}
             {hasNote && <li>Ajout d’une note</li>}

@@ -227,6 +227,18 @@ const HousingOwnersModal = ({
       : 'fr-icon-user-fill';
   }
 
+  useEffect(() => {
+    const element = document.getElementById(modal.id);
+    const onConceal = () => onCancel?.();
+    if (element && isOpen) {
+      element.addEventListener('dsfr.conceal', onConceal);
+
+      return () => {
+        element.removeEventListener('dsfr.conceal', onConceal);
+      };
+    }
+  }, [modal, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       <Button

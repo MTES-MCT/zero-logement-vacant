@@ -1,6 +1,7 @@
 import { Col, Row, Text, Title } from '../_dsfr';
 import React from 'react';
 import {
+  getOccupancy,
   getSource,
   Housing,
   OccupancyKind,
@@ -51,17 +52,13 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           </Title>
           <div className="fr-ml-1w d-inline-block">
             <Badge className="bg-975">
-              {housing.occupancy
-                ? OccupancyKindLabels[housing.occupancy]
-                : 'pas d’informations'}
+              {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
             </Badge>
           </div>
           <div className="d-inline-block float-right">
             <span className="zlv-label">Occupation prévisionnelle : </span>
             <Badge className="bg-975 fr-ml-1w">
-              {housing.occupancyIntended
-                ? OccupancyKindLabels[housing.occupancyIntended]
-                : 'pas d’informations'}
+              {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
             </Badge>
           </div>
         </>

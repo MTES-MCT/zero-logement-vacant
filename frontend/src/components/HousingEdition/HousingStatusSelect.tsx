@@ -69,6 +69,7 @@ const HousingStatusSelect = ({
               onChange: () => handleStatusChange(Number(option.value)),
             },
           }))}
+          data-testid="housing-status-options"
         />
       </div>
     </div>

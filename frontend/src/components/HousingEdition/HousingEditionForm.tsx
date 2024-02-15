@@ -5,10 +5,7 @@ import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import {
-  allOccupancyOptions,
-  statusOptions,
-} from '../../models/HousingFilters';
+import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
@@ -200,8 +197,7 @@ const HousingEditionForm = (
           <HousingStatusSelect
             selected={status}
             options={statusOptions(
-              !housing?.status ||
-                +housing.status === HousingStatus.NeverContacted
+              (housing?.campaignIds ?? []).length === 0
                 ? []
                 : [HousingStatus.NeverContacted]
             )}

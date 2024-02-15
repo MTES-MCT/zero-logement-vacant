@@ -73,9 +73,9 @@ De plus, créez un fichier .env dans le sous-dossier `zero-logement-vacant/front
 ```bash
 npm run migrate-latest
 cd database/scripts
-psql [DATABASE_URL] -f 001-load-establishments_epci.sql -v filePath=../data/common/epci.csv
-psql [DATABASE_URL] -f 002-load-establishments_commune.sql -v filePath=../data/common/commune.csv
-psql [DATABASE_URL] -f 003-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
+psql [DATABASE_URL] -f 001-load-establishments_com_epci_reg_dep.sql -v filePath=../data/common/com_epci_dep_reg.csv
+psql [DATABASE_URL] -f 002-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
+psql [DATABASE_URL] -f 003-load-establishment_kinds.sql -v filePath=../data/common/nature_juridique.csv
 psql [DATABASE_URL] -f 004-load-data.sql -v filePath=../data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
 psql [DATABASE_URL] -f 006-load-locality-taxes.sql -v filePath=../data/common/taxe.csv
 npm run seed
@@ -96,9 +96,9 @@ Le chargement des données se fait à partir de fichier d'extractions de donnée
 
 ```bash
 cd database/scripts
-psql [DATABASE_URL] -f 001-load-establishments_epci.sql -v filePath=../data/common/epci.csv
-psql [DATABASE_URL] -f 002-load-establishments_commune.sql -v filePath=../data/common/commune.csv
-psql [DATABASE_URL] -f 003-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
+psql [DATABASE_URL] -f 001-load-establishments_com_epci_reg_dep.sql -v filePath=../data/common/com_epci_dep_reg.csv
+psql [DATABASE_URL] -f 002-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
+psql [DATABASE_URL] -f 003-load-establishment_kinds.sql -v filePath=../data/common/nature_juridique.csv
 psql [DATABASE_URL] -f 004-load-data.sql -v filePath=[DATA_CSV_FILE] -v dateFormat=[DATE_FORMAT]
 psql [DATABASE_URL] -f 005-load-buildings.sql -v filePath=[BUILDING_CSV_FILE]
 psql [DATABASE_URL] -f 006-load-locality-taxes.sql -v filePath=../data/common/taxe.csv

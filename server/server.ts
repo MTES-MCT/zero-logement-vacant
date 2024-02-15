@@ -41,6 +41,7 @@ export function createServer(): Server {
             "'unsafe-inline'",
             'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
+            'https://www.googletagmanager.com',
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',

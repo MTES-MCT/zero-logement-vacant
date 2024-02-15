@@ -7,9 +7,7 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import housingFiltersApi, {
-  HousingFiltersApi,
-} from '../models/HousingFiltersApi';
+import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -347,7 +345,7 @@ const updateList = async (request: Request, response: Response) => {
   };
 
   const housingList = await housingRepository
-    .find({ filters, pagination: { paginate: false } })
+    .find({ filters, pagination: { paginate: false }, includes: ['campaigns'] })
     .then((_) =>
       _.filter((housing) =>
         allHousing

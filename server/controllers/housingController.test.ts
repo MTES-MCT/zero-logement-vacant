@@ -2,30 +2,16 @@ import db from '../repositories/db';
 import request from 'supertest';
 import { withAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
-import {
-  formatHousingRecordApi,
-  housingTable,
-} from '../repositories/housingRepository';
-import {
-  genDatafoncierHousing,
-  genDatafoncierOwner,
-  genHousingApi,
-} from '../test/testFixtures';
-import {
-  Establishment1,
-  Locality1,
-} from '../../database/seeds/test/001-establishments';
+import { formatHousingRecordApi, housingTable } from '../repositories/housingRepository';
+import { genDatafoncierHousing, genDatafoncierOwner, genHousingApi } from '../test/testFixtures';
+import { Establishment1, Locality1 } from '../../database/seeds/test/001-establishments';
 import { Owner1 } from '../../database/seeds/test/004-owner';
 import ownerRepository from '../repositories/ownerRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import randomstring from 'randomstring';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { Housing1 } from '../../database/seeds/test/005-housing';
-import {
-  eventsTable,
-  HousingEvents,
-  housingEventsTable,
-} from '../repositories/eventRepository';
+import { eventsTable, HousingEvents, housingEventsTable } from '../repositories/eventRepository';
 import { User1, User2 } from '../../database/seeds/test/003-users';
 import { createServer } from '../server';
 import { HousingApi, OccupancyKindApi } from '../models/HousingApi';
@@ -376,6 +362,9 @@ describe('Housing controller', () => {
           .post(testRoute)
           .send({
             ...validBody,
+            filters: {
+              status: HousingStatusApi.Waiting,
+            },
             housingUpdate: {
               statusUpdate: {
                 status: HousingStatusApi.NeverContacted,

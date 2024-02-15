@@ -16743,8 +16743,8 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 43138;214301384;Monlet;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43139;214301392;Montclard;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43140;214301400;Le Monteil;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43141;214301418;Montfaucon-en-Velay;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43142;214301426;Montregard;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43141;214301418;Montfaucon-en-Velay;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43142;214301426;Montregard;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43143;214301434;Montusclat;200073401;CC Mézenc-Loire-Meygal;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43144;214301442;Moudeyres;200073401;CC Mézenc-Loire-Meygal;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43145;214301459;Ouides;244301123;CC des Pays de Cayres et de Pradelles;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
@@ -16760,10 +16760,10 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 43156;214301566;Présailles;200073401;CC Mézenc-Loire-Meygal;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43157;214301574;Le Puy-en-Velay;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43158;214301582;Queyrières;200073401;CC Mézenc-Loire-Meygal;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43159;214301590;Raucoules;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43159;214301590;Raucoules;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43160;214301608;Rauret;244301123;CC des Pays de Cayres et de Pradelles;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43162;214301624;Retournac;244301016;CC des Sucs;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43163;214301632;Riotord;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43163;214301632;Riotord;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43164;214301640;Roche-en-Régnier;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43165;214301657;Rosières;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43166;214301665;Saint-André-de-Chalencon;200073427;CC Marches du Velay-Rochebaron;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
@@ -16773,7 +16773,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 43169;214301699;Saint-Austremoine;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43170;214301707;Saint-Beauzire;200085728;CC Brioude Sud Auvergne;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43171;214301715;Saint-Bérain;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43172;214301723;Saint-Bonnet-le-Froid;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43172;214301723;Saint-Bonnet-le-Froid;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43173;214301731;Saint-Christophe-d'Allier;244301123;CC des Pays de Cayres et de Pradelles;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43174;214301749;Saint-Christophe-sur-Dolaison;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43175;214301756;Saint-Cirgues;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
@@ -16803,7 +16803,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 43201;214302010;Saint-Julien-d'Ance;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43202;214302028;Saint-Julien-des-Chazes;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43203;214302036;Saint-Julien-du-Pinet;244301016;CC des Sucs;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43204;214302044;Saint-Julien-Molhesabate;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43204;214302044;Saint-Julien-Molhesabate;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43205;214302051;Saint-Just-Malmont;244301131;CC Loire et Semène;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43206;214302069;Saint-Just-près-Brioude;200085728;CC Brioude Sud Auvergne;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43207;214302077;Saint-Laurent-Chabreuges;200085728;CC Brioude Sud Auvergne;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
@@ -16821,7 +16821,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 43220;214302200;Saint-Préjet-d'Allier;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43221;200065944;Saint-Privat-d'Allier;200073419;CA du Puy-en-Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43222;214302226;Saint-Privat-du-Dragon;200073393;CC des Rives du Haut Allier;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
-43223;214302234;Saint-Romain-Lachalm;244300307;CC du Pays de Montfaucon;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
+43223;214302234;Saint-Romain-Lachalm;244300307;CC Haut Pays du Velay;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43224;214302242;Sainte-Sigolène;200073427;CC Marches du Velay-Rochebaron;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43225;214302259;Saint-Vénérand;244301123;CC des Pays de Cayres et de Pradelles;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;
 43226;214302267;Saint-Vert;244301099;CC Auzon Communauté;224300012;Haute-Loire;200053767;Auvergne-Rhône-Alpes;;

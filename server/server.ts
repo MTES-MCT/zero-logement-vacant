@@ -42,6 +42,7 @@ export function createServer(): Server {
             'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
+            'https://googleads.g.doubleclick.net',
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',

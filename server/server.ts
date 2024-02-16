@@ -63,8 +63,6 @@ export function createServer(): Server {
             'https://www.google.fr',
             'https://www.google.com',
             'data:',
-            'https://www.google.fr',
-            'https://www.google.com',
           ],
           fontSrc: [
             "'self'",

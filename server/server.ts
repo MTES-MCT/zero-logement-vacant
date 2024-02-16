@@ -61,6 +61,8 @@ export function createServer(): Server {
             'https://image.crisp.chat',
             'https://client.crisp.chat',
             'data:',
+            'https://www.google.fr',
+            'https://www.google.com',
           ],
           fontSrc: [
             "'self'",

@@ -60,6 +60,8 @@ export function createServer(): Server {
             'https://stats.beta.gouv.fr',
             'https://image.crisp.chat',
             'https://client.crisp.chat',
+            'https://www.google.fr',
+            'https://www.google.com',
             'data:',
           ],
           fontSrc: [

@@ -87,10 +87,9 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                     title={
                       <>
                         <div className="fr-mb-2w">ADRESSE À VÉRIFIER</div>
-                        L'adresse d’un des propriétaires nécessite votre
-                        vérification.
+                        Cette adresse issue de la BAN est différente de l’adresse fiscale.
                         <br />
-                        Cliquez sur Modifier ci-dessus.
+                        Cliquez sur “Modifier” pour valider l’adresse que vous souhaitez utiliser.
                       </>
                     }
                   ></Notice>

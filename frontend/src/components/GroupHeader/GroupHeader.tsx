@@ -73,8 +73,8 @@ function GroupHeader() {
             <Alert
               severity="info"
               closable
-              title="Découvrez les groupes de logements"
-              description="Pour étudier votre parc, vous pouvez créer des groupes de logements en fonction des critères de votre choix. Cela vous permettra notamment d'exporter la liste des logements ciblés et de préparer vos campagnes."
+              title="Créez un premier groupe pour faire un export et préparer une campagne !"
+              description="Pour pouvoir exporter une liste de logements, sélectionnez les logements que vous souhaitez cibler et cliquez sur “Ajouter dans un groupe”."
             />
           ) : (
             <>

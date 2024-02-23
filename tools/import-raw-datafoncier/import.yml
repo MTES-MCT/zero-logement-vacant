@@ -1,0 +1,56 @@
+---
+- name: Configurer la base de données PostgreSQL
+  hosts: localhost
+  gather_facts: no
+  vars:
+    db_name: "df"
+    db_host: "localhost"
+    schema_name: "u_sabrina_tabita"
+    role_name: "adl"
+  vars_files:
+    - vars/db_credentials.yml
+  tasks:
+    - name: Créer la base de données
+      postgresql_db:
+        name: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        login_host: "{{ db_host }}"
+        state: present
+
+    - name: Créer le schéma
+      postgresql_schema:
+        name: "{{ schema_name }}"
+        database: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        login_host: "{{ db_host }}"
+        state: present
+
+    - name: Créer le rôle
+      postgresql_user:
+        name: "{{ role_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        login_host: "{{ db_host }}"
+        state: present
+
+    - name: Ajouter l'extension PostGIS
+      postgresql_ext:
+        name: postgis
+        db: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        login_host: "{{ db_host }}"
+
+    - name: Vérifier si la table existe
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ schema_name }}.{{ table_name }}')"
+      register: table_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Exécuter le script SQL d'import des données
+      ansible.builtin.command: >
+        psql -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -f {{ script_file_path }}/{{ table_name }}/{{ table_name }}.sql
+      when: table_check.stdout == ""

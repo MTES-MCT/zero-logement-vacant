@@ -18,6 +18,8 @@ in the database. When the restore is complete, the imported tables must be
 renamed according to the year of the data e.g. `df_owners_nat_2024` or
 `df_housing_nat_2024`.
 
+See [ansible playbook](../../tools/import-raw-datafoncier/README.md).
+
 ### Using an SQL dump
 
 You must provide two dumps from the Datafoncier owner and housing tables.

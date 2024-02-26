@@ -51,6 +51,14 @@ python -m venv ansible-env
 source ansible-env/bin/activate
 ```
 
+### Installation des dépendances du spript
+
+Utiliser pip pour installer le client PostgreSQL `psycopg2` :
+
+```
+pip install psycopg2
+```
+
 ### Installation d'Ansible
 
 Utiliser pipx pour installer `ansible-core` :

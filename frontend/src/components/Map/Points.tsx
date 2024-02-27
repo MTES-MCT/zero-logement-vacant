@@ -3,6 +3,7 @@ import { Layer, MapRef, Source } from 'react-map-gl';
 import { useEffect } from 'react';
 import { deserialize } from '../../utils/jsonUtils';
 import { BUILDING_DARK } from './Icon';
+import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 
 interface Props<T> {
   id: string;
@@ -14,28 +15,11 @@ interface Props<T> {
 function Points<T extends turf.Properties>(props: Props<T>) {
   const points = turf.featureCollection(props.points);
 
-  useEffect(() => {
-    const { map } = props;
-    if (map) {
-      const layers = ['unclustered-points', 'buildings'];
-      layers.forEach((layer) => {
-        map.on('click', layer, (e) => {
-          const properties = e.features?.[0]?.properties;
-          if (properties) {
-            props.onClick?.(deserialize(properties) as T);
-          }
-        });
-
-        map.on('mouseenter', layer, () => {
-          map.getCanvas().style.cursor = 'pointer';
-        });
-
-        map.on('mouseleave', layer, function () {
-          map.getCanvas().style.cursor = '';
-        });
-      });
-    }
-  }, [props, props.map]);
+  useMapLayerClick({
+    layers: ['unclustered-points', 'buildings'],
+    map: props.map,
+    onClick: props.onClick,
+  });
 
   return (
     <Source id={props.id} type="geojson" data={points}>

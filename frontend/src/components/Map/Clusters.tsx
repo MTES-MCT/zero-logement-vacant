@@ -7,10 +7,12 @@ import { HousingStatus } from '../../models/HousingState';
 import { fr } from '@codegouvfr/react-dsfr';
 import fp from 'lodash/fp';
 import { BUILDING_DARK } from './Icon';
+import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 
 interface Props<T> {
   id: string;
   map?: MapRef;
+  clusterize?: boolean;
   maxZoom?: number;
   onClick?: (value: T) => void;
   points: turf.Feature<turf.Point, T>[];
@@ -57,28 +59,11 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
 
   const clusters = turf.featureCollection(props.points);
 
-  useEffect(() => {
-    const { map } = props;
-    if (map) {
-      const layers = ['unclustered-points', 'buildings'];
-      layers.forEach((layer) => {
-        map.on('click', layer, (e) => {
-          const properties = e.features?.[0]?.properties;
-          if (properties) {
-            props.onClick?.(deserialize(properties) as T);
-          }
-        });
-
-        map.on('mouseenter', layer, () => {
-          map.getCanvas().style.cursor = 'pointer';
-        });
-
-        map.on('mouseleave', layer, function () {
-          map.getCanvas().style.cursor = '';
-        });
-      });
-    }
-  }, [props, props.map]);
+  useMapLayerClick({
+    layers: ['unclustered-points', 'buildings'],
+    map: props.map,
+    onClick: props.onClick,
+  });
 
   return (
     <Source

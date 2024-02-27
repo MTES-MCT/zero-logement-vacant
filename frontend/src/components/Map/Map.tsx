@@ -122,11 +122,7 @@ function Map(props: MapProps) {
   const popups = Object.values(buildingsById)
     .filter((building) => openPopups[building.id])
     .map((building) => (
-      <HousingPopup
-        key={`popup-${building.id}`}
-        building={building}
-        onClose={popOut(building)}
-      />
+      <HousingPopup building={building} onClose={popOut(building)} />
     ));
 
   return (

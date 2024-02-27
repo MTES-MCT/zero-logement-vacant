@@ -1,13 +1,9 @@
 import * as turf from '@turf/turf';
-import { useEffect } from 'react';
 import { Layer, MapRef, Source } from 'react-map-gl';
 
-import { deserialize } from '../../utils/jsonUtils';
-import { HousingStatus } from '../../models/HousingState';
-import { fr } from '@codegouvfr/react-dsfr';
-import fp from 'lodash/fp';
-import { BUILDING_DARK } from './Icon';
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
+import HousingPoints from './HousingPoints';
+import BuildingPoints from './BuildingPoints';
 
 interface Props<T> {
   id: string;
@@ -26,29 +22,6 @@ interface Props<T> {
    */
   radius?: Record<number, number>;
 }
-
-const hex = fr.colors.getHex({ isDark: false });
-const statuses = [
-  HousingStatus.Waiting,
-  HousingStatus.FirstContact,
-  HousingStatus.InProgress,
-  HousingStatus.Completed,
-  HousingStatus.Blocked,
-];
-const backgroundColors = fp.zip(statuses, [
-  hex.decisions.background.contrast.yellowTournesol.default,
-  hex.decisions.background.contrast.blueCumulus.default,
-  hex.decisions.background.contrast.orangeTerreBattue.default,
-  hex.decisions.background.contrast.greenBourgeon.default,
-  hex.decisions.background.contrast.purpleGlycine.default,
-]);
-const textColors = fp.zip(statuses, [
-  hex.decisions.text.label.yellowTournesol.default,
-  hex.decisions.text.label.blueCumulus.default,
-  hex.decisions.text.label.orangeTerreBattue.default,
-  hex.decisions.text.label.greenBourgeon.default,
-  hex.decisions.text.label.purpleGlycine.default,
-]);
 
 function Clusters<T extends turf.Properties>(props: Props<T>) {
   const maxZoom = props.maxZoom ?? 16;
@@ -77,6 +50,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
       <Layer
         id="clusters"
         type="circle"
+        filter={['has', 'point_count']}
         paint={{
           'circle-color': 'rgba(227, 227, 253, 0.8)',
           'circle-stroke-color': '#000091',
@@ -96,58 +70,21 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
           'text-color': '#000091',
         }}
       />
-      <Layer
-        id="unclustered-points"
-        type="circle"
+      <HousingPoints
         filter={[
           'all',
           ['!', ['has', 'point_count']],
           ['==', ['get', 'housingCount'], 1],
         ]}
-        paint={{
-          'circle-color': [
-            'match',
-            ['get', 'status', ['at', 0, ['get', 'housingList']]],
-            // Apply a background color to the circle
-            // depending on the housing status
-            ...backgroundColors.flat(),
-            // Default
-            '#000091',
-          ],
-          'circle-radius': 8,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': [
-            'match',
-            ['get', 'status', ['at', 0, ['get', 'housingList']]],
-            // Apply a stroke color to the circle
-            // depending on the housing status
-            ...textColors.flat(),
-            '#fff',
-          ],
-        }}
+        source={props.id}
       />
-      <Layer
-        id="buildings"
-        type="symbol"
+      <BuildingPoints
         filter={[
           'all',
           ['!', ['has', 'point_count']],
           ['>=', ['get', 'housingCount'], 2],
         ]}
-        layout={{
-          'icon-allow-overlap': true,
-          'icon-image': BUILDING_DARK,
-          'icon-size': 0.75,
-        }}
-        paint={{
-          'text-color': [
-            'match',
-            ['get', 'status', ['at', 0, ['get', 'housingList']]],
-            // Apply a text color depending on the housing status
-            ...textColors.flat(),
-            '#fff',
-          ],
-        }}
+        source={props.id}
       />
     </Source>
   );

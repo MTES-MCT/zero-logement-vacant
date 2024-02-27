@@ -1,9 +1,9 @@
 import * as turf from '@turf/turf';
 import { Layer, MapRef, Source } from 'react-map-gl';
-import { useEffect } from 'react';
-import { deserialize } from '../../utils/jsonUtils';
 import { BUILDING_DARK } from './Icon';
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
+import HousingPoints from './HousingPoints';
+import BuildingPoints from './BuildingPoints';
 
 interface Props<T> {
   id: string;
@@ -23,32 +23,13 @@ function Points<T extends turf.Properties>(props: Props<T>) {
 
   return (
     <Source id={props.id} type="geojson" data={points}>
-      <Layer
-        id="unclustered-points"
-        type="circle"
+      <HousingPoints
         filter={['==', ['get', 'housingCount'], 1]}
-        paint={{
-          'circle-color': '#000091',
-          'circle-radius': 8,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#fff',
-        }}
+        source={props.id}
       />
-      <Layer
-        id="buildings"
-        type="symbol"
+      <BuildingPoints
         filter={['>=', ['get', 'housingCount'], 2]}
-        layout={{
-          'icon-allow-overlap': true,
-          'icon-image': BUILDING_DARK,
-          'icon-size': 0.75,
-        }}
-        paint={{
-          'icon-color': '#000091',
-          'icon-halo-color': '#fff',
-          'icon-halo-width': 4,
-          'icon-halo-blur': 0,
-        }}
+        source={props.id}
       />
     </Source>
   );

@@ -79,7 +79,6 @@ function HousingPopup(props: HousingPopupProps) {
       offset={16}
       onClose={props.onClose}
       maxWidth="30rem"
-      key={`popup-${building.id}`}
     >
       <article>
         <header className={styles.header}>

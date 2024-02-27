@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf';
-import { Layer, MapRef, Source } from 'react-map-gl';
-import { BUILDING_DARK } from './Icon';
+import { MapRef, Source } from 'react-map-gl';
+
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';
 import BuildingPoints from './BuildingPoints';

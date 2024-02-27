@@ -41,7 +41,7 @@ wait
 
 # Restore the data
 echo "=> Restore the data:"
-pg_restore --clean --if-exists --no-owner --no-privileges --no-comments \
+pg_restore --clean --no-wal --disable-triggers --if-exists --no-owner --no-privileges --no-comments \
 --dbname ${DUPLICATE_DATABASE_URL} ${backup_file_name}
 
 wait

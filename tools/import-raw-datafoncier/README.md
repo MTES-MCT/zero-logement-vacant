@@ -38,6 +38,12 @@ export PIPX_BIN_DIR=/Users/[USER]/.pipx/bin
 brew install pipx
 ```
 
+Modifier le PATH:
+
+```
+export PATH=/Users/[USER]/.pipx/bin:$PATH
+```
+
 Remplacer `[USER]` par votre nom d'utilisateur.
 
 ## 2. Installer Ansible
@@ -61,10 +67,16 @@ pip install psycopg2
 
 ### Installation d'Ansible
 
-Utiliser pipx pour installer `ansible-core` :
+Utiliser pipx pour installer `ansible` :
 
 ```
-pipx install ansible-core
+pipx install --include-deps ansible
+```
+
+Installation du module PostgreSQL:
+
+```
+ansible-galaxy collection install community.postgresql
 ```
 
 ### Créer le Vault pour les Identifiants PostgreSQL
@@ -97,3 +109,4 @@ Lancer l'importation des données avec la commande suivante, en remplaçant les 
 ```
 ansible-playbook -i inventory.ini import.yml -e "table_name=zlv_proprio_nat script_file_path=2022" --ask-vault-pass
 ```
+ansible-playbook -i inventory.ini import.yml -e "table_name=zlv_proprio_nat23 script_file_path=/Volumes/Zéro_Logement_Vacant/Données_foncières/2023" --ask-vault-pass

@@ -21,8 +21,7 @@
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",
     "migrate-rollback-all": "knex migrate:rollback --all --knexfile=./server/knex.ts",
-    "seed": "knex seed:run --knexfile=./server/knex.ts",
-    "postinstall": "is-ci || husky install"
+    "seed": "knex seed:run --knexfile=./server/knex.ts"
   },
   "keywords": [],
   "author": "",
@@ -41,7 +40,6 @@
     "@sentry/integrations": "^7.80.0",
     "@sentry/node": "^7.80.0",
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
-    "JSONStream": "^1.3.5",
     "async": "^3.2.5",
     "bcryptjs": "^2.4.3",
     "cli-progress": "^3.12.0",

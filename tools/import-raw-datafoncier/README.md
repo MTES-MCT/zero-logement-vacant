@@ -104,9 +104,19 @@ db_password: ""
 
 ## Exécuter l'Import
 
-Lancer l'importation des données avec la commande suivante, en remplaçant les valeurs de `table_name` et `script_file_path` selon les besoins :
+Lancer l'importation des données avec la commande suivante, en remplaçant les valeurs de `db_name`, `table_name`, `final_name`, `script_file_path` selon les besoins.
+
+Par exemple, pour importer les propriétaires:
 
 ```
-ansible-playbook -i inventory.ini import.yml -e "table_name=zlv_proprio_nat script_file_path=2022" --ask-vault-pass
+ansible-playbook -i inventory.ini import.yml -e "db_name=zlv_copy_prod table_name=zlv_proprio_nat23 final_name=df_owners_nat_2023 script_file_path=2023" --ask-vault-pass
 ```
-ansible-playbook -i inventory.ini import.yml -e "table_name=zlv_proprio_nat23 script_file_path=/Volumes/Zéro_Logement_Vacant/Données_foncières/2023" --ask-vault-pass
+
+Par exemple, pour importer les logements:
+
+```
+ansible-playbook -i inventory.ini import.yml -e "db_name=zlv_copy_prod table_name=zlv_logt_nat23 final_name=df_housing_nat_2023 script_file_path=2023" --ask-vault-pass
+```
+
+
+ansible-playbook -i inventory.ini import.yml -e "table_name=zlv_proprio_nat23 final_name=df_owners_nat_2023 script_file_path=/Volumes/Zéro_Logement_Vacant/Données_foncières/2023" --ask-vault-pass

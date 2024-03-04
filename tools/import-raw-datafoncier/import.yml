@@ -3,7 +3,6 @@
   hosts: localhost
   gather_facts: no
   vars:
-    db_name: "df"
     db_host: "localhost"
     schema_name: "u_sabrina_tabita"
     role_name: "adl"
@@ -43,14 +42,34 @@
         login_password: "{{ db_password }}"
         login_host: "{{ db_host }}"
 
-    - name: Vérifier si la table existe
+    - name: Vérifier si la table originale existe
       ansible.builtin.command: >
         psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ schema_name }}.{{ table_name }}')"
-      register: table_check
+      register: table_origin_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Vérifier si la table finale existe
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
+      register: table_finale_check
       changed_when: false
       ignore_errors: true
 
     - name: Exécuter le script SQL d'import des données
       ansible.builtin.command: >
         psql -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -f {{ script_file_path }}/{{ table_name }}/{{ table_name }}.sql
-      when: table_check.stdout == ""
+      when: table_origin_check.stdout == "" and table_finale_check.stdout != final_table_name
+
+    - name: Vérifier si la table finale existe
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
+      register: table_finale_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Renommer la table et la déplacer dans le schéma public
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "ALTER TABLE {{ schema_name }}.{{ table_name }} RENAME TO {{ final_table_name }};ALTER TABLE {{ schema_name }}.{{ final_table_name }} SET SCHEMA public;"
+      when: table_finale_check.stdout != final_table_name 
+

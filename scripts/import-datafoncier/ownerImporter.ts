@@ -1,3 +1,4 @@
+import { SingleBar } from 'cli-progress';
 import highland from 'highland';
 import { OwnerApi } from '../../server/models/OwnerApi';
 import createDatafoncierOwnersRepository from '../../server/repositories/datafoncierOwnersRepository';
@@ -15,18 +16,33 @@ import { logger } from '../../server/utils/logger';
 import OwnerRepository from '../../server/repositories/ownerRepository';
 import Stream = Highland.Stream;
 
+let progressBar: SingleBar;
+let totalOwnersCount = 0;
+
 export function ownerImporter(
+  progressBarOwner: SingleBar,
   stream: Stream<DatafoncierOwner> = createDatafoncierOwnersRepository().stream()
 ) {
+  progressBar = progressBarOwner;
+
   logger.info('Importing owners...');
+
+  createDatafoncierOwnersRepository().count().then(count => {
+    totalOwnersCount = count;
+    progressBar.start(totalOwnersCount, 0);
+  });
+
   return stream
-    .flatMap((dfOwner) => highland(processOwner(dfOwner)))
+    .flatMap((dfOwner) => {
+      progressBar.increment();
+      return highland(processOwner(dfOwner));
+    })
     .filter((result) => !!result.match || !!result.owner)
     .through(save)
     .stopOnError((error) => {
       logger.error(error);
       throw error;
-    });
+    })
 }
 
 interface Result {
@@ -39,7 +55,7 @@ interface Result {
  * @param dfOwner
  */
 export async function processOwner(dfOwner: DatafoncierOwner): Promise<Result> {
-  logger.info(`Processing ${dfOwner.idpersonne}...`);
+  logger.debug(`Processing ${dfOwner.idpersonne}...`);
   const dfOwnerApi = toOwnerApi(dfOwner);
 
   const ownerMatch = await ownerMatchRepository.findOne({

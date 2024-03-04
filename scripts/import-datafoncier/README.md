@@ -15,8 +15,8 @@ It must be **imported** in the database first.
 
 This is a manual step where a developer retrieves the link and restores the file
 in the database. When the restore is complete, the imported tables must be
-renamed according to the year of the data e.g. `df_owners_nat_2024` or
-`df_housing_nat_2024`.
+renamed according to the year of the data e.g. `df_owners_nat_2023` or
+`df_housing_nat_2023`. The script will automatically use the names from the previous year. For example, if the script is launched in 2024, `df_owners_nat_2023` and `df_housing_nat_2023` will be used.
 
 See [ansible playbook](../../tools/import-raw-datafoncier/README.md).
 

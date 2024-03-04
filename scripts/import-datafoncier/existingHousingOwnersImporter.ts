@@ -1,3 +1,4 @@
+import { SingleBar } from 'cli-progress';
 import { HousingApi } from '../../server/models/HousingApi';
 import housingRepository from '../../server/repositories/housingRepository';
 import { tapAsync } from '../shared';
@@ -19,8 +20,20 @@ import { isNotNull } from '../../shared';
 import housingOwnerConflictRepository from '../../server/repositories/conflict/housingOwnerConflictRepository';
 import Stream = Highland.Stream;
 
-export function existingHousingOwnersImporter(): Stream<HousingApi> {
+let totalHousingOwnersCount = 0;
+
+let progressBar: SingleBar;
+
+export function existingHousingOwnersImporter(progressBarHousingOwners: SingleBar): Stream<HousingApi> {
   logger.info('Importing housing owners...');
+
+  progressBar = progressBarHousingOwners;
+
+  housingRepository.count({}).then(result => {
+    totalHousingOwnersCount = result.housing;
+    progressBar.start(totalHousingOwnersCount, 0);
+  });
+
   return housingRepository
     .stream({
       filters: {},
@@ -29,13 +42,15 @@ export function existingHousingOwnersImporter(): Stream<HousingApi> {
     .consume(tapAsync(processHousing))
     .errors((error) => {
       logger.error(error);
-    });
+    })
 }
 
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
 
 export async function processHousing(housing: HousingApi): Promise<void> {
+  progressBar.increment();
+
   const datafoncierHousing = await datafoncierHousingRepository.findOne({
     idlocal: housing.localId,
     ccthp: 'L',

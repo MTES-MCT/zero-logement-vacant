@@ -8,6 +8,14 @@
     role_name: "adl"
   vars_files:
     - vars/db_credentials.yml
+  vars_prompt:
+    - name: create_indices_for_housing
+      prompt: "Créer les indices pour la table des propriétaires ? (yes/no)"
+      private: no
+
+    - name: create_indices_for_owners
+      prompt: "Créer les indices pour la table des logements ? (yes/no)"
+      private: no
   tasks:
     - name: Créer la base de données
       postgresql_db:
@@ -72,4 +80,34 @@
       ansible.builtin.command: >
         psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "ALTER TABLE {{ schema_name }}.{{ table_name }} RENAME TO {{ final_table_name }};ALTER TABLE {{ schema_name }}.{{ final_table_name }} SET SCHEMA public;"
       when: table_finale_check.stdout != final_table_name 
+
+    - name: Créer les indices pour la table des logements
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
+      loop:
+        - "CREATE INDEX IF NOT EXISTS idx_idlocal_ccthp ON {{ schema_name }}.{{ final_table_name }} (idlocal, ccthp)"
+        - "CREATE INDEX IF NOT EXISTS idx_dteloctxt ON {{ schema_name }}.{{ final_table_name }} (dteloctxt)"
+        - "CREATE INDEX IF NOT EXISTS idx_ccthp_dteloctxt ON {{ schema_name }}.{{ final_table_name }} (ccthp, dteloctxt)"
+      when: create_indices_for_housing == "yes"
+      register: indices_creation_housing
+      changed_when: false
+      ignore_errors: true
+
+    - name: Créer les indices pour la table des propriétaires
+      ansible.builtin.command: >
+        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
+      loop:
+        - "CREATE INDEX IF NOT EXISTS idx_idprocpte ON {{ schema_name }}.{{ final_table_name }} (idprocpte)"
+        - "CREATE INDEX IF NOT EXISTS idx_dnulp ON {{ schema_name }}.{{ final_table_name }} (dnulp)"
+        - "CREATE INDEX IF NOT EXISTS idx_ccogrm ON {{ schema_name }}.{{ final_table_name }} (ccogrm)"
+        - "CREATE INDEX IF NOT EXISTS idx_not_null_ddenom ON {{ schema_name }}.{{ final_table_name }} (ddenom) WHERE ddenom IS NOT NULL"
+        - "CREATE INDEX IF NOT EXISTS idx_non_null_dlign3 ON {{ schema_name }}.{{ final_table_name }} (dlign3) WHERE dlign3 IS NULL"
+        - "CREATE INDEX IF NOT EXISTS idx_non_null_dlign4 ON {{ schema_name }}.{{ final_table_name }} (dlign4) WHERE dlign4 IS NULL"
+        - "CREATE INDEX IF NOT EXISTS idx_non_null_dlign5 ON {{ schema_name }}.{{ final_table_name }} (dlign5) WHERE dlign5 IS NULL"
+        - "CREATE INDEX IF NOT EXISTS idx_non_null_dlign6 ON {{ schema_name }}.{{ final_table_name }} (dlign6) WHERE dlign6 IS NULL"
+        - "CREATE INDEX IF NOT EXISTS idx_idpersonne ON {{ schema_name }}.{{ final_table_name }}(idpersonne)"
+      when: create_indices_for_owners == "yes"
+      register: indices_creation_owners
+      changed_when: false
+      ignore_errors: true
 

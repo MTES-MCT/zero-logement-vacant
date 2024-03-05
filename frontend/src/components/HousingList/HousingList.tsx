@@ -216,7 +216,7 @@ const HousingList = ({
     headerRender: () => getSortButton('occupancy', 'Occupation'),
     render: ({ occupancy }: Housing) => (
       <Badge className="bg-bf950 color-bf113">
-        {occupancy ? OccupancyKindLabels[occupancy] : 'Pas d’info'}
+        {OccupancyKindLabels[occupancy]}
       </Badge>
     ),
   };

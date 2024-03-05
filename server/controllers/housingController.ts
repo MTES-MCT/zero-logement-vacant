@@ -7,7 +7,9 @@ import {
   HousingSortableApi,
   OccupancyKindApi,
 } from '../models/HousingApi';
-import housingFiltersApi, { HousingFiltersApi } from '../models/HousingFiltersApi';
+import housingFiltersApi, {
+  HousingFiltersApi,
+} from '../models/HousingFiltersApi';
 import { UserRoles } from '../models/UserApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -240,10 +242,8 @@ const updateValidators = [
     ),
   body('housingUpdate.occupancyUpdate')
     .optional()
-    .custom(
-      (value) =>
-        !value.occupancy ||
-        isIn(String(value.occupancy), Object.values(OccupancyKindApi))
+    .custom((value) =>
+      isIn(String(value.occupancy), Object.values(OccupancyKindApi))
     )
     .custom(
       (value) =>

@@ -5,16 +5,14 @@ import { zlvApi } from './api.service';
 export const eventApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findEventsByOwner: builder.query<Event[], string>({
-      query: (id) => `owner/${id}/events`,
+      query: (id) => `/owners/${id}/events`,
       providesTags: () => ['Event'],
-      transformResponse: (events: any[]) =>
-        events.map(parseEvent),
+      transformResponse: (events: any[]) => events.map(parseEvent),
     }),
     findEventsByHousing: builder.query<Event[], string>({
-      query: (id) => `housing/${id}/events`,
+      query: (id) => `/housing/${id}/events`,
       providesTags: () => ['Event'],
-      transformResponse: (events: any[]) =>
-        events.map(parseEvent),
+      transformResponse: (events: any[]) => events.map(parseEvent),
     }),
   }),
 });

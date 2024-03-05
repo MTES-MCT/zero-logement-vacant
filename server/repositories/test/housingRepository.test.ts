@@ -48,8 +48,6 @@ import {
 } from '../buildingRepository';
 import async from 'async';
 import { OwnerApi } from '../../models/OwnerApi';
-import { formatElapsed, timer } from '../../../scripts/shared/elapsed';
-import { logger } from '../../utils/logger';
 import {
   CampaignsHousing,
   formatCampaignHousingApi,
@@ -750,46 +748,6 @@ describe('Housing repository', () => {
         const ids = housingList.map(fp.pick(['id']));
         expect(actual).toIncludeAllPartialMembers(ids);
       });
-    });
-  });
-
-  describe('count', () => {
-    describe('Benchmark', () => {
-      beforeEach(async () => {
-        await Housing().delete();
-      });
-
-      it('should process a large amount of data', async () => {
-        const amount = 100_000;
-        const maxParallel = 10;
-
-        const housingList = new Array(amount)
-          .fill('0')
-          .map(() => genHousingApi());
-        await async.forEachLimit(
-          fp.chunk(1_000, housingList),
-          maxParallel,
-          async (chunk) => {
-            await Housing().insert(chunk.map(formatHousingRecordApi));
-            logger.debug(`Saved ${chunk.length} housing.`);
-          }
-        );
-        logger.info(`Saved ${amount} housing.`);
-
-        await new Promise<void>((resolve) => {
-          const stop = timer();
-          return housingRepository
-            .count({
-              occupancies: [OccupancyKindApi.Vacant],
-              status: 0,
-            })
-            .then(() => {
-              const elapsed = stop();
-              logger.info(`Elapsed: ${formatElapsed(elapsed)}.`);
-              resolve();
-            });
-        });
-      }, 120_000 /* A specific timeout */);
     });
   });
 

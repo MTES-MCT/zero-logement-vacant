@@ -22,7 +22,7 @@ let totalOwnersCount = 0;
 export function ownerImporter(
   progressBarOwner: SingleBar,
   stream: Stream<DatafoncierOwner> = createDatafoncierOwnersRepository().stream()
-) {
+): Stream<void> {
   progressBar = progressBarOwner;
 
   logger.info('Importing owners...');

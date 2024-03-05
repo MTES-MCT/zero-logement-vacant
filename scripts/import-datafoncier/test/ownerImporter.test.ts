@@ -17,6 +17,21 @@ import highland from 'highland';
 import { formatElapsed, timer } from '../../shared/elapsed';
 import { logger } from '../../../server/utils/logger';
 import randomstring from 'randomstring';
+import Stream = Highland.Stream;
+import progress from 'cli-progress';
+
+const createProgressBas = () => {
+  return new progress.SingleBar(
+    {
+      etaBuffer: 1000,
+      etaAsynchronousUpdate: true,
+      fps: 10,
+      format:
+        '{bar} | {percentage}% | ETA: {eta_formatted} | {value}/{total} housing',
+    },
+    progress.Presets.shades_classic
+  );
+}
 
 describe('Import owners', () => {
   describe('Benchmark', () => {
@@ -42,7 +57,9 @@ describe('Import owners', () => {
       const generator = createGenerator(iterations);
       const stream = highland<DatafoncierOwner>(generator);
       const stop = timer();
-      stream.through(ownerImporter).done(() => {
+      const progressBarOwner = createProgressBas();
+      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) => ownerImporter(progressBarOwner, stream);
+      stream.through(ownerImporterForHighland).done(() => {
         const elapsed = stop();
         logger.info(`Done in ${formatElapsed(elapsed)}.`);
         done();
@@ -56,8 +73,10 @@ describe('Import owners', () => {
       const a = genDatafoncierOwner();
       const b = { ...a, idpersonne: randomstring.generate(8) };
 
+      const progressBarOwner = createProgressBas();
+      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) => ownerImporter(progressBarOwner, stream);
       await highland<DatafoncierOwner>([a, b])
-        .through(ownerImporter)
+        .through(ownerImporterForHighland)
         .collect()
         .toPromise(Promise);
 

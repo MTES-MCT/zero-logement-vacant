@@ -13,8 +13,7 @@ const allDepartments = [
   ),
 ];
 
-const departments: string = process.argv[2] ?? allDepartments;
-
+const departments: string = process.argv[2].toLowerCase() ?? allDepartments.join(',');
 async function run(): Promise<void> {
   for (const department of departments.split(',')) {
     await processDepartement(department);

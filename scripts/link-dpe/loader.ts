@@ -24,7 +24,7 @@ const loadSchema = async (department: string): Promise<void> => {
   const exec = require('child_process').exec;
 
   return new Promise((resolve) => {
-    exec(cmd, (error: any, stdout: any, stderr: any) => {
+    exec(cmd, async (error: any, stdout: any, stderr: any) => {
       if (error) {
         logger.error(`error: ${error.message}`);
       }
@@ -33,6 +33,12 @@ const loadSchema = async (department: string): Promise<void> => {
       }
 
       logger.info(`Loading done`);
+
+      logger.info(`Creating indexes...`);
+      await db.raw(`CREATE INDEX idx_batenergy_batiment_groupe_id ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(batiment_groupe_id);`);
+      await db.raw(`CREATE INDEX idx_batenergy_arrete_2021 ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(arrete_2021);`);
+      logger.info(`Indexes created`);
+
       resolve(stdout ? stdout : stderr);
     });
   });

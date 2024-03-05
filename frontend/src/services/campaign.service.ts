@@ -75,7 +75,7 @@ export const campaignApi = zlvApi.injectEndpoints({
       }
     >({
       query: (payload) => ({
-        url: `campaigns/groups/${payload.group.id}`,
+        url: `campaigns/${payload.group.id}/groups`,
         method: 'POST',
         body: {
           title: payload.campaign.title,

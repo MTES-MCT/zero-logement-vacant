@@ -1,7 +1,7 @@
 import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
-  NoOccupancyInfo,
+  OccupancyUnknown,
   OccupancyKind,
   OccupancyKindBadgeLabels,
   OccupancyKindLabels,
@@ -47,8 +47,8 @@ export interface HousingFilters {
 
 export const allOccupancyOptions: SelectOption[] = [
   {
-    label: OccupancyKindLabels[NoOccupancyInfo],
-    value: '',
+    label: OccupancyKindLabels[OccupancyUnknown],
+    value: OccupancyUnknown,
   },
   ...Object.values(OccupancyKind).map((value) => ({
     value,

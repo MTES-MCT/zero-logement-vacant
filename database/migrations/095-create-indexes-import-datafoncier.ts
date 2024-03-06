@@ -7,9 +7,6 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.table('owners_housing', function (table) {
     table.index('end_date', 'idx_end_date');
   }),
-  await knex.schema.table('owners_housing', function (table) {
-    table.index('rank', 'idx_rank');
-  }),
   await knex.schema.table('ban_addresses', function (table) {
     table.index('address_kind', 'idx_ban_addresses');
   }),
@@ -27,9 +24,6 @@ export async function down(knex: Knex): Promise<void> {
   }),
   await knex.schema.table('owners_housing', function (table) {
     table.dropIndex('end_date', 'idx_end_date');
-  }),
-  await knex.schema.table('owners_housing', function (table) {
-    table.dropIndex('rank', 'idx_rank');
   }),
   await knex.schema.table('ban_addresses', function (table) {
     table.dropIndex('address_kind', 'idx_ban_addresses');

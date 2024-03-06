@@ -15,9 +15,6 @@ global.beforeEach(async () => {
   try {
     await db.migrate.latest();
     await db.seed.run();
-  } catch (error) {
-    logger.error(error);
-    process.exit(1);
   } finally {
     await db.destroy();
   }
@@ -28,9 +25,6 @@ global.afterEach(async () => {
   try {
     await db.migrate.rollback();
     logger.info('Rolled back');
-  } catch (error) {
-    logger.error(error);
-    process.exit(1);
   } finally {
     await db.destroy();
   }

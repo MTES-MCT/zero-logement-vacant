@@ -3,3 +3,6 @@ frontend/
 database/
 dist/
 README.md
+
+# shell script
+scripts/duplicate-database/

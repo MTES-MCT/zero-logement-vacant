@@ -94,7 +94,7 @@ describe('Group view', () => {
           },
         },
         {
-          pathname: `/api/campaigns/groups/${group.id}`,
+          pathname: `/api/campaigns/${group.id}/groups`,
           method: 'POST',
           response: {
             status: 201,

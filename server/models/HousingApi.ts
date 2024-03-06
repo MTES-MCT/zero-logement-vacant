@@ -93,6 +93,7 @@ export const OwnershipKindValues = {
 };
 
 export enum OccupancyKindApi {
+  Unknown = 'inconnu',
   Vacant = 'V',
   Rent = 'L',
   ShortRent = 'B',
@@ -104,7 +105,8 @@ export enum OccupancyKindApi {
   Others = 'A',
 }
 
-export const OccupancyKindApiLabels = {
+export const OccupancyKindApiLabels: Record<OccupancyKindApi, string> = {
+  [OccupancyKindApi.Unknown]: 'Pas d’information',
   [OccupancyKindApi.Vacant]: 'Vacant',
   [OccupancyKindApi.Rent]: 'En location',
   [OccupancyKindApi.ShortRent]: 'Meublé de tourisme',

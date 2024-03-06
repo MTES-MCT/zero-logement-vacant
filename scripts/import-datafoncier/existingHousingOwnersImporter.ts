@@ -24,15 +24,15 @@ let totalHousingOwnersCount = 0;
 
 let progressBar: SingleBar;
 
-export function existingHousingOwnersImporter(progressBarHousingOwners: SingleBar): Stream<HousingApi> {
+export async function existingHousingOwnersImporter(progressBarHousingOwners: SingleBar): Promise<Stream<HousingApi>> {
   logger.info('Importing housing owners...');
 
   progressBar = progressBarHousingOwners;
 
-  housingRepository.count({}).then(result => {
-    totalHousingOwnersCount = result.housing;
-    progressBar.start(totalHousingOwnersCount, 0);
-  });
+  const result = await housingRepository.count({});
+
+  totalHousingOwnersCount = result.housing;
+  progressBar.start(totalHousingOwnersCount, 0);
 
   return housingRepository
     .stream({

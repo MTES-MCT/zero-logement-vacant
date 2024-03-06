@@ -8,12 +8,12 @@ import { SingleBar, Presets } from 'cli-progress';
 const stop = timer();
 
 const progressBarOwner = new SingleBar({}, Presets.shades_classic);
-ownerImporter(progressBarOwner).done(() => {
+ownerImporter(progressBarOwner).done(async () => {
   progressBarOwner.stop();
   logger.info('Done importing owners.');
 
   const progressBarHousingOwners = new SingleBar({}, Presets.shades_classic);
-  existingHousingOwnersImporter(progressBarHousingOwners).done(() => {
+  (await existingHousingOwnersImporter(progressBarHousingOwners)).done(() => {
     const elapsed = stop();
     progressBarHousingOwners.stop();
     logger.info(`Done in ${formatElapsed(elapsed)}.`);

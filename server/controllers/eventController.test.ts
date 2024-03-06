@@ -13,7 +13,7 @@ describe('Event controller', () => {
   const { app } = createServer();
 
   describe('listByOwnerId', () => {
-    const testRoute = (id: string) => `/api/owner/${id}/events`;
+    const testRoute = (id: string) => `/api/owners/${id}/events`;
 
     it('should be forbidden for a not authenticated user', async () => {
       const { status } = await request(app).get(testRoute(Owner1.id));

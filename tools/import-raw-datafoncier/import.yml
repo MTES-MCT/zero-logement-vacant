@@ -2,11 +2,8 @@
 - name: Configurer la base de données PostgreSQL
   hosts: localhost
   gather_facts: no
-  vars:
-    db_host: "localhost"
-    schema_name: "u_sabrina_tabita"
-    role_name: "adl"
   vars_files:
+    - vars/db_configuration.yml
     - vars/db_credentials.yml
   vars_prompt:
     - name: create_indices_for_housing
@@ -23,6 +20,7 @@
         login_user: "{{ db_user }}"
         login_password: "{{ db_password }}"
         login_host: "{{ db_host }}"
+        port: "{{ db_port }}"
         state: present
 
     - name: Créer le schéma
@@ -32,6 +30,7 @@
         login_user: "{{ db_user }}"
         login_password: "{{ db_password }}"
         login_host: "{{ db_host }}"
+        port: "{{ db_port }}"
         state: present
 
     - name: Créer le rôle
@@ -49,41 +48,42 @@
         login_user: "{{ db_user }}"
         login_password: "{{ db_password }}"
         login_host: "{{ db_host }}"
+        port: "{{ db_port }}"
 
     - name: Vérifier si la table originale existe
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ schema_name }}.{{ table_name }}')"
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ schema_name }}.{{ table_name }}')"
       register: table_origin_check
       changed_when: false
       ignore_errors: true
 
     - name: Vérifier si la table finale existe
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
       register: table_finale_check
       changed_when: false
       ignore_errors: true
 
     - name: Exécuter le script SQL d'import des données
       ansible.builtin.command: >
-        psql -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -f {{ script_file_path }}/{{ table_name }}/{{ table_name }}.sql
+        psql -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -f {{ script_file_path }}/{{ table_name }}/{{ table_name }}.sql
       when: table_origin_check.stdout == "" and table_finale_check.stdout != final_table_name
 
     - name: Vérifier si la table finale existe
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "SELECT to_regclass('{{ final_table_name }}')"
       register: table_finale_check
       changed_when: false
       ignore_errors: true
 
     - name: Renommer la table et la déplacer dans le schéma public
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "ALTER TABLE {{ schema_name }}.{{ table_name }} RENAME TO {{ final_table_name }};ALTER TABLE {{ schema_name }}.{{ final_table_name }} SET SCHEMA public;"
-      when: table_finale_check.stdout != final_table_name 
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "ALTER TABLE {{ schema_name }}.{{ table_name }} RENAME TO {{ final_table_name }};ALTER TABLE {{ schema_name }}.{{ final_table_name }} SET SCHEMA public;"
+      when: table_finale_check.stdout != final_table_name
 
     - name: Créer les indices pour la table des logements
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
       loop:
         - "CREATE INDEX IF NOT EXISTS idx_idlocal_ccthp ON {{ schema_name }}.{{ final_table_name }} (idlocal, ccthp)"
         - "CREATE INDEX IF NOT EXISTS idx_dteloctxt ON {{ schema_name }}.{{ final_table_name }} (dteloctxt)"
@@ -95,7 +95,7 @@
 
     - name: Créer les indices pour la table des propriétaires
       ansible.builtin.command: >
-        psql -qtAX -h {{ db_host }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
+        psql -qtAX -h {{ db_host }} -p {{ db_port }} -d {{ db_name }} -U {{ db_user }} -c "{{ item }}"
       loop:
         - "CREATE INDEX IF NOT EXISTS idx_idprocpte ON {{ schema_name }}.{{ final_table_name }} (idprocpte)"
         - "CREATE INDEX IF NOT EXISTS idx_dnulp ON {{ schema_name }}.{{ final_table_name }} (dnulp)"

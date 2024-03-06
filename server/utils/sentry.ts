@@ -17,6 +17,8 @@ const init = (app: Express): void => {
 
     Sentry.init({
       dsn: config.sentry.dsn,
+      environment:
+        config.environment === 'production' ? 'production' : 'development',
       tracesSampleRate: 1.0,
       integrations: [
         new Sentry.Integrations.Http({

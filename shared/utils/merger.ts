@@ -24,6 +24,7 @@ export function merge<T extends object, K extends keyof T = keyof T>(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const first = <A>(first: A, _: A): A => first;
 export const second = <A>(_: A, second: A): A => second;
 

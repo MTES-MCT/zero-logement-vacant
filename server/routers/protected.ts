@@ -45,7 +45,7 @@ router.delete('/groups/:id/housing', groupController.removeHousingValidators, va
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.listCampaigns);
 router.get('/campaigns/:id', campaignController.getCampaignValidators, validator.validate, campaignController.getCampaign);
 router.post('/campaigns', campaignController.createCampaignValidators, validator.validate, campaignController.createCampaign);
-router.post('/campaigns/groups/:id', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
+router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
 router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
 router.put('/campaigns/:id', campaignController.updateCampaignValidators, validator.validate, campaignController.updateCampaign, campaignController.updateCampaign);
 router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);

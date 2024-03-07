@@ -11,31 +11,25 @@ import { OwnerApi } from '../models/OwnerApi';
 import ownerRepository from '../repositories/ownerRepository';
 import { logger } from '../utils/logger';
 
-const listByOwnerId = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const ownerId = request.params.ownerId;
+async function listByOwnerId(request: Request, response: Response) {
+  const { id } = request.params;
+  logger.info('List owner events', { id });
 
-  logger.info('List events for owner', ownerId);
+  const events = await eventRepository.findOwnerEvents(id);
+  response.status(constants.HTTP_STATUS_OK).json(events);
+}
 
-  const events = await eventRepository.findOwnerEvents(ownerId);
-
-  return response.status(constants.HTTP_STATUS_OK).json(events);
-};
-
-const listByHousingId = async (request: Request, response: Response) => {
-  const housingId = request.params.housingId;
-  const establishment = (request as AuthenticatedRequest).establishment;
-
-  logger.info('List events for housing', housingId);
+async function listByHousingId(request: Request, response: Response) {
+  const { id } = request.params;
+  const { establishment } = request as AuthenticatedRequest;
+  logger.info('List housing events', { id });
 
   const housing = await housingRepository.findOne({
-    id: housingId,
+    id,
     geoCode: establishment.geoCodes,
   });
   if (!housing) {
-    throw new HousingMissingError(housingId);
+    throw new HousingMissingError(id);
   }
 
   const [housingEvents, owners, groupHousingEvents] = await Promise.all([
@@ -44,15 +38,15 @@ const listByHousingId = async (request: Request, response: Response) => {
     eventRepository.findGroupHousingEvents(housing),
   ]);
 
-  const ownerEvents: EventApi<OwnerApi>[] = await async.concat(
+  const ownerEvents: EventApi<OwnerApi>[] = await async.flatMap(
     owners.map((_) => _.id),
-    async (ownerId: string) => eventRepository.findOwnerEvents(ownerId)
+    async (id: string) => eventRepository.findOwnerEvents(id)
   );
 
   response
     .status(constants.HTTP_STATUS_OK)
     .json([...ownerEvents, ...housingEvents, ...groupHousingEvents]);
-};
+}
 
 const eventController = {
   listByOwnerId,

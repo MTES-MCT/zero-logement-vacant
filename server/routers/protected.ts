@@ -61,8 +61,8 @@ router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
 router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find)
 router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update)
 
-router.get('/events/owner/:ownerId', [isUUIDParam('ownerId')], validator.validate, eventController.listByOwnerId);
-router.get('/events/housing/:housingId', [isUUIDParam('housingId')], validator.validate, eventController.listByHousingId);
+router.get('/owners/:id/events', [isUUIDParam('id')], validator.validate, eventController.listByOwnerId);
+router.get('/housing/:id/events', [isUUIDParam('id')], validator.validate, eventController.listByHousingId);
 
 router.get('/notes/housing/:housingId', [isUUIDParam('housingId')], validator.validate, noteController.listByHousingId);
 

@@ -18,6 +18,7 @@
     "test:database": "cd database && jest --run-in-band --test-timeout=30000",
     "lint": "eslint . --ext .js,.ts",
     "db": "knex --knexfile=./server/knex.ts",
+    "migration:create": "knex migrate:make $1 --knexfile=./server/knex.ts",
     "migrate-list": "knex migrate:list --knexfile=./server/knex.ts",
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",

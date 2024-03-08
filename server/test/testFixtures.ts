@@ -67,6 +67,7 @@ import { BuildingApi } from '../models/BuildingApi';
 import { AddressApi } from '../models/AddressApi';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
 import { HousingNoteApi, NoteApi } from '../models/NoteApi';
+import { DraftApi } from '../models/DraftApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -725,3 +726,13 @@ export const genHousingNoteApi = (
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
 });
+
+export function genDraftApi(establishment: EstablishmentApi): DraftApi {
+  return {
+    id: uuidv4(),
+    body: faker.lorem.paragraph(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    establishmentId: establishment.id,
+  };
+}

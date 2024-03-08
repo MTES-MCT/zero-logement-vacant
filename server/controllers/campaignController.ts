@@ -8,7 +8,6 @@ import {
 } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
-import localityRepository from '../repositories/localityRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
@@ -30,6 +29,10 @@ import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
 import { HousingEventApi } from '../models/EventApi';
+import { CampaignPayloadDTO } from '../../shared/models/CampaignDTO';
+import draftRepository from '../repositories/draftRepository';
+import { DraftApi } from '../models/DraftApi';
+import campaignDraftRepository from '../repositories/campaignDraftRepository';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -86,88 +89,89 @@ export interface CreateCampaignBody {
   housingIds: string[];
 }
 
-const createCampaignValidators: ValidationChain[] = [
-  ...housingFiltersApi.validators('draftCampaign.filters'),
-  body('draftCampaign.title').isString().notEmpty(),
-  body('allHousing').isBoolean().notEmpty(),
-  body('housingIds').custom(isArrayOf(isUUID)),
+const createValidators: ValidationChain[] = [
+  body('title')
+    .isString()
+    .withMessage('Must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Required'),
+  body('housing').isObject({ strict: true }),
+  body('housing.all')
+    .if(body('housing').notEmpty())
+    .isBoolean({ strict: true })
+    .withMessage('Must be a boolean')
+    .notEmpty()
+    .withMessage('Required'),
+  body('housing.ids')
+    .if(body('housing').notEmpty())
+    .custom(isArrayOf(isUUID))
+    .withMessage('Must be an array of UUID'),
+  ...housingFiltersApi.validators('housing.filters'),
 ];
 async function createCampaign(request: Request, response: Response) {
   logger.info('Create campaign');
 
-  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
+  const { auth } = request as AuthenticatedRequest;
 
-  const { draftCampaign, housingIds, allHousing } =
-    request.body as CreateCampaignBody;
+  const body = request.body as CampaignPayloadDTO;
 
-  const newCampaignApi = await campaignRepository.insert(<CampaignApi>{
-    establishmentId,
-    ...draftCampaign,
-    createdBy: userId,
+  const campaign: CampaignApi = {
+    id: uuidv4(),
+    title: body.title,
+    filters: body.housing.filters,
+    createdAt: new Date(),
+    createdBy: auth.userId,
     validatedAt: new Date(),
-  });
+    establishmentId: auth.establishmentId,
+  };
 
-  const userLocalities = await localityRepository
-    .listByEstablishmentId(establishmentId)
-    .then((_) => _.map((_) => _.geoCode));
+  const houses =
+    body.housing.all !== undefined
+      ? await housingRepository
+          .find({
+            filters: {
+              ...body.housing.filters,
+              establishmentIds: [auth.establishmentId],
+            },
+            pagination: { paginate: false },
+          })
+          .then((houses) => {
+            const ids = new Set(body.housing.ids);
+            return houses.filter((housing) =>
+              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
+            );
+          })
+      : [];
 
-  const filterLocalities = (draftCampaign.filters.localities ?? []).length
-    ? userLocalities.filter(
-        (l) => (draftCampaign.filters.localities ?? []).indexOf(l) !== -1
-      )
-    : userLocalities;
+  const draft: DraftApi = {
+    id: uuidv4(),
+    body: null,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    establishmentId: auth.establishmentId,
+  };
 
-  const housingList = allHousing
-    ? await housingRepository
-        .find({
-          filters: {
-            ...draftCampaign.filters,
-            establishmentIds: [establishmentId],
-            localities: filterLocalities,
-          },
-          pagination: { paginate: false },
-        })
-        .then((housingList) =>
-          housingList.filter((housing) => !housingIds.includes(housing.id))
-        )
-    : await housingRepository.find({
-        filters: {
-          establishmentIds: [establishmentId],
-          housingIds: request.body.housingIds,
-        },
-        pagination: {
-          paginate: false,
-        },
-      });
+  await campaignRepository.save(campaign);
+  await campaignHousingRepository.insertHousingList(campaign.id, houses);
+  await draftRepository.save(draft);
+  await campaignDraftRepository.save(campaign, draft);
 
-  await campaignHousingRepository.insertHousingList(
-    newCampaignApi.id,
-    housingList
-  );
+  response.status(constants.HTTP_STATUS_CREATED).json(campaign);
 
-  const newHousingList = await housingRepository.find({
-    filters: {
-      establishmentIds: [establishmentId],
-      housingIds: housingList.map((_) => _.id),
-    },
-    pagination: {
-      paginate: false,
-    },
-  });
-
-  response.status(constants.HTTP_STATUS_CREATED).json(newCampaignApi);
-
-  const events: HousingEventApi[] = housingList.map((housing) => ({
+  // TODO: transform this into CampaignHousingEventApi[]
+  // extends EventApi<CampaignApi>
+  const events: HousingEventApi[] = houses.map((housing) => ({
     id: uuidv4(),
     name: 'Ajout dans une campagne',
     kind: 'Create',
     category: 'Campaign',
     section: 'Suivi de campagne',
-    old: housingList.find((_) => _.id === housing.id),
-    new: newHousingList
-      .map((housing) => ({ ...housing, campaignIds: [newCampaignApi.id] }))
+    old: housing,
+    new: houses
+      .map((housing) => ({ ...housing, campaignIds: [campaign.id] }))
       .find((_) => _.id === housing.id),
-    createdBy: userId,
+    createdBy: auth.userId,
     createdAt: new Date(),
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
@@ -502,7 +506,7 @@ const campaignController = {
   getCampaign,
   listValidators,
   list,
-  createCampaignValidators,
+  createValidators,
   createCampaign,
   createCampaignFromGroup,
   createCampaignFromGroupValidators,

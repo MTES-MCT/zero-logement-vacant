@@ -15,6 +15,7 @@ import {
   formatCampaignApi,
 } from '../repositories/campaignRepository';
 import { tokenProvider } from '../test/testUtils';
+import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { CampaignEvents, HousingEvents } from '../repositories/eventRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
@@ -53,6 +54,11 @@ import {
 import { formatUserApi, Users } from '../repositories/userRepository';
 import { HousingApi } from '../models/HousingApi';
 import { GroupApi } from '../models/GroupApi';
+import { draftsTable } from '../repositories/draftRepository';
+import {
+  CampaignsDrafts,
+  campaignsDraftsTable,
+} from '../repositories/campaignDraftRepository';
 
 describe('Campaign controller', () => {
   const { app } = createServer();
@@ -217,6 +223,20 @@ describe('Campaign controller', () => {
       expect(actualCampaignHouses).toBeArrayOfSize(houses.length);
       expect(actualCampaignHouses).toSatisfyAll((actual) => {
         return actual.campaign_id === actualCampaign?.id;
+      });
+
+      const draft = await CampaignsDrafts()
+        .where({ campaign_id: body.id })
+        .join(
+          draftsTable,
+          `${campaignsDraftsTable}.draft_id`,
+          `${draftsTable}.id`
+        )
+        .select(`${draftsTable}.*`)
+        .first();
+      expect(draft).toMatchObject({
+        body: null,
+        establishment_id: Establishment1.id,
       });
     });
   });

@@ -1,14 +1,15 @@
 import React from 'react';
+
 import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { campaignStep, CampaignSteps } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
+import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { useGetGroupQuery } from '../../services/group.service';
 import { useCampaign } from '../../hooks/useCampaign';
 import CampaignDraft from './CampaignDraft';
 import { CampaignStatus } from '../../../../shared';
-import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import NotFoundView from '../NotFoundView';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 

@@ -20,6 +20,7 @@ import { param } from 'express-validator';
 import groupController from '../controllers/groupController';
 import dashboardController from '../controllers/dashboardController';
 import datafoncierController from "../controllers/datafoncierHousingController";
+import draftController from "../controllers/draftController";
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ router.post('/groups/:id/housing', groupController.addHousingValidators, validat
 router.delete('/groups/:id/housing', groupController.removeHousingValidators, validator.validate, groupController.removeHousing)
 
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.list);
-router.post('/campaigns', campaignController.createCampaignValidators, validator.validate, campaignController.createCampaign);
+router.post('/campaigns', campaignController.createValidators, validator.validate, campaignController.createCampaign);
 router.get('/campaigns/:id', campaignController.getCampaignValidators, validator.validate, campaignController.getCampaign);
 router.put('/campaigns/:id', campaignController.updateCampaignValidators, validator.validate, campaignController.updateCampaign, campaignController.updateCampaign);
 router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);
@@ -55,6 +56,8 @@ router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaig
 router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
 router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
 router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing)
+
+router.get('/drafts', draftController.listDrafts);
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);

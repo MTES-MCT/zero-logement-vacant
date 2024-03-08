@@ -1,15 +1,20 @@
 import React from 'react';
 import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
-import { campaignStep, CampaignSteps, isCampaignDeletable } from '../../models/Campaign';
+import {
+  campaignStep,
+  CampaignSteps,
+  isCampaignDeletable,
+} from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
-import CampaignToValidate from './CampaignToValidate';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import { hasFilters } from '../../models/HousingFilters';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useRemoveCampaignMutation } from '../../services/campaign.service';
@@ -18,9 +23,9 @@ import AppLink from '../../components/_app/AppLink/AppLink';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useGetGroupQuery } from '../../services/group.service';
 import { useCampaign } from '../../hooks/useCampaign';
+import CampaignDraftView from './CampaignDraftView';
 
-const CampaignView = () => {
-  useDocumentTitle('Campagne');
+function CampaignView() {
   const router = useHistory();
 
   const { trackEvent } = useMatomo();
@@ -33,7 +38,7 @@ const CampaignView = () => {
   });
 
   if (!campaign) {
-    return <></>;
+    return <Loading />;
   }
 
   const remove = async () => {
@@ -128,13 +133,17 @@ const CampaignView = () => {
       )}
       <Container spacing="pb-4w px-0" as="article">
         {campaignStep(campaign) < CampaignSteps.InProgress ? (
-          <CampaignToValidate campaignStep={campaignStep(campaign)} />
+          <CampaignDraftView />
         ) : (
           <CampaignInProgress />
         )}
       </Container>
     </MainContainer>
   );
-};
+}
+
+function Loading() {
+  return <></>;
+}
 
 export default CampaignView;

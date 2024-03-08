@@ -78,6 +78,14 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     .then((_) => parseCampaignApi(_[0]));
 };
 
+async function save(campaign: CampaignApi): Promise<void> {
+  logger.debug('Saving campaign', campaign);
+  await Campaigns()
+    .insert(formatCampaignApi(campaign))
+    .onConflict(['id'])
+    .merge(['title']);
+}
+
 const update = async (campaignApi: CampaignApi): Promise<string> => {
   return db(campaignsTable)
     .where('id', campaignApi.id)
@@ -144,6 +152,7 @@ export default {
   findOne,
   find,
   insert,
+  save,
   update,
   remove,
   formatCampaignApi,

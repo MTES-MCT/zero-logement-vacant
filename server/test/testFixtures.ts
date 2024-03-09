@@ -108,7 +108,10 @@ export const genBoolean = () => faker.datatype.boolean();
 
 export const genSiren = () => genNumber(9);
 export function oneOf<T>(array: Array<T>): T {
-  return array[Math.floor(Math.random() * array.length)];
+  return faker.helpers.arrayElement(array);
+}
+export function manyOf<T>(array: Array<T>, nb: number): T[] {
+  return faker.helpers.arrayElements(array, nb);
 }
 
 export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
@@ -130,7 +133,7 @@ export const genEstablishmentApi = (
     name: city,
     shortName: city,
     siren: genSiren(),
-    geoCodes,
+    geoCodes: geoCodes.length > 0 ? geoCodes : [genGeoCode()],
     campaignIntent,
     available: true,
     priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',

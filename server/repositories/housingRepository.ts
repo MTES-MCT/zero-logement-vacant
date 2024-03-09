@@ -887,7 +887,7 @@ async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
   return establishments.flatMap((establishment) => establishment.geoCodes);
 }
 
-interface HousingRecordDBO {
+export interface HousingRecordDBO {
   // In the same order as the database
   id: string;
   invariant: string;

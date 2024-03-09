@@ -7,6 +7,8 @@ import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 import { logger } from '../utils/logger';
 
 export const establishmentsTable = 'establishments';
+export const Establishments = (transaction = db) =>
+  transaction<EstablishmentDbo>(establishmentsTable);
 
 type FindOptions = Partial<EstablishmentFilterApi>;
 

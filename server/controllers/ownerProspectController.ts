@@ -21,6 +21,7 @@ import establishmentRepository from '../repositories/establishmentRepository';
 import userRepository from '../repositories/userRepository';
 import { UserApi } from '../models/UserApi';
 import { Pagination } from '../../shared/models/Pagination';
+import { logger } from '../utils/logger';
 
 const createOwnerProspectValidators: ValidationChain[] = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -33,7 +34,7 @@ const createOwnerProspectValidators: ValidationChain[] = [
   body('notes').isString().optional(),
 ];
 
-const create = async (request: Request, response: Response) => {
+async function create(request: Request, response: Response) {
   const body = request.body as OwnerProspectCreateApi;
 
   const createdOwnerProspect = await ownerProspectRepository.insert({
@@ -74,16 +75,16 @@ const create = async (request: Request, response: Response) => {
       await Promise.all(sendEmails(users));
     }
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
-};
+}
 
 export const findOwnerProspectsValidators: ValidationChain[] = [
   ...sortApi.queryValidators,
   ...pagination.queryValidators,
 ];
 
-const find = async (request: Request, response: Response) => {
+async function find(request: Request, response: Response) {
   const { auth, query } = request as AuthenticatedRequest;
   const sort = SortApi.parse<OwnerProspectSortableApi>(
     query.sort as string[] | undefined
@@ -99,7 +100,7 @@ const find = async (request: Request, response: Response) => {
     ? constants.HTTP_STATUS_PARTIAL_CONTENT
     : constants.HTTP_STATUS_OK;
   response.status(status).json(ownerProspects);
-};
+}
 
 const updateOwnerProspectValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
@@ -107,7 +108,7 @@ const updateOwnerProspectValidators: ValidationChain[] = [
   body('read').isBoolean().withMessage('Must be a boolean'),
 ];
 
-const update = async (request: Request, response: Response) => {
+async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
   const body = request.body as OwnerProspectUpdateApi;
 
@@ -127,7 +128,7 @@ const update = async (request: Request, response: Response) => {
   await ownerProspectRepository.update(updated);
 
   response.status(constants.HTTP_STATUS_OK).json(updated);
-};
+}
 
 export default {
   createOwnerProspectValidators,

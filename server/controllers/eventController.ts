@@ -20,16 +20,15 @@ async function listByOwnerId(request: Request, response: Response) {
 }
 
 async function listByHousingId(request: Request, response: Response) {
-  const { id } = request.params;
-  const { establishment } = request as AuthenticatedRequest;
-  logger.info('List housing events', { id });
+  const { establishment, params } = request as AuthenticatedRequest;
+  logger.info('List housing events', { id: params.id });
 
   const housing = await housingRepository.findOne({
-    id,
+    id: params.id,
     geoCode: establishment.geoCodes,
   });
   if (!housing) {
-    throw new HousingMissingError(id);
+    throw new HousingMissingError(params.id);
   }
 
   const [housingEvents, owners, groupHousingEvents] = await Promise.all([

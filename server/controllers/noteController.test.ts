@@ -6,6 +6,7 @@ import { tokenProvider } from '../test/testUtils';
 import {
   genEstablishmentApi,
   genHousingApi,
+  genHousingNoteApi,
   genUserApi,
   oneOf,
 } from '../test/testFixtures';
@@ -18,6 +19,13 @@ import {
   formatHousingRecordApi,
   Housing,
 } from '../repositories/housingRepository';
+import {
+  formatHousingNoteApi,
+  formatNoteApi,
+  HousingNotes,
+  Notes,
+} from '../repositories/noteRepository';
+import { NoteApi } from '../models/NoteApi';
 
 describe('Note API', () => {
   const { app } = createServer();
@@ -35,7 +43,7 @@ describe('Note API', () => {
   describe('listByHousingId', () => {
     const testRoute = (housingId: string) => `/api/notes/housing/${housingId}`;
 
-    it('should be forbidden for a not authenticated user', async () => {
+    it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
@@ -50,13 +58,20 @@ describe('Note API', () => {
     });
 
     it('should list the housing notes', async () => {
+      const notes = Array.from({ length: 3 }, () =>
+        genHousingNoteApi(user, housing)
+      );
+      await Notes().insert(notes.map(formatNoteApi));
+      await HousingNotes().insert(notes.map(formatHousingNoteApi));
+
       const { body, status } = await request(app)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      expect(body).toStrictEqual([]);
+      expect(body).toSatisfyAll<NoteApi>((actual) => {
+        return notes.map((note) => note.id).includes(actual.id);
+      });
     });
   });
 });

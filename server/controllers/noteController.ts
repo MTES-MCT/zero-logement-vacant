@@ -18,7 +18,7 @@ async function listByHousingId(request: Request, response: Response) {
 
   logger.info('List notes for housing', housingId);
 
-  const notes = noteRepository.findHousingNotes(housingId);
+  const notes = await noteRepository.findHousingNotes(housingId);
   response.status(constants.HTTP_STATUS_OK).json(notes);
 }
 

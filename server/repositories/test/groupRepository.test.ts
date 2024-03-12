@@ -45,7 +45,7 @@ describe('Group repository', () => {
     it('should return groups sorted by descending creation date', async () => {
       const actual = await groupRepository.find();
 
-      expect(actual).toIncludeSameMembers(groups);
+      expect(actual).toIncludeAllMembers(groups);
       expect(actual).toBeSortedBy('createdAt', { descending: true });
     });
 

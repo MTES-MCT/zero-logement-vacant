@@ -1,19 +1,25 @@
-import { UserDTO } from './UserDTO';
 import { HousingFiltersDTO } from './HousingFiltersDTO';
 
 export interface CampaignDTO {
   id: string;
   title: string;
+  status: CampaignStatus;
   filters: HousingFiltersDTO;
-  createdBy: UserDTO;
-  createdAt: Date;
-  validatedAt?: Date;
-  exportedAt?: Date;
-  sentAt?: Date;
-  archivedAt?: Date;
-  sendingDate?: Date;
-  confirmedAt?: Date;
+  createdAt: string;
+  validatedAt?: string;
+  exportedAt?: string;
+  sentAt?: string;
+  archivedAt?: string;
+  sendingDate?: string;
+  confirmedAt?: string;
 }
+
+export type CampaignStatus =
+  | 'draft'
+  | 'validating'
+  | 'sending'
+  | 'in-progress'
+  | 'archived';
 
 export interface CampaignPayloadDTO extends Pick<CampaignDTO, 'title'> {
   housing: {

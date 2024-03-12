@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Col, Container, Row, Text, Title } from '../_dsfr';
+import { Col, Container, Row, Title } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
 import {
   TrackEventActions,
@@ -8,11 +8,12 @@ import {
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import * as yup from 'yup';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
-import { dateShortFormat } from '../../utils/dateUtils';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
+import styles from './campaign.module.scss';
+import classNames from 'classnames';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -23,11 +24,12 @@ const modal = createModal({
 
 interface Props {
   campaign: Campaign;
+  className?: string;
   as?: TitleAs;
   look?: TitleAs;
 }
 
-const CampaignTitle = ({ campaign, as, look }: Props) => {
+const CampaignTitle = ({ campaign, className, as, look }: Props) => {
   const { trackEvent } = useMatomo();
 
   const [updateCampaignTitle] = useUpdateCampaignMutation();
@@ -62,26 +64,28 @@ const CampaignTitle = ({ campaign, as, look }: Props) => {
 
   return (
     <>
-      <Title
-        as={as ?? 'h1'}
-        look={look ?? as ?? 'h1'}
-        className="fr-mb-2w ds-fr--inline-block fr-mr-2w"
+      <Container
+        fluid
+        as="section"
+        className={classNames(styles.container, className)}
       >
-        {campaign.title}
+        <Title
+          as={as ?? 'h1'}
+          look={look ?? as ?? 'h1'}
+          className={styles.title}
+        >
+          {campaign.title}
+        </Title>
         <Button
           iconId="fr-icon-edit-line"
           iconPosition="right"
           priority="tertiary no outline"
+          size="small"
           onClick={modal.open}
         >
           Renommer
         </Button>
-      </Title>
-      {campaign.createdAt && (
-        <Text className="weight-500" spacing="mb-1w" size="sm">
-          Campagne créée le {dateShortFormat(campaign.createdAt)}
-        </Text>
-      )}
+      </Container>
       <modal.Component
         title={
           <>

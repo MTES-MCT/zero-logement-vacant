@@ -1,23 +1,14 @@
 import { HousingFilters } from './HousingFilters';
 import { dateSort } from '../utils/dateUtils';
 import { Sort } from './Sort';
+import { CampaignDTO, CampaignStatus } from '../../../shared';
 
 export interface DraftCampaign {
   filters: HousingFilters;
   title?: string;
 }
 
-export interface Campaign {
-  id: string;
-  filters: HousingFilters;
-  title: string;
-  createdAt: Date;
-  validatedAt?: Date;
-  exportedAt?: Date;
-  sentAt?: Date;
-  archivedAt?: Date;
-  sendingDate?: Date;
-  confirmedAt?: Date;
+export interface Campaign extends CampaignDTO {
   exportURL: string;
   groupId?: string;
 }
@@ -30,6 +21,11 @@ export enum CampaignSteps {
   InProgress,
   Outside,
   Archived,
+}
+
+export function isBuilding(campaign: Campaign) {
+  const statuses: CampaignStatus[] = ['draft', 'validating', 'sending'];
+  return statuses.includes(campaign.status);
 }
 
 export const campaignStep = (campaign: Campaign) => {
@@ -57,7 +53,7 @@ export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sendingDate'> & {
 export type CampaignSort = Sort<CampaignSortable>;
 
 export const campaignSort = (c1: Campaign, c2: Campaign) =>
-  dateSort(c2.createdAt, c1.createdAt);
+  dateSort(new Date(c2.createdAt), new Date(c1.createdAt));
 
 export const isCampaignDeletable = (campaign: Campaign) =>
   campaignStep(campaign) !== CampaignSteps.Archived;

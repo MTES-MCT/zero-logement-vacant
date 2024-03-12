@@ -1,22 +1,11 @@
 import { Sort } from './SortApi';
+import { CampaignDTO } from '../../shared';
 
-export interface CampaignApi {
-  id: string;
+export interface CampaignApi extends CampaignDTO {
+  userId: string;
   establishmentId: string;
-  title: string;
-  status: CampaignStatus;
-  createdBy: string;
-  createdAt: Date;
-  validatedAt?: Date;
-  exportedAt?: Date;
-  sentAt?: Date;
-  archivedAt?: Date;
-  sendingDate?: Date;
-  confirmedAt?: Date;
   groupId?: string;
 }
-
-export type CampaignStatus = 'draft' | 'validating' | 'sending' | 'in-progress';
 
 export enum CampaignSteps {
   OwnersValidation,

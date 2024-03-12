@@ -34,6 +34,12 @@ export interface CampaignEventApi extends EventApi<CampaignApi> {
   campaignId: string;
 }
 
+export interface CampaignHousingEventApi extends EventApi<CampaignApi> {
+  campaignId: string | null;
+  housingId: string;
+  housingGeoCode: string;
+}
+
 export interface GroupHousingEventApi extends EventApi<GroupApi> {
   housingId: string;
   housingGeoCode: string;

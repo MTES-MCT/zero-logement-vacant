@@ -33,6 +33,7 @@ import { CampaignPayloadDTO } from '../../shared/models/CampaignDTO';
 import draftRepository from '../repositories/draftRepository';
 import { DraftApi } from '../models/DraftApi';
 import campaignDraftRepository from '../repositories/campaignDraftRepository';
+import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -116,13 +117,18 @@ async function createCampaign(request: Request, response: Response) {
 
   const body = request.body as CampaignPayloadDTO;
 
+  const filters: HousingFiltersDTO = {
+    ...body.housing.filters,
+    establishmentIds: [auth.establishmentId],
+  };
   const campaign: CampaignApi = {
     id: uuidv4(),
     title: body.title,
     status: 'draft',
-    createdAt: new Date(),
-    createdBy: auth.userId,
-    validatedAt: new Date(),
+    filters,
+    createdAt: new Date().toJSON(),
+    validatedAt: new Date().toJSON(),
+    userId: auth.userId,
     establishmentId: auth.establishmentId,
   };
 
@@ -132,10 +138,7 @@ async function createCampaign(request: Request, response: Response) {
           .find({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            filters: {
-              ...body.housing.filters,
-              establishmentIds: [auth.establishmentId],
-            },
+            filters,
             pagination: { paginate: false },
           })
           .then((houses) => {
@@ -200,15 +203,18 @@ async function createCampaignFromGroup(request: Request, response: Response) {
 
   const campaign: CampaignApi = {
     id: uuidv4(),
-    groupId,
     title: body.title,
     status: 'draft',
-    createdAt: new Date(),
-    createdBy: auth.userId,
+    filters: {
+      groupIds: [group.id],
+    },
+    createdAt: new Date().toJSON(),
+    groupId,
+    userId: auth.userId,
     establishmentId: auth.establishmentId,
-    validatedAt: new Date(),
+    validatedAt: new Date().toJSON(),
   };
-  await campaignRepository.insert(campaign);
+  await campaignRepository.save(campaign);
 
   const housingList = await housingRepository.find({
     filters: {
@@ -342,21 +348,26 @@ const updateCampaignStep = async (
     ...campaignApi,
     validatedAt:
       step === CampaignSteps.OwnersValidation
-        ? new Date()
+        ? new Date().toJSON()
         : campaignApi.validatedAt,
     exportedAt:
-      step === CampaignSteps.Export ? new Date() : campaignApi.exportedAt,
-    sentAt: step === CampaignSteps.Sending ? new Date() : campaignApi.sentAt,
+      step === CampaignSteps.Export
+        ? new Date().toJSON()
+        : campaignApi.exportedAt,
+    sentAt:
+      step === CampaignSteps.Sending ? new Date().toJSON() : campaignApi.sentAt,
     sendingDate:
       step === CampaignSteps.Sending
         ? stepUpdate.sendingDate
         : campaignApi.sendingDate,
     confirmedAt:
       step === CampaignSteps.Confirmation
-        ? new Date()
+        ? new Date().toJSON()
         : campaignApi.confirmedAt,
     archivedAt:
-      step === CampaignSteps.Archived ? new Date() : campaignApi.archivedAt,
+      step === CampaignSteps.Archived
+        ? new Date().toJSON()
+        : campaignApi.archivedAt,
   };
 
   if (step === CampaignSteps.Sending) {

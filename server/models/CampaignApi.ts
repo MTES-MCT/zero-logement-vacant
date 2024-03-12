@@ -1,13 +1,12 @@
-import { HousingFiltersApi } from './HousingFiltersApi';
 import { Sort } from './SortApi';
 
 export interface CampaignApi {
   id: string;
   establishmentId: string;
-  filters: HousingFiltersApi;
   title: string;
-  createdBy?: string;
-  createdAt?: Date;
+  status: CampaignStatus;
+  createdBy: string;
+  createdAt: Date;
   validatedAt?: Date;
   exportedAt?: Date;
   sentAt?: Date;
@@ -16,6 +15,8 @@ export interface CampaignApi {
   confirmedAt?: Date;
   groupId?: string;
 }
+
+export type CampaignStatus = 'draft' | 'validating' | 'sending' | 'in-progress';
 
 export enum CampaignSteps {
   OwnersValidation,

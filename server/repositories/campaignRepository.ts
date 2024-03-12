@@ -1,13 +1,11 @@
-import {
-  CampaignApi,
-  CampaignSortApi,
-  CampaignStatus,
-} from '../models/CampaignApi';
+import { CampaignApi, CampaignSortApi } from '../models/CampaignApi';
 import db from './db';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 import { logger } from '../utils/logger';
 import { sortQuery } from '../models/SortApi';
+import { CampaignStatus } from '../../shared';
+import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -104,9 +102,10 @@ const remove = async (campaignId: string): Promise<void> => {
 
 export interface CampaignDBO {
   id: string;
-  establishment_id: string;
+  title: string;
   status: CampaignStatus;
-  created_by: string;
+  filters: HousingFiltersDTO;
+  user_id: string;
   created_at: Date;
   validated_at?: Date;
   exported_at?: Date;
@@ -114,7 +113,7 @@ export interface CampaignDBO {
   archived_at?: Date;
   sending_date?: Date;
   confirmed_at?: Date;
-  title: string;
+  establishment_id: string;
   group_id?: string;
 }
 
@@ -122,14 +121,15 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   id: campaign.id,
   establishmentId: campaign.establishment_id,
   status: campaign.status,
-  createdBy: campaign.created_by,
-  createdAt: campaign.created_at,
-  validatedAt: campaign.validated_at,
-  exportedAt: campaign.exported_at,
-  sentAt: campaign.sent_at,
-  archivedAt: campaign.archived_at,
-  sendingDate: campaign.sending_date,
-  confirmedAt: campaign.confirmed_at,
+  filters: campaign.filters,
+  userId: campaign.user_id,
+  createdAt: campaign.created_at.toJSON(),
+  validatedAt: campaign.validated_at?.toJSON(),
+  exportedAt: campaign.exported_at?.toJSON(),
+  sentAt: campaign.sent_at?.toJSON(),
+  archivedAt: campaign.archived_at?.toJSON(),
+  sendingDate: campaign.sending_date?.toJSON(),
+  confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
   groupId: campaign.group_id,
 });
@@ -138,17 +138,22 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   id: campaign.id,
   establishment_id: campaign.establishmentId,
   status: campaign.status,
+  filters: campaign.filters,
   title: campaign.title,
-  created_by: campaign.createdBy,
-  created_at: campaign.createdAt,
-  validated_at: campaign.validatedAt,
-  exported_at: campaign.exportedAt,
-  sent_at: campaign.sentAt,
-  archived_at: campaign.archivedAt,
+  user_id: campaign.userId,
+  created_at: new Date(campaign.createdAt),
+  validated_at: campaign.validatedAt
+    ? new Date(campaign.validatedAt)
+    : undefined,
+  exported_at: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
+  sent_at: campaign.sentAt ? new Date(campaign.sentAt) : undefined,
+  archived_at: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
   sending_date: campaign.sendingDate
     ? new Date(campaign.sendingDate)
     : undefined,
-  confirmed_at: campaign.confirmedAt,
+  confirmed_at: campaign.confirmedAt
+    ? new Date(campaign.confirmedAt)
+    : undefined,
   group_id: campaign.groupId,
 });
 

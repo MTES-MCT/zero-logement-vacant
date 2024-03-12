@@ -1,3 +1,4 @@
+export * from './CampaignDTO';
 export * from './ContactPoint';
 export * from './DatafoncierHousing';
 export * from './Feature';

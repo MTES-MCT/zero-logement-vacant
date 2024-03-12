@@ -1,4 +1,8 @@
-import { CampaignApi, CampaignSortApi } from '../models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignSortApi,
+  CampaignStatus,
+} from '../models/CampaignApi';
 import db from './db';
 import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
@@ -101,7 +105,7 @@ const remove = async (campaignId: string): Promise<void> => {
 export interface CampaignDBO {
   id: string;
   establishment_id: string;
-  filters: object;
+  status: CampaignStatus;
   created_by: string;
   created_at: Date;
   validated_at?: Date;
@@ -114,38 +118,38 @@ export interface CampaignDBO {
   group_id?: string;
 }
 
-export const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
-  id: result.id,
-  establishmentId: result.establishment_id,
-  filters: result.filters,
-  createdBy: result.created_by,
-  createdAt: result.created_at,
-  validatedAt: result.validated_at,
-  exportedAt: result.exported_at,
-  sentAt: result.sent_at,
-  archivedAt: result.archived_at,
-  sendingDate: result.sending_date,
-  confirmedAt: result.confirmed_at,
-  title: result.title,
-  groupId: result.group_id,
+export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
+  id: campaign.id,
+  establishmentId: campaign.establishment_id,
+  status: campaign.status,
+  createdBy: campaign.created_by,
+  createdAt: campaign.created_at,
+  validatedAt: campaign.validated_at,
+  exportedAt: campaign.exported_at,
+  sentAt: campaign.sent_at,
+  archivedAt: campaign.archived_at,
+  sendingDate: campaign.sending_date,
+  confirmedAt: campaign.confirmed_at,
+  title: campaign.title,
+  groupId: campaign.group_id,
 });
 
-export const formatCampaignApi = (campaignApi: CampaignApi) => ({
-  id: campaignApi.id,
-  establishment_id: campaignApi.establishmentId,
-  filters: campaignApi.filters,
-  title: campaignApi.title,
-  created_by: campaignApi.createdBy,
-  created_at: campaignApi.createdAt,
-  validated_at: campaignApi.validatedAt,
-  exported_at: campaignApi.exportedAt,
-  sent_at: campaignApi.sentAt,
-  archived_at: campaignApi.archivedAt,
-  sending_date: campaignApi.sendingDate
-    ? new Date(campaignApi.sendingDate)
+export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
+  id: campaign.id,
+  establishment_id: campaign.establishmentId,
+  status: campaign.status,
+  title: campaign.title,
+  created_by: campaign.createdBy,
+  created_at: campaign.createdAt,
+  validated_at: campaign.validatedAt,
+  exported_at: campaign.exportedAt,
+  sent_at: campaign.sentAt,
+  archived_at: campaign.archivedAt,
+  sending_date: campaign.sendingDate
+    ? new Date(campaign.sendingDate)
     : undefined,
-  confirmed_at: campaignApi.confirmedAt,
-  group_id: campaignApi.groupId,
+  confirmed_at: campaign.confirmedAt,
+  group_id: campaign.groupId,
 });
 
 export default {

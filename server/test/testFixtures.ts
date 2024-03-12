@@ -169,16 +169,19 @@ export const genUserAccountDTO: UserAccountDTO = {
   timePerWeek: randomstring.generate(),
 };
 
-export const genProspectApi = (establishment: EstablishmentApi) => {
-  return <ProspectApi>{
+export const genProspectApi = (
+  establishment: EstablishmentApi
+): ProspectApi => {
+  return {
     email: genEmail(),
     establishment: {
       id: establishment.id,
       siren: establishment.siren,
-      campaignIntent: establishment.campaignIntent ?? null,
+      campaignIntent: establishment.campaignIntent,
     },
     hasAccount: true,
     hasCommitment: true,
+    lastAccountRequestAt: new Date(),
   };
 };
 

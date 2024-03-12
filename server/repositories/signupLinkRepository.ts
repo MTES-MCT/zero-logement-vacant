@@ -3,6 +3,8 @@ import { SignupLinkApi } from '../models/SignupLinkApi';
 import { logger } from '../utils/logger';
 
 export const signupLinkTable = 'signup_links';
+export const SignupLinks = (transaction = db) =>
+  transaction<SignupLinkDBO>(signupLinkTable);
 
 const insert = async (link: SignupLinkApi): Promise<void> => {
   logger.info('Insert signupLinkApi');
@@ -20,19 +22,19 @@ const used = async (id: string): Promise<void> => {
   await db(signupLinkTable).where('id', id).delete();
 };
 
-interface SignupLinkDbo {
+interface SignupLinkDBO {
   id: string;
   prospect_email: string;
   expires_at: Date;
 }
 
-export const parseSignupLinkApi = (link: SignupLinkDbo): SignupLinkApi => ({
+export const parseSignupLinkApi = (link: SignupLinkDBO): SignupLinkApi => ({
   id: link.id,
   prospectEmail: link.prospect_email,
   expiresAt: link.expires_at,
 });
 
-export const formatSignupLinkApi = (link: SignupLinkApi): SignupLinkDbo => ({
+export const formatSignupLinkApi = (link: SignupLinkApi): SignupLinkDBO => ({
   id: link.id,
   prospect_email: link.prospectEmail,
   expires_at: link.expiresAt,

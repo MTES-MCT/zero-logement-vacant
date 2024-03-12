@@ -1,21 +1,22 @@
 import db from './db';
 import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
-import { establishmentsLocalitiesTable } from './housingRepository';
 import { logger } from '../utils/logger';
 import { LocalityKind } from '../../shared/models/LocalityDTO';
+import { establishmentsLocalitiesTable } from './establishmentLocalityRepository';
 
 export const localitiesTable = 'localities';
-export const Localities = () => db(localitiesTable);
+export const Localities = (transaction = db) =>
+  transaction<LocalityDBO>(localitiesTable);
 
-const get = async (geoCode: string): Promise<LocalityApi | null> => {
+async function get(geoCode: string): Promise<LocalityApi | null> {
   logger.info('Get LocalityApi with geoCode', geoCode);
   const locality = await db(localitiesTable).where('geo_code', geoCode).first();
   return locality ? parseLocalityApi(locality) : null;
-};
+}
 
-const listByEstablishmentId = async (
+async function listByEstablishmentId(
   establishmentId: string
-): Promise<LocalityApi[]> => {
+): Promise<LocalityApi[]> {
   return db(localitiesTable)
     .select(`${localitiesTable}.*`)
     .join(establishmentsLocalitiesTable, (join) => {
@@ -30,10 +31,10 @@ const listByEstablishmentId = async (
         );
     })
     .orderBy(`${localitiesTable}.name`)
-    .then((_) => _.map((_: LocalityDbo) => parseLocalityApi(_)));
-};
+    .then((_) => _.map((_: LocalityDBO) => parseLocalityApi(_)));
+}
 
-export interface LocalityDbo {
+export interface LocalityDBO {
   id: string;
   geo_code: string;
   name: string;
@@ -42,7 +43,7 @@ export interface LocalityDbo {
   tax_rate?: number;
 }
 
-const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
+async function update(localityApi: LocalityApi): Promise<LocalityApi> {
   logger.info('Update localityApi with geoCode', localityApi.geoCode);
 
   const { geo_code, tax_rate, tax_kind } = formatLocalityApi(localityApi);
@@ -51,9 +52,9 @@ const update = async (localityApi: LocalityApi): Promise<LocalityApi> => {
     .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind })
     .returning('*')
     .then((_) => parseLocalityApi(_[0]));
-};
+}
 
-export const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
+export const formatLocalityApi = (localityApi: LocalityApi): LocalityDBO => ({
   id: localityApi.id,
   geo_code: localityApi.geoCode,
   name: localityApi.name,
@@ -62,7 +63,7 @@ export const formatLocalityApi = (localityApi: LocalityApi): LocalityDbo => ({
   tax_rate: localityApi.taxRate,
 });
 
-export const parseLocalityApi = (localityDbo: LocalityDbo): LocalityApi => ({
+export const parseLocalityApi = (localityDbo: LocalityDBO): LocalityApi => ({
   id: localityDbo.id,
   geoCode: localityDbo.geo_code,
   name: localityDbo.name,

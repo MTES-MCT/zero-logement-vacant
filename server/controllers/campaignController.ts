@@ -119,7 +119,7 @@ async function createCampaign(request: Request, response: Response) {
   const campaign: CampaignApi = {
     id: uuidv4(),
     title: body.title,
-    filters: body.housing.filters,
+    status: 'draft',
     createdAt: new Date(),
     createdBy: auth.userId,
     validatedAt: new Date(),
@@ -130,6 +130,8 @@ async function createCampaign(request: Request, response: Response) {
     body.housing.all !== undefined
       ? await housingRepository
           .find({
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             filters: {
               ...body.housing.filters,
               establishmentIds: [auth.establishmentId],
@@ -200,9 +202,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     id: uuidv4(),
     groupId,
     title: body.title,
-    filters: {
-      groupIds: [groupId],
-    },
+    status: 'draft',
     createdAt: new Date(),
     createdBy: auth.userId,
     establishmentId: auth.establishmentId,

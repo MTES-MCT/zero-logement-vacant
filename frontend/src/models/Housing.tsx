@@ -206,7 +206,7 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
-  [OccupancyUnknown]: 'Pas d’info',
+  [OccupancyUnknown]: 'Pas d’information',
 };
 
 export const OccupancyKindBadgeLabels = {

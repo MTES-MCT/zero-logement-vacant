@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import userRepository from '../repositories/userRepository';
 import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '../models/UserApi';
-import { Request as JWTRequest } from 'express-jwt';
 import { constants } from 'http2';
 import {
   CampaignIntent,
@@ -10,7 +9,6 @@ import {
 } from '../models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
-import establishmentService from '../services/establishmentService';
 import prospectRepository from '../repositories/prospectRepository';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
@@ -22,6 +20,7 @@ import mailService from '../services/mailService';
 import { isTestAccount } from '../services/ceremaService/consultUserService';
 import UserMissingError from '../errors/userMissingError';
 import { logger } from '../utils/logger';
+import EstablishmentMissingError from '../errors/establishmentMissingError';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -51,7 +50,7 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-const createUser = async (request: JWTRequest, response: Response) => {
+async function createUser(request: Request, response: Response) {
   const body = request.body as CreateUserBody;
 
   if (isTestAccount(body.email)) {
@@ -70,14 +69,14 @@ const createUser = async (request: JWTRequest, response: Response) => {
     body.establishmentId
   );
   if (!userEstablishment) {
-    logger.info('Establishment not found for id', body.establishmentId);
-    return response.sendStatus(constants.HTTP_STATUS_NOT_FOUND);
+    throw new EstablishmentMissingError(body.establishmentId);
   }
 
-  const userApi: UserApi = {
+  const user: UserApi = {
     id: uuidv4(),
     email: body.email,
     password: await bcrypt.hash(body.password, SALT_LENGTH),
+    // TODO: should be optional in database
     firstName: body.firstName ?? '',
     lastName: body.lastName ?? '',
     role: UserRoles.Usual,
@@ -85,12 +84,12 @@ const createUser = async (request: JWTRequest, response: Response) => {
   };
 
   logger.info('Create user', {
-    id: userApi.id,
-    email: userApi.email,
-    establishmentId: userApi.establishmentId,
+    id: user.id,
+    email: user.email,
+    establishmentId: user.establishmentId,
   });
 
-  const createdUser = await userRepository.insert(userApi);
+  const createdUser = await userRepository.insert(user);
 
   if (!userEstablishment.campaignIntent && body.campaignIntent) {
     userEstablishment.campaignIntent = body.campaignIntent;
@@ -101,7 +100,7 @@ const createUser = async (request: JWTRequest, response: Response) => {
   }
 
   if (!userEstablishment.available) {
-    await establishmentService.makeEstablishmentAvailable(userEstablishment);
+    await establishmentRepository.setAvailable(userEstablishment);
   }
   // Remove associated prospect
   await prospectRepository.remove(prospect.email);
@@ -110,21 +109,20 @@ const createUser = async (request: JWTRequest, response: Response) => {
   mailService.emit('user:created', prospect.email, {
     createdAt: new Date(),
   });
-};
+}
 
-const get = async (request: Request, response: Response): Promise<Response> => {
+async function get(request: Request, response: Response): Promise<Response> {
   const userId = request.params.userId;
 
   logger.info('Get user', userId);
 
   const user = await userRepository.get(userId);
-
   if (!user) {
     throw new UserMissingError(userId);
   }
 
   return response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
-};
+}
 
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 

@@ -149,12 +149,6 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  const redirection: string = isAuthenticated
-    ? '/parc-de-logements'
-    : isLoggedOut
-    ? '/connexion'
-    : '/';
-
   const routes = publicRoutes
     .concat(isAuthenticated ? authenticatedRoutes : guestRoutes)
     .map((route) => (
@@ -164,8 +158,9 @@ function App() {
         component={route.component}
         key={`route_${route.path}`}
       />
-    ))
-    .concat(<Redirect to={redirection} />);
+    ));
+
+  const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
 
   return (
     <React.Suspense fallback={<></>}>
@@ -174,42 +169,13 @@ function App() {
         <ScrollToTop />
 
         <Switch>
-          <Route path="/404" component={NotFoundView} />
           <Route path="/stats" component={StatsView} />
           <Route path="/accessibilite" component={AccessibilityView} />
           <Route path="/mentions-legales" component={LegalNoticesView} />,
           {routes}
-          {isAuthenticated
-            ? [
-                ...authenticatedRoutes.map((route: RouteProps) => (
-                  <Route
-                    path={route.path}
-                    exact
-                    component={route.component}
-                    key={`route_${route.path}`}
-                  />
-                )),
-                <Route path="/*" key="route_default">
-                  <Redirect to="/404" />
-                </Route>,
-              ]
-            : [
-                ...guestRoutes.map((route) => (
-                  <Route
-                    exact
-                    path={route.path}
-                    component={route.component}
-                    key={`route_${route.path}`}
-                  />
-                )),
-                <Route path="/*" key="route_default">
-                  {isLoggedOut ? (
-                    <Redirect to="/connexion" />
-                  ) : (
-                    <Redirect to="/404" />
-                  )}
-                </Route>,
-              ]}
+          <Route path="*">
+            <Redirect to={redirection} />
+          </Route>
         </Switch>
         <Footer />
       </BrowserRouter>

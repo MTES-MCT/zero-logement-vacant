@@ -2,5 +2,3 @@ node_modules/
 build/
 public/
 src/components/_dsfr
-
-src/App.tsx

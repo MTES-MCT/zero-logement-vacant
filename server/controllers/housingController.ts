@@ -48,7 +48,7 @@ const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
   param('id').isUUID(), // id
 ]);
-const get = async (request: Request, response: Response) => {
+async function get(request: Request, response: Response) {
   const { params, establishment } = request as AuthenticatedRequest;
 
   logger.info('Get housing', params.id);
@@ -67,7 +67,7 @@ const get = async (request: Request, response: Response) => {
   }
 
   response.status(constants.HTTP_STATUS_OK).json(housing);
-};
+}
 
 const listValidators: ValidationChain[] = [
   ...housingFiltersApi.validators(),
@@ -75,10 +75,10 @@ const listValidators: ValidationChain[] = [
   ...paginationApi.validators,
 ];
 
-const list = async (
+async function list(
   request: Request,
   response: Response<HousingPaginatedResultApi>
-) => {
+) {
   const { auth, body, user } = request as AuthenticatedRequest;
   // TODO: type the whole body
   const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
@@ -128,9 +128,9 @@ const list = async (
       perPage: pagination.perPage,
       totalCount: 0,
     });
-};
+}
 
-const count = async (request: Request, response: Response): Promise<void> => {
+async function count(request: Request, response: Response): Promise<void> {
   logger.trace('Count housing');
 
   const { establishmentId, role } = (request as AuthenticatedRequest).auth;
@@ -144,7 +144,7 @@ const count = async (request: Request, response: Response): Promise<void> => {
         : [establishmentId],
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
-};
+}
 
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnerRepository = createDatafoncierOwnersRepository();
@@ -152,7 +152,7 @@ const datafoncierOwnerRepository = createDatafoncierOwnersRepository();
 const createValidators: ValidationChain[] = [
   body('localId').isString().isLength({ min: 12, max: 12 }),
 ];
-const create = async (request: Request, response: Response) => {
+async function create(request: Request, response: Response) {
   const { auth, body } = request as AuthenticatedRequest;
   const geoCode = body.localId.substring(0, 5);
 
@@ -222,7 +222,7 @@ const create = async (request: Request, response: Response) => {
   await eventRepository.insertHousingEvent(event);
 
   response.status(constants.HTTP_STATUS_CREATED).json(housing);
-};
+}
 
 export interface HousingUpdateBody {
   statusUpdate?: Pick<
@@ -255,7 +255,7 @@ const updateValidators = [
     .custom((value) => value.content && !isEmpty(value.content)),
 ];
 
-const update = async (request: Request, response: Response) => {
+async function update(request: Request, response: Response) {
   const housingId = request.params.housingId;
   const housingUpdateApi = request.body.housingUpdate as HousingUpdateBody;
 
@@ -266,7 +266,7 @@ const update = async (request: Request, response: Response) => {
   );
 
   response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
-};
+}
 
 const updateHousing = async (
   housingId: string,
@@ -327,7 +327,7 @@ const updateListValidators = [
   ...updateValidators,
 ];
 
-const updateList = async (request: Request, response: Response) => {
+async function updateList(request: Request, response: Response) {
   logger.info('Update housing list');
 
   const { auth, body, user } = request as AuthenticatedRequest;
@@ -379,13 +379,13 @@ const updateList = async (request: Request, response: Response) => {
   );
 
   response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
-};
+}
 
-const createHousingUpdateEvents = async (
+async function createHousingUpdateEvents(
   housingApi: HousingApi,
   housingUpdate: HousingUpdateBody,
   userId: string
-): Promise<void> => {
+): Promise<void> {
   const statusUpdate = housingUpdate.statusUpdate;
   if (
     statusUpdate &&
@@ -436,13 +436,13 @@ const createHousingUpdateEvents = async (
       housingGeoCode: housingApi.geoCode,
     });
   }
-};
-const createHousingUpdateNote = async (
+}
+async function createHousingUpdateNote(
   housingId: string,
   housingUpdate: HousingUpdateBody,
   userId: string,
   geoCode: string
-) => {
+) {
   if (housingUpdate.note) {
     await noteRepository.insertHousingNote({
       id: uuidv4(),
@@ -453,7 +453,7 @@ const createHousingUpdateNote = async (
       housingGeoCode: geoCode,
     });
   }
-};
+}
 
 const housingController = {
   getValidators,

@@ -314,13 +314,14 @@ export const genCampaignApi = (
     id: uuidv4(),
     establishmentId,
     title: randomstring.generate(),
+    status: 'draft',
     filters: {
       geoPerimetersIncluded: [randomstring.generate()],
       geoPerimetersExcluded: [randomstring.generate()],
     },
-    createdAt: new Date(),
-    createdBy,
-    sendingDate: new Date(),
+    createdAt: new Date().toJSON(),
+    userId: createdBy,
+    sendingDate: new Date().toJSON(),
     groupId: group?.id,
   };
 };

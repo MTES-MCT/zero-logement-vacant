@@ -14,7 +14,6 @@ import {
   formatCampaignApi,
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import { CampaignsHousing } from '../../repositories/campaignHousingRepository';
 
 describe('Draft API', () => {
   const { app } = createServer();

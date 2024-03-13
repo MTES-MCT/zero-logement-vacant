@@ -3,33 +3,37 @@ import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { campaignStep, CampaignSteps } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import { Redirect } from 'react-router-dom';
 import AppLink from '../../components/_app/AppLink/AppLink';
-import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useGetGroupQuery } from '../../services/group.service';
 import { useCampaign } from '../../hooks/useCampaign';
-import CampaignDraftView from './CampaignDraftView';
+import CampaignDraft from './CampaignDraft';
 import { CampaignStatus } from '../../../../shared';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
+import NotFoundView from '../NotFoundView';
+import CampaignCounts from '../../components/Campaign/CampaignCounts';
 
 function CampaignView() {
-  const { campaign } = useCampaign();
+  const { campaign, count, isLoadingCampaign } = useCampaign();
   const { data: group } = useGetGroupQuery(campaign?.groupId!, {
     skip: !campaign?.groupId,
   });
 
-  if (!campaign) {
+  if (isLoadingCampaign) {
     return <Loading />;
   }
 
+  if (!campaign) {
+    return <NotFoundView />;
+  }
+
   const steps: Record<CampaignStatus, JSX.Element> = {
-    draft: <CampaignDraftView />,
-    validating: <CampaignDraftView />,
-    sending: <CampaignDraftView />,
+    draft: <CampaignDraft campaign={campaign} />,
+    validating: <NotFoundView />,
+    sending: <NotFoundView />,
     'in-progress': <CampaignInProgress />,
-    archived: <Redirect to="/404" />,
+    archived: <NotFoundView />,
   };
-  const CampaignComponent = steps[campaign.status] || <CampaignInProgress />;
+  const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 
   return (
     <MainContainer>
@@ -37,9 +41,9 @@ function CampaignView() {
         <>
           <CampaignTitle campaign={campaign} className="fr-mb-2w" />
           <CampaignCounts
-            campaignId={campaign.id}
-            className="fr-mb-2w"
             display="row"
+            housing={count?.housing}
+            owners={count?.owners}
           />
           {group && (
             <Row spacing="my-2w">

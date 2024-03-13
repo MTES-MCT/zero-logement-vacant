@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -7,15 +7,20 @@ import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Draft } from '../../models/Draft';
 import NotFoundView from '../NotFoundView';
+import { Campaign } from '../../models/Campaign';
 
 const shape = {
   body: yup.string(),
 };
 
-function CampaignDraftView() {
-  const { campaign, draft, isLoadingCampaign, isLoadingDraft } = useCampaign();
+interface Props {
+  campaign: Campaign;
+}
 
-  useDocumentTitle(campaign?.title ?? 'Campagne');
+function CampaignDraft(props: Props) {
+  const { draft, isLoadingDraft } = useCampaign();
+
+  useDocumentTitle(props.campaign.title ?? 'Campagne');
 
   const [values, setValues] = useState<Draft>();
   const form = useForm(yup.object().shape(shape), {
@@ -28,18 +33,11 @@ function CampaignDraftView() {
     }
   }, [draft]);
 
-  if (!campaign || !draft) {
-    if (isLoadingCampaign || isLoadingDraft) {
-      return <Loading />;
-    }
-    return <NotFoundView />;
+  if (isLoadingDraft) {
+    return <Loading />;
   }
 
-  if (!campaign && !isLoadingCampaign) {
-    return <NotFoundView />;
-  }
-
-  if (!draft && !isLoadingDraft) {
+  if (!draft) {
     return <NotFoundView />;
   }
 
@@ -62,4 +60,4 @@ function Loading() {
   return <></>;
 }
 
-export default CampaignDraftView;
+export default CampaignDraft;

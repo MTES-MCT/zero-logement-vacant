@@ -7,6 +7,9 @@ import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Campaign } from '../../models/Campaign';
 import { DraftPayloadDTO } from '../../../../shared/models/DraftDTO';
+import SaveButton from '../../components/Draft/SaveButton';
+import { Col, Container, Row } from '../../components/_dsfr';
+import { useUpdateDraftMutation } from '../../services/draft.service';
 
 const shape = {
   body: yup.string(),
@@ -26,8 +29,15 @@ function CampaignDraft(props: Props) {
     campaign: props.campaign.id,
   });
   const form = useForm(yup.object().shape(shape), {
-    body: values?.body,
+    body: values.body,
   });
+
+  const [updateDraft, mutation] = useUpdateDraftMutation();
+  function save(): void {
+    if (values) {
+      updateDraft(values);
+    }
+  }
 
   useEffect(() => {
     if (draft) {
@@ -48,11 +58,24 @@ function CampaignDraft(props: Props) {
 
   return (
     <form id="draft" className="fr-mt-2w">
-      <DraftBody
-        form={form}
-        value={values.body}
-        onChangeValue={(body) => setValues({ ...values, body: body })}
-      />
+      <Container as="article" fluid>
+        <Row justifyContent="right" spacing="mb-2w">
+          <SaveButton
+            isLoading={mutation.isLoading}
+            isSuccess={mutation.isSuccess}
+            onSave={save}
+          />
+        </Row>
+        <Row>
+          <Col>
+            <DraftBody
+              form={form}
+              value={values.body}
+              onChangeValue={(body) => setValues({ ...values, body: body })}
+            />
+          </Col>
+        </Row>
+      </Container>
     </form>
   );
 }

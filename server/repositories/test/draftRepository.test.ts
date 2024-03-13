@@ -1,17 +1,20 @@
 import { genCampaignApi, genDraftApi } from '../../test/testFixtures';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
-import { User1 } from '../../../database/seeds/test/003-users';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
 import { Campaigns, formatCampaignApi } from '../campaignRepository';
 import { CampaignsDrafts } from '../campaignDraftRepository';
+import { Establishment1 } from '../../../database/seeds/test/001-establishments';
+import { User1 } from '../../../database/seeds/test/003-users';
+import { DraftApi } from '../../models/DraftApi';
 
 describe('Draft repository', () => {
+  const establishment = Establishment1;
+  const user = User1;
+
   describe('find', () => {
-    const drafts = Array.from({ length: 5 }).map(() =>
-      genDraftApi(Establishment1)
-    );
+    let drafts: DraftApi[];
 
     beforeEach(async () => {
+      drafts = Array.from({ length: 5 }, () => genDraftApi(establishment));
       await Drafts().insert(drafts.map(formatDraftApi));
     });
 
@@ -23,7 +26,7 @@ describe('Draft repository', () => {
 
     it('should find drafts by campaign', async () => {
       const [firstDraft] = drafts;
-      const campaign = genCampaignApi(Establishment1.id, User1.id);
+      const campaign = genCampaignApi(establishment.id, user.id);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
@@ -42,7 +45,7 @@ describe('Draft repository', () => {
   });
 
   describe('save', () => {
-    const draft = genDraftApi();
+    const draft = genDraftApi(establishment);
 
     it('should create a draft that does not exist', async () => {
       await draftRepository.save(draft);

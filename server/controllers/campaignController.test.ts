@@ -94,10 +94,11 @@ describe('Campaign controller', () => {
     });
 
     it('should return an error when there is no campaign with the required id', async () => {
-      await request(app)
+      const { status } = await request(app)
         .get(testRoute(uuidv4()))
         .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_NOT_FOUND);
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should return the campaign', async () => {
@@ -311,12 +312,13 @@ describe('Campaign controller', () => {
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
+        status: 'draft',
         establishmentId: establishment.id,
         filters: {
           groupIds: [group.id],
         },
         createdAt: expect.toBeDateString(),
-        createdBy: user.id,
+        userId: user.id,
         validatedAt: expect.toBeDateString(),
       });
     });
@@ -560,7 +562,7 @@ describe('Campaign controller', () => {
     });
 
     it('should update the campaign when validating step Confirmation', async () => {
-      await request(app)
+      const { status } = await request(app)
         .put(testRoute(campaign.id))
         .send({
           stepUpdate: {
@@ -568,7 +570,8 @@ describe('Campaign controller', () => {
           },
         })
         .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_OK);
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
 
       const actual = await Campaigns().where({ id: campaign.id }).first();
       expect(actual).toMatchObject({

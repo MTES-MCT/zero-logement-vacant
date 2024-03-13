@@ -1,12 +1,9 @@
 import React from 'react';
-import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
+import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { campaignStep, CampaignSteps } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { hasFilters } from '../../models/HousingFilters';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useGetGroupQuery } from '../../services/group.service';
@@ -16,10 +13,6 @@ import { CampaignStatus } from '../../../../shared';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 
 function CampaignView() {
-  const router = useHistory();
-
-  const { trackEvent } = useMatomo();
-
   const { campaign } = useCampaign();
   const { data: group } = useGetGroupQuery(campaign?.groupId!, {
     skip: !campaign?.groupId,

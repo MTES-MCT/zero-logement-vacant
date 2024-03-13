@@ -45,7 +45,6 @@ import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import NotFoundView from './views/NotFoundView';
 
 declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Redirect } from 'react-router-dom';
 import * as yup from 'yup';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -7,12 +6,11 @@ import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Draft } from '../../models/Draft';
+import NotFoundView from '../NotFoundView';
 
 const shape = {
   body: yup.string(),
 };
-
-type FormShape = typeof shape;
 
 function CampaignDraftView() {
   const { campaign, draft, isLoadingCampaign, isLoadingDraft } = useCampaign();
@@ -34,15 +32,15 @@ function CampaignDraftView() {
     if (isLoadingCampaign || isLoadingDraft) {
       return <Loading />;
     }
-    return <Redirect to="/404" />;
+    return <NotFoundView />;
   }
 
   if (!campaign && !isLoadingCampaign) {
-    return <Redirect to="/404" />;
+    return <NotFoundView />;
   }
 
   if (!draft && !isLoadingDraft) {
-    return <Redirect to="/404" />;
+    return <NotFoundView />;
   }
 
   if (!values) {

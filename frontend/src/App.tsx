@@ -159,7 +159,11 @@ function App() {
       />
     ));
 
-  const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
+  const redirection = isAuthenticated
+    ? '/parc-de-logements'
+    : isLoggedOut
+    ? '/connexion'
+    : '/';
 
   return (
     <React.Suspense fallback={<></>}>

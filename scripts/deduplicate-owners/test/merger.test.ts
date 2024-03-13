@@ -1,16 +1,17 @@
 import { merge } from '../merger';
 import { Comparison } from '../../shared';
 import {
+  genEstablishmentApi,
   genHousingApi,
   genOwnerApi,
   genOwnerEventApi,
+  genUserApi,
 } from '../../../server/test/testFixtures';
 import db from '../../../server/repositories/db';
 import {
   formatOwnerApi,
   ownerTable,
 } from '../../../server/repositories/ownerRepository';
-import { User1 } from '../../../database/seeds/test/003-users';
 import {
   eventsTable,
   formatEventApi,
@@ -24,21 +25,36 @@ import {
   HousingOwnerDBO,
   housingOwnersTable,
 } from '../../../server/repositories/housingOwnerRepository';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../../../server/repositories/establishmentRepository';
+import {
+  formatUserApi,
+  Users,
+} from '../../../server/repositories/userRepository';
 
 describe('Merger', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
   describe('merge', () => {
     const source = genOwnerApi();
-    const duplicates = new Array(2)
-      .fill('0')
-      .map(() => genOwnerApi())
-      .map((owner) => ({ ...owner, birthDate: undefined }));
+    const duplicates = Array.from({ length: 2 }, () => genOwnerApi()).map(
+      (owner) => ({ ...owner, birthDate: undefined })
+    );
     const suggestion = source;
     const events = duplicates.map((owner) =>
-      genOwnerEventApi(owner.id, User1.id)
+      genOwnerEventApi(owner.id, user.id)
     );
     const housingList = duplicates.map(() => genHousingApi());
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const owners = [source, ...duplicates].map(formatOwnerApi);
       await db(ownerTable).insert(owners);
 

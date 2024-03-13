@@ -9,10 +9,14 @@ import { DatafoncierHousing } from '../../../shared';
 
 describe('Housing importer', () => {
   describe('processHousing', () => {
-    const housing: DatafoncierHousing = {
-      ...genDatafoncierHousing(),
-      ccthp: 'V',
-    };
+    let housing: DatafoncierHousing;
+
+    beforeEach(() => {
+      housing = {
+        ...genDatafoncierHousing(),
+        ccthp: 'V',
+      };
+    });
 
     it('should create the housing if it does not exist', async () => {
       await processHousing(housing);

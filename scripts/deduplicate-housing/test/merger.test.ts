@@ -1,13 +1,13 @@
 import {
   genCampaignApi,
+  genEstablishmentApi,
   genGroupApi,
   genGroupHousingEventApi,
   genHousingApi,
   genHousingEventApi,
   genHousingNoteApi,
+  genUserApi,
 } from '../../../server/test/testFixtures';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
-import { User1 } from '../../../database/seeds/test/003-users';
 import merger, { cleanup } from '../merger';
 import {
   Campaigns,
@@ -44,6 +44,14 @@ import {
 } from '../../../server/repositories/groupRepository';
 import highland from 'highland';
 import { HousingApi } from '../../../server/models/HousingApi';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../../../server/repositories/establishmentRepository';
+import {
+  formatUserApi,
+  Users,
+} from '../../../server/repositories/userRepository';
 
 describe('Merger', () => {
   describe('merge', () => {
@@ -87,13 +95,21 @@ describe('Merger', () => {
   });
 
   describe('cleanup', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
     it('should transfer campaigns to the merged housing', async () => {
-      const housingList = new Array(3).fill('0').map(() => genHousingApi());
+      const housingList = Array.from({ length: 3 }, () => genHousingApi());
       const [merged] = housingList;
       await Housing().insert(housingList.map(formatHousingRecordApi));
-      const campaigns = new Array(3)
-        .fill('0')
-        .map(() => genCampaignApi(Establishment1.id, User1.id));
+      const campaigns = Array.from({ length: 3 }, () =>
+        genCampaignApi(establishment.id, user.id)
+      );
       await Campaigns().insert(campaigns.map(formatCampaignApi));
       const campaignsHousing: CampaignHousingDBO[] = campaigns
         .flatMap((campaign) =>
@@ -116,11 +132,11 @@ describe('Merger', () => {
     });
 
     it('should transfer events to the merged housing', async () => {
-      const housingList = new Array(3).fill('0').map(() => genHousingApi());
+      const housingList = Array.from({ length: 3 }, () => genHousingApi());
       const [merged] = housingList;
       await Housing().insert(housingList.map(formatHousingRecordApi));
       const events = housingList.map((housing) =>
-        genHousingEventApi(housing, User1)
+        genHousingEventApi(housing, user)
       );
       await Events().insert(events.map(formatEventApi));
       await HousingEvents().insert(events.map(formatHousingEventApi));
@@ -135,11 +151,11 @@ describe('Merger', () => {
     });
 
     it('should transfer notes to the merged housing', async () => {
-      const housingList = new Array(3).fill('0').map(() => genHousingApi());
+      const housingList = Array.from({ length: 3 }, () => genHousingApi());
       const [merged] = housingList;
       await Housing().insert(housingList.map(formatHousingRecordApi));
       const notes = housingList.map((housing) =>
-        genHousingNoteApi(User1, housing)
+        genHousingNoteApi(user, housing)
       );
       await Notes().insert(notes.map(formatNoteApi));
       await HousingNotes().insert(notes.map(formatHousingNoteApi));
@@ -154,10 +170,10 @@ describe('Merger', () => {
     });
 
     it('should transfer groups to the merged housing', async () => {
-      const housingList = new Array(3).fill('0').map(() => genHousingApi());
+      const housingList = Array.from({ length: 3 }, () => genHousingApi());
       const [merged] = housingList;
       await Housing().insert(housingList.map(formatHousingRecordApi));
-      const groups = housingList.map(() => genGroupApi(User1, Establishment1));
+      const groups = housingList.map(() => genGroupApi(user, establishment));
       await Groups().insert(groups.map(formatGroupApi));
       await GroupsHousing().insert(
         groups.flatMap((group) => formatGroupHousingApi(group, housingList))
@@ -173,14 +189,14 @@ describe('Merger', () => {
     });
 
     it('should transfer group events to the merged housing', async () => {
-      const housingList = new Array(3).fill('0').map(() => genHousingApi());
+      const housingList = Array.from({ length: 3 }, () => genHousingApi());
       const [merged] = housingList;
       await Housing().insert(housingList.map(formatHousingRecordApi));
-      const groups = housingList.map(() => genGroupApi(User1, Establishment1));
+      const groups = housingList.map(() => genGroupApi(user, establishment));
       await Groups().insert(groups.map(formatGroupApi));
       const events = housingList.flatMap((housing) => {
         return groups.map((group) =>
-          genGroupHousingEventApi(housing, group, User1)
+          genGroupHousingEventApi(housing, group, user)
         );
       });
       await Events().insert(events.map(formatEventApi));

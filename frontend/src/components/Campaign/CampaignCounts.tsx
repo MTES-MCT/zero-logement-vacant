@@ -1,21 +1,17 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { useCountHousingQuery } from '../../services/housing.service';
 import { displayCount } from '../../utils/stringUtils';
 import styles from './campaign.module.scss';
 
 interface CampaignCountsProps {
-  campaignId: string;
+  housing?: number;
+  owners?: number;
   className?: string;
   display?: 'row' | 'column';
 }
 
 const CampaignCounts = (props: CampaignCountsProps) => {
-  const { data: housingCount } = useCountHousingQuery({
-    campaignIds: [props.campaignId],
-  });
-
   const display = props.display ?? 'column';
   const classes = classNames(
     styles.count,
@@ -33,16 +29,11 @@ const CampaignCounts = (props: CampaignCountsProps) => {
         })}
         aria-hidden
       >
-         
-        {housingCount
-          ? displayCount(housingCount?.housing ?? 0, 'logement')
-          : '...'}
+         {props.housing ? displayCount(props.housing ?? 0, 'logement') : '...'}
       </span>
       <span className="fr-icon--sm fr-icon-user-fill">
          
-        {housingCount
-          ? displayCount(housingCount?.owners ?? 0, 'propriétaire')
-          : '...'}
+        {props.owners ? displayCount(props.owners ?? 0, 'propriétaire') : '...'}
       </span>
     </section>
   );

@@ -3,6 +3,7 @@ import { useGetCampaignQuery } from '../services/campaign.service';
 import { useMemo } from 'react';
 import { campaignStep, CampaignSteps } from '../models/Campaign';
 import { useFindDraftsQuery } from '../services/draft.service';
+import { useCountHousingQuery } from '../services/housing.service';
 
 export function useCampaign() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,9 @@ export function useCampaign() {
   const { data: drafts, isLoading: isLoadingDraft } = useFindDraftsQuery({
     campaign: id,
   });
+  const { data: count } = useCountHousingQuery({
+    campaignIds: [id],
+  });
 
   const step = useMemo<CampaignSteps | null>(() => {
     return campaign ? campaignStep(campaign) : null;
@@ -20,6 +24,7 @@ export function useCampaign() {
   return {
     campaign,
     draft: drafts?.[0],
+    count,
     isLoadingCampaign,
     isLoadingDraft,
     step,

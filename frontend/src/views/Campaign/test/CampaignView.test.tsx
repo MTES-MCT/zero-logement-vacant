@@ -1,0 +1,102 @@
+import { render, screen } from '@testing-library/react';
+import { createMemoryHistory, History } from 'history';
+import { Provider } from 'react-redux';
+import { Route, Router } from 'react-router-dom';
+
+import { genCampaign, genDraft } from '../../../../test/fixtures.test';
+import configureTestStore from '../../../utils/test/storeUtils';
+import { AppStore } from '../../../store/store';
+import { mockRequests } from '../../../utils/test/requestUtils';
+import CampaignView from '../CampaignView';
+
+describe('Campaign view', () => {
+  const campaign = genCampaign();
+  const draft = genDraft();
+
+  let store: AppStore;
+  let router: History;
+
+  beforeEach(() => {
+    store = configureTestStore();
+    router = createMemoryHistory({
+      initialEntries: [`/campagnes/${campaign.id}`],
+    });
+  });
+
+  function renderComponent(): void {
+    render(
+      <Provider store={store}>
+        <Router history={router}>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>
+    );
+  }
+
+  it('should display "Page non trouvée" if the campaign does not exist', async () => {
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          status: 404,
+          body: JSON.stringify({
+            name: 'CampaignMissingError',
+            message: `Campaign ${campaign.id} missing`,
+          }),
+        },
+      },
+      {
+        pathname: `/api/drafts`,
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    await screen.findByText('Page non trouvée');
+  });
+
+  it('should render', async () => {
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const title = await screen.findByText(campaign.title);
+    expect(title).toBeVisible();
+  });
+});

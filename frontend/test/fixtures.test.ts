@@ -12,6 +12,7 @@ import { LocalityKinds } from '../src/models/Locality';
 import { HousingStatus } from '../src/models/HousingState';
 import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
+import { Draft } from '../src/models/Draft';
 
 const randomstring = require('randomstring');
 
@@ -114,9 +115,20 @@ export const genCampaign = (): Campaign => ({
   id: randomstring.generate(),
   title: randomstring.generate(),
   filters: initialHousingFilters,
-  createdAt: new Date(),
+  status: 'draft',
+  createdAt: new Date().toJSON(),
+  validatedAt: new Date().toJSON(),
   exportURL: randomstring.generate(),
 });
+
+export function genDraft(): Draft {
+  return {
+    id: randomstring.generate(),
+    body: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  };
+}
 
 export function genPaginatedResult<T>(results: Array<T>) {
   return {

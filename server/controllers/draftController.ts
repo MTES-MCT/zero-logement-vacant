@@ -3,16 +3,20 @@ import { constants } from 'http2';
 import fp from 'lodash/fp';
 
 import { DraftApi } from '../models/DraftApi';
-import draftRepository from '../repositories/draftRepository';
+import draftRepository, { DraftFilters } from '../repositories/draftRepository';
+import { AuthenticatedRequest } from 'express-jwt';
 
 interface DraftQuery {
   campaign?: string;
 }
 
 async function listDrafts(request: Request, response: Response) {
-  const { query } = request;
+  const { auth, query } = request as AuthenticatedRequest;
 
-  const filters = fp.pick(['campaign'], query) as DraftQuery;
+  const filters: DraftFilters = {
+    ...(fp.pick(['campaign'], query) as DraftQuery),
+    establishment: auth.establishmentId,
+  };
 
   const drafts: DraftApi[] = await draftRepository.find({
     filters,

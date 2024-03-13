@@ -8,8 +8,9 @@ export const draftsTable = 'drafts';
 export const Drafts = (transaction: Knex<DraftDBO> = db) =>
   transaction(draftsTable);
 
-interface DraftFilters {
+export interface DraftFilters {
   campaign?: string;
+  establishment?: string;
 }
 
 interface FindOptions {
@@ -34,6 +35,10 @@ function listQuery(query: Knex.QueryBuilder): void {
 
 function filterQuery(filters?: DraftFilters) {
   return (query: Knex.QueryBuilder): void => {
+    if (filters?.establishment) {
+      query.where(`${draftsTable}.establishment_id`, filters.establishment);
+    }
+
     if (filters?.campaign) {
       query
         .join(

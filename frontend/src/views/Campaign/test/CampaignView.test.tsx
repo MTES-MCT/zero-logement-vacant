@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
 import { Route, Router } from 'react-router-dom';
@@ -8,8 +9,11 @@ import configureTestStore from '../../../utils/test/storeUtils';
 import { AppStore } from '../../../store/store';
 import { mockRequests } from '../../../utils/test/requestUtils';
 import CampaignView from '../CampaignView';
+import { Draft } from '../../../models/Draft';
 
 describe('Campaign view', () => {
+  const user = userEvent.setup();
+
   const campaign = genCampaign();
   const draft = genDraft();
 
@@ -46,7 +50,7 @@ describe('Campaign view', () => {
         },
       },
       {
-        pathname: `/api/drafts`,
+        pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
           body: JSON.stringify([]),
         },
@@ -77,7 +81,7 @@ describe('Campaign view', () => {
         },
       },
       {
-        pathname: `/api/drafts`,
+        pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
           body: JSON.stringify([draft]),
         },
@@ -98,5 +102,46 @@ describe('Campaign view', () => {
 
     const title = await screen.findByText(campaign.title);
     expect(title).toBeVisible();
+  });
+
+  it('should save the draft on button click', async () => {
+    const updated: Draft = { ...draft, body: 'Updated body' };
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+      {
+        pathname: `/api/drafts/${draft.id}`,
+        method: 'PUT',
+        response: {
+          body: JSON.stringify(updated),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
+    await user.click(save);
+    await screen.findByRole('button', { name: /^Sauvegarde en cours.../ });
   });
 });

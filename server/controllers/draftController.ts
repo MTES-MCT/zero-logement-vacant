@@ -62,6 +62,14 @@ const createValidators: ValidationChain[] = [
     .withMessage('campaign is required'),
 ];
 
+async function update(request: Request, response: Response) {
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  await delay(1000);
+  response.status(constants.HTTP_STATUS_OK).json();
+}
+
 const draftController = {
   list,
   create,

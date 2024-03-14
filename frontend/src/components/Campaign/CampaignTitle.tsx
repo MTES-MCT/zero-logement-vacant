@@ -48,12 +48,8 @@ function CampaignTitle({ campaign, className, as, look }: Props) {
   function submit() {
     form.validate(async () => {
       await updateCampaign({
-        id: campaign.id,
-        campaignUpdate: {
-          titleUpdate: {
-            title,
-          },
-        },
+        ...campaign,
+        title,
       });
       trackEvent({
         category: TrackEventCategories.Campaigns,

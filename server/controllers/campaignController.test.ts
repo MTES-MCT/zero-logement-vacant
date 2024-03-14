@@ -45,8 +45,7 @@ import {
   formatOwnerHousingApi,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
-import { isDefined } from '../../shared';
-import { CampaignUpdatePayloadDTO } from '../../shared/models/CampaignDTO';
+import { CampaignCreationPayloadDTO, isDefined } from '../../shared';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -184,7 +183,7 @@ describe('Campaign controller', () => {
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
-      const payload: CampaignUpdatePayloadDTO = {
+      const payload: CampaignCreationPayloadDTO = {
         title,
         housing: {
           filters: {},

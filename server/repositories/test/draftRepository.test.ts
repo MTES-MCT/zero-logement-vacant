@@ -1,14 +1,27 @@
-import { genCampaignApi, genDraftApi } from '../../test/testFixtures';
+import {
+  genCampaignApi,
+  genDraftApi,
+  genEstablishmentApi,
+  genUserApi,
+} from '../../test/testFixtures';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import { Campaigns, formatCampaignApi } from '../campaignRepository';
 import { CampaignsDrafts } from '../campaignDraftRepository';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
-import { User1 } from '../../../database/seeds/test/003-users';
 import { DraftApi } from '../../models/DraftApi';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../establishmentRepository';
+import { formatUserApi, Users } from '../userRepository';
 
 describe('Draft repository', () => {
-  const establishment = Establishment1;
-  const user = User1;
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
 
   describe('find', () => {
     let drafts: DraftApi[];

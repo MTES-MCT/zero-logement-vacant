@@ -59,6 +59,7 @@ router.delete('/campaigns/:id/housing', campaignController.removeHousingValidato
 
 router.get('/drafts', draftController.list);
 router.post('/drafts', draftController.createValidators, validator.validate, draftController.create);
+router.put('/drafts/:id', draftController.updateValidators, validator.validate, draftController.update);
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);

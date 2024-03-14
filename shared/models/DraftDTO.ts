@@ -5,6 +5,8 @@ export interface DraftDTO {
   updatedAt: string;
 }
 
-export interface DraftPayloadDTO extends Pick<DraftDTO, 'body'> {
+export interface DraftCreationPayloadDTO extends Pick<DraftDTO, 'body'> {
   campaign: string;
 }
+
+export type DraftUpdatePayloadDTO = Pick<DraftDTO, 'body'>;

@@ -1,9 +1,13 @@
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+import {
+  createInstance,
+  MatomoProvider,
+  useMatomo,
+} from '@datapunt/matomo-tracker-react';
 import React, { useEffect } from 'react';
 import { MapProvider } from 'react-map-gl';
-import './App.scss';
-import Header from './components/Header/Header';
-import Footer from './components/Footer/Footer';
-import LoginView from './views/Login/LoginView';
+import { Provider } from 'react-redux';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   BrowserRouter,
   Link,
@@ -12,18 +16,17 @@ import {
   RouteProps,
   Switch,
 } from 'react-router-dom';
+
+import './App.scss';
+import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
+import LoginView from './views/Login/LoginView';
 import HousingListView from './views/HousingList/HousingListView';
-import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampainListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import {
-  createInstance,
-  MatomoProvider,
-  useMatomo,
-} from '@datapunt/matomo-tracker-react';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
@@ -41,10 +44,11 @@ import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
-import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import Notification from './components/Notification/Notification';
+
+import 'react-toastify/dist/ReactToastify.min.css';
 
 declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
@@ -58,6 +62,7 @@ function AppWrapper() {
   const AppMapProvider = () => (
     <MapProvider>
       <Provider store={store}>
+        <Notification />
         <App />
       </Provider>
     </MapProvider>

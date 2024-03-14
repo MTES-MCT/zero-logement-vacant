@@ -6,7 +6,14 @@ export async function up(knex: Knex): Promise<void> {
   });
 
   // Restore data
-  await knex('campaigns').whereNull('confirmed_at').update({ status: 'draft' });
+  await knex('campaigns').whereNull('sent_at').update({ status: 'draft' });
+  await knex('campaigns')
+    .whereNotNull('sent_at')
+    .whereNull('archived_at')
+    .update({ status: 'in-progress' });
+  await knex('campaigns')
+    .whereNotNull('archived_at')
+    .update({ status: 'archived' });
 
   await knex.schema.alterTable('campaigns', (table) => {
     table.string('status').notNullable().alter();

@@ -14,12 +14,7 @@ export interface CampaignDTO {
   confirmedAt?: string;
 }
 
-export type CampaignStatus =
-  | 'draft'
-  | 'validating'
-  | 'sending'
-  | 'in-progress'
-  | 'archived';
+export type CampaignStatus = 'draft' | 'sending' | 'in-progress' | 'archived';
 
 export interface CampaignPayloadDTO extends Pick<CampaignDTO, 'title'> {
   housing: {

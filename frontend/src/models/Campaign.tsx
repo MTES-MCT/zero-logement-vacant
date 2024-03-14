@@ -24,7 +24,7 @@ export enum CampaignSteps {
 }
 
 export function isBuilding(campaign: Campaign) {
-  const statuses: CampaignStatus[] = ['draft', 'validating', 'sending'];
+  const statuses: CampaignStatus[] = ['draft', 'sending'];
   return statuses.includes(campaign.status);
 }
 

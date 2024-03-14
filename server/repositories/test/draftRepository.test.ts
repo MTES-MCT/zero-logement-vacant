@@ -30,7 +30,7 @@ describe('Draft repository', () => {
   describe('find', () => {
     let drafts: DraftApi[];
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       drafts = Array.from({ length: 5 }, () => genDraftApi(establishment));
       await Drafts().insert(drafts.map(formatDraftApi));
     });
@@ -64,7 +64,7 @@ describe('Draft repository', () => {
   describe('findOne', () => {
     const draft = genDraftApi(establishment);
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       await Drafts().insert(formatDraftApi(draft));
     });
 

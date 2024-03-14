@@ -3,7 +3,7 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '../../server';
-import { DraftApi } from '../../models/DraftApi';
+import { DraftApi, toDraftDTO } from '../../models/DraftApi';
 import {
   genCampaignApi,
   genDraftApi,
@@ -39,12 +39,13 @@ describe('Draft API', () => {
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
   const anotherEstablishment = genEstablishmentApi();
+  const anotherUser = genUserApi(anotherEstablishment.id);
 
   beforeAll(async () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert(formatUserApi(user));
+    await Users().insert([user, anotherUser].map(formatUserApi));
   });
 
   describe('GET /drafts', () => {
@@ -97,7 +98,7 @@ describe('Draft API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toBeArrayOfSize(1);
-      expect(body).toContainEqual(firstDraft);
+      expect(body).toContainEqual(toDraftDTO(firstDraft));
     });
   });
 
@@ -181,7 +182,7 @@ describe('Draft API', () => {
       body: 'Look at that body!',
     };
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       await Drafts().insert(formatDraftApi(draft));
     });
 
@@ -204,7 +205,7 @@ describe('Draft API', () => {
       const { status } = await request(app)
         .put(testRoute(draft.id))
         .send(payload)
-        .use(tokenProvider(User2));
+        .use(tokenProvider(anotherUser));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });

@@ -29,7 +29,7 @@ import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
 import { HousingEventApi } from '../models/EventApi';
-import { CampaignPayloadDTO } from '../../shared/models/CampaignDTO';
+import { CampaignCreationPayloadDTO } from '../../shared/models/CampaignDTO';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
@@ -111,7 +111,7 @@ async function create(request: Request, response: Response) {
   logger.info('Create campaign');
 
   const { auth } = request as AuthenticatedRequest;
-  const body = request.body as CampaignPayloadDTO;
+  const body = request.body as CampaignCreationPayloadDTO;
 
   const filters: HousingFiltersDTO = {
     ...body.housing.filters,

@@ -1,6 +1,7 @@
 @use "colors";
 @use "dsfr-fix";
 @use "src/components/Map/housing-popup-overrides";
+@use "notification";
 
 :root {
   --material-transition-curve: cubic-bezier(.39,.4,.82,.78);

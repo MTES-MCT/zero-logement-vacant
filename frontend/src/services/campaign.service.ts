@@ -2,7 +2,7 @@ import { parseISO } from 'date-fns';
 
 import config from '../utils/config';
 import authService from './auth.service';
-import { Campaign, CampaignSort, CampaignUpdate } from '../models/Campaign';
+import { Campaign, CampaignSort } from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
 import { getURLQuery } from '../utils/fetchUtils';

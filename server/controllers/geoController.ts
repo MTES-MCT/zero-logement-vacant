@@ -6,22 +6,22 @@ import { body, param } from 'express-validator';
 import { constants } from 'http2';
 import { isArrayOf, isUUID } from '../utils/validators';
 import { logger } from '../utils/logger';
+import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 
-const listGeoPerimeters = async (request: Request, response: Response) => {
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+async function listGeoPerimeters(request: Request, response: Response) {
+  const { auth } = request as AuthenticatedRequest;
 
-  logger.info('List geo perimeters', establishmentId);
+  logger.info('List geo perimeters', auth.establishmentId);
 
-  const geoPerimeters = await geoRepository.find(establishmentId);
+  const geoPerimeters = await geoRepository.find(auth.establishmentId);
   response.status(constants.HTTP_STATUS_OK).json(geoPerimeters);
-};
+}
 
-const createGeoPerimeter = async (
+async function createGeoPerimeter(
   // TODO: type this
   request: any,
   response: Response
-): Promise<Response> => {
+) {
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
@@ -44,8 +44,8 @@ const createGeoPerimeter = async (
     )
   );
 
-  return response.status(constants.HTTP_STATUS_OK).send();
-};
+  response.status(constants.HTTP_STATUS_OK).send();
+}
 
 const deleteGeoPerimeterListValidators = [
   body('geoPerimeterIds')
@@ -53,20 +53,15 @@ const deleteGeoPerimeterListValidators = [
     .withMessage('Must be an array of UUIDs'),
 ];
 
-const deleteGeoPerimeterList = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const geoPerimeterIds = request.body.geoPerimeterIds;
-  const establishmentId = (request as AuthenticatedRequest).auth
-    .establishmentId;
+async function deleteGeoPerimeterList(request: Request, response: Response) {
+  const { auth, body } = request as AuthenticatedRequest;
 
-  logger.info('Delete geo perimeters', geoPerimeterIds);
+  logger.info('Delete geo perimeters', body.geoPerimeterIds);
 
-  return geoRepository
-    .removeMany(geoPerimeterIds, establishmentId)
-    .then(() => response.sendStatus(constants.HTTP_STATUS_NO_CONTENT));
-};
+  await geoRepository.removeMany(body.geoPerimeterIds, auth.establishmentId);
+
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+}
 
 const updateGeoPerimeterValidators = [
   param('geoPerimeterId').notEmpty().isUUID(),
@@ -74,10 +69,7 @@ const updateGeoPerimeterValidators = [
   body('name').optional({ nullable: true }).isString(),
 ];
 
-const updateGeoPerimeter = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+async function updateGeoPerimeter(request: Request, response: Response) {
   const geoPerimeterId = request.params.geoPerimeterId;
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
@@ -92,14 +84,14 @@ const updateGeoPerimeter = async (
     return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
   }
 
-  return geoRepository
-    .update({
-      ...geoPerimeter,
-      kind,
-      name,
-    })
-    .then(() => response.status(constants.HTTP_STATUS_OK).send());
-};
+  const updated: GeoPerimeterApi = {
+    ...geoPerimeter,
+    kind,
+    name,
+  };
+  await geoRepository.update(updated);
+  response.status(constants.HTTP_STATUS_OK).json(updated);
+}
 
 const geoController = {
   createGeoPerimeter,

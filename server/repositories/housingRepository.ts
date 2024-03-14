@@ -1,4 +1,9 @@
+import highland from 'highland';
+import { Knex } from 'knex';
+import _ from 'lodash';
 import fp from 'lodash/fp';
+import validator from 'validator';
+
 import db, { where } from './db';
 import {
   EnergyConsumptionGradesApi,
@@ -20,10 +25,6 @@ import establishmentRepository, {
   establishmentsTable,
 } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
-import highland from 'highland';
-import { Knex } from 'knex';
-import _ from 'lodash';
-import validator from 'validator';
 import { HousingSource, PaginationOptions } from '../../shared';
 import { logger } from '../utils/logger';
 import { HousingCountApi } from '../models/HousingCountApi';
@@ -42,7 +43,6 @@ import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
-export const establishmentsLocalitiesTable = 'establishments_localities';
 
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
@@ -66,7 +66,7 @@ interface FindOptions extends PaginationOptions {
   includes?: HousingInclude[];
 }
 
-const find = async (opts: FindOptions): Promise<HousingApi[]> => {
+async function find(opts: FindOptions): Promise<HousingApi[]> {
   logger.debug('housingRepository.find', opts);
 
   const geoCodes = await fetchGeoCodes(opts.filters.establishmentIds ?? []);
@@ -85,13 +85,13 @@ const find = async (opts: FindOptions): Promise<HousingApi[]> => {
 
   logger.debug('housingRepository.find', { housing: housingList.length });
   return housingList.map(parseHousingApi);
-};
+}
 
 type StreamOptions = FindOptions & {
   includes: HousingInclude[];
 };
 
-const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
+function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
   return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
     .flatMap((geoCodes) => {
       return highland<HousingDBO>(
@@ -109,15 +109,15 @@ const stream = (opts: StreamOptions): Highland.Stream<HousingApi> => {
       );
     })
     .map(parseHousingApi);
-};
+}
 
-const countVacant = async (): Promise<number> => {
+async function countVacant(): Promise<number> {
   const value = await db(housingTable)
     .countDistinct(`${housingTable}.id`)
     .modify(whereVacant());
 
   return Number(value[0].count);
-};
+}
 
 function whereVacant(year: number = ReferenceDataYear) {
   return (query: Knex.QueryBuilder) =>
@@ -130,7 +130,7 @@ function whereVacant(year: number = ReferenceDataYear) {
       .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
 }
 
-const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
+async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
   logger.debug('Count housing', filters);
 
   const geoCodes = await fetchGeoCodes(filters.establishmentIds ?? []);
@@ -157,7 +157,7 @@ const count = async (filters: HousingFiltersApi): Promise<HousingCountApi> => {
     housing: Number(result?.housing),
     owners: Number(result?.owners),
   };
-};
+}
 
 interface FindOneOptions {
   geoCode?: string | string[];
@@ -166,7 +166,7 @@ interface FindOneOptions {
   includes?: HousingInclude[];
 }
 
-const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
+async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
   const whereOptions = where<FindOneOptions>(['id', 'localId'], {
     table: housingTable,
   });
@@ -208,7 +208,7 @@ const findOne = async (opts: FindOneOptions): Promise<HousingApi | null> => {
     )
     .first();
   return housing ? parseHousingApi(housing) : null;
-};
+}
 
 interface SaveOptions {
   /**
@@ -221,14 +221,14 @@ interface SaveOptions {
   merge?: Array<keyof HousingRecordApi>;
 }
 
-const save = async (
+async function save(
   housing: HousingRecordApi,
   opts?: SaveOptions
-): Promise<void> => {
+): Promise<void> {
   logger.debug('Saving housing...', { housing: housing.id });
   await saveMany([housing], opts);
   logger.info(`Housing saved.`, { housing: housing.id });
-};
+}
 
 /**
  * Create housing records if they don't exist.
@@ -236,10 +236,10 @@ const save = async (
  * @param housingList
  * @param opts
  */
-const saveMany = async (
+async function saveMany(
   housingList: HousingRecordApi[],
   opts?: SaveOptions
-): Promise<void> => {
+): Promise<void> {
   await Housing()
     .insert(housingList.map(formatHousingRecordApi))
     .modify((builder) => {
@@ -248,17 +248,17 @@ const saveMany = async (
       }
       return builder.onConflict(['geo_code', 'local_id']).ignore();
     });
-};
+}
 
 /**
  * @deprecated
  * Housing records should be saved independently of their owners.
  * @see saveMany
  */
-const saveManyWithOwner = async (
+async function saveManyWithOwner(
   housingList: HousingApi[],
   opts?: SaveOptions
-): Promise<void> => {
+): Promise<void> {
   if (!housingList.length) {
     return;
   }
@@ -311,7 +311,7 @@ const saveManyWithOwner = async (
     await transaction(housingOwnersTable).whereIn('housing_id', ids).delete();
     await transaction(housingOwnersTable).insert(ownersHousing);
   });
-};
+}
 
 type HousingInclude = 'owner' | 'events' | 'campaigns' | 'perimeters';
 
@@ -401,7 +401,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   };
 }
 
-const update = async (housing: HousingApi): Promise<void> => {
+async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
   return db(housingTable)
@@ -418,9 +418,9 @@ const update = async (housing: HousingApi): Promise<void> => {
       precisions: housing.precisions ?? null,
       vacancy_reasons: housing.vacancyReasons ?? null,
     });
-};
+}
 
-const remove = async (housing: HousingApi): Promise<void> => {
+async function remove(housing: HousingApi): Promise<void> {
   const info = fp.pick(['geoCode', 'id', 'localId'], housing);
   logger.debug('Removing housing...', info);
   await Housing()
@@ -430,19 +430,19 @@ const remove = async (housing: HousingApi): Promise<void> => {
     })
     .delete();
   logger.info('Removed housing.', info);
-};
+}
 
-export const ownerHousingJoinClause = (query: any) => {
+export function ownerHousingJoinClause(query: any) {
   query
     .on(`${housingTable}.id`, `${housingOwnersTable}.housing_id`)
     .andOn(`${housingTable}.geo_code`, `${housingOwnersTable}.housing_geo_code`)
     .andOnVal('rank', 1);
-};
+}
 
-export const queryOwnerHousingWhereClause = (
+export function queryOwnerHousingWhereClause(
   queryBuilder: any,
   query?: string
-) => {
+) {
   if (query?.length) {
     queryBuilder.where(function (whereBuilder: any) {
       //With more than 20 tokens, the query is likely nor a name neither an address
@@ -488,9 +488,9 @@ export const queryOwnerHousingWhereClause = (
       );
     });
   }
-};
+}
 
-const fastListQuery = (opts: ListQueryOptions) => {
+function fastListQuery(opts: ListQueryOptions) {
   return db
     .select(`${housingTable}.*`)
     .from(housingTable)
@@ -501,9 +501,9 @@ const fastListQuery = (opts: ListQueryOptions) => {
         includes: opts.includes,
       })
     );
-};
+}
 
-const filteredQuery = (opts: ListQueryOptions) => {
+function filteredQuery(opts: ListQueryOptions) {
   const { filters } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
@@ -852,7 +852,7 @@ const filteredQuery = (opts: ListQueryOptions) => {
     }
     queryOwnerHousingWhereClause(queryBuilder, filters.query);
   };
-};
+}
 
 const housingSortQuery = (sort?: HousingSortApi) =>
   sortQuery(sort, {
@@ -887,7 +887,7 @@ async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
   return establishments.flatMap((establishment) => establishment.geoCodes);
 }
 
-interface HousingRecordDBO {
+export interface HousingRecordDBO {
   // In the same order as the database
   id: string;
   invariant: string;

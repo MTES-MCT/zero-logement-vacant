@@ -20,6 +20,9 @@ import {
   formatHousingOwnersApi,
   HousingOwners,
 } from '../../housingOwnerRepository';
+import { HousingOwnerConflictApi } from '../../../models/ConflictApi';
+import { OwnerApi } from '../../../models/OwnerApi';
+import { HousingApi } from '../../../models/HousingApi';
 
 describe('Housing owner conflict repository', () => {
   describe('find', () => {
@@ -53,15 +56,18 @@ describe('Housing owner conflict repository', () => {
   });
 
   describe('save', () => {
-    const housing = genHousingApi();
-    const owners = new Array(2).fill(0).map(genOwnerApi);
-    const conflict = genHousingOwnerConflictApi(
-      housing,
-      genHousingOwnerApi(housing, owners[0]),
-      genHousingOwnerApi(housing, owners[1])
-    );
+    let housing: HousingApi;
+    let owners: OwnerApi[];
+    let conflict: HousingOwnerConflictApi;
 
     beforeEach(async () => {
+      housing = genHousingApi();
+      owners = Array.from({ length: 2 }, () => genOwnerApi());
+      conflict = genHousingOwnerConflictApi(
+        housing,
+        genHousingOwnerApi(housing, owners[0]),
+        genHousingOwnerApi(housing, owners[1])
+      );
       await Housing().insert(formatHousingRecordApi(housing));
       await Owners().insert(owners.map(formatOwnerApi));
       await HousingOwners().insert(formatHousingOwnersApi(housing, owners));

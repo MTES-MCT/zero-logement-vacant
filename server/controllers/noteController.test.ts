@@ -1,34 +1,77 @@
-import request from 'supertest';
 import { constants } from 'http2';
+import request from 'supertest';
 
 import { createServer } from '../server';
-import { withAccessToken } from '../test/testUtils';
-import { Housing1 } from '../../database/seeds/test/005-housing';
+import { tokenProvider } from '../test/testUtils';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genHousingNoteApi,
+  genUserApi,
+  oneOf,
+} from '../test/testFixtures';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+} from '../repositories/housingRepository';
+import {
+  formatHousingNoteApi,
+  formatNoteApi,
+  HousingNotes,
+  Notes,
+} from '../repositories/noteRepository';
+import { NoteApi } from '../models/NoteApi';
 
-const { app } = createServer();
+describe('Note API', () => {
+  const { app } = createServer();
 
-describe('Note controller', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+  const housing = genHousingApi(oneOf(establishment.geoCodes));
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+    await Housing().insert(formatHousingRecordApi(housing));
+  });
+
   describe('listByHousingId', () => {
     const testRoute = (housingId: string) => `/api/notes/housing/${housingId}`;
 
-    it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Housing1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).get(testRoute(housing.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      await withAccessToken(request(app).get(testRoute('id'))).expect(
-        constants.HTTP_STATUS_BAD_REQUEST
-      );
+      const { status } = await request(app)
+        .get(testRoute('id'))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the housing notes', async () => {
-      const res = await withAccessToken(
-        request(app).get(testRoute(Housing1.id))
-      ).expect(constants.HTTP_STATUS_OK);
+      const notes = Array.from({ length: 3 }, () =>
+        genHousingNoteApi(user, housing)
+      );
+      await Notes().insert(notes.map(formatNoteApi));
+      await HousingNotes().insert(notes.map(formatHousingNoteApi));
 
-      expect(res.body).toStrictEqual([]);
+      const { body, status } = await request(app)
+        .get(testRoute(housing.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toSatisfyAll<NoteApi>((actual) => {
+        return notes.map((note) => note.id).includes(actual.id);
+      });
     });
   });
 });

@@ -37,11 +37,11 @@ describe('Conflict repository', () => {
     const repository = conflictRepository.owners;
 
     describe('find', () => {
-      const conflicts: OwnerConflictApi[] = new Array(5)
-        .fill(0)
-        .map(genOwnerConflictApi);
+      const conflicts: OwnerConflictApi[] = Array.from({ length: 5 }, () =>
+        genOwnerConflictApi()
+      );
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         await Conflicts().insert(conflicts.map(formatConflictApi));
         const owners = conflicts
           .map((conflict) => conflict.existing)
@@ -64,22 +64,19 @@ describe('Conflict repository', () => {
     });
 
     describe('save', () => {
-      const conflict: OwnerConflictApi = genOwnerConflictApi();
+      const conflict = genOwnerConflictApi();
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         await Owners().insert(formatOwnerApi(conflict.existing));
+        await repository.save(conflict);
       });
 
       it('should create a conflict', async () => {
-        await repository.save(conflict);
-
         const actual = await Conflicts().where({ id: conflict.id }).first();
         expect(actual).toBeDefined();
       });
 
       it('should create an owner conflict linked to the conflict entity', async () => {
-        await repository.save(conflict);
-
         const actual = await OwnerConflicts()
           .where({ conflict_id: conflict.id })
           .first();

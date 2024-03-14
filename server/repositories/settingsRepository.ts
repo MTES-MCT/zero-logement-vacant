@@ -3,6 +3,8 @@ import { SettingsApi } from '../models/SettingsApi';
 import { logger } from '../utils/logger';
 
 export const settingsTable = 'settings';
+export const Settings = (transaction = db) =>
+  transaction<SettingsDBO>(settingsTable);
 
 interface FindOneOptions {
   establishmentId: string;

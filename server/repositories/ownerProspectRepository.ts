@@ -11,18 +11,19 @@ import { logger } from '../utils/logger';
 
 export const ownerProspectsTable = 'owner_prospects';
 
-export const OwnerProspects = () => db<OwnerProspectDbo>(ownerProspectsTable);
+export const OwnerProspects = (transaction = db) =>
+  transaction<OwnerProspectDBO>(ownerProspectsTable);
 
-const insert = async (
+async function insert(
   ownerProspectApi: OwnerProspectApi
-): Promise<OwnerProspectApi> => {
+): Promise<OwnerProspectApi> {
   logger.info('Insert ownerProspect with email', ownerProspectApi.email);
 
   return OwnerProspects()
     .insert(formatOwnerProspectApi(ownerProspectApi))
     .returning('*')
     .then((_) => parseOwnerProspectApi(_[0]));
-};
+}
 
 interface FindOptions {
   establishmentId: string;
@@ -30,9 +31,9 @@ interface FindOptions {
   sort?: OwnerProspectSortApi;
 }
 
-const find = async (
+async function find(
   options: FindOptions
-): Promise<PaginatedResultApi<OwnerProspectApi>> => {
+): Promise<PaginatedResultApi<OwnerProspectApi>> {
   const { establishmentId, pagination, sort } = options;
 
   const query = OwnerProspects()
@@ -43,7 +44,7 @@ const find = async (
     .modify(paginationQuery(pagination));
 
   const totalCount = await countQuery(query.clone());
-  const ownerProspects: OwnerProspectDbo[] = await query
+  const ownerProspects: OwnerProspectDBO[] = await query
     .select(`${ownerProspectsTable}.*`)
     .modify(
       sortQuery(sort, {
@@ -66,16 +67,16 @@ const find = async (
       ? options.pagination.perPage
       : ownerProspects.length,
   };
-};
+}
 
 interface FindOneOptions {
   id: string;
   establishmentId: string;
 }
 
-const findOne = async (
+async function findOne(
   options: FindOneOptions
-): Promise<OwnerProspectApi | null> => {
+): Promise<OwnerProspectApi | null> {
   const { establishmentId, id } = options;
 
   const ownerProspect = await OwnerProspects()
@@ -87,16 +88,16 @@ const findOne = async (
     .where(`${ownerProspectsTable}.id`, id)
     .first();
   return ownerProspect ? parseOwnerProspectApi(ownerProspect) : null;
-};
+}
 
-const update = async (ownerProspect: OwnerProspectApi): Promise<void> => {
+async function update(ownerProspect: OwnerProspectApi): Promise<void> {
   await OwnerProspects().where({ id: ownerProspect.id }).update({
     call_back: ownerProspect.callBack,
     read: ownerProspect.read,
   });
-};
+}
 
-interface OwnerProspectDbo {
+interface OwnerProspectDBO {
   id: string;
   address: string;
   invariant?: string;
@@ -111,8 +112,8 @@ interface OwnerProspectDbo {
   created_at: string;
 }
 
-const parseOwnerProspectApi = (
-  ownerProspectDbo: OwnerProspectDbo
+export const parseOwnerProspectApi = (
+  ownerProspectDbo: OwnerProspectDBO
 ): OwnerProspectApi => ({
   id: ownerProspectDbo.id,
   address: ownerProspectDbo.address,
@@ -128,9 +129,9 @@ const parseOwnerProspectApi = (
   createdAt: new Date(ownerProspectDbo.created_at),
 });
 
-const formatOwnerProspectApi = (
+export const formatOwnerProspectApi = (
   ownerProspectApi: OwnerProspectApi
-): OwnerProspectDbo => ({
+): OwnerProspectDBO => ({
   id: ownerProspectApi.id,
   address: ownerProspectApi.address,
   invariant: ownerProspectApi.invariant,

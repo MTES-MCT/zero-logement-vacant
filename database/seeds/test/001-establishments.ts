@@ -10,7 +10,8 @@ import localityRepository, {
 } from '../../../server/repositories/localityRepository';
 import { Knex } from 'knex';
 import { LocalityApi, TaxKindsApi } from '../../../server/models/LocalityApi';
-import { establishmentsLocalitiesTable } from '../../../server/repositories/housingRepository';
+
+import { establishmentsLocalitiesTable } from '../../../server/repositories/establishmentLocalityRepository';
 
 export const Locality1: LocalityApi = genLocalityApi();
 export const Locality2: LocalityApi = {

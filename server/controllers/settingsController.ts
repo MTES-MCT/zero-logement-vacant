@@ -1,16 +1,17 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
+import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+
 import SettingsMissingError from '../errors/settingsMissingError';
 import settingsRepository from '../repositories/settingsRepository';
-import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import EstablishmentMissingError from '../errors/establishmentMissingError';
 import { SettingsApi, toDBO } from '../models/SettingsApi';
 import { logger } from '../utils/logger';
 
-const getSettings = async (request: Request, response: Response) => {
+async function getSettings(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
 
   const id = request.params.id ?? auth.establishmentId;
@@ -24,13 +25,13 @@ const getSettings = async (request: Request, response: Response) => {
     throw new SettingsMissingError({ establishmentId: id });
   }
   response.status(constants.HTTP_STATUS_OK).json(toDBO(settings));
-};
+}
 
 const getSettingsValidators: ValidationChain[] = [
   param('id').isString().notEmpty(),
 ];
 
-const updateSettings = async (request: Request, response: Response) => {
+async function updateSettings(request: Request, response: Response) {
   const { auth, body } = request as AuthenticatedRequest;
   // Could be the given establishmentId param in a future with access control
   const { establishmentId } = auth;
@@ -62,7 +63,7 @@ const updateSettings = async (request: Request, response: Response) => {
   };
   await settingsRepository.upsert(newSettings);
   response.status(status).json(toDBO(newSettings));
-};
+}
 
 const updateSettingsValidators: ValidationChain[] = [
   param('id').isString().notEmpty(),

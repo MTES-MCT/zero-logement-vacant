@@ -11,7 +11,7 @@ export const usersTable = 'users';
 
 export const Users = () => db<UserDBO>(usersTable);
 
-const get = async (id: string): Promise<UserApi | null> => {
+async function get(id: string): Promise<UserApi | null> {
   logger.debug('Get user by id', id);
 
   const result = await Users()
@@ -20,9 +20,9 @@ const get = async (id: string): Promise<UserApi | null> => {
     .first();
 
   return result ? parseUserApi(result) : null;
-};
+}
 
-const getByEmail = async (email: string): Promise<UserApi | null> => {
+async function getByEmail(email: string): Promise<UserApi | null> {
   logger.debug('Get user by email', email);
 
   const result = await Users()
@@ -31,30 +31,27 @@ const getByEmail = async (email: string): Promise<UserApi | null> => {
     .first();
 
   return result ? parseUserApi(result) : null;
-};
+}
 
-const update = async (userApi: UserApi): Promise<void> => {
-  logger.info('Update userApi with id', userApi.id);
-  await Users()
-    .update(formatUserApi(userApi))
-    .where('id', userApi.id)
-    .debug(true);
-};
+async function update(user: UserApi): Promise<void> {
+  logger.debug('Update user', { id: user.id });
+  await Users().where({ id: user.id }).update(formatUserApi(user));
+}
 
-const insert = async (userApi: UserApi): Promise<UserApi> => {
+async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
   return db(usersTable)
     .insert(formatUserApi(userApi))
     .returning('*')
     .then((_) => parseUserApi(_[0]));
-};
+}
 
 interface StreamOptions {
   roles?: UserRoles[];
   updatedAfter?: Date;
 }
 
-const stream = (options?: StreamOptions) => {
+function stream(options?: StreamOptions) {
   const stream = Users()
     .orderBy('email')
     .modify((query) => {
@@ -67,14 +64,14 @@ const stream = (options?: StreamOptions) => {
     })
     .stream();
   return highland(stream).map((_) => parseUserApi(_ as UserDBO));
-};
+}
 
 interface FindOptions {
   filters?: UserFiltersApi;
   pagination?: PaginationApi;
 }
 
-const find = async (opts?: FindOptions): Promise<UserApi[]> => {
+async function find(opts?: FindOptions): Promise<UserApi[]> {
   const users: UserDBO[] = await db<UserDBO>(usersTable)
     .where(notDeleted)
     .modify((builder) => {
@@ -87,7 +84,7 @@ const find = async (opts?: FindOptions): Promise<UserApi[]> => {
     .modify(paginationQuery(opts?.pagination));
 
   return users.map(parseUserApi);
-};
+}
 
 interface CountOptions {
   filters?: UserFiltersApi;
@@ -101,7 +98,7 @@ function filter(filters?: UserFiltersApi) {
   };
 }
 
-const count = async (opts?: CountOptions): Promise<number> => {
+async function count(opts?: CountOptions): Promise<number> {
   const result = await db<UserDBO>(usersTable)
     .where(notDeleted)
     .modify(filter(opts?.filters))
@@ -109,12 +106,12 @@ const count = async (opts?: CountOptions): Promise<number> => {
     .first();
 
   return Number(result?.count);
-};
+}
 
-const remove = async (userId: string): Promise<void> => {
+async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
   await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
-};
+}
 
 export interface UserDBO {
   id: string;

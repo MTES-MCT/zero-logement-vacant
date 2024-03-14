@@ -1,24 +1,46 @@
 import request from 'supertest';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
-import { User1 } from '../../database/seeds/test/003-users';
-import { genEmail, genSignupLinkApi, genSiren } from '../test/testFixtures';
+import {
+  genEmail,
+  genEstablishmentApi,
+  genProspectApi,
+  genSignupLinkApi,
+  genSiren,
+  genUserApi,
+} from '../test/testFixtures';
 import { createServer } from '../server';
-import signupLinkRepository from '../repositories/signupLinkRepository';
+import signupLinkRepository, {
+  formatSignupLinkApi,
+  SignupLinks,
+} from '../repositories/signupLinkRepository';
 import { ProspectApi } from '../models/ProspectApi';
 import ceremaService from '../services/ceremaService';
 import { SignupLinkApi } from '../models/SignupLinkApi';
 import { subHours } from 'date-fns';
-import { Prospect1 } from '../../database/seeds/test/007-prospects';
 import {
-  Establishment1,
-  Establishment2,
-} from '../../database/seeds/test/001-establishments';
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+import {
+  formatProspectApi,
+  Prospects,
+} from '../repositories/prospectRepository';
 
-describe('Prospect controller', () => {
+describe('Prospect API', () => {
   const { app } = createServer();
 
-  describe('create', () => {
+  const establishment = genEstablishmentApi();
+  const anotherEstablishment = genEstablishmentApi();
+
+  beforeAll(async () => {
+    await Establishments().insert(
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
+    );
+  });
+
+  describe('PUT /signup-links/{link}/prospect', () => {
     const testRoute = (link: string) => `/api/signup-links/${link}/prospect`;
 
     it('should receive a valid link', async () => {
@@ -29,8 +51,12 @@ describe('Prospect controller', () => {
     });
 
     it('should return forbidden when a user already exist', async () => {
-      const link = genSignupLinkApi(User1.email);
-      await signupLinkRepository.insert(link);
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      const user = genUserApi(establishment.id);
+      await Users().insert(formatUserApi(user));
+      const link = genSignupLinkApi(user.email);
+      await SignupLinks().insert(formatSignupLinkApi(link));
 
       const { status } = await request(app).put(testRoute(link.id));
 
@@ -62,7 +88,7 @@ describe('Prospect controller', () => {
     it('should create a prospect for the first known establishment with lovac ok', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      await signupLinkRepository.insert(link);
+      await SignupLinks().insert(formatSignupLinkApi(link));
       jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -72,13 +98,13 @@ describe('Prospect controller', () => {
         },
         {
           email,
-          establishmentSiren: Establishment1.siren,
+          establishmentSiren: establishment.siren,
           hasAccount: true,
           hasCommitment: false,
         },
         {
           email,
-          establishmentSiren: Establishment2.siren,
+          establishmentSiren: anotherEstablishment.siren,
           hasAccount: true,
           hasCommitment: true,
         },
@@ -89,16 +115,17 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: Establishment2,
+        establishment: anotherEstablishment,
         hasAccount: true,
         hasCommitment: true,
+        lastAccountRequestAt: expect.any(String),
       });
     });
 
     it('should create a prospect with an unknown establishment', async () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
-      await signupLinkRepository.insert(link);
+      await SignupLinks().insert(formatSignupLinkApi(link));
       jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -115,14 +142,17 @@ describe('Prospect controller', () => {
         email,
         hasAccount: true,
         hasCommitment: true,
+        lastAccountRequestAt: expect.any(String),
       });
     });
 
     it('should update and return the prospect if they already exist', async () => {
-      const email = Prospect1.email;
+      const prospect = genProspectApi(establishment);
+      await Prospects().insert(formatProspectApi(prospect));
+      const email = prospect.email;
       const link = genSignupLinkApi(email);
-      const siren = Establishment2.siren;
-      await signupLinkRepository.insert(link);
+      const siren = establishment.siren;
+      await SignupLinks().insert(formatSignupLinkApi(link));
       jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
@@ -137,14 +167,15 @@ describe('Prospect controller', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<ProspectApi>({
         email,
-        establishment: Establishment2,
+        establishment,
         hasAccount: true,
         hasCommitment: true,
+        lastAccountRequestAt: expect.any(String),
       });
     });
   });
 
-  describe('show', () => {
+  describe('GET /prospects/{email}', () => {
     const testRoute = (email: string) => `/api/prospects/${email}`;
 
     it('should receive a valid email', async () => {
@@ -164,14 +195,20 @@ describe('Prospect controller', () => {
     });
 
     it('should return the prospect otherwise', async () => {
-      const prospect = Prospect1;
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      const prospect = genProspectApi(establishment);
+      await Prospects().insert(formatProspectApi(prospect));
 
       const { body, status } = await request(app).get(
         testRoute(prospect.email)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual<ProspectApi>(prospect);
+      expect(body).toMatchObject<Partial<ProspectApi>>({
+        ...prospect,
+        lastAccountRequestAt: expect.any(String),
+      });
     });
   });
 });

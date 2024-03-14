@@ -33,6 +33,30 @@ export async function up(knex: Knex): Promise<void> {
       .onDelete('CASCADE');
     table.primary(['campaign_id', 'draft_id']);
   });
+
+  await knex('drafts').insert(
+    knex('campaigns').select({
+      id: knex.raw('gen_random_uuid()'),
+      body: knex.raw('NULL'),
+      created_at: knex.fn.now(),
+      updated_at: knex.fn.now(),
+      establishment_id: knex.ref('campaigns.establishment_id'),
+    })
+  );
+
+  await knex('campaigns_drafts').insert(
+    knex.raw(`
+      SELECT
+        ordered_campaigns.id AS campaign_id,
+        ordered_drafts.id AS draft_id
+      FROM
+        (SELECT *, ROW_NUMBER() OVER (ORDER BY establishment_id) AS row FROM campaigns) AS ordered_campaigns
+      JOIN
+        (SELECT *, ROW_NUMBER() OVER (ORDER BY establishment_id) AS row FROM drafts) AS ordered_drafts
+      ON
+        ordered_campaigns.row = ordered_drafts.row
+    `)
+  );
 }
 
 export async function down(knex: Knex): Promise<void> {

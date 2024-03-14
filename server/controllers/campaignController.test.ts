@@ -15,7 +15,6 @@ import {
   formatCampaignApi,
 } from '../repositories/campaignRepository';
 import { tokenProvider } from '../test/testUtils';
-import { Establishment1 } from '../../database/seeds/test/001-establishments';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { CampaignEvents, HousingEvents } from '../repositories/eventRepository';
 import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
@@ -46,7 +45,7 @@ import {
   formatOwnerHousingApi,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
-import { isDefined } from '../../shared';
+import { CampaignPayloadDTO, isDefined } from '../../shared';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -96,7 +95,7 @@ describe('Campaign controller', () => {
     it('should return an error when there is no campaign with the required id', async () => {
       const { status } = await request(app)
         .get(testRoute(uuidv4()))
-        .use(tokenProvider(user))
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -189,17 +188,18 @@ describe('Campaign controller', () => {
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
+      const payload: CampaignPayloadDTO = {
+        title,
+        housing: {
+          filters: {},
+          all: false,
+          ids: houses.map((housing) => housing.id),
+        },
+      };
 
       const { body, status } = await request(app)
         .post(testRoute)
-        .send({
-          draftCampaign: {
-            filters: {},
-            title,
-          },
-          housingIds: houses.map((housing) => housing.id),
-          allHousing: false,
-        })
+        .send(payload)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -237,7 +237,7 @@ describe('Campaign controller', () => {
         .first();
       expect(draft).toMatchObject({
         body: null,
-        establishment_id: Establishment1.id,
+        establishment_id: establishment.id,
       });
     });
   });
@@ -569,7 +569,7 @@ describe('Campaign controller', () => {
             step: CampaignSteps.Confirmation,
           },
         })
-        .use(tokenProvider(user))
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 

@@ -110,11 +110,10 @@ const createValidators: ValidationChain[] = [
     .withMessage('Must be an array of UUID'),
   ...housingFiltersApi.validators('housing.filters'),
 ];
-async function createCampaign(request: Request, response: Response) {
+async function create(request: Request, response: Response) {
   logger.info('Create campaign');
 
   const { auth } = request as AuthenticatedRequest;
-
   const body = request.body as CampaignPayloadDTO;
 
   const filters: HousingFiltersDTO = {
@@ -518,7 +517,7 @@ const campaignController = {
   listValidators,
   list,
   createValidators,
-  createCampaign,
+  create,
   createCampaignFromGroup,
   createCampaignFromGroupValidators,
   updateCampaignValidators,

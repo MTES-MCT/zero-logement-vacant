@@ -3,14 +3,14 @@ import request from 'supertest';
 
 import { createServer } from '../../server';
 import { DraftApi } from '../../models/DraftApi';
-import { genCampaignApi, genDraftApi } from '../../test/testFixtures';
+import {
+  genCampaignApi,
+  genDraftApi,
+  genEstablishmentApi,
+  genUserApi,
+} from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 import { CampaignApi } from '../../models/CampaignApi';
-import {
-  Establishment1,
-  Establishment2,
-} from '../../../database/seeds/test/001-establishments';
-import { User1 } from '../../../database/seeds/test/003-users';
 import { Drafts, formatDraftApi } from '../../repositories/draftRepository';
 import {
   Campaigns,
@@ -18,13 +18,25 @@ import {
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
 import { DraftDTO } from '../../../shared/models/DraftDTO';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../../repositories/userRepository';
 
 describe('Draft API', () => {
   const { app } = createServer();
 
-  const establishment = Establishment1;
-  const user = User1;
-  const anotherEstablishment = Establishment2;
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+  const anotherEstablishment = genEstablishmentApi();
+
+  beforeAll(async () => {
+    await Establishments().insert(
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
+    );
+    await Users().insert(formatUserApi(user));
+  });
 
   describe('GET /drafts', () => {
     const testRoute = '/api/drafts';
@@ -34,12 +46,13 @@ describe('Draft API', () => {
       ...Array.from({ length: 2 }, () => genDraftApi(anotherEstablishment)),
     ];
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       await Drafts().insert(drafts.map(formatDraftApi));
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).get(testRoute);
+
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 

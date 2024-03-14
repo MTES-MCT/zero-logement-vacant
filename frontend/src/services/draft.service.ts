@@ -1,5 +1,9 @@
 import { zlvApi } from './api.service';
-import { DraftDTO, DraftPayloadDTO } from '../../../shared/models/DraftDTO';
+import {
+  DraftDTO,
+  DraftCreationPayloadDTO,
+  DraftUpdatePayloadDTO,
+} from '../../../shared/models/DraftDTO';
 import { Draft } from '../models/Draft';
 import { getURLQuery } from '../utils/fetchUtils';
 
@@ -31,7 +35,7 @@ export const draftApi = zlvApi.injectEndpoints({
       query: (draft) => ({
         url: `/drafts/${draft.id}`,
         method: 'PUT',
-        body: toDraftPayloadDTO(draft),
+        body: toDraftUpdatePayloadDTO(draft),
       }),
       invalidatesTags: (result, error, draft) => [
         { type: 'Draft', id: draft.id },
@@ -49,9 +53,9 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   };
 }
 
-function toDraftPayloadDTO(draft: Draft): DraftPayloadDTO {
+function toDraftUpdatePayloadDTO(draft: Draft): DraftUpdatePayloadDTO {
   return {
-    body: draft.body ?? null,
+    body: draft.body,
   };
 }
 

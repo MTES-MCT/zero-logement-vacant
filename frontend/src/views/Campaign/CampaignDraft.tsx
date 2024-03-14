@@ -6,7 +6,7 @@ import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Campaign } from '../../models/Campaign';
-import { DraftPayloadDTO } from '../../../../shared/models/DraftDTO';
+import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import SaveButton from '../../components/Draft/SaveButton';
 import { Col, Container, Row } from '../../components/_dsfr';
 import { useUpdateDraftMutation } from '../../services/draft.service';
@@ -24,7 +24,7 @@ function CampaignDraft(props: Props) {
 
   useDocumentTitle(props.campaign.title ?? 'Campagne');
 
-  const [values, setValues] = useState<DraftPayloadDTO>({
+  const [values, setValues] = useState<DraftCreationPayloadDTO>({
     body: '',
     campaign: props.campaign.id,
   });

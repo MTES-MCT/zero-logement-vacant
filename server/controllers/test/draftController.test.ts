@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
 import request from 'supertest';
 
@@ -16,12 +17,16 @@ import {
   Drafts,
   formatDraftApi,
 } from '../../repositories/draftRepository';
+import { User2 } from '../../../database/seeds/test/003-users';
 import {
   Campaigns,
   formatCampaignApi,
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import { DraftDTO, DraftPayloadDTO } from '../../../shared/models/DraftDTO';
+import {
+  DraftDTO,
+  DraftCreationPayloadDTO,
+} from '../../../shared/models/DraftDTO';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -109,7 +114,9 @@ describe('Draft API', () => {
     });
 
     it('should fail if the payload has a wrong format', async () => {
-      async function fail(payload: Partial<DraftPayloadDTO>): Promise<void> {
+      async function fail(
+        payload: Partial<DraftCreationPayloadDTO>
+      ): Promise<void> {
         const { status } = await request(app)
           .post(testRoute)
           .send(payload)
@@ -126,7 +133,7 @@ describe('Draft API', () => {
 
     it('should fail if the campaign to attach is missing', async () => {
       const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
-      const payload: DraftPayloadDTO = {
+      const payload: DraftCreationPayloadDTO = {
         body: draft.body,
         campaign: missingCampaign.id,
       };
@@ -140,7 +147,7 @@ describe('Draft API', () => {
     });
 
     it('should create a draft and attach it to a campaign', async () => {
-      const payload: DraftPayloadDTO = {
+      const payload: DraftCreationPayloadDTO = {
         body: draft.body,
         campaign: campaign.id,
       };
@@ -163,6 +170,85 @@ describe('Draft API', () => {
         .where({ campaign_id: campaign.id })
         .first();
       expect(actualCampaignDraft).toBeDefined();
+    });
+  });
+
+  describe('PUT /drafts/{id}', () => {
+    const testRoute = (id: string) => `/api/drafts/${id}`;
+
+    const draft: DraftApi = genDraftApi(establishment);
+    const payload: DraftCreationPayloadDTO = {
+      body: 'Look at that body!',
+    };
+
+    beforeEach(async () => {
+      await Drafts().insert(formatDraftApi(draft));
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).put(testRoute(draft.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail if the draft does not exist', async () => {
+      const { status } = await request(app)
+        .put(testRoute(faker.string.uuid()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should fail if the draft belongs to another establishment', async () => {
+      const { status } = await request(app)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(User2));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should fail to validate input', async () => {
+      async function fail(id: string, payload: object): Promise<void> {
+        const { status } = await request(app)
+          .put(testRoute(id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await fail('bad-format', {
+        body: '',
+      });
+      await fail(faker.string.uuid(), {
+        body: undefined,
+      });
+    });
+
+    it('should update a draft', async () => {
+      const { body, status } = await request(app)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual<DraftDTO>({
+        id: draft.id,
+        body: payload.body,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
+
+      const actual = await Drafts().where('id', draft.id).first();
+      expect(actual).toStrictEqual<DraftDBO>({
+        id: draft.id,
+        body: payload.body,
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
+        establishment_id: draft.establishmentId,
+      });
     });
   });
 });

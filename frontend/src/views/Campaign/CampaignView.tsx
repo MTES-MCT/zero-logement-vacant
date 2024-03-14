@@ -28,7 +28,6 @@ function CampaignView() {
 
   const steps: Record<CampaignStatus, JSX.Element> = {
     draft: <CampaignDraft campaign={campaign} />,
-    validating: <NotFoundView />,
     sending: <NotFoundView />,
     'in-progress': <CampaignInProgress />,
     archived: <NotFoundView />,

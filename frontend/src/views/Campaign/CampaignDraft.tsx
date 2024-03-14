@@ -61,6 +61,7 @@ function CampaignDraft(props: Props) {
       <Container as="article" fluid>
         <Row justifyContent="right" spacing="mb-2w">
           <SaveButton
+            isError={mutation.isError}
             isLoading={mutation.isLoading}
             isSuccess={mutation.isSuccess}
             onSave={save}

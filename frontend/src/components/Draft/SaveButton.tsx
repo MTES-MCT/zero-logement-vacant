@@ -1,25 +1,47 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 interface Props {
   className?: string;
+  isError: boolean;
   isLoading: boolean;
   isSuccess: boolean;
   onSave(): void;
 }
 
 function SaveButton(props: Props) {
-  const [text, setText] = useState('Sauvegarder');
+  const toastId = 'save';
 
   useEffect(() => {
     if (props.isLoading) {
-      setText('Sauvegarde en cours...');
+      toast('Sauvegarde...', {
+        autoClose: false,
+        isLoading: true,
+        toastId,
+      });
       return;
     }
 
+    if (props.isError) {
+      toast.update(toastId, {
+        autoClose: null,
+        isLoading: false,
+        render: 'Erreur lors de la sauvegarde',
+        type: 'error',
+        toastId,
+      });
+    }
+
     if (props.isSuccess) {
-      setText('Sauvegardé !');
-      setTimeout(() => setText('Sauvegarder'), 2000);
+      toast.update(toastId, {
+        autoClose: null,
+        isLoading: false,
+        render: 'Sauvegardé !',
+        type: 'success',
+        toastId,
+      });
+      return;
     }
   }, [props.isLoading, props.isSuccess]);
 
@@ -31,7 +53,7 @@ function SaveButton(props: Props) {
       type="button"
       onClick={props.onSave}
     >
-      {text}
+      Sauvegarder
     </Button>
   );
 }

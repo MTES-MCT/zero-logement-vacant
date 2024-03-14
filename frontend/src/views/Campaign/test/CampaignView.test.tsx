@@ -10,6 +10,7 @@ import { AppStore } from '../../../store/store';
 import { mockRequests } from '../../../utils/test/requestUtils';
 import CampaignView from '../CampaignView';
 import { Draft } from '../../../models/Draft';
+import Notification from '../../../components/Notification/Notification';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -30,6 +31,7 @@ describe('Campaign view', () => {
   function renderComponent(): void {
     render(
       <Provider store={store}>
+        <Notification />
         <Router history={router}>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
@@ -142,6 +144,7 @@ describe('Campaign view', () => {
 
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
-    await screen.findByRole('button', { name: /^Sauvegarde en cours.../ });
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/^Sauvegarde.../);
   });
 });

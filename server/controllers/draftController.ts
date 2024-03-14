@@ -1,16 +1,22 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
+import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DraftApi } from '../models/DraftApi';
+import { DraftApi, toDraftDTO } from '../models/DraftApi';
 import draftRepository, { DraftFilters } from '../repositories/draftRepository';
-import { DraftPayloadDTO } from '../../shared/models/DraftDTO';
+import {
+  DraftDTO,
+  DraftCreationPayloadDTO,
+} from '../../shared/models/DraftDTO';
 import campaignDraftRepository from '../repositories/campaignDraftRepository';
 import campaignRepository from '../repositories/campaignRepository';
 import CampaignMissingError from '../errors/campaignMissingError';
-import { body, ValidationChain } from 'express-validator';
+import DraftMissingError from '../errors/draftMissingError';
+import { isUUIDParam } from '../utils/validators';
+import { logger } from '../utils/logger';
 
 interface DraftQuery {
   campaign?: string;
@@ -27,12 +33,12 @@ async function list(request: Request, response: Response) {
   const drafts: DraftApi[] = await draftRepository.find({
     filters,
   });
-  response.status(constants.HTTP_STATUS_OK).json(drafts);
+  response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
 async function create(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
-  const body = request.body as DraftPayloadDTO;
+  const body = request.body as DraftCreationPayloadDTO;
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
@@ -62,18 +68,39 @@ const createValidators: ValidationChain[] = [
     .withMessage('campaign is required'),
 ];
 
-async function update(request: Request, response: Response) {
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+async function update(request: Request, response: Response<DraftDTO>) {
+  const { auth, params } = request as AuthenticatedRequest;
+  const body = request.body as DraftCreationPayloadDTO;
 
-  await delay(1000);
-  response.status(constants.HTTP_STATUS_OK).json();
+  const draft = await draftRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId,
+  });
+  if (!draft) {
+    throw new DraftMissingError(params.id);
+  }
+
+  const updated: DraftApi = {
+    ...draft,
+    updatedAt: new Date().toJSON(),
+    body: body.body,
+  };
+  await draftRepository.save(updated);
+  logger.info('Draft updated', updated);
+
+  response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
+const updateValidators: ValidationChain[] = [
+  isUUIDParam('id'),
+  body('body').isString().withMessage('Body must be a string').trim(),
+];
 
 const draftController = {
   list,
   create,
   createValidators,
+  update,
+  updateValidators,
 };
 
 export default draftController;

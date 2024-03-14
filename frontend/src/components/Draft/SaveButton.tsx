@@ -44,7 +44,7 @@ function SaveButton(props: Props) {
       return;
     }
 
-    return toast.dismiss(toastId);
+    return () => toast.dismiss(toastId);
   }, [props.isError, props.isLoading, props.isSuccess]);
 
   return (

@@ -1,19 +1,20 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import classNames from 'classnames';
 import React, { useState } from 'react';
+import { InferType, object } from 'yup';
+
 import { Col, Container, Row, Title } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
+import { useUpdateCampaignMutation } from '../../services/campaign.service';
+import styles from './campaign.module.scss';
+import { campaignTitleValidator, useForm } from '../../hooks/useForm';
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import * as yup from 'yup';
-import { campaignTitleValidator, useForm } from '../../hooks/useForm';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { useUpdateCampaignMutation } from '../../services/campaign.service';
-import styles from './campaign.module.scss';
-import classNames from 'classnames';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -22,6 +23,11 @@ const modal = createModal({
   isOpenedByDefault: false,
 });
 
+const schema = object().shape({
+  title: campaignTitleValidator,
+});
+type FormShape = InferType<typeof schema>;
+
 interface Props {
   campaign: Campaign;
   className?: string;
@@ -29,38 +35,33 @@ interface Props {
   look?: TitleAs;
 }
 
-const CampaignTitle = ({ campaign, className, as, look }: Props) => {
+function CampaignTitle({ campaign, className, as, look }: Props) {
   const { trackEvent } = useMatomo();
 
-  const [updateCampaignTitle] = useUpdateCampaignMutation();
+  const [updateCampaign] = useUpdateCampaignMutation();
 
-  const [campaignTitle, setCampaignTitle] = useState(campaign.title ?? '');
-  const shape = {
-    campaignTitle: campaignTitleValidator,
-  };
-  type FormShape = typeof shape;
-
-  const form = useForm(yup.object().shape(shape), {
-    campaignTitle,
+  const [title, setTitle] = useState(campaign.title ?? '');
+  const form = useForm(schema, {
+    title,
   });
 
-  const submitTitle = async () => {
-    await form.validate(async () => {
+  function submit() {
+    form.validate(async () => {
+      await updateCampaign({
+        id: campaign.id,
+        campaignUpdate: {
+          titleUpdate: {
+            title,
+          },
+        },
+      });
       trackEvent({
         category: TrackEventCategories.Campaigns,
         action: TrackEventActions.Campaigns.Rename,
       });
-      await updateCampaignTitle({
-        id: campaign.id,
-        campaignUpdate: {
-          titleUpdate: {
-            title: campaignTitle,
-          },
-        },
-      });
       modal.close();
     });
-  };
+  }
 
   return (
     <>
@@ -87,12 +88,7 @@ const CampaignTitle = ({ campaign, className, as, look }: Props) => {
         </Button>
       </Container>
       <modal.Component
-        title={
-          <>
-            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
-            Titre de la campagne
-          </>
-        }
+        title="Modifier le titre de la campagne"
         buttons={[
           {
             children: 'Annuler',
@@ -100,29 +96,32 @@ const CampaignTitle = ({ campaign, className, as, look }: Props) => {
             priority: 'secondary',
           },
           {
-            onClick: () => submitTitle(),
+            onClick: submit,
             children: 'Enregistrer',
+            doClosesModal: false,
           },
         ]}
       >
-        <Container as="section" fluid>
-          <Row gutters>
-            <Col n="10">
-              <AppTextInput<FormShape>
-                value={campaignTitle}
-                onChange={(e) => setCampaignTitle(e.target.value)}
-                label="Titre de la campagne (obligatoire)"
-                placeholder="Titre de la campagne"
-                inputForm={form}
-                inputKey="campaignTitle"
-                required
-              />
-            </Col>
-          </Row>
-        </Container>
+        <form id="campaign-title-edition-form" onSubmit={submit}>
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="10">
+                <AppTextInput<FormShape>
+                  inputForm={form}
+                  inputKey="title"
+                  label="Nom de la campagne *"
+                  required
+                  value={title}
+                  state={form.hasError('title') ? 'error' : 'default'}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </Col>
+            </Row>
+          </Container>
+        </form>
       </modal.Component>
     </>
   );
-};
+}
 
 export default CampaignTitle;

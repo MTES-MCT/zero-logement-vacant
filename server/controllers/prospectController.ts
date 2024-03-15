@@ -57,6 +57,7 @@ async function upsert(request: Request, response: Response) {
     establishment: knowEstablishmentWithCommitment,
     hasAccount: ceremaUser?.hasAccount ?? false,
     hasCommitment: ceremaUser?.hasCommitment ?? false,
+    lastAccountRequestAt: new Date(),
   };
   await prospectRepository.upsert(prospect);
 

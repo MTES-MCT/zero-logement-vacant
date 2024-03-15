@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
 import { body, ValidationChain } from 'express-validator';
 import ownerRepository from '../repositories/ownerRepository';
-import { fromOwnerPayloadDTO, hasContactChanges, hasIdentityChanges, OwnerApi } from '../models/OwnerApi';
+import {
+  fromOwnerPayloadDTO,
+  hasContactChanges,
+  hasIdentityChanges,
+  OwnerApi,
+} from '../models/OwnerApi';
 import eventRepository from '../repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
@@ -17,7 +22,7 @@ import { OwnerPayloadDTO } from '../../shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
 
-const get = async (request: Request, response: Response) => {
+async function get(request: Request, response: Response) {
   const { id } = request.params;
   logger.info('Get owner', id);
 
@@ -27,9 +32,9 @@ const get = async (request: Request, response: Response) => {
   }
 
   response.status(constants.HTTP_STATUS_OK).json(owner);
-};
+}
 
-const search = async (request: Request, response: Response) => {
+async function search(request: Request, response: Response) {
   const q = request.body.q;
   const page = request.body.page;
   const perPage = request.body.perPage;
@@ -38,9 +43,9 @@ const search = async (request: Request, response: Response) => {
 
   const owners = await ownerRepository.searchOwners(q, page, perPage);
   response.status(constants.HTTP_STATUS_OK).json(owners);
-};
+}
 
-const listByHousing = async (request: Request, response: Response) => {
+async function listByHousing(request: Request, response: Response) {
   const housingId = request.params.housingId;
   const establishment = (request as AuthenticatedRequest).establishment;
 
@@ -56,9 +61,9 @@ const listByHousing = async (request: Request, response: Response) => {
 
   const owners = await ownerRepository.findByHousing(housing);
   response.status(constants.HTTP_STATUS_OK).json(owners);
-};
+}
 
-const create = async (request: Request, response: Response) => {
+async function create(request: Request, response: Response) {
   logger.info('Create owner', request.body);
 
   const { auth } = request as AuthenticatedRequest;
@@ -92,7 +97,7 @@ const create = async (request: Request, response: Response) => {
   });
 
   response.status(constants.HTTP_STATUS_OK).json(owner);
-};
+}
 
 type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
 
@@ -105,7 +110,7 @@ const parseHousingOwnerApi = (
     : undefined,
 });
 
-const update = async (request: Request, response: Response) => {
+async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
 
   const owner: OwnerApi = {
@@ -115,12 +120,12 @@ const update = async (request: Request, response: Response) => {
 
   const updatedOwnerApi = await updateOwner(owner, auth.userId);
   response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi);
-};
+}
 
-const updateOwner = async (
+async function updateOwner(
   ownerApi: OwnerApi,
   userId: string
-): Promise<OwnerApi | undefined> => {
+): Promise<OwnerApi | undefined> {
   logger.info('Update owner', ownerApi.id);
 
   const prevOwnerApi = await ownerRepository.get(ownerApi.id);
@@ -194,9 +199,9 @@ const updateOwner = async (
 
     return updatedOwnerApi;
   }
-};
+}
 
-const updateHousingOwners = async (request: Request, response: Response) => {
+async function updateHousingOwners(request: Request, response: Response) {
   const { auth, params, establishment } = request as AuthenticatedRequest;
   const housingId = params.housingId;
 
@@ -263,7 +268,7 @@ const updateHousingOwners = async (request: Request, response: Response) => {
   } else {
     return response.sendStatus(constants.HTTP_STATUS_NOT_MODIFIED);
   }
-};
+}
 
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),

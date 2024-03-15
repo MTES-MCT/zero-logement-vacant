@@ -11,7 +11,7 @@ interface Props {
 
 function HousingDetailsCardLocation({ housing }: Props) {
   return (
-    <HousingDetailsSubCard title="Emplacement" isGrey>
+    <HousingDetailsSubCard title="Localisation" isGrey>
       <div>
         <Text size="sm" className="zlv-label">
           Adresse postale

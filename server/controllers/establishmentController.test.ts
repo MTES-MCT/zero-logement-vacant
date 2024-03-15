@@ -2,29 +2,37 @@ import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
-import {
-  Establishment1,
-  Establishment2,
-  Locality1,
-  Locality2,
-} from '../../database/seeds/test/001-establishments';
 import { createServer } from '../server';
+import { EstablishmentApi } from '../models/EstablishmentApi';
+import { genEstablishmentApi, oneOf } from '../test/testFixtures';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
 
-const { app } = createServer();
+describe('Establishment API', () => {
+  const { app } = createServer();
 
-describe('Establishment controller', () => {
-  describe('list', () => {
+  describe('GET /establishments', () => {
     const testRoute = (query = '') => `/api/establishments${query}`;
 
+    const establishments: EstablishmentApi[] = Array.from({ length: 3 }).map(
+      () => genEstablishmentApi()
+    );
+
+    beforeAll(async () => {
+      await Establishments().insert(establishments.map(formatEstablishmentApi));
+    });
+
     it('should receive at least a query param', async () => {
-      await request(app)
-        .get(testRoute())
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+      const { status } = await request(app).get(testRoute());
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should receive valid query params', async () => {
       await request(app)
-        .get(testRoute(`?geoCodes=${Locality1.geoCode}&geoCodes=1232456789`))
+        .get(testRoute(`?geoCodes=1232456789`))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await request(app)
@@ -47,55 +55,43 @@ describe('Establishment controller', () => {
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toIncludeAllPartialMembers([
-        {
-          id: Establishment1.id,
-          name: Establishment1.name,
-        },
-        {
-          id: Establishment2.id,
-          name: Establishment2.name,
-        },
-      ]);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<EstablishmentApi>((establishment) => {
+        return establishment.available;
+      });
     });
 
     it('should search by query', async () => {
-      const res = await request(app)
-        .get(
-          testRoute(
-            `?query=${Establishment1.name.substring(
-              1,
-              Establishment1.name.length - 1
-            )}`
-          )
-        )
-        .expect(constants.HTTP_STATUS_OK);
+      const [firstEstablishment] = establishments;
 
-      expect(res.body).toEqual([
-        expect.objectContaining({
-          id: Establishment1.id,
-          name: Establishment1.name,
-        }),
-      ]);
-    });
-
-    it('should list by geo code', async () => {
-      const geoCodes = [Locality1.geoCode, Locality2.geoCode].join(',');
       const { body, status } = await request(app).get(
-        testRoute(`?geoCodes=${geoCodes}`)
+        testRoute(
+          `?query=${firstEstablishment.name.substring(
+            1,
+            firstEstablishment.name.length - 1
+          )}`
+        )
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toIncludeAllPartialMembers([
-        {
-          id: Establishment1.id,
-          name: Establishment1.name,
-        },
-        {
-          id: Establishment2.id,
-          name: Establishment2.name,
-        },
-      ]);
+      expect(body).toPartiallyContain({
+        id: firstEstablishment.id,
+        name: firstEstablishment.name,
+      });
+    });
+
+    it('should list by geo code', async () => {
+      const [firstEstablishment] = establishments;
+
+      const { body, status } = await request(app).get(
+        testRoute(`?geoCodes=${oneOf(firstEstablishment.geoCodes)}`)
+      );
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toPartiallyContain({
+        id: firstEstablishment.id,
+        name: firstEstablishment.name,
+      });
     });
   });
 });

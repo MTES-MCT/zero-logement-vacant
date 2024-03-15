@@ -7,6 +7,8 @@ import { EstablishmentFilterApi } from '../models/EstablishmentFilterApi';
 import { logger } from '../utils/logger';
 
 export const establishmentsTable = 'establishments';
+export const Establishments = (transaction = db) =>
+  transaction<EstablishmentDbo>(establishmentsTable);
 
 type FindOptions = Partial<EstablishmentFilterApi>;
 
@@ -76,11 +78,17 @@ const findOne = async (
   return result ? parseEstablishmentApi(result) : null;
 };
 
-const update = async (establishmentApi: EstablishmentApi): Promise<void> => {
-  await db<EstablishmentDbo>(establishmentsTable)
+async function update(establishmentApi: EstablishmentApi): Promise<void> {
+  await Establishments()
     .where('id', establishmentApi.id)
     .update(formatEstablishmentApi(establishmentApi));
-};
+}
+
+async function setAvailable(establishment: EstablishmentApi): Promise<void> {
+  await Establishments()
+    .where({ id: establishment.id })
+    .update({ available: true });
+}
 
 interface StreamOptions {
   updatedAfter?: Date;
@@ -147,6 +155,7 @@ export default {
   get,
   findOne,
   update,
+  setAvailable,
   stream,
   formatEstablishmentApi,
 };

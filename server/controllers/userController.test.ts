@@ -1,48 +1,55 @@
-import db from '../repositories/db';
-import request from 'supertest';
-import randomstring from 'randomstring';
-import { withAccessToken, withAdminAccessToken } from '../test/testUtils';
 import { constants } from 'http2';
+import randomstring from 'randomstring';
+import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
+
+import db from '../repositories/db';
+import { tokenProvider } from '../test/testUtils';
 import {
   genEstablishmentApi,
-  genHousingApi,
-  genLocalityApi,
+  genProspectApi,
+  genUserApi,
 } from '../test/testFixtures';
-import { Establishment1 } from '../../database/seeds/test/001-establishments';
-import { UserRoles } from '../models/UserApi';
-import { usersTable } from '../repositories/userRepository';
-import { User1 } from '../../database/seeds/test/003-users';
-import { v4 as uuidv4 } from 'uuid';
-import establishmentRepository, {
-  establishmentsTable,
-} from '../repositories/establishmentRepository';
-import localityRepository, {
-  localitiesTable,
-} from '../repositories/localityRepository';
+import { UserApi, UserRoles } from '../models/UserApi';
 import {
-  formatHousingRecordApi,
-  housingTable,
-} from '../repositories/housingRepository';
-import { Owner1 } from '../../database/seeds/test/004-owner';
+  formatUserApi,
+  Users,
+  usersTable,
+} from '../repositories/userRepository';
+import { User1 } from '../../database/seeds/test/003-users';
+import {
+  Establishments,
+  establishmentsTable,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
 import { createServer } from '../server';
-import fetchMock from 'jest-fetch-mock';
-import { CampaignIntent } from '../models/EstablishmentApi';
-import { Prospect1 } from '../../database/seeds/test/007-prospects';
+import { CampaignIntent, EstablishmentApi } from '../models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '../services/ceremaService/consultUserService';
-
-import { housingOwnersTable } from '../repositories/housingOwnerRepository';
+import {
+  formatProspectApi,
+  Prospects,
+} from '../repositories/prospectRepository';
+import { ProspectApi } from '../models/ProspectApi';
 
 const { app } = createServer();
 
-describe('User controller', () => {
-  beforeEach(() => {
-    fetchMock.resetMocks();
+describe('User API', () => {
+  const establishment = genEstablishmentApi();
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
   });
 
-  describe('createUser', () => {
+  describe('POST /users/creations', () => {
     const testRoute = '/api/users/creation';
-    const prospect = Prospect1;
     const validPassword = '123QWEasd';
+
+    let prospect: ProspectApi;
+
+    beforeEach(async () => {
+      prospect = genProspectApi(establishment);
+      await Prospects().insert(formatProspectApi(prospect));
+    });
 
     it('should received a valid draft user', async () => {
       await request(app)
@@ -122,14 +129,15 @@ describe('User controller', () => {
     });
 
     it('should be not found if the user establishment does not exist', async () => {
-      await request(app)
+      const { status } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
           password: validPassword,
           establishmentId: uuidv4(),
-        })
-        .expect(constants.HTTP_STATUS_NOT_FOUND);
+        });
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should create a new user with Usual role', async () => {
@@ -143,31 +151,28 @@ describe('User controller', () => {
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject(
-        expect.objectContaining({
-          email: prospect.email,
-          establishmentId: prospect.establishment?.id,
-          role: UserRoles.Usual,
-        })
-      );
+      expect(body).toMatchObject({
+        email: prospect.email,
+        establishmentId: prospect.establishment?.id,
+        role: UserRoles.Usual,
+      });
 
-      await db(usersTable)
-        .where('establishment_id', Establishment1.id)
-        .andWhere('email', prospect.email)
-        .then((result) => {
-          expect(result[0]).toEqual(
-            expect.objectContaining({
-              email: prospect.email,
-              establishment_id: prospect.establishment?.id,
-              role: UserRoles.Usual,
-            })
-          );
-        });
+      const user = await Users()
+        .where({
+          establishment_id: establishment.id,
+          email: prospect.email,
+        })
+        .first();
+      expect(user).toMatchObject({
+        email: prospect.email,
+        establishment_id: prospect.establishment?.id,
+        role: UserRoles.Usual,
+      });
     });
 
     it('should save the establishment campaign intent if it was not provided yet', async () => {
       const campaignIntent: CampaignIntent = '2-4';
-      await db(establishmentsTable).where('id', Establishment1.id).update({
+      await db(establishmentsTable).where('id', establishment.id).update({
         campaign_intent: null,
       });
 
@@ -181,92 +186,85 @@ describe('User controller', () => {
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const establishment = await db(establishmentsTable)
-        .where('id', Establishment1.id)
+      const actual = await Establishments()
+        .where('id', establishment.id)
         .first();
-      expect(establishment.campaign_intent).toBe(campaignIntent);
+      expect(actual?.campaign_intent).toBe(campaignIntent);
     });
 
     it('should activate user establishment if needed', async () => {
-      const Locality = genLocalityApi();
-      const establishment = genEstablishmentApi(Locality.geoCode);
-      await db(localitiesTable).insert(
-        localityRepository.formatLocalityApi(Locality)
-      );
-      await db(establishmentsTable).insert({
-        ...establishmentRepository.formatEstablishmentApi(establishment),
+      const establishment: EstablishmentApi = {
+        ...genEstablishmentApi(),
         available: false,
-      });
-      const housing = new Array(2500)
-        .fill(0)
-        .map(() => genHousingApi(Locality.geoCode));
-      await db(housingTable).insert(housing.map(formatHousingRecordApi));
-      await db(housingOwnersTable).insert(
-        housing.map((_) => ({
-          owner_id: Owner1.id,
-          housing_id: _.id,
-          housing_geo_code: _.geoCode,
-          rank: 1,
-        }))
-      );
+      };
+      await Establishments().insert(formatEstablishmentApi(establishment));
 
-      const res = await request(app)
+      const { body, status } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
           password: validPassword,
           establishmentId: establishment.id,
-        })
-        .expect(constants.HTTP_STATUS_CREATED);
-
-      jest.runOnlyPendingTimers();
-
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          email: prospect.email,
-          establishmentId: establishment.id,
-          role: UserRoles.Usual,
-        })
-      );
-
-      await db(establishmentsTable)
-        .where('id', establishment.id)
-        .then((result) => {
-          expect(result[0]).toEqual(
-            expect.objectContaining({
-              id: establishment.id,
-              available: true,
-            })
-          );
         });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject({
+        email: prospect.email,
+        establishmentId: establishment.id,
+        role: UserRoles.Usual,
+      });
+
+      const actual = await Establishments()
+        .where('id', establishment.id)
+        .first();
+      expect(actual).toMatchObject({
+        id: establishment.id,
+        available: true,
+      });
     });
   });
 
-  describe('get', () => {
-    const testRoute = (userId: string) => `/api/users/${userId}`;
+  describe('GET /users/{id}', () => {
+    const user = genUserApi(establishment.id);
 
-    it('should be forbidden for a non authenticated user', async () => {
-      await request(app)
-        .get(testRoute(User1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    const testRoute = (id: string) => `/api/users/${id}`;
+
+    beforeAll(async () => {
+      await Users().insert(formatUserApi(user));
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).get(testRoute(User1.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid userId', async () => {
-      await withAccessToken(
-        request(app).get(testRoute(randomstring.generate()))
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+      await request(app)
+        .get(testRoute(randomstring.generate()))
+        .use(tokenProvider(user))
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should retrieve the user', async () => {
-      const res = await withAdminAccessToken(
-        request(app).get(testRoute(User1.id))
-      ).expect(constants.HTTP_STATUS_OK);
+    it.todo('should be forbidden for a common user to retrieve any user');
 
-      expect(res.body).toMatchObject(
-        expect.objectContaining({
-          id: User1.id,
-        })
-      );
+    it.todo('should allow a user to retrieve himself');
+
+    it('should retrieve any user if admin', async () => {
+      const admin: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRoles.Admin,
+      };
+      await Users().insert(formatUserApi(admin));
+
+      const { body, status } = await request(app)
+        .get(testRoute(user.id))
+        .use(tokenProvider(admin));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        id: user.id,
+      });
     });
   });
 });

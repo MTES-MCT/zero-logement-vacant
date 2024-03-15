@@ -418,7 +418,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Accordion>
           <Accordion
             label={
-              <TitleWithIcon icon="fr-icon-france-fill" title="Emplacement" />
+              <TitleWithIcon icon="fr-icon-france-fill" title="Localisation" />
             }
           >
             <Container as="section" fluid>

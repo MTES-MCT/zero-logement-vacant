@@ -12,24 +12,22 @@ export const OwnerNotes = () =>
 export const HousingNotes = (transaction = db) =>
   transaction<HousingNoteDBO>(housingNotesTable);
 
-const insertOwnerNote = async (ownerNoteApi: OwnerNoteApi): Promise<void> => {
+async function insertOwnerNote(ownerNoteApi: OwnerNoteApi): Promise<void> {
   logger.info('Insert OwnerNoteApi');
   await Notes().insert(formatNoteApi(ownerNoteApi));
   await OwnerNotes().insert({
     note_id: ownerNoteApi.id,
     owner_id: ownerNoteApi.ownerId,
   });
-};
+}
 
-const insertHousingNote = async (
-  housingNote: HousingNoteApi
-): Promise<void> => {
+async function insertHousingNote(housingNote: HousingNoteApi): Promise<void> {
   await insertManyHousingNotes([housingNote]);
-};
+}
 
-const insertManyHousingNotes = async (
+async function insertManyHousingNotes(
   housingNotes: HousingNoteApi[]
-): Promise<void> => {
+): Promise<void> {
   logger.info('Insert %d HousingNoteApi', housingNotes.length);
   if (housingNotes.length) {
     await Notes().insert(
@@ -43,30 +41,30 @@ const insertManyHousingNotes = async (
       }))
     );
   }
-};
+}
 
-const findNotes = async (
+async function findNotes(
   tableName: string,
   columnName: string,
   value: string
-): Promise<NoteApi[]> => {
+): Promise<NoteApi[]> {
   const notes = await Notes()
     .select(`${notesTable}.*`)
     .join(tableName, `${tableName}.note_id`, `${notesTable}.id`)
     .where(`${tableName}.${columnName}`, value)
     .orderBy(`${notesTable}.created_at`, 'desc');
   return notes.map(parseNoteApi);
-};
+}
 
-const findOwnerNotes = async (ownerId: string): Promise<NoteApi[]> => {
+async function findOwnerNotes(ownerId: string): Promise<NoteApi[]> {
   logger.info('List noteApi for owner with id', ownerId);
   return findNotes(ownerNotesTable, 'owner_id', ownerId);
-};
+}
 
-const findHousingNotes = async (housingId: string): Promise<NoteApi[]> => {
+async function findHousingNotes(housingId: string): Promise<NoteApi[]> {
   logger.info('List noteApi for housing with id', housingId);
   return findNotes(housingNotesTable, 'housing_id', housingId);
-};
+}
 
 interface NoteDBO {
   id: string;

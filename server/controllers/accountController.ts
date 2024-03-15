@@ -40,7 +40,7 @@ interface SignInPayload {
   establishmentId?: string;
 }
 
-const signIn = async (request: Request, response: Response) => {
+async function signIn(request: Request, response: Response) {
   const payload = request.body as SignInPayload;
 
   const user = await userRepository.getByEmail(payload.email);
@@ -60,13 +60,13 @@ const signIn = async (request: Request, response: Response) => {
   }
 
   await signInToEstablishment(user, establishmentId, response);
-};
+}
 
-const signInToEstablishment = async (
+async function signInToEstablishment(
   user: UserApi,
   establishmentId: string,
   response: Response
-) => {
+) {
   const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {
     throw new EstablishmentMissingError(establishmentId);
@@ -87,9 +87,9 @@ const signInToEstablishment = async (
     establishment,
     accessToken,
   });
-};
+}
 
-const changeEstablishment = async (request: Request, response: Response) => {
+async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
 
   if (user.role !== UserRoles.Admin) {
@@ -99,21 +99,21 @@ const changeEstablishment = async (request: Request, response: Response) => {
   const establishmentId = request.params.establishmentId;
 
   await signInToEstablishment(user, establishmentId, response);
-};
+}
 
-const get = async (request: Request, response: Response): Promise<Response> => {
-  const { userId } = (request as AuthenticatedRequest).auth;
+async function get(request: Request, response: Response) {
+  const { auth } = request as AuthenticatedRequest;
 
-  logger.info('Get account', userId);
+  logger.info('Get account', auth.userId);
 
-  const user = await userRepository.get(userId);
+  const user = await userRepository.get(auth.userId);
 
   if (!user) {
-    throw new UserMissingError(userId);
+    throw new UserMissingError(auth.userId);
   }
 
-  return response.status(constants.HTTP_STATUS_OK).json(toUserAccountDTO(user));
-};
+  response.status(constants.HTTP_STATUS_OK).json(toUserAccountDTO(user));
+}
 
 const updateAccountValidators: ValidationChain[] = [
   body('firstName').isString(),
@@ -123,21 +123,21 @@ const updateAccountValidators: ValidationChain[] = [
   body('timePerWeek').isString(),
 ];
 
-const updateAccount = async (request: Request, response: Response) => {
-  const user = (request as AuthenticatedRequest).user;
-  const userAccount = request.body as UserAccountDTO;
+async function updateAccount(request: Request, response: Response) {
+  const { user } = request as AuthenticatedRequest;
+  const account = request.body as UserAccountDTO;
 
   logger.info('Update account for ', user.id);
 
   await userRepository.update({
     ...user,
-    ...userAccount,
+    ...account,
     updatedAt: new Date(),
   });
   response.status(constants.HTTP_STATUS_OK).send();
-};
+}
 
-const updatePassword = async (request: Request, response: Response) => {
+async function updatePassword(request: Request, response: Response) {
   const user = (request as AuthenticatedRequest).user;
   const currentPassword = request.body.currentPassword;
   const newPassword = request.body.newPassword;
@@ -153,13 +153,13 @@ const updatePassword = async (request: Request, response: Response) => {
   await userRepository.update({ ...user, password: hash });
 
   response.status(constants.HTTP_STATUS_OK).send();
-};
+}
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
   passwordCreationValidator('newPassword'),
 ];
 
-const resetPassword = async (request: Request, response: Response) => {
+async function resetPassword(request: Request, response: Response) {
   const { key, password } = request.body;
 
   const link = await resetLinkRepository.get(key);
@@ -181,7 +181,7 @@ const resetPassword = async (request: Request, response: Response) => {
   await userRepository.update({ ...user, password: hash });
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
-};
+}
 const resetPasswordValidators: ValidationChain[] = [
   body('key').isString().isAlphanumeric(),
   passwordCreationValidator(),

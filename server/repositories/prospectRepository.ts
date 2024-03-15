@@ -2,13 +2,16 @@ import db from './db';
 import { ProspectApi } from '../models/ProspectApi';
 import { establishmentsTable } from './establishmentRepository';
 import { logger } from '../utils/logger';
+import { CampaignIntent } from '../models/EstablishmentApi';
 
 export const prospectsTable = 'prospects';
+export const Prospects = (transaction = db) =>
+  transaction<ProspectDBO>(prospectsTable);
 
-const get = async (email: string): Promise<ProspectApi | null> => {
+async function get(email: string): Promise<ProspectApi | null> {
   logger.info('Get prospect by email', email);
 
-  const prospect = await db(prospectsTable)
+  const prospect = await Prospects()
     .select(
       `${prospectsTable}.*`,
       'e.id as establishment_id',
@@ -26,61 +29,68 @@ const get = async (email: string): Promise<ProspectApi | null> => {
     .first();
 
   return prospect ? parseProspectApi(prospect) : null;
-};
+}
 
-const exists = async (email: string): Promise<boolean> => {
+async function exists(email: string): Promise<boolean> {
   logger.debug(`Does prospect ${email} exist`);
 
-  const prospect = await db(prospectsTable)
+  const prospect = await Prospects()
     .select('email')
     .where('email', email)
     .first();
 
   return !!prospect;
-};
+}
 
-const upsert = async (prospectApi: ProspectApi): Promise<ProspectApi> => {
-  logger.info('Upsert prospect with email', prospectApi.email);
+async function upsert(prospect: ProspectApi): Promise<void> {
+  logger.info('Upsert prospect with email', prospect.email);
+  await Prospects()
+    .insert(formatProspectApi(prospect))
+    .onConflict('email')
+    .merge();
+}
 
-  try {
-    return db(prospectsTable)
-      .insert({
-        ...formatProspectApi(prospectApi),
-        last_account_request_at: new Date(),
-      })
-      .onConflict('email')
-      .merge()
-      .returning('*')
-      .then((_) => parseProspectApi(_[0]));
-  } catch (err) {
-    console.error('Upserting prospect failed', err, prospectApi);
-    throw new Error('Upserting prospect failed');
-  }
-};
-
-const remove = async (email: string): Promise<void> => {
+async function remove(email: string): Promise<void> {
   logger.info('Remove prospect with email', email);
 
-  await db(prospectsTable).where('email', email).delete();
-};
+  await Prospects().where('email', email).delete();
+}
 
-const parseProspectApi = (result: any): ProspectApi =>
-  <ProspectApi>{
-    email: result.email,
-    hasAccount: result.has_account,
-    hasCommitment: result.has_commitment,
-    establishment: {
-      id: result.establishment_id,
-      siren: result.establishment_siren,
-      campaignIntent: result.campaign_intent,
-    },
-  };
+export interface ProspectRecordDBO {
+  email: string;
+  establishment_siren?: number;
+  has_account: boolean;
+  has_commitment: boolean;
+  last_account_request_at: Date;
+}
 
-const formatProspectApi = (prospectApi: ProspectApi) => ({
-  email: prospectApi.email,
-  has_account: prospectApi.hasAccount,
-  has_commitment: prospectApi.hasCommitment,
-  establishment_siren: prospectApi.establishment?.siren,
+export interface ProspectDBO extends ProspectRecordDBO {
+  establishment_id: string;
+  campaign_intent: string;
+}
+
+export const parseProspectApi = (prospect: ProspectDBO): ProspectApi => ({
+  email: prospect.email,
+  hasAccount: prospect.has_account,
+  hasCommitment: prospect.has_commitment,
+  lastAccountRequestAt: prospect.last_account_request_at,
+  establishment: {
+    id: prospect.establishment_id,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    siren: prospect.establishment_siren,
+    campaignIntent: prospect.campaign_intent as CampaignIntent | undefined,
+  },
+});
+
+export const formatProspectApi = (
+  prospect: ProspectApi
+): ProspectRecordDBO => ({
+  email: prospect.email,
+  has_account: prospect.hasAccount,
+  has_commitment: prospect.hasCommitment,
+  last_account_request_at: prospect.lastAccountRequestAt,
+  establishment_siren: prospect.establishment?.siren,
 });
 
 export default {

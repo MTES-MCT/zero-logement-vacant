@@ -1,20 +1,42 @@
-import { createServer } from '../server';
-import request from 'supertest';
 import { constants } from 'http2';
-import db from '../repositories/db';
-import signupLinkRepository, {
-  signupLinkTable,
+import request from 'supertest';
+
+import { createServer } from '../server';
+import {
+  formatSignupLinkApi,
+  SignupLinks,
 } from '../repositories/signupLinkRepository';
-import { genEmail, genSignupLinkApi } from '../test/testFixtures';
-import { Prospect1 } from '../../database/seeds/test/007-prospects';
+import {
+  genEmail,
+  genEstablishmentApi,
+  genProspectApi,
+  genSignupLinkApi,
+  genUserApi,
+} from '../test/testFixtures';
 import { SignupLinkApi } from '../models/SignupLinkApi';
 import { subHours } from 'date-fns';
-import { User1 } from '../../database/seeds/test/003-users';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+import {
+  formatProspectApi,
+  Prospects,
+} from '../repositories/prospectRepository';
 
-describe('Signup link controller', () => {
+describe('Signup link API', () => {
   const { app } = createServer();
 
-  describe('create', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
+  describe('POST /signup-links', () => {
     const testRoute = '/api/signup-links';
 
     it('should validate the email', async () => {
@@ -40,7 +62,7 @@ describe('Signup link controller', () => {
 
     it('should send no email if the account already exists', async () => {
       const { status } = await request(app).post(testRoute).send({
-        email: User1.email,
+        email: user.email,
       });
 
       // Return a success code to avoid giving information to an attacker
@@ -57,7 +79,7 @@ describe('Signup link controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const actualLink = await db(signupLinkTable)
+      const actualLink = await SignupLinks()
         .select()
         .where('prospect_email', email)
         .first();
@@ -65,14 +87,14 @@ describe('Signup link controller', () => {
     });
   });
 
-  describe('show', () => {
+  describe('GET /signup-links/{id}', () => {
     const testRoute = (id: string) => `/api/signup-links/${id}`;
 
     it('should get a signup link', async () => {
-      const link = genSignupLinkApi(Prospect1.email);
-      await db(signupLinkTable).insert(
-        signupLinkRepository.formatSignupLinkApi(link)
-      );
+      const prospect = genProspectApi(establishment);
+      await Prospects().insert(formatProspectApi(prospect));
+      const link = genSignupLinkApi(prospect.email);
+      await SignupLinks().insert(formatSignupLinkApi(link));
 
       const { body, status } = await request(app).get(testRoute(link.id));
 
@@ -95,7 +117,7 @@ describe('Signup link controller', () => {
         ...genSignupLinkApi(email),
         expiresAt: subHours(new Date(), 24),
       };
-      await signupLinkRepository.insert(link);
+      await SignupLinks().insert(formatSignupLinkApi(link));
 
       const { status } = await request(app).get(testRoute(link.id));
 

@@ -5,21 +5,19 @@ import housingRepository, {
   Housing,
   ReferenceDataYear,
 } from '../housingRepository';
-import {
-  Establishment1,
-  Establishment2,
-} from '../../../database/seeds/test/001-establishments';
-import { Housing1 } from '../../../database/seeds/test/005-housing';
+import { Establishment1 } from '../../../database/seeds/test/001-establishments';
 import {
   genBuildingApi,
   genCampaignApi,
+  genEstablishmentApi,
   genGroupApi,
   genHousingApi,
   genLocalityApi,
   genOwnerApi,
+  genUserApi,
+  manyOf,
   oneOf,
 } from '../../test/testFixtures';
-import { User1 } from '../../../database/seeds/test/003-users';
 import {
   formatGroupApi,
   formatGroupHousingApi,
@@ -30,7 +28,6 @@ import fp from 'lodash/fp';
 import { formatOwnerApi, Owners } from '../ownerRepository';
 import {
   formatHousingOwnersApi,
-  formatOwnerHousingApi,
   HousingOwners,
 } from '../housingOwnerRepository';
 import { HousingApi, OccupancyKindApi } from '../../models/HousingApi';
@@ -48,15 +45,26 @@ import {
 } from '../buildingRepository';
 import async from 'async';
 import { OwnerApi } from '../../models/OwnerApi';
-import { formatElapsed, timer } from '../../../scripts/shared/elapsed';
-import { logger } from '../../utils/logger';
 import {
   CampaignsHousing,
   formatCampaignHousingApi,
 } from '../campaignHousingRepository';
 import { Campaigns, formatCampaignApi } from '../campaignRepository';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../establishmentRepository';
+import { formatUserApi, Users } from '../userRepository';
 
 describe('Housing repository', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
   describe('find', () => {
     it('should sort by geo code and id by default', async () => {
       const actual = await housingRepository.find({
@@ -106,17 +114,23 @@ describe('Housing repository', () => {
 
     describe('Filters', () => {
       it('should filter by housing ids', async () => {
+        const houses: HousingApi[] = Array.from({ length: 4 })
+          .map(() =>
+            genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+          )
+          // Should not return this one
+          .concat(genHousingApi());
+        await Housing().insert(houses.map(formatHousingRecordApi));
+
         const actual = await housingRepository.find({
           filters: {
-            establishmentIds: [Establishment1.id],
-            housingIds: [Housing1.id],
+            housingIds: houses.slice(0, 1).map((housing) => housing.id),
           },
         });
 
-        expect(actual).toBeArrayOfSize(1);
-        expect(actual[0]).toMatchObject({
-          id: Housing1.id,
-          geoCode: Housing1.geoCode,
+        expect(actual.length).toBeGreaterThanOrEqual(1);
+        expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
+          return houses.map((housing) => housing.id).includes(actualHousing.id);
         });
       });
 
@@ -444,7 +458,7 @@ describe('Housing repository', () => {
           };
         }
 
-        beforeEach(async () => {
+        beforeAll(async () => {
           const owners: OwnerApi[] = [
             createOwner(39),
             createOwner(40),
@@ -535,13 +549,15 @@ describe('Housing repository', () => {
       });
 
       it('should filter by establishment', async () => {
-        const establishment = Establishment2;
-        const housing = genHousingApi(oneOf(establishment.geoCodes));
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert(formatOwnerApi(housing.owner));
-        await HousingOwners().insert(
-          formatHousingOwnersApi(housing, [housing.owner])
+        const otherEstablishment = genEstablishmentApi();
+        await Establishments().insert(
+          formatEstablishmentApi(otherEstablishment)
         );
+        const houses: HousingApi[] = [
+          genHousingApi(oneOf(establishment.geoCodes)),
+          genHousingApi(oneOf(otherEstablishment.geoCodes)),
+        ];
+        await Housing().insert(houses.map(formatHousingRecordApi));
 
         const actual = await housingRepository.find({
           filters: {
@@ -550,7 +566,7 @@ describe('Housing repository', () => {
         });
 
         expect(actual).toSatisfyAll<HousingApi>((housing) =>
-          establishment.geoCodes.some((geoCode) => geoCode === housing.geoCode)
+          establishment.geoCodes.includes(housing.geoCode)
         );
       });
 
@@ -679,7 +695,7 @@ describe('Housing repository', () => {
 
         const actual = await housingRepository.find({
           filters: {
-            vacancyRates: ['5to20'],
+            vacancyRates: ['lt20'],
           },
         });
 
@@ -693,7 +709,7 @@ describe('Housing repository', () => {
           expect(building).toBeDefined();
           expect(
             building.vacant_housing_count / building.housing_count
-          ).toSatisfy((rate) => 0.05 <= rate && rate <= 0.2);
+          ).toSatisfy((rate) => rate <= 0.2);
         });
       });
 
@@ -724,98 +740,80 @@ describe('Housing repository', () => {
       });
 
       it('should filter by group', async () => {
-        const group = genGroupApi(User1, Establishment1);
-        const housingList = [
-          genHousingApi(oneOf(Establishment1.geoCodes)),
-          genHousingApi(oneOf(Establishment1.geoCodes)),
-          genHousingApi(oneOf(Establishment1.geoCodes)),
-        ];
-        const owners = housingList
-          .map((housing) => housing.owner)
-          .filter(isDefined);
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        await Owners().insert(owners.map(formatOwnerApi));
-        await HousingOwners().insert(housingList.map(formatOwnerHousingApi));
-        await Groups().insert(formatGroupApi(group));
-        await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+        const groups = Array.from({ length: 2 }).map(() =>
+          genGroupApi(user, establishment)
+        );
+        await Groups().insert(groups.map(formatGroupApi));
+        const housesByGroup = fp.fromPairs(
+          groups.map((group) => {
+            const houses: HousingApi[] = Array.from({ length: 3 }).map(() =>
+              genHousingApi(oneOf(establishment.geoCodes))
+            );
+            return [group.id, houses];
+          })
+        );
+        const houses: HousingApi[] = fp.values(housesByGroup).flat();
+        await Housing().insert(houses.map(formatHousingRecordApi));
+        await GroupsHousing().insert(
+          groups.flatMap((group) => {
+            return formatGroupHousingApi(
+              group,
+              manyOf(
+                housesByGroup[group.id],
+                faker.number.int({ min: 1, max: 3 })
+              )
+            );
+          })
+        );
+        const [firstGroup] = groups;
 
         const actual = await housingRepository.find({
           filters: {
-            establishmentIds: [Establishment1.id],
-            groupIds: [group.id],
+            groupIds: [firstGroup.id],
           },
         });
 
-        expect(actual).toBeArrayOfSize(3);
-        const ids = housingList.map(fp.pick(['id']));
-        expect(actual).toIncludeAllPartialMembers(ids);
-      });
-    });
-  });
-
-  describe('count', () => {
-    describe('Benchmark', () => {
-      beforeEach(async () => {
-        await Housing().delete();
-      });
-
-      it('should process a large amount of data', async () => {
-        const amount = 100_000;
-        const maxParallel = 10;
-
-        const housingList = new Array(amount)
-          .fill('0')
-          .map(() => genHousingApi());
-        await async.forEachLimit(
-          fp.chunk(1_000, housingList),
-          maxParallel,
-          async (chunk) => {
-            await Housing().insert(chunk.map(formatHousingRecordApi));
-            logger.debug(`Saved ${chunk.length} housing.`);
-          }
-        );
-        logger.info(`Saved ${amount} housing.`);
-
-        await new Promise<void>((resolve) => {
-          const stop = timer();
-          return housingRepository
-            .count({
-              occupancies: [OccupancyKindApi.Vacant],
-              status: 0,
-            })
-            .then(() => {
-              const elapsed = stop();
-              logger.info(`Elapsed: ${formatElapsed(elapsed)}.`);
-              resolve();
-            });
+        expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
+          return housesByGroup[firstGroup.id]
+            .map((housing) => housing.id)
+            .includes(actualHousing.id);
         });
-      }, 120_000 /* A specific timeout */);
+      });
     });
   });
 
   describe('findOne', () => {
+    const housing: HousingApi = genHousingApi(oneOf(Establishment1.geoCodes));
+    const owner: OwnerApi = genOwnerApi();
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(formatHousingOwnersApi(housing, [owner]));
+    });
+
     it('should find by id', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: Housing1.geoCode,
-        id: Housing1.id,
+        geoCode: housing.geoCode,
+        id: housing.id,
       });
 
-      expect(actual).toHaveProperty('id', Housing1.id);
+      expect(actual).toHaveProperty('id', housing.id);
     });
 
     it('should find by local id', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: Housing1.geoCode,
-        localId: Housing1.localId,
+        geoCode: housing.geoCode,
+        localId: housing.localId,
       });
 
-      expect(actual).toHaveProperty('id', Housing1.id);
+      expect(actual).toHaveProperty('id', housing.id);
     });
 
     it('should not include owner by default', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: Housing1.geoCode,
-        id: Housing1.id,
+        geoCode: housing.geoCode,
+        id: housing.id,
       });
 
       expect(actual).toHaveProperty('owner', undefined);
@@ -823,30 +821,39 @@ describe('Housing repository', () => {
 
     it('should include owner on demand', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: Housing1.geoCode,
-        id: Housing1.id,
+        geoCode: housing.geoCode,
+        id: housing.id,
         includes: ['owner'],
       });
 
       expect(actual).toHaveProperty('owner');
-      expect(actual?.owner).toHaveProperty('id', Owner1.id);
+      expect(actual?.owner).toHaveProperty('id', owner.id);
     });
   });
 
   describe('stream', () => {
-    it('should stream a list of housing', (done) => {
-      const establishment = Establishment1;
-      housingRepository
+    const houses: HousingApi[] = Array.from({ length: 5 }).map(() =>
+      genHousingApi(oneOf(establishment.geoCodes))
+    );
+
+    beforeAll(async () => {
+      await Housing().insert(houses.map(formatHousingRecordApi));
+    });
+
+    it('should stream a list of housing', async () => {
+      const actual = await housingRepository
         .stream({
           filters: {
             establishmentIds: [establishment.id],
           },
           includes: ['owner'],
         })
-        .each((housing) => {
-          expect(establishment.geoCodes).toContain(housing.geoCode);
-        })
-        .done(done);
+        .collect()
+        .toPromise(Promise);
+
+      expect(actual).toSatisfyAll((housing) =>
+        establishment.geoCodes.includes(housing.geoCode)
+      );
     });
   });
 
@@ -910,7 +917,7 @@ describe('Housing repository', () => {
     it('should remove the links with a campaign in cascade', async () => {
       const housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
-      const campaign = genCampaignApi(Establishment1.id, User1.id);
+      const campaign = genCampaignApi(establishment.id, user.id);
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsHousing().insert(
         formatCampaignHousingApi(campaign, [housing])

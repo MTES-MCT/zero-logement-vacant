@@ -382,7 +382,7 @@ const housingWorksheetColumns = [
   },
   { header: 'Latitude', key: 'latitude' },
   { header: 'Longitude', key: 'longitude' },
-  { header: 'Emplacement', key: 'buildingLocation' },
+  { header: 'Localisation', key: 'buildingLocation' },
   { header: 'Type de logement', key: 'housingKind' },
   { header: 'DPE représentatif', key: 'energyConsumption' },
   { header: 'Date DPE', key: 'energyConsumptionAt' },

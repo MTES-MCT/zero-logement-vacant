@@ -1,35 +1,56 @@
-import request from 'supertest';
-import randomstring from 'randomstring';
+import bcrypt from 'bcryptjs';
+import { subDays } from 'date-fns';
 import { constants } from 'http2';
-import { AdminUser1, User1 } from '../../database/seeds/test/003-users';
+import randomstring from 'randomstring';
+import request from 'supertest';
 import {
+  genEstablishmentApi,
   genNumber,
   genResetLinkApi,
   genUserAccountDTO,
+  genUserApi,
 } from '../test/testFixtures';
-import fetchMock from 'jest-fetch-mock';
-import db from '../repositories/db';
 import {
   formatResetLinkApi,
-  resetLinkTable,
+  ResetLinks,
 } from '../repositories/resetLinkRepository';
 import { ResetLinkApi } from '../models/ResetLinkApi';
-import { subDays } from 'date-fns';
-import { usersTable } from '../repositories/userRepository';
-import bcrypt from 'bcryptjs';
+import { formatUserApi, Users } from '../repositories/userRepository';
 import { createServer } from '../server';
-import { withAccessToken } from '../test/testUtils';
-import { toUserAccountDTO } from '../models/UserApi';
+import { tokenProvider } from '../test/testUtils';
+import {
+  SALT_LENGTH,
+  toUserAccountDTO,
+  UserApi,
+  UserRoles,
+} from '../models/UserApi';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
 
 jest.mock('../services/ceremaService/mockCeremaService');
 
 const { app } = createServer();
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
-
 describe('Account controller', () => {
+  const establishment = genEstablishmentApi();
+  const user: UserApi = genUserApi(establishment.id);
+  const admin: UserApi = {
+    ...genUserApi(establishment.id),
+    establishmentId: undefined,
+    role: UserRoles.Admin,
+  };
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    const users: UserApi[] = [user, admin].map((user) => ({
+      ...user,
+      password: bcrypt.hashSync(user.password, SALT_LENGTH),
+    }));
+    await Users().insert(users.map(formatUserApi));
+  });
+
   describe('Sign in', () => {
     const testRoute = '/api/authenticate';
 
@@ -63,8 +84,8 @@ describe('Account controller', () => {
 
     it('should fail if an admin tries to connect as a user', async () => {
       const { body, status } = await request(app).post(testRoute).send({
-        email: AdminUser1.email,
-        password: AdminUser1.password,
+        email: admin.email,
+        password: admin.password,
       });
 
       expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
@@ -75,13 +96,25 @@ describe('Account controller', () => {
     });
 
     it('should fail if the password is wrong', async () => {
-      await request(app)
-        .post(testRoute)
-        .send({
-          email: User1.email,
-          password: '123ValidButWrong',
-        })
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+      const { status } = await request(app).post(testRoute).send({
+        email: user.email,
+        password: '123ValidButWrong',
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should succeed', async () => {
+      const { body, status } = await request(app).post(testRoute).send({
+        email: user.email,
+        password: user.password,
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject({
+        establishment,
+        accessToken: expect.any(String),
+      });
     });
   });
 
@@ -95,12 +128,12 @@ describe('Account controller', () => {
     });
 
     it('should retrieve the account', async () => {
-      const { body, status } = await withAccessToken(
-        request(app).get(testRoute)
-      );
+      const { body, status } = await request(app)
+        .get(testRoute)
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual(toUserAccountDTO(User1));
+      expect(body).toStrictEqual(toUserAccountDTO(user));
     });
   });
 
@@ -108,17 +141,20 @@ describe('Account controller', () => {
     const testRoute = '/api/account';
 
     it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
+      const { status } = await request(app)
         .put(testRoute)
-        .send(genUserAccountDTO)
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+        .send(genUserAccountDTO);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should receive valid account', async () => {
       async function test(payload: Record<string, unknown>) {
-        const { status } = await withAccessToken(
-          request(app).put(testRoute).send(payload)
-        );
+        const { status } = await request(app)
+          .put(testRoute)
+          .send(payload)
+          .use(tokenProvider(user));
+
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       }
 
@@ -131,27 +167,22 @@ describe('Account controller', () => {
 
     it('should succeed to change the account', async () => {
       const userAccountDTO = genUserAccountDTO;
-      const { body, status } = await withAccessToken(
-        request(app).put(testRoute).send(userAccountDTO)
-      );
+      const { body, status } = await request(app)
+        .put(testRoute)
+        .send(userAccountDTO)
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual({});
 
-      await db(usersTable)
-        .where('id', User1.id)
-        .first()
-        .then((result) => {
-          expect(result).toEqual(
-            expect.objectContaining({
-              first_name: userAccountDTO.firstName,
-              last_name: userAccountDTO.lastName,
-              phone: userAccountDTO.phone,
-              position: userAccountDTO.position,
-              time_per_week: userAccountDTO.timePerWeek,
-            })
-          );
-        });
+      const actual = await Users().where('id', user.id).first();
+      expect(actual).toMatchObject({
+        first_name: userAccountDTO.firstName,
+        last_name: userAccountDTO.lastName,
+        phone: userAccountDTO.phone,
+        position: userAccountDTO.position,
+        time_per_week: userAccountDTO.timePerWeek,
+      });
     });
   });
 
@@ -160,36 +191,40 @@ describe('Account controller', () => {
 
     it('should receive valid current and new passwords', async () => {
       async function test(payload: Record<string, unknown>) {
-        const { status } = await withAccessToken(
-          request(app).put(testRoute).send(payload)
-        );
+        const { status } = await request(app)
+          .put(testRoute)
+          .send(payload)
+          .use(tokenProvider(user));
+
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       }
 
       await test({ currentPassword: '', newPassword: '123QWEasd' });
       await test({ currentPassword: '     ', newPassword: '123QWEasd' });
-      await test({ currentPassword: User1.password, newPassword: '' });
-      await test({ currentPassword: User1.password, newPassword: '    ' });
+      await test({ currentPassword: user.password, newPassword: '' });
+      await test({ currentPassword: user.password, newPassword: '    ' });
     });
 
     it('should fail if the current password and the given one are different', async () => {
-      const { status } = await withAccessToken(
-        request(app).put(testRoute).send({
+      const { status } = await request(app)
+        .put(testRoute)
+        .send({
           currentPassword: 'NotTheirCurrentPassword',
           newPassword: '123QWEasd',
         })
-      );
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     it('should succeed to change the password', async () => {
-      const { body, status } = await withAccessToken(
-        request(app).put(testRoute).send({
-          currentPassword: User1.password,
+      const { body, status } = await request(app)
+        .put(testRoute)
+        .send({
+          currentPassword: user.password,
           newPassword: '123QWEasd',
         })
-      );
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual({});
@@ -216,7 +251,8 @@ describe('Account controller', () => {
             charset: 'alphanumeric',
           }),
           password: '123',
-        });
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await request(app)
         .post(testRoute)
@@ -226,7 +262,8 @@ describe('Account controller', () => {
             charset: 'alphanumeric',
           }),
           password: 'QWE',
-        });
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await request(app)
         .post(testRoute)
@@ -236,15 +273,16 @@ describe('Account controller', () => {
             charset: 'alphanumeric',
           }),
           password: 'asd',
-        });
+        })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should be impossible if the reset link has expired', async () => {
       const link: ResetLinkApi = {
-        ...genResetLinkApi(User1.id),
+        ...genResetLinkApi(user.id),
         expiresAt: subDays(new Date(), 1),
       };
-      await db(resetLinkTable).insert(formatResetLinkApi(link));
+      await ResetLinks().insert(formatResetLinkApi(link));
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
@@ -255,7 +293,7 @@ describe('Account controller', () => {
     });
 
     it("should be impossible to change one's password without an existing reset link", async () => {
-      const link = genResetLinkApi(User1.id);
+      const link = genResetLinkApi(user.id);
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
@@ -266,8 +304,8 @@ describe('Account controller', () => {
     });
 
     it('should change password and use the reset link', async () => {
-      const link = genResetLinkApi(User1.id);
-      await db(resetLinkTable).insert(formatResetLinkApi(link));
+      const link = genResetLinkApi(user.id);
+      await ResetLinks().insert(formatResetLinkApi(link));
       const newPassword = '123QWEasd';
 
       const { status } = await request(app).post(testRoute).send({
@@ -277,17 +315,21 @@ describe('Account controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actualLink = await db(resetLinkTable)
+      const actualLink = await ResetLinks()
         .select()
         .where('id', link.id)
         .first();
-      expect(actualLink.used_at).toBeInstanceOf(Date);
+      expect(actualLink?.used_at).toBeInstanceOf(Date);
 
-      const actualUser = await db(usersTable)
+      const actualUser = await Users()
         .select()
         .where('id', link.userId)
         .first();
 
+      if (!actualUser) {
+        expect.fail('User should exist');
+        return;
+      }
       const passwordsMatch = await bcrypt.compare(
         newPassword,
         actualUser.password

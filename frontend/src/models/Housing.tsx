@@ -40,8 +40,8 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionAt?: Date;
-  occupancy?: OccupancyKind | NoOccupancyInfoKind;
-  occupancyIntended?: OccupancyKind | NoOccupancyInfoKind;
+  occupancy: OccupancyKind | OccupancyKindUnknown;
+  occupancyIntended?: OccupancyKind | OccupancyKindUnknown;
   source: HousingSource | null;
 }
 
@@ -192,9 +192,9 @@ export enum OccupancyKind {
   Others = 'A',
 }
 
-export const NoOccupancyInfo = 'NoOccupancyInfo';
+export const OccupancyUnknown = 'inconnu';
 
-export type NoOccupancyInfoKind = typeof NoOccupancyInfo;
+export type OccupancyKindUnknown = typeof OccupancyUnknown;
 
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
@@ -206,7 +206,7 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
-  [NoOccupancyInfo]: 'Pas d’informations',
+  [OccupancyUnknown]: 'Pas d’information',
 };
 
 export const OccupancyKindBadgeLabels = {
@@ -214,8 +214,9 @@ export const OccupancyKindBadgeLabels = {
   [OccupancyKind.Others]: 'Occupation : Autres',
 };
 
-export const getOccupancy = (occupancy?: OccupancyKind | NoOccupancyInfoKind) =>
-  occupancy && occupancy.length > 0 ? occupancy : NoOccupancyInfo;
+export const getOccupancy = (
+  occupancy?: OccupancyKind | OccupancyKindUnknown
+) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
   const year = housing.dataYears[0];

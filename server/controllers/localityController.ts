@@ -5,44 +5,38 @@ import localityRepository from '../repositories/localityRepository';
 import { body, param, query } from 'express-validator';
 import establishmentRepository from '../repositories/establishmentRepository';
 import LocalityMissingError from '../errors/localityMissingError';
-import { TaxKindsApi } from '../models/LocalityApi';
+import { LocalityApi, TaxKindsApi } from '../models/LocalityApi';
 import { logger } from '../utils/logger';
 
 const getLocalityValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
 ];
 
-const getLocality = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+async function getLocality(request: Request, response: Response) {
   const geoCode = request.params.geoCode;
 
-  logger.info('Get locality with geoCode', geoCode);
+  logger.info('Get locality', { geoCode });
 
   const locality = await localityRepository.get(geoCode);
-
   if (!locality) {
     throw new LocalityMissingError(geoCode);
   }
 
-  return response.status(constants.HTTP_STATUS_OK).json(locality);
-};
+  response.status(constants.HTTP_STATUS_OK).json(locality);
+}
 
 const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
 
-const listLocalities = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
-  const establishmentId = <string>request.query.establishmentId;
+async function listLocalities(request: Request, response: Response) {
+  const establishmentId = request.query.establishmentId as string;
 
   logger.info('List localities', establishmentId);
 
-  return localityRepository
-    .listByEstablishmentId(establishmentId)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
+  const localities = await localityRepository.listByEstablishmentId(
+    establishmentId
+  );
+  response.status(constants.HTTP_STATUS_OK).json(localities);
+}
 
 const updateLocalityTaxValidators = [
   param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
@@ -54,10 +48,7 @@ const updateLocalityTaxValidators = [
   body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists(),
 ];
 
-const updateLocalityTax = async (
-  request: Request,
-  response: Response
-): Promise<Response> => {
+async function updateLocalityTax(request: Request, response: Response) {
   const geoCode = request.params.geoCode;
   const establishmentId = (request as AuthenticatedRequest).auth
     .establishmentId;
@@ -80,13 +71,18 @@ const updateLocalityTax = async (
     !establishment?.geoCodes.includes(locality.geoCode) ||
     locality.taxKind === TaxKindsApi.TLV
   ) {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
+    response.status(constants.HTTP_STATUS_UNAUTHORIZED).send();
+    return;
   }
 
-  return localityRepository
-    .update({ ...locality, taxRate, taxKind })
-    .then(() => response.status(constants.HTTP_STATUS_OK).send());
-};
+  const updated: LocalityApi = {
+    ...locality,
+    taxRate,
+    taxKind,
+  };
+  await localityRepository.update(updated);
+  response.status(constants.HTTP_STATUS_OK).json(updated);
+}
 
 const localityController = {
   getLocalityValidators,

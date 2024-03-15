@@ -28,27 +28,34 @@ import {
   HousingOwnerConflicts,
 } from '../../../server/repositories/conflict/housingOwnerConflictRepository';
 import { DatafoncierHousing } from '../../../shared';
+import { HousingApi } from '../../../server/models/HousingApi';
+import { DatafoncierOwner } from '../../shared';
+import { OwnerApi } from '../../../server/models/OwnerApi';
 
 describe('Import housing owners from existing housing', () => {
   describe('processHousing', () => {
-    const housing = genHousingApi();
-    const datafoncierHousing: DatafoncierHousing = {
-      ...genDatafoncierHousing(),
-      idlocal: housing.localId,
-      ccthp: 'L',
-      dteloctxt: 'APPARTEMENT',
-    };
-    const datafoncierOwners = new Array(6)
-      .fill(0)
-      .map(() => genDatafoncierOwner())
-      .map((owner, i) => ({
+    let housing: HousingApi;
+    let datafoncierHousing: DatafoncierHousing;
+    let datafoncierOwners: DatafoncierOwner[];
+    let owners: OwnerApi[];
+
+    beforeEach(async () => {
+      housing = genHousingApi();
+      datafoncierHousing = {
+        ...genDatafoncierHousing(),
+        idlocal: housing.localId,
+        ccthp: 'L',
+        dteloctxt: 'APPARTEMENT',
+      };
+      datafoncierOwners = Array.from({ length: 6 }, () =>
+        genDatafoncierOwner()
+      ).map((owner, i) => ({
         ...owner,
         idprocpte: datafoncierHousing.idprocpte,
         dnulp: (i + 1).toString(),
       }));
-    const owners = new Array(6).fill(0).map(genOwnerApi);
+      owners = Array.from({ length: 6 }, () => genOwnerApi());
 
-    beforeEach(async () => {
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
       await Housing().insert(formatHousingRecordApi(housing));

@@ -3,24 +3,26 @@ import { ResetLinkApi } from '../models/ResetLinkApi';
 import { logger } from '../utils/logger';
 
 export const resetLinkTable = 'reset_links';
+export const ResetLinks = (transaction = db) =>
+  transaction<ResetLinkDBO>(resetLinkTable);
 
-const insert = async (resetLinkApi: ResetLinkApi): Promise<void> => {
+async function insert(resetLinkApi: ResetLinkApi): Promise<void> {
   logger.info('Insert resetLinkApi');
-  await db(resetLinkTable).insert(formatResetLinkApi(resetLinkApi));
-};
+  await ResetLinks().insert(formatResetLinkApi(resetLinkApi));
+}
 
-const get = async (id: string): Promise<ResetLinkApi | null> => {
+async function get(id: string): Promise<ResetLinkApi | null> {
   logger.info('Get resetLinkApi with id', id);
-  const link = await db(resetLinkTable).select().where('id', id).first();
+  const link = await ResetLinks().select().where('id', id).first();
   return link ? parseResetLinkApi(link) : null;
-};
+}
 
-const used = async (id: string): Promise<void> => {
+async function used(id: string): Promise<void> {
   logger.info(`Set resetLinkApi ${id} as used`);
-  await db(resetLinkTable).where('id', id).update('used_at', new Date());
-};
+  await ResetLinks().where('id', id).update('used_at', new Date());
+}
 
-interface ResetLinkDbo {
+export interface ResetLinkDBO {
   id: string;
   user_id: string;
   created_at: Date;
@@ -28,7 +30,7 @@ interface ResetLinkDbo {
   used_at: Date | null;
 }
 
-export const parseResetLinkApi = (link: ResetLinkDbo): ResetLinkApi => ({
+export const parseResetLinkApi = (link: ResetLinkDBO): ResetLinkApi => ({
   id: link.id,
   userId: link.user_id,
   createdAt: link.created_at,
@@ -36,7 +38,7 @@ export const parseResetLinkApi = (link: ResetLinkDbo): ResetLinkApi => ({
   usedAt: link.used_at,
 });
 
-export const formatResetLinkApi = (link: ResetLinkApi): ResetLinkDbo => ({
+export const formatResetLinkApi = (link: ResetLinkApi): ResetLinkDBO => ({
   id: link.id,
   user_id: link.userId,
   created_at: link.createdAt,
@@ -48,6 +50,4 @@ export default {
   insert,
   get,
   used,
-  parseResetLinkApi,
-  formatResetLinkApi,
 };

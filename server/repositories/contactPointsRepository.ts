@@ -9,35 +9,35 @@ type ContactPointsUniqueProperties = Pick<
 >;
 
 export const contactPointsTable = 'contact_points';
+export const ContactPoints = (transaction = db) =>
+  transaction<ContactPointDBO>(contactPointsTable);
 
-const ContactPoints = () => db<ContactPointDBO>(contactPointsTable);
-
-const get = async (contactPointId: string): Promise<ContactPointApi | null> => {
+async function get(contactPointId: string): Promise<ContactPointApi | null> {
   logger.info('Get ContactPointApi with id', contactPointId);
   const contactPoint = await ContactPoints()
     .where('id', contactPointId)
     .first();
   return contactPoint ? parseContactPointApi(contactPoint) : null;
-};
+}
 
-const insert = async (contactPointApi: ContactPointApi): Promise<void> => {
+async function insert(contactPointApi: ContactPointApi): Promise<void> {
   logger.info('Insert ContactPointApi');
   await ContactPoints().insert(formatContactPointApi(contactPointApi));
-};
+}
 
-const update = async (contactPointApi: ContactPointApi): Promise<void> => {
+async function update(contactPointApi: ContactPointApi): Promise<void> {
   logger.info('Update contactPointApi with id', contactPointApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, establishment_id, ...updatedData } =
     formatContactPointApi(contactPointApi);
   await ContactPoints().where({ id: contactPointApi.id }).update(updatedData);
-};
+}
 
-const find = async (
+async function find(
   establishmentId: string,
   publicOnly?: boolean
-): Promise<ContactPointApi[]> => {
+): Promise<ContactPointApi[]> {
   logger.info(
     'List contactPointApi for establishment with id',
     establishmentId
@@ -58,11 +58,11 @@ const find = async (
     })
     .orderBy('title');
   return contactPoints.map(parseContactPointApi);
-};
+}
 
-const findOne = async (
+async function findOne(
   options: ContactPointsUniqueProperties
-): Promise<ContactPointApi | null> => {
+): Promise<ContactPointApi | null> {
   logger.info('Find contactPointApi with options', options);
   const contactPoint = await ContactPoints()
     .where({
@@ -72,12 +72,12 @@ const findOne = async (
     .orderBy('title')
     .first();
   return contactPoint ? parseContactPointApi(contactPoint) : null;
-};
+}
 
-const remove = async (id: string): Promise<void> => {
+async function remove(id: string): Promise<void> {
   logger.info('Delete contactPointApi with id', id);
   await ContactPoints().where({ id }).delete();
-};
+}
 
 interface ContactPointDBO {
   id: string;
@@ -91,7 +91,7 @@ interface ContactPointDBO {
   notes?: string;
 }
 
-const formatContactPointApi = (
+export const formatContactPointApi = (
   contactPointApi: ContactPointApi
 ): ContactPointDBO => ({
   id: contactPointApi.id,
@@ -105,7 +105,7 @@ const formatContactPointApi = (
   notes: contactPointApi.notes,
 });
 
-const parseContactPointApi = (
+export const parseContactPointApi = (
   contactPointDbo: ContactPointDBO
 ): ContactPointApi => ({
   id: contactPointDbo.id,
@@ -126,5 +126,4 @@ export default {
   insert,
   update,
   remove,
-  formatContactPointApi,
 };

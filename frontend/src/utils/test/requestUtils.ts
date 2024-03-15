@@ -4,7 +4,6 @@ import fetchMock, {
   MockResponseInitFunction,
 } from 'jest-fetch-mock';
 import { Predicate } from '../compareUtils';
-import isMockFunction = jest.isMockFunction;
 
 export interface RequestCall {
   url: string;

@@ -1,0 +1,7 @@
+scopeconfig:
+  - scope: node
+
+fileignoreconfig:
+- filename: database/*
+  checksum: ""
+  ignore_detectors: []

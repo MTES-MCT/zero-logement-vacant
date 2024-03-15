@@ -39,9 +39,17 @@ backup_file_name="$( tar --extract --verbose --file="${archive_name}" --director
 
 wait
 
+# Exclude datafoncier
+pg_restore --list ${backup_file_name} > toc.list
+grep -Ev "df_housing_nat|df_owners_nat" toc.list > filtered_toc.list
+grep -Ev "df_housing_nat_[0-9]{4}|df_owners_[0-9]{4}" filtered_toc.list > final_toc.list
+
+wait
+
 # Restore the data
 echo "=> Restore the data:"
 pg_restore --clean --if-exists --no-owner --no-privileges --no-comments \
+-L final_toc.list \
 --dbname ${DUPLICATE_DATABASE_URL} ${backup_file_name}
 
 wait

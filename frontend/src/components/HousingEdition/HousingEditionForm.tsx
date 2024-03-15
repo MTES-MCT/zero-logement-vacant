@@ -5,7 +5,10 @@ import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
-import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
+import {
+  allOccupancyOptions,
+  statusOptions,
+} from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
@@ -149,7 +152,7 @@ const HousingEditionForm = (
         ? {
             occupancy:
               occupancy === MultiHousingOccupancyDefaultValue
-                ? undefined
+                ? 'inconnu'
                 : (occupancy as OccupancyKind),
             occupancyIntended:
               occupancyIntended === MultiHousingOccupancyDefaultValue

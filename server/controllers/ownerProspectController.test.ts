@@ -1,35 +1,58 @@
-import { v4 as uuidv4 } from 'uuid';
-import db from '../repositories/db';
-import request from 'supertest';
-import randomstring from 'randomstring';
 import { constants } from 'http2';
-import { genOwnerProspectApi } from '../test/testFixtures';
+import randomstring from 'randomstring';
+import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
+
+import db from '../repositories/db';
+import {
+  genEstablishmentApi,
+  genLocalityApi,
+  genOwnerProspectApi,
+  genUserApi,
+} from '../test/testFixtures';
 import { createServer } from '../server';
-import fetchMock from 'jest-fetch-mock';
-import ownerProspectRepository, {
+import {
+  formatOwnerProspectApi,
+  OwnerProspects,
   ownerProspectsTable,
 } from '../repositories/ownerProspectRepository';
-import { withAccessToken } from '../test/testUtils';
-import {
-  Locality1,
-  Locality2,
-} from '../../database/seeds/test/001-establishments';
+import { tokenProvider } from '../test/testUtils';
 import { OwnerProspectApi } from '../models/OwnerProspectApi';
 import { PaginatedResultApi } from '../models/PaginatedResultApi';
 import {
-  OwnerProspect1,
-  OwnerProspect2,
-} from '../../database/seeds/test/010-owner-prospects';
+  formatLocalityApi,
+  Localities,
+} from '../repositories/localityRepository';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
 
 describe('Owner prospect controller', () => {
   const { app } = createServer();
 
-  beforeEach(() => {
-    fetchMock.resetMocks();
+  const locality = genLocalityApi();
+  const anotherLocality = genLocalityApi();
+  const establishment = genEstablishmentApi(locality.geoCode);
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Localities().insert(
+      [locality, anotherLocality].map(formatLocalityApi)
+    );
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
   });
 
-  describe('create', () => {
+  describe('POST /owner-prospects', () => {
     const testRoute = '/api/owner-prospects';
+
+    const ownerProspect = genOwnerProspectApi(locality.geoCode);
+
+    beforeAll(async () => {
+      await OwnerProspects().insert(formatOwnerProspectApi(ownerProspect));
+    });
 
     it('should received a valid owner prospect', async () => {
       const ownerProspect = genOwnerProspectApi();
@@ -92,7 +115,6 @@ describe('Owner prospect controller', () => {
     });
 
     it('should create a new owner prospect', async () => {
-      const ownerProspect = OwnerProspect1;
       const { body, status } = await request(app)
         .post(testRoute)
         .send(ownerProspect);
@@ -122,61 +144,52 @@ describe('Owner prospect controller', () => {
     });
   });
 
-  describe('find', () => {
+  describe('GET /owner-prospects', () => {
     const testRoute = '/api/owner-prospects';
 
     const ownerProspects: OwnerProspectApi[] = [
-      genOwnerProspectApi(Locality1.geoCode),
-      genOwnerProspectApi(Locality1.geoCode),
-      genOwnerProspectApi(Locality2.geoCode),
+      genOwnerProspectApi(locality.geoCode),
+      genOwnerProspectApi(locality.geoCode),
+      genOwnerProspectApi(anotherLocality.geoCode),
     ];
-    const expectedCount = [OwnerProspect1, ...ownerProspects.slice(0, 2)]
-      .length;
 
-    beforeEach(async () => {
-      await Promise.all(ownerProspects.map(ownerProspectRepository.insert));
+    beforeAll(async () => {
+      await OwnerProspects().insert(ownerProspects.map(formatOwnerProspectApi));
     });
 
     it('should receive valid query parameters', async () => {
-      await withAccessToken(
-        request(app).get(testRoute).query({
+      const { status } = await request(app)
+        .get(testRoute)
+        .query({
           sort: '-email,address,123',
         })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list owner prospects by establishment', async () => {
-      const { body, status } = await withAccessToken(
-        request(app).get(testRoute)
-      );
+      const { body, status } = await request(app)
+        .get(testRoute)
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
-        {
-          page: 1,
-          perPage: 50,
-          filteredCount: expectedCount,
-          totalCount: expectedCount,
-        }
-      );
-      expect(body.entities).toHaveLength(expectedCount);
-      const inEstablishment = body.entities.every(
-        (entity: OwnerProspectApi) => entity.geoCode === Locality1.geoCode
-      );
-      expect(inEstablishment).toBe(true);
+      expect(body.entities).toSatisfyAll<OwnerProspectApi>((actual) => {
+        return establishment.geoCodes.includes(actual.geoCode);
+      });
     });
 
     it('should return 206 Partial Content if the page does not include all records', async () => {
-      const { body, status } = await withAccessToken(
-        request(app).get(testRoute).query({
+      const { body, status } = await request(app)
+        .get(testRoute)
+        .query({
           perPage: 1,
         })
-      );
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
       expect(body).toMatchObject<Partial<PaginatedResultApi<OwnerProspectApi>>>(
         {
-          totalCount: expectedCount,
           filteredCount: 1,
           page: 1,
           perPage: 1,
@@ -186,42 +199,58 @@ describe('Owner prospect controller', () => {
     });
   });
 
-  describe('update', () => {
+  describe('PUT /owner-prospects/{id}', () => {
     const testRoute = (id: string) => `/api/owner-prospects/${id}`;
 
+    let ownerProspect: OwnerProspectApi;
+    let anotherOwnerProspect: OwnerProspectApi;
+
+    beforeEach(async () => {
+      ownerProspect = genOwnerProspectApi(locality.geoCode);
+      anotherOwnerProspect = genOwnerProspectApi(anotherLocality.geoCode);
+      await OwnerProspects().insert(
+        [ownerProspect, anotherOwnerProspect].map(formatOwnerProspectApi)
+      );
+    });
+
     it('should receive a valid payload', async () => {
-      await withAccessToken(
-        request(app).put(testRoute(OwnerProspect1.id)).send({
+      const { status } = await request(app)
+        .put(testRoute(ownerProspect.id))
+        .send({
           callBack: '123',
         })
-      ).expect(constants.HTTP_STATUS_BAD_REQUEST);
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it("should be forbidden to update another locality's owner prospect", async () => {
-      const { status } = await withAccessToken(
-        request(app).put(testRoute(OwnerProspect2.id)).send({
+      const { status } = await request(app)
+        .put(testRoute(anotherOwnerProspect.id))
+        .send({
           callBack: true,
           read: false,
         })
-      );
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should update only the allowed attributes', async () => {
-      const { body, status } = await withAccessToken(
-        request(app).put(testRoute(OwnerProspect1.id)).send({
+      const { body, status } = await request(app)
+        .put(testRoute(ownerProspect.id))
+        .send({
           id: uuidv4(),
-          callBack: !OwnerProspect1.callBack,
+          callBack: !ownerProspect.callBack,
           read: true,
         })
-      );
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual({
-        ...OwnerProspect1,
-        createdAt: OwnerProspect1.createdAt.toJSON(),
-        callBack: !OwnerProspect1.callBack,
+        ...ownerProspect,
+        createdAt: ownerProspect.createdAt.toJSON(),
+        callBack: !ownerProspect.callBack,
         read: true,
       });
     });

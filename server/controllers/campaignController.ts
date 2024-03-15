@@ -58,7 +58,7 @@ const listValidators: ValidationChain[] = [
   ...sortApi.queryValidators,
 ];
 
-const listCampaigns = async (request: Request, response: Response) => {
+async function list(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
   const query = request.query as CampaignQuery;
   const sort = sortApi.parse<CampaignSortableApi>(
@@ -75,7 +75,7 @@ const listCampaigns = async (request: Request, response: Response) => {
     sort,
   });
   response.status(constants.HTTP_STATUS_OK).json(campaigns);
-};
+}
 
 export interface CreateCampaignBody {
   draftCampaign: {
@@ -92,10 +92,7 @@ const createCampaignValidators: ValidationChain[] = [
   body('allHousing').isBoolean().notEmpty(),
   body('housingIds').custom(isArrayOf(isUUID)),
 ];
-const createCampaign = async (
-  request: Request,
-  response: Response
-): Promise<void> => {
+async function createCampaign(request: Request, response: Response) {
   logger.info('Create campaign');
 
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
@@ -180,12 +177,9 @@ const createCampaign = async (
     .catch((error) =>
       logger.error('Error while inserting housing events', error)
     );
-};
+}
 
-const createCampaignFromGroup = async (
-  request: Request,
-  response: Response
-): Promise<void> => {
+async function createCampaignFromGroup(request: Request, response: Response) {
   const { auth, body, params } = request as AuthenticatedRequest;
   const groupId = params.id;
   logger.info('Create campaign from group', { groupId });
@@ -244,7 +238,7 @@ const createCampaignFromGroup = async (
     .catch((error) =>
       logger.error('Error while inserting housing events', error)
     );
-};
+}
 const createCampaignFromGroupValidators: ValidationChain[] = [
   param('id').isUUID().notEmpty(),
   body('title').isString().notEmpty(),
@@ -280,10 +274,10 @@ const updateCampaignValidators = [
     .isString()
     .isISO8601(),
 ];
-const updateCampaign = async (
+async function updateCampaign(
   request: Request,
   response: Response
-): Promise<Response> => {
+): Promise<Response> {
   const campaignId = request.params.id;
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const campaignUpdate = request.body as CampaignUpdateBody;
@@ -314,12 +308,12 @@ const updateCampaign = async (
   }
 
   return response.status(constants.HTTP_STATUS_OK).json(campaignApi);
-};
+}
 
-const updateCampaignTitle = async (
+async function updateCampaignTitle(
   campaignApi: CampaignApi,
   title: string
-): Promise<CampaignApi> => {
+): Promise<CampaignApi> {
   logger.info('Update campaign title', { campaignId: campaignApi.id, title });
   const updatedCampaign: CampaignApi = {
     ...campaignApi,
@@ -327,7 +321,7 @@ const updateCampaignTitle = async (
   };
   await campaignRepository.update(updatedCampaign);
   return updatedCampaign;
-};
+}
 
 const updateCampaignStep = async (
   campaignApi: CampaignApi,
@@ -415,10 +409,10 @@ const updateCampaignStep = async (
   return updatedCampaign;
 };
 
-const removeCampaign = async (
+async function removeCampaign(
   request: Request,
   response: Response
-): Promise<Response> => {
+): Promise<Response> {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -443,9 +437,9 @@ const removeCampaign = async (
   await resetHousingWithoutCampaigns(establishmentId);
 
   return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
-};
+}
 
-const resetHousingWithoutCampaigns = async (establishmentId: string) => {
+async function resetHousingWithoutCampaigns(establishmentId: string) {
   return housingRepository
     .find({
       filters: {
@@ -464,7 +458,7 @@ const resetHousingWithoutCampaigns = async (establishmentId: string) => {
         })
       )
     );
-};
+}
 
 const removeHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
@@ -472,10 +466,10 @@ const removeHousingValidators: ValidationChain[] = [
   body('ids').custom(isArrayOf(isString)),
   ...housingFiltersApi.validators('filters'),
 ];
-const removeHousing = async (
+async function removeHousing(
   request: Request,
   response: Response
-): Promise<Response> => {
+): Promise<Response> {
   logger.info('Remove campaign housing list');
 
   const campaignId = request.params.id;
@@ -501,13 +495,13 @@ const removeHousing = async (
   return campaignHousingRepository
     .deleteHousingFromCampaigns([campaignId], housingIds)
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
-};
+}
 
 const campaignController = {
   getCampaignValidators,
   getCampaign,
   listValidators,
-  listCampaigns,
+  list,
   createCampaignValidators,
   createCampaign,
   createCampaignFromGroup,

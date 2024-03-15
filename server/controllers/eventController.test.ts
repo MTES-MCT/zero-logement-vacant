@@ -1,74 +1,131 @@
 import request from 'supertest';
 import { constants } from 'http2';
-import { withAccessToken } from '../test/testUtils';
-import { createServer } from '../server';
-import { Owner1 } from '../../database/seeds/test/004-owner';
-import {
-  HousingEvent1,
-  OwnerEvent1,
-} from '../../database/seeds/test/011-events';
-import { Housing1 } from '../../database/seeds/test/005-housing';
 
-describe('Event controller', () => {
+import { tokenProvider } from '../test/testUtils';
+import { createServer } from '../server';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genHousingEventApi,
+  genOwnerApi,
+  genOwnerEventApi,
+  genUserApi,
+  oneOf,
+} from '../test/testFixtures';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
+import { HousingEventApi, OwnerEventApi } from '../models/EventApi';
+import {
+  Events,
+  formatEventApi,
+  formatHousingEventApi,
+  formatOwnerEventApi,
+  HousingEvents,
+  OwnerEvents,
+} from '../repositories/eventRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+} from '../repositories/housingRepository';
+
+describe('Event API', () => {
   const { app } = createServer();
 
-  describe('listByOwnerId', () => {
-    const testRoute = (ownerId: string) => `/api/events/owner/${ownerId}`;
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
 
-    it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Owner1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
+  describe('GET /owners/{id}/events', () => {
+    const testRoute = (id: string) => `/api/owners/${id}/events`;
+
+    const owner = genOwnerApi();
+
+    beforeAll(async () => {
+      await Owners().insert(formatOwnerApi(owner));
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).get(testRoute(owner.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid ownerId', async () => {
-      await withAccessToken(request(app).get(testRoute('id'))).expect(
-        constants.HTTP_STATUS_BAD_REQUEST
-      );
+      const { status } = await request(app)
+        .get(testRoute('id'))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the owner events', async () => {
-      const res = await withAccessToken(
-        request(app).get(testRoute(Owner1.id))
-      ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: OwnerEvent1.id,
-          }),
-        ])
+      const events: OwnerEventApi[] = Array.from({ length: 3 }).map(() =>
+        genOwnerEventApi(owner.id, user.id)
       );
+      await Events().insert(events.map(formatEventApi));
+      await OwnerEvents().insert(events.map(formatOwnerEventApi));
+
+      const { body, status } = await request(app)
+        .get(testRoute(owner.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toSatisfy(() => {
+        const ids = new Set([...body.map((event: OwnerEventApi) => event.id)]);
+        return events.every((event) => ids.has(event.id));
+      });
     });
   });
 
-  describe('listByHousingId', () => {
-    const testRoute = (housingId: string) => `/api/events/housing/${housingId}`;
+  describe('GET /housing/{id}/events', () => {
+    const testRoute = (id: string) => `/api/housing/${id}/events`;
 
-    it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Housing1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    const housing = genHousingApi(oneOf(establishment.geoCodes));
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).get(testRoute(housing.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      await withAccessToken(request(app).get(testRoute('id'))).expect(
-        constants.HTTP_STATUS_BAD_REQUEST
-      );
+      const { status } = await request(app)
+        .get(testRoute('id'))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the housing events', async () => {
-      const res = await withAccessToken(
-        request(app).get(testRoute(Housing1.id))
-      ).expect(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: HousingEvent1.id,
-          }),
-        ])
+      const events: HousingEventApi[] = Array.from({ length: 3 }).map(() =>
+        genHousingEventApi(housing, user)
       );
+      await Events().insert(events.map(formatEventApi));
+      await HousingEvents().insert(events.map(formatHousingEventApi));
+
+      const { body, status } = await request(app)
+        .get(testRoute(housing.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toSatisfy(() => {
+        const ids = new Set([
+          ...body.map((event: HousingEventApi) => event.id),
+        ]);
+        return events.every((event) => ids.has(event.id));
+      });
     });
   });
 });

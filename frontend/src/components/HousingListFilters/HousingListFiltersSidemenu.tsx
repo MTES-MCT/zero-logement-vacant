@@ -10,6 +10,7 @@ import {
   campaignsCountOptions,
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
+  dpeScoreOptions,
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
@@ -296,6 +297,21 @@ function HousingListFiltersSidemenu(props: Props) {
                       onChangeFilters(
                         { ownershipKinds: values },
                         'Type de propriété'
+                      )
+                    }
+                  />
+                </Col>
+              </Row>
+              <Row>
+              <Col n="6">
+                  <AppMultiSelect
+                    label="Score DPE"
+                    options={dpeScoreOptions}
+                    initialValues={filters.dpeScore}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { dpeScore: values },
+                        'Score DPE'
                       )
                     }
                   />

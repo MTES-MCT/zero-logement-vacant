@@ -21,6 +21,7 @@ export interface HousingFilters {
   housingKinds?: string[];
   cadastralClassifications?: string[];
   housingAreas?: string[];
+  dpeScore?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];
   vacancyDurations?: string[];
@@ -242,6 +243,16 @@ export const vacancyDurationOptions: SelectOption[] = [
 export const taxedOptions: SelectOption[] = [
   { value: 'true', label: 'Oui', badgeLabel: 'Taxé' },
   { value: 'false', label: 'Non', badgeLabel: 'Non taxé' },
+];
+
+export const dpeScoreOptions: SelectOption[] = [
+  { value: 'A', label: 'A' },
+  { value: 'B', label: 'B' },
+  { value: 'C', label: 'C' },
+  { value: 'D', label: 'D' },
+  { value: 'E', label: 'E' },
+  { value: 'F', label: 'F' },
+  { value: 'G', label: 'G' },
 ];
 
 export const ownershipKindsOptions: SelectOption[] = [

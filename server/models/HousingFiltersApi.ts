@@ -22,6 +22,7 @@ export interface HousingFiltersApi {
   vacancyDurations?: string[];
   isTaxedValues?: string[];
   ownershipKinds?: OwnershipKindsApi[];
+  dpeScore?: string[];
   housingCounts?: string[];
   // TODO: type there based on housing repository values
   vacancyRates?: string[];

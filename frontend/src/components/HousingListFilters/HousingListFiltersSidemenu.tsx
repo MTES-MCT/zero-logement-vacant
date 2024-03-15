@@ -301,9 +301,7 @@ function HousingListFiltersSidemenu(props: Props) {
                     }
                   />
                 </Col>
-              </Row>
-              <Row>
-              <Col n="6">
+                <Col n="6">
                   <AppMultiSelect
                     label="Score DPE"
                     options={dpeScoreOptions}

@@ -83,21 +83,17 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           <p>{getSource(housing)}</p>
         </Col>
         <Col n="4">
-          {features.isEnabled('occupancy') && (
-            <>
-              <Text size="sm" className="zlv-label">
-                Logement passoire énergétique
-              </Text>
-              {housing.energyConsumption ? (
-                <Tag className="d-block">
-                  {['F', 'G'].includes(housing.energyConsumption)
-                    ? 'Oui'
-                    : 'Non'}
-                </Tag>
-              ) : (
-                <Text spacing="mb-1w">Non renseigné</Text>
-              )}
-            </>
+          <Text size="sm" className="zlv-label">
+            Logement passoire énergétique
+          </Text>
+          {housing.energyConsumption ? (
+            <Tag className="d-block">
+              {['F', 'G'].includes(housing.energyConsumption)
+                ? 'Oui'
+                : 'Non'}
+            </Tag>
+          ) : (
+            <Text spacing="mb-1w">Non renseigné</Text>
           )}
         </Col>
         <Col n="4">
@@ -119,22 +115,20 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           )}
         </Col>
         <Col n="4">
-          {features.isEnabled('occupancy') && (
-            <div className="fr-mb-3w">
-              <Text size="sm" className="zlv-label">
-                Étiquette DPE représentatif (CSTB)
-              </Text>
-              {housing.energyConsumption ? (
-                <DPE
-                  value={housing.energyConsumption}
-                  madeAt={housing.energyConsumptionAt}
-                  bnbId={housing.buildingGroupId}
-                />
-              ) : (
-                <Text spacing="mb-1w">Non renseigné</Text>
-              )}
-            </div>
-          )}
+          <div className="fr-mb-3w">
+            <Text size="sm" className="zlv-label">
+              Étiquette DPE représentatif (CSTB)
+            </Text>
+            {housing.energyConsumption ? (
+              <DPE
+                value={housing.energyConsumption}
+                madeAt={housing.energyConsumptionAt}
+                bnbId={housing.buildingGroupId}
+              />
+            ) : (
+              <Text spacing="mb-1w">Non renseigné</Text>
+            )}
+          </div>
         </Col>
       </Row>
     </HousingDetailsSubCard>

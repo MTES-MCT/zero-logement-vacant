@@ -38,7 +38,7 @@ function CampaignView() {
     <MainContainer>
       {campaignStep(campaign) < CampaignSteps.InProgress && (
         <>
-          <CampaignTitle campaign={campaign} className="fr-mb-2w" />
+          <CampaignTitle campaign={campaign} className="fr-mb-2w" as="h2" />
           <CampaignCounts
             display="row"
             housing={count?.housing}

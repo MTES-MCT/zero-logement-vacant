@@ -92,7 +92,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
-  body('body').isString().withMessage('Body must be a string').trim(),
+  body('body').isString().withMessage('Body must be a string'),
 ];
 
 const draftController = {

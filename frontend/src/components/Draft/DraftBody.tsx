@@ -15,9 +15,10 @@ function DraftBody(props: Props) {
       <AppTextInput
         inputForm={props.form}
         inputKey="body"
-        value={props.value}
-        textArea
         rows={6}
+        state={props.form.hasError('body') ? 'error' : 'default'}
+        textArea
+        value={props.value}
         onChange={(e) => props.onChangeValue?.(e.target.value)}
       />
     </article>

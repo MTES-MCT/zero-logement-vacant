@@ -10,6 +10,8 @@ import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import SaveButton from '../../components/Draft/SaveButton';
 import { Col, Container, Row } from '../../components/_dsfr';
 import { useUpdateDraftMutation } from '../../services/draft.service';
+import UnsavedChanges from '../../components/UnsavedChanges/UnsavedChanges';
+import fp from 'lodash/fp';
 
 const shape = {
   body: yup.string(),
@@ -56,8 +58,11 @@ function CampaignDraft(props: Props) {
     return <Loading />;
   }
 
+  const hasChanges = form.isDirty && !fp.equals(draft, values);
+
   return (
     <form id="draft" className="fr-mt-2w">
+      <UnsavedChanges when={hasChanges} />
       <Container as="article" fluid>
         <Row justifyContent="right" spacing="mb-2w">
           <SaveButton

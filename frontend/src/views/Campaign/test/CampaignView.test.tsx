@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
-import { Route, Router } from 'react-router-dom';
+import { Link, Route, Router } from 'react-router-dom';
 
 import { genCampaign, genDraft } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
@@ -33,6 +33,7 @@ describe('Campaign view', () => {
       <Provider store={store}>
         <Notification />
         <Router history={router}>
+          <Link to="/campagnes">Campagnes</Link>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
       </Provider>
@@ -102,8 +103,69 @@ describe('Campaign view', () => {
 
     renderComponent();
 
-    const title = await screen.findByText(campaign.title);
+    const title = await screen.findByRole('heading', { name: campaign.title });
     expect(title).toBeVisible();
+  });
+
+  it('should rename the campaign', async () => {
+    const title = 'New title';
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        method: 'GET',
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        method: 'PUT',
+        response: async (request) => {
+          const payload = await request.json();
+          return {
+            body: JSON.stringify({ ...campaign, title: payload.title }),
+          };
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify({ ...campaign, title }),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const rename = await screen.findByRole('button', { name: /^Renommer/ });
+    await user.click(rename);
+    const modal = await screen.findByRole('dialog');
+    const input = within(modal).getByRole('textbox', {
+      name: /^Nom de la campagne/,
+    });
+    await user.clear(input);
+    await user.type(input, title);
+    const save = await within(modal).findByRole('button', {
+      name: /^Confirmer/,
+    });
+    await user.click(save);
+    expect(modal).not.toBeVisible();
   });
 
   it('should save the draft on button click', async () => {
@@ -147,4 +209,9 @@ describe('Campaign view', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegarde.../);
   });
+
+  // Hard to mock window.confirm because it's a browser-level function
+  it.todo(
+    'should warn the user before leaving the page if they have unsaved changes'
+  );
 });

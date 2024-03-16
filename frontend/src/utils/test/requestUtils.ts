@@ -40,27 +40,17 @@ export const mockRequests = (matches: RequestMatch[]): void => {
     ];
   }
 
-  fetchMock.mockResponse((request): Promise<MockResponseInit | string> => {
-    const match = matches.find((match) => {
-      return predicates(match).every((predicate) => predicate(request));
-    });
-    if (!match) {
-      throw new MockError(request);
-    }
-
-    return isMockResponseInitFunction(match.response)
-      ? match.response(request)
-      : Promise.resolve(match.response);
+  matches.forEach((match) => {
+    fetchMock.mockOnceIf(
+      (request) => predicates(match).every((predicate) => predicate(request)),
+      (request) =>
+        isMockResponseInitFunction(match.response)
+          ? match.response(request)
+          : Promise.resolve(match.response)
+    );
   });
 };
 
 const isMockResponseInitFunction = (
   response: unknown
 ): response is MockResponseInitFunction => typeof response === 'function';
-
-class MockError extends Error {
-  constructor(request: Request) {
-    super(`Request to ${request.url} must be mocked`);
-    this.name = 'MockError';
-  }
-}

@@ -1,11 +1,7 @@
 import { Request, Response } from 'express';
 import campaignRepository from '../repositories/campaignRepository';
 import campaignHousingRepository from '../repositories/campaignHousingRepository';
-import {
-  CampaignApi,
-  CampaignSortableApi,
-  CampaignSteps,
-} from '../models/CampaignApi';
+import { CampaignApi, CampaignSortableApi } from '../models/CampaignApi';
 import housingRepository from '../repositories/housingRepository';
 import eventRepository from '../repositories/eventRepository';
 import { HousingStatusApi } from '../models/HousingStatusApi';
@@ -29,8 +25,14 @@ import { isArrayOf, isString, isUUID, isUUIDParam } from '../utils/validators';
 import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
 import { HousingEventApi } from '../models/EventApi';
-import { CampaignCreationPayloadDTO } from '../../shared/models/CampaignDTO';
+import {
+  CAMPAIGN_STATUSES,
+  CampaignCreationPayloadDTO,
+  CampaignUpdatePayloadDTO,
+  nextStatus,
+} from '../../shared/models/CampaignDTO';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
+import CampaignStatusError from '../errors/campaignStatusError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -240,175 +242,124 @@ const createCampaignFromGroupValidators: ValidationChain[] = [
   body('title').isString().notEmpty(),
 ];
 
-type StepUpdate = { step: CampaignSteps } & Pick<CampaignApi, 'sendingDate'>;
-
-export interface CampaignUpdateBody {
-  titleUpdate?: Pick<CampaignApi, 'title'>;
-  stepUpdate?: StepUpdate;
-}
-
-const updateCampaignValidators = [
+const updateValidators: ValidationChain[] = [
   param('id').notEmpty().isUUID(),
-  body('titleUpdate.title')
-    .if(body('titleUpdate').notEmpty())
-    .isString()
+  body('title').isString().notEmpty(),
+  body('status').isString().isIn(CAMPAIGN_STATUSES),
+  body('sentAt')
+    .if(body('status').equals('in-progress'))
+    .isISO8601()
     .notEmpty(),
-  body('stepUpdate.step')
-    .if(body('stepUpdate').notEmpty())
-    .notEmpty()
-    .isIn([
-      CampaignSteps.OwnersValidation,
-      CampaignSteps.Export,
-      CampaignSteps.Sending,
-      CampaignSteps.Confirmation,
-      CampaignSteps.InProgess,
-      CampaignSteps.Archived,
-    ]),
-  body('stepUpdate.sendingDate')
-    .if(body('stepUpdate.step').equals(String(CampaignSteps.Sending)))
-    .notEmpty()
-    .isString()
-    .isISO8601(),
 ];
-async function updateCampaign(
-  request: Request,
-  response: Response
-): Promise<Response> {
-  const campaignId = request.params.id;
-  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
-  const campaignUpdate = request.body as CampaignUpdateBody;
+async function update(request: Request, response: Response) {
+  const { auth, params } = request as AuthenticatedRequest;
+  const body = request.body as CampaignUpdatePayloadDTO;
 
-  const campaignApi = await campaignRepository.findOne({
-    id: campaignId,
-    establishmentId,
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId,
   });
-
-  if (!campaignApi) {
-    throw new CampaignMissingError(campaignId);
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
   }
 
-  if (campaignUpdate.titleUpdate?.title) {
-    const updatedCampaign = await updateCampaignTitle(
-      campaignApi,
-      campaignUpdate.titleUpdate.title
-    );
-    return response.status(constants.HTTP_STATUS_OK).json(updatedCampaign);
-  }
-  if (campaignUpdate.stepUpdate?.step !== undefined) {
-    const updatedCampaign = await updateCampaignStep(
-      campaignApi,
-      campaignUpdate.stepUpdate,
-      userId
-    );
-    return response.status(constants.HTTP_STATUS_OK).json(updatedCampaign);
-  }
-
-  return response.status(constants.HTTP_STATUS_OK).json(campaignApi);
-}
-
-async function updateCampaignTitle(
-  campaignApi: CampaignApi,
-  title: string
-): Promise<CampaignApi> {
-  logger.info('Update campaign title', { campaignId: campaignApi.id, title });
-  const updatedCampaign: CampaignApi = {
-    ...campaignApi,
-    title,
-  };
-  await campaignRepository.update(updatedCampaign);
-  return updatedCampaign;
-}
-
-const updateCampaignStep = async (
-  campaignApi: CampaignApi,
-  stepUpdate: StepUpdate,
-  userId: string
-): Promise<CampaignApi> => {
-  logger.info('Update campaign step', {
-    campaignId: campaignApi.id,
-    ...stepUpdate,
-  });
-
-  const step = stepUpdate.step;
-  const updatedCampaign: CampaignApi = {
-    ...campaignApi,
-    validatedAt:
-      step === CampaignSteps.OwnersValidation
-        ? new Date().toJSON()
-        : campaignApi.validatedAt,
-    exportedAt:
-      step === CampaignSteps.Export
-        ? new Date().toJSON()
-        : campaignApi.exportedAt,
-    sentAt:
-      step === CampaignSteps.Sending ? new Date().toJSON() : campaignApi.sentAt,
-    sendingDate:
-      step === CampaignSteps.Sending
-        ? stepUpdate.sendingDate
-        : campaignApi.sendingDate,
-    confirmedAt:
-      step === CampaignSteps.Confirmation
-        ? new Date().toJSON()
-        : campaignApi.confirmedAt,
-    archivedAt:
-      step === CampaignSteps.Archived
-        ? new Date().toJSON()
-        : campaignApi.archivedAt,
-  };
-
-  if (step === CampaignSteps.Sending) {
-    const housingList = await housingRepository.find({
-      filters: {
-        establishmentIds: [campaignApi.establishmentId],
-        campaignIds: [campaignApi.id],
-      },
+  if (
+    campaign.status !== body.status &&
+    nextStatus(campaign.status) !== body.status
+  ) {
+    throw new CampaignStatusError({
+      campaign,
+      target: body.status,
     });
+  }
 
-    const updatedHousingList = housingList
-      .filter((_) => !_.status)
-      .map((housing) => ({
-        ...housing,
-        status: HousingStatusApi.Waiting,
-      }));
+  const updated: CampaignApi = {
+    ...campaign,
+    title: body.title,
+    status: body.status,
+    validatedAt:
+      campaign.status !== body.status && body.status === 'sending'
+        ? new Date().toJSON()
+        : campaign.validatedAt,
+    sentAt:
+      campaign.status !== body.status && body.status === 'in-progress'
+        ? body.sentAt
+        : campaign.sentAt,
+    confirmedAt:
+      campaign.status !== body.status && body.status === 'in-progress'
+        ? new Date().toJSON()
+        : campaign.confirmedAt,
+    archivedAt:
+      campaign.status !== body.status && body.status === 'archived'
+        ? new Date().toJSON()
+        : campaign.archivedAt,
+  };
 
-    await async.map(updatedHousingList, async (updatedHousing: HousingApi) =>
-      housingRepository.update(updatedHousing)
-    );
+  await campaignRepository.save(updated);
+  logger.info('Campaign updated', updated);
+  response.status(constants.HTTP_STATUS_OK).json(updated);
 
-    await eventRepository.insertManyHousingEvents(
-      updatedHousingList.map((updatedHousing) => ({
+  if (campaign.status !== updated.status) {
+    try {
+      await eventRepository.insertCampaignEvent({
         id: uuidv4(),
-        name: 'Changement de statut de suivi',
+        name: 'Modification du statut de la campagne',
         kind: 'Update',
         category: 'Campaign',
         section: 'Suivi de campagne',
-        old: housingList.find((_) => _.id === updatedHousing.id),
-        new: updatedHousing,
-        createdBy: userId,
+        old: campaign,
+        new: updated,
+        createdBy: auth.userId,
         createdAt: new Date(),
-        housingId: updatedHousing.id,
-        housingGeoCode: updatedHousing.geoCode,
-      }))
-    );
+        campaignId: campaign.id,
+        conflict: false,
+      });
+
+      if (updated.status === 'in-progress') {
+        const houses = await housingRepository.find({
+          filters: {
+            establishmentIds: [updated.establishmentId],
+            campaignIds: [updated.id],
+            statusList: [
+              HousingStatusApi.FirstContact,
+              HousingStatusApi.InProgress,
+              HousingStatusApi.Completed,
+              HousingStatusApi.Blocked,
+            ],
+          },
+        });
+        const updatedHouses = houses.map((housing) => ({
+          ...housing,
+          status: HousingStatusApi.Waiting,
+        }));
+        await housingRepository.saveMany(updatedHouses, {
+          onConflict: 'merge',
+          merge: ['status'],
+        });
+        await eventRepository.insertManyHousingEvents(
+          houses.map((housing) => ({
+            id: uuidv4(),
+            name: 'Changement de statut de suivi',
+            kind: 'Update',
+            category: 'Campaign',
+            section: 'Suivi de campagne',
+            old: housing,
+            new: {
+              ...housing,
+              status: HousingStatusApi.Waiting,
+            },
+            createdBy: auth.userId,
+            createdAt: new Date(),
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode,
+          }))
+        );
+      }
+    } catch (error) {
+      logger.error(error);
+    }
   }
-
-  await eventRepository.insertCampaignEvent({
-    id: uuidv4(),
-    name: 'Modification du statut de la campagne',
-    kind: 'Update',
-    category: 'Campaign',
-    section: 'Suivi de campagne',
-    old: campaignApi,
-    new: updatedCampaign,
-    createdBy: userId,
-    createdAt: new Date(),
-    campaignId: campaignApi.id,
-  });
-
-  await campaignRepository.update(updatedCampaign);
-
-  return updatedCampaign;
-};
+}
 
 async function removeCampaign(
   request: Request,
@@ -503,12 +454,12 @@ const campaignController = {
   getCampaign,
   listValidators,
   list,
-  createValidators,
   create,
+  createValidators,
   createCampaignFromGroup,
   createCampaignFromGroupValidators,
-  updateCampaignValidators,
-  updateCampaign,
+  update,
+  updateValidators,
   removeCampaign,
   removeHousingValidators,
   removeHousing,

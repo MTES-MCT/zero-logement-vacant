@@ -15,6 +15,18 @@ export interface CampaignDTO {
 }
 
 export type CampaignStatus = 'draft' | 'sending' | 'in-progress' | 'archived';
+export const CAMPAIGN_STATUSES: CampaignStatus[] = [
+  'draft',
+  'sending',
+  'in-progress',
+  'archived',
+];
+export function nextStatus(current: CampaignStatus): CampaignStatus | null {
+  if (current === 'archived') {
+    return null;
+  }
+  return CAMPAIGN_STATUSES[CAMPAIGN_STATUSES.indexOf(current) + 1];
+}
 
 export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title'> {
   housing: {
@@ -24,4 +36,7 @@ export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title'> {
   };
 }
 
-export type CampaignUpdatePayloadDTO = Pick<CampaignDTO, 'title' | 'status'>;
+export interface CampaignUpdatePayloadDTO
+  extends Pick<CampaignDTO, 'title' | 'status'> {
+  sentAt?: string;
+}

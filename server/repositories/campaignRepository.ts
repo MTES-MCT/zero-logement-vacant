@@ -85,7 +85,7 @@ async function save(campaign: CampaignApi): Promise<void> {
   await Campaigns()
     .insert(formatCampaignApi(campaign))
     .onConflict(['id'])
-    .merge(['title']);
+    .merge(['status', 'title', 'sent_at']);
 }
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {

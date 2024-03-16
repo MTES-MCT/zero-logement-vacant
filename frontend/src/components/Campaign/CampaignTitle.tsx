@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { InferType, object } from 'yup';
 
 import { Col, Container, Row, Title } from '../_dsfr';
@@ -45,7 +45,8 @@ function CampaignTitle({ campaign, className, as, look }: Props) {
     title,
   });
 
-  function submit() {
+  function submit(event: FormEvent) {
+    event.preventDefault();
     form.validate(async () => {
       await updateCampaign({
         ...campaign,
@@ -93,7 +94,7 @@ function CampaignTitle({ campaign, className, as, look }: Props) {
           },
           {
             onClick: submit,
-            children: 'Enregistrer',
+            children: 'Confirmer',
             doClosesModal: false,
           },
         ]}

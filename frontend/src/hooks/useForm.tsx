@@ -77,6 +77,8 @@ export function useForm<
 
   const previousInput = useRef<U>();
 
+  const isDirty = touchedKeys.size > 0;
+
   function error<K extends keyof U>(key?: K): yup.ValidationError | undefined {
     return key && touchedKeys.has(key)
       ? errors?.find((error) => error && error.path === key)
@@ -203,6 +205,7 @@ export function useForm<
   }, fullValidationKeys);
 
   return {
+    isDirty,
     isValid,
     hasError,
     messageList,

@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 global.ReadableStream = require('node:stream/web').ReadableStream;
 import * as handlebars from 'handlebars';
 import path from 'node:path';

@@ -9,7 +9,7 @@ interface Props {
   draft: Draft;
 }
 
-function PreviewButton(props: Props) {
+function PreviewButton(props: Readonly<Props>) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function preview(): Promise<void> {

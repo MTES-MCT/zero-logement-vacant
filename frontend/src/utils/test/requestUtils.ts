@@ -4,6 +4,7 @@ import fetchMock, {
   MockResponseInitFunction,
 } from 'jest-fetch-mock';
 import { Predicate } from '../compareUtils';
+import { not } from '../../../../shared';
 
 export interface RequestCall {
   url: string;
@@ -28,6 +29,7 @@ export const getRequestCalls = (fetchMock: FetchMock) =>
 export interface RequestMatch {
   pathname: string;
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  persist?: boolean;
   response: MockResponseInitFunction | MockResponseInit;
 }
 
@@ -40,17 +42,36 @@ export const mockRequests = (matches: RequestMatch[]): void => {
     ];
   }
 
-  matches.forEach((match) => {
-    fetchMock.mockOnceIf(
-      (request) => predicates(match).every((predicate) => predicate(request)),
-      (request) =>
-        isMockResponseInitFunction(match.response)
-          ? match.response(request)
-          : Promise.resolve(match.response)
-    );
+  const consumed = new Set<RequestMatch>();
+  function isConsumed(match: RequestMatch): boolean {
+    return consumed.has(match);
+  }
+
+  fetchMock.mockResponse((request): Promise<MockResponseInit | string> => {
+    const match = matches.filter(not(isConsumed)).find((match) => {
+      return predicates(match).every((predicate) => predicate(request));
+    });
+    if (!match) {
+      return Promise.reject(new MockError(request));
+    }
+
+    if (!match.persist) {
+      consumed.add(match);
+    }
+
+    return isMockResponseInitFunction(match.response)
+      ? match.response(request)
+      : Promise.resolve(match.response);
   });
 };
 
 const isMockResponseInitFunction = (
   response: unknown
 ): response is MockResponseInitFunction => typeof response === 'function';
+
+class MockError extends Error {
+  constructor(request: Request) {
+    super(`Request to ${request.url} must be mocked`);
+    this.name = 'MockError';
+  }
+}

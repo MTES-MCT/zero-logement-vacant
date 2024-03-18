@@ -16,7 +16,7 @@ import { constants } from 'http2';
 import SignupLinkExpiredError from '../errors/signupLinkExpiredError';
 import userRepository from '../repositories/userRepository';
 
-const create = async (request: Request, response: Response) => {
+async function create(request: Request, response: Response) {
   const { email } = request.body;
 
   const user = await userRepository.getByEmail(email);
@@ -43,11 +43,11 @@ const create = async (request: Request, response: Response) => {
     link: getAccountActivationLink(link.id),
   });
   response.sendStatus(constants.HTTP_STATUS_CREATED);
-};
+}
 
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
-const show = async (request: Request, response: Response) => {
+async function show(request: Request, response: Response) {
   const { id } = request.params;
   const link = await signupLinkRepository.get(id);
   if (!link) {
@@ -58,7 +58,7 @@ const show = async (request: Request, response: Response) => {
   }
 
   response.status(constants.HTTP_STATUS_OK).json(link);
-};
+}
 
 const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 

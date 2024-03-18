@@ -1,4 +1,4 @@
-export interface Settings {
+export interface SettingsDTO {
   contactPoints: {
     public: boolean;
   };

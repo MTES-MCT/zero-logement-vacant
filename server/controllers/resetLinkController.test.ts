@@ -1,20 +1,37 @@
-import request from 'supertest';
-import { createServer } from '../server';
-import { constants } from 'http2';
-import db from '../repositories/db';
-import resetLinkRepository, {
-  resetLinkTable,
-} from '../repositories/resetLinkRepository';
-import { User1 } from '../../database/seeds/test/003-users';
-import { genResetLinkApi } from '../test/testFixtures';
-import { ResetLinkApi } from '../models/ResetLinkApi';
 import { subDays } from 'date-fns';
-import mailService from '../services/mailService';
+import { constants } from 'http2';
+import request from 'supertest';
 
-describe('Reset link controller', () => {
+import { createServer } from '../server';
+import resetLinkRepository, {
+  formatResetLinkApi,
+  ResetLinks,
+} from '../repositories/resetLinkRepository';
+import {
+  genEstablishmentApi,
+  genResetLinkApi,
+  genUserApi,
+} from '../test/testFixtures';
+import { ResetLinkApi } from '../models/ResetLinkApi';
+import mailService from '../services/mailService';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+
+describe('Reset link API', () => {
   const { app } = createServer();
 
-  describe('create', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
+  describe('POST /reset-links', () => {
     const testRoute = '/api/reset-links';
 
     it('should validate the email', async () => {
@@ -39,7 +56,7 @@ describe('Reset link controller', () => {
     });
 
     it('should create a reset link', async () => {
-      const email = User1.email;
+      const email = user.email;
 
       const { status } = await request(app).post(testRoute).send({
         email,
@@ -47,9 +64,9 @@ describe('Reset link controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const link = await db(resetLinkTable)
+      const link = await ResetLinks()
         .select()
-        .where('user_id', User1.id)
+        .where('user_id', user.id)
         .first();
       expect(link).toBeDefined();
     });
@@ -67,27 +84,27 @@ describe('Reset link controller', () => {
     });
   });
 
-  describe('show', () => {
+  describe('GET /reset-links/{id}', () => {
     const testRoute = (id: string) => `/api/reset-links/${id}`;
-
-    const insertLink = resetLinkRepository.insert;
 
     it('should validate the id', async () => {
       const { status } = await request(app).get(testRoute('@$'));
+
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should be missing', async () => {
       const { status } = await request(app).get(testRoute('unknown'));
+
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should be gone if expired', async () => {
       const link: ResetLinkApi = {
-        ...genResetLinkApi(User1.id),
+        ...genResetLinkApi(user.id),
         expiresAt: subDays(new Date(), 1),
       };
-      await insertLink(link);
+      await ResetLinks().insert(formatResetLinkApi(link));
 
       const { status } = await request(app).get(testRoute(link.id));
 
@@ -96,10 +113,10 @@ describe('Reset link controller', () => {
 
     it('should be gone if already used', async () => {
       const link: ResetLinkApi = {
-        ...genResetLinkApi(User1.id),
+        ...genResetLinkApi(user.id),
         usedAt: new Date(),
       };
-      await insertLink(link);
+      await ResetLinks().insert(formatResetLinkApi(link));
 
       const { status } = await request(app).get(testRoute(link.id));
 
@@ -107,8 +124,8 @@ describe('Reset link controller', () => {
     });
 
     it('should return a valid reset link', async () => {
-      const link = genResetLinkApi(User1.id);
-      await insertLink(link);
+      const link = genResetLinkApi(user.id);
+      await ResetLinks().insert(formatResetLinkApi(link));
 
       const { status } = await request(app).get(testRoute(link.id));
 

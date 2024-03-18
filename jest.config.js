@@ -8,4 +8,6 @@ module.exports = {
     'jest-extended/all',
     '<rootDir>/server/test/setupTests.ts',
   ],
+  globalSetup: '<rootDir>/server/test/global-setup.ts',
+  globalTeardown: '<rootDir>/server/test/global-teardown.ts',
 };

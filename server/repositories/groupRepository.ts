@@ -205,7 +205,7 @@ export const formatGroupApi = (group: GroupApi): GroupRecordDBO => ({
   exported_at: group.exportedAt,
   user_id: group.userId,
   establishment_id: group.establishmentId,
-  archived_at: null,
+  archived_at: group.archivedAt,
 });
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {

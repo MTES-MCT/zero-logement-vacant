@@ -10,6 +10,7 @@ export interface ProspectApi {
   establishment?: PartialEstablishment | null;
   hasAccount: boolean;
   hasCommitment: boolean;
+  lastAccountRequestAt: Date;
 }
 
 export function isValid(prospect: ProspectApi): boolean {

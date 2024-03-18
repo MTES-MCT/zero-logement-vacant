@@ -1,5 +1,9 @@
+import { addHours } from 'date-fns';
 import { NextFunction, Request, Response } from 'express';
 import { body, param, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+import randomstring from 'randomstring';
+
 import mailService from '../services/mailService';
 import resetLinkRepository from '../repositories/resetLinkRepository';
 import {
@@ -8,14 +12,11 @@ import {
   RESET_LINK_LENGTH,
   ResetLinkApi,
 } from '../models/ResetLinkApi';
-import { addHours } from 'date-fns';
 import userRepository from '../repositories/userRepository';
-import { constants } from 'http2';
-import randomstring from 'randomstring';
 import ResetLinkMissingError from '../errors/resetLinkMissingError';
 import ResetLinkExpiredError from '../errors/resetLinkExpiredError';
 
-const create = async (request: Request, response: Response) => {
+async function create(request: Request, response: Response) {
   const { email } = request.body;
   const user = await userRepository.getByEmail(email);
 
@@ -37,31 +38,23 @@ const create = async (request: Request, response: Response) => {
   }
   // Avoid returning the reset link in the body because it would compromise
   // the security of the password reset flow.
-  response.sendStatus(constants.HTTP_STATUS_OK);
-};
+  response.status(constants.HTTP_STATUS_OK).send();
+}
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
-const show = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = request.params;
-    const link = await resetLinkRepository.get(id);
-    if (!link) {
-      throw new ResetLinkMissingError();
-    }
-
-    if (hasExpired(link)) {
-      throw new ResetLinkExpiredError();
-    }
-
-    response.status(constants.HTTP_STATUS_OK).json(link);
-  } catch (error) {
-    next(error);
+async function show(request: Request, response: Response, next: NextFunction) {
+  const { id } = request.params;
+  const link = await resetLinkRepository.get(id);
+  if (!link) {
+    throw new ResetLinkMissingError();
   }
-};
+
+  if (hasExpired(link)) {
+    throw new ResetLinkExpiredError();
+  }
+
+  response.status(constants.HTTP_STATUS_OK).json(link);
+}
 const showValidators: ValidationChain[] = [
   param('id').isString().notEmpty().isAlphanumeric(),
 ];

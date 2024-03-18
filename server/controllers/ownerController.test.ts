@@ -1,10 +1,18 @@
+import { addDays } from 'date-fns';
 import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+
 import { createServer } from '../server';
-import { withAccessToken } from '../test/testUtils';
-import { Housing1 } from '../../database/seeds/test/005-housing';
-import { genAddressApi, genOwnerApi } from '../test/testFixtures';
+import { tokenProvider, withAccessToken } from '../test/testUtils';
+import {
+  genAddressApi,
+  genEstablishmentApi,
+  genHousingApi,
+  genOwnerApi,
+  genUserApi,
+  oneOf,
+} from '../test/testFixtures';
 import { formatOwnerApi, Owners } from '../repositories/ownerRepository';
 import { OwnerPayloadDTO } from '../../shared';
 import {
@@ -15,49 +23,74 @@ import {
   ownerEventsTable,
 } from '../repositories/eventRepository';
 import { OwnerApi } from '../models/OwnerApi';
-import { addDays } from 'date-fns';
 import db from '../repositories/db';
 import {
   banAddressesTable,
   formatAddressApi,
 } from '../repositories/banAddressesRepository';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../repositories/establishmentRepository';
+import { formatUserApi, Users } from '../repositories/userRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+} from '../repositories/housingRepository';
+import {
+  formatHousingOwnersApi,
+  HousingOwners,
+} from '../repositories/housingOwnerRepository';
 
-describe('Owner controller', () => {
+describe('Owner API', () => {
   const { app } = createServer();
 
-  describe('listByHousing', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
+  describe('GET /owners/housing/{id}', () => {
     const testRoute = (housingId: string) => `/api/owners/housing/${housingId}`;
 
-    it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
-        .get(testRoute(Housing1.id))
-        .expect(constants.HTTP_STATUS_UNAUTHORIZED);
+    const housing = genHousingApi(oneOf(establishment.geoCodes));
+    const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await HousingOwners().insert(formatHousingOwnersApi(housing, owners));
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).get(testRoute(housing.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should return the owner list for a housing', async () => {
-      const res = await withAccessToken(
-        request(app).get(testRoute(Housing1.id))
-      ).expect(constants.HTTP_STATUS_OK);
+      const { body, status } = await request(app)
+        .get(testRoute(housing.id))
+        .use(tokenProvider(user));
 
-      expect(res.status).toBe(constants.HTTP_STATUS_OK);
-
-      expect(res.body).toMatchObject(
-        expect.arrayContaining([
-          expect.objectContaining({
-            housingId: Housing1.id,
-          }),
-        ])
-      );
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toSatisfyAll<OwnerApi>((owner) => {
+        return owners.map((owner) => owner.id).includes(owner.id);
+      });
     });
   });
 
-  describe('update', () => {
+  describe('PUT /owners/{id}', () => {
     const testRoute = (id: string) => `/api/owners/${id}`;
 
-    const original = genOwnerApi();
+    let original: OwnerApi;
 
     beforeEach(async () => {
+      original = genOwnerApi();
       await Owners().insert(formatOwnerApi(original));
     });
 
@@ -88,12 +121,11 @@ describe('Owner controller', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { body, status } = await withAccessToken(
-        request(app)
-          .put(testRoute(original.id))
-          .send(payload)
-          .set('Content-Type', 'application/json')
-      );
+      const { body, status } = await request(app)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
@@ -112,12 +144,11 @@ describe('Owner controller', () => {
           .substring(0, 10),
       };
 
-      const { status } = await withAccessToken(
-        request(app)
-          .put(testRoute(original.id))
-          .send(payload)
-          .set('Content-Type', 'application/json')
-      );
+      const { status } = await request(app)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       const events = await Events()
@@ -148,12 +179,11 @@ describe('Owner controller', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { status } = await withAccessToken(
-        request(app)
-          .put(testRoute(original.id))
-          .send(payload)
-          .set('Content-Type', 'application/json')
-      );
+      const { status } = await request(app)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       const events = await Events()
@@ -185,12 +215,11 @@ describe('Owner controller', () => {
         banAddress: genAddressApi(original.id, AddressKinds.Owner),
       };
 
-      const { status } = await withAccessToken(
-        request(app)
-          .put(testRoute(original.id))
-          .send(payload)
-          .set('Content-Type', 'application/json')
-      );
+      const { status } = await request(app)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       const events = await Events()
@@ -212,7 +241,7 @@ describe('Owner controller', () => {
     });
   });
 
-  describe('updateHousingOwners', () => {
+  describe('PUT /owners/housing/{id}', () => {
     const testRoute = (id: string) => `/api/owners/housing/${id}`;
 
     it('should reject if the housing is missing', async () => {
@@ -220,9 +249,10 @@ describe('Owner controller', () => {
         // TODO
       };
 
-      const { status } = await withAccessToken(
-        request(app).put(testRoute(uuidv4())).send(payload)
-      );
+      const { status } = await request(app)
+        .put(testRoute(uuidv4()))
+        .send(payload)
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });

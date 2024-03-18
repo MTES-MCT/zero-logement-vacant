@@ -1,7 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { genGroupApi, genHousingApi, oneOf } from '../../test/testFixtures';
-import { User1 } from '../../../database/seeds/test/003-users';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
+
+import {
+  genEstablishmentApi,
+  genGroupApi,
+  genHousingApi,
+  genUserApi,
+  oneOf,
+} from '../../test/testFixtures';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { formatGroupApi, Groups } from '../groupRepository';
 import eventRepository, {
@@ -11,15 +16,28 @@ import eventRepository, {
 } from '../eventRepository';
 import { EventApi } from '../../models/EventApi';
 import { GroupApi } from '../../models/GroupApi';
+import {
+  Establishments,
+  formatEstablishmentApi,
+} from '../establishmentRepository';
+import { formatUserApi, Users } from '../userRepository';
 
 describe('Event repository', () => {
   describe('findGroupHousingEvents', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+    });
+
     it('should return events linked to a group and a housing', async () => {
-      const housingList = new Array(3)
-        .fill('0')
-        .map(() => genHousingApi(oneOf(Establishment1.geoCodes)));
-      const group = genGroupApi(User1, Establishment1);
-      const events: EventApi<GroupApi>[] = housingList.map(() => ({
+      const houses = Array.from({ length: 3 }).map(() =>
+        genHousingApi(oneOf(establishment.geoCodes))
+      );
+      const group = genGroupApi(user, establishment);
+      const events: EventApi<GroupApi>[] = houses.map(() => ({
         id: uuidv4(),
         name: 'Ce logement a été ajouté à un groupe',
         kind: 'Create',
@@ -29,21 +47,21 @@ describe('Event repository', () => {
         old: undefined,
         new: group,
         createdAt: new Date(),
-        createdBy: User1.id,
+        createdBy: user.id,
       }));
-      const groupHousingEvents = housingList.map((housing, i) => ({
+      const groupHousingEvents = houses.map((housing, i) => ({
         event_id: events[i].id,
         housing_geo_code: housing.geoCode,
         housing_id: housing.id,
         group_id: group.id,
       }));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
+      await Housing().insert(houses.map(formatHousingRecordApi));
       await Groups().insert(formatGroupApi(group));
       await Events().insert(events.map(formatEventApi));
       await GroupHousingEvents().insert(groupHousingEvents);
 
       const actual = await eventRepository.findGroupHousingEvents(
-        housingList[0],
+        houses[0],
         group
       );
 

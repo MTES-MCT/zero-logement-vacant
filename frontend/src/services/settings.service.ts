@@ -1,4 +1,4 @@
-import { Settings } from '../../../shared';
+import { SettingsDTO } from '../../../shared';
 import { DeepPartial } from 'ts-essentials';
 import { zlvApi } from './api.service';
 
@@ -6,7 +6,7 @@ interface FindOneOptions {
   establishmentId: string;
 }
 
-const DEFAULT_SETTINGS: Settings = {
+const DEFAULT_SETTINGS: SettingsDTO = {
   contactPoints: {
     public: false,
   },
@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 export const settingsApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    findSettings: builder.query<Settings, FindOneOptions>({
+    findSettings: builder.query<SettingsDTO, FindOneOptions>({
       query: (options) => `establishments/${options.establishmentId}/settings`,
       providesTags: () => ['Settings'],
       transformErrorResponse: (response) => {
@@ -30,7 +30,7 @@ export const settingsApi = zlvApi.injectEndpoints({
       void,
       {
         establishmentId: string;
-        settings: DeepPartial<Settings>;
+        settings: DeepPartial<SettingsDTO>;
       }
     >({
       query: ({ establishmentId, settings }) => ({

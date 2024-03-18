@@ -245,6 +245,13 @@ export function formatEventApi<T>(eventApi: EventApi<T>): EventDBO<T> {
   };
 }
 
+export function formatOwnerEventApi(event: OwnerEventApi): OwnerEventDBO {
+  return {
+    event_id: event.id,
+    owner_id: event.ownerId,
+  };
+}
+
 export function formatHousingEventApi(event: HousingEventApi): HousingEventDBO {
   return {
     event_id: event.id,

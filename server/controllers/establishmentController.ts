@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import establishmentRepository from '../repositories/establishmentRepository';
-import { constants } from 'http2';
 import { query, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+
+import establishmentRepository from '../repositories/establishmentRepository';
 import { EstablishmentKind } from '../../shared/types/EstablishmentKind';
 import { logger } from '../utils/logger';
 import {
@@ -27,7 +28,7 @@ const listValidators: ValidationChain[] = [
   query().isObject({ strict: true }).custom(hasKeys),
 ];
 
-const list = async (request: Request, response: Response) => {
+async function list(request: Request, response: Response) {
   logger.info('List establishments');
 
   const available = request.query.available as unknown as boolean;
@@ -44,7 +45,7 @@ const list = async (request: Request, response: Response) => {
     name,
   });
   response.status(constants.HTTP_STATUS_OK).json(establishments);
-};
+}
 
 export default {
   listValidators,

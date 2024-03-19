@@ -4,8 +4,10 @@ import {
   DraftDTO,
   DraftUpdatePayloadDTO,
 } from '../../../shared/models/DraftDTO';
-import { Draft } from '../models/Draft';
+import { Draft, DraftPayload } from '../models/Draft';
 import { getURLQuery } from '../utils/fetchUtils';
+import { SenderPayload } from '../models/Sender';
+import { SenderPayloadDTO } from '../../../shared';
 
 export interface FindOptions {
   campaign?: string;
@@ -39,7 +41,7 @@ export const draftApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Draft', id: 'LIST' }],
     }),
-    updateDraft: builder.mutation<void, DraftUpdatePayloadDTO>({
+    updateDraft: builder.mutation<void, DraftPayload>({
       query: (draft) => ({
         url: `/drafts/${draft.id}`,
         method: 'PUT',
@@ -56,8 +58,28 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
     body: draft.body.replaceAll('<br />', '\n'),
+    sender: draft.sender ?? undefined,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
+  };
+}
+
+function toDraftPayloadDTO(draft: DraftPayload): DraftPayloadDTO {
+  return {
+    body: draft.body ? draft.body.replaceAll('\n', '<br />') : null,
+    sender: toSenderPayloadDTO(draft.sender),
+  };
+}
+
+function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
+  return {
+    name: sender.name,
+    service: sender.service,
+    firstName: sender.firstName,
+    lastName: sender.lastName,
+    address: sender.address,
+    email: sender.email,
+    phone: sender.phone,
   };
 }
 

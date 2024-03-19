@@ -16,6 +16,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
 import Notice from '@codegouvfr/react-dsfr/Notice';
 import { isBanEligible } from '../../models/Address';
+import { getOwnerKindLabel } from '../../models/HousingFilters';
+import Label from '../Label/Label';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -48,6 +50,14 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               <b>({age(owner.birthDate)} ans)</b>
             </Text>
           )}
+          {getOwnerKindLabel(owner) && (
+            <div className="fr-pt-1w">
+              <Label>Type</Label>
+              <Text size="lg" spacing="mb-0">
+                {getOwnerKindLabel(owner)}
+              </Text>
+            </div>
+          )}
           {isHousingOwner(owner) && (
             <Button
               title="Voir tous ses logements"
@@ -72,9 +82,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             </Title>
             <hr />
             <div>
-              <Text size="sm" className="zlv-label">
-                Adresse postale
-              </Text>
+              <Label>Adresse postale</Label>
               <Text className="fr-mb-0">
                 {owner.banAddress?.houseNumber} {owner.banAddress?.street}
                 <br />
@@ -98,17 +106,13 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             </div>
             {owner.additionalAddress && (
               <div>
-                <Text size="sm" className="zlv-label">
-                  Complément d'adresse
-                </Text>
+                <Label>Complément d'adresse</Label>
                 <Text className="fr-mb-0">{owner.additionalAddress}</Text>
               </div>
             )}
             {owner.email && (
               <div>
-                <Text size="sm" className="zlv-label">
-                  Adresse mail
-                </Text>
+                <Label>Adresse mail</Label>
                 <AppLink className="mailto" isSimple to={mailto(owner.email)}>
                   {owner.email}
                 </AppLink>
@@ -116,9 +120,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             )}
             {owner.phone && (
               <div>
-                <Text size="sm" className="zlv-label">
-                  Téléphone
-                </Text>
+                <Label>Téléphone</Label>
                 <Text spacing="mb-0">{owner.phone}</Text>
               </div>
             )}
@@ -157,9 +159,9 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   }
                   desc={
                     <>
-                      <Text size="sm" className="zlv-label" as="span">
+                      <Label as="span">
                         {getHousingOwnerRankLabel(housingOwner.rank)}
-                      </Text>
+                      </Label>
                       <Text
                         as="span"
                         spacing="mb-0 mr-1w"

@@ -19,6 +19,7 @@ import {
   multiOwnerOptions,
   ownerAgeOptions,
   ownerKindOptions,
+  ownerLocationOptions,
   ownershipKindsOptions,
   roomsCountOptions,
   statusOptions,
@@ -409,6 +410,19 @@ function HousingListFiltersSidemenu(props: Props) {
                       onChangeFilters(
                         { beneficiaryCounts: values },
                         'Ayants droit'
+                      )
+                    }
+                  />
+                </Col>
+                <Col n="6">
+                  <AppMultiSelect
+                    label="Lieu de résidence"
+                    options={ownerLocationOptions}
+                    initialValues={filters.ownerLocations}
+                    onChange={(values) =>
+                      onChangeFilters(
+                        { ownerLocations: values },
+                        'Lieu de résidence'
                       )
                     }
                   />

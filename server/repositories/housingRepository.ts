@@ -380,6 +380,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     filters?.ownerKinds,
     filters?.ownerAges,
     filters?.multiOwners,
+    filters?.ownerLocations,
     filters?.query,
   ].some((filter) => filter?.length);
   if (filterByOwner) {
@@ -602,7 +603,6 @@ function filteredQuery(opts: ListQueryOptions) {
         }
       });
     }
-
     if (filters.beneficiaryCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
         whereBuilder.whereIn(
@@ -616,6 +616,9 @@ function filteredQuery(opts: ListQueryOptions) {
           whereBuilder.orWhereRaw('beneficiary_count >= 5');
         }
       });
+    }
+    if (filters.ownerLocations?.length) {
+      queryBuilder.whereIn('location', filters.ownerLocations);
     }
     if (filters.housingKinds?.length) {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);

@@ -10,11 +10,13 @@ import {
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
+import { Owner } from './Owner';
 
 export interface HousingFilters {
   establishmentIds?: string[];
   groupIds?: string[];
   ownerKinds?: string[];
+  ownerLocations?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
   beneficiaryCounts?: string[];
@@ -74,10 +76,39 @@ export const ownerAgeOptions: SelectOption[] = [
 ];
 
 export const ownerKindOptions: SelectOption[] = [
-  { value: 'Particulier', label: 'Particulier' },
-  { value: 'Investisseur', label: 'Investisseur' },
-  { value: 'SCI', label: 'SCI' },
-  { value: 'Autre', label: 'Autres' },
+  { value: 'personne-physique', label: 'Particulier' },
+  {
+    value: 'sci-copropriete-autres-personnes-morales',
+    label: 'SCI, Copropriété, Autres personnes morales',
+  },
+  {
+    value: 'promoteur-investisseur-prive',
+    label: 'Promoteur, Investisseur privé',
+  },
+  {
+    value: 'bailleur-social-amenageur-investisseur-public',
+    label: 'Bailleur social, Aménageur, Investisseur public',
+  },
+  {
+    value: 'etat-et-collectivite-territoriale',
+    label: 'Etat et collectivité territoriale',
+  },
+  { value: 'autres', label: 'Autres' },
+  { value: 'absence-de-proprietaire', label: 'Absence de propriétaire' },
+];
+
+export const getOwnerKindLabel = (owner: Owner) => {
+  return ownerKindOptions.find((_) => _.value === owner.kind)?.label;
+};
+
+export const ownerLocationOptions: SelectOption[] = [
+  { value: 'commune', label: 'Dans la commune' },
+  { value: 'departement', label: 'Dans le département' },
+  { value: 'region', label: 'Dans la région' },
+  { value: 'metropole', label: 'En métropole' },
+  { value: 'outre-mer', label: 'En outre-mer' },
+  { value: 'etranger', label: 'À l’étranger' },
+  { value: 'inconnu', label: 'Inconnu' },
 ];
 
 export const campaignsCountOptions: SelectOption[] = [

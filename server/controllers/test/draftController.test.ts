@@ -8,12 +8,13 @@ import {
   genCampaignApi,
   genDraftApi,
   genEstablishmentApi,
+  genSenderApi,
   genUserApi,
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 import { CampaignApi } from '../../models/CampaignApi';
 import {
-  DraftDBO,
+  DraftRecordDBO,
   Drafts,
   formatDraftApi,
 } from '../../repositories/draftRepository';
@@ -32,6 +33,13 @@ import {
   formatEstablishmentApi,
 } from '../../repositories/establishmentRepository';
 import { formatUserApi, Users } from '../../repositories/userRepository';
+import { SenderApi } from '../../models/SenderApi';
+import fp from 'lodash/fp';
+import {
+  formatSenderApi,
+  SenderDBO,
+  Senders,
+} from '../../repositories/senderRepository';
 
 describe('Draft API', () => {
   const { app } = createServer();
@@ -177,13 +185,18 @@ describe('Draft API', () => {
   describe('PUT /drafts/{id}', () => {
     const testRoute = (id: string) => `/api/drafts/${id}`;
 
-    const draft: DraftApi = genDraftApi(establishment);
-    const payload: DraftUpdatePayloadDTO = {
-      id: draft.id,
-      body: 'Look at that body!',
-    };
+    let draft: DraftApi;
+    let sender: SenderApi;
+    let payload: DraftUpdatePayloadDTO;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      draft = genDraftApi(establishment);
+      sender = genSenderApi(establishment);
+      payload = {
+        id: draft.id,
+        body: 'Look at that body!',
+        sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
+      };
       await Drafts().insert(formatDraftApi(draft));
     });
 
@@ -239,18 +252,101 @@ describe('Draft API', () => {
       expect(body).toStrictEqual<DraftDTO>({
         id: draft.id,
         body: payload.body,
+        sender: {
+          id: expect.any(String),
+          name: sender.name,
+          service: sender.service,
+          firstName: sender.firstName,
+          lastName: sender.lastName,
+          address: sender.address,
+          email: sender.email,
+          phone: sender.phone,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        },
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
 
       const actual = await Drafts().where('id', draft.id).first();
-      expect(actual).toStrictEqual<DraftDBO>({
+      expect(actual).toStrictEqual<DraftRecordDBO>({
         id: draft.id,
         body: payload.body,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: draft.establishmentId,
+        sender_id: body.sender.id,
       });
     });
+
+    it('should update an existing sender', async () => {
+      // Store the sender beforehand
+      await Senders().insert(
+        formatSenderApi({
+          ...sender,
+          service: 'Another service before',
+          email: 'another@email.com',
+          phone: '0123456789',
+        })
+      );
+
+      const { status } = await request(app)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actual = await Senders()
+        .where({
+          name: sender.name,
+          establishment_id: sender.establishmentId,
+        })
+        .first();
+      expect(actual).toStrictEqual<SenderDBO>({
+        id: sender.id,
+        name: sender.name,
+        service: sender.service,
+        first_name: sender.firstName,
+        last_name: sender.lastName,
+        address: sender.address,
+        email: sender.email,
+        phone: sender.phone,
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
+        establishment_id: sender.establishmentId,
+      });
+    });
+
+    it('should create a new sender if missing', async () => {
+      const { body, status } = await request(app)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actual = await Senders()
+        .where({
+          name: sender.name,
+          establishment_id: sender.establishmentId,
+        })
+        .first();
+      expect(actual).toStrictEqual<SenderDBO>({
+        id: body.sender.id,
+        name: sender.name,
+        service: sender.service,
+        first_name: sender.firstName,
+        last_name: sender.lastName,
+        address: sender.address,
+        email: sender.email,
+        phone: sender.phone,
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
+        establishment_id: sender.establishmentId,
+      });
+    });
+
+    it.todo('should update a draft and update sender if existing');
   });
 });

@@ -13,6 +13,7 @@ import { HousingStatus } from '../src/models/HousingState';
 import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
 import { Draft } from '../src/models/Draft';
+import { Sender } from '../src/models/Sender';
 
 const randomstring = require('randomstring');
 
@@ -21,17 +22,15 @@ export const genBoolean = () => Math.random() < 0.5;
 export const genSiren = () => genNumber(9);
 
 export function genEmail() {
-  return (
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    }) +
-    '@' +
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    })
-  );
+  const name = randomstring.generate({
+    length: 10,
+    charset: 'alphabetic',
+  });
+  const domain = randomstring.generate({
+    length: 10,
+    charset: 'alphabetic',
+  });
+  return `${name}@${domain}.com`;
 }
 
 export function genNumber(length = 10) {
@@ -125,6 +124,24 @@ export function genDraft(): Draft {
   return {
     id: randomstring.generate(),
     body: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  };
+}
+
+export function genSender(): Sender {
+  return {
+    id: randomstring.generate(),
+    name: randomstring.generate(),
+    service: randomstring.generate(),
+    firstName: randomstring.generate(),
+    lastName: randomstring.generate(),
+    address: randomstring.generate(),
+    email: genEmail(),
+    phone: randomstring.generate({
+      length: 10,
+      charset: 'numeric',
+    }),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
   };

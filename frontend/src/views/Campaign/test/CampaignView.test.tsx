@@ -4,7 +4,11 @@ import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
 import { Link, Route, Router } from 'react-router-dom';
 
-import { genCampaign, genDraft } from '../../../../test/fixtures.test';
+import {
+  genCampaign,
+  genDraft,
+  genSender,
+} from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
 import { AppStore } from '../../../store/store';
 import { mockRequests } from '../../../utils/test/requestUtils';
@@ -17,6 +21,7 @@ describe('Campaign view', () => {
 
   const campaign = genCampaign();
   const draft = genDraft();
+  const sender = genSender();
 
   let store: AppStore;
   let router: History;
@@ -169,7 +174,11 @@ describe('Campaign view', () => {
   });
 
   it('should save the draft on button click', async () => {
-    const updated: Draft = { ...draft, body: 'Updated body' };
+    const updated: Draft = {
+      ...draft,
+      body: 'New body',
+      sender,
+    };
     mockRequests([
       {
         pathname: `/api/campaigns/${campaign.id}`,
@@ -200,14 +209,44 @@ describe('Campaign view', () => {
           body: JSON.stringify(updated),
         },
       },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([updated]),
+        },
+      },
     ]);
 
     renderComponent();
 
+    // Fill the form
+    const form = await screen.findByRole('form');
+    const name = await within(form).findByLabelText(
+      'Nom de la collectivité ou de l’administration*'
+    );
+    await user.type(name, sender.name);
+    const service = await within(form).findByLabelText('Service*');
+    await user.type(service, sender.service);
+    const lastName = await within(form).findByLabelText('Nom*');
+    await user.type(lastName, sender.lastName);
+    const firstName = await within(form).findByLabelText('Prénom*');
+    await user.type(firstName, sender.firstName);
+    const address = await within(form).findByLabelText('Adresse*');
+    await user.type(address, sender.address);
+    if (sender.email) {
+      const email = await within(form).findByLabelText('Adresse courriel');
+      await user.type(email, sender.email);
+    }
+    if (sender.phone) {
+      const phone = await within(form).findByLabelText('Téléphone');
+      await user.type(phone, sender.phone);
+    }
+
+    // Save the draft
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/^Sauvegarde.../);
+    expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });
 
   // Hard to mock window.confirm because it's a browser-level function

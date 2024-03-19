@@ -21,6 +21,7 @@ import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import { SenderPayload } from '../../models/Sender';
+import SendButton from '../../components/Draft/SendButton';
 
 const schema = yup.object({
   body: yup.string(),
@@ -124,7 +125,8 @@ function CampaignDraft(props: Props) {
             />
           </Col>
           <Col n="6" className={styles.right}>
-            <PreviewButton disabled={!exists} draft={draft} />
+            <PreviewButton className="fr-mr-2w" disabled={!exists} draft={draft} />
+            <SendButton campaign={props.campaign} />
           </Col>
         </Row>
       </Container>

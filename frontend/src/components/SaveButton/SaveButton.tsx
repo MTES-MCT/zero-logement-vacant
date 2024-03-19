@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useEffect } from 'react';
-import { toast } from 'react-toastify';
+
+import { useNotification } from '../../hooks/useNotification';
 
 interface Props {
   className?: string;
@@ -11,46 +11,12 @@ interface Props {
 }
 
 function SaveButton(props: Props) {
-  const toastId = 'save';
-
-  useEffect(() => {
-    if (props.isLoading) {
-      toast('Sauvegarde...', {
-        autoClose: false,
-        isLoading: true,
-        toastId,
-      });
-      return;
-    }
-
-    if (props.isError) {
-      toast.update(toastId, {
-        autoClose: null,
-        isLoading: false,
-        render: 'Erreur lors de la sauvegarde',
-        type: 'error',
-        toastId,
-      });
-    }
-
-    if (props.isSuccess) {
-      if (toast.isActive(toastId)) {
-        toast.update(toastId, {
-          autoClose: null,
-          isLoading: false,
-          render: 'Sauvegardé !',
-          type: 'success',
-          toastId,
-        });
-      } else {
-        toast.success('Sauvegardé !', {
-          type: 'success',
-          toastId,
-        });
-      }
-      return;
-    }
-  }, [props.isError, props.isLoading, props.isSuccess]);
+  useNotification({
+    isError: props.isError,
+    isLoading: props.isLoading,
+    isSuccess: props.isSuccess,
+    toastId: 'save',
+  });
 
   return (
     <Button

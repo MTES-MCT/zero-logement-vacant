@@ -105,15 +105,17 @@ async function update(request: Request, response: Response<DraftDTO>) {
     throw new DraftMissingError(params.id);
   }
 
-  const existingSender: SenderApi | null =
-    draft.sender ??
-    (await senderRepository.findOne({
-      name: body.sender.name,
-      establishmentId: auth.establishmentId,
-    }));
+  const changeSender = !!draft.sender && draft.sender.name !== body.sender.name;
+  const existingSender: SenderApi | null = changeSender
+    ? await senderRepository.findOne({
+        name: body.sender.name,
+        establishmentId: auth.establishmentId,
+      })
+    : draft.sender;
+
   const sender: SenderApi = {
     id: existingSender?.id ?? uuidv4(),
-    name: existingSender?.name ?? body.sender.name,
+    name: body.sender.name,
     service: body.sender.service,
     firstName: body.sender.firstName,
     lastName: body.sender.lastName,

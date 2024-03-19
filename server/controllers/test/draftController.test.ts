@@ -289,6 +289,7 @@ describe('Draft API', () => {
           phone: '0123456789',
         })
       );
+      await Drafts().where({ id: draft.id }).update({ sender_id: sender.id });
 
       const { status } = await request(app)
         .put(testRoute(draft.id))
@@ -318,7 +319,55 @@ describe('Draft API', () => {
       });
     });
 
-    it('should create a new sender if missing', async () => {
+    it('should create a new sender if the name changes', async () => {
+      // Store the sender beforehand
+      await Senders().insert(formatSenderApi(sender));
+      await Drafts().where({ id: draft.id }).update({ sender_id: sender.id });
+      payload = {
+        ...payload,
+        sender: {
+          ...payload.sender,
+          name: 'Another name',
+        },
+      };
+
+      const { status } = await request(app)
+        .put(testRoute(draft.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualSender = await Senders()
+        .where({
+          name: payload.sender.name,
+          establishment_id: sender.establishmentId,
+        })
+        .first();
+      expect(actualSender).toStrictEqual<SenderDBO>({
+        id: expect.any(String),
+        name: payload.sender.name,
+        service: sender.service,
+        first_name: sender.firstName,
+        last_name: sender.lastName,
+        address: sender.address,
+        email: sender.email,
+        phone: sender.phone,
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
+        establishment_id: sender.establishmentId,
+      });
+
+      const actualDraft = await Drafts()
+        .where({
+          id: draft.id,
+          establishment_id: draft.establishmentId,
+        })
+        .first();
+      expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);
+    });
+
+    it('should create a new sender if the draft does not have one', async () => {
       const { body, status } = await request(app)
         .put(testRoute(draft.id))
         .send(payload)

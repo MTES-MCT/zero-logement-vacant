@@ -34,13 +34,20 @@ function SaveButton(props: Props) {
     }
 
     if (props.isSuccess) {
-      toast.update(toastId, {
-        autoClose: null,
-        isLoading: false,
-        render: 'Sauvegardé !',
-        type: 'success',
-        toastId,
-      });
+      if (toast.isActive(toastId)) {
+        toast.update(toastId, {
+          autoClose: null,
+          isLoading: false,
+          render: 'Sauvegardé !',
+          type: 'success',
+          toastId,
+        });
+      } else {
+        toast.success('Sauvegardé !', {
+          type: 'success',
+          toastId,
+        });
+      }
       return;
     }
 

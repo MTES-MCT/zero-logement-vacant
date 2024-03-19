@@ -6,6 +6,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
+import NotFoundView from '../NotFoundView';
 import { Campaign } from '../../models/Campaign';
 import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import SaveButton from '../../components/Draft/SaveButton';
@@ -19,10 +20,13 @@ import PreviewButton from '../../components/Draft/PreviewButton';
 import styles from './campaign.module.scss';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
+import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
+import { SenderPayload } from '../../models/Sender';
 
-const shape = {
+const schema = yup.object({
   body: yup.string(),
-};
+  sender: senderSchema,
+});
 
 interface Props {
   campaign: Campaign;
@@ -33,20 +37,28 @@ function CampaignDraft(props: Props) {
 
   useDocumentTitle(props.campaign.title ?? 'Campagne');
 
-  const [values, setValues] = useState<DraftCreationPayloadDTO>({
-    body: '',
-    campaign: props.campaign.id,
+  const [body, setBody] = useState('');
+  const [sender, setSender] = useState<SenderPayload>({
+    name: '',
+    service: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    email: '',
+    phone: '',
   });
-  const form = useForm(yup.object().shape(shape), {
-    body: values.body,
+  const form = useForm(schema, {
+    body,
+    sender,
   });
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   function create(): void {
     if (!draft) {
       createDraft({
-        body: values.body,
+        body,
         campaign: props.campaign.id,
+        sender
       });
     }
   }
@@ -57,6 +69,7 @@ function CampaignDraft(props: Props) {
       updateDraft({
         id: draft.id,
         body: values.body,
+        sender
       });
     }
   }
@@ -68,10 +81,18 @@ function CampaignDraft(props: Props) {
 
   useEffect(() => {
     if (draft) {
-      setValues({
-        body: draft.body ?? '',
-        campaign: props.campaign.id,
-      });
+      setBody(draft.body ?? '');
+      setSender(
+        draft.sender ?? {
+          name: '',
+          service: '',
+          firstName: '',
+          lastName: '',
+          address: '',
+          email: null,
+          phone: null,
+        }
+      );
     }
   }, [draft, props.campaign.id]);
 
@@ -106,7 +127,7 @@ function CampaignDraft(props: Props) {
           </Col>
         </Row>
       </Container>
-      <form id="draft" className="fr-mt-2w">
+      <form id="draft" name="draft" className="fr-mt-2w">
         <UnsavedChanges when={hasChanges} />
         <Container as="section" fluid>
           <Row justifyContent="right" spacing="mb-2w">
@@ -117,13 +138,14 @@ function CampaignDraft(props: Props) {
               onSave={save}
             />
           </Row>
+          <Row spacing="mb-2w">
+            <Col n="7" offset="5">
+              <DraftSender form={form} value={sender} onChange={setSender} />
+            </Col>
+          </Row>
           <Row>
             <Col>
-              <DraftBody
-                form={form}
-                value={values.body}
-                onChangeValue={(body) => setValues({ ...values, body: body })}
-              />
+              <DraftBody form={form} value={body} onChange={setBody} />
             </Col>
           </Row>
         </Container>

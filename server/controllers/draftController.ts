@@ -8,8 +8,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { DraftApi, toDraftDTO } from '../models/DraftApi';
 import draftRepository, { DraftFilters } from '../repositories/draftRepository';
 import {
-  DraftDTO,
   DraftCreationPayloadDTO,
+  DraftUpdatePayloadDTO,
+  DraftDTO,
 } from '../../shared/models/DraftDTO';
 import campaignDraftRepository from '../repositories/campaignDraftRepository';
 import campaignRepository from '../repositories/campaignRepository';
@@ -19,6 +20,8 @@ import { isUUIDParam } from '../utils/validators';
 import { logger } from '../utils/logger';
 import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
+import { SenderApi } from '../models/SenderApi';
+import senderRepository from '../repositories/senderRepository';
 
 interface DraftQuery {
   campaign?: string;
@@ -83,6 +86,7 @@ async function preview(request: Request, response: Response) {
 
   const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     body: draft.body,
+    sender: draft.sender,
   });
   const finalPDF = await pdf.fromHTML(html);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
@@ -91,7 +95,7 @@ const previewValidators: ValidationChain[] = [isUUIDParam('id')];
 
 async function update(request: Request, response: Response<DraftDTO>) {
   const { auth, params } = request as AuthenticatedRequest;
-  const body = request.body as DraftCreationPayloadDTO;
+  const body = request.body as DraftUpdatePayloadDTO;
 
   const draft = await draftRepository.findOne({
     id: params.id,
@@ -101,19 +105,80 @@ async function update(request: Request, response: Response<DraftDTO>) {
     throw new DraftMissingError(params.id);
   }
 
+  const existingSender: SenderApi | null =
+    draft.sender ??
+    (await senderRepository.findOne({
+      name: body.sender.name,
+      establishmentId: auth.establishmentId,
+    }));
+  const sender: SenderApi = {
+    id: existingSender?.id ?? uuidv4(),
+    name: existingSender?.name ?? body.sender.name,
+    service: body.sender.service,
+    firstName: body.sender.firstName,
+    lastName: body.sender.lastName,
+    address: body.sender.address,
+    email: body.sender.email,
+    phone: body.sender.phone,
+    createdAt: existingSender?.createdAt ?? new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    establishmentId: auth.establishmentId,
+  };
+
+  // If the sender exists, update it
+  // Otherwise create a new sender
   const updated: DraftApi = {
     ...draft,
-    updatedAt: new Date().toJSON(),
     body: body.body,
+    sender,
+    senderId: sender.id,
+    updatedAt: new Date().toJSON(),
   };
+  await senderRepository.save(sender);
   await draftRepository.save(updated);
   logger.info('Draft updated', updated);
 
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
+const updateSenderValidators: ValidationChain[] = [
+  body('sender.name')
+    .isString()
+    .withMessage('Name must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required'),
+  body('sender.service')
+    .isString()
+    .withMessage('Service must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Service is required'),
+  body('sender.firstName')
+    .isString()
+    .withMessage('First name must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('First name is required'),
+  body('sender.lastName')
+    .isString()
+    .withMessage('Last name must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Last name is required'),
+  body('sender.address')
+    .isString()
+    .withMessage('Address must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Address is required'),
+  body('sender.email').isString().withMessage('Email must be a string').trim(),
+  body('sender.phone').isString().withMessage('Phone must be a string').trim(),
+];
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('body').isString().notEmpty().withMessage('body is required'),
+  body('sender').isObject().withMessage('Sender must be an object'),
+  ...updateSenderValidators,
 ];
 
 const draftController = {

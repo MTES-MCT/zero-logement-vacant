@@ -85,7 +85,7 @@ async function save(campaign: CampaignApi): Promise<void> {
   await Campaigns()
     .insert(formatCampaignApi(campaign))
     .onConflict(['id'])
-    .merge(['status', 'title', 'sent_at']);
+    .merge(['status', 'title', 'file', 'sent_at']);
 }
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {
@@ -105,12 +105,17 @@ export interface CampaignDBO {
   title: string;
   status: CampaignStatus;
   filters: HousingFiltersDTO;
+  file?: string;
   user_id: string;
   created_at: Date;
   validated_at?: Date;
   exported_at?: Date;
   sent_at?: Date;
   archived_at?: Date;
+  /**
+   * @deprecated
+   * Should be merged with sent_at
+   */
   sending_date?: Date;
   confirmed_at?: Date;
   establishment_id: string;
@@ -122,6 +127,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   establishmentId: campaign.establishment_id,
   status: campaign.status,
   filters: campaign.filters,
+  file: campaign.file,
   userId: campaign.user_id,
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
@@ -139,6 +145,7 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   establishment_id: campaign.establishmentId,
   status: campaign.status,
   filters: campaign.filters,
+  file: campaign.file,
   title: campaign.title,
   user_id: campaign.userId,
   created_at: new Date(campaign.createdAt),

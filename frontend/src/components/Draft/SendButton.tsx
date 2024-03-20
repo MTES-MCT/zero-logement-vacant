@@ -31,7 +31,6 @@ function SendButton(props: Readonly<Props>) {
       modalId="campaign-validate-draft"
       openingButtonProps={{
         children: 'Débuter l’envoi',
-        disabled: mutation.isLoading,
         iconId: 'fr-icon-send-plane-fill',
         priority: 'primary',
       }}

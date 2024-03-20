@@ -7,3 +7,5 @@ fileignoreconfig:
   ignore_detectors: []
 - filename: frontend/src/components/Draft/DraftSendingDate.tsx
   checksum: acdc6ca0de0197694ea8b3ffe9efffacc0451f9d120e912b2129e9d97acaf495
+- filename: frontend/src/components/Draft/draft-downloader.module.scss
+  checksum: 2eb831d9d9e6b816a1401fee277dfa058468ce7d9b917ad44702679233295e8e

@@ -29,7 +29,7 @@ function CampaignView() {
   const steps: Record<CampaignStatus, JSX.Element> = {
     draft: <CampaignDraft campaign={campaign} />,
     sending: <CampaignSending campaign={campaign} />,
-    'in-progress': <CampaignInProgress />,
+    'in-progress': <CampaignInProgress campaign={campaign} />,
     archived: <NotFoundView />,
   };
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;

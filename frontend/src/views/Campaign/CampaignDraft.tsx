@@ -114,9 +114,9 @@ function CampaignDraft(props: Props) {
         <Row>
           <Col n="6">
             <CampaignTitle
-              campaign={props.campaign}
-              className="fr-mb-2w"
               as="h2"
+              campaign={props.campaign}
+              className="fr-mb-1w"
             />
             <CampaignCounts
               display="row"

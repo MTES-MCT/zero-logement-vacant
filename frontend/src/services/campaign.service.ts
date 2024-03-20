@@ -134,6 +134,7 @@ function toCampaignPayloadDTO(campaign: Campaign): CampaignUpdatePayloadDTO {
   return {
     title: campaign.title,
     status: campaign.status,
+    sentAt: campaign.sentAt,
   };
 }
 

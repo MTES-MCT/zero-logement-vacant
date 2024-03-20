@@ -8,7 +8,6 @@ import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Campaign } from '../../models/Campaign';
 import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
-import SaveButton from '../../components/Draft/SaveButton';
 import { Col, Container, Row } from '../../components/_dsfr';
 import {
   useCreateDraftMutation,
@@ -22,6 +21,7 @@ import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import { SenderPayload } from '../../models/Sender';
 import SendButton from '../../components/Draft/SendButton';
+import SaveButton from '../../components/SaveButton/SaveButton';
 
 const schema = yup.object({
   body: yup.string(),
@@ -125,7 +125,11 @@ function CampaignDraft(props: Props) {
             />
           </Col>
           <Col n="6" className={styles.right}>
-            <PreviewButton className="fr-mr-2w" disabled={!exists} draft={draft} />
+            <PreviewButton
+              className="fr-mr-2w"
+              disabled={!exists}
+              draft={draft}
+            />
             <SendButton campaign={props.campaign} />
           </Col>
         </Row>

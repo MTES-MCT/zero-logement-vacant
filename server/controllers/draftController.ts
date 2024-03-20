@@ -143,36 +143,14 @@ async function update(request: Request, response: Response<DraftDTO>) {
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
 const updateSenderValidators: ValidationChain[] = [
-  body('sender.name')
-    .isString()
-    .withMessage('Name must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('Name is required'),
-  body('sender.service')
-    .isString()
-    .withMessage('Service must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('Service is required'),
-  body('sender.firstName')
-    .isString()
-    .withMessage('First name must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('First name is required'),
-  body('sender.lastName')
-    .isString()
-    .withMessage('Last name must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('Last name is required'),
-  body('sender.address')
-    .isString()
-    .withMessage('Address must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('Address is required'),
+  ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
+    body(`sender.${prop}`)
+      .isString()
+      .withMessage(`${prop} must be a string`)
+      .trim()
+      .notEmpty()
+      .withMessage(`${prop} is required`)
+  ),
   body('sender.email').isString().withMessage('Email must be a string').trim(),
   body('sender.phone').isString().withMessage('Phone must be a string').trim(),
 ];

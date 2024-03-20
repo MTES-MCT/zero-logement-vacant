@@ -4,7 +4,7 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "frontend:build": "npm --prefix frontend install && npm run --prefix frontend build",
     "frontend:start": "npm --prefix frontend start",
     "frontend:lint": "npm --prefix frontend run lint",
@@ -28,8 +28,8 @@
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=16",
-    "npm": ">=8"
+    "node": "20",
+    "npm": "10"
   },
   "dependencies": {
     "@adobe/node-fetch-retry": "^2.2.0",
@@ -103,7 +103,7 @@
     "@types/jsonwebtoken": "^8.5.5",
     "@types/lodash": "^4.14.191",
     "@types/memoizee": "^0.4.8",
-    "@types/node": "^16.11.45",
+    "@types/node": "^20.11.28",
     "@types/node-fetch": "^2.5.12",
     "@types/nodemailer": "^6.4.4",
     "@types/proj4": "^2.5.2",

@@ -39,7 +39,7 @@ function CampaignSending(props: Props) {
     toastId: 'update-sending-date',
   });
 
-  const disabled = false;
+  const disabled = true;
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();

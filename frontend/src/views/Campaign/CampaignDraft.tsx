@@ -51,7 +51,7 @@ function CampaignDraft(props: Props) {
     }
   }
 
-  const [updateDraft, mutation] = useUpdateDraftMutation();
+  const [updateDraft, updateDraftMutation] = useUpdateDraftMutation();
   function update(): void {
     if (values && draft) {
       updateDraft({
@@ -60,6 +60,11 @@ function CampaignDraft(props: Props) {
       });
     }
   }
+
+  const exists = !!draft;
+  const [save, mutation] = exists
+    ? [update, updateDraftMutation]
+    : [create, createDraftMutation];
 
   useEffect(() => {
     if (draft) {
@@ -79,7 +84,6 @@ function CampaignDraft(props: Props) {
   }
 
   const hasChanges = form.isDirty && !fp.equals(draft, values);
-  const exists = !!draft;
 
   return (
     <Container as="article" fluid>
@@ -98,7 +102,7 @@ function CampaignDraft(props: Props) {
             />
           </Col>
           <Col n="6" className={styles.right}>
-            <PreviewButton draft={draft} />
+            <PreviewButton disabled={!exists} draft={draft} />
           </Col>
         </Row>
       </Container>
@@ -106,27 +110,19 @@ function CampaignDraft(props: Props) {
         <UnsavedChanges when={hasChanges} />
         <Container as="section" fluid>
           <Row justifyContent="right" spacing="mb-2w">
-            {exists ? (<SaveButton
+            <SaveButton
               isError={mutation.isError}
               isLoading={mutation.isLoading}
               isSuccess={mutation.isSuccess}
-              onSave={update}
+              onSave={save}
             />
-          ) : (
-            <SaveButton
-              isError={createDraftMutation.isError}
-              isLoading={createDraftMutation.isLoading}
-              isSuccess={createDraftMutation.isSuccess}
-              onSave={create}
-            />
-            )}
           </Row>
           <Row>
             <Col>
               <DraftBody
                 form={form}
                 value={values.body}
-                onChangeValue={(body) => setValues({ ...values,  body: body })}
+                onChangeValue={(body) => setValues({ ...values, body: body })}
               />
             </Col>
           </Row>

@@ -55,7 +55,7 @@ export const draftApi = zlvApi.injectEndpoints({
 function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
-    body: draft.body ? draft.body.replaceAll('<br />', '\n') : undefined,
+    body: draft.body.replaceAll('<br />', '\n'),
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
   };

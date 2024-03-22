@@ -12,7 +12,9 @@ async function compile<T>(html: string, data?: T): Promise<string> {
 
 async function fromHTML(html: string): Promise<Buffer> {
   // Launch the browser and open a new blank page
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+  });
   const page = await browser.newPage();
 
   await page.setContent(html, {

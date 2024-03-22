@@ -17,15 +17,15 @@ import {
   Drafts,
   formatDraftApi,
 } from '../../repositories/draftRepository';
-import { User2 } from '../../../database/seeds/test/003-users';
 import {
   Campaigns,
   formatCampaignApi,
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
 import {
-  DraftDTO,
   DraftCreationPayloadDTO,
+  DraftDTO,
+  DraftUpdatePayloadDTO,
 } from '../../../shared/models/DraftDTO';
 import {
   Establishments,
@@ -178,7 +178,8 @@ describe('Draft API', () => {
     const testRoute = (id: string) => `/api/drafts/${id}`;
 
     const draft: DraftApi = genDraftApi(establishment);
-    const payload: DraftCreationPayloadDTO = {
+    const payload: DraftUpdatePayloadDTO = {
+      id: draft.id,
       body: 'Look at that body!',
     };
 

@@ -2,6 +2,7 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
+import validator from 'validator';
 
 import db, { where } from './db';
 import {
@@ -38,7 +39,6 @@ import {
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
-import validator from 'validator';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';

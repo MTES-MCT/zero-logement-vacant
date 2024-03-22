@@ -45,7 +45,7 @@ import {
   formatOwnerHousingApi,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
-import { isDefined } from '../../shared';
+import { CampaignPayloadDTO, isDefined } from '../../shared';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -88,10 +88,11 @@ describe('Campaign controller', () => {
     });
 
     it('should return an error when there is no campaign with the required id', async () => {
-      await request(app)
+      const { status } = await request(app)
         .get(testRoute(uuidv4()))
-        .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_NOT_FOUND);
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should return the campaign', async () => {
@@ -182,17 +183,18 @@ describe('Campaign controller', () => {
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
+      const payload: CampaignPayloadDTO = {
+        title,
+        housing: {
+          filters: {},
+          all: false,
+          ids: houses.map((housing) => housing.id),
+        },
+      };
 
       const { body, status } = await request(app)
         .post(testRoute)
-        .send({
-          draftCampaign: {
-            filters: {},
-            title,
-          },
-          housingIds: houses.map((housing) => housing.id),
-          allHousing: false,
-        })
+        .send(payload)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -291,12 +293,13 @@ describe('Campaign controller', () => {
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
+        status: 'draft',
         establishmentId: establishment.id,
         filters: {
           groupIds: [group.id],
         },
         createdAt: expect.toBeDateString(),
-        createdBy: user.id,
+        userId: user.id,
         validatedAt: expect.toBeDateString(),
       });
     });
@@ -540,15 +543,16 @@ describe('Campaign controller', () => {
     });
 
     it('should update the campaign when validating step Confirmation', async () => {
-      await request(app)
+      const { status } = await request(app)
         .put(testRoute(campaign.id))
         .send({
           stepUpdate: {
             step: CampaignSteps.Confirmation,
           },
         })
-        .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_OK);
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
 
       const actual = await Campaigns().where({ id: campaign.id }).first();
       expect(actual).toMatchObject({

@@ -45,48 +45,44 @@ export interface HousingFiltersApi {
 const validators = (property = 'filters'): ValidationChain[] => [
   body(property).isObject({ strict: true }).optional(),
   body(`${property}.establishmentIds`)
-    .default([])
     .custom(isArrayOf(isUUID))
-    .withMessage('Must be an array of UUIDs'),
-  body(`${property}.ownerKinds`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.ownerAges`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.multiOwners`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.beneficiaryCounts`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.housingKinds`).default([]).custom(isArrayOf(isString)),
+    .withMessage('Must be an array of UUIDs')
+    .optional(),
+  body(`${property}.ownerKinds`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.ownerAges`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.multiOwners`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.beneficiaryCounts`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.housingKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.cadastralClassificiations`)
-    .default([])
-    .custom(isArrayOf(isString)),
-  body(`${property}.housingAreas`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.roomsCounts`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.buildingPeriods`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.vacancyDurations`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.isTaxedValues`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.ownershipKinds`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.housingCounts`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.vacancyRates`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.campaignsCounts`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.campaignIds`).default([]).custom(isArrayOf(isUUID)),
-  body(`${property}.ownerIds`).default([]).custom(isArrayOf(isUUID)),
-  body(`${property}.localities`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.localityKinds`).default([]).custom(isArrayOf(isString)),
+    .custom(isArrayOf(isString))
+    .optional(),
+  body(`${property}.housingAreas`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.roomsCounts`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.buildingPeriods`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.vacancyDurations`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.isTaxedValues`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.ownershipKinds`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.housingCounts`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.vacancyRates`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.campaignsCounts`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.campaignIds`).custom(isArrayOf(isUUID)).optional(),
+  body(`${property}.ownerIds`).custom(isArrayOf(isUUID)).optional(),
+  body(`${property}.localities`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.localityKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.geoPerimetersIncluded`)
-    .default([])
-    .custom(isArrayOf(isString)),
+    .custom(isArrayOf(isString))
+    .optional(),
   body(`${property}.geoPerimetersExcluded`)
-    .default([])
-    .custom(isArrayOf(isString)),
-  body(`${property}.dataYearsIncluded`)
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body(`${property}.dataYearsExcluded`)
-    .default([])
-    .custom(isArrayOf(isInteger)),
-  body(`${property}.statusList`).default([]).custom(isArrayOf(isInteger)),
-  body(`${property}.status`).optional().isInt(),
-  body(`${property}.subStatus`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.query`).default('').isString(),
-  body(`${property}.energyConsumption`).default([]).custom(isArrayOf(isString)),
-  body(`${property}.occupancies`).default([]).custom(isArrayOf(isString)),
+    .custom(isArrayOf(isString))
+    .optional(),
+  body(`${property}.dataYearsIncluded`).custom(isArrayOf(isInteger)).optional(),
+  body(`${property}.dataYearsExcluded`).custom(isArrayOf(isInteger)).optional(),
+  body(`${property}.statusList`).custom(isArrayOf(isInteger)).optional(),
+  body(`${property}.status`).optional().isInt().optional(),
+  body(`${property}.subStatus`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.query`).default('').isString().optional(),
+  body(`${property}.energyConsumption`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.occupancies`).custom(isArrayOf(isString)).optional(),
 ];
 
 export default {

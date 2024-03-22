@@ -10,40 +10,9 @@ import {
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
+import { HousingFiltersDTO } from '../../../shared/models/HousingFiltersDTO';
 
-export interface HousingFilters {
-  establishmentIds?: string[];
-  groupIds?: string[];
-  ownerKinds?: string[];
-  ownerAges?: string[];
-  multiOwners?: string[];
-  beneficiaryCounts?: string[];
-  housingKinds?: string[];
-  cadastralClassifications?: string[];
-  housingAreas?: string[];
-  roomsCounts?: string[];
-  buildingPeriods?: string[];
-  vacancyDurations?: string[];
-  isTaxedValues?: OwnershipKinds[];
-  ownershipKinds?: string[];
-  housingCounts?: string[];
-  vacancyRates?: string[];
-  campaignsCounts?: string[];
-  campaignIds?: string[];
-  ownerIds?: string[];
-  localities?: string[];
-  localityKinds?: string[];
-  geoPerimetersIncluded?: string[];
-  geoPerimetersExcluded?: string[];
-  dataYearsIncluded?: number[];
-  dataYearsExcluded?: number[];
-  status?: HousingStatus;
-  statusList?: HousingStatus[];
-  subStatus?: string[];
-  query?: string;
-  energyConsumption?: string[];
-  occupancies?: string[];
-}
+export interface HousingFilters extends HousingFiltersDTO {}
 
 export const allOccupancyOptions: SelectOption[] = [
   {

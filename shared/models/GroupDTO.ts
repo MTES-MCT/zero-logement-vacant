@@ -17,6 +17,6 @@ export interface GroupPayloadDTO
   housing: {
     all: boolean;
     ids: string[];
-    filters: Omit<HousingFiltersApi, 'groupId'>;
+    filters: Omit<HousingFiltersApi, 'groupIds'>;
   };
 }

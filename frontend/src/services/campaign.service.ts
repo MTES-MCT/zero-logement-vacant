@@ -1,7 +1,8 @@
+import { parseISO } from 'date-fns';
+
 import config from '../utils/config';
 import authService from './auth.service';
-import { parseISO } from 'date-fns';
-import { Campaign, CampaignSort, CampaignUpdate, DraftCampaign } from '../models/Campaign';
+import { Campaign, CampaignSort, CampaignUpdate } from '../models/Campaign';
 import { HousingFilters } from '../models/HousingFilters';
 import { Group } from '../models/Group';
 import { getURLQuery } from '../utils/fetchUtils';
@@ -9,6 +10,7 @@ import { CampaignFilters } from '../models/CampaignFilters';
 import { housingApi } from './housing.service';
 import { SortOptions, toQuery } from '../models/Sort';
 import { zlvApi } from './api.service';
+import { CampaignPayloadDTO } from '../../../shared/models/CampaignDTO';
 
 export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
@@ -51,14 +53,7 @@ export const campaignApi = zlvApi.injectEndpoints({
           : [{ type: 'Campaign', id: 'LIST' }],
       transformResponse: (response: any[]) => response.map(parseCampaign),
     }),
-    createCampaign: builder.mutation<
-      Campaign,
-      {
-        draftCampaign: DraftCampaign;
-        allHousing: boolean;
-        housingIds?: string[];
-      }
-    >({
+    createCampaign: builder.mutation<Campaign, CampaignPayloadDTO>({
       query: (payload) => ({
         url: 'campaigns',
         method: 'POST',

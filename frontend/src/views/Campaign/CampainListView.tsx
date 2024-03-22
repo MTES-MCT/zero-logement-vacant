@@ -18,10 +18,16 @@ import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
-import { useRemoveCampaignMutation, useUpdateCampaignMutation } from '../../services/campaign.service';
+import {
+  useRemoveCampaignMutation,
+  useUpdateCampaignMutation,
+} from '../../services/campaign.service';
 import { useSort } from '../../hooks/useSort';
 
 const CampaignsListView = () => {
@@ -114,9 +120,9 @@ const CampaignsListView = () => {
                 {campaign.title}
               </AppLink>,
               <CampaignStatusBadge step={campaignStep(campaign)} />,
-              format(campaign.createdAt, 'dd/MM/yyyy'),
+              format(new Date(campaign.createdAt), 'dd/MM/yyyy'),
               campaign.sendingDate
-                ? format(campaign.sendingDate, 'dd/MM/yyyy')
+                ? format(new Date(campaign.sendingDate), 'dd/MM/yyyy')
                 : '',
               <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
                 <Button

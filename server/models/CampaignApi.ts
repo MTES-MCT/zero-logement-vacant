@@ -1,19 +1,9 @@
-import { HousingFiltersApi } from './HousingFiltersApi';
 import { Sort } from './SortApi';
+import { CampaignDTO } from '../../shared';
 
-export interface CampaignApi {
-  id: string;
+export interface CampaignApi extends CampaignDTO {
+  userId: string;
   establishmentId: string;
-  filters: HousingFiltersApi;
-  title: string;
-  createdBy?: string;
-  createdAt?: Date;
-  validatedAt?: Date;
-  exportedAt?: Date;
-  sentAt?: Date;
-  archivedAt?: Date;
-  sendingDate?: Date;
-  confirmedAt?: Date;
   groupId?: string;
 }
 

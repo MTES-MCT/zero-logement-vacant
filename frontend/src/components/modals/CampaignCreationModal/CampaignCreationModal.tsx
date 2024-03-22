@@ -19,7 +19,7 @@ interface Props {
   housingCount: number;
   housingExcludedCount?: number;
   filters: HousingFilters;
-  onSubmit: (campaignTitle?: string) => Promise<void>;
+  onSubmit: (title: string) => Promise<void>;
 }
 
 const CampaignCreationModal = ({

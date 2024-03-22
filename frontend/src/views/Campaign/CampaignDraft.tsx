@@ -5,9 +5,8 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
-import { Draft } from '../../models/Draft';
-import NotFoundView from '../NotFoundView';
 import { Campaign } from '../../models/Campaign';
+import { DraftPayloadDTO } from '../../../../shared/models/DraftDTO';
 
 const shape = {
   body: yup.string(),
@@ -22,23 +21,25 @@ function CampaignDraft(props: Props) {
 
   useDocumentTitle(props.campaign.title ?? 'Campagne');
 
-  const [values, setValues] = useState<Draft>();
+  const [values, setValues] = useState<DraftPayloadDTO>({
+    body: '',
+    campaign: props.campaign.id,
+  });
   const form = useForm(yup.object().shape(shape), {
     body: values?.body,
   });
 
   useEffect(() => {
     if (draft) {
-      setValues(draft);
+      setValues({
+        body: draft.body ?? '',
+        campaign: props.campaign.id,
+      });
     }
-  }, [draft]);
+  }, [draft, props.campaign.id]);
 
   if (isLoadingDraft) {
     return <Loading />;
-  }
-
-  if (!draft) {
-    return <NotFoundView />;
   }
 
   if (!values) {

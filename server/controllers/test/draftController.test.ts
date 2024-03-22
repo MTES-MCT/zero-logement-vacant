@@ -11,13 +11,17 @@ import {
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 import { CampaignApi } from '../../models/CampaignApi';
-import { Drafts, formatDraftApi } from '../../repositories/draftRepository';
+import {
+  DraftDBO,
+  Drafts,
+  formatDraftApi,
+} from '../../repositories/draftRepository';
 import {
   Campaigns,
   formatCampaignApi,
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import { DraftDTO } from '../../../shared/models/DraftDTO';
+import { DraftDTO, DraftPayloadDTO } from '../../../shared/models/DraftDTO';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -89,6 +93,76 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toBeArrayOfSize(1);
       expect(body).toContainEqual(firstDraft);
+    });
+  });
+
+  describe('POST /api/drafts', () => {
+    const testRoute = '/api/drafts';
+
+    let campaign: CampaignApi;
+    let draft: DraftApi;
+
+    beforeEach(async () => {
+      campaign = genCampaignApi(establishment.id, user.id);
+      draft = genDraftApi(establishment);
+      await Campaigns().insert(formatCampaignApi(campaign));
+    });
+
+    it('should fail if the payload has a wrong format', async () => {
+      async function fail(payload: Partial<DraftPayloadDTO>): Promise<void> {
+        const { status } = await request(app)
+          .post(testRoute)
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await fail({});
+      await fail({ body: 'body' });
+      await fail({ campaign: campaign.id });
+      await fail({ body: '', campaign: campaign.id });
+    });
+
+    it('should fail if the campaign to attach is missing', async () => {
+      const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
+      const payload: DraftPayloadDTO = {
+        body: draft.body,
+        campaign: missingCampaign.id,
+      };
+
+      const { status } = await request(app)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should create a draft and attach it to a campaign', async () => {
+      const payload: DraftPayloadDTO = {
+        body: draft.body,
+        campaign: campaign.id,
+      };
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toMatchObject<Partial<DraftDTO>>({
+        body: payload.body,
+      });
+
+      const actualDraft = await Drafts().where({ id: body.id }).first();
+      expect(actualDraft).toMatchObject<Partial<DraftDBO>>({
+        body: payload.body,
+      });
+      const actualCampaignDraft = await CampaignsDrafts()
+        .where({ campaign_id: campaign.id })
+        .first();
+      expect(actualCampaignDraft).toBeDefined();
     });
   });
 });

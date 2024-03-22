@@ -53,7 +53,7 @@ function filterQuery(filters?: DraftFilters) {
 
 export interface DraftDBO {
   id: string;
-  body: string | null;
+  body: string;
   created_at: Date;
   updated_at: Date;
   establishment_id: string;

@@ -30,9 +30,6 @@ import sortApi from '../models/SortApi';
 import CampaignMissingError from '../errors/campaignMissingError';
 import { HousingEventApi } from '../models/EventApi';
 import { CampaignPayloadDTO } from '../../shared/models/CampaignDTO';
-import draftRepository from '../repositories/draftRepository';
-import { DraftApi } from '../models/DraftApi';
-import campaignDraftRepository from '../repositories/campaignDraftRepository';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
@@ -148,18 +145,8 @@ async function create(request: Request, response: Response) {
           })
       : [];
 
-  const draft: DraftApi = {
-    id: uuidv4(),
-    body: null,
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
-    establishmentId: auth.establishmentId,
-  };
-
   await campaignRepository.save(campaign);
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
-  await draftRepository.save(draft);
-  await campaignDraftRepository.save(campaign, draft);
 
   response.status(constants.HTTP_STATUS_CREATED).json(campaign);
 

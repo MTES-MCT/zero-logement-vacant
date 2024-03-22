@@ -1,7 +1,7 @@
 import { zlvApi } from './api.service';
 import {
-  DraftDTO,
   DraftCreationPayloadDTO,
+  DraftDTO,
   DraftUpdatePayloadDTO,
 } from '../../../shared/models/DraftDTO';
 import { Draft } from '../models/Draft';
@@ -31,11 +31,19 @@ export const draftApi = zlvApi.injectEndpoints({
         ];
       },
     }),
-    updateDraft: builder.mutation<void, Draft>({
+    createDraft: builder.mutation<void, DraftCreationPayloadDTO>({
+      query: (draft) => ({
+        url: '/drafts',
+        method: 'POST',
+        body: draft,
+      }),
+      invalidatesTags: [{ type: 'Draft', id: 'LIST' }],
+    }),
+    updateDraft: builder.mutation<void, DraftUpdatePayloadDTO>({
       query: (draft) => ({
         url: `/drafts/${draft.id}`,
         method: 'PUT',
-        body: toDraftUpdatePayloadDTO(draft),
+        body: draft,
       }),
       invalidatesTags: (result, error, draft) => [
         { type: 'Draft', id: draft.id },
@@ -53,10 +61,8 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   };
 }
 
-function toDraftUpdatePayloadDTO(draft: Draft): DraftUpdatePayloadDTO {
-  return {
-    body: draft.body,
-  };
-}
-
-export const { useFindDraftsQuery, useUpdateDraftMutation } = draftApi;
+export const {
+  useFindDraftsQuery,
+  useCreateDraftMutation,
+  useUpdateDraftMutation,
+} = draftApi;

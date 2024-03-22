@@ -9,7 +9,10 @@ import { Campaign } from '../../models/Campaign';
 import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import SaveButton from '../../components/Draft/SaveButton';
 import { Col, Container, Row } from '../../components/_dsfr';
-import { useUpdateDraftMutation } from '../../services/draft.service';
+import {
+  useCreateDraftMutation,
+  useUpdateDraftMutation,
+} from '../../services/draft.service';
 import UnsavedChanges from '../../components/UnsavedChanges/UnsavedChanges';
 import fp from 'lodash/fp';
 
@@ -34,10 +37,23 @@ function CampaignDraft(props: Props) {
     body: values.body,
   });
 
+  const [createDraft, createDraftMutation] = useCreateDraftMutation();
+  function create(): void {
+    if (!draft) {
+      createDraft({
+        body: values.body,
+        campaign: props.campaign.id,
+      });
+    }
+  }
+
   const [updateDraft, mutation] = useUpdateDraftMutation();
-  function save(): void {
-    if (values) {
-      updateDraft(values);
+  function update(): void {
+    if (values && draft) {
+      updateDraft({
+        id: draft.id,
+        body: values.body,
+      });
     }
   }
 
@@ -59,18 +75,28 @@ function CampaignDraft(props: Props) {
   }
 
   const hasChanges = form.isDirty && !fp.equals(draft, values);
+  const exists = !!draft;
 
   return (
     <form id="draft" className="fr-mt-2w">
       <UnsavedChanges when={hasChanges} />
       <Container as="article" fluid>
         <Row justifyContent="right" spacing="mb-2w">
-          <SaveButton
-            isError={mutation.isError}
-            isLoading={mutation.isLoading}
-            isSuccess={mutation.isSuccess}
-            onSave={save}
-          />
+          {exists ? (
+            <SaveButton
+              isError={mutation.isError}
+              isLoading={mutation.isLoading}
+              isSuccess={mutation.isSuccess}
+              onSave={update}
+            />
+          ) : (
+            <SaveButton
+              isError={createDraftMutation.isError}
+              isLoading={createDraftMutation.isLoading}
+              isSuccess={createDraftMutation.isSuccess}
+              onSave={create}
+            />
+          )}
         </Row>
         <Row>
           <Col>

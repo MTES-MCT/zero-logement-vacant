@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { wait } from '@hapi/hoek';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
@@ -54,12 +55,6 @@ import {
 import { formatUserApi, Users } from '../repositories/userRepository';
 import { HousingApi } from '../models/HousingApi';
 import { GroupApi } from '../models/GroupApi';
-import { draftsTable } from '../repositories/draftRepository';
-import {
-  CampaignsDrafts,
-  campaignsDraftsTable,
-} from '../repositories/campaignDraftRepository';
-import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Campaign API', () => {
   const { app } = createServer();

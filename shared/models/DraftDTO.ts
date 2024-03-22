@@ -9,4 +9,4 @@ export interface DraftCreationPayloadDTO extends Pick<DraftDTO, 'body'> {
   campaign: string;
 }
 
-export type DraftUpdatePayloadDTO = Pick<DraftDTO, 'body'>;
+export type DraftUpdatePayloadDTO = Pick<DraftDTO, 'id' | 'body'>;

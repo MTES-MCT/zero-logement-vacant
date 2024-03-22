@@ -6,7 +6,8 @@ import authService from '../../services/auth.service';
 import { Draft } from '../../models/Draft';
 
 interface Props {
-  draft: Draft;
+  disabled?: boolean;
+  draft?: Draft;
 }
 
 function PreviewButton(props: Readonly<Props>) {
@@ -14,19 +15,21 @@ function PreviewButton(props: Readonly<Props>) {
 
   async function preview(): Promise<void> {
     try {
-      setIsLoading(true);
-      const response = await fetch(
-        `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
-        {
-          headers: {
-            ...authService.authHeader(),
-          },
+      if (props.draft) {
+        setIsLoading(true);
+        const response = await fetch(
+          `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
+          {
+            headers: {
+              ...authService.authHeader(),
+            },
+          }
+        );
+        const blob = await response.blob();
+        if (response.ok) {
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, '_blank');
         }
-      );
-      const blob = await response.blob();
-      if (response.ok) {
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
       }
     } finally {
       setIsLoading(false);
@@ -35,7 +38,7 @@ function PreviewButton(props: Readonly<Props>) {
 
   return (
     <Button
-      disabled={isLoading}
+      disabled={props.disabled || isLoading}
       iconId="fr-icon-eye-line"
       priority="secondary"
       onClick={preview}

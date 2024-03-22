@@ -3,7 +3,7 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('drafts', (table) => {
     table.uuid('id').primary();
-    table.text('body').nullable();
+    table.text('body').notNullable();
     table.timestamp('created_at').notNullable();
     table.timestamp('updated_at').notNullable();
     table
@@ -37,7 +37,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex('drafts').insert(
     knex('campaigns').select({
       id: knex.raw('gen_random_uuid()'),
-      body: knex.raw('NULL'),
+      body: knex.raw("'Écrivez votre message ici'"),
       created_at: knex.fn.now(),
       updated_at: knex.fn.now(),
       establishment_id: knex.ref('campaigns.establishment_id'),

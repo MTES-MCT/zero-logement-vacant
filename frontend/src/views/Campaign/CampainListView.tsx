@@ -6,6 +6,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { format } from 'date-fns';
 import {
+  Campaign,
   CampaignSort,
   CampaignSortable,
   campaignStep,
@@ -39,27 +40,19 @@ const CampaignsListView = () => {
 
   const [removeCampaign] = useRemoveCampaignMutation();
   const onDeleteCampaign = async (campaignId: string) => {
+    await removeCampaign(campaignId).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.Delete,
     });
-    await removeCampaign(campaignId);
   };
 
-  const [updateCampaignStep] = useUpdateCampaignMutation();
-  const onArchiveCampaign = async (campaignId: string) => {
+  const [updateCampaign] = useUpdateCampaignMutation();
+  const onArchiveCampaign = async (campaign: Campaign) => {
+    await updateCampaign({ ...campaign, status: 'archived' }).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.Archive,
-    });
-
-    await updateCampaignStep({
-      id: campaignId,
-      campaignUpdate: {
-        stepUpdate: {
-          step: CampaignSteps.Archived,
-        },
-      },
     });
   };
 
@@ -142,7 +135,7 @@ const CampaignsListView = () => {
                 </Button>
                 {campaignStep(campaign) === CampaignSteps.InProgress && (
                   <ConfirmationModal
-                    onSubmit={() => onArchiveCampaign(campaign.id)}
+                    onSubmit={() => onArchiveCampaign(campaign)}
                     modalId={`archive-${campaign.id}`}
                     openingButtonProps={{
                       priority: 'tertiary',

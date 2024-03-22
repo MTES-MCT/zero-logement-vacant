@@ -4,6 +4,7 @@ import fetchMock, {
   MockResponseInitFunction,
 } from 'jest-fetch-mock';
 import { Predicate } from '../compareUtils';
+import { not } from '../../../../shared';
 
 export interface RequestCall {
   url: string;
@@ -28,6 +29,7 @@ export const getRequestCalls = (fetchMock: FetchMock) =>
 export interface RequestMatch {
   pathname: string;
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  persist?: boolean;
   response: MockResponseInitFunction | MockResponseInit;
 }
 
@@ -40,12 +42,21 @@ export const mockRequests = (matches: RequestMatch[]): void => {
     ];
   }
 
+  const consumed = new Set<RequestMatch>();
+  function isConsumed(match: RequestMatch): boolean {
+    return consumed.has(match);
+  }
+
   fetchMock.mockResponse((request): Promise<MockResponseInit | string> => {
-    const match = matches.find((match) => {
+    const match = matches.filter(not(isConsumed)).find((match) => {
       return predicates(match).every((predicate) => predicate(request));
     });
     if (!match) {
-      throw new MockError(request);
+      return Promise.reject(new MockError(request));
+    }
+
+    if (!match.persist) {
+      consumed.add(match);
     }
 
     return isMockResponseInitFunction(match.response)

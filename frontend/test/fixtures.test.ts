@@ -299,8 +299,13 @@ export function genDatafoncierHousing(): DatafoncierHousing {
     vecteur: randomstring.generate(1),
     ban_id: randomstring.generate(30),
     ban_type: randomstring.generate(15),
-    ban_score: Math.random(),
+    ban_score: Math.random().toString(),
+    ban_geom: randomstring.generate(),
     ban_cp: randomstring.generate(5),
+    geomloc: randomstring.generate(),
     dis_ban_ff: genNumber(1),
+    lib_epci: randomstring.generate(),
+    code_epci: randomstring.generate(),
+    idpk: null,
   };
 }

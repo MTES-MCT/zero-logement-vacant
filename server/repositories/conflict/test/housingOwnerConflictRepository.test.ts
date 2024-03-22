@@ -28,15 +28,13 @@ describe('Housing owner conflict repository', () => {
   describe('find', () => {
     const housing = genHousingApi();
     const owner = housing.owner;
-    const conflicts = new Array(5)
-      .fill(0)
-      .map(() =>
-        genHousingOwnerConflictApi(
-          housing,
-          genHousingOwnerApi(housing, owner),
-          genHousingOwnerApi(housing, owner)
-        )
-      );
+    const conflicts = Array.from({ length: 5 }, () =>
+      genHousingOwnerConflictApi(
+        housing,
+        genHousingOwnerApi(housing, owner),
+        genHousingOwnerApi(housing, owner)
+      )
+    );
 
     beforeEach(async () => {
       await Housing().insert(formatHousingRecordApi(housing));

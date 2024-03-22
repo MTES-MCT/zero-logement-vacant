@@ -50,7 +50,7 @@ router.delete('/groups/:id/housing', groupController.removeHousingValidators, va
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.list);
 router.post('/campaigns', campaignController.createValidators, validator.validate, campaignController.create);
 router.get('/campaigns/:id', campaignController.getCampaignValidators, validator.validate, campaignController.getCampaign);
-router.put('/campaigns/:id', campaignController.updateCampaignValidators, validator.validate, campaignController.updateCampaign, campaignController.updateCampaign);
+router.put('/campaigns/:id', campaignController.updateValidators, validator.validate, campaignController.update, campaignController.update);
 router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);
 // TODO: replace by /groups/:id/campaigns
 router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
@@ -59,6 +59,7 @@ router.delete('/campaigns/:id/housing', campaignController.removeHousingValidato
 
 router.get('/drafts', draftController.list);
 router.post('/drafts', draftController.createValidators, validator.validate, draftController.create);
+router.put('/drafts/:id', draftController.updateValidators, validator.validate, draftController.update);
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);

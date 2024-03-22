@@ -17,8 +17,8 @@ export interface FindOptions
   filters: HousingFilters;
 }
 
-export const parseHousing = (h: any): Housing =>
-  ({
+export function parseHousing(h: any): Housing {
+  return {
     ...h,
     rawAddress: h.rawAddress
       .filter((_: string) => _)
@@ -28,7 +28,8 @@ export const parseHousing = (h: any): Housing =>
     energyConsumptionAt: h.energyConsumptionAt
       ? parseISO(h.energyConsumptionAt)
       : undefined,
-  } as Housing);
+  };
+}
 
 export const housingApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({

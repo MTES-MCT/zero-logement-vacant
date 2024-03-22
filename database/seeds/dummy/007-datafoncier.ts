@@ -4,6 +4,7 @@ import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
+  oneOf,
 } from '../../../server/test/testFixtures';
 import { DatafoncierHouses } from '../../../server/repositories/datafoncierHousingRepository';
 import {
@@ -18,23 +19,29 @@ import {
 } from '../../../server/repositories/ownerRepository';
 
 exports.seed = async (knex: Knex) => {
-  const datafoncierHouses = new Array(10)
-    .fill(0)
-    .map(() => genDatafoncierHousing());
+  const establishments = await knex('establishments').where({
+    available: true,
+  });
+  const geoCodes = establishments.flatMap(
+    (establishment) => establishment.localities_geo_code
+  );
+
+  const datafoncierHouses = Array.from({ length: 10 }, () =>
+    genDatafoncierHousing(oneOf(geoCodes))
+  );
   await DatafoncierHouses(knex).insert(datafoncierHouses);
 
   const datafoncierOwners = datafoncierHouses.flatMap((housing) =>
-    new Array(6).fill(0).map(() => genDatafoncierOwner(housing.idprocpte))
+    Array.from({ length: 6 }, () => genDatafoncierOwner(housing.idprocpte))
   );
   await DatafoncierOwners(knex).insert(datafoncierOwners);
 
-  const houses = new Array(datafoncierHouses.length)
-    .fill(0)
-    .map(() => genHousingApi())
-    .map((housing, i) => ({
-      ...housing,
-      localId: datafoncierHouses[i].idlocal,
-    }));
+  const houses = Array.from({ length: datafoncierHouses.length / 2 }, () =>
+    genHousingApi(oneOf(geoCodes))
+  ).map((housing, i) => ({
+    ...housing,
+    localId: datafoncierHouses[i].idlocal,
+  }));
   await Housing(knex).insert(houses.map(formatHousingRecordApi));
 
   const owners: OwnerApi[] = datafoncierOwners.map(toOwnerApi);

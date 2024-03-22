@@ -93,12 +93,6 @@ const HousingListTab = ({
   const [createCampaign] = useCreateCampaignMutation();
   const onSubmitCampaignCreation = async (title: string) => {
     if (title) {
-      trackEvent({
-        category: TrackEventCategories.HousingList,
-        action: TrackEventActions.HousingList.SaveCampaign,
-        value: selectedCount,
-      });
-
       const created = await createCampaign({
         title,
         housing: {
@@ -107,7 +101,11 @@ const HousingListTab = ({
           ids: selected.ids,
         },
       }).unwrap();
-
+      trackEvent({
+        category: TrackEventCategories.HousingList,
+        action: TrackEventActions.HousingList.SaveCampaign,
+        value: selectedCount,
+      });
       router.push({
         pathname: `/campagnes/${created.id}`,
       });

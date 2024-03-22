@@ -57,7 +57,8 @@ router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupV
 router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
 router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing)
 
-router.get('/drafts', draftController.listDrafts);
+router.get('/drafts', draftController.list);
+router.post('/drafts', draftController.createValidators, validator.validate, draftController.create);
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);

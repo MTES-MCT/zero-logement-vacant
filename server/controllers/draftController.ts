@@ -41,6 +41,27 @@ async function list(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
+const senderValidators: ValidationChain[] = [
+  ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
+    body(`sender.${prop}`)
+      .isString()
+      .withMessage(`${prop} must be a string`)
+      .trim()
+      .notEmpty()
+      .withMessage(`${prop} is required`)
+  ),
+  body('sender.email')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('Email must be a string')
+    .trim(),
+  body('sender.phone')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('Phone must be a string')
+    .trim(),
+];
+
 async function create(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
   const body = request.body as DraftCreationPayloadDTO;
@@ -53,13 +74,33 @@ async function create(request: Request, response: Response) {
     throw new CampaignMissingError(body.campaign);
   }
 
+  const existingSender = await senderRepository.findOne({
+    name: body.sender.name,
+    establishmentId: auth.establishmentId,
+  });
+  const sender: SenderApi = {
+    id: existingSender?.id ?? uuidv4(),
+    name: body.sender.name,
+    service: body.sender.service,
+    firstName: body.sender.firstName,
+    lastName: body.sender.lastName,
+    address: body.sender.address,
+    email: body.sender.email,
+    phone: body.sender.phone,
+    createdAt: existingSender?.createdAt ?? new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    establishmentId: auth.establishmentId,
+  };
   const draft: DraftApi = {
     id: uuidv4(),
     body: body.body,
+    sender,
+    senderId: sender.id,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     establishmentId: auth.establishmentId,
   };
+  await senderRepository.save(sender);
   await draftRepository.save(draft);
   await campaignDraftRepository.save(campaign, draft);
   response.status(constants.HTTP_STATUS_CREATED).json(draft);
@@ -71,6 +112,8 @@ const createValidators: ValidationChain[] = [
     .withMessage('Must be an UUID')
     .notEmpty()
     .withMessage('campaign is required'),
+  body('sender').isObject().withMessage('Sender must be an object'),
+  ...senderValidators,
 ];
 
 async function preview(request: Request, response: Response) {
@@ -142,23 +185,11 @@ async function update(request: Request, response: Response<DraftDTO>) {
 
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
-const updateSenderValidators: ValidationChain[] = [
-  ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
-    body(`sender.${prop}`)
-      .isString()
-      .withMessage(`${prop} must be a string`)
-      .trim()
-      .notEmpty()
-      .withMessage(`${prop} is required`)
-  ),
-  body('sender.email').isString().withMessage('Email must be a string').trim(),
-  body('sender.phone').isString().withMessage('Phone must be a string').trim(),
-];
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('body').isString().notEmpty().withMessage('body is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
-  ...updateSenderValidators,
+  ...senderValidators,
 ];
 
 const draftController = {

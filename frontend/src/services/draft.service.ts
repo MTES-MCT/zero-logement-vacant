@@ -4,7 +4,11 @@ import {
   DraftDTO,
   DraftUpdatePayloadDTO,
 } from '../../../shared/models/DraftDTO';
-import { Draft, DraftPayload } from '../models/Draft';
+import {
+  Draft,
+  DraftCreationPayload,
+  DraftUpdatePayload,
+} from '../models/Draft';
 import { getURLQuery } from '../utils/fetchUtils';
 import { SenderPayload } from '../models/Sender';
 import { SenderPayloadDTO } from '../../../shared';
@@ -33,19 +37,19 @@ export const draftApi = zlvApi.injectEndpoints({
         ];
       },
     }),
-    createDraft: builder.mutation<void, DraftCreationPayloadDTO>({
+    createDraft: builder.mutation<void, DraftCreationPayload>({
       query: (draft) => ({
         url: '/drafts',
         method: 'POST',
-        body: draft,
+        body: toDraftCreationPayloadDTO(draft),
       }),
       invalidatesTags: [{ type: 'Draft', id: 'LIST' }],
     }),
-    updateDraft: builder.mutation<void, DraftPayload>({
+    updateDraft: builder.mutation<void, DraftUpdatePayload>({
       query: (draft) => ({
         url: `/drafts/${draft.id}`,
         method: 'PUT',
-        body: draft,
+        body: toDraftUpdatePayloadDTO(draft),
       }),
       invalidatesTags: (result, error, draft) => [
         { type: 'Draft', id: draft.id },
@@ -64,9 +68,22 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   };
 }
 
-function toDraftPayloadDTO(draft: DraftPayload): DraftPayloadDTO {
+function toDraftCreationPayloadDTO(
+  draft: DraftCreationPayload
+): DraftCreationPayloadDTO {
   return {
-    body: draft.body ? draft.body.replaceAll('\n', '<br />') : null,
+    body: draft.body.replaceAll('\n', '<br />'),
+    campaign: draft.campaign,
+    sender: toSenderPayloadDTO(draft.sender),
+  };
+}
+
+function toDraftUpdatePayloadDTO(
+  draft: DraftUpdatePayload
+): DraftUpdatePayloadDTO {
+  return {
+    id: draft.id,
+    body: draft.body.replaceAll('\n', '<br />'),
     sender: toSenderPayloadDTO(draft.sender),
   };
 }
@@ -78,8 +95,9 @@ function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
     firstName: sender.firstName,
     lastName: sender.lastName,
     address: sender.address,
-    email: sender.email,
-    phone: sender.phone,
+    // Catch empty strings
+    email: sender.email || null,
+    phone: sender.phone || null,
   };
 }
 

@@ -1,9 +1,14 @@
-import { DraftDTO, DraftPayloadDTO } from '../../../shared/models/DraftDTO';
-import { Sender, SenderPayload } from './Sender';
+import {
+  DraftCreationPayloadDTO,
+  DraftDTO,
+  DraftUpdatePayloadDTO,
+} from '../../../shared/models/DraftDTO';
+import { SenderPayload } from './Sender';
 
 export interface Draft extends DraftDTO {}
 
-export interface DraftPayload extends DraftPayloadDTO {
-  id: string;
+export interface DraftCreationPayload extends DraftCreationPayloadDTO {
   sender: SenderPayload;
 }
+
+export type DraftUpdatePayload = DraftUpdatePayloadDTO;

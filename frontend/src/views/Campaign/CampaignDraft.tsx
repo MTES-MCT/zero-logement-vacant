@@ -6,7 +6,6 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
-import NotFoundView from '../NotFoundView';
 import { Campaign } from '../../models/Campaign';
 import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import SaveButton from '../../components/Draft/SaveButton';

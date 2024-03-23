@@ -9,8 +9,8 @@ import { DraftApi, toDraftDTO } from '../models/DraftApi';
 import draftRepository, { DraftFilters } from '../repositories/draftRepository';
 import {
   DraftCreationPayloadDTO,
-  DraftUpdatePayloadDTO,
   DraftDTO,
+  DraftUpdatePayloadDTO,
 } from '../../shared/models/DraftDTO';
 import campaignDraftRepository from '../repositories/campaignDraftRepository';
 import campaignRepository from '../repositories/campaignRepository';
@@ -20,7 +20,7 @@ import { isUUIDParam } from '../utils/validators';
 import { logger } from '../utils/logger';
 import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
-import { SenderApi } from '../models/SenderApi';
+import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
 
 interface DraftQuery {
@@ -75,19 +75,11 @@ async function create(request: Request, response: Response) {
     name: body.sender.name,
     establishmentId: auth.establishmentId,
   });
-  const sender: SenderApi = {
-    id: existingSender?.id ?? uuidv4(),
-    name: body.sender.name,
-    service: body.sender.service,
-    firstName: body.sender.firstName,
-    lastName: body.sender.lastName,
-    address: body.sender.address,
-    email: body.sender.email,
-    phone: body.sender.phone,
-    createdAt: existingSender?.createdAt ?? new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
-    establishmentId: auth.establishmentId,
-  };
+  const sender: SenderApi = createOrReplaceSender(
+    body.sender,
+    existingSender,
+    auth.establishmentId
+  );
   const draft: DraftApi = {
     id: uuidv4(),
     body: body.body,
@@ -153,19 +145,11 @@ async function update(request: Request, response: Response<DraftDTO>) {
       })
     : draft.sender;
 
-  const sender: SenderApi = {
-    id: existingSender?.id ?? uuidv4(),
-    name: body.sender.name,
-    service: body.sender.service,
-    firstName: body.sender.firstName,
-    lastName: body.sender.lastName,
-    address: body.sender.address,
-    email: body.sender.email,
-    phone: body.sender.phone,
-    createdAt: existingSender?.createdAt ?? new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
-    establishmentId: auth.establishmentId,
-  };
+  const sender: SenderApi = createOrReplaceSender(
+    body.sender,
+    existingSender,
+    auth.establishmentId
+  );
 
   // If the sender exists, update it
   // Otherwise create a new sender

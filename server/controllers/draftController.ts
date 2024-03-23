@@ -50,16 +50,13 @@ const senderValidators: ValidationChain[] = [
       .notEmpty()
       .withMessage(`${prop} is required`)
   ),
-  body('sender.email')
-    .optional({ checkFalsy: true })
-    .isString()
-    .withMessage('Email must be a string')
-    .trim(),
-  body('sender.phone')
-    .optional({ checkFalsy: true })
-    .isString()
-    .withMessage('Phone must be a string')
-    .trim(),
+  ...['email', 'phone'].map((prop) =>
+    body(`sender.${prop}`)
+      .optional({ checkFalsy: true })
+      .isString()
+      .withMessage(`${prop} must be a string`)
+      .trim()
+  ),
 ];
 
 async function create(request: Request, response: Response) {

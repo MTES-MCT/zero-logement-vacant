@@ -4,6 +4,7 @@ import {
   genCampaignApi,
   genDraftApi,
   genEstablishmentApi,
+  genSenderApi,
   genUserApi,
 } from '../../test/testFixtures';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
@@ -16,6 +17,7 @@ import {
   formatEstablishmentApi,
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
+import { SenderApi } from '../../models/SenderApi';
 
 describe('Draft repository', () => {
   const establishment = genEstablishmentApi();
@@ -29,9 +31,13 @@ describe('Draft repository', () => {
 
   describe('find', () => {
     let drafts: DraftApi[];
+    let sender: SenderApi;
 
     beforeAll(async () => {
-      drafts = Array.from({ length: 5 }, () => genDraftApi(establishment));
+      sender = genSenderApi(establishment);
+      drafts = Array.from({ length: 5 }, () =>
+        genDraftApi(establishment, sender)
+      );
       await Drafts().insert(drafts.map(formatDraftApi));
     });
 
@@ -62,7 +68,8 @@ describe('Draft repository', () => {
   });
 
   describe('findOne', () => {
-    const draft = genDraftApi(establishment);
+    const sender = genSenderApi(establishment);
+    const draft = genDraftApi(establishment, sender);
 
     beforeAll(async () => {
       await Drafts().insert(formatDraftApi(draft));
@@ -97,7 +104,8 @@ describe('Draft repository', () => {
   });
 
   describe('save', () => {
-    const draft = genDraftApi(establishment);
+    const sender = genSenderApi(establishment);
+    const draft = genDraftApi(establishment, sender);
 
     it('should create a draft that does not exist', async () => {
       await draftRepository.save(draft);

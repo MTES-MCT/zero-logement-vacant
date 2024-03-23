@@ -729,14 +729,17 @@ export const genHousingNoteApi = (
   housingId: housing.id,
 });
 
-export function genDraftApi(establishment: EstablishmentApi): DraftApi {
+export function genDraftApi(
+  establishment: EstablishmentApi,
+  sender: SenderApi
+): DraftApi {
   return {
     id: uuidv4(),
     body: faker.lorem.paragraph(),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
-    sender: null,
-    senderId: null,
+    sender,
+    senderId: sender.id,
     establishmentId: establishment.id,
   };
 }

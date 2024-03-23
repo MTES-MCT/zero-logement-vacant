@@ -96,11 +96,11 @@ export interface DraftRecordDBO {
   created_at: Date;
   updated_at: Date;
   establishment_id: string;
-  sender_id: string | null;
+  sender_id: string;
 }
 
 export interface DraftDBO extends DraftRecordDBO {
-  sender: SenderDBO | null;
+  sender: SenderDBO;
 }
 
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
@@ -119,7 +119,7 @@ export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
   updatedAt: draft.updated_at.toJSON(),
   establishmentId: draft.establishment_id,
   senderId: draft.sender_id,
-  sender: draft.sender ? parseSenderApi(draft.sender) : null,
+  sender: parseSenderApi(draft.sender),
 });
 
 export default {

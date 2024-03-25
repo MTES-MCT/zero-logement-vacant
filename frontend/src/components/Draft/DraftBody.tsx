@@ -19,8 +19,9 @@ function DraftBody(props: Props) {
 
   return (
     <article className={styles.article}>
-      <h6>Contenu de votre courrier</h6>
+      <h6 id="draft-body-label">Contenu de votre courrier</h6>
       <AppTextInput
+        aria-labelledby="draft-body-label"
         inputForm={props.form}
         inputKey="body"
         rows={6}

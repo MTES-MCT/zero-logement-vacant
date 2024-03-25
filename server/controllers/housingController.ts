@@ -41,8 +41,6 @@ import { HousingEventApi } from '../models/EventApi';
 import ownerMatchRepository from '../repositories/ownerMatchRepository';
 import createDatafoncierHousingRepository from '../repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '../repositories/datafoncierOwnersRepository';
-import isIn = validator.isIn;
-import isEmpty = validator.isEmpty;
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -238,21 +236,24 @@ const updateValidators = [
   body('housingUpdate.statusUpdate')
     .optional()
     .custom((value) =>
-      isIn(String(value.status), Object.values(HousingStatusApi))
+      validator.isIn(String(value.status), Object.values(HousingStatusApi))
     ),
   body('housingUpdate.occupancyUpdate')
     .optional()
     .custom((value) =>
-      isIn(String(value.occupancy), Object.values(OccupancyKindApi))
+      validator.isIn(String(value.occupancy), Object.values(OccupancyKindApi))
     )
     .custom(
       (value) =>
         !value.occupancyIntended ||
-        isIn(String(value.occupancyIntended), Object.values(OccupancyKindApi))
+        validator.isIn(
+          String(value.occupancyIntended),
+          Object.values(OccupancyKindApi)
+        )
     ),
   body('housingUpdate.note')
     .optional()
-    .custom((value) => value.content && !isEmpty(value.content)),
+    .custom((value) => value.content && !validator.isEmpty(value.content)),
 ];
 
 async function update(request: Request, response: Response) {

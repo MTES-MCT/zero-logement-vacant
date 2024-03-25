@@ -5,3 +5,9 @@
     margin-left: 0.25rem !important;
     margin-right: 0.25rem !important;
 }
+
+.right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}

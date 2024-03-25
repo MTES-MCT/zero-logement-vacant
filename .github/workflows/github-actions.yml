@@ -24,6 +24,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Frontend install
+        run: npm --prefix frontend ci
       - name: Server install
         run: npm ci
       - name: build

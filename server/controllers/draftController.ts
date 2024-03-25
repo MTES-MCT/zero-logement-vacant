@@ -17,6 +17,8 @@ import CampaignMissingError from '../errors/campaignMissingError';
 import DraftMissingError from '../errors/draftMissingError';
 import { isUUIDParam } from '../utils/validators';
 import { logger } from '../utils/logger';
+import pdf from '../utils/pdf';
+import DRAFT_TEMPLATE_FILE from '../templates/draft';
 
 interface DraftQuery {
   campaign?: string;
@@ -68,6 +70,25 @@ const createValidators: ValidationChain[] = [
     .withMessage('campaign is required'),
 ];
 
+async function preview(request: Request, response: Response) {
+  const { auth, params } = request as AuthenticatedRequest;
+
+  const draft = await draftRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId,
+  });
+  if (!draft) {
+    throw new DraftMissingError(params.id);
+  }
+
+  const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
+    body: draft.body,
+  });
+  const finalPDF = await pdf.fromHTML(html);
+  response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
+}
+const previewValidators: ValidationChain[] = [isUUIDParam('id')];
+
 async function update(request: Request, response: Response<DraftDTO>) {
   const { auth, params } = request as AuthenticatedRequest;
   const body = request.body as DraftCreationPayloadDTO;
@@ -99,6 +120,8 @@ const draftController = {
   list,
   create,
   createValidators,
+  preview,
+  previewValidators,
   update,
   updateValidators,
 };

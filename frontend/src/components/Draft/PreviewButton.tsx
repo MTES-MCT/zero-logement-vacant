@@ -6,6 +6,7 @@ import authService from '../../services/auth.service';
 import { Draft } from '../../models/Draft';
 
 interface Props {
+  className?: string;
   disabled?: boolean;
   draft?: Draft;
 }
@@ -38,6 +39,7 @@ function PreviewButton(props: Readonly<Props>) {
 
   return (
     <Button
+      className={props.className}
       disabled={props.disabled || isLoading}
       iconId="fr-icon-eye-line"
       priority="secondary"

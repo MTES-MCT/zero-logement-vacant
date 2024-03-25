@@ -15,6 +15,7 @@ import { mockRequests } from '../../../utils/test/requestUtils';
 import CampaignView from '../CampaignView';
 import { Draft } from '../../../models/Draft';
 import Notification from '../../../components/Notification/Notification';
+import { Campaign } from '../../../models/Campaign';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -259,6 +260,60 @@ describe('Campaign view', () => {
     await user.click(save);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
+  });
+
+  it('should validate the campaign', async () => {
+    const sending: Campaign = { ...campaign, status: 'sending' };
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([{ ...draft, sender }]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        method: 'PUT',
+        response: {
+          body: JSON.stringify(sending),
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify([sending]),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const send = await screen.findByRole('button', {
+      name: /^Débuter l’envoi/,
+    });
+    await user.click(send);
+    const dialog = await screen.findByRole('dialog');
+    const confirm = await within(dialog).findByRole('button', {
+      name: /^Confirmer/,
+    });
+    await user.click(confirm);
+    expect(dialog).not.toBeVisible();
   });
 
   // Hard to mock window.confirm because it's a browser-level function

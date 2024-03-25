@@ -143,7 +143,6 @@ export function useForm<
       if (hasError(key)) {
         return 'error';
       }
-      return 'success';
     }
     return 'default';
   }

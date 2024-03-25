@@ -68,6 +68,7 @@ import { AddressApi } from '../models/AddressApi';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
 import { HousingNoteApi, NoteApi } from '../models/NoteApi';
 import { DraftApi } from '../models/DraftApi';
+import { SenderApi } from '../models/SenderApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -728,12 +729,35 @@ export const genHousingNoteApi = (
   housingId: housing.id,
 });
 
-export function genDraftApi(establishment: EstablishmentApi): DraftApi {
+export function genDraftApi(
+  establishment: EstablishmentApi,
+  sender: SenderApi
+): DraftApi {
   return {
     id: uuidv4(),
     body: faker.lorem.paragraph(),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
+    sender,
+    senderId: sender.id,
+    establishmentId: establishment.id,
+  };
+}
+
+export function genSenderApi(establishment: EstablishmentApi): SenderApi {
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
+  return {
+    id: uuidv4(),
+    name: `${faker.location.zipCode()} ${faker.location.city()}`,
+    service: faker.company.name(),
+    firstName,
+    lastName,
+    address: faker.location.streetAddress({ useFullAddress: true }),
+    email: faker.internet.email({ firstName, lastName }),
+    phone: faker.phone.number(),
+    createdAt: faker.date.past().toJSON(),
+    updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id,
   };
 }

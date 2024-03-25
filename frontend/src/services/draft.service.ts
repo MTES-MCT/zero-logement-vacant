@@ -4,8 +4,14 @@ import {
   DraftDTO,
   DraftUpdatePayloadDTO,
 } from '../../../shared/models/DraftDTO';
-import { Draft } from '../models/Draft';
+import {
+  Draft,
+  DraftCreationPayload,
+  DraftUpdatePayload,
+} from '../models/Draft';
 import { getURLQuery } from '../utils/fetchUtils';
+import { SenderPayload } from '../models/Sender';
+import { SenderPayloadDTO } from '../../../shared';
 
 export interface FindOptions {
   campaign?: string;
@@ -31,19 +37,19 @@ export const draftApi = zlvApi.injectEndpoints({
         ];
       },
     }),
-    createDraft: builder.mutation<void, DraftCreationPayloadDTO>({
+    createDraft: builder.mutation<void, DraftCreationPayload>({
       query: (draft) => ({
         url: '/drafts',
         method: 'POST',
-        body: draft,
+        body: toDraftCreationPayloadDTO(draft),
       }),
       invalidatesTags: [{ type: 'Draft', id: 'LIST' }],
     }),
-    updateDraft: builder.mutation<void, DraftUpdatePayloadDTO>({
+    updateDraft: builder.mutation<void, DraftUpdatePayload>({
       query: (draft) => ({
         url: `/drafts/${draft.id}`,
         method: 'PUT',
-        body: draft,
+        body: toDraftUpdatePayloadDTO(draft),
       }),
       invalidatesTags: (result, error, draft) => [
         { type: 'Draft', id: draft.id },
@@ -56,8 +62,42 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
     body: draft.body.replaceAll('<br />', '\n'),
+    sender: draft.sender ?? undefined,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
+  };
+}
+
+function toDraftCreationPayloadDTO(
+  draft: DraftCreationPayload
+): DraftCreationPayloadDTO {
+  return {
+    body: draft.body.replaceAll('\n', '<br />'),
+    campaign: draft.campaign,
+    sender: toSenderPayloadDTO(draft.sender),
+  };
+}
+
+function toDraftUpdatePayloadDTO(
+  draft: DraftUpdatePayload
+): DraftUpdatePayloadDTO {
+  return {
+    id: draft.id,
+    body: draft.body.replaceAll('\n', '<br />'),
+    sender: toSenderPayloadDTO(draft.sender),
+  };
+}
+
+function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
+  return {
+    name: sender.name,
+    service: sender.service,
+    firstName: sender.firstName,
+    lastName: sender.lastName,
+    address: sender.address,
+    // Catch empty strings
+    email: sender.email || null,
+    phone: sender.phone || null,
   };
 }
 

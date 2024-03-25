@@ -4,9 +4,10 @@ import db from './db';
 import { DraftApi } from '../models/DraftApi';
 import { campaignsDraftsTable } from './campaignDraftRepository';
 import { logger } from '../utils/logger';
+import { parseSenderApi, SenderDBO, sendersTable } from './senderRepository';
 
 export const draftsTable = 'drafts';
-export const Drafts = (transaction: Knex<DraftDBO> = db) =>
+export const Drafts = (transaction: Knex<DraftRecordDBO> = db) =>
   transaction(draftsTable);
 
 export interface DraftFilters {
@@ -53,11 +54,18 @@ async function save(draft: DraftApi): Promise<void> {
   await Drafts()
     .insert(formatDraftApi(draft))
     .onConflict('id')
-    .merge(['body', 'updated_at']);
+    .merge(['body', 'updated_at', 'sender_id']);
 }
 
 function listQuery(query: Knex.QueryBuilder): void {
-  query.select(`${draftsTable}.*`);
+  query
+    .select(`${draftsTable}.*`)
+    .leftJoin<SenderDBO>(
+      sendersTable,
+      `${draftsTable}.sender_id`,
+      `${sendersTable}.id`
+    )
+    .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
 }
 
 function filterQuery(filters?: DraftFilters) {
@@ -82,20 +90,26 @@ function filterQuery(filters?: DraftFilters) {
   };
 }
 
-export interface DraftDBO {
+export interface DraftRecordDBO {
   id: string;
   body: string;
   created_at: Date;
   updated_at: Date;
   establishment_id: string;
+  sender_id: string;
 }
 
-export const formatDraftApi = (draft: DraftApi): DraftDBO => ({
+export interface DraftDBO extends DraftRecordDBO {
+  sender: SenderDBO;
+}
+
+export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   id: draft.id,
   body: draft.body,
   created_at: new Date(draft.createdAt),
   updated_at: new Date(draft.updatedAt),
   establishment_id: draft.establishmentId,
+  sender_id: draft.senderId,
 });
 
 export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
@@ -104,6 +118,8 @@ export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
   createdAt: draft.created_at.toJSON(),
   updatedAt: draft.updated_at.toJSON(),
   establishmentId: draft.establishment_id,
+  senderId: draft.sender_id,
+  sender: parseSenderApi(draft.sender),
 });
 
 export default {

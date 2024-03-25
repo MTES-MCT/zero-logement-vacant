@@ -52,7 +52,9 @@ export const mockRequests = (matches: RequestMatch[]): void => {
       return predicates(match).every((predicate) => predicate(request));
     });
     if (!match) {
-      return Promise.reject(new MockError(request));
+      const error = new MockError(request);
+      console.error(error);
+      return Promise.reject(error);
     }
 
     if (!match.persist) {
@@ -71,7 +73,7 @@ const isMockResponseInitFunction = (
 
 class MockError extends Error {
   constructor(request: Request) {
-    super(`Request to ${request.url} must be mocked`);
+    super(`Request to ${request.method} ${request.url} must be mocked`);
     this.name = 'MockError';
   }
 }

@@ -92,7 +92,7 @@ async function create(request: Request, response: Response) {
   await senderRepository.save(sender);
   await draftRepository.save(draft);
   await campaignDraftRepository.save(campaign, draft);
-  response.status(constants.HTTP_STATUS_CREATED).json(draft);
+  response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
 const createValidators: ValidationChain[] = [
   body('body').isString().notEmpty().withMessage('body is required'),

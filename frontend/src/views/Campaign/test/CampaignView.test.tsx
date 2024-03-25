@@ -20,8 +20,8 @@ describe('Campaign view', () => {
   const user = userEvent.setup();
 
   const campaign = genCampaign();
-  const draft = genDraft();
   const sender = genSender();
+  const draft = genDraft(sender);
 
   let store: AppStore;
   let router: History;
@@ -173,7 +173,7 @@ describe('Campaign view', () => {
     expect(modal).not.toBeVisible();
   });
 
-  it('should save the draft on button click', async () => {
+  it('should update the draft on button click', async () => {
     const updated: Draft = {
       ...draft,
       body: 'New body',
@@ -221,24 +221,36 @@ describe('Campaign view', () => {
 
     // Fill the form
     const form = await screen.findByRole('form');
+    const body = await within(form).findByRole('textbox', {
+      name: /^Contenu de votre courrier/,
+    });
+    await user.clear(body);
+    await user.type(body, draft.body);
     const name = await within(form).findByLabelText(
       'Nom de la collectivité ou de l’administration*'
     );
+    await user.clear(name);
     await user.type(name, sender.name);
     const service = await within(form).findByLabelText('Service*');
+    await user.clear(service);
     await user.type(service, sender.service);
     const lastName = await within(form).findByLabelText('Nom*');
+    await user.clear(lastName);
     await user.type(lastName, sender.lastName);
     const firstName = await within(form).findByLabelText('Prénom*');
+    await user.clear(firstName);
     await user.type(firstName, sender.firstName);
     const address = await within(form).findByLabelText('Adresse*');
+    await user.clear(address);
     await user.type(address, sender.address);
     if (sender.email) {
       const email = await within(form).findByLabelText('Adresse courriel');
+      await user.clear(email);
       await user.type(email, sender.email);
     }
     if (sender.phone) {
       const phone = await within(form).findByLabelText('Téléphone');
+      await user.clear(phone);
       await user.type(phone, sender.phone);
     }
 

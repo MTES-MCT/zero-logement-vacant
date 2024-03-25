@@ -52,7 +52,11 @@ function CampaignDraft(props: Props) {
 
   useEffect(() => {
     if (draft) {
-      setValues({ ...draft, campaign: props.campaign.id });
+      setValues({
+        body: draft.body,
+        sender: draft.sender,
+        campaign: props.campaign.id,
+      });
     }
   }, [draft, props.campaign.id]);
 

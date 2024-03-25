@@ -23,12 +23,14 @@ export const genSiren = () => genNumber(9);
 
 export function genEmail() {
   const name = randomstring.generate({
-    length: 10,
+    length: 4,
     charset: 'alphabetic',
+    readable: true,
   });
   const domain = randomstring.generate({
-    length: 10,
+    length: 4,
     charset: 'alphabetic',
+    readable: true,
   });
   return `${name}@${domain}.com`;
 }
@@ -120,10 +122,11 @@ export const genCampaign = (): Campaign => ({
   exportURL: randomstring.generate(),
 });
 
-export function genDraft(): Draft {
+export function genDraft(sender: Sender): Draft {
   return {
     id: randomstring.generate(),
     body: randomstring.generate(),
+    sender,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
   };

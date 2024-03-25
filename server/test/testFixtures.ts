@@ -749,7 +749,7 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
   const lastName = faker.person.lastName();
   return {
     id: uuidv4(),
-    name: faker.location.city(),
+    name: `${faker.location.zipCode()} ${faker.location.city()}`,
     service: faker.company.name(),
     firstName,
     lastName,

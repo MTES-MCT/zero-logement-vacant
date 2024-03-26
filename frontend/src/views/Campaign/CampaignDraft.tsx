@@ -24,7 +24,9 @@ import SendButton from '../../components/Draft/SendButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
 
 const schema = yup.object({
-  body: yup.string(),
+  body: yup
+    .string()
+    .required('Veuillez renseigner le contenu de votre courrier'),
   sender: senderSchema,
 });
 

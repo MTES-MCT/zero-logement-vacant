@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { sortQuery } from '../models/SortApi';
 import { CampaignStatus } from '../../shared';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
+import { createQueue } from '../../queue/src';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -86,6 +87,7 @@ async function save(campaign: CampaignApi): Promise<void> {
     .insert(formatCampaignApi(campaign))
     .onConflict(['id'])
     .merge(['status', 'title', 'file', 'sent_at']);
+  logger.debug('Campaign saved', campaign);
 }
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {
@@ -99,6 +101,16 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
+
+const queue = createQueue();
+
+async function generateMails(campaign: CampaignApi): Promise<void> {
+  await queue.add('campaign:generate', {
+    campaignId: campaign.id,
+    establishmentId: campaign.establishmentId,
+  });
+  logger.info('Generating campaign mails', campaign);
+}
 
 export interface CampaignDBO {
   id: string;
@@ -171,5 +183,6 @@ export default {
   save,
   update,
   remove,
+  generateMails,
   formatCampaignApi,
 };

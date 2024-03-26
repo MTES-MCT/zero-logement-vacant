@@ -26,9 +26,27 @@ services:
     ports:
       - "1025:1025"
       - "1080:1080"
+  s3:
+    image: adobe/s3mock:3.5.2
+    container_name: s3
+    environment:
+      initialBuckets: "zerologementvacant"
+    ports:
+      - "9090:9090"
+      - "9191:9191"
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
   data:
     driver: local
     name: zlv-db
+  redis_data:
+    driver: local
 

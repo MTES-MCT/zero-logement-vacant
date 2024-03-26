@@ -2,15 +2,18 @@ import Tile from '@codegouvfr/react-dsfr/Tile';
 
 import styles from './draft-downloader.module.scss';
 import { Campaign } from '../../models/Campaign';
-import config from '../../utils/config';
 
 interface Props {
   campaign: Campaign;
 }
 
 function DraftDownloader(props: Props) {
-  const description = props.campaign.file;
-  const link = `${config.apiEndpoint}/api/files/${props.campaign.file}`;
+  const description = props.campaign.file?.split('/').pop();
+  const link = props.campaign.file;
+
+  if (!link) {
+    return null;
+  }
 
   return (
     <Tile

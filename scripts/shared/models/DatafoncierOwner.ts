@@ -127,11 +127,12 @@ export const ownerDatafoncierSchema = joi
       .string()
       .uppercase()
       .trim()
-      .replace(/\s+/g, ' ')
-      .when('catpro2txt', {
-        is: 'PERSONNE PHYSIQUE',
-        then: joi.string().regex(/^[\w-'\s]+\/[\w-'\s]*$/),
-      }),
+      .replace(/\s+/g, ' '),
+      // Pose problème sur les noms composés et provoque l'arrêt du script
+      // .when('catpro2txt', {
+      //   is: 'PERSONNE PHYSIQUE',
+      //   then: joi.string().regex(/^[\w-'\s]+\/[\w-'\s]*$/),
+      // }),
   })
   // Require one of the address fields to be filled
   .or('dlign3', 'dlign4', 'dlign5', 'dlign6');

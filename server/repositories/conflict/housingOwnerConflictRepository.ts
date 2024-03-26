@@ -69,7 +69,7 @@ const saveMany = async (
   conflicts: HousingOwnerConflictApi[]
 ): Promise<void> => {
   if (!conflicts.length) {
-    logger.info('The conflicts array is empty. Skipping save...');
+    logger.debug('The conflicts array is empty. Skipping save...');
     return;
   }
   logger.debug(`Wrote ${conflicts.length} conflicts`);

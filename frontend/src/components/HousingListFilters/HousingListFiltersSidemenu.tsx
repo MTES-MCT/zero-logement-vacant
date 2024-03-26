@@ -336,25 +336,19 @@ function HousingListFiltersSidemenu(props: Props) {
                     }
                   />
                 </Col>
-                {feature.isEnabled('occupancy') ? (
-                  <>
-                    <Col n="6">
-                      <AppMultiSelect
-                        label="Étiquette DPE représentatif (CSTB)"
-                        options={energyConsumptionOptions}
-                        initialValues={filters.energyConsumption}
-                        onChange={(values) =>
-                          onChangeFilters(
-                            { energyConsumption: values },
-                            'Étiquette DPE représentatif (CSTB)'
-                          )
-                        }
-                      />
-                    </Col>
-                  </>
-                ) : (
-                  <></>
-                )}
+                  <Col n="6">
+                    <AppMultiSelect
+                      label="Étiquette DPE représentatif (CSTB)"
+                      options={energyConsumptionOptions}
+                      initialValues={filters.energyConsumption}
+                      onChange={(values) =>
+                        onChangeFilters(
+                          { energyConsumption: values },
+                          'Étiquette DPE représentatif (CSTB)'
+                        )
+                      }
+                    />
+                  </Col>
               </Row>
             </Container>
           </Accordion>

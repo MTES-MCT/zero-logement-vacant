@@ -39,6 +39,7 @@ export const toHousingRecordApi = fp.curry(
       occupancyRegistered: housing.ccthp as OccupancyKindApi,
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      plotId: housing.idpar
     };
   }
 );

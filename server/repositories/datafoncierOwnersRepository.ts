@@ -12,6 +12,7 @@ import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { OwnerApi } from '../models/OwnerApi';
 import fp from 'lodash/fp';
 import { sortQuery } from '../models/SortApi';
+import { getYear } from 'date-fns';
 
 const FIELDS = [
   'idprodroit',
@@ -26,7 +27,7 @@ const FIELDS = [
   'catpro3txt',
 ];
 
-export const datafoncierOwnersTable = 'df_owners_nat';
+export const datafoncierOwnersTable = `df_owners_nat_${getYear(new Date()) - 1}`;
 export const DatafoncierOwners = (transaction = db) =>
   transaction<DatafoncierOwner>(datafoncierOwnersTable);
 
@@ -39,6 +40,28 @@ interface FindOptions {
 }
 
 class DatafoncierOwnersRepository {
+
+  async count(): Promise<number> {
+    // const result = await DatafoncierOwners()
+    //   .distinctOn('idpersonne')
+    //   .where((whereBuilder) =>
+    //     whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
+    //   )
+    //   .count('*', { as: 'total' });
+    const subquery = DatafoncierOwners()
+      .distinctOn('idpersonne')
+      .where((whereBuilder) =>
+        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
+      )
+      .select('idpersonne'); // Sélectionnez uniquement 'idpersonne' pour le décompte distinct
+    
+    const result = await DatafoncierOwners()
+      .from(subquery.as('sub'))
+      .count({ total: '*' });
+
+    return Number(result[0] ? result[0].total : 0);
+  }
+
   async find(opts?: FindOptions): Promise<OwnerApi[]> {
     const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
 

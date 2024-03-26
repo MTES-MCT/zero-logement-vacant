@@ -17,7 +17,6 @@ import {
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
-  dpeScoreOptions,
   roomsCountOptions,
   statusOptions,
   taxedOptions,
@@ -167,14 +166,6 @@ const HousingFiltersBadges = ({
           small={small}
           onChange={
             onChange && ((values) => onChange({ ownershipKinds: values }))
-          }
-        />
-        <FilterBadges
-          options={dpeScoreOptions}
-          filters={filters.dpeScore}
-          small={small}
-          onChange={
-            onChange && ((values) => onChange({ dpeScore: values }))
           }
         />
         <FilterBadges

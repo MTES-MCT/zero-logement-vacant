@@ -10,7 +10,6 @@ import {
   campaignsCountOptions,
   dataYearsExcludedOptions,
   dataYearsIncludedOptions,
-  dpeScoreOptions,
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
@@ -301,19 +300,6 @@ function HousingListFiltersSidemenu(props: Props) {
                     }
                   />
                 </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Score DPE"
-                    options={dpeScoreOptions}
-                    initialValues={filters.dpeScore}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { dpeScore: values },
-                        'Score DPE'
-                      )
-                    }
-                  />
-                </Col>
               </Row>
             </Container>
           </Accordion>
@@ -350,25 +336,19 @@ function HousingListFiltersSidemenu(props: Props) {
                     }
                   />
                 </Col>
-                {feature.isEnabled('occupancy') ? (
-                  <>
-                    <Col n="6">
-                      <AppMultiSelect
-                        label="Étiquette DPE représentatif (CSTB)"
-                        options={energyConsumptionOptions}
-                        initialValues={filters.energyConsumption}
-                        onChange={(values) =>
-                          onChangeFilters(
-                            { energyConsumption: values },
-                            'Étiquette DPE représentatif (CSTB)'
-                          )
-                        }
-                      />
-                    </Col>
-                  </>
-                ) : (
-                  <></>
-                )}
+                  <Col n="6">
+                    <AppMultiSelect
+                      label="Étiquette DPE représentatif (CSTB)"
+                      options={energyConsumptionOptions}
+                      initialValues={filters.energyConsumption}
+                      onChange={(values) =>
+                        onChangeFilters(
+                          { energyConsumption: values },
+                          'Étiquette DPE représentatif (CSTB)'
+                        )
+                      }
+                    />
+                  </Col>
               </Row>
             </Container>
           </Accordion>

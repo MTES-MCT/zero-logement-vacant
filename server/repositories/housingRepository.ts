@@ -653,12 +653,6 @@ function filteredQuery(opts: ListQueryOptions) {
         filters.cadastralClassifications
       );
     }
-    if (filters.dpeScore?.length) {
-      queryBuilder.whereIn(
-        'energy_consumption',
-        filters.dpeScore
-      );
-    }
     if (filters.buildingPeriods?.length) {
       queryBuilder.where((whereBuilder) => {
         if (filters.buildingPeriods?.indexOf('lt1919') !== -1) {

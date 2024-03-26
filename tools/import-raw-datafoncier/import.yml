@@ -6,11 +6,11 @@
     - vars/db_configuration.yml
     - vars/db_credentials.yml
   vars_prompt:
-    - name: create_indices_for_housing
+    - name: create_indices_for_owners
       prompt: "Créer les indices pour la table des propriétaires ? (yes/no)"
       private: no
 
-    - name: create_indices_for_owners
+    - name: create_indices_for_housing
       prompt: "Créer les indices pour la table des logements ? (yes/no)"
       private: no
   tasks:

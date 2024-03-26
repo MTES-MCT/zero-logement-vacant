@@ -17,9 +17,10 @@ interface Config {
   };
   s3: {
     endpoint: string;
+    region: string;
     bucket: string;
-    accessKeyId: string | null;
-    secretAccessKey: string | null;
+    accessKeyId: string;
+    secretAccessKey: string;
   };
 }
 
@@ -64,6 +65,11 @@ const config = convict<Config>({
       format: String,
       default: isProduction ? null : 'http://localhost:9090',
     },
+    region: {
+      env: 'S3_REGION',
+      format: String,
+      default: isProduction ? null : 'whatever',
+    },
     bucket: {
       env: 'S3_BUCKET',
       format: String,
@@ -73,14 +79,12 @@ const config = convict<Config>({
       env: 'S3_ACCESS_KEY_ID',
       format: String,
       default: null,
-      nullable: !isProduction,
       sensitive: true,
     },
     secretAccessKey: {
       env: 'S3_SECRET_ACCESS_KEY',
       format: String,
       default: null,
-      nullable: !isProduction,
       sensitive: true,
     },
   },

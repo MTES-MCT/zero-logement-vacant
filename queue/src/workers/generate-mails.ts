@@ -19,18 +19,12 @@ export default function createWorker() {
   const logger = createLogger('workers:generate-mails');
   const s3 = new S3Client({
     endpoint: config.s3.endpoint,
-    region: 'any',
-    credentials: {
-      accessKeyId: 'test',
-      secretAccessKey: 'test',
-    },
+    region: config.s3.region,
     forcePathStyle: true,
-    // config.s3.accessKeyId && config.s3.secretAccessKey
-    //   ? {
-    //       accessKeyId: config.s3.accessKeyId,
-    //       secretAccessKey: config.s3.secretAccessKey,
-    //     }
-    //   : undefined,
+    credentials: {
+      accessKeyId: config.s3.accessKeyId,
+      secretAccessKey: config.s3.secretAccessKey,
+    },
   });
   const workerConfig: WorkerOptions = {
     connection: {
@@ -99,6 +93,7 @@ export default function createWorker() {
 
       const { Key: file } = await upload.done();
       // Save the PDF
+      // TODO: use signed URLs
       await campaignRepository.save({
         ...campaign,
         file: `${config.s3.endpoint}/${config.s3.bucket}/${file}`,

@@ -27,7 +27,7 @@ interface Props {
   onChange(value: Written): void;
 }
 
-function DraftMailInfo(props: Props) {
+function DraftMailInfo(props: Readonly<Props>) {
   function onChange(key: keyof Written) {
     return (e: ChangeEvent<HTMLInputElement & HTMLTextAreaElement>): void => {
       props.onChange({

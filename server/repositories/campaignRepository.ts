@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { sortQuery } from '../models/SortApi';
 import { CampaignStatus } from '../../shared';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
+import { createQueue } from '../../queue/src';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -85,7 +86,8 @@ async function save(campaign: CampaignApi): Promise<void> {
   await Campaigns()
     .insert(formatCampaignApi(campaign))
     .onConflict(['id'])
-    .merge(['status', 'title', 'sent_at']);
+    .merge(['status', 'title', 'file', 'sent_at']);
+  logger.debug('Campaign saved', campaign);
 }
 
 const update = async (campaignApi: CampaignApi): Promise<string> => {
@@ -100,17 +102,32 @@ const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
 
+const queue = createQueue();
+
+async function generateMails(campaign: CampaignApi): Promise<void> {
+  await queue.add('campaign:generate', {
+    campaignId: campaign.id,
+    establishmentId: campaign.establishmentId,
+  });
+  logger.info('Generating campaign mails', campaign);
+}
+
 export interface CampaignDBO {
   id: string;
   title: string;
   status: CampaignStatus;
   filters: HousingFiltersDTO;
+  file?: string;
   user_id: string;
   created_at: Date;
   validated_at?: Date;
   exported_at?: Date;
   sent_at?: Date;
   archived_at?: Date;
+  /**
+   * @deprecated
+   * Should be merged with sent_at
+   */
   sending_date?: Date;
   confirmed_at?: Date;
   establishment_id: string;
@@ -122,6 +139,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   establishmentId: campaign.establishment_id,
   status: campaign.status,
   filters: campaign.filters,
+  file: campaign.file,
   userId: campaign.user_id,
   createdAt: campaign.created_at.toJSON(),
   validatedAt: campaign.validated_at?.toJSON(),
@@ -139,6 +157,7 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   establishment_id: campaign.establishmentId,
   status: campaign.status,
   filters: campaign.filters,
+  file: campaign.file,
   title: campaign.title,
   user_id: campaign.userId,
   created_at: new Date(campaign.createdAt),
@@ -164,5 +183,6 @@ export default {
   save,
   update,
   remove,
+  generateMails,
   formatCampaignApi,
 };

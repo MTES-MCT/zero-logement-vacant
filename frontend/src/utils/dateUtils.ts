@@ -40,3 +40,5 @@ export function birthdate(date: Date | string): string {
 export function age(date: Date): number {
   return differenceInYears(new Date(), date);
 }
+
+export const DATE_REGEXP = /^\d{4}-\d{2}-\d{2}$/;

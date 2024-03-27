@@ -5,6 +5,14 @@ import * as handlebars from 'handlebars';
 import path from 'node:path';
 import puppeteer from 'puppeteer';
 
+handlebars.registerHelper('localdate', (date: string) => {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+});
+
 async function compile<T>(html: string, data?: T): Promise<string> {
   const compiled = handlebars.compile(html);
   return compiled(data);

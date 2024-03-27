@@ -105,16 +105,35 @@ describe('Draft repository', () => {
   });
 
   describe('save', () => {
-    const sender = genSenderApi(establishment);
-    const draft = genDraftApi(establishment, sender);
-
     it('should create a draft that does not exist', async () => {
+      const sender = genSenderApi(establishment);
+      const draft = genDraftApi(establishment, sender);
       await Senders().insert(formatSenderApi(sender));
 
       await draftRepository.save(draft);
 
       const actual = await Drafts().where({ id: draft.id }).first();
       expect(actual).toStrictEqual(formatDraftApi(draft));
+    });
+
+    it('should update a draft if it exists', async () => {
+      const sender = genSenderApi(establishment);
+      const draft = genDraftApi(establishment, sender);
+      await Senders().insert(formatSenderApi(sender));
+      await Drafts().insert(formatDraftApi(draft));
+      const payload = genDraftApi(establishment, sender);
+      const updated: DraftApi = {
+        ...draft,
+        body: payload.body,
+        writtenAt: payload.writtenAt,
+        writtenFrom: payload.writtenFrom,
+        updatedAt: new Date().toJSON(),
+      };
+
+      await draftRepository.save(updated);
+
+      const actual = await Drafts().where({ id: draft.id }).first();
+      expect(actual).toStrictEqual(formatDraftApi(updated));
     });
   });
 });

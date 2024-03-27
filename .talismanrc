@@ -32,3 +32,5 @@ fileignoreconfig:
   checksum: e6400bba01b3a207cd8f07633a63c6772f855599a4e4124d583946c37cd1672f
 - filename: queue/src/workers/generate-mails.ts
   checksum: 6895eba96d3787e22bc1b3c1d2633e02f770e265328222f92d2adc33c665e67c
+- filename: queue/README.md
+  checksum: fe2ac5277a42e6bf8dfc1e0fe53cc3308bba9019d9091f4b8c291e4a2e4a4eb8

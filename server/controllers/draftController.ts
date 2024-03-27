@@ -130,10 +130,7 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
-    body: draft.body,
-    sender: draft.sender,
-  });
+  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, draft);
   const finalPDF = await pdf.fromHTML(html);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }

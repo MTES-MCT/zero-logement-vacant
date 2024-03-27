@@ -12,6 +12,8 @@ export function toDraftDTO(draft: DraftApi): DraftDTO {
     id: draft.id,
     body: draft.body,
     sender: toSenderDTO(draft.sender),
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
   };

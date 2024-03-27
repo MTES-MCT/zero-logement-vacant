@@ -7,3 +7,5 @@ fileignoreconfig:
   ignore_detectors: []
 - filename: frontend/src/components/Draft/DraftSendingDate.tsx
   checksum: acdc6ca0de0197694ea8b3ffe9efffacc0451f9d120e912b2129e9d97acaf495
+- filename: frontend/src/components/Draft/DraftMailInfo.tsx
+  checksum: a1c7c20a04a5c495000413c2c6e0ddbf26405f2f8acbe6fac266ae3fd573c324

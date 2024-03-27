@@ -85,6 +85,8 @@ async function create(request: Request, response: Response) {
     body: body.body,
     sender,
     senderId: sender.id,
+    writtenAt: body.writtenAt,
+    writtenFrom: body.writtenFrom,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     establishmentId: auth.establishmentId,
@@ -101,6 +103,18 @@ const createValidators: ValidationChain[] = [
     .withMessage('Must be an UUID')
     .notEmpty()
     .withMessage('campaign is required'),
+  body('writtenAt')
+    .isString()
+    .withMessage('writtenAt must be a string')
+    .trim()
+    .isLength({ min: 10, max: 10 })
+    .isISO8601({ strict: true, strictSeparator: true }),
+  body('writtenFrom')
+    .isString()
+    .withMessage('writtenFrom must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
   ...senderValidators,
 ];
@@ -158,6 +172,8 @@ async function update(request: Request, response: Response<DraftDTO>) {
     body: body.body,
     sender,
     senderId: sender.id,
+    writtenAt: body.writtenAt,
+    writtenFrom: body.writtenFrom,
     updatedAt: new Date().toJSON(),
   };
   await senderRepository.save(sender);
@@ -169,6 +185,18 @@ async function update(request: Request, response: Response<DraftDTO>) {
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('body').isString().notEmpty().withMessage('body is required'),
+  body('writtenAt')
+    .isString()
+    .withMessage('writtenAt must be a string')
+    .trim()
+    .isLength({ min: 10, max: 10 })
+    .isISO8601({ strict: true, strictSeparator: true }),
+  body('writtenFrom')
+    .isString()
+    .withMessage('writtenFrom must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
   ...senderValidators,
 ];

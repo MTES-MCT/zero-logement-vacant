@@ -127,6 +127,8 @@ export function genDraft(sender: Sender): Draft {
     id: randomstring.generate(),
     body: randomstring.generate(),
     sender,
+    writtenAt: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
+    writtenFrom: randomstring.generate(),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
   };

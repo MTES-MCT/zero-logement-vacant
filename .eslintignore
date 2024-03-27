@@ -5,5 +5,8 @@ dist/
 README.md
 tools
 
+*.css
+*.hbs
+
 # shell script
 scripts/duplicate-database/

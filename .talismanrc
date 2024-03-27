@@ -28,5 +28,7 @@ fileignoreconfig:
   checksum: 8f1d707b3fe5e21228e543781d12f913db79e04a0a2f623c356c827041d91637
 - filename: queue/.env.example
   checksum: 30e4ee5808230342b969d42d9315fc7744900410a5797d7f7b2e984c678be2e7
+- filename: queue/src/jobs.ts
+  checksum: e6400bba01b3a207cd8f07633a63c6772f855599a4e4124d583946c37cd1672f
 - filename: queue/src/workers/generate-mails.ts
-  checksum: c884dd0f93cb34a8dccc329ef64915a66be7bccf265c57e98f6565219f3f6406
+  checksum: 6895eba96d3787e22bc1b3c1d2633e02f770e265328222f92d2adc33c665e67c

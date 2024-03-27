@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@adobe/node-fetch-retry": "^2.2.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
     "@faker-js/faker": "^8.2.0",
     "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",

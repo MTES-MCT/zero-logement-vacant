@@ -4,3 +4,5 @@ export interface Jobs {
     establishmentId: string;
   };
 }
+
+export const JOBS: Array<keyof Jobs> = ['campaign:generate'];

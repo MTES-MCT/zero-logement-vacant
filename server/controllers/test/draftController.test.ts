@@ -166,6 +166,8 @@ describe('Draft API', () => {
         body: draft.body,
         campaign: missingCampaign.id,
         sender: senderPayload,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       };
 
       const { status } = await request(app)
@@ -176,11 +178,13 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it('should create a draft and attach it to a campaign', async () => {
+    it('should create a draft', async () => {
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       };
 
       const { body, status } = await request(app)
@@ -191,6 +195,26 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<Partial<DraftDTO>>({
         body: payload.body,
+        sender: {
+          ...payload.sender,
+          id: expect.any(String),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        },
+        writtenAt: payload.writtenAt,
+        writtenFrom: payload.writtenFrom,
+      });
+
+      const actual = await Drafts().where({ id: body.id }).first();
+      expect(actual).toStrictEqual<DraftRecordDBO>({
+        id: body.id,
+        body: payload.body,
+        sender_id: expect.any(String),
+        written_at: payload.writtenAt,
+        written_from: payload.writtenFrom,
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
+        establishment_id: establishment.id,
       });
     });
 
@@ -199,6 +223,8 @@ describe('Draft API', () => {
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       };
 
       const { status } = await request(app)
@@ -220,6 +246,8 @@ describe('Draft API', () => {
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       };
 
       const { body, status } = await request(app)
@@ -240,6 +268,8 @@ describe('Draft API', () => {
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       };
 
       const { body, status } = await request(app)
@@ -276,6 +306,8 @@ describe('Draft API', () => {
         id: draft.id,
         body: 'Look at that body!',
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
+        writtenAt: faker.date.recent().toISOString().substring(0, 10),
+        writtenFrom: faker.location.city(),
       };
       await Senders().insert(formatSenderApi(sender));
       await Drafts().insert(formatDraftApi(draft));
@@ -345,6 +377,8 @@ describe('Draft API', () => {
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
+        writtenAt: payload.writtenAt,
+        writtenFrom: payload.writtenFrom,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
@@ -353,6 +387,8 @@ describe('Draft API', () => {
       expect(actual).toStrictEqual<DraftRecordDBO>({
         id: draft.id,
         body: payload.body,
+        written_at: payload.writtenAt,
+        written_from: payload.writtenFrom,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: draft.establishmentId,

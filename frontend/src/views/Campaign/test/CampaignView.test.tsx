@@ -254,6 +254,12 @@ describe('Campaign view', () => {
       await user.clear(phone);
       await user.type(phone, sender.phone);
     }
+    const writtenAt = await within(form).findByLabelText(/^En date du/);
+    await user.clear(writtenAt);
+    await user.type(writtenAt, draft.writtenAt);
+    const writtenFrom = await within(form).findByLabelText(/^Écrit à/);
+    await user.clear(writtenFrom);
+    await user.type(writtenFrom, draft.writtenFrom);
 
     // Save the draft
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });

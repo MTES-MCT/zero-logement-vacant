@@ -740,6 +740,8 @@ export function genDraftApi(
     updatedAt: new Date().toJSON(),
     sender,
     senderId: sender.id,
+    writtenAt: faker.date.recent().toJSON().substring(0, 'yyyy-mm-dd'.length),
+    writtenFrom: faker.location.streetAddress({ useFullAddress: true }),
     establishmentId: establishment.id,
   };
 }

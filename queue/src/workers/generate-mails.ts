@@ -1,6 +1,8 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
+import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
+import { Readable } from 'node:stream';
 
 import { Jobs } from '../jobs';
 import campaignRepository from '../../../server/repositories/campaignRepository';
@@ -71,15 +73,26 @@ export default function createWorker() {
       });
       const finalPDF = await pdf.fromHTML(html);
       logger.debug('Done writing PDF');
+      const name = new Date()
+        .toISOString()
+        .substring(0, 'yyyy-mm-ddThh:mm:ss'.length)
+        .replace(/[-T:]/g, '')
+        .concat('-', campaign.title.replace(' ', '-'));
+
+      // Add files to an archive
+      const archive = archiver('zip');
+      archive.append(finalPDF, { name: `${name}.pdf` });
+      await archive.finalize();
+
       const upload = new Upload({
         client: s3,
         params: {
           // ACL: 'authenticated-read'
           Bucket: 'zerologementvacant',
-          Key: 'mail.pdf',
-          Body: finalPDF,
+          Key: `${name}.zip`,
+          Body: Readable.from(archive),
           ContentLanguage: 'fr',
-          ContentType: 'application/pdf',
+          ContentType: 'application/x-zip',
         },
       });
 
@@ -92,8 +105,7 @@ export default function createWorker() {
       });
 
       const { Key: file } = await upload.done();
-      // Save the PDF
-      // TODO: use signed URLs
+
       await campaignRepository.save({
         ...campaign,
         file: `${config.s3.endpoint}/${config.s3.bucket}/${file}`,

@@ -22,6 +22,7 @@ import { VariableNode } from './nodes/VariableNode';
 import RestorePlugin from './RestorePlugin';
 
 interface Props {
+  ariaLabelledBy?: string;
   content?: string;
   onChange?(content: string): void;
 }
@@ -51,7 +52,9 @@ function RichEditor(props: Props) {
     <LexicalComposer initialConfig={config}>
       <ToolbarPlugin className="fr-mb-2w" variableOptions={VARIABLE_OPTIONS} />
       <RichTextPlugin
-        contentEditable={<ContentEditable />}
+        contentEditable={
+          <ContentEditable ariaLabelledBy={props.ariaLabelledBy} />
+        }
         placeholder={null}
         ErrorBoundary={LexicalErrorBoundary}
       />

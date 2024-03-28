@@ -61,6 +61,7 @@ export const draftApi = zlvApi.injectEndpoints({
 function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
+    subject: draft.subject,
     body: draft.body.replaceAll('<br />', '\n'),
     sender: draft.sender ?? undefined,
     writtenAt: draft.writtenAt ?? undefined,
@@ -74,6 +75,7 @@ function toDraftCreationPayloadDTO(
   draft: DraftCreationPayload
 ): DraftCreationPayloadDTO {
   return {
+    subject: draft.subject,
     body: draft.body,
     campaign: draft.campaign,
     sender: toSenderPayloadDTO(draft.sender),
@@ -87,6 +89,7 @@ function toDraftUpdatePayloadDTO(
 ): DraftUpdatePayloadDTO {
   return {
     id: draft.id,
+    subject: draft.subject,
     body: draft.body,
     sender: toSenderPayloadDTO(draft.sender),
     writtenAt: draft.writtenAt,

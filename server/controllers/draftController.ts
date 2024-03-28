@@ -84,6 +84,7 @@ async function create(request: Request, response: Response) {
   );
   const draft: DraftApi = {
     id: uuidv4(),
+    subject: body.subject,
     body: body.body,
     sender,
     senderId: sender.id,
@@ -99,6 +100,7 @@ async function create(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
 const createValidators: ValidationChain[] = [
+  body('subject').isString().notEmpty().withMessage('subject is required'),
   body('body').isString().notEmpty().withMessage('body is required'),
   body('campaign')
     .isUUID()
@@ -182,6 +184,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
   // Otherwise create a new sender
   const updated: DraftApi = {
     ...draft,
+    subject: body.subject,
     body: body.body,
     sender,
     senderId: sender.id,
@@ -197,6 +200,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
+  body('subject').isString().notEmpty().withMessage('subject is required'),
   body('body').isString().notEmpty().withMessage('body is required'),
   body('writtenAt')
     .isString()

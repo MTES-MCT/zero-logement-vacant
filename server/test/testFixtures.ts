@@ -735,6 +735,7 @@ export function genDraftApi(
 ): DraftApi {
   return {
     id: uuidv4(),
+    subject: faker.lorem.sentence(),
     body: faker.lorem.paragraph(),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),

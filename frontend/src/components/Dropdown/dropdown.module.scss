@@ -1,0 +1,32 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.menu {
+  position: absolute;
+  visibility: hidden;
+  padding: 1rem;
+
+  background-color: var(--background-default-grey);
+  box-shadow: var(--raised-shadow);
+
+  top: 100%;
+  right: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.menuActive {
+  visibility: visible;
+}
+
+.option {
+  cursor: pointer;
+  list-style-type: none;
+  padding: 0;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--background-alt-grey);
+  }
+}

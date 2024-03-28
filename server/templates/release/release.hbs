@@ -4,24 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <style>
-        .watermark {
-            position: fixed;
-            top: 30%;
-            left: 25%;
-            width: 50%;
-            text-align: center;
-            opacity: 0.5;
-            font-size: 50px;
-            transform: rotate(-45deg);
-            transform-origin: 50% 50%;
-            z-index: 1000;
-        }
-    </style>
     <title>Zéro Logement Vacant</title>
   </head>
   <body>
-    <div class="watermark">Prévisualisation</div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header>
       <section class="header__sender">
@@ -34,8 +19,6 @@
       </section>
     </header>
     <main>
-      <p class="main__written">À {{writtenFrom}}, le {{localdate writtenAt}}</p>
-      <p><strong>Object : </strong>{{subject}}</p>
       {{{body}}}
     </main>
   </body>

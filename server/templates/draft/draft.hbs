@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>Zéro Logement Vacant</title>
+  </head>
+  <body>
+    <div class="watermark">Prévisualisation</div>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <header>
+      <section class="header__sender">
+        <p>{{sender.name}}</p>
+        <p>{{sender.service}}</p>
+        <p>{{sender.firstName}} {{sender.lastName}}</p>
+        <p>{{sender.address}}</p>
+        <p>{{sender.email}}</p>
+        <p>{{sender.phone}}</p>
+      </section>
+    </header>
+    <main>
+      <p class="main__written">À {{writtenFrom}}, le {{localdate writtenAt}}</p>
+      <p><strong>Object : </strong>{{subject}}</p>
+      {{{body}}}
+    </main>
+  </body>
+</html>

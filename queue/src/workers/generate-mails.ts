@@ -11,6 +11,7 @@ import draftRepository from '../../../server/repositories/draftRepository';
 import DraftMissingError from '../../../server/errors/draftMissingError';
 import pdf from '../../../server/utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../../../server/templates/draft';
+import { slugify } from '../../../server/utils/stringUtils';
 import config from '../config';
 import { createLogger } from '../logger';
 
@@ -77,7 +78,7 @@ export default function createWorker() {
         .toISOString()
         .substring(0, 'yyyy-mm-ddThh:mm:ss'.length)
         .replace(/[-T:]/g, '')
-        .concat('-', campaign.title.replace(' ', '-'));
+        .concat('-', slugify(campaign.title));
 
       // Add files to an archive
       const archive = archiver('zip');

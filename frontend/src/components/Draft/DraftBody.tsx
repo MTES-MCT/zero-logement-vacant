@@ -12,7 +12,7 @@ function DraftBody(props: Props) {
   return (
     <article className={styles.article}>
       <h6 id="draft-body-label">Contenu de votre courrier</h6>
-      <RichEditor onChange={props.onChange} />
+      <RichEditor content={props.value} onChange={props.onChange} />
     </article>
   );
 }

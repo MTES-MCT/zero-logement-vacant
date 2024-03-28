@@ -18,7 +18,7 @@ async function compile<T>(html: string, data?: T): Promise<string> {
   return compiled(data);
 }
 
-async function fromHTML(html: string): Promise<Buffer> {
+async function fromHTML(html: string, template: 'draft' | 'release'): Promise<Buffer> {
   // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
@@ -32,7 +32,7 @@ async function fromHTML(html: string): Promise<Buffer> {
     path: path.join(__dirname, '..', 'templates', 'dsfr.min.css'),
   });
   await page.addStyleTag({
-    path: path.join(__dirname, '..', 'templates', 'draft.css'),
+    path: path.join(__dirname, '..', 'templates', template, `${template}.css`),
   });
 
   const buffer = await page.pdf({

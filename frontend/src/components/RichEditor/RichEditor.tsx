@@ -1,4 +1,5 @@
 import { $generateHtmlFromNodes } from '@lexical/html';
+import { ListNode, ListItemNode } from '@lexical/list';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
 import {
@@ -8,6 +9,7 @@ import {
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { EditorState, LexicalEditor } from 'lexical';
@@ -28,7 +30,7 @@ function RichEditor(props: Props) {
   const config: InitialConfigType = {
     namespace: 'rich-editor',
     theme,
-    nodes: [VariableNode],
+    nodes: [ListNode, ListItemNode, VariableNode],
     onError(error: Error, editor: LexicalEditor) {
       console.error(error);
     },
@@ -57,6 +59,7 @@ function RichEditor(props: Props) {
       <ClearEditorPlugin />
       <HistoryPlugin />
       <AutoFocusPlugin />
+      <ListPlugin />
       <RestorePlugin content={props.content} />
     </LexicalComposer>
   );

@@ -1,0 +1,13 @@
+.toolbar {
+  padding: 1rem 1.5rem;
+
+  background-color: var(--background-alt-grey);
+
+  & > * {
+    margin-right: 0.5rem;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}

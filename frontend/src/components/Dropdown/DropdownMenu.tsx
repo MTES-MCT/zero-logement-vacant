@@ -26,12 +26,13 @@ const DropdownMenu = forwardRef<HTMLUListElement, DropdownMenuProps>(
     return (
       <ul className={rootClasses} ref={ref}>
         {props.options.map((option) => (
-          <li
-            className={classNames(styles.option, props.classes?.option)}
-            key={option.value}
-            onClick={() => onClick(option)}
-          >
-            {option.label}
+          <li className={classNames(styles.option)} key={option.value}>
+            <span
+              className={props.classes?.option}
+              onClick={() => onClick(option)}
+            >
+              {option.label}
+            </span>
           </li>
         ))}
       </ul>

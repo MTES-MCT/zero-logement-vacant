@@ -22,6 +22,10 @@ import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
+import { genHousingApi, genOwnerApi } from '../test/testFixtures';
+import { HousingApi } from '../models/HousingApi';
+import { OwnerApi } from '../models/OwnerApi';
+import { replaceVariables } from '../../shared/models/variable-options';
 
 interface DraftQuery {
   campaign?: string;
@@ -130,7 +134,15 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, draft);
+  const housing = genHousingApi();
+  const owner = genOwnerApi();
+  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, {
+    ...draft,
+    body: replaceVariables(draft.body, {
+      housing,
+      owner,
+    }),
+  });
   const finalPDF = await pdf.fromHTML(html);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }

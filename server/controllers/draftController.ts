@@ -120,7 +120,7 @@ async function preview(request: Request, response: Response) {
     body: draft.body,
     sender: draft.sender,
   });
-  const finalPDF = await pdf.fromHTML(html);
+  const finalPDF = await pdf.fromHTML(html, 'draft');
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];

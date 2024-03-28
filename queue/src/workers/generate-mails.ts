@@ -10,7 +10,7 @@ import CampaignMissingError from '../../../server/errors/campaignMissingError';
 import draftRepository from '../../../server/repositories/draftRepository';
 import DraftMissingError from '../../../server/errors/draftMissingError';
 import pdf from '../../../server/utils/pdf';
-import DRAFT_TEMPLATE_FILE from '../../../server/templates/draft';
+import RELEASE_TEMPLATE_FILE from '../../../server/templates/release';
 import { slugify } from '../../../server/utils/stringUtils';
 import config from '../config';
 import { createLogger } from '../logger';
@@ -68,11 +68,11 @@ export default function createWorker() {
         throw new DraftMissingError('');
       }
 
-      const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
+      const html = await pdf.compile(RELEASE_TEMPLATE_FILE, {
         body: draft.body,
         sender: draft.sender,
       });
-      const finalPDF = await pdf.fromHTML(html);
+      const finalPDF = await pdf.fromHTML(html, 'release');
       logger.debug('Done writing PDF');
       const name = new Date()
         .toISOString()

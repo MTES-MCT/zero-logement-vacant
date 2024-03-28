@@ -28,7 +28,9 @@ const DropdownMenu = forwardRef<HTMLUListElement, DropdownMenuProps>(
         {props.options.map((option) => (
           <li className={classNames(styles.option)} key={option.value}>
             <span
+              aria-pressed="false"
               className={props.classes?.option}
+              role="button"
               onClick={() => onClick(option)}
             >
               {option.label}

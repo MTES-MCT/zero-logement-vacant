@@ -17,8 +17,10 @@ import './rich-editor.scss';
 import theme from './rich-editor-theme';
 import { VARIABLE_OPTIONS } from './variable-options';
 import { VariableNode } from './nodes/VariableNode';
+import RestorePlugin from './RestorePlugin';
 
 interface Props {
+  content?: string;
   onChange?(content: string): void;
 }
 
@@ -39,6 +41,10 @@ function RichEditor(props: Props) {
     });
   }
 
+  if (!props.content) {
+    return null;
+  }
+
   return (
     <LexicalComposer initialConfig={config}>
       <ToolbarPlugin className="fr-mb-2w" variableOptions={VARIABLE_OPTIONS} />
@@ -51,6 +57,7 @@ function RichEditor(props: Props) {
       <ClearEditorPlugin />
       <HistoryPlugin />
       <AutoFocusPlugin />
+      <RestorePlugin content={props.content} />
     </LexicalComposer>
   );
 }

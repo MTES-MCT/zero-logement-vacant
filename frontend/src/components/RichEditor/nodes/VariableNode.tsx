@@ -1,6 +1,8 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import {
   DecoratorNode,
+  DOMConversionMap,
+  DOMConversionOutput,
   DOMExportOutput,
   EditorConfig,
   LexicalEditor,
@@ -50,9 +52,35 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
   exportDOM(editor: LexicalEditor): DOMExportOutput {
     const element = document.createElement('span');
     element.textContent = this.variable.value;
+    element.setAttribute('data-variable-label', this.variable.label);
 
     return {
       element,
+    };
+  }
+
+  static importDOM(): DOMConversionMap | null {
+    return {
+      span: (element: HTMLElement) => {
+        if (!element.hasAttribute('data-variable-label')) {
+          return null;
+        }
+
+        return {
+          conversion: (element): DOMConversionOutput | null => {
+            const label = element.getAttribute('data-variable-label');
+            const value = element.textContent;
+            if (!label || !value) {
+              return null;
+            }
+
+            return {
+              node: $createVariableNode({ label, value }),
+            };
+          },
+          priority: 1,
+        };
+      },
     };
   }
 }

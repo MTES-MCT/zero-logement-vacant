@@ -1,5 +1,5 @@
 import Dropdown, { DropdownOption, DropdownProps } from '../Dropdown/Dropdown';
-import styles from './variable-select.module.scss';
+import { fr } from '@codegouvfr/react-dsfr';
 
 interface Props {
   options: DropdownOption[];
@@ -8,7 +8,12 @@ interface Props {
 
 function VariableSelect(props: Props) {
   const classes: DropdownProps['classes'] = {
-    option: styles.option,
+    option: fr.cx(
+      'fr-badge',
+      'fr-badge--sm',
+      'fr-badge--no-icon',
+      'fr-badge--success'
+    ),
   };
 
   return (

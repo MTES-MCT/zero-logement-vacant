@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -22,9 +23,6 @@ import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
-import { genHousingApi, genOwnerApi } from '../test/testFixtures';
-import { HousingApi } from '../models/HousingApi';
-import { OwnerApi } from '../models/OwnerApi';
 import { replaceVariables } from '../../shared/models/variable-options';
 
 interface DraftQuery {
@@ -134,13 +132,19 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const housing = genHousingApi();
-  const owner = genOwnerApi();
   const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, {
     ...draft,
     body: replaceVariables(draft.body, {
-      housing,
-      owner,
+      housing: {
+        geoCode: faker.location.zipCode(),
+        localId: faker.string.numeric({ length: 12, allowLeadingZeros: true }),
+        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+      },
+      owner: {
+        fullName: faker.person.fullName(),
+        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+        additionalAddress: faker.location.secondaryAddress(),
+      },
     }),
   });
   const finalPDF = await pdf.fromHTML(html);

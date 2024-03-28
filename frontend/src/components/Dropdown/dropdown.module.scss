@@ -26,7 +26,14 @@
   padding: 0;
   white-space: nowrap;
 
-  &:hover {
-    background-color: var(--background-alt-grey);
+  &:not(:last-child) {
+    &::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 1px;
+      background-color: var(--border-default-grey);
+      margin: 0.5rem 0;
+    }
   }
 }

@@ -1,6 +1,9 @@
 scopeconfig:
   - scope: node
 
+allowed_patterns:
+- key=\{.+\}
+
 fileignoreconfig:
 - filename: database/*
   checksum: ""
@@ -13,3 +16,4 @@ fileignoreconfig:
   checksum: e387a2caa25715422e7991145f1b45840f42a21d4946eee36eb8e18edcf2bd09
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
+

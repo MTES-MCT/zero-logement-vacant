@@ -1,3 +1,4 @@
+import { $generateHtmlFromNodes } from '@lexical/html';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import {
   InitialConfigType,
@@ -7,14 +8,17 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { LexicalEditor } from 'lexical';
+import { EditorState, LexicalEditor } from 'lexical';
 
 import ToolbarPlugin from './ToolbarPlugin';
 import './rich-editor.scss';
 import theme from './rich-editor-theme';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 
-interface Props {}
+interface Props {
+  onChange?(content: string): void;
+}
 
 function RichEditor(props: Props) {
   const config: InitialConfigType = {
@@ -25,6 +29,13 @@ function RichEditor(props: Props) {
     },
   };
 
+  function onChange(state: EditorState, editor: LexicalEditor): void {
+    state.read(() => {
+      const html = $generateHtmlFromNodes(editor, null);
+      props.onChange?.(html);
+    });
+  }
+
   return (
     <LexicalComposer initialConfig={config}>
       <ToolbarPlugin className="fr-mb-2w" />
@@ -33,6 +44,7 @@ function RichEditor(props: Props) {
         placeholder={null}
         ErrorBoundary={LexicalErrorBoundary}
       />
+      <OnChangePlugin ignoreSelectionChange onChange={onChange} />
       <ClearEditorPlugin />
       <HistoryPlugin />
       <AutoFocusPlugin />

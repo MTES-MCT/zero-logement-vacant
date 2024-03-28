@@ -74,7 +74,7 @@ function toDraftCreationPayloadDTO(
   draft: DraftCreationPayload
 ): DraftCreationPayloadDTO {
   return {
-    body: draft.body.replaceAll('\n', '<br />'),
+    body: draft.body,
     campaign: draft.campaign,
     sender: toSenderPayloadDTO(draft.sender),
     writtenAt: draft.writtenAt,
@@ -87,7 +87,7 @@ function toDraftUpdatePayloadDTO(
 ): DraftUpdatePayloadDTO {
   return {
     id: draft.id,
-    body: draft.body.replaceAll('\n', '<br />'),
+    body: draft.body,
     sender: toSenderPayloadDTO(draft.sender),
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,

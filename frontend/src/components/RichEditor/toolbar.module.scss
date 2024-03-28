@@ -1,4 +1,6 @@
 .toolbar {
+  display: flex;
+  justify-content: space-between;
   padding: 1rem 1.5rem;
 
   background-color: var(--background-alt-grey);
@@ -9,5 +11,9 @@
     &:last-child {
       margin-right: 0;
     }
+  }
+
+  &__right {
+    justify-self: flex-end;
   }
 }

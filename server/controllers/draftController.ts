@@ -22,6 +22,8 @@ import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
+import ownerRepository from '../repositories/ownerRepository';
+import housingRepository from '../repositories/housingRepository';
 
 interface DraftQuery {
   campaign?: string;
@@ -119,8 +121,9 @@ async function preview(request: Request, response: Response) {
   const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     body: draft.body,
     sender: draft.sender,
+    owner: { fullName: 'NOM PRENOM', rawAdress: 'Adresse' }
   });
-  const finalPDF = await pdf.fromHTML(html, 'draft');
+  const finalPDF = await pdf.fromHTML([ html ], 'draft');
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];

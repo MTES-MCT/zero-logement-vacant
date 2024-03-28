@@ -134,7 +134,12 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, {
+  const owner = {
+    fullName: faker.person.fullName(),
+    rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+    additionalAddress: faker.location.secondaryAddress(),
+  }
+  const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     ...draft,
     body: replaceVariables(draft.body, {
       housing: {
@@ -149,14 +154,11 @@ async function preview(request: Request, response: Response) {
           .getFullYear(),
         energyConsumption: faker.string.fromCharacters('ABCDEFG', 1),
       },
-      owner: {
-        fullName: faker.person.fullName(),
-        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
-        additionalAddress: faker.location.secondaryAddress(),
-      },
+      owner,
     }),
+    owner
   });
-  const finalPDF = await pdf.fromHTML(html, 'draft');
+  const finalPDF = await pdf.fromHTML([ html ], 'draft');
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];

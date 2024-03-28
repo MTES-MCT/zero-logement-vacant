@@ -14,6 +14,8 @@ import RELEASE_TEMPLATE_FILE from '../../../server/templates/release';
 import { slugify } from '../../../server/utils/stringUtils';
 import config from '../config';
 import { createLogger } from '../logger';
+import housingRepository from '../../../server/repositories/housingRepository';
+import ownerRepository from '../../../server/repositories/ownerRepository';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -57,6 +59,12 @@ export default function createWorker() {
         throw new CampaignMissingError(campaignId);
       }
 
+      const housings = await housingRepository.find({
+        filters: {
+          campaignIds: [ campaignId ]
+        }
+      });
+
       const drafts = await draftRepository.find({
         filters: {
           campaign: campaign.id,
@@ -68,10 +76,16 @@ export default function createWorker() {
         throw new DraftMissingError('');
       }
 
-      const html = await pdf.compile(RELEASE_TEMPLATE_FILE, {
-        body: draft.body,
-        sender: draft.sender,
+      const html: string[] = [];
+      housings.forEach(async (housing) => {
+        const owner = await ownerRepository.findByHousing(housing);
+        html.push(await pdf.compile(RELEASE_TEMPLATE_FILE, {
+          body: draft.body,
+          sender: draft.sender,
+          owner
+        }));
       });
+
       const finalPDF = await pdf.fromHTML(html, 'release');
       logger.debug('Done writing PDF');
       const name = new Date()
@@ -111,7 +125,6 @@ export default function createWorker() {
         ...campaign,
         file: `${config.s3.endpoint}/${config.s3.bucket}/${file}`,
       });
-      // TODO: create a multi-page PDF
     },
     workerConfig
   );

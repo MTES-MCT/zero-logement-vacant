@@ -163,6 +163,7 @@ describe('Draft API', () => {
     it('should fail if the campaign to attach is missing', async () => {
       const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
       const payload: DraftCreationPayloadDTO = {
+        subject: draft.subject,
         body: draft.body,
         campaign: missingCampaign.id,
         sender: senderPayload,
@@ -180,6 +181,7 @@ describe('Draft API', () => {
 
     it('should create a draft', async () => {
       const payload: DraftCreationPayloadDTO = {
+        subject: draft.subject,
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
@@ -208,6 +210,7 @@ describe('Draft API', () => {
       const actual = await Drafts().where({ id: body.id }).first();
       expect(actual).toStrictEqual<DraftRecordDBO>({
         id: body.id,
+        subject: payload.subject,
         body: payload.body,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
@@ -220,6 +223,7 @@ describe('Draft API', () => {
 
     it('should attach the draft to a campaign', async () => {
       const payload: DraftCreationPayloadDTO = {
+        subject: draft.subject,
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
@@ -243,6 +247,7 @@ describe('Draft API', () => {
     it('should attach an existing sender to the draft', async () => {
       await Senders().insert(formatSenderApi(sender));
       const payload: DraftCreationPayloadDTO = {
+        subject: draft.subject,
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
@@ -265,6 +270,7 @@ describe('Draft API', () => {
 
     it('should create a sender if it does not exist and attach it to the draft', async () => {
       const payload: DraftCreationPayloadDTO = {
+        subject: draft.subject,
         body: draft.body,
         campaign: campaign.id,
         sender: senderPayload,
@@ -304,7 +310,8 @@ describe('Draft API', () => {
       draft = genDraftApi(establishment, sender);
       payload = {
         id: draft.id,
-        body: 'Look at that body!',
+        subject: faker.lorem.sentence(),
+        body: faker.lorem.paragraph(),
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city(),
@@ -364,6 +371,7 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<DraftDTO>({
         id: draft.id,
+        subject: payload.subject,
         body: payload.body,
         sender: {
           id: expect.any(String),
@@ -386,6 +394,7 @@ describe('Draft API', () => {
       const actual = await Drafts().where('id', draft.id).first();
       expect(actual).toStrictEqual<DraftRecordDBO>({
         id: draft.id,
+        subject: payload.subject,
         body: payload.body,
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,

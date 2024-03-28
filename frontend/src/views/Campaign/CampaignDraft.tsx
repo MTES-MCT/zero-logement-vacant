@@ -5,7 +5,7 @@ import * as yup from 'yup';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
-import DraftBody from '../../components/Draft/DraftBody';
+import DraftBody, { Body } from '../../components/Draft/DraftBody';
 import { Campaign } from '../../models/Campaign';
 import { Col, Container, Row } from '../../components/_dsfr';
 import {
@@ -29,6 +29,9 @@ import { DraftCreationPayload } from '../../models/Draft';
 
 const schema = yup
   .object({
+    subject: yup
+      .string()
+      .required('Veuillez renseigner l’objet de votre courrier'),
     body: yup
       .string()
       .required('Veuillez renseigner le contenu de votre courrier'),
@@ -48,6 +51,7 @@ function CampaignDraft(props: Props) {
   useDocumentTitle(props.campaign.title);
 
   const [values, setValues] = useState<DraftCreationPayload>({
+    subject: '',
     body: '',
     campaign: '',
     sender: {
@@ -66,6 +70,7 @@ function CampaignDraft(props: Props) {
   useEffect(() => {
     if (draft) {
       setValues({
+        subject: draft.subject,
         body: draft.body,
         campaign: props.campaign.id,
         sender: draft.sender,
@@ -76,6 +81,7 @@ function CampaignDraft(props: Props) {
   }, [draft, props.campaign.id]);
 
   const form = useForm(schema, {
+    subject: values.subject,
     body: values.body,
     sender: values.sender,
     writtenAt: values.writtenAt,
@@ -107,8 +113,8 @@ function CampaignDraft(props: Props) {
     ? [update, updateDraftMutation]
     : [create, createDraftMutation];
 
-  function setBody(body: string): void {
-    setValues({ ...values, body });
+  function setBody(body: Body): void {
+    setValues({ ...values, ...body });
   }
 
   function setSender(sender: SenderPayload): void {
@@ -187,7 +193,12 @@ function CampaignDraft(props: Props) {
           </Row>
           <Row>
             <Col>
-              <DraftBody form={form} value={values.body} onChange={setBody} />
+              <DraftBody
+                body={values.body}
+                form={form}
+                subject={values.subject}
+                onChange={setBody}
+              />
             </Col>
           </Row>
         </Container>

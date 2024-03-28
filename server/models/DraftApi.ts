@@ -10,6 +10,7 @@ export interface DraftApi extends DraftDTO {
 export function toDraftDTO(draft: DraftApi): DraftDTO {
   return {
     id: draft.id,
+    subject: draft.subject,
     body: draft.body,
     sender: toSenderDTO(draft.sender),
     writtenAt: draft.writtenAt,

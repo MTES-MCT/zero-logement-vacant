@@ -14,10 +14,7 @@ export interface DropdownOption {
 type ButtonPropsFiltered = ButtonProps.Common &
   Omit<ButtonProps.WithIcon, 'iconId'>;
 
-type DropdownMenuPropsFiltered = Pick<
-  DropdownMenuProps,
-  'options' | 'position' | 'onClick'
->;
+type DropdownMenuPropsFiltered = Pick<DropdownMenuProps, 'options' | 'onClick'>;
 
 export type DropdownProps = ButtonPropsFiltered &
   DropdownMenuPropsFiltered & {
@@ -48,6 +45,8 @@ function Dropdown(props: DropdownProps) {
     <div className={styles.dropdown}>
       <Button
         {...props}
+        aria-expanded={active}
+        aria-haspopup="menu"
         iconId={
           active ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'
         }
@@ -60,7 +59,6 @@ function Dropdown(props: DropdownProps) {
         active={active}
         classes={props.classes}
         options={props.options}
-        position={props.position}
         ref={ref}
         onClick={select}
       />

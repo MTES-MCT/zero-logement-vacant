@@ -19,7 +19,7 @@ interface Props {
   variableOptions: SelectProps.Option[];
 }
 
-function ToolbarPlugin(props: Props) {
+function ToolbarPlugin(props: Readonly<Props>) {
   const [editor] = useLexicalComposerContext();
 
   const toolbar = useToolbarPlugin({

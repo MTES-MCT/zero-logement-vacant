@@ -8,7 +8,7 @@ interface Props extends ButtonProps.Common, ButtonProps.IconOnly {
   onClick?(): void;
 }
 
-function IconToggle(props: Props) {
+function IconToggle(props: Readonly<Props>) {
   const active = props.isActive;
 
   function onClick(): void {

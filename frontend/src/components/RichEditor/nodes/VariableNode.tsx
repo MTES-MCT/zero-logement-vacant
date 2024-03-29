@@ -16,7 +16,7 @@ interface VariableProps {
   children: string;
 }
 
-function VariableComponent(props: VariableProps) {
+function VariableComponent(props: Readonly<VariableProps>) {
   return (
     <Badge as="span" noIcon severity="success">
       {props.children}

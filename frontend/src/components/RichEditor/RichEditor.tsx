@@ -27,7 +27,7 @@ interface Props {
   onChange?(content: string): void;
 }
 
-function RichEditor(props: Props) {
+function RichEditor(props: Readonly<Props>) {
   const config: InitialConfigType = {
     namespace: 'rich-editor',
     theme,

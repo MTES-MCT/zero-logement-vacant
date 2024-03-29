@@ -6,7 +6,7 @@ interface Props {
   onSelect?: DropdownProps['onClick'];
 }
 
-function VariableSelect(props: Props) {
+function VariableSelect(props: Readonly<Props>) {
   const classes: DropdownProps['classes'] = {
     option: fr.cx(
       'fr-badge',
@@ -21,7 +21,6 @@ function VariableSelect(props: Props) {
       children="Champs personnalisés"
       classes={classes}
       iconPosition="right"
-      position="bottom right"
       priority="secondary"
       options={props.options}
       onClick={props.onSelect}

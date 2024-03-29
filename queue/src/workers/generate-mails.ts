@@ -3,6 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
+import exceljs from 'exceljs';
 
 import { Jobs } from '../jobs';
 import campaignRepository from '../../../server/repositories/campaignRepository';
@@ -77,12 +78,19 @@ export default function createWorker() {
       }
 
       const html: string[] = [];
+      const workbook = new exceljs.Workbook();
+      const worksheet = workbook.addWorksheet('Liste des destinataires');
+      worksheet.addRow(['Nom', 'Adresse']);
+
       housings.forEach(async (housing) => {
         const owner = await ownerRepository.findByHousing(housing);
+
+        worksheet.addRow([ owner[0].fullName, owner[0].rawAddress.join(' - ') ]);
+
         html.push(await pdf.compile(RELEASE_TEMPLATE_FILE, {
           body: draft.body,
           sender: draft.sender,
-          owner
+          owner: owner[0]
         }));
       });
 
@@ -94,8 +102,11 @@ export default function createWorker() {
         .replace(/[-T:]/g, '')
         .concat('-', slugify(campaign.title));
 
+      const xlsxBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
+
       // Add files to an archive
       const archive = archiver('zip');
+      archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
       archive.append(finalPDF, { name: `${name}.pdf` });
       await archive.finalize();
 

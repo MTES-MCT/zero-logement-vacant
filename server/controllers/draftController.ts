@@ -22,8 +22,6 @@ import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
-import ownerRepository from '../repositories/ownerRepository';
-import housingRepository from '../repositories/housingRepository';
 
 interface DraftQuery {
   campaign?: string;
@@ -117,7 +115,6 @@ async function preview(request: Request, response: Response) {
   if (!draft) {
     throw new DraftMissingError(params.id);
   }
-
   const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     body: draft.body,
     sender: draft.sender,

@@ -1,5 +1,5 @@
-import { S3Client } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
@@ -99,31 +99,24 @@ export default function createWorker() {
       archive.append(finalPDF, { name: `${name}.pdf` });
       await archive.finalize();
 
-      const upload = new Upload({
-        client: s3,
-        params: {
-          // ACL: 'authenticated-read'
-          Bucket: 'zerologementvacant',
-          Key: `${name}.zip`,
-          Body: Readable.from(archive),
-          ContentLanguage: 'fr',
-          ContentType: 'application/x-zip',
-        },
+      const command = new PutObjectCommand({
+        Bucket: 'zerologementvacant',
+        Key: `${name}.zip`,
+        ContentLanguage: 'fr',
+        Body: Readable.from(archive),
+        ContentType: 'application/x-zip',
+        ACL: 'authenticated-read'
       });
 
-      upload.on('httpUploadProgress', (progress) => {
-        if (progress.loaded && progress.total) {
-          logger.debug('Uploading...', {
-            progress: (progress.loaded * 100) / progress.total,
-          });
-        }
-      });
+      await s3.send(command);
 
-      const { Key: file } = await upload.done();
+      const signedUrl = await getSignedUrl(s3, command, {
+        expiresIn: 60 * 60 * 24, // TTL: 24 hours
+      });
 
       await campaignRepository.save({
         ...campaign,
-        file: `${config.s3.endpoint}/${config.s3.bucket}/${file}`,
+        file: signedUrl,
       });
     },
     workerConfig

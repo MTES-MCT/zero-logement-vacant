@@ -235,15 +235,6 @@ const HousingListTab = ({
           </Text>
         )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
-        <SelectableListHeader
-          entity="logement"
-          default={
-            <AppHelp className="fr-mb-2w fr-py-2w">
-              <b>Sélectionnez</b> les logements que vous souhaitez cibler, puis
-              cliquez sur <b>Créer une campagne</b>.
-            </AppHelp>
-          }
-        >
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
               <Row justifyContent="right">

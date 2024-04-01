@@ -1,30 +1,74 @@
-import Dropdown, { DropdownOption, DropdownProps } from '../Dropdown/Dropdown';
-import { fr } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Menu, MenuItem } from '@mui/material';
+import React, { useState } from 'react';
+
+import { Variable } from './Variable';
+import Badge from '@codegouvfr/react-dsfr/Badge';
 
 interface Props {
-  options: DropdownOption[];
-  onSelect?: DropdownProps['onClick'];
+  options: Variable[];
+  onSelect?(option: Variable): void;
 }
 
 function VariableSelect(props: Readonly<Props>) {
-  const classes: DropdownProps['classes'] = {
-    option: fr.cx(
-      'fr-badge',
-      'fr-badge--sm',
-      'fr-badge--no-icon',
-      'fr-badge--success'
-    ),
-  };
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const isOpen = Boolean(anchor);
+
+  function open(event: React.MouseEvent<HTMLElement>): void {
+    setAnchor(event.currentTarget);
+  }
+
+  function close(): void {
+    setAnchor(null);
+  }
 
   return (
-    <Dropdown
-      children="Champs personnalisés"
-      classes={classes}
-      iconPosition="right"
-      priority="secondary"
-      options={props.options}
-      onClick={props.onSelect}
-    />
+    <>
+      <Button
+        id="menu-button"
+        aria-controls={isOpen ? 'menu' : undefined}
+        aria-haspopup="true"
+        aria-expanded={isOpen ? 'true' : undefined}
+        iconId={
+          isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'
+        }
+        iconPosition="right"
+        priority="secondary"
+        type="button"
+        onClick={open}
+      >
+        Champs personnalisés
+      </Button>
+      <Menu
+        id="menu"
+        anchorEl={anchor}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        open={isOpen}
+        onClose={close}
+        MenuListProps={{
+          'aria-labelledby': 'menu-button',
+        }}
+      >
+        {props.options.map((option) => (
+          <MenuItem
+            disableRipple
+            key={option.value}
+            onClick={() => props.onSelect?.(option)}
+          >
+            <Badge noIcon severity="new" small>
+              {option.label}
+            </Badge>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   );
 }
 

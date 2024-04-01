@@ -1,8 +1,6 @@
-import { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
+import { Variable } from './Variable';
 
-import { VariableOption } from '../../../../shared/models/variable-options';
-
-export const VARIABLE_OPTIONS: SelectProps.Option<VariableOption>[] = [
+export const VARIABLE_OPTIONS: Variable[] = [
   {
     label: 'Nom et prénom propriétaire',
     value: '{{owner.fullName}}',

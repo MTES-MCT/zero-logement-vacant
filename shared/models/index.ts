@@ -11,3 +11,4 @@ export * from './RolesDTO';
 export * from './SenderDTO';
 export * from './SettingsDTO';
 export * from './UserDTO';
+export * from './variable-options';

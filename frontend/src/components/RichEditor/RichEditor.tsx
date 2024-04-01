@@ -23,7 +23,7 @@ import RestorePlugin from './RestorePlugin';
 
 interface Props {
   ariaLabelledBy?: string;
-  content: string;
+  content?: string;
   onChange(content: string): void;
 }
 
@@ -42,6 +42,10 @@ function RichEditor(props: Readonly<Props>) {
       const html = $generateHtmlFromNodes(editor, null);
       props.onChange?.(html);
     });
+  }
+
+  if (!props.content) {
+    return null;
   }
 
   return (

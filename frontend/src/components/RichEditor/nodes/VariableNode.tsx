@@ -13,6 +13,7 @@ import {
 } from 'lexical';
 
 import { Variable } from '../Variable';
+import { VariableOption } from '../../../../../shared';
 
 interface VariableProps {
   children: string;
@@ -56,7 +57,10 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
             }
 
             return {
-              node: $createVariableNode({ label, value }),
+              node: $createVariableNode({
+                label,
+                value: value as VariableOption,
+              }),
             };
           },
           priority: 1,

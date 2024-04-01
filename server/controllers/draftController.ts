@@ -141,6 +141,13 @@ async function preview(request: Request, response: Response) {
         geoCode: faker.location.zipCode(),
         localId: faker.string.numeric({ length: 12, allowLeadingZeros: true }),
         rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+        cadastralReference: faker.string.numeric(10),
+        housingKind: faker.helpers.arrayElement(['MAISON', 'APPART']),
+        livingArea: faker.number.int({ min: 20, max: 200 }),
+        buildingYear: faker.date
+          .past({ years: 20, refDate: new Date() })
+          .getFullYear(),
+        energyConsumption: faker.string.fromCharacters('ABCDEFG', 1),
       },
       owner: {
         fullName: faker.person.fullName(),

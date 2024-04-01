@@ -3,6 +3,15 @@
   "version": "1.0.0",
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
+  "engines": {
+    "node": "^20",
+    "yarn": "^4"
+  },
+  "packageManager": "yarn@4.1.1",
+  "workspaces": [
+    "server-new",
+    "shared-new"
+  ],
   "scripts": {
     "prepare": "husky",
     "frontend:build": "npm --prefix frontend ci --include=dev && npm run --prefix frontend build",
@@ -31,15 +40,13 @@
     "migrate-latest": "knex migrate:latest --knexfile=./server/knex.ts",
     "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",
     "migrate-rollback-all": "knex migrate:rollback --all --knexfile=./server/knex.ts",
-    "seed": "knex seed:run --knexfile=./server/knex.ts"
+    "seed": "knex seed:run --knexfile=./server/knex.ts",
+    "new:clean": "yarn workspaces foreach --exclude=. -A run clean",
+    "new:build": "yarn workspaces foreach --exclude=. -A run build"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "engines": {
-    "node": "20",
-    "npm": "10"
-  },
   "dependencies": {
     "@adobe/node-fetch-retry": "^2.2.0",
     "@aws-sdk/client-s3": "^3.540.0",

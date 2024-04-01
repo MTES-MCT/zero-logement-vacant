@@ -1,0 +1,25 @@
+{
+  "name": "@zerologementvacant/shared",
+  "engines": {
+    "node": "^20",
+    "yarn": "^4"
+  },
+  "packageManager": "yarn@4.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc -b tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "@types/lodash": "^4.14.191",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "pino": "^8.19.0",
+    "pino-pretty": "^11.0.0"
+  }
+}

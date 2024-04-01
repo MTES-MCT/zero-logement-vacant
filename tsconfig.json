@@ -14,6 +14,10 @@
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "types"]
   },
+  "references": [
+    { "path": "./server-new" },
+    { "path": "./shared-new" }
+  ],
   "files": ["node_modules/jest-extended/types/index.d.ts"],
   "include": ["**/*.ts", "**/*.js"],
   "exclude": ["node_modules", "dist", "frontend"]

@@ -1,32 +1,26 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Dependencies
+.yarn
 node_modules
-/frontend/public/dsfr/
-/.pnp
-.pnp.js
 
-# testing
-/coverage
-
-# production
-dist
-build
+# Env
 .env
-.env.*
 
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Build
+build
+coverage
+dist
+frontend-new/public/dsfr
+tsconfig.build.tsbuildinfo
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE
+# Misc
+.DS_Store
+
 .idea/
 
 /talisman_report

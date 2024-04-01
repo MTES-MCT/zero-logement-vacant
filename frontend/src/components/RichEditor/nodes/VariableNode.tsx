@@ -8,6 +8,8 @@ import {
   LexicalEditor,
   LexicalNode,
   NodeKey,
+  SerializedLexicalNode,
+  Spread,
 } from 'lexical';
 
 import { Variable } from '../Variable';
@@ -24,6 +26,11 @@ function VariableComponent(props: Readonly<VariableProps>) {
   );
 }
 
+export type SerializedVariableNode = Spread<
+  { variable: Variable },
+  SerializedLexicalNode
+>;
+
 export class VariableNode extends DecoratorNode<JSX.Element> {
   static getType(): string {
     return 'variable';
@@ -31,6 +38,35 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
 
   static clone(node: VariableNode): VariableNode {
     return new VariableNode(node.variable, node.__key);
+  }
+
+  static importDOM(): DOMConversionMap | null {
+    return {
+      span: (element: HTMLElement) => {
+        if (!element.hasAttribute('data-variable-label')) {
+          return null;
+        }
+
+        return {
+          conversion: (element): DOMConversionOutput | null => {
+            const label = element.getAttribute('data-variable-label');
+            const value = element.textContent;
+            if (!label || !value) {
+              return null;
+            }
+
+            return {
+              node: $createVariableNode({ label, value }),
+            };
+          },
+          priority: 1,
+        };
+      },
+    };
+  }
+
+  static importJSON(serializedNode: SerializedVariableNode): VariableNode {
+    return $createVariableNode(serializedNode.variable);
   }
 
   constructor(private variable: Variable, key?: NodeKey) {
@@ -59,28 +95,12 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
     };
   }
 
-  static importDOM(): DOMConversionMap | null {
+  exportJSON(): SerializedVariableNode {
     return {
-      span: (element: HTMLElement) => {
-        if (!element.hasAttribute('data-variable-label')) {
-          return null;
-        }
-
-        return {
-          conversion: (element): DOMConversionOutput | null => {
-            const label = element.getAttribute('data-variable-label');
-            const value = element.textContent;
-            if (!label || !value) {
-              return null;
-            }
-
-            return {
-              node: $createVariableNode({ label, value }),
-            };
-          },
-          priority: 1,
-        };
-      },
+      ...super.exportJSON(),
+      type: 'variable',
+      version: 1,
+      variable: this.variable,
     };
   }
 }

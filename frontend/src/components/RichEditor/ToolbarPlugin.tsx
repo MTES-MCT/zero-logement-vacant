@@ -1,4 +1,3 @@
-import { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   INSERT_ORDERED_LIST_COMMAND,
@@ -13,10 +12,11 @@ import IconToggle from '../IconToggle/IconToggle';
 import styles from './toolbar.module.scss';
 import VariableSelect from './VariableSelect';
 import { useVariablePlugin } from './useVariablePlugin';
+import { Variable } from './Variable';
 
 interface Props {
   className?: string;
-  variableOptions: SelectProps.Option[];
+  variableOptions: Variable[];
 }
 
 function ToolbarPlugin(props: Readonly<Props>) {

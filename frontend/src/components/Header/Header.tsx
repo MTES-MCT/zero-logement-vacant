@@ -95,6 +95,7 @@ function Header() {
                   title={displayName()}
                   content={
                     <Container
+                      as="header"
                       className="bg-white bordered"
                       spacing="px-2w pt-1w pb-2w"
                       fluid

@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
+import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
 
 const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo
@@ -11,6 +12,11 @@ const MAX_SIZE = 5; // Mo
 interface Props {
   accept?: string[];
   label?: ReactNode;
+  /**
+   * Called when a file is uploaded successfully.
+   * @param file
+   */
+  onUpload?(file: FileUploadDTO): void;
 }
 
 function FileUpload(props: Readonly<Props>) {
@@ -31,7 +37,11 @@ function FileUpload(props: Readonly<Props>) {
   function onChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
     if (file) {
-      upload(file);
+      upload(file)
+        .unwrap()
+        .then((fileUpload) => {
+          props.onUpload?.(fileUpload);
+        });
     }
   }
 

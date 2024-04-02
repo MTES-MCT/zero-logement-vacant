@@ -44,6 +44,7 @@
     "jose": "^4.15.5",
     "lodash": "^4.17.21",
     "maplibre-gl": "^2.4.0",
+    "mime": "^4.0.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-map-gl": "^7.0.25",

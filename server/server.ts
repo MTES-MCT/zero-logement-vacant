@@ -9,7 +9,6 @@ import cors from 'cors';
 import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import fileUpload from 'express-fileupload';
 import errorHandler from './middlewares/error-handler';
 import RouteNotFoundError from './errors/routeNotFoundError';
 import protectedRouter from './routers/protected';
@@ -97,7 +96,6 @@ export function createServer(): Server {
   // Mock services like Datafoncier API on specific environments
   mockServices();
 
-  app.use(fileUpload());
   app.use(express.json());
 
   const rateLimiter = rateLimit({

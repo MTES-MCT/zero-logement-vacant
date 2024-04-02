@@ -1,4 +1,6 @@
 import express from 'express';
+import fileUpload from 'express-fileupload';
+import { param } from 'express-validator';
 
 import housingController from '../controllers/housingController';
 import ownerController from '../controllers/ownerController';
@@ -16,16 +18,19 @@ import settingsController from '../controllers/settingsController';
 import ownerProspectController from '../controllers/ownerProspectController';
 import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
-import { param } from 'express-validator';
 import groupController from '../controllers/groupController';
 import dashboardController from '../controllers/dashboardController';
 import datafoncierController from "../controllers/datafoncierHousingController";
 import draftController from "../controllers/draftController";
+import { upload } from "../middlewares/upload";
+import fileController from "../controllers/fileController";
 
 const router = express.Router();
 
 router.use(jwtCheck(true))
 router.use(userCheck());
+
+router.post('/files', upload(), fileController.create);
 
 // TODO: replace by GET /housing
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
@@ -89,7 +94,7 @@ router.get('/users/:userId', [isUUIDParam('userId')], validator.validate, userCo
 
 // TODO: should be /geo-perimeters
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
-router.post('/geo/perimeters', geoController.createGeoPerimeter);
+router.post('/geo/perimeters', fileUpload(), geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, validator.validate, geoController.updateGeoPerimeter);
 router.delete('/geo/perimeters', geoController.deleteGeoPerimeterListValidators, validator.validate, geoController.deleteGeoPerimeterList);
 

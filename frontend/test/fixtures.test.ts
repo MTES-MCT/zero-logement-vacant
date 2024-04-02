@@ -126,6 +126,7 @@ export function genDraft(sender: Sender): Draft {
   return {
     id: randomstring.generate(),
     body: randomstring.generate(),
+    logo: randomstring.generate(),
     sender,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),

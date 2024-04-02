@@ -17,8 +17,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: 5563f7911ccd1ff8fc7ccc8865ecc730d93d9b7c658aa7d02ada802601932998
+  checksum: 8673149e3524a13608c86ba5ecf6d36725422a8c755b1128310470d3e395410f
 scopeconfig:
 - scope: node
 version: "1.0"
-3cc3308bba9019d9091f4b8c291e4a2e4a4eb8

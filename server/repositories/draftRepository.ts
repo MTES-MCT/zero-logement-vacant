@@ -54,7 +54,7 @@ async function save(draft: DraftApi): Promise<void> {
   await Drafts()
     .insert(formatDraftApi(draft))
     .onConflict('id')
-    .merge(['body', 'updated_at', 'sender_id']);
+    .merge(['body', 'logo', 'updated_at', 'sender_id']);
 }
 
 function listQuery(query: Knex.QueryBuilder): void {
@@ -93,6 +93,7 @@ function filterQuery(filters?: DraftFilters) {
 export interface DraftRecordDBO {
   id: string;
   body: string;
+  logo: string[];
   created_at: Date;
   updated_at: Date;
   establishment_id: string;
@@ -106,6 +107,7 @@ export interface DraftDBO extends DraftRecordDBO {
 export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   id: draft.id,
   body: draft.body,
+  logo: draft.logo,
   created_at: new Date(draft.createdAt),
   updated_at: new Date(draft.updatedAt),
   establishment_id: draft.establishmentId,
@@ -115,6 +117,7 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
 export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
   id: draft.id,
   body: draft.body,
+  logo: draft.logo,
   createdAt: draft.created_at.toJSON(),
   updatedAt: draft.updated_at.toJSON(),
   establishmentId: draft.establishment_id,

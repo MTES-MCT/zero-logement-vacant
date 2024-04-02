@@ -22,6 +22,7 @@ import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import { SenderPayload } from '../../models/Sender';
 import SendButton from '../../components/Draft/SendButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
+import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 
 const schema = yup.object({
   body: yup
@@ -42,6 +43,7 @@ function CampaignDraft(props: Props) {
   const [values, setValues] = useState<DraftCreationPayloadDTO>({
     body: '',
     campaign: '',
+    logo: [],
     sender: {
       name: '',
       service: '',
@@ -57,6 +59,7 @@ function CampaignDraft(props: Props) {
     if (draft) {
       setValues({
         body: draft.body,
+        logo: draft.logo,
         sender: draft.sender,
         campaign: props.campaign.id,
       });
@@ -102,8 +105,13 @@ function CampaignDraft(props: Props) {
     setValues({
       body,
       campaign: props.campaign.id,
+      logo: values.logo,
       sender: values.sender,
     });
+  }
+
+  function setLogo(logo: string[]): void {
+    setValues({ ...values, logo });
   }
 
   function setSender(sender: SenderPayload): void {
@@ -147,8 +155,11 @@ function CampaignDraft(props: Props) {
               onSave={save}
             />
           </Row>
-          <Row spacing="mb-2w">
-            <Col n="7" offset="5">
+          <Row gutters spacing="mb-2w">
+            <Col n="5">
+              <DraftSenderLogo value={values.logo} onChange={setLogo} />
+            </Col>
+            <Col n="7">
               <DraftSender
                 form={form}
                 value={values.sender}

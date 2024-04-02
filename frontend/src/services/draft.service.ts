@@ -62,6 +62,7 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
     body: draft.body.replaceAll('<br />', '\n'),
+    logo: draft.logo,
     sender: draft.sender ?? undefined,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
@@ -74,6 +75,7 @@ function toDraftCreationPayloadDTO(
   return {
     body: draft.body.replaceAll('\n', '<br />'),
     campaign: draft.campaign,
+    logo: draft.logo,
     sender: toSenderPayloadDTO(draft.sender),
   };
 }
@@ -84,6 +86,7 @@ function toDraftUpdatePayloadDTO(
   return {
     id: draft.id,
     body: draft.body.replaceAll('\n', '<br />'),
+    logo: draft.logo,
     sender: toSenderPayloadDTO(draft.sender),
   };
 }

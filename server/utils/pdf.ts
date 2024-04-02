@@ -11,7 +11,10 @@ async function compile<T>(html: string, data?: T): Promise<string> {
   return compiled(data);
 }
 
-async function fromHTML(htmlArray: string[], template: 'draft' | 'release'): Promise<Buffer> {
+async function fromHTML(
+  htmlArray: string[],
+  template: 'draft' | 'release'
+): Promise<Buffer> {
   // Launch the browser and open a new blank page
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
@@ -22,13 +25,19 @@ async function fromHTML(htmlArray: string[], template: 'draft' | 'release'): Pro
   for (const html of htmlArray) {
     const page = await browser.newPage();
     await page.setContent(html, {
-      waitUntil: 'domcontentloaded',
+      waitUntil: 'networkidle0',
     });
     await page.addStyleTag({
       path: path.join(__dirname, '..', 'templates', 'dsfr.min.css'),
     });
     await page.addStyleTag({
-      path: path.join(__dirname, '..', 'templates', template, `${template}.css`),
+      path: path.join(
+        __dirname,
+        '..',
+        'templates',
+        template,
+        `${template}.css`
+      ),
     });
     const pdfBuffer = await page.pdf({ format: 'A4' });
     pdfDocs.push(pdfBuffer);
@@ -46,7 +55,7 @@ async function fromHTML(htmlArray: string[], template: 'draft' | 'release'): Pro
 
   const mergedPdfFile = await mergedPdf.save();
 
-  return  Buffer.from(mergedPdfFile);
+  return Buffer.from(mergedPdfFile);
 }
 
 export default {

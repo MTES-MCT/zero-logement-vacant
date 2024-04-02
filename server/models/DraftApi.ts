@@ -11,6 +11,7 @@ export function toDraftDTO(draft: DraftApi): DraftDTO {
   return {
     id: draft.id,
     body: draft.body,
+    logo: draft.logo,
     sender: toSenderDTO(draft.sender),
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,

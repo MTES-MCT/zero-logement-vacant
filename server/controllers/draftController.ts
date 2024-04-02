@@ -41,6 +41,18 @@ async function list(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
+const partialDraftValidators: ValidationChain[] = [
+  body('body').isString().notEmpty().withMessage('body is required'),
+  body('sender').isObject().withMessage('sender must be an object'),
+  body('logo')
+    .isArray({ min: 1, max: 2 })
+    .withMessage('logo must be an array of 1 or 2 URL'),
+  body('logo.*').notEmpty().withMessage('logo is required'),
+  // .isURL({
+  //   TODO
+  // })
+  // .withMessage('logo must be an array of URL'),
+];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
     body(`sender.${prop}`)
@@ -83,6 +95,7 @@ async function create(request: Request, response: Response) {
   const draft: DraftApi = {
     id: uuidv4(),
     body: body.body,
+    logo: body.logo,
     sender,
     senderId: sender.id,
     createdAt: new Date().toJSON(),
@@ -95,13 +108,12 @@ async function create(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
 const createValidators: ValidationChain[] = [
-  body('body').isString().notEmpty().withMessage('body is required'),
   body('campaign')
     .isUUID()
     .withMessage('Must be an UUID')
     .notEmpty()
     .withMessage('campaign is required'),
-  body('sender').isObject().withMessage('Sender must be an object'),
+  ...partialDraftValidators,
   ...senderValidators,
 ];
 
@@ -117,10 +129,11 @@ async function preview(request: Request, response: Response) {
   }
   const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     body: draft.body,
+    logo: draft.logo,
     sender: draft.sender,
-    owner: { fullName: 'NOM PRENOM', rawAdress: 'Adresse' }
+    owner: { fullName: 'NOM PRENOM', rawAdress: 'Adresse' },
   });
-  const finalPDF = await pdf.fromHTML([ html ], 'draft');
+  const finalPDF = await pdf.fromHTML([html], 'draft');
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];
@@ -156,6 +169,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
   const updated: DraftApi = {
     ...draft,
     body: body.body,
+    logo: body.logo,
     sender,
     senderId: sender.id,
     updatedAt: new Date().toJSON(),
@@ -168,8 +182,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
-  body('body').isString().notEmpty().withMessage('body is required'),
-  body('sender').isObject().withMessage('Sender must be an object'),
+  ...partialDraftValidators,
   ...senderValidators,
 ];
 

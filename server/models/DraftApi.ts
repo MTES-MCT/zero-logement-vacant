@@ -12,6 +12,7 @@ export function toDraftDTO(draft: DraftApi): DraftDTO {
     id: draft.id,
     subject: draft.subject,
     body: draft.body,
+    logo: draft.logo,
     sender: toSenderDTO(draft.sender),
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,

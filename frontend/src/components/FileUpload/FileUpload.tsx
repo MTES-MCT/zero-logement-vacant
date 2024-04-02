@@ -11,6 +11,7 @@ const MAX_SIZE = 5; // Mo
 
 interface Props {
   accept?: string[];
+  hint?: string;
   label?: ReactNode;
   /**
    * Called when a file is uploaded successfully.
@@ -21,9 +22,9 @@ interface Props {
 
 function FileUpload(props: Readonly<Props>) {
   const types = props.accept ?? DEFAULT_TYPES;
-  const hint = `Taille maximale : ${MAX_SIZE} Mo. Formats supportés : ${types.join(
-    ', '
-  )}`;
+  const hint =
+    props.hint ??
+    `Taille maximale : ${MAX_SIZE} Mo. Formats supportés : ${types.join(', ')}`;
   const accept = types.map((type) => mime.getType(type)).join(', ');
   const [upload, mutation] = useUploadFileMutation();
 

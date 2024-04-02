@@ -4,8 +4,9 @@ import db from '../../server/repositories/db';
 import { housingTable } from '../../server/repositories/housingRepository';
 import downloader from './downloader';
 
+//TODO
 const schema = (department: string) =>
-  `bdnb_2022_10_d_open_data_dep${department}`;
+  `bdnb_2023_01_a_open_data_dep${department}`;
 
 const batPlotTable = (department: string) =>
   `${schema(department)}.rel_batiment_groupe_parcelle`;
@@ -62,7 +63,7 @@ const updateHousingEnergyConsumption = async (department: string) => {
         building_group_id = ${batEnergyTable(department)}.batiment_groupe_id
     FROM ${batPlotTable(department)}, ${batEnergyTable(department)}
     WHERE ${housingTable}.plot_id = ${batPlotTable(department)}.parcelle_id
-    AND ${batPlotTable(department)}.batiment_groupe_id 
+    AND ${batPlotTable(department)}.batiment_groupe_id
         = ${batEnergyTable(department)}.batiment_groupe_id
     AND plot_id is not null
     AND geo_code like '${department}%'

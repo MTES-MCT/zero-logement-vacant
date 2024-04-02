@@ -4,6 +4,7 @@ export interface DraftDTO {
   id: string;
   subject: string;
   body: string;
+  logo: string[];
   sender: SenderDTO;
   writtenAt: string;
   writtenFrom: string;
@@ -12,7 +13,7 @@ export interface DraftDTO {
 }
 
 export interface DraftCreationPayloadDTO
-  extends Pick<DraftDTO, 'subject' | 'body' | 'writtenAt' | 'writtenFrom'> {
+  extends Pick<DraftDTO, 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'> {
   campaign: string;
   sender: SenderPayloadDTO;
 }
@@ -20,7 +21,7 @@ export interface DraftCreationPayloadDTO
 export interface DraftUpdatePayloadDTO
   extends Pick<
     DraftDTO,
-    'id' | 'subject' | 'body' | 'writtenAt' | 'writtenFrom'
+    'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
   sender: SenderPayloadDTO;
 }

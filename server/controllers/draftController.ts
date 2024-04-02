@@ -43,6 +43,18 @@ async function list(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
+const partialDraftValidators: ValidationChain[] = [
+  body('body').isString().notEmpty().withMessage('body is required'),
+  body('sender').isObject().withMessage('sender must be an object'),
+  body('logo')
+    .isArray({ min: 1, max: 2 })
+    .withMessage('logo must be an array of 1 or 2 URL'),
+  body('logo.*').notEmpty().withMessage('logo is required'),
+  // .isURL({
+  //   TODO
+  // })
+  // .withMessage('logo must be an array of URL'),
+];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
     body(`sender.${prop}`)
@@ -86,6 +98,7 @@ async function create(request: Request, response: Response) {
     id: uuidv4(),
     subject: body.subject,
     body: body.body,
+    logo: body.logo,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
@@ -120,6 +133,7 @@ const createValidators: ValidationChain[] = [
     .notEmpty()
     .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
+  ...partialDraftValidators,
   ...senderValidators,
 ];
 
@@ -158,7 +172,7 @@ async function preview(request: Request, response: Response) {
     }),
     owner
   });
-  const finalPDF = await pdf.fromHTML([ html ], 'draft');
+  const finalPDF = await pdf.fromHTML([html], 'draft');
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];
@@ -195,6 +209,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     ...draft,
     subject: body.subject,
     body: body.body,
+    logo: body.logo,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
@@ -224,6 +239,7 @@ const updateValidators: ValidationChain[] = [
     .notEmpty()
     .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
+  ...partialDraftValidators,
   ...senderValidators,
 ];
 

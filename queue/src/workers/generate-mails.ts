@@ -1,5 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
@@ -17,20 +17,18 @@ import config from '../config';
 import { createLogger } from '../logger';
 import housingRepository from '../../../server/repositories/housingRepository';
 import ownerRepository from '../../../server/repositories/ownerRepository';
+import { createS3 } from '../../../shared/utils/s3';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
 
 export default function createWorker() {
   const logger = createLogger('workers:generate-mails');
-  const s3 = new S3Client({
+  const s3 = createS3({
     endpoint: config.s3.endpoint,
     region: config.s3.region,
-    forcePathStyle: true,
-    credentials: {
-      accessKeyId: config.s3.accessKeyId,
-      secretAccessKey: config.s3.secretAccessKey,
-    },
+    accessKeyId: config.s3.accessKeyId,
+    secretAccessKey: config.s3.secretAccessKey,
   });
   const workerConfig: WorkerOptions = {
     connection: {
@@ -62,8 +60,8 @@ export default function createWorker() {
 
       const housings = await housingRepository.find({
         filters: {
-          campaignIds: [ campaignId ]
-        }
+          campaignIds: [campaignId],
+        },
       });
 
       const drafts = await draftRepository.find({
@@ -85,13 +83,15 @@ export default function createWorker() {
       housings.forEach(async (housing) => {
         const owner = await ownerRepository.findByHousing(housing);
 
-        worksheet.addRow([ owner[0].fullName, owner[0].rawAddress.join(' - ') ]);
+        worksheet.addRow([owner[0].fullName, owner[0].rawAddress.join(' - ')]);
 
-        html.push(await pdf.compile(RELEASE_TEMPLATE_FILE, {
-          body: draft.body,
-          sender: draft.sender,
-          owner: owner[0]
-        }));
+        html.push(
+          await pdf.compile(RELEASE_TEMPLATE_FILE, {
+            body: draft.body,
+            sender: draft.sender,
+            owner: owner[0],
+          })
+        );
       });
 
       const finalPDF = await pdf.fromHTML(html, 'release');
@@ -116,7 +116,7 @@ export default function createWorker() {
         ContentLanguage: 'fr',
         Body: Readable.from(archive),
         ContentType: 'application/x-zip',
-        ACL: 'authenticated-read'
+        ACL: 'authenticated-read',
       });
 
       await s3.send(command);

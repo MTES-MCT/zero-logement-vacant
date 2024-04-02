@@ -737,6 +737,9 @@ export function genDraftApi(
     id: uuidv4(),
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraph(),
+    logo: faker.helpers.multiple(() => faker.image.url(), {
+      count: { min: 1, max: 2 },
+    }),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,

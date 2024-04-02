@@ -1,5 +1,6 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
+import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '../../shared';
 
@@ -24,7 +25,9 @@ interface Config {
   };
 }
 
-dotenv.config();
+dotenv.config({
+  path: path.join(__dirname, '..', '..', '.env'),
+});
 
 const config = convict<Config>({
   log: {

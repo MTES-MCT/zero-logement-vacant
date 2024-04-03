@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import config from './config';
 import { logger } from './infra/logger';
+import gracefulShutdown from './infra/graceful-shutdown';
 import sentry from './infra/sentry';
 
 export interface Server {
@@ -28,6 +29,9 @@ export function createServer(): Server {
   }
 
   sentry.errorHandler(app);
+
+  gracefulShutdown(app);
+
   function start(): Promise<void> {
     return new Promise((resolve) => {
       app.listen(config.app.port, () => {

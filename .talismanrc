@@ -5,9 +5,10 @@ allowed_patterns:
 - key=\{.+\}
 
 version: "1.0"
-3cc3308bba9019d9091f4b8c291e4a2e4a4eb8
 
 fileignoreconfig:
+- filename: .github/workflows/github-actions.yml
+  checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
 - filename: frontend/src/components/Draft/DraftBody.tsx
   checksum: 6d329f083da80593e177c47abf416c37544d9255c3c4c4be226db80d7e32a690
@@ -35,3 +36,5 @@ fileignoreconfig:
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
   checksum: 5563f7911ccd1ff8fc7ccc8865ecc730d93d9b7c658aa7d02ada802601932998
+- filename: server/repositories/campaignRepository.ts
+  checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309

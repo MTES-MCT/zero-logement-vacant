@@ -4,9 +4,11 @@ import Stream = Highland.Stream;
 import { logger } from '../utils/logger';
 import db from './db';
 import { DatafoncierHousing } from '../../shared';
+import { getYear } from 'date-fns';
 
 const FIELDS = ['*'];
-export const datafoncierHousingTable = 'df_housing_nat';
+
+export const datafoncierHousingTable = `df_housing_nat_${getYear(new Date()) - 1}`;
 export const DatafoncierHouses = (transaction = db) =>
   transaction<DatafoncierHousing>(datafoncierHousingTable);
 

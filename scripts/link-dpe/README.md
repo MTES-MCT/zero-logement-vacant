@@ -19,7 +19,6 @@ The department codes must be passed separated by commas as a unique argument
 When no argument is passed, the script handles all the departments by default.
 
 ```shell
-
 # In local dev
 ts-node scripts/link-dpe [DEPS]
 # In production

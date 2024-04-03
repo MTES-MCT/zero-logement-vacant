@@ -1,0 +1,4 @@
+db_host: "localhost"
+db_port: 10000
+schema_name: "u_sabrina_tabita"
+role_name: "adl"

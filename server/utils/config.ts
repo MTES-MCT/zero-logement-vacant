@@ -372,13 +372,13 @@ const config = convict<Config>({
     accessKeyId: {
       env: 'S3_ACCESS_KEY_ID',
       format: String,
-      default: null,
+      default: isProduction ? null : 'key',
       sensitive: true,
     },
     secretAccessKey: {
       env: 'S3_SECRET_ACCESS_KEY',
       format: String,
-      default: null,
+      default: isProduction ? null : 'secret',
       sensitive: true,
     },
   },

@@ -38,7 +38,6 @@ import {
 import { useCampaignList } from '../../hooks/useCampaignList';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
-import { useFeature } from '../../hooks/useFeature';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
@@ -75,9 +74,6 @@ function HousingListFiltersSidemenu(props: Props) {
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
-  const feature = useFeature({
-    establishmentId: establishment?.id,
-  });
   const expand = props.expand ?? true;
   const filters = props.filters;
   const onChangeFilters = props.onChange;

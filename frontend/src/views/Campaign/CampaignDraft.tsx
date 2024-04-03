@@ -22,6 +22,7 @@ import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import { SenderPayload } from '../../models/Sender';
 import SendButton from '../../components/Draft/SendButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
+import DraftSignature from '../../components/Draft/DraftSignature';
 
 const schema = yup.object({
   body: yup
@@ -50,6 +51,10 @@ function CampaignDraft(props: Props) {
       address: '',
       email: '',
       phone: '',
+      signatoryFirstName: '',
+      signatoryLastName: '',
+      signatoryRole: '',
+      signatoryFile: '',
     },
   });
 
@@ -110,6 +115,10 @@ function CampaignDraft(props: Props) {
     setValues({ ...values, sender });
   }
 
+  function setSignature(sender: SenderPayload): void {
+    setValues({ ...values, sender });
+  }
+
   return (
     <Container as="article" fluid>
       <Container as="header" fluid>
@@ -159,6 +168,15 @@ function CampaignDraft(props: Props) {
           <Row>
             <Col>
               <DraftBody form={form} value={values.body} onChange={setBody} />
+            </Col>
+          </Row>
+          <Row spacing="mb-2w">
+            <Col n="7" offset="5">
+              <DraftSignature
+                form={form}
+                value={values.sender}
+                onChange={setSignature}
+              />
             </Col>
           </Row>
         </Container>

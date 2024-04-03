@@ -164,6 +164,7 @@ describe('Draft API', () => {
       const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
+        logo: draft.logo,
         campaign: missingCampaign.id,
         sender: senderPayload,
       };
@@ -179,6 +180,7 @@ describe('Draft API', () => {
     it('should create a draft and attach it to a campaign', async () => {
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
+        logo: draft.logo,
         campaign: campaign.id,
         sender: senderPayload,
       };
@@ -197,6 +199,7 @@ describe('Draft API', () => {
     it('should attach the draft to a campaign', async () => {
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
+        logo: draft.logo,
         campaign: campaign.id,
         sender: senderPayload,
       };
@@ -218,6 +221,7 @@ describe('Draft API', () => {
       await Senders().insert(formatSenderApi(sender));
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
+        logo: draft.logo,
         campaign: campaign.id,
         sender: senderPayload,
       };
@@ -238,6 +242,7 @@ describe('Draft API', () => {
     it('should create a sender if it does not exist and attach it to the draft', async () => {
       const payload: DraftCreationPayloadDTO = {
         body: draft.body,
+        logo: draft.logo,
         campaign: campaign.id,
         sender: senderPayload,
       };
@@ -275,6 +280,7 @@ describe('Draft API', () => {
       payload = {
         id: draft.id,
         body: 'Look at that body!',
+        logo: ['https://example.com/logo.png'],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
       };
       await Senders().insert(formatSenderApi(sender));
@@ -333,6 +339,7 @@ describe('Draft API', () => {
       expect(body).toStrictEqual<DraftDTO>({
         id: draft.id,
         body: payload.body,
+        logo: payload.logo,
         sender: {
           id: expect.any(String),
           name: sender.name,
@@ -353,6 +360,7 @@ describe('Draft API', () => {
       expect(actual).toStrictEqual<DraftRecordDBO>({
         id: draft.id,
         body: payload.body,
+        logo: payload.logo,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: draft.establishmentId,

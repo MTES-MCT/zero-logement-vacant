@@ -13,57 +13,51 @@ const progressBar = new SingleBar({}, Presets.shades_classic);
 const YEAR = '2023';
 
 const processRow = async (dfHousing: any) => {
-  return new Promise<void>((resolve, reject) => {
-    progressBar.increment();
-    const doProcess = async () => {
-      const housing = toHousingRecordApi({ source: 'datafoncier-import' }, dfHousing);
+  progressBar.increment();
+  const doProcess = async () => {
+    const housing = toHousingRecordApi({ source: 'datafoncier-import' }, dfHousing);
 
-      const dfOwner = await db.raw(`SELECT * FROM df_owners_nat_${YEAR} WHERE idlocal='${housing.localId}'`);
+    const dfOwner = await db.raw(`SELECT * FROM df_owners_nat_${YEAR} WHERE idlocal='${housing.localId}'`);
 
-      if(dfOwner.rows.length == 0) {
-        reject();
-        return;
-      }
-
-      const ownerMatch = await ownerMatchRepository.findOne({
-        idpersonne: dfOwner.rows[0].idpersonne,
-      });
-
-      let owner;
-      if(ownerMatch) {
-        owner = await ownerRepository.get(ownerMatch.owner_id);
-      } else {
-        owner = toOwnerApi(dfOwner.rows[0]);
-        try {
-          await ownerRepository.save(owner);
-        } catch(e) {
-          reject();
-          return;
-        }
-      }
-
-      if(owner == null) {
-        reject();
-        return;
-      } else {
-        try {
-          await housingRepository.save(
-            housing
-          );
-          await HousingOwners().insert({
-            owner_id: owner.id,
-            housing_id: housing.id,
-            housing_geo_code: housing.geoCode,
-            rank: 1,
-          });
-        } catch(e: any) {
-          reject();
-        }
-      }
-      resolve();
+    if(dfOwner.rows.length == 0) {
+      return;
     }
-    doProcess();
-    })
+
+    const ownerMatch = await ownerMatchRepository.findOne({
+      idpersonne: dfOwner.rows[0].idpersonne,
+    });
+
+    let owner;
+    if(ownerMatch) {
+      owner = await ownerRepository.get(ownerMatch.owner_id);
+    } else {
+      owner = toOwnerApi(dfOwner.rows[0]);
+      try {
+        await ownerRepository.save(owner);
+      } catch(e) {
+        return;
+      }
+    }
+
+    if(owner == null) {
+      return;
+    } else {
+      try {
+        await housingRepository.save(
+          housing
+        );
+        await HousingOwners().insert({
+          owner_id: owner.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode,
+          rank: 1,
+        });
+      } catch(e: any) {
+        return;
+      }
+    }
+  }
+  doProcess();
 }
 
 const main = async () => {

@@ -214,7 +214,7 @@ const config = convict<Config>({
       max: {
         env: 'DATABASE_POOL_MAX',
         format: Number,
-        default: 100,
+        default: 10,
       },
     },
   },

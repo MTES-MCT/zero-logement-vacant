@@ -43,6 +43,8 @@ jobs:
         run: npm --prefix frontend ci
       - name: Server install
         run: npm ci
+      - name: Queue install
+        run: npm --prefix queue ci
       - name: build
         run: npm run build
         env:

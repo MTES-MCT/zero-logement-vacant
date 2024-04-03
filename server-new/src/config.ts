@@ -6,18 +6,24 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 
 interface Config {
   app: {
-    env: 'development' | 'test' | 'production'
+    env: 'development' | 'test' | 'production';
     host: string;
     port: number;
-  }
+  };
   log: {
     level: LogLevel;
-  }
+  };
+  sentry: {
+    dsn: string | null;
+    enabled: boolean;
+  };
 }
 
 dotenv.config({
-  path: path.join(__dirname, '..', '.env')
-})
+  path: path.join(__dirname, '..', '.env'),
+});
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const config = convict<Config>({
   app: {
@@ -41,9 +47,22 @@ const config = convict<Config>({
     level: {
       env: 'LOG_LEVEL',
       format: LOG_LEVELS,
-      default: LogLevel.INFO
-    }
-  }
+      default: LogLevel.INFO,
+    },
+  },
+  sentry: {
+    dsn: {
+      env: 'SENTRY_DSN',
+      format: String,
+      default: null,
+      nullable: true,
+    },
+    enabled: {
+      env: 'SENTRY_ENABLED',
+      format: Boolean,
+      default: isProduction,
+    },
+  },
 })
   .validate({ allowed: 'strict' })
   .get();

@@ -3,15 +3,19 @@ import path from 'node:path';
 
 import config from './config';
 import { logger } from './infra/logger';
-
+import sentry from './infra/sentry';
 
 export interface Server {
-  app: Application
-  start(): Promise<void>
+  app: Application;
+  start(): Promise<void>;
 }
 
 export function createServer(): Server {
   const app = express();
+
+  sentry.init(app);
+
+  app.use(express.json());
 
   // Serve the frontend in production
   if (config.app.env === 'production') {
@@ -23,6 +27,7 @@ export function createServer(): Server {
     });
   }
 
+  sentry.errorHandler(app);
   function start(): Promise<void> {
     return new Promise((resolve) => {
       app.listen(config.app.port, () => {
@@ -34,6 +39,6 @@ export function createServer(): Server {
 
   return {
     app,
-    start
-  }
+    start,
+  };
 }

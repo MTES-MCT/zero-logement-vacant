@@ -2979,7 +2979,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/integrations@npm:^7.80.0":
+"@sentry/integrations@npm:^7.109.0, @sentry/integrations@npm:^7.80.0":
   version: 7.109.0
   resolution: "@sentry/integrations@npm:7.109.0"
   dependencies:
@@ -2991,7 +2991,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/node@npm:^7.80.0":
+"@sentry/node@npm:^7.109.0, @sentry/node@npm:^7.80.0":
   version: 7.109.0
   resolution: "@sentry/node@npm:7.109.0"
   dependencies:
@@ -4724,6 +4724,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/server@workspace:server-new"
   dependencies:
+    "@godaddy/terminus": "npm:^4.12.1"
+    "@sentry/integrations": "npm:^7.109.0"
+    "@sentry/node": "npm:^7.109.0"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/node": "npm:^20.12.3"
     "@zerologementvacant/shared": "workspace:*"

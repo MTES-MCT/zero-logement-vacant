@@ -41,8 +41,8 @@
     "migrate-rollback-one": "knex migrate:down --knexfile=./server/knex.ts",
     "migrate-rollback-all": "knex migrate:rollback --all --knexfile=./server/knex.ts",
     "seed": "knex seed:run --knexfile=./server/knex.ts",
-    "new:clean": "yarn workspaces foreach --exclude=. -A run clean",
-    "new:build": "yarn workspaces foreach --exclude=. -A run build",
+    "new:clean": "yarn workspaces foreach --exclude=. -Ap run clean",
+    "new:build": "yarn workspaces foreach --exclude=. -pt --since=main run build",
     "new:lint": "eslint server-new shared-new"
   },
   "keywords": [],

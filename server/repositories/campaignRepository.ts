@@ -7,6 +7,7 @@ import { sortQuery } from '../models/SortApi';
 import { CampaignStatus } from '../../shared';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 import { createQueue } from '../../queue/src';
+import config from '../utils/config';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -102,7 +103,14 @@ const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
 
-const queue = createQueue();
+const queue = createQueue({
+  connection: {
+    host: config.redis.host,
+    port: config.redis.port,
+    username: config.redis.username ?? undefined,
+    password: config.redis.password ?? undefined,
+  },
+});
 
 async function generateMails(campaign: CampaignApi): Promise<void> {
   await queue.add('campaign:generate', {

@@ -111,6 +111,12 @@ interface Config {
     domain: string;
     token: string;
   };
+  redis: {
+    host: string;
+    port: number;
+    username: string | null;
+    password: string | null;
+  };
   s3: {
     endpoint: string;
     region: string;
@@ -350,6 +356,31 @@ const config = convict<Config>({
       env: 'METABASE_TOKEN',
       format: String,
       default: '',
+      sensitive: true,
+    },
+  },
+  redis: {
+    host: {
+      env: 'REDIS_HOST',
+      format: String,
+      default: 'localhost',
+    },
+    port: {
+      env: 'REDIS_PORT',
+      format: 'port',
+      default: 6379,
+    },
+    username: {
+      env: 'REDIS_USERNAME',
+      format: String,
+      default: null,
+      nullable: !isProduction,
+    },
+    password: {
+      env: 'REDIS_PASSWORD',
+      format: String,
+      default: null,
+      nullable: !isProduction,
       sensitive: true,
     },
   },

@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: .github/workflows/github-actions.yml
+  checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
 - filename: frontend/src/components/Draft/DraftSendingDate.tsx
   checksum: acdc6ca0de0197694ea8b3ffe9efffacc0451f9d120e912b2129e9d97acaf495
@@ -18,6 +20,10 @@ fileignoreconfig:
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
   checksum: 8673149e3524a13608c86ba5ecf6d36725422a8c755b1128310470d3e395410f
+- filename: server/repositories/campaignRepository.ts
+  checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
+- filename: server/utils/config.ts
+  checksum: ae4a96a8a89e988a748190415fc23c04e2cb3fdbe90f9dab674891d1cce957ee
 scopeconfig:
 - scope: node
 version: "1.0"

@@ -44,7 +44,7 @@
     "seed": "knex seed:run --knexfile=./server/knex.ts",
     "new:clean": "yarn workspaces foreach --exclude=. -Ap run clean",
     "new:build": "yarn workspaces foreach --exclude=. -pt --since=origin/main run build",
-    "new:lint": "eslint server-new shared-new"
+    "new:lint": "eslint frontend-new server-new shared-new"
   },
   "keywords": [],
   "author": "",

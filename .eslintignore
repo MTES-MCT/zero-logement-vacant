@@ -18,5 +18,10 @@ scalingo.json
 # shell script
 scripts/duplicate-database/
 
+build
+dist
+node_modules
+public
+
 # templates
 server/templates

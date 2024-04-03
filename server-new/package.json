@@ -10,6 +10,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -b tsconfig.build.json",
+    "dev": "nodemon --watch src src/index.ts",
     "start": "node dist/index.js"
   },
   "dependencies": {
@@ -17,7 +18,12 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
+    "@types/node": "^20.12.3",
+    "convict": "^6.2.4",
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.0",
     "rimraf": "^5.0.5",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   }
 }

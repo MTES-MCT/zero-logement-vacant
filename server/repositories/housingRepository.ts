@@ -2,7 +2,6 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
-import { isNumeric } from 'validator';
 
 import db, { where } from './db';
 import {
@@ -39,6 +38,7 @@ import {
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
+import validator from 'validator';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -642,7 +642,7 @@ function filteredQuery(opts: ListQueryOptions) {
         }
         whereBuilder.orWhereIn(
           'rooms_count',
-          filters.roomsCounts?.filter((_) => isNumeric(_))
+          filters.roomsCounts?.filter((_) => validator.isNumeric(_))
         );
       });
     }

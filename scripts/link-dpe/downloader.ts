@@ -33,7 +33,8 @@ const exists = async (
 
 const download = async (department: string): Promise<void> => {
   return new Promise((resolve) => {
-    const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2022-10-d/millesime_2022-10-d_dep${department}/open_data_millesime_2022-10-d_dep${department}_pgdump.zip`;
+    // TODO : url need to be upgraded every years
+    const url = `https://open-data.s3.fr-par.scw.cloud/bdnb_millesime_2023-01-a/millesime_2023-01-a_dep${department}/open_data_millesime_2023-01-a_dep${department}_pgdump.zip`;
     const dir = getArchiveDir(department);
 
     logger.info(`Downloading file from BNDB...`, {

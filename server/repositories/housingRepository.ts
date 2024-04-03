@@ -2,7 +2,7 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
-import validator from 'validator';
+import { isNumeric } from 'validator';
 
 import db, { where } from './db';
 import {
@@ -39,7 +39,6 @@ import {
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
-import isNumeric = validator.isNumeric;
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -343,11 +342,11 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         .select('campaigns.campaign_ids', 'campaigns.campaign_count')
         .joinRaw(
           `left join lateral (
-               select array_agg(distinct(campaign_id)) as campaign_ids, 
+               select array_agg(distinct(campaign_id)) as campaign_ids,
                       array_length(array_agg(distinct(campaign_id)), 1) AS campaign_count
                from ${campaignsHousingTable}, ${campaignsTable}
-               where ${housingTable}.id = ${campaignsHousingTable}.housing_id 
-                 and ${housingTable}.geo_code = ${campaignsHousingTable}.housing_geo_code 
+               where ${housingTable}.id = ${campaignsHousingTable}.housing_id
+                 and ${housingTable}.geo_code = ${campaignsHousingTable}.housing_geo_code
                  and ${campaignsTable}.id = ${campaignsHousingTable}.campaign_id
                  ${
                    filters?.campaignIds?.length

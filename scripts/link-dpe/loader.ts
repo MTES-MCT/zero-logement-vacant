@@ -4,8 +4,9 @@ import db from '../../server/repositories/db';
 import { housingTable } from '../../server/repositories/housingRepository';
 import downloader from './downloader';
 
+//TODO
 const schema = (department: string) =>
-  `bdnb_2022_10_d_open_data_dep${department}`;
+  `bdnb_2023_01_a_open_data_dep${department}`;
 
 const batPlotTable = (department: string) =>
   `${schema(department)}.rel_batiment_groupe_parcelle`;
@@ -24,7 +25,7 @@ const loadSchema = async (department: string): Promise<void> => {
   const exec = require('child_process').exec;
 
   return new Promise((resolve) => {
-    exec(cmd, (error: any, stdout: any, stderr: any) => {
+    exec(cmd, async (error: any, stdout: any, stderr: any) => {
       if (error) {
         logger.error(`error: ${error.message}`);
       }
@@ -33,6 +34,12 @@ const loadSchema = async (department: string): Promise<void> => {
       }
 
       logger.info(`Loading done`);
+
+      logger.info(`Creating indexes...`);
+      await db.raw(`CREATE INDEX idx_batenergy_batiment_groupe_id ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(batiment_groupe_id);`);
+      await db.raw(`CREATE INDEX idx_batenergy_arrete_2021 ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(arrete_2021);`);
+      logger.info(`Indexes created`);
+
       resolve(stdout ? stdout : stderr);
     });
   });
@@ -56,7 +63,7 @@ const updateHousingEnergyConsumption = async (department: string) => {
         building_group_id = ${batEnergyTable(department)}.batiment_groupe_id
     FROM ${batPlotTable(department)}, ${batEnergyTable(department)}
     WHERE ${housingTable}.plot_id = ${batPlotTable(department)}.parcelle_id
-    AND ${batPlotTable(department)}.batiment_groupe_id 
+    AND ${batPlotTable(department)}.batiment_groupe_id
         = ${batEnergyTable(department)}.batiment_groupe_id
     AND plot_id is not null
     AND geo_code like '${department}%'

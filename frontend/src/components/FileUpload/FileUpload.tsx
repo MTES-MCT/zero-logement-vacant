@@ -1,5 +1,5 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
-import mime from 'mime/lite';
+import mime from 'mime';
 import React, { ReactNode } from 'react';
 
 import { useUploadFileMutation } from '../../services/file.service';

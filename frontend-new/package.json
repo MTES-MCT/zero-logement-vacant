@@ -7,12 +7,12 @@
   "packageManager": "yarn@4.1.1",
   "scripts": {
     "clean": "rimraf build",
-    "prebuild": "only-include-used-icons",
-    "build": "yarn clean && yarn prebuild && craco build",
-    "dev": "craco start",
+    "icons": "only-include-used-icons",
+    "build": "yarn clean && yarn run icons && craco build",
+    "predev": "only-include-used-icons",
+    "dev": "yarn run icons && craco start",
     "test": "craco test",
-    "postinstall": "copy-dsfr-to-public",
-    "prestart": "only-include-used-icons"
+    "postinstall": "copy-dsfr-to-public"
   },
   "browserslist": {
     "production": [

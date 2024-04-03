@@ -19,6 +19,8 @@ jobs:
           - 5432:5432
       redis:
         image: redis:7.2.4-alpine
+        ports:
+          - 6379:6379
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
@@ -53,8 +55,9 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           NODE_ENV: production
-          REDIS_USERNAME: redis
-          REDIS_PASSWORD: redis
+          REDIS_HOST: localhost
+          REDIS_USERNAME: ''
+          REDIS_PASSWORD: ''
           S3_ENDPOINT: s3
           S3_REGION: region
           S3_ACCESS_KEY_ID: key
@@ -85,4 +88,8 @@ jobs:
           CEREMA_API_AUTH_TOKEN: ''
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
+          REDIS_HOST: localhost
+          REDIS_USERNAME: ''
+          REDIS_PASSWORD: ''
+          LOG_LEVEL: fatal
           TZ: Etc/UTC

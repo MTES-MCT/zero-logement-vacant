@@ -214,6 +214,7 @@ describe('Draft API', () => {
         id: body.id,
         subject: payload.subject,
         body: payload.body,
+        logo: payload.logo,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,

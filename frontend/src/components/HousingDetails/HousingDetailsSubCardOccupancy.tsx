@@ -9,7 +9,6 @@ import {
 } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';
-import { useAppSelector } from '../../hooks/useStore';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { Event } from '../../models/Event';
@@ -24,9 +23,6 @@ interface Props {
 }
 
 function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
-  const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
-  );
 
   const lastOccupancyChange = lastOccupancyEvent
     ? getYear(lastOccupancyEvent.createdAt)

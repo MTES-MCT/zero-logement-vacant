@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { Col, Container, Row } from '../_dsfr';
+import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
-import Image from '../Image/Image';
 
 interface Props {
   value: string[];
@@ -33,15 +32,6 @@ function DraftSenderLogo(props: Readonly<Props>) {
       <Row spacing="mb-2w">
         <FileUpload hint="" label={null} onUpload={onUpload(1)} />
       </Row>
-      <Container as="section" fluid>
-        <Row gutters>
-          {files.map((file, i) => (
-            <Col>
-              <Image alt={`Logo ${i + 1}`} src={file} />
-            </Col>
-          ))}
-        </Row>
-      </Container>
     </Container>
   );
 }

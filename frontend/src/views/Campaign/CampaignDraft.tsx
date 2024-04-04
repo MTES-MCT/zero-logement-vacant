@@ -208,7 +208,7 @@ function CampaignDraft(props: Props) {
               />
             </Col>
           </Row>
-          <Row>
+          <Row spacing="mb-2w">
             <Col>
               <DraftBody
                 body={values.body}
@@ -218,7 +218,7 @@ function CampaignDraft(props: Props) {
               />
             </Col>
           </Row>
-          <Row spacing="mb-2w">
+          <Row>
             <Col n="7" offset="5">
               <DraftSignature
                 form={form}

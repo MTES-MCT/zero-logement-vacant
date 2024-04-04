@@ -165,12 +165,12 @@ function CampaignDraft(props: Props) {
               />
             </Col>
           </Row>
-          <Row>
+          <Row spacing="mb-2w">
             <Col>
               <DraftBody form={form} value={values.body} onChange={setBody} />
             </Col>
           </Row>
-          <Row spacing="mb-2w">
+          <Row>
             <Col n="7" offset="5">
               <DraftSignature
                 form={form}

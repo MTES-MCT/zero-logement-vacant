@@ -10,9 +10,9 @@ import FileUpload from '../FileUpload/FileUpload';
 import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
 
 export const signatureSchema = object({
-  firstName: string().required('Veuillez renseigner un prénom').trim(),
-  lastName: string().required('Veuillez renseigner un nom').trim(),
-  role: string().required('Veuillez renseigner une fonction').trim(),
+  signatoryFirstName: string().optional().nullable(),
+  signatoryLastName: string().optional().nullable(),
+  signatoryRole: string().optional().nullable(),
 });
 
 interface Props {
@@ -22,6 +22,9 @@ interface Props {
 }
 
 function DraftSignature(props: Props) {
+  const signatoryFirstName = props.value.signatoryFirstName ?? '';
+  const signatoryLastName = props.value.signatoryLastName ?? '';
+  const signatoryRole = props.value.signatoryRole ?? '';
 
   function onChange(key: keyof Sender): ChangeEventHandler {
     return (e: ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +54,7 @@ function DraftSignature(props: Props) {
             inputForm={props.form}
             inputKey="sender.signatoryLastName"
             label="Nom du signataire"
-            value={props.value.signatoryLastName}
+            value={signatoryLastName}
             onChange={onChange('signatoryLastName')}
           />
         </Col>
@@ -60,7 +63,7 @@ function DraftSignature(props: Props) {
             inputForm={props.form}
             inputKey="sender.signatoryFirstName"
             label="Prénom du signataire"
-            value={props.value.signatoryFirstName}
+            value={signatoryFirstName}
             onChange={onChange('signatoryFirstName')}
           />
         </Col>
@@ -69,7 +72,7 @@ function DraftSignature(props: Props) {
         inputForm={props.form}
         inputKey="sender.signatoryRole"
         label="Rôle du signataire"
-        value={props.value.signatoryRole}
+        value={signatoryRole}
         onChange={onChange('signatoryRole')}
       />
       <FileUpload onUpload={onFileUpload}/>

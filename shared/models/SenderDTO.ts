@@ -7,10 +7,10 @@ export interface SenderDTO {
   address: string;
   email: string | null;
   phone: string | null;
-  signatoryLastName: string;
-  signatoryFirstName: string;
-  signatoryRole: string;
-  signatoryFile: string;
+  signatoryLastName: string | null;
+  signatoryFirstName: string | null;
+  signatoryRole: string | null;
+  signatoryFile: string | null;
   createdAt: string;
   updatedAt: string;
 }

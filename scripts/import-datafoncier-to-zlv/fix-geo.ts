@@ -68,7 +68,6 @@ const main = async () => {
     const long = data[12];
     const lat = data[13];
 
-    console.log(uid_adresse, { long: parseFloat(long), lat: parseFloat(lat) });
     banData = banData.set(uid_adresse, { long: parseFloat(long), lat: parseFloat(lat) });
   })
   .on('end', async () => {

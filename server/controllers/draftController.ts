@@ -56,7 +56,7 @@ const partialDraftValidators: ValidationChain[] = [
   // .withMessage('logo must be an array of URL'),
 ];
 const senderValidators: ValidationChain[] = [
-  ...['name', 'service', 'firstName', 'lastName', 'address', 'signatoryLastName', 'signatoryFirstName', 'signatoryRole'].map((prop) =>
+  ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
     body(`sender.${prop}`)
       .isString()
       .withMessage(`${prop} must be a string`)
@@ -64,7 +64,7 @@ const senderValidators: ValidationChain[] = [
       .notEmpty()
       .withMessage(`${prop} is required`)
   ),
-  ...['email', 'phone', 'signatoryFile'].map((prop) =>
+  ...['email', 'phone', 'signatoryLastName', 'signatoryFirstName', 'signatoryRole', 'signatoryFile'].map((prop) =>
     body(`sender.${prop}`)
       .optional({ checkFalsy: true })
       .isString()

@@ -53,7 +53,9 @@ const config = convict<Config>({
     url: {
       env: 'DATABASE_URL',
       format: String,
-      default: isProduction ? null : 'postgresql://localhost:5432/zlv',
+      default: isProduction
+        ? null
+        : 'postgresql://postgres:postgres@localhost:5432/zerologementvacant',
       nullable: false,
     },
     pool: {

@@ -12,7 +12,8 @@
     "build": "yarn clean && tsc -b tsconfig.build.json && tsc-alias",
     "dev": "nodemon --watch src src/index.ts",
     "start": "node dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "db": "knex --knexfile=src/infra/database/knexfile.ts"
   },
   "dependencies": {
     "@godaddy/terminus": "^4.12.1",

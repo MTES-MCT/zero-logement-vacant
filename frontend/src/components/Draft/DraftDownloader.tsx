@@ -2,18 +2,18 @@ import Tile from '@codegouvfr/react-dsfr/Tile';
 
 import styles from './draft-downloader.module.scss';
 import { Campaign } from '../../models/Campaign';
+import config from '../../utils/config';
+import authService from '../../services/auth.service';
 
 interface Props {
   campaign: Campaign;
 }
 
 function DraftDownloader(props: Props) {
-  const description = props.campaign.file?.split('/').pop();
-  const link = props.campaign.file;
-
-  if (!link) {
-    return null;
-  }
+  const description = props.campaign.file?.split('/').pop()?.split('?')[0];
+  const link = `${config.apiEndpoint}/api/campaigns/${props.campaign.id}/download?x-access-token=${
+    authService.authHeader()?.['x-access-token']
+  }`;
 
   return (
     <Tile

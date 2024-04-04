@@ -16,7 +16,7 @@ export interface GroupPayloadDTO
   housing: {
     all: boolean;
     ids: string[];
-    // Should be HousingFiltersDTO
-    filters: any
+    // TODO: should be HousingFiltersDTO
+    filters: any;
   };
 }

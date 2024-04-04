@@ -57,7 +57,7 @@ const processRow = async (dfHousing: any) => {
       }
     }
   }
-  doProcess();
+  return doProcess();
 }
 
 const main = async () => {

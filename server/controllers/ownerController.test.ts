@@ -4,7 +4,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import { createServer } from '../server';
-import { tokenProvider, withAccessToken } from '../test/testUtils';
+import { tokenProvider } from '../test/testUtils';
 import {
   genAddressApi,
   genEstablishmentApi,
@@ -101,12 +101,11 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { status } = await withAccessToken(
-        request(app)
-          .put(testRoute(uuidv4()))
-          .send(payload)
-          .set('Content-Type', 'application/json')
-      );
+      const { status } = await request(app)
+        .put(testRoute(uuidv4()))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -155,7 +154,7 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
+          `${eventsTable}.id`,
         )
         .where({ owner_id: original.id });
       expect(events).toBeArrayOfSize(1);
@@ -190,7 +189,7 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
+          `${eventsTable}.id`,
         )
         .where({ owner_id: original.id });
       expect(events).toPartiallyContain<
@@ -226,7 +225,7 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
+          `${eventsTable}.id`,
         )
         .where({ owner_id: original.id });
       expect(events).toPartiallyContain<

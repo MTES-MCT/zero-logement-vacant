@@ -10,6 +10,12 @@ interface Config {
     host: string;
     port: number;
   };
+  db: {
+    url: string;
+    pool: {
+      max: number;
+    };
+  };
   log: {
     level: LogLevel;
   };
@@ -41,6 +47,21 @@ const config = convict<Config>({
       env: 'APP_PORT',
       format: 'port',
       default: 3001,
+    },
+  },
+  db: {
+    url: {
+      env: 'DATABASE_URL',
+      format: String,
+      default: isProduction ? null : 'postgresql://localhost:5432/zlv',
+      nullable: false,
+    },
+    pool: {
+      max: {
+        env: 'DATABASE_POOL_MAX',
+        format: 'int',
+        default: 10,
+      },
     },
   },
   log: {

@@ -23,6 +23,7 @@ const knexConfig: Knex.Config = {
   },
   seeds: {
     directory: path.join(__dirname, 'seeds', config.app.env),
+    timestampFilenamePrefix: true,
   },
 };
 

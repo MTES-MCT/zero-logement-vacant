@@ -4235,6 +4235,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/uuid@npm:^9":
+  version: 9.0.8
+  resolution: "@types/uuid@npm:9.0.8"
+  checksum: 10c0/b411b93054cb1d4361919579ef3508a1f12bf15b5fdd97337d3d351bece6c921b52b6daeef89b62340fd73fd60da407878432a1af777f40648cbe53a01723489
+  languageName: node
+  linkType: hard
+
 "@types/validator@npm:^13.7.7":
   version: 13.11.9
   resolution: "@types/validator@npm:13.11.9"
@@ -4749,6 +4756,7 @@ __metadata:
     "@sentry/integrations": "npm:^7.109.0"
     "@sentry/node": "npm:^7.109.0"
     "@tsconfig/node20": "npm:^20.1.4"
+    "@types/convict-format-with-validator": "npm:^6.0.2"
     "@types/jest": "npm:^29.5.12"
     "@types/jsonwebtoken": "npm:^8.5.5"
     "@types/lodash": "npm:^4.14.191"
@@ -4756,8 +4764,10 @@ __metadata:
     "@types/pg": "npm:^8.11.4"
     "@types/superagent": "npm:^8"
     "@types/supertest": "npm:^6"
+    "@types/uuid": "npm:^9"
     "@zerologementvacant/shared": "workspace:*"
     convict: "npm:^6.2.4"
+    convict-format-with-validator: "npm:^6.2.0"
     dotenv: "npm:^16.4.5"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
@@ -4776,6 +4786,7 @@ __metadata:
     tsc-alias: "npm:^1.8.8"
     tsconfig-paths: "npm:^4.2.0"
     typescript: "npm:^5.4.3"
+    uuid: "npm:^9.0.1"
   languageName: unknown
   linkType: soft
 
@@ -20433,6 +20444,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 10c0/bcbb807a917d374a49f475fae2e87fdca7da5e5530820ef53f65ba1d12131bd81a92ecf259cc7ce317cbe0f289e7d79fdfebcef9bfa3087c8c8a2fa304c9be54
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "uuid@npm:9.0.1"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 10c0/1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
   languageName: node
   linkType: hard
 

@@ -1,14 +1,54 @@
 import convict from 'convict';
+import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 
+dotenv.config({
+  path: path.join(__dirname, '..', '.env'),
+});
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+convict.addFormats(formats);
+convict.addFormat({
+  name: 'strict-boolean',
+  validate(val: any) {
+    return typeof val === 'string' && val === 'true';
+  },
+  coerce: (val: string): boolean => val === 'true',
+});
+convict.addFormat({
+  name: 'comma-separated string',
+  validate(val: any) {
+    return typeof val === 'string';
+  },
+  coerce(val: string): string[] {
+    return val.split(',').map((str) => str.trim());
+  },
+});
+
 interface Config {
   app: {
+    batchSize: number;
     env: 'development' | 'test' | 'production';
     host: string;
     port: number;
+  };
+  ban: {
+    api: {
+      endpoint: string;
+    };
+    update: {
+      pageSize: number;
+      delay: string;
+    };
+  };
+  datafoncier: {
+    api: string;
+    enabled: boolean;
+    token: string | null;
   };
   db: {
     url: string;
@@ -25,14 +65,13 @@ interface Config {
   };
 }
 
-dotenv.config({
-  path: path.join(__dirname, '..', '.env'),
-});
-
-const isProduction = process.env.NODE_ENV === 'production';
-
 const config = convict<Config>({
   app: {
+    batchSize: {
+      env: 'BATCH_SIZE',
+      format: 'int',
+      default: 1_000,
+    },
     env: {
       env: 'NODE_ENV',
       format: ['development', 'test', 'production'],
@@ -47,6 +86,46 @@ const config = convict<Config>({
       env: 'APP_PORT',
       format: 'port',
       default: 3001,
+    },
+  },
+  ban: {
+    api: {
+      endpoint: {
+        env: 'BAN_API_ENDPOINT',
+        format: 'url',
+        default: 'https://api-adresse.data.gouv.fr',
+      },
+    },
+    update: {
+      pageSize: {
+        env: 'BAN_UPDATE_PAGE_SIZE',
+        format: 'int',
+        default: 2_000,
+      },
+      delay: {
+        env: 'BAN_UPDATE_DELAY',
+        format: String,
+        default: '1 months',
+      },
+    },
+  },
+  datafoncier: {
+    api: {
+      env: 'DATAFONCIER_API',
+      format: String,
+      default: 'https://apidf-preprod.cerema.fr',
+    },
+    enabled: {
+      env: 'DATAFONCIER_ENABLED',
+      format: 'strict-boolean',
+      default: false,
+    },
+    token: {
+      env: 'DATAFONCIER_TOKEN',
+      format: String,
+      default: null,
+      nullable: true,
+      sensitive: true,
     },
   },
   db: {

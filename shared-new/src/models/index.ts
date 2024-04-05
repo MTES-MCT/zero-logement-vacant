@@ -1,6 +1,7 @@
 export * from './AdresseDTO';
 export * from './ContactPoint';
 export * from './DatafoncierHousing';
+export * from './DatafoncierOwner';
 export * from './Feature';
 export * from './GroupDTO';
 export * from './HousingDTO';

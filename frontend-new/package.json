@@ -9,8 +9,7 @@
     "clean": "rimraf build",
     "icons": "only-include-used-icons",
     "build": "yarn clean && yarn run icons && craco build",
-    "predev": "only-include-used-icons",
-    "dev": "yarn run icons && craco start",
+    "dev": "yarn icons && craco start",
     "test": "craco test",
     "postinstall": "copy-dsfr-to-public"
   },

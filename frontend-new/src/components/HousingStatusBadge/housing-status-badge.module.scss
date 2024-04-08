@@ -1,0 +1,27 @@
+.statusBadgeLabel {
+  vertical-align: middle;
+}
+
+.subStatusBadgeLabel {
+  vertical-align: middle;
+}
+
+
+.statusBadgeContainer {
+
+  & + .statusBadgeContainer {
+    margin-top: 0.5rem;
+  }
+
+}
+
+
+.statusBadgeContainerInline {
+
+  display: inline-block;
+  vertical-align: middle;
+
+  & + .statusBadgeContainerInline {
+    margin-left: 0.5rem;
+  }
+}

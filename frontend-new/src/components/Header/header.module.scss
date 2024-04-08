@@ -1,0 +1,11 @@
+.loading {
+  position: fixed;
+  top: 0;
+  background-color: var(--blue-france-113);
+  height: 2px;
+  z-index: 1000;
+}
+
+.navItemLink {
+  font-size: 1.125rem;
+}

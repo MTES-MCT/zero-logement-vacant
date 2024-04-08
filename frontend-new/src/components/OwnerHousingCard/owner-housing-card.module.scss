@@ -1,0 +1,11 @@
+.content > *:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+.link {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-weight: 500;
+  color: var(--blue-france-113);
+}

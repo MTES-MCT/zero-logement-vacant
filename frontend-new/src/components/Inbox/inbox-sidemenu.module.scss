@@ -1,0 +1,26 @@
+.callBack {
+  background-color: #bcd3fc;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  padding: 0.5rem 0.5rem 0 0.5rem;
+}
+
+.initials {
+  align-items: center;
+  background-color: var(--orange-terre-battue-925);
+  border-radius: 50%;
+  color: var(--orange-terre-battue-850-active);
+  display: inline-flex;
+  font-weight: 500;
+  justify-content: center;
+  height: 2.5rem;
+  margin-right: 0.5rem;
+  width: 2.5rem;
+}
+
+.message {
+  background-color: var(--grey-975);
+  flex-basis: calc(100% - 3rem);
+  max-width: calc(100% - 3rem);
+  padding: 1rem 2rem;
+}

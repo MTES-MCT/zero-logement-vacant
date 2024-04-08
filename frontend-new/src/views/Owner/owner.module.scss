@@ -1,0 +1,27 @@
+.bg-100 {
+  background-color: var(--grey-975);
+
+  h1 {
+    text-transform: capitalize;
+  }
+}
+
+.ownerHousing {
+  hr {
+    margin-right: 32px;
+  }
+}
+
+.header {
+  background-color: var(--white-1000);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tag {
+  color: var(--grey-425);
+  background-color: var(--grey-975);
+}

@@ -110,6 +110,10 @@ function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
     // Catch empty strings
     email: sender.email || null,
     phone: sender.phone || null,
+    signatoryLastName: sender.signatoryLastName || null,
+    signatoryFirstName: sender.signatoryFirstName || null,
+    signatoryRole: sender.signatoryRole || null,
+    signatoryFile: sender.signatoryFile || null,
   };
 }
 

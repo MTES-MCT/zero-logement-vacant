@@ -27,6 +27,7 @@ import DraftMailInfo, {
 } from '../../components/Draft/DraftMailInfo';
 import { DraftCreationPayload } from '../../models/Draft';
 import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
+import DraftSignature from '../../components/Draft/DraftSignature';
 
 const schema = yup
   .object({
@@ -64,6 +65,10 @@ function CampaignDraft(props: Props) {
       address: '',
       email: '',
       phone: '',
+      signatoryFirstName: '',
+      signatoryLastName: '',
+      signatoryRole: '',
+      signatoryFile: '',
     },
     writtenAt: '',
     writtenFrom: '',
@@ -126,6 +131,10 @@ function CampaignDraft(props: Props) {
 
   function setSender(sender: SenderPayload): void {
     setValues({ ...values, sender });
+  }
+
+  function setSignature(sender: SenderPayload): void {
+    setSender(sender);
   }
 
   function setWritten(written: Written): void {
@@ -199,13 +208,22 @@ function CampaignDraft(props: Props) {
               />
             </Col>
           </Row>
-          <Row>
+          <Row spacing="mb-2w">
             <Col>
               <DraftBody
                 body={values.body}
                 form={form}
                 subject={values.subject}
                 onChange={setBody}
+              />
+            </Col>
+          </Row>
+          <Row>
+            <Col n="7" offset="5">
+              <DraftSignature
+                form={form}
+                value={values.sender}
+                onChange={setSignature}
               />
             </Col>
           </Row>

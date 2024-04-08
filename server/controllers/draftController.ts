@@ -64,7 +64,7 @@ const senderValidators: ValidationChain[] = [
       .notEmpty()
       .withMessage(`${prop} is required`)
   ),
-  ...['email', 'phone'].map((prop) =>
+  ...['email', 'phone', 'signatoryLastName', 'signatoryFirstName', 'signatoryRole', 'signatoryFile'].map((prop) =>
     body(`sender.${prop}`)
       .optional({ checkFalsy: true })
       .isString()
